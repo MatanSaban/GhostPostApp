@@ -2547,5 +2547,34 @@
         "error": "Error"
       }
     }
+  },
+  "acceptInvite": {
+    "title": "You're Invited!",
+    "subtitle": "Accept this invitation to join",
+    "invalidToken": "Invalid or Expired Invitation",
+    "invalidTokenMessage": "This invitation link is invalid or has expired. Please contact the person who invited you to request a new invitation.",
+    "expiredToken": "Invitation Expired",
+    "expiredTokenMessage": "This invitation has expired. Please contact the person who invited you to request a new invitation.",
+    "alreadyAccepted": "Invitation Already Accepted",
+    "alreadyAcceptedMessage": "You have already accepted this invitation. You can log in to your account.",
+    "accountInfo": "Account Information",
+    "accountName": "Account",
+    "yourRole": "Your Role",
+    "invitedBy": "Invited By",
+    "existingUser": {
+      "title": "Welcome Back!",
+      "subtitle": "Sign in to accept your invitation"
+    },
+    "newUser": {
+      "title": "Create Your Account",
+      "subtitle": "Fill in your details to accept the invitation"
+    },
+    "success": {
+      "title": "Welcome to the Team!",
+      "subtitle": "You've successfully joined",
+      "goToDashboard": "Go to Dashboard"
+    },
+    "goToLogin": "Go to Login",
+    "requestNewInvite": "Request New Invite"
   }
 }

@@ -2545,5 +2545,34 @@
         "error": "שגיאה"
       }
     }
+  },
+  "acceptInvite": {
+    "title": "הוזמנת!",
+    "subtitle": "קבל/י את ההזמנה להצטרף",
+    "invalidToken": "הזמנה לא תקינה או פגה",
+    "invalidTokenMessage": "קישור ההזמנה אינו תקין או שפג תוקפו. אנא צור/י קשר עם מי שהזמין אותך כדי לבקש הזמנה חדשה.",
+    "expiredToken": "ההזמנה פגה",
+    "expiredTokenMessage": "תוקף ההזמנה פג. אנא צור/י קשר עם מי שהזמין אותך כדי לבקש הזמנה חדשה.",
+    "alreadyAccepted": "ההזמנה כבר התקבלה",
+    "alreadyAcceptedMessage": "כבר קיבלת את ההזמנה הזו. ניתן להתחבר לחשבון שלך.",
+    "accountInfo": "פרטי החשבון",
+    "accountName": "חשבון",
+    "yourRole": "התפקיד שלך",
+    "invitedBy": "הוזמנת על ידי",
+    "existingUser": {
+      "title": "ברוך שובך!",
+      "subtitle": "התחבר/י כדי לקבל את ההזמנה"
+    },
+    "newUser": {
+      "title": "צור/י את החשבון שלך",
+      "subtitle": "מלא/י את הפרטים כדי לקבל את ההזמנה"
+    },
+    "success": {
+      "title": "ברוך הבא לצוות!",
+      "subtitle": "הצטרפת בהצלחה ל",
+      "goToDashboard": "מעבר ללוח הבקרה"
+    },
+    "goToLogin": "מעבר להתחברות",
+    "requestNewInvite": "בקש/י הזמנה חדשה"
   }
 }

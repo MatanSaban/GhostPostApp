@@ -39,7 +39,7 @@
 .authCard {
   position: relative;
   width: 100%;
-  max-width: 440px;
+  max-width: 600px;
   padding: 2.5rem;
   background: var(--card);
   border: 1px solid var(--border);
@@ -84,6 +84,20 @@
   justify-content: center;
   gap: 0.75rem;
   margin-bottom: 1.5rem;
+  direction: ltr; /* Always show icon left, text right */
+}
+
+.fixedLogo {
+  position: absolute;
+  top: 50px;
+  left: 50px;
+  margin-bottom: 0;
+  z-index: 10;
+  
+  @media (max-width: 767px) {
+    top: 30px;
+    left: 30px;
+  }
 }
 
 .logoIcon {
@@ -97,6 +111,13 @@
   color: white;
   font-size: 1.5rem;
   font-weight: 600;
+}
+
+.logoImage {
+  width: 48px;
+  height: 48px;
+  object-fit: contain;
+  filter: drop-shadow(0 2px 8px rgba(123, 44, 191, 0.3));
 }
 
 .logoText {
@@ -1777,3 +1798,318 @@
   }
 }
 
+/* Accept Invite Styles */
+
+/* Accept Invite specific container - allows scrolling */
+.acceptInviteContainer {
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  align-items: safe center;
+  justify-content: center;
+  padding: 2rem;
+  background: var(--background);
+  position: relative;
+  overflow-x: hidden;
+  overflow-y: auto;
+
+  &::before {
+    content: '';
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 150vmax;
+    height: 150vmax;
+    background: radial-gradient(
+      ellipse at center,
+      rgba(123, 44, 191, 0.1) 0%,
+      transparent 50%
+    );
+    animation: rotate 30s linear infinite;
+    pointer-events: none;
+  }
+}
+
+/* Accept Invite specific card - wider */
+.acceptInviteCard {
+  position: relative;
+  width: 90%;
+  max-width: 90%;
+  margin: auto;
+  padding: 2.5rem;
+  padding-top: 120px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-2xl);
+  box-shadow: var(--shadow-lg);
+  z-index: 1;
+
+  @media (min-width: 768px) {
+    width: 50%;
+    max-width: 50%;
+  }
+
+  .dark & {
+    background: linear-gradient(
+      135deg,
+      rgba(26, 15, 46, 0.9) 0%,
+      rgba(15, 15, 26, 0.95) 50%,
+      rgba(10, 10, 10, 0.98) 100%
+    );
+    border-color: rgba(123, 44, 191, 0.3);
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+  }
+}
+
+.acceptInviteLoading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  padding: 3rem 0;
+  color: var(--muted-foreground);
+
+  .spinner {
+    animation: spin 1s linear infinite;
+  }
+}
+
+.acceptInviteError,
+.acceptInviteInfo,
+.acceptInviteSuccess {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 1rem;
+  padding: 2rem 0;
+
+  h2 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--foreground);
+    margin: 0;
+  }
+
+  p {
+    color: var(--muted-foreground);
+    line-height: 1.6;
+    margin: 0;
+    max-width: 320px;
+  }
+}
+
+.errorIcon {
+  color: var(--error);
+}
+
+.successIcon {
+  color: var(--success);
+}
+
+.acceptInviteValid {
+  h2 {
+    margin-bottom: 0.5rem;
+  }
+}
+
+.inviteInfoCard {
+  background: var(--muted);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 1.25rem;
+  margin: 1.5rem 0;
+
+  .dark & {
+    background: rgba(0, 0, 0, 0.3);
+    border-color: rgba(123, 44, 191, 0.2);
+  }
+
+  h3 {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--muted-foreground);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 1rem;
+  }
+}
+
+.inviteInfoRow {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0;
+  color: var(--foreground);
+
+  &:not(:last-child) {
+    border-bottom: 1px solid var(--border);
+  }
+
+  svg {
+    color: var(--primary);
+    flex-shrink: 0;
+  }
+
+  span {
+    color: var(--muted-foreground);
+  }
+
+  strong {
+    margin-inline-start: auto;
+    font-weight: 500;
+  }
+}
+
+.formSectionTitle {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--foreground);
+  margin: 1.5rem 0 0.25rem;
+}
+
+.formSectionSubtitle {
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+  margin-bottom: 1rem;
+}
+
+.disabledInput {
+  background: var(--muted);
+  cursor: not-allowed;
+  opacity: 0.7;
+
+  .dark & {
+    background: rgba(0, 0, 0, 0.3);
+  }
+}
+
+.forgotPasswordLink {
+  display: inline-block;
+  font-size: 0.813rem;
+  color: var(--primary);
+  text-decoration: none;
+  margin-top: 0.5rem;
+  transition: color var(--transition-fast);
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+.authBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.875rem 1.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+  color: white;
+  background: var(--gradient-primary);
+  border: none;
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  text-decoration: none;
+  transition: all var(--transition-fast);
+  margin-top: 1rem;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-purple);
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+  }
+}
+
+.authTitle {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--foreground);
+  text-align: center;
+  margin: 0;
+}
+
+.authSubtitle {
+  font-size: 0.938rem;
+  color: var(--muted-foreground);
+  text-align: center;
+  margin: 0.25rem 0 0;
+}
+
+.authError {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: var(--radius-md);
+  color: var(--error);
+  font-size: 0.875rem;
+  margin: 1rem 0;
+
+  svg {
+    flex-shrink: 0;
+  }
+}
+
+.inputWrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+
+  input {
+    width: 100%;
+    padding: 0.875rem 1rem 0.875rem 2.75rem;
+    font-size: 0.875rem;
+    color: var(--foreground);
+    background: var(--input-background);
+    border: 1px solid var(--input-border);
+    border-radius: var(--radius-lg);
+    transition: all var(--transition-fast);
+
+    &::placeholder {
+      color: var(--muted-foreground);
+      opacity: 0.7;
+    }
+
+    &:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(123, 44, 191, 0.15);
+    }
+
+    .dark & {
+      background: rgba(0, 0, 0, 0.4);
+      border-color: rgba(123, 44, 191, 0.3);
+
+      &:focus {
+        border-color: var(--accent);
+        box-shadow: 0 0 0 3px rgba(0, 255, 157, 0.15);
+      }
+    }
+
+    [dir="rtl"] & {
+      padding: 0.875rem 2.75rem 0.875rem 1rem;
+    }
+  }
+}
+
+.inputIcon {
+  position: absolute;
+  left: 0.875rem;
+  color: var(--muted-foreground);
+  pointer-events: none;
+  z-index: 1;
+
+  [dir="rtl"] & {
+    left: auto;
+    right: 0.875rem;
+  }
+}

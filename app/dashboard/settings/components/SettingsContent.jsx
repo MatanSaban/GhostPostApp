@@ -1055,11 +1055,18 @@ function UsersSettings({ translations, canEdit = true }) {
   const [isLoading, setIsLoading] = useState(true);
   const [inviteEmail, setInviteEmail] = useState('');
   const [inviteRoleId, setInviteRoleId] = useState('');
+  const [inviteLanguage, setInviteLanguage] = useState('EN');
   const [isInviting, setIsInviting] = useState(false);
   const [showConfirmRemove, setShowConfirmRemove] = useState(null);
   const [showChangeRole, setShowChangeRole] = useState(null);
   const [selectedNewRoleId, setSelectedNewRoleId] = useState('');
   const [actionLoading, setActionLoading] = useState(null);
+  
+  // Available languages for email
+  const emailLanguages = [
+    { value: 'EN', label: 'English' },
+    { value: 'HE', label: 'עברית' },
+  ];
 
   // Fetch members and roles on mount
   useEffect(() => {
@@ -1069,9 +1076,10 @@ function UsersSettings({ translations, canEdit = true }) {
   const fetchData = async () => {
     try {
       setIsLoading(true);
-      const [membersRes, rolesRes] = await Promise.all([
+      const [membersRes, rolesRes, accountRes] = await Promise.all([
         fetch('/api/settings/users'),
         fetch('/api/settings/roles'),
+        fetch('/api/settings/general'),
       ]);
       
       if (membersRes.ok) {
@@ -1086,6 +1094,14 @@ function UsersSettings({ translations, canEdit = true }) {
         const defaultRole = data.roles?.find(r => r.name !== 'Owner');
         if (defaultRole) {
           setInviteRoleId(defaultRole.id);
+        }
+      }
+      
+      // Set default invite language from account settings
+      if (accountRes.ok) {
+        const accountData = await accountRes.json();
+        if (accountData.settings?.defaultLanguage) {
+          setInviteLanguage(accountData.settings.defaultLanguage);
         }
       }
     } catch (error) {
@@ -1104,7 +1120,11 @@ function UsersSettings({ translations, canEdit = true }) {
       const res = await fetch('/api/settings/users/invite', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: inviteEmail, roleId: inviteRoleId }),
+        body: JSON.stringify({ 
+          email: inviteEmail, 
+          roleId: inviteRoleId,
+          language: inviteLanguage,
+        }),
       });
 
       if (res.ok) {
@@ -1297,6 +1317,18 @@ function UsersSettings({ translations, canEdit = true }) {
                 {roles.filter(r => r.name !== 'Owner').map((role) => (
                   <option key={role.id} value={role.id}>
                     {getRoleLabel(role.name)}
+                  </option>
+                ))}
+              </select>
+              <select
+                value={inviteLanguage}
+                onChange={(e) => setInviteLanguage(e.target.value)}
+                className={styles.languageSelect}
+                title={us.emailLanguage || 'Email language'}
+              >
+                {emailLanguages.map((lang) => (
+                  <option key={lang.value} value={lang.value}>
+                    {lang.label}
                   </option>
                 ))}
               </select>

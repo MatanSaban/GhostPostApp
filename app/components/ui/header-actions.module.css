@@ -1,0 +1,16 @@
+.headerActions {
+  position: absolute;
+  top: 50px;
+  right: 50px;
+  left: auto;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 0.75rem;
+  z-index: 10;
+  
+  @media (max-width: 767px) {
+    top: 30px;
+    right: 30px;
+  }
+}

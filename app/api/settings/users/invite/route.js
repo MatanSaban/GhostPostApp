@@ -20,7 +20,7 @@ export async function POST(request) {
     }
 
     const body = await request.json();
-    const { email, roleId } = body;
+    const { email, roleId, language = 'EN' } = body;
 
     // Validate email
     if (!email || typeof email !== 'string' || !email.includes('@')) {
@@ -46,7 +46,12 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Cannot invite users as Owner' }, { status: 400 });
     }
 
-    // Check if user is already a member or has a pending invite
+    // Check if user already exists in the system
+    const existingUser = await prisma.user.findUnique({
+      where: { email: normalizedEmail },
+    });
+
+    // Check if there's an existing member record (including removed ones)
     const existingMember = await prisma.accountMember.findFirst({
       where: {
         accountId: member.accountId,
@@ -54,7 +59,6 @@ export async function POST(request) {
           { inviteEmail: normalizedEmail },
           { user: { email: normalizedEmail } },
         ],
-        status: { not: 'REMOVED' },
       },
     });
 
@@ -62,16 +66,97 @@ export async function POST(request) {
       if (existingMember.status === 'PENDING') {
         return NextResponse.json({ error: 'An invite has already been sent to this email' }, { status: 400 });
       }
-      return NextResponse.json({ error: 'This user is already a member of the account' }, { status: 400 });
-    }
+      if (existingMember.status === 'ACTIVE') {
+        return NextResponse.json({ error: 'This user is already a member of the account' }, { status: 400 });
+      }
+      if (existingMember.status === 'SUSPENDED') {
+        return NextResponse.json({ error: 'This user is suspended. Use the activate action instead.' }, { status: 400 });
+      }
+      
+      // REMOVED status - reactivate with new invite
+      const inviteToken = crypto.randomBytes(32).toString('hex');
+      
+      const inviteLanguageCode = (body.language || 'EN').toUpperCase();
+      
+      const reactivatedMember = await prisma.accountMember.update({
+        where: { id: existingMember.id },
+        data: {
+          roleId: roleId,
+          invitedBy: member.userId,
+          invitedAt: new Date(),
+          inviteEmail: normalizedEmail,
+          inviteToken: inviteToken,
+          inviteLanguage: inviteLanguageCode,
+          status: 'PENDING',
+          userId: existingUser?.id || null,
+        },
+        include: {
+          user: {
+            select: {
+              id: true,
+              email: true,
+              firstName: true,
+              lastName: true,
+            },
+          },
+          role: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
+          account: {
+            select: {
+              name: true,
+            },
+          },
+        },
+      });
 
-    // Check if user already exists in the system
-    const existingUser = await prisma.user.findUnique({
-      where: { email: normalizedEmail },
-    });
+      // Get inviter's name for the email
+      const inviter = await prisma.user.findUnique({
+        where: { id: member.userId },
+        select: { firstName: true, lastName: true, email: true },
+      });
+      const inviterName = inviter?.firstName && inviter?.lastName 
+        ? `${inviter.firstName} ${inviter.lastName}` 
+        : inviter?.email || 'Someone';
+
+      // Build invite URL
+      const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+      const inviteUrl = `${baseUrl}/auth/accept-invite?token=${inviteToken}`;
+
+      // Send invitation email
+      const emailContent = emailTemplates.invitation({
+        accountName: reactivatedMember.account.name || 'Ghost Post',
+        inviterName,
+        inviteUrl,
+        roleName: reactivatedMember.role.name,
+        language: (body.language || 'EN').toUpperCase(),
+      });
+
+      await sendEmail({
+        to: normalizedEmail,
+        subject: emailContent.subject,
+        html: emailContent.html,
+        text: emailContent.text,
+      });
+
+      return NextResponse.json({
+        success: true,
+        member: {
+          id: reactivatedMember.id,
+          email: normalizedEmail,
+          status: reactivatedMember.status,
+          role: reactivatedMember.role,
+          invitedAt: reactivatedMember.invitedAt?.toISOString(),
+        },
+      });
+    }
 
     // Generate a unique invite token
     const inviteToken = crypto.randomBytes(32).toString('hex');
+    const inviteLanguageCode = (language || 'EN').toUpperCase();
 
     // Create the pending member record
     const newMember = await prisma.accountMember.create({
@@ -83,6 +168,7 @@ export async function POST(request) {
         invitedAt: new Date(),
         inviteEmail: normalizedEmail,
         inviteToken: inviteToken,
+        inviteLanguage: inviteLanguageCode,
         status: 'PENDING',
       },
       include: {
@@ -119,7 +205,7 @@ export async function POST(request) {
 
     // Build invite URL
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
-    const inviteUrl = `${baseUrl}/accept-invite?token=${inviteToken}`;
+    const inviteUrl = `${baseUrl}/auth/accept-invite?token=${inviteToken}`;
 
     // Send invitation email
     const emailContent = emailTemplates.invitation({
@@ -127,6 +213,7 @@ export async function POST(request) {
       inviterName,
       inviteUrl,
       roleName: newMember.role.name,
+      language: language.toUpperCase(),
     });
 
     await sendEmail({

@@ -68,7 +68,7 @@ enum Permission {
   MEMBERS_VIEW
   MEMBERS_INVITE
   MEMBERS_EDIT
-  MEMBERS_REMOVE
+  MEMBERS_DELETE
 
   // Role Management
   ROLES_VIEW
@@ -161,6 +161,7 @@ model AccountMember {
   invitedAt          DateTime?
   inviteEmail        String?                             // Email for pending invites
   inviteToken        String?           @unique           // Token for accepting invite
+  inviteLanguage     String?                             // Language code for invite email (EN, HE, etc.)
   joinedAt           DateTime          @default(now())
   status             MemberStatus      @default(ACTIVE)
 

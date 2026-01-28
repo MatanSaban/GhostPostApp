@@ -31,6 +31,12 @@ export async function POST(request, { params }) {
         account: {
           select: {
             name: true,
+            defaultLanguage: true,
+          },
+        },
+        role: {
+          select: {
+            name: true,
           },
         },
       },
@@ -61,16 +67,23 @@ export async function POST(request, { params }) {
     // Get inviter name for the email
     const inviter = await prisma.user.findUnique({
       where: { id: member.userId },
-      select: { name: true },
+      select: { firstName: true, lastName: true, email: true },
     });
-    const inviterName = inviter?.name || 'A team member';
+    const inviterName = inviter?.firstName && inviter?.lastName 
+      ? `${inviter.firstName} ${inviter.lastName}` 
+      : inviter?.email || 'A team member';
+
+    // Use account's default language for the email
+    const language = targetMember.account.defaultLanguage || 'EN';
 
     // Send invitation email
-    const inviteUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/accept-invite?token=${newToken}`;
-    const { subject, html } = emailTemplates.invitation({
+    const inviteUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/auth/accept-invite?token=${newToken}`;
+    const { subject, html, text } = emailTemplates.invitation({
       accountName: targetMember.account.name,
       inviterName,
       inviteUrl,
+      roleName: targetMember.role?.name || 'Member',
+      language,
     });
 
     await sendEmail({

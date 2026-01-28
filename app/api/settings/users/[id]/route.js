@@ -133,12 +133,11 @@ export async function DELETE(request, { params }) {
     }
 
     // Mark as removed (soft delete)
+    // Note: We don't clear inviteToken because the unique index includes null values
+    // The REMOVED status is sufficient to prevent access
     await prisma.accountMember.update({
       where: { id: memberId },
-      data: { 
-        status: 'REMOVED',
-        inviteToken: null, // Clear invite token if any
-      },
+      data: { status: 'REMOVED' },
     });
 
     return NextResponse.json({ success: true });
