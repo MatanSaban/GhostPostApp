@@ -12,4 +12,3 @@ export const config = {
     '/((?!_next|api|static|.*\\..*).*)',
   ],
 };
-};
