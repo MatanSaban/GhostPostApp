@@ -1,9 +1,27 @@
 // Server-side i18n utilities for Ghost Post Platform
-import { cookies } from 'next/headers';
+import { cookies, headers } from 'next/headers';
 import { defaultLocale, locales, isRtlLocale, getDirection } from './config';
 
 // Dictionary cache for server-side
 const dictionaryCache = {};
+
+/**
+ * Get default locale based on domain
+ * app.ghostpost.co.il → Hebrew (he)
+ * app.ghostpost.com → English (en)
+ */
+async function getDefaultLocaleForDomain() {
+  try {
+    const headersList = await headers();
+    const host = headersList.get('host') || '';
+    if (host.includes('ghostpost.co.il')) {
+      return 'he';
+    }
+  } catch (error) {
+    // Headers not available, use config default
+  }
+  return defaultLocale;
+}
 
 /**
  * Get dictionary for a locale (server-side)
@@ -30,12 +48,18 @@ export async function getDictionary(locale) {
 
 /**
  * Get current locale from cookies (server-side)
+ * Falls back to domain-based default if no cookie is set
  */
 export async function getLocale() {
   const cookieStore = await cookies();
   const localeCookie = cookieStore.get('ghost-post-locale');
-  const locale = localeCookie?.value || defaultLocale;
-  return locales.includes(locale) ? locale : defaultLocale;
+  
+  if (localeCookie?.value && locales.includes(localeCookie.value)) {
+    return localeCookie.value;
+  }
+  
+  // No cookie or invalid value - use domain-based default
+  return await getDefaultLocaleForDomain();
 }
 
 /**
