@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, use } from 'react';
 import { FileText, Newspaper, FolderKanban, Briefcase, Package, MoreHorizontal, Database } from 'lucide-react';
 import { useLocale } from '@/app/context/locale-context';
 import { useSite } from '@/app/context/site-context';
@@ -18,7 +18,7 @@ const TYPE_ICONS = {
 };
 
 export default function EntityTypePage({ params }) {
-  const { type } = params;
+  const { type } = use(params);
   const { t } = useLocale();
   const { selectedSite } = useSite();
   

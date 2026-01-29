@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import prisma from '@/lib/prisma';
 import JSZip from 'jszip';
+import { PLUGIN_VERSION } from '@/app/api/plugin/version';
 
 const SESSION_COOKIE = 'user_session';
 
@@ -18,6 +19,7 @@ import { getClassMediaManager } from './plugin-templates/class-media-manager';
 import { getClassSeoManager } from './plugin-templates/class-seo-manager';
 import { getClassCptManager } from './plugin-templates/class-cpt-manager';
 import { getClassAcfManager } from './plugin-templates/class-acf-manager';
+import { getClassUpdater } from './plugin-templates/class-updater';
 import { getAdminPage } from './plugin-templates/admin-page';
 import { getAdminCss } from './plugin-templates/admin-css';
 
@@ -104,8 +106,8 @@ export async function GET(request, { params }) {
     // Use dedicated plugin API URL, fall back to base URL, then default to production
     const apiUrl = process.env.GP_PLUGIN_API_URL || process.env.NEXT_PUBLIC_BASE_URL || 'https://app.ghostpost.co.il';
 
-    // Main plugin file
-    pluginFolder.file('ghost-post-connector.php', getPluginMainFile());
+    // Main plugin file (with current version from centralized config)
+    pluginFolder.file('ghost-post-connector.php', getPluginMainFile(PLUGIN_VERSION));
 
     // Config file with site-specific values
     pluginFolder.file('includes/config.php', getPluginConfigFile({
@@ -117,7 +119,7 @@ export async function GET(request, { params }) {
     }));
 
     // Other plugin files
-    pluginFolder.file('readme.txt', getPluginReadme());
+    pluginFolder.file('readme.txt', getPluginReadme(PLUGIN_VERSION));
     pluginFolder.file('uninstall.php', getPluginUninstall());
     
     // Includes folder
@@ -129,6 +131,7 @@ export async function GET(request, { params }) {
     pluginFolder.file('includes/class-gp-seo-manager.php', getClassSeoManager());
     pluginFolder.file('includes/class-gp-cpt-manager.php', getClassCptManager());
     pluginFolder.file('includes/class-gp-acf-manager.php', getClassAcfManager());
+    pluginFolder.file('includes/class-gp-updater.php', getClassUpdater());
 
     // Admin folder
     pluginFolder.file('admin/views/settings-page.php', getAdminPage());

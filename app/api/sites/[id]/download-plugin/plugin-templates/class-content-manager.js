@@ -306,9 +306,290 @@ class GP_Content_Manager {
             
             // Get all meta
             $data['meta'] = get_post_meta($post->ID);
+            
+            // Get ACF fields if available
+            $data['acf'] = $this->get_acf_fields($post->ID);
+            
+            // Get SEO data (Yoast or RankMath)
+            $data['seo'] = $this->get_seo_data($post->ID);
         }
         
         return $data;
+    }
+    
+    /**
+     * Get ACF fields for a post with field info
+     * 
+     * @param int $post_id
+     * @return array|null
+     */
+    private function get_acf_fields($post_id) {
+        if (!function_exists('get_fields') || !function_exists('get_field_objects')) {
+            return null;
+        }
+        
+        $field_objects = get_field_objects($post_id);
+        if (!$field_objects) {
+            return null;
+        }
+        
+        $acf_data = array(
+            'fields' => array(),
+            'groups' => array(),
+        );
+        
+        foreach ($field_objects as $field_name => $field) {
+            $field_data = array(
+                'key' => $field['key'],
+                'name' => $field['name'],
+                'label' => $field['label'],
+                'type' => $field['type'],
+                'value' => $field['value'],
+                'required' => !empty($field['required']),
+                'instructions' => $field['instructions'] ?? '',
+            );
+            
+            // Add type-specific configuration
+            switch ($field['type']) {
+                case 'text':
+                case 'textarea':
+                case 'email':
+                case 'url':
+                case 'password':
+                    $field_data['placeholder'] = $field['placeholder'] ?? '';
+                    $field_data['maxlength'] = $field['maxlength'] ?? null;
+                    break;
+                    
+                case 'number':
+                case 'range':
+                    $field_data['min'] = $field['min'] ?? null;
+                    $field_data['max'] = $field['max'] ?? null;
+                    $field_data['step'] = $field['step'] ?? null;
+                    break;
+                    
+                case 'wysiwyg':
+                    $field_data['tabs'] = $field['tabs'] ?? 'all';
+                    $field_data['toolbar'] = $field['toolbar'] ?? 'full';
+                    $field_data['media_upload'] = $field['media_upload'] ?? true;
+                    break;
+                    
+                case 'select':
+                case 'checkbox':
+                case 'radio':
+                case 'button_group':
+                    $field_data['choices'] = $field['choices'] ?? array();
+                    $field_data['multiple'] = $field['multiple'] ?? false;
+                    $field_data['allow_null'] = $field['allow_null'] ?? false;
+                    break;
+                    
+                case 'true_false':
+                    $field_data['default_value'] = $field['default_value'] ?? false;
+                    $field_data['ui'] = $field['ui'] ?? false;
+                    $field_data['ui_on_text'] = $field['ui_on_text'] ?? '';
+                    $field_data['ui_off_text'] = $field['ui_off_text'] ?? '';
+                    break;
+                    
+                case 'image':
+                case 'file':
+                case 'gallery':
+                    $field_data['return_format'] = $field['return_format'] ?? 'array';
+                    $field_data['preview_size'] = $field['preview_size'] ?? 'medium';
+                    $field_data['library'] = $field['library'] ?? 'all';
+                    // Format value for display
+                    if ($field['type'] === 'image' && is_array($field['value'])) {
+                        $field_data['value'] = array(
+                            'id' => $field['value']['ID'] ?? $field['value']['id'] ?? null,
+                            'url' => $field['value']['url'] ?? null,
+                            'alt' => $field['value']['alt'] ?? '',
+                            'title' => $field['value']['title'] ?? '',
+                            'sizes' => $field['value']['sizes'] ?? array(),
+                        );
+                    }
+                    break;
+                    
+                case 'link':
+                    $field_data['return_format'] = $field['return_format'] ?? 'array';
+                    break;
+                    
+                case 'date_picker':
+                case 'date_time_picker':
+                case 'time_picker':
+                    $field_data['display_format'] = $field['display_format'] ?? '';
+                    $field_data['return_format'] = $field['return_format'] ?? '';
+                    break;
+                    
+                case 'color_picker':
+                    $field_data['default_value'] = $field['default_value'] ?? '';
+                    $field_data['enable_opacity'] = $field['enable_opacity'] ?? false;
+                    break;
+                    
+                case 'repeater':
+                    $field_data['min'] = $field['min'] ?? 0;
+                    $field_data['max'] = $field['max'] ?? 0;
+                    $field_data['layout'] = $field['layout'] ?? 'table';
+                    $field_data['sub_fields'] = $this->format_sub_fields($field['sub_fields'] ?? array());
+                    break;
+                    
+                case 'flexible_content':
+                    $field_data['layouts'] = array();
+                    foreach (($field['layouts'] ?? array()) as $layout) {
+                        $field_data['layouts'][] = array(
+                            'name' => $layout['name'],
+                            'label' => $layout['label'],
+                            'sub_fields' => $this->format_sub_fields($layout['sub_fields'] ?? array()),
+                        );
+                    }
+                    break;
+                    
+                case 'group':
+                    $field_data['sub_fields'] = $this->format_sub_fields($field['sub_fields'] ?? array());
+                    break;
+                    
+                case 'relationship':
+                case 'post_object':
+                    $field_data['post_type'] = $field['post_type'] ?? array();
+                    $field_data['multiple'] = $field['multiple'] ?? false;
+                    break;
+                    
+                case 'taxonomy':
+                    $field_data['taxonomy'] = $field['taxonomy'] ?? '';
+                    $field_data['field_type'] = $field['field_type'] ?? 'checkbox';
+                    $field_data['allow_null'] = $field['allow_null'] ?? false;
+                    $field_data['multiple'] = $field['multiple'] ?? false;
+                    break;
+                    
+                case 'user':
+                    $field_data['role'] = $field['role'] ?? array();
+                    $field_data['multiple'] = $field['multiple'] ?? false;
+                    break;
+            }
+            
+            $acf_data['fields'][$field_name] = $field_data;
+            
+            // Track field group
+            if (!empty($field['parent'])) {
+                $group_key = $field['parent'];
+                if (!isset($acf_data['groups'][$group_key])) {
+                    $group = acf_get_field_group($group_key);
+                    if ($group) {
+                        $acf_data['groups'][$group_key] = array(
+                            'key' => $group['key'],
+                            'title' => $group['title'],
+                        );
+                    }
+                }
+            }
+        }
+        
+        return $acf_data;
+    }
+    
+    /**
+     * Format sub fields for repeater/flexible/group
+     */
+    private function format_sub_fields($sub_fields) {
+        $formatted = array();
+        foreach ($sub_fields as $sf) {
+            $formatted[] = array(
+                'key' => $sf['key'],
+                'name' => $sf['name'],
+                'label' => $sf['label'],
+                'type' => $sf['type'],
+                'required' => !empty($sf['required']),
+            );
+        }
+        return $formatted;
+    }
+    
+    /**
+     * Get SEO data from Yoast or RankMath
+     * 
+     * @param int $post_id
+     * @return array|null
+     */
+    private function get_seo_data($post_id) {
+        $seo_data = array(
+            'plugin' => null,
+            'title' => null,
+            'description' => null,
+            'focusKeyword' => null,
+            'canonical' => null,
+            'robots' => array(),
+            'og' => array(),
+            'twitter' => array(),
+            'schema' => null,
+        );
+        
+        // Check for Yoast SEO
+        if (defined('WPSEO_VERSION')) {
+            $seo_data['plugin'] = 'yoast';
+            $seo_data['version'] = WPSEO_VERSION;
+            $seo_data['title'] = get_post_meta($post_id, '_yoast_wpseo_title', true);
+            $seo_data['description'] = get_post_meta($post_id, '_yoast_wpseo_metadesc', true);
+            $seo_data['focusKeyword'] = get_post_meta($post_id, '_yoast_wpseo_focuskw', true);
+            $seo_data['canonical'] = get_post_meta($post_id, '_yoast_wpseo_canonical', true);
+            
+            // Robots
+            $robots_index = get_post_meta($post_id, '_yoast_wpseo_meta-robots-noindex', true);
+            $robots_follow = get_post_meta($post_id, '_yoast_wpseo_meta-robots-nofollow', true);
+            $seo_data['robots']['index'] = $robots_index !== '1';
+            $seo_data['robots']['follow'] = $robots_follow !== '1';
+            
+            // Open Graph
+            $seo_data['og']['title'] = get_post_meta($post_id, '_yoast_wpseo_opengraph-title', true);
+            $seo_data['og']['description'] = get_post_meta($post_id, '_yoast_wpseo_opengraph-description', true);
+            $seo_data['og']['image'] = get_post_meta($post_id, '_yoast_wpseo_opengraph-image', true);
+            
+            // Twitter
+            $seo_data['twitter']['title'] = get_post_meta($post_id, '_yoast_wpseo_twitter-title', true);
+            $seo_data['twitter']['description'] = get_post_meta($post_id, '_yoast_wpseo_twitter-description', true);
+            $seo_data['twitter']['image'] = get_post_meta($post_id, '_yoast_wpseo_twitter-image', true);
+            
+            // Schema
+            $schema = get_post_meta($post_id, '_yoast_wpseo_schema_page_type', true);
+            if ($schema) {
+                $seo_data['schema'] = array('pageType' => $schema);
+            }
+            
+            return $seo_data;
+        }
+        
+        // Check for RankMath
+        if (defined('RANK_MATH_VERSION')) {
+            $seo_data['plugin'] = 'rankmath';
+            $seo_data['version'] = RANK_MATH_VERSION;
+            $seo_data['title'] = get_post_meta($post_id, 'rank_math_title', true);
+            $seo_data['description'] = get_post_meta($post_id, 'rank_math_description', true);
+            $seo_data['focusKeyword'] = get_post_meta($post_id, 'rank_math_focus_keyword', true);
+            $seo_data['canonical'] = get_post_meta($post_id, 'rank_math_canonical_url', true);
+            
+            // Robots
+            $robots = get_post_meta($post_id, 'rank_math_robots', true);
+            if (is_array($robots)) {
+                $seo_data['robots']['index'] = !in_array('noindex', $robots);
+                $seo_data['robots']['follow'] = !in_array('nofollow', $robots);
+            }
+            
+            // Open Graph
+            $seo_data['og']['title'] = get_post_meta($post_id, 'rank_math_facebook_title', true);
+            $seo_data['og']['description'] = get_post_meta($post_id, 'rank_math_facebook_description', true);
+            $seo_data['og']['image'] = get_post_meta($post_id, 'rank_math_facebook_image', true);
+            
+            // Twitter
+            $seo_data['twitter']['title'] = get_post_meta($post_id, 'rank_math_twitter_title', true);
+            $seo_data['twitter']['description'] = get_post_meta($post_id, 'rank_math_twitter_description', true);
+            $seo_data['twitter']['image'] = get_post_meta($post_id, 'rank_math_twitter_image', true);
+            
+            // Schema
+            $schema = get_post_meta($post_id, 'rank_math_schema_Article', true);
+            if ($schema) {
+                $seo_data['schema'] = $schema;
+            }
+            
+            return $seo_data;
+        }
+        
+        return null;
     }
     
     /**

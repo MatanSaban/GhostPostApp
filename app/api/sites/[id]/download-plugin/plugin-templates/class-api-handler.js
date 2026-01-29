@@ -241,6 +241,13 @@ class GP_API_Handler {
             ),
         ));
         
+        // Menus
+        register_rest_route($namespace, '/menus', array(
+            'methods' => 'GET',
+            'callback' => array($this, 'get_menus'),
+            'permission_callback' => array($this, 'validate_request'),
+        ));
+        
         // Redirects
         register_rest_route($namespace, '/redirects', array(
             array(
@@ -291,24 +298,40 @@ class GP_API_Handler {
         
         $cpt_list = array();
         foreach ($post_types as $pt) {
+            // Skip internal types
+            if (in_array($pt->name, array('attachment', 'revision', 'nav_menu_item', 'wp_block', 'wp_template', 'wp_template_part', 'wp_navigation'))) {
+                continue;
+            }
+            
             $cpt_list[] = array(
-                'name' => $pt->name,
-                'label' => $pt->label,
+                'slug' => $pt->name,
+                'name' => $pt->label,
+                'singularName' => $pt->labels->singular_name,
+                'restBase' => $pt->rest_base ?: $pt->name,
+                'hasArchive' => $pt->has_archive,
+                'hierarchical' => $pt->hierarchical,
                 'supports' => get_all_post_type_supports($pt->name),
+                'isBuiltin' => $pt->_builtin,
             );
         }
         
         $tax_list = array();
         foreach ($taxonomies as $tax) {
             $tax_list[] = array(
-                'name' => $tax->name,
-                'label' => $tax->label,
-                'object_type' => $tax->object_type,
+                'slug' => $tax->name,
+                'name' => $tax->label,
+                'hierarchical' => $tax->hierarchical,
+                'objectType' => $tax->object_type,
+                'restBase' => $tax->rest_base ?: $tax->name,
             );
         }
         
+        // Get theme info
+        $theme = wp_get_theme();
+        
         return new WP_REST_Response(array(
             'siteUrl' => get_site_url(),
+            'homeUrl' => get_home_url(),
             'siteName' => get_bloginfo('name'),
             'siteDescription' => get_bloginfo('description'),
             'wpVersion' => get_bloginfo('version'),
@@ -317,9 +340,16 @@ class GP_API_Handler {
             'locale' => get_locale(),
             'postTypes' => $cpt_list,
             'taxonomies' => $tax_list,
+            'theme' => array(
+                'name' => $theme->get('Name'),
+                'version' => $theme->get('Version'),
+            ),
             'hasYoast' => defined('WPSEO_VERSION'),
+            'yoastVersion' => defined('WPSEO_VERSION') ? WPSEO_VERSION : null,
             'hasRankMath' => defined('RANK_MATH_VERSION'),
+            'rankMathVersion' => defined('RANK_MATH_VERSION') ? RANK_MATH_VERSION : null,
             'hasACF' => class_exists('ACF'),
+            'acfVersion' => defined('ACF_VERSION') ? ACF_VERSION : null,
         ), 200);
     }
     
@@ -563,6 +593,94 @@ class GP_API_Handler {
         }
         
         return new WP_REST_Response(get_term($term['term_id']), 201);
+    }
+    
+    // ==========================================
+    // MENUS
+    // ==========================================
+    
+    public function get_menus(WP_REST_Request $request) {
+        if (!gp_has_permission('SITE_INFO_READ')) {
+            return new WP_REST_Response(array('error' => 'Permission denied'), 403);
+        }
+        
+        $menus = array();
+        $locations = get_nav_menu_locations();
+        $registered_menus = get_registered_nav_menus();
+        
+        // Get all menus
+        $nav_menus = wp_get_nav_menus();
+        
+        foreach ($nav_menus as $menu) {
+            $menu_items = wp_get_nav_menu_items($menu->term_id);
+            $items = array();
+            
+            if ($menu_items) {
+                foreach ($menu_items as $item) {
+                    $items[] = array(
+                        'id' => $item->ID,
+                        'title' => $item->title,
+                        'url' => $item->url,
+                        'target' => $item->target,
+                        'parent' => intval($item->menu_item_parent),
+                        'order' => $item->menu_order,
+                        'type' => $item->type,
+                        'objectType' => $item->object,
+                        'objectId' => $item->object_id,
+                        'classes' => $item->classes,
+                    );
+                }
+            }
+            
+            // Find which location(s) this menu is assigned to
+            $menu_locations = array();
+            foreach ($locations as $location => $menu_id) {
+                if ($menu_id === $menu->term_id) {
+                    $menu_locations[] = array(
+                        'slug' => $location,
+                        'name' => $registered_menus[$location] ?? $location,
+                    );
+                }
+            }
+            
+            $menus[] = array(
+                'id' => $menu->term_id,
+                'name' => $menu->name,
+                'slug' => $menu->slug,
+                'locations' => $menu_locations,
+                'itemCount' => count($items),
+                'items' => $this->build_menu_tree($items),
+            );
+        }
+        
+        return new WP_REST_Response(array(
+            'menus' => $menus,
+            'registeredLocations' => $registered_menus,
+        ), 200);
+    }
+    
+    /**
+     * Build hierarchical menu tree from flat items
+     */
+    private function build_menu_tree($items, $parent_id = 0) {
+        $tree = array();
+        
+        foreach ($items as $item) {
+            if ($item['parent'] == $parent_id) {
+                $children = $this->build_menu_tree($items, $item['id']);
+                if ($children) {
+                    $item['children'] = $children;
+                }
+                $tree[] = $item;
+            }
+        }
+        
+        // Sort by order
+        usort($tree, function($a, $b) {
+            return $a['order'] - $b['order'];
+        });
+        
+        return $tree;
     }
     
     // ==========================================

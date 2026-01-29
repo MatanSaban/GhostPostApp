@@ -78,7 +78,10 @@
     "minimum": "מינימום",
     "expand": "הרחב",
     "collapse": "כווץ",
-    "saving": "שומר..."
+    "saving": "שומר...",
+    "title": "כותרת",
+    "goBack": "חזור אחורה",
+    "characters": "תווים"
   },
   "auth": {
     "login": "התחברות",
@@ -554,7 +557,22 @@
       "empty": "לא נמצא תוכן אחר",
       "emptyDescription": "סנכרן את האתר שלך לייבוא תוכן אחר"
     },
-    "sync": "סנכרן אתר",
+    "sync": {
+      "title": "אכלוס ישויות",
+      "description": "ייבא את כל התוכן מאתר ה-WordPress שלך כולל פוסטים, עמודים, תפריטים, נתוני SEO ושדות מותאמים.",
+      "populate": "אכלס מ-WordPress",
+      "syncing": "מסנכרן...",
+      "resync": "סנכרן מחדש",
+      "stop": "עצור סנכרון",
+      "starting": "מתחיל סנכרון...",
+      "fetchingTypes": "מביא סוגי תוכן...",
+      "fetchingEntities": "מביא {type}...",
+      "fetchingMenus": "מביא תפריטים...",
+      "completed": "הסנכרון הושלם בהצלחה!",
+      "failed": "הסנכרון נכשל. נסה שוב.",
+      "cancelled": "הסנכרון בוטל.",
+      "lastSync": "סונכרן לאחרונה"
+    },
     "syncing": "מסנכרן...",
     "lastSync": "סונכרן לאחרונה",
     "status": "סטטוס",
@@ -602,12 +620,83 @@
       "title": "תוסף WordPress",
       "description": "כדי לסנכרן תוכן אוטומטית מאתר ה-WordPress שלך, תצטרך להתקין את התוסף Ghost Post Connect.",
       "download": "הורד תוסף",
+      "downloading": "מוריד...",
       "instructions": {
         "title": "הוראות התקנה",
         "step1": "הורד את קובץ התוסף (.zip) על ידי לחיצה על הכפתור למטה",
         "step2": "עבור ללוח הבקרה של WordPress שלך ← תוספים ← הוסף חדש ← העלה תוסף",
         "step3": "בחר את קובץ ה-ZIP שהורדת ולחץ על \"התקן עכשיו\"",
         "step4": "הפעל את התוסף והזן את מפתח ה-API שיוצג בהגדרות"
+      }
+    },
+    "untitled": "ללא כותרת",
+    "notFound": "הישות לא נמצאה",
+    "edit": {
+      "tabs": {
+        "content": "תוכן",
+        "seo": "קידום אתרים",
+        "customFields": "שדות מותאמים",
+        "media": "מדיה",
+        "settings": "הגדרות"
+      },
+      "basicInfo": "מידע בסיסי",
+      "titlePlaceholder": "הזן כותרת...",
+      "slug": "כתובת URL",
+      "slugPlaceholder": "slug-של-העמוד",
+      "excerpt": "תקציר",
+      "excerptPlaceholder": "הזן תיאור קצר...",
+      "content": "תוכן",
+      "contentPlaceholder": "התחל לכתוב את התוכן שלך...",
+      "visual": "תצוגה",
+      "html": "HTML",
+      "featuredImage": "תמונה ראשית",
+      "noFeaturedImage": "לא נבחרה תמונה ראשית",
+      "featuredImageUrl": "כתובת תמונה",
+      "seo": {
+        "title": "הגדרות SEO",
+        "noData": "אין נתוני SEO זמינים. התקן Yoast SEO או RankMath לניהול SEO.",
+        "plugin": "תוסף SEO",
+        "general": "כללי",
+        "social": "חברתי",
+        "advanced": "מתקדם",
+        "metaTitle": "כותרת SEO",
+        "metaTitlePlaceholder": "הזן כותרת SEO...",
+        "metaDescription": "תיאור מטא",
+        "metaDescriptionPlaceholder": "הזן תיאור מטא...",
+        "focusKeyword": "מילת מפתח ראשית",
+        "focusKeywordPlaceholder": "הזן מילת מפתח...",
+        "canonicalUrl": "כתובת קנונית",
+        "noTitle": "לא הוגדרה כותרת SEO",
+        "noDescription": "לא הוגדר תיאור מטא",
+        "ogTitle": "כותרת פייסבוק",
+        "ogDescription": "תיאור פייסבוק",
+        "ogImage": "תמונת פייסבוק",
+        "twitterTitle": "כותרת טוויטר",
+        "twitterDescription": "תיאור טוויטר",
+        "twitterImage": "תמונת טוויטר",
+        "indexing": "אפשר לאנדקס במנועי חיפוש",
+        "indexYes": "אנדקס עמוד זה",
+        "indexNo": "אל תאנדקס",
+        "indexDescription": "אפשר למנועי חיפוש להציג עמוד זה בתוצאות",
+        "following": "עקוב אחר קישורים",
+        "followYes": "עקוב אחר קישורים בעמוד זה",
+        "followNo": "אל תעקוב אחר קישורים",
+        "followDescription": "אפשר למנועי חיפוש לעקוב אחר קישורים בעמוד זה"
+      },
+      "acf": {
+        "title": "שדות מותאמים",
+        "noFields": "אין שדות מותאמים זמינים לתוכן זה.",
+        "otherFields": "שדות נוספים"
+      },
+      "metadata": {
+        "entityInfo": "מידע על הישות",
+        "id": "מזהה",
+        "externalId": "מזהה חיצוני",
+        "createdAt": "נוצר בתאריך",
+        "updatedAt": "עודכן לאחרונה",
+        "publishedAt": "פורסם בתאריך",
+        "rawMeta": "מטאדאטה גולמית",
+        "noMeta": "אין מטאדאטה נוספת זמינה"
       }
     }
   },
@@ -774,6 +863,8 @@
       "autoInstallTitle": "התקנה אוטומטית של התוסף",
       "autoInstallDesc": "הזן את פרטי המנהל של וורדפרס כדי להתקין ולהפעיל את התוסף באופן אוטומטי. הפרטים שלך מוצפנים ונמחקים מיד לאחר ההתקנה.",
       "autoInstallSuccess": "התוסף הותקן בהצלחה! ממתין להפעלה...",
+      "autoInstallFailed": "ההתקנה האוטומטית נכשלה",
+      "wpAdminUrl": "כתובת ניהול וורדפרס",
       "wpUsername": "שם משתמש וורדפרס",
       "wpUsernamePlaceholder": "admin",
       "wpPassword": "סיסמת וורדפרס",
@@ -795,7 +886,22 @@
       "step2": "עבור ללוח הבקרה של וורדפרס ← תוספים ← הוסף חדש ← העלה תוסף",
       "step3": "העלה את קובץ ה-ZIP ולחץ על \"התקן עכשיו\"",
       "step4": "הפעל את התוסף - הוא יתחבר אוטומטית",
-      "description": "התקן את תוסף הוורדפרס שלנו כדי לאפשר סנכרון תוכן חלק, פרסום אוטומטי ואינטגרציית אנליטיקס בזמן אמת עם אתר הוורדפרס שלך."
+      "description": "התקן את תוסף הוורדפרס שלנו כדי לאפשר סנכרון תוכן חלק, פרסום אוטומטי ואינטגרציית אנליטיקס בזמן אמת עם אתר הוורדפרס שלך.",
+      "disconnect": "נתק",
+      "disconnecting": "מנתק...",
+      "disconnectConfirm": "האם אתה בטוח שברצונך להתנתק? תצטרך להוריד ולהתקין את התוסף מחדש כדי להתחבר שוב.",
+      "disconnectFailed": "ההתנתקות נכשלה",
+      "errors": {
+        "restApiUnreachable": "לא ניתן להגיע ל-REST API של וורדפרס. ודא שהאתר נגיש, ה-REST API מופעל ולא חסום על ידי תוספי אבטחה.",
+        "restApiError": "ה-REST API של וורדפרס החזיר שגיאה. ייתכן שה-REST API מושבת או חסום על ידי חומת אש.",
+        "authRequestFailed": "לא ניתן להתחבר לוורדפרס לאימות. בדוק את כתובת האתר וודא שהוא נגיש.",
+        "authFailed": "האימות נכשל. בדוק את שם המשתמש והסיסמה. לאבטחה מומלץ להשתמש בסיסמת אפליקציה.",
+        "insufficientPermissions": "למשתמש זה אין הרשאות להתקין תוספים. נדרשת גישת מנהל.",
+        "pluginsApiUnavailable": "ה-API של התוספים של וורדפרס לא זמין באתר זה. אנא התקן את התוסף ידנית.",
+        "activationFailed": "התוסף הותקן אך לא ניתן היה להפעילו. נסה להפעיל אותו ידנית מדף התוספים.",
+        "manualInstallRequired": "לא ניתן להתקין את התוסף באופן אוטומטי. אנא הורד את התוסף והתקן אותו ידנית.",
+        "unknownError": "אירעה שגיאה בלתי צפויה במהלך ההתקנה. אנא נסה שוב או התקן ידנית."
+      }
     },
     "maintenance": {
       "title": "מצב תחזוקה",

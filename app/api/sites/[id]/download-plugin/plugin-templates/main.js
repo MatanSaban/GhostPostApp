@@ -1,13 +1,16 @@
+import { PLUGIN_VERSION } from '@/app/api/plugin/version';
+
 /**
  * Generate main plugin file
+ * @param {string} version - Optional version override (defaults to PLUGIN_VERSION)
  */
-export function getPluginMainFile() {
+export function getPluginMainFile(version = PLUGIN_VERSION) {
   return `<?php
 /**
  * Plugin Name: Ghost Post Connector
  * Plugin URI: https://ghostpost.io
  * Description: Connects your WordPress site to Ghost Post platform for AI-powered content management.
- * Version: 1.0.0
+ * Version: ${version}
  * Author: Ghost Post
  * Author URI: https://ghostpost.io
  * License: GPL v2 or later
@@ -24,7 +27,7 @@ if (!defined('ABSPATH')) {
 }
 
 // Plugin constants
-define('GP_CONNECTOR_VERSION', '1.0.0');
+define('GP_CONNECTOR_VERSION', '${version}');
 define('GP_CONNECTOR_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('GP_CONNECTOR_PLUGIN_URL', plugin_dir_url(__FILE__));
 define('GP_CONNECTOR_PLUGIN_BASENAME', plugin_basename(__FILE__));
@@ -41,6 +44,7 @@ require_once GP_CONNECTOR_PLUGIN_DIR . 'includes/class-gp-media-manager.php';
 require_once GP_CONNECTOR_PLUGIN_DIR . 'includes/class-gp-seo-manager.php';
 require_once GP_CONNECTOR_PLUGIN_DIR . 'includes/class-gp-cpt-manager.php';
 require_once GP_CONNECTOR_PLUGIN_DIR . 'includes/class-gp-acf-manager.php';
+require_once GP_CONNECTOR_PLUGIN_DIR . 'includes/class-gp-updater.php';
 
 /**
  * Initialize the plugin
@@ -48,6 +52,10 @@ require_once GP_CONNECTOR_PLUGIN_DIR . 'includes/class-gp-acf-manager.php';
 function gp_connector_init() {
     $ghost_post = new Ghost_Post();
     $ghost_post->init();
+    
+    // Initialize auto-updater
+    $updater = new GP_Updater();
+    $updater->init();
 }
 add_action('plugins_loaded', 'gp_connector_init');
 

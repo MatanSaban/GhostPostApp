@@ -1,13 +1,16 @@
+import { PLUGIN_VERSION, PLUGIN_CHANGELOG } from '@/app/api/plugin/version';
+
 /**
  * Generate readme.txt for WordPress plugin
+ * @param {string} version - Optional version override (defaults to PLUGIN_VERSION)
  */
-export function getPluginReadme() {
+export function getPluginReadme(version = PLUGIN_VERSION) {
   return `=== Ghost Post Connector ===
 Contributors: ghostpost
 Tags: ai, content, automation, seo, content-management
 Requires at least: 5.6
-Tested up to: 6.4
-Stable tag: 1.0.0
+Tested up to: 6.7
+Stable tag: ${version}
 Requires PHP: 7.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -24,6 +27,7 @@ Ghost Post Connector allows the Ghost Post platform to securely manage your Word
 * Update SEO meta (Yoast, RankMath, and custom meta)
 * Manage ACF fields
 * Handle redirects
+* Automatic updates from Ghost Post platform
 * And more...
 
 All communications are secured with HMAC-SHA256 signatures.
@@ -48,14 +52,17 @@ The plugin only processes requests from Ghost Post. It does not collect or send 
 
 Yes. Deactivating the plugin immediately disconnects your site from Ghost Post. You can also regenerate your site key from the Ghost Post dashboard.
 
+= How do updates work? =
+
+The plugin automatically checks for updates from the Ghost Post platform. When a new version is available, you'll see an update notification in WordPress just like any other plugin.
+
 == Changelog ==
 
-= 1.0.0 =
-* Initial release
+${PLUGIN_CHANGELOG}
 
 == Upgrade Notice ==
 
-= 1.0.0 =
-Initial release of Ghost Post Connector.
+= ${version} =
+Update to the latest version for new features and bug fixes.
 `;
 }

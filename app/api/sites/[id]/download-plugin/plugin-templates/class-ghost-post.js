@@ -42,6 +42,7 @@ class Ghost_Post {
         // AJAX actions for admin
         add_action('wp_ajax_gp_test_connection', array($this, 'ajax_test_connection'));
         add_action('wp_ajax_gp_send_ping', array($this, 'ajax_send_ping'));
+        add_action('wp_ajax_gp_disconnect', array($this, 'ajax_disconnect'));
         
         // Schedule ping cron
         add_action('gp_connector_ping', array($this, 'send_ping'));
@@ -238,6 +239,23 @@ class Ghost_Post {
         } else {
             wp_send_json_error('Ping failed');
         }
+    }
+    
+    /**
+     * AJAX handler for disconnect
+     */
+    public function ajax_disconnect() {
+        // Security check
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error('Unauthorized');
+        }
+        
+        // Notify Ghost Post platform about disconnection
+        $this->notify_disconnection();
+        
+        wp_send_json_success(array(
+            'message' => 'Disconnected successfully',
+        ));
     }
     
     /**

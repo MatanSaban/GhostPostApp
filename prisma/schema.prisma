@@ -503,6 +503,13 @@ model Site {
   wpAdminPassword      String?                    // Encrypted, temporary
   autoInstallExpiresAt DateTime?                  // Credentials expire after this time
 
+  // Entity sync tracking
+  entitySyncStatus     EntitySyncStatus @default(NEVER)
+  entitySyncProgress   Int?                       // 0-100 percentage
+  entitySyncMessage    String?                    // Current sync action (e.g., "Syncing posts...")
+  lastEntitySyncAt     DateTime?                  // Last successful sync
+  entitySyncError      String?                    // Last sync error if any
+
   account         Account               @relation(fields: [accountId], references: [id], onDelete: Cascade)
   interview       Interview?
   keywords        Keyword[]
@@ -512,6 +519,7 @@ model Site {
   entityTypes     SiteEntityType[]
   entities        SiteEntity[]
   userPreferences UserSitePreference[]
+  menus           SiteMenu[]
 
   @@index([siteKey])
 }
@@ -592,8 +600,10 @@ model SiteEntity {
   content       String?
   status        EntityStatus @default(PUBLISHED)
   featuredImage String?
-  metadata      Json?
-  externalId    String?  // ID from the original CMS (WordPress, etc.)
+  metadata      Json?        // General metadata
+  seoData       Json?        // Yoast/RankMath SEO data
+  acfData       Json?        // ACF field data
+  externalId    String?      // ID from the original CMS (WordPress, etc.)
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
   publishedAt   DateTime?
@@ -602,6 +612,7 @@ model SiteEntity {
   entityType SiteEntityType @relation(fields: [entityTypeId], references: [id], onDelete: Cascade)
 
   @@unique([siteId, entityTypeId, slug])
+  @@unique([siteId, externalId])
   @@index([siteId, entityTypeId])
 }
 
@@ -609,6 +620,32 @@ enum EntityStatus {
   PUBLISHED
   DRAFT
   ARCHIVED
+}
+
+enum EntitySyncStatus {
+  NEVER       // Never synced
+  SYNCING     // Sync in progress
+  COMPLETED   // Sync completed successfully
+  ERROR       // Sync failed
+  CANCELLED   // Sync cancelled by user
+}
+
+// WordPress menus (important for SEO - shows site structure)
+model SiteMenu {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  siteId      String   @db.ObjectId
+  name        String   // Menu name (e.g., "Main Menu", "Footer Menu")
+  slug        String   // Menu slug/location
+  externalId  String?  // WordPress menu ID
+  location    String?  // Theme location (e.g., "primary", "footer")
+  items       Json     // Menu items with hierarchy
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  site Site @relation(fields: [siteId], references: [id], onDelete: Cascade)
+
+  @@unique([siteId, slug])
+  @@index([siteId])
 }
 
 model Interview {

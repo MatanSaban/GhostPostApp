@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { 
   Search, 
   RefreshCw, 
@@ -21,6 +22,7 @@ export function EntitiesTable({
   lastSyncDate = null,
 }) {
   const { t } = useLocale();
+  const router = useRouter();
   const [searchQuery, setSearchQuery] = useState('');
 
   const filteredEntities = entities.filter((entity) => 
@@ -144,7 +146,11 @@ export function EntitiesTable({
                         <ExternalLink />
                       </a>
                     )}
-                    <button className={`${styles.actionButton} ${styles.edit}`}>
+                    <button 
+                      className={`${styles.actionButton} ${styles.edit}`}
+                      onClick={() => router.push(`/dashboard/entities/${entityType}/${entity.id}`)}
+                      title={t('common.edit')}
+                    >
                       <Edit />
                     </button>
                     <button className={`${styles.actionButton} ${styles.delete}`}>

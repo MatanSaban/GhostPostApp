@@ -79,6 +79,8 @@ export async function POST(request) {
         phpVersion: data.phpVersion || null,
         wpTimezone: data.wpTimezone || null,
         wpLocale: data.wpLocale || null,
+        // Mark that sync should be triggered (frontend will handle this)
+        entitySyncStatus: site.connectionStatus !== 'CONNECTED' ? 'NEVER' : undefined,
       },
     });
 
@@ -89,6 +91,8 @@ export async function POST(request) {
         name: site.name,
         permissions: site.sitePermissions,
       },
+      // Indicate if this is a fresh connection that needs sync
+      shouldSync: site.connectionStatus !== 'CONNECTED',
     });
   } catch (error) {
     console.error('WP verify error:', error);

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import prisma from '@/lib/prisma';
+import { getPosts } from '@/lib/wp-api-client';
 
 const SESSION_COOKIE = 'user_session';
 
@@ -34,45 +35,45 @@ async function getAuthenticatedUser() {
   }
 }
 
-// Fetch entities from WordPress REST API
-async function fetchWordPressEntities(siteUrl, apiEndpoint) {
+// Fetch entities from WordPress using authenticated plugin API
+async function fetchWordPressEntities(site, postTypeSlug) {
   const entities = [];
 
-  if (!apiEndpoint) return entities;
+  if (!postTypeSlug) return entities;
 
   try {
-    // Normalize site URL
-    const baseUrl = siteUrl.replace(/\/$/, '');
-    const apiUrl = `${baseUrl}/wp-json/wp/v2/${apiEndpoint}?per_page=100&status=publish,draft`;
+    // Use authenticated plugin API
+    const response = await getPosts(site, postTypeSlug, 1, 100);
     
-    const response = await fetch(apiUrl, {
-      headers: {
-        'Accept': 'application/json',
-      },
-    });
-
-    if (!response.ok) {
-      console.log(`WordPress API not available for ${apiEndpoint}: ${response.status}`);
+    // The plugin returns { items: [...], total, pages, page }
+    const items = response.items || response;
+    
+    if (!Array.isArray(items)) {
+      console.log(`No items returned for ${postTypeSlug}`);
       return entities;
     }
 
-    const data = await response.json();
-    
-    for (const item of data) {
+    for (const item of items) {
       entities.push({
         externalId: String(item.id),
-        title: item.title?.rendered || item.title || 'Untitled',
+        title: item.title || 'Untitled',
         slug: item.slug,
-        url: item.link,
-        excerpt: item.excerpt?.rendered?.replace(/<[^>]*>/g, '') || null,
-        content: item.content?.rendered || null,
+        url: item.permalink || item.link,
+        excerpt: item.excerpt || null,
+        content: item.content || null,
         status: item.status === 'publish' ? 'PUBLISHED' : 'DRAFT',
-        featuredImage: item._embedded?.['wp:featuredmedia']?.[0]?.source_url || null,
+        featuredImage: item.featured_image || null,
         publishedAt: item.date ? new Date(item.date) : null,
+        // Additional data
+        metadata: item.meta ? JSON.stringify(item.meta) : null,
+        acfData: item.acf ? item.acf : null,
+        seoData: item.seo ? item.seo : null,
       });
     }
+    
+    console.log(`Fetched ${entities.length} ${postTypeSlug} from plugin API`);
   } catch (error) {
-    console.error(`Failed to fetch ${apiEndpoint} from WordPress:`, error);
+    console.error(`Failed to fetch ${postTypeSlug} from plugin API:`, error.message);
   }
 
   return entities;
@@ -99,11 +100,18 @@ export async function POST(request) {
     // Get user's account IDs
     const accountIds = user.accountMemberships.map(m => m.accountId);
 
-    // Verify the user has access to this site
+    // Get the site with connection details
     const site = await prisma.site.findFirst({
       where: {
         id: siteId,
         accountId: { in: accountIds },
+      },
+      select: {
+        id: true,
+        url: true,
+        siteKey: true,
+        siteSecret: true,
+        connectionStatus: true,
       },
     });
 
@@ -111,6 +119,14 @@ export async function POST(request) {
       return NextResponse.json(
         { error: 'Site not found' },
         { status: 404 }
+      );
+    }
+
+    // Check if site is connected
+    if (!site.siteKey || !site.siteSecret || site.connectionStatus !== 'CONNECTED') {
+      return NextResponse.json(
+        { error: 'Site is not connected. Please install and activate the WordPress plugin.' },
+        { status: 400 }
       );
     }
 
@@ -134,28 +150,31 @@ export async function POST(request) {
     let totalSynced = 0;
     
     for (const entityType of entityTypes) {
-      // Fetch entities from the website using the configured API endpoint
-      const fetchedEntities = await fetchWordPressEntities(site.url, entityType.apiEndpoint);
+      // Fetch entities using authenticated plugin API with post type slug
+      const fetchedEntities = await fetchWordPressEntities(site, entityType.slug);
       
-      // Upsert each entity
+      // Upsert each entity using siteId + externalId as unique identifier
       for (const entity of fetchedEntities) {
         await prisma.siteEntity.upsert({
           where: {
-            siteId_entityTypeId_slug: {
+            siteId_externalId: {
               siteId: site.id,
-              entityTypeId: entityType.id,
-              slug: entity.slug,
+              externalId: entity.externalId,
             },
           },
           update: {
+            entityTypeId: entityType.id,
             title: entity.title,
+            slug: entity.slug,
             url: entity.url,
             excerpt: entity.excerpt,
             content: entity.content,
             status: entity.status,
             featuredImage: entity.featuredImage,
-            externalId: entity.externalId,
             publishedAt: entity.publishedAt,
+            metadata: entity.metadata,
+            acfData: entity.acfData,
+            seoData: entity.seoData,
             updatedAt: new Date(),
           },
           create: {
@@ -170,6 +189,9 @@ export async function POST(request) {
             featuredImage: entity.featuredImage,
             externalId: entity.externalId,
             publishedAt: entity.publishedAt,
+            metadata: entity.metadata,
+            acfData: entity.acfData,
+            seoData: entity.seoData,
           },
         });
         totalSynced++;

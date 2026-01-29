@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { 
@@ -21,6 +21,10 @@ import {
   Search,
   Pencil,
   Download,
+  CloudDownload,
+  CheckCircle2,
+  XCircle,
+  StopCircle,
 } from 'lucide-react';
 import { useLocale } from '@/app/context/locale-context';
 import { useSite } from '@/app/context/site-context';
@@ -62,6 +66,17 @@ export default function EntitiesPage() {
   const [discoveryError, setDiscoveryError] = useState(null);
   const [editingType, setEditingType] = useState(null);
 
+  // Entity sync state
+  const [syncStatus, setSyncStatus] = useState(null); // 'NEVER' | 'SYNCING' | 'COMPLETED' | 'ERROR'
+  const [syncProgress, setSyncProgress] = useState(0);
+  const [syncMessage, setSyncMessage] = useState('');
+  const [syncError, setSyncError] = useState(null);
+  const syncPollingRef = useRef(null);
+  const hasTriggeredAutoSync = useRef(false);
+
+  // Plugin download state
+  const [isDownloadingPlugin, setIsDownloadingPlugin] = useState(false);
+
   // Load existing entity types on mount
   useEffect(() => {
     async function loadEntityTypes() {
@@ -91,6 +106,9 @@ export default function EntitiesPage() {
             return;
           }
         }
+
+        // Load initial sync status
+        await checkSyncStatus();
       } catch (error) {
         console.error('Failed to load entity types:', error);
       } finally {
@@ -100,6 +118,155 @@ export default function EntitiesPage() {
 
     loadEntityTypes();
   }, [selectedSite?.id]);
+
+  // Check sync status from API
+  const checkSyncStatus = useCallback(async () => {
+    if (!selectedSite?.id) return null;
+
+    try {
+      const response = await fetch(`/api/entities/populate?siteId=${selectedSite.id}`);
+      if (response.ok) {
+        const data = await response.json();
+        setSyncStatus(data.status);
+        setSyncProgress(data.progress || 0);
+        setSyncMessage(data.message || '');
+        setSyncError(data.error || null);
+        return data.status;
+      }
+    } catch (error) {
+      console.error('Failed to check sync status:', error);
+    }
+    return null;
+  }, [selectedSite?.id]);
+
+  // Poll sync status while syncing
+  useEffect(() => {
+    if (syncStatus === 'SYNCING') {
+      syncPollingRef.current = setInterval(async () => {
+        const status = await checkSyncStatus();
+        if (status && status !== 'SYNCING') {
+          // Sync finished, stop polling and reload entity types
+          clearInterval(syncPollingRef.current);
+          syncPollingRef.current = null;
+          
+          // Reload entity types after sync completes
+          const response = await fetch(`/api/entities/types?siteId=${selectedSite.id}`);
+          if (response.ok) {
+            const data = await response.json();
+            setEnabledTypes(data.types || []);
+          }
+        }
+      }, 2000); // Poll every 2 seconds
+    }
+
+    return () => {
+      if (syncPollingRef.current) {
+        clearInterval(syncPollingRef.current);
+        syncPollingRef.current = null;
+      }
+    };
+  }, [syncStatus, checkSyncStatus, selectedSite?.id]);
+
+  // Auto-trigger sync after WordPress plugin connection
+  useEffect(() => {
+    // Only auto-sync if:
+    // 1. Site is connected to WordPress
+    // 2. Sync status has been loaded AND is NEVER (never synced before)
+    // 3. We haven't already triggered an auto-sync this session
+    if (
+      selectedSite?.connectionStatus === 'CONNECTED' &&
+      selectedSite?.platform === 'wordpress' &&
+      (syncStatus === 'NEVER' || selectedSite?.entitySyncStatus === 'NEVER') &&
+      !hasTriggeredAutoSync.current
+    ) {
+      hasTriggeredAutoSync.current = true;
+      handlePopulateEntities();
+    }
+  }, [selectedSite?.connectionStatus, selectedSite?.platform, syncStatus, selectedSite?.entitySyncStatus]);
+
+  // Populate entities from WordPress
+  const handlePopulateEntities = async () => {
+    if (!selectedSite?.id || syncStatus === 'SYNCING') return;
+
+    setSyncStatus('SYNCING');
+    setSyncProgress(0);
+    setSyncMessage(t('entities.sync.starting'));
+    setSyncError(null);
+
+    try {
+      const response = await fetch('/api/entities/populate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ siteId: selectedSite.id }),
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        setSyncStatus('ERROR');
+        setSyncError(data.error || t('entities.sync.failed'));
+        return;
+      }
+
+      // Response is OK, status will be updated via polling
+    } catch (error) {
+      console.error('Failed to populate entities:', error);
+      setSyncStatus('ERROR');
+      setSyncError(t('entities.sync.failed'));
+    }
+  };
+
+  // Stop syncing
+  const handleStopSync = async () => {
+    if (!selectedSite?.id || syncStatus !== 'SYNCING') return;
+
+    try {
+      const response = await fetch(`/api/entities/populate?siteId=${selectedSite.id}`, {
+        method: 'DELETE',
+      });
+
+      if (response.ok) {
+        setSyncStatus('CANCELLED');
+        setSyncMessage(null);
+        setSyncProgress(0);
+        // Clear polling
+        if (syncPollingRef.current) {
+          clearInterval(syncPollingRef.current);
+          syncPollingRef.current = null;
+        }
+      }
+    } catch (error) {
+      console.error('Failed to stop sync:', error);
+    }
+  };
+
+  // Download WordPress plugin
+  const handleDownloadPlugin = async () => {
+    if (!selectedSite?.id) return;
+
+    setIsDownloadingPlugin(true);
+    try {
+      const response = await fetch(`/api/sites/${selectedSite.id}/download-plugin`);
+      
+      if (!response.ok) {
+        throw new Error('Failed to download plugin');
+      }
+
+      // Get the blob and create download link
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `ghost-post-${selectedSite.id}.zip`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (error) {
+      console.error('Failed to download plugin:', error);
+    } finally {
+      setIsDownloadingPlugin(false);
+    }
+  };
 
   const handleDetectPlatform = async () => {
     if (!selectedSite?.url) return;
@@ -459,10 +626,105 @@ export default function EntitiesPage() {
               <li>{t('entities.plugin.instructions.step4')}</li>
             </ol>
           </div>
-          <button className={styles.downloadButton}>
+          <button 
+            className={styles.downloadButton}
+            onClick={handleDownloadPlugin}
+            disabled={isDownloadingPlugin}
+          >
             <Download />
-            {t('entities.plugin.download')}
+            {isDownloadingPlugin ? t('entities.plugin.downloading') : t('entities.plugin.download')}
           </button>
+        </div>
+      )}
+
+      {/* Entity Sync Section - Shows when connected to WordPress */}
+      {platform === 'wordpress' && selectedSite?.connectionStatus === 'CONNECTED' && (
+        <div className={styles.syncCard}>
+          <div className={styles.syncHeader}>
+            <CloudDownload className={styles.syncIcon} />
+            <div className={styles.syncHeaderContent}>
+              <h3 className={styles.sectionTitle}>{t('entities.sync.title')}</h3>
+              <p className={styles.syncDescription}>{t('entities.sync.description')}</p>
+            </div>
+          </div>
+
+          {/* Sync Status Indicator */}
+          {syncStatus === 'SYNCING' && (
+            <div className={styles.syncProgress}>
+              <div className={styles.syncProgressHeader}>
+                <Loader2 className={styles.spinningIcon} />
+                <span className={styles.syncProgressText}>
+                  {syncMessage || t('entities.sync.syncing')}
+                </span>
+                <span className={styles.syncProgressPercent}>{Math.round(syncProgress)}%</span>
+              </div>
+              <div className={styles.syncProgressBar}>
+                <div 
+                  className={styles.syncProgressFill} 
+                  style={{ width: `${syncProgress}%` }}
+                />
+              </div>
+            </div>
+          )}
+
+          {/* Sync Completed */}
+          {syncStatus === 'COMPLETED' && (
+            <div className={styles.syncSuccess}>
+              <CheckCircle2 className={styles.syncSuccessIcon} />
+              <span>{t('entities.sync.completed')}</span>
+            </div>
+          )}
+
+          {/* Sync Cancelled */}
+          {syncStatus === 'CANCELLED' && (
+            <div className={styles.syncCancelled}>
+              <AlertCircle className={styles.syncCancelledIcon} />
+              <span>{t('entities.sync.cancelled')}</span>
+            </div>
+          )}
+
+          {/* Sync Error */}
+          {syncStatus === 'ERROR' && (
+            <div className={styles.syncError}>
+              <XCircle className={styles.syncErrorIcon} />
+              <span>{syncError || t('entities.sync.failed')}</span>
+            </div>
+          )}
+
+          {/* Sync Button */}
+          <div className={styles.syncActions}>
+            {syncStatus === 'SYNCING' ? (
+              <button
+                className={`${styles.syncButton} ${styles.stopButton}`}
+                onClick={handleStopSync}
+              >
+                <StopCircle />
+                {t('entities.sync.stop')}
+              </button>
+            ) : (
+              <button
+                className={styles.syncButton}
+                onClick={handlePopulateEntities}
+              >
+                {syncStatus === 'COMPLETED' || syncStatus === 'ERROR' || syncStatus === 'CANCELLED' ? (
+                  <>
+                    <RefreshCw />
+                    {t('entities.sync.resync')}
+                  </>
+                ) : (
+                  <>
+                    <CloudDownload />
+                    {t('entities.sync.populate')}
+                  </>
+                )}
+              </button>
+            )}
+            {syncStatus === 'COMPLETED' && selectedSite?.lastEntitySyncAt && (
+              <span className={styles.lastSyncTime}>
+                {t('entities.sync.lastSync')}: {new Date(selectedSite.lastEntitySyncAt).toLocaleString(locale)}
+              </span>
+            )}
+          </div>
         </div>
       )}
 

@@ -102,7 +102,8 @@ export async function POST(request, { params }) {
       
       return NextResponse.json({
         success: false,
-        error: installResult.error,
+        errorCode: installResult.errorCode,
+        errorDetail: installResult.error,
         step: installResult.step,
       }, { status: 400 });
     }
@@ -131,15 +132,27 @@ async function performAutoInstall(site, wpAdminUrl, username, password) {
     const restUrl = `${baseUrl}/wp-json`;
 
     // Step 1: Check if site is reachable and has REST API
-    const checkResponse = await fetch(`${restUrl}/`, {
-      method: 'GET',
-      headers: { 'Accept': 'application/json' },
-    });
+    let checkResponse;
+    try {
+      checkResponse = await fetch(`${restUrl}/`, {
+        method: 'GET',
+        headers: { 'Accept': 'application/json' },
+        signal: AbortSignal.timeout(15000), // 15 second timeout
+      });
+    } catch (fetchError) {
+      return { 
+        success: false, 
+        errorCode: 'REST_API_UNREACHABLE',
+        error: fetchError.message,
+        step: 'check_api'
+      };
+    }
 
     if (!checkResponse.ok) {
       return { 
         success: false, 
-        error: 'Could not reach WordPress REST API. Make sure the site is accessible and REST API is enabled.',
+        errorCode: 'REST_API_ERROR',
+        error: `HTTP ${checkResponse.status}`,
         step: 'check_api'
       };
     }
@@ -149,19 +162,31 @@ async function performAutoInstall(site, wpAdminUrl, username, password) {
     const authHeader = 'Basic ' + Buffer.from(`${username}:${password}`).toString('base64');
 
     // Step 3: Check authentication
-    const authCheckResponse = await fetch(`${restUrl}/wp/v2/users/me`, {
-      method: 'GET',
-      headers: {
-        'Authorization': authHeader,
-        'Accept': 'application/json',
-      },
-    });
+    let authCheckResponse;
+    try {
+      authCheckResponse = await fetch(`${restUrl}/wp/v2/users/me`, {
+        method: 'GET',
+        headers: {
+          'Authorization': authHeader,
+          'Accept': 'application/json',
+        },
+        signal: AbortSignal.timeout(15000),
+      });
+    } catch (authError) {
+      return { 
+        success: false, 
+        errorCode: 'AUTH_REQUEST_FAILED',
+        error: authError.message,
+        step: 'authenticate'
+      };
+    }
 
     if (!authCheckResponse.ok) {
       const authError = await authCheckResponse.json().catch(() => ({}));
       return { 
         success: false, 
-        error: authError.message || 'Authentication failed. Check your username and password.',
+        errorCode: 'AUTH_FAILED',
+        error: authError.code || 'invalid_credentials',
         step: 'authenticate'
       };
     }
@@ -172,32 +197,25 @@ async function performAutoInstall(site, wpAdminUrl, username, password) {
     if (!currentUser.capabilities?.activate_plugins) {
       return {
         success: false,
-        error: 'User does not have permission to install plugins. Admin access required.',
+        errorCode: 'INSUFFICIENT_PERMISSIONS',
         step: 'check_permissions'
       };
     }
 
-    // Step 4: Download plugin ZIP
-    const pluginZipUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/api/sites/${site.id}/download-plugin`;
-    
-    // Step 5: Upload and install plugin via WP REST API
-    // Note: The standard WP REST API doesn't support plugin installation directly
-    // We need to use the /wp-json/wp/v2/plugins endpoint (WP 5.5+)
-    
-    // First, check if plugins endpoint exists
+    // Step 4: Check plugins endpoint
     const pluginsCheckResponse = await fetch(`${restUrl}/wp/v2/plugins`, {
       method: 'GET',
       headers: {
         'Authorization': authHeader,
         'Accept': 'application/json',
       },
+      signal: AbortSignal.timeout(15000),
     });
 
     if (!pluginsCheckResponse.ok) {
-      // Fallback: Provide manual installation instructions
       return {
         success: false,
-        error: 'Automatic plugin installation not supported on this site. Please install the plugin manually.',
+        errorCode: 'PLUGINS_API_UNAVAILABLE',
         step: 'check_plugins_api'
       };
     }
@@ -218,12 +236,13 @@ async function performAutoInstall(site, wpAdminUrl, username, password) {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({ status: 'active' }),
+          signal: AbortSignal.timeout(15000),
         });
 
         if (!activateResponse.ok) {
           return {
             success: false,
-            error: 'Plugin is installed but could not be activated.',
+            errorCode: 'ACTIVATION_FAILED',
             step: 'activate_plugin'
           };
         }
@@ -232,40 +251,19 @@ async function performAutoInstall(site, wpAdminUrl, username, password) {
       return { success: true };
     }
 
-    // Install plugin from URL
-    // This requires the plugin to be hosted on WP.org or a custom URL
-    // For security, we'll use the sideload method
-    
-    const installResponse = await fetch(`${restUrl}/wp/v2/plugins`, {
-      method: 'POST',
-      headers: {
-        'Authorization': authHeader,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        slug: 'ghost-post-connector',
-        status: 'active',
-      }),
-    });
-
-    // If plugin isn't on WP.org, this will fail
-    // In that case, we need manual installation
-    if (!installResponse.ok) {
-      // Return instructions for manual installation
-      return {
-        success: false,
-        error: 'Automatic installation failed. Please download and install the plugin manually from your Ghost Post dashboard.',
-        step: 'install_plugin',
-        manualRequired: true,
-      };
-    }
-
-    return { success: true };
+    // Plugin not installed - auto-install from URL is not supported by WP REST API
+    // The plugin must be installed manually
+    return {
+      success: false,
+      errorCode: 'MANUAL_INSTALL_REQUIRED',
+      step: 'install_plugin',
+    };
   } catch (error) {
     console.error('Auto-install error:', error);
     return {
       success: false,
-      error: error.message || 'An unexpected error occurred during installation.',
+      errorCode: 'UNKNOWN_ERROR',
+      error: error.message,
       step: 'unknown'
     };
   }

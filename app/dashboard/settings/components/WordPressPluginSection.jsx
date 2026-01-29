@@ -16,6 +16,7 @@ import {
   RefreshCw,
   Zap,
   ExternalLink,
+  Unplug,
 } from 'lucide-react';
 import { useSite } from '@/app/context/site-context';
 import styles from './WordPressPluginSection.module.css';
@@ -36,6 +37,7 @@ export default function WordPressPluginSection({ translations }) {
   const [downloadError, setDownloadError] = useState(null);
   const [showAutoInstall, setShowAutoInstall] = useState(false);
   const [autoInstallForm, setAutoInstallForm] = useState({
+    wpAdminUrl: '',
     wpUsername: '',
     wpPassword: '',
   });
@@ -43,6 +45,8 @@ export default function WordPressPluginSection({ translations }) {
   const [autoInstallError, setAutoInstallError] = useState(null);
   const [autoInstallSuccess, setAutoInstallSuccess] = useState(false);
   const [showDetails, setShowDetails] = useState(false);
+  const [isDisconnecting, setIsDisconnecting] = useState(false);
+  const [disconnectError, setDisconnectError] = useState(null);
 
   // Get connection status from site
   const connectionStatus = selectedSite?.connectionStatus || CONNECTION_STATUS.PENDING;
@@ -155,6 +159,23 @@ export default function WordPressPluginSection({ translations }) {
     }
   };
 
+  // Get translated error message from error code
+  const getAutoInstallErrorMessage = (errorCode, errorDetail) => {
+    const errorMessages = {
+      REST_API_UNREACHABLE: t?.wordpress?.errors?.restApiUnreachable || 'Could not reach WordPress REST API. Make sure the site is accessible and REST API is enabled.',
+      REST_API_ERROR: t?.wordpress?.errors?.restApiError || 'WordPress REST API returned an error. The REST API may be disabled or blocked.',
+      AUTH_REQUEST_FAILED: t?.wordpress?.errors?.authRequestFailed || 'Could not connect to WordPress for authentication. Check the site URL.',
+      AUTH_FAILED: t?.wordpress?.errors?.authFailed || 'Authentication failed. Check your username and password (use an Application Password for security).',
+      INSUFFICIENT_PERMISSIONS: t?.wordpress?.errors?.insufficientPermissions || 'This user does not have permission to install plugins. Admin access is required.',
+      PLUGINS_API_UNAVAILABLE: t?.wordpress?.errors?.pluginsApiUnavailable || 'WordPress plugins API is not available. You may need to install the plugin manually.',
+      ACTIVATION_FAILED: t?.wordpress?.errors?.activationFailed || 'The plugin is installed but could not be activated. Try activating it manually.',
+      MANUAL_INSTALL_REQUIRED: t?.wordpress?.errors?.manualInstallRequired || 'The plugin cannot be installed automatically. Please download and install it manually.',
+      UNKNOWN_ERROR: t?.wordpress?.errors?.unknownError || 'An unexpected error occurred during installation.',
+    };
+    
+    return errorMessages[errorCode] || errorDetail || (t?.wordpress?.errors?.unknownError || 'An unexpected error occurred.');
+  };
+
   // Handle auto-install
   const handleAutoInstall = async (e) => {
     e.preventDefault();
@@ -169,20 +190,24 @@ export default function WordPressPluginSection({ translations }) {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          wpAdminUrl: `${selectedSite.url}/wp-admin`,
-          wpUsername: autoInstallForm.wpUsername,
-          wpPassword: autoInstallForm.wpPassword,
+          wpAdminUrl: autoInstallForm.wpAdminUrl || `${selectedSite.url}/wp-admin`,
+          username: autoInstallForm.wpUsername,
+          password: autoInstallForm.wpPassword,
         }),
       });
 
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || 'Auto-install failed');
+        // Use error code if available, otherwise use the error message
+        const errorMessage = data.errorCode 
+          ? getAutoInstallErrorMessage(data.errorCode, data.errorDetail)
+          : data.error || (t?.wordpress?.autoInstallFailed || 'Auto-install failed');
+        throw new Error(errorMessage);
       }
 
       setAutoInstallSuccess(true);
-      setAutoInstallForm({ wpUsername: '', wpPassword: '' });
+      setAutoInstallForm({ wpAdminUrl: '', wpUsername: '', wpPassword: '' });
       setShowAutoInstall(false);
       
       // Refresh sites to get updated status
@@ -200,7 +225,41 @@ export default function WordPressPluginSection({ translations }) {
     setDownloadError(null);
     setAutoInstallError(null);
     setAutoInstallSuccess(false);
+    setDisconnectError(null);
   }, [selectedSite?.id]);
+
+  // Handle disconnect
+  const handleDisconnect = async () => {
+    if (!selectedSite?.id) return;
+    
+    // Confirm before disconnecting
+    const confirmMessage = t?.wordpress?.disconnectConfirm || 
+      'Are you sure you want to disconnect? You will need to download and install the plugin again to reconnect.';
+    if (!window.confirm(confirmMessage)) return;
+
+    setIsDisconnecting(true);
+    setDisconnectError(null);
+
+    try {
+      const response = await fetch(`/api/sites/${selectedSite.id}/disconnect`, {
+        method: 'POST',
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || (t?.wordpress?.disconnectFailed || 'Failed to disconnect'));
+      }
+
+      // Refresh sites to get updated status
+      refreshSites();
+    } catch (error) {
+      console.error('Disconnect error:', error);
+      setDisconnectError(error.message);
+    } finally {
+      setIsDisconnecting(false);
+    }
+  };
 
   return (
     <div className={styles.container}>
@@ -247,6 +306,26 @@ export default function WordPressPluginSection({ translations }) {
               {showAutoInstall ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
             </button>
           )}
+          
+          {isConnected && (
+            <button 
+              className={styles.disconnectButton}
+              onClick={handleDisconnect}
+              disabled={isDisconnecting}
+            >
+              {isDisconnecting ? (
+                <>
+                  <Loader2 size={14} className={styles.spinning} />
+                  {t?.wordpress?.disconnecting || 'Disconnecting...'}
+                </>
+              ) : (
+                <>
+                  <Unplug size={14} />
+                  {t?.wordpress?.disconnect || 'Disconnect'}
+                </>
+              )}
+            </button>
+          )}
         </div>
       </div>
 
@@ -255,6 +334,13 @@ export default function WordPressPluginSection({ translations }) {
         <div className={styles.errorMessage}>
           <AlertCircle size={14} />
           <span>{downloadError}</span>
+        </div>
+      )}
+
+      {disconnectError && (
+        <div className={styles.errorMessage}>
+          <AlertCircle size={14} />
+          <span>{disconnectError}</span>
         </div>
       )}
 
@@ -276,6 +362,20 @@ export default function WordPressPluginSection({ translations }) {
           </div>
           
           <div className={styles.formFields}>
+            <div className={`${styles.formGroup} ${styles.fullWidth}`}>
+              <label className={styles.formLabel}>
+                {t?.wordpress?.wpAdminUrl || 'WordPress Admin URL'}
+              </label>
+              <input
+                type="url"
+                className={styles.formInput}
+                value={autoInstallForm.wpAdminUrl || `${selectedSite?.url || ''}/wp-admin`}
+                onChange={(e) => setAutoInstallForm(prev => ({ ...prev, wpAdminUrl: e.target.value }))}
+                placeholder="https://example.com/wp-admin"
+                required
+              />
+            </div>
+            
             <div className={styles.formGroup}>
               <label className={styles.formLabel}>
                 {t?.wordpress?.wpUsername || 'WordPress Username'}

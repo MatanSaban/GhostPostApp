@@ -78,7 +78,10 @@
     "minimum": "minimum",
     "expand": "Expand",
     "collapse": "Collapse",
-    "saving": "Saving..."
+    "saving": "Saving...",
+    "title": "Title",
+    "goBack": "Go Back",
+    "characters": "characters"
   },
   "auth": {
     "login": "Log In",
@@ -554,7 +557,22 @@
       "empty": "No other content found",
       "emptyDescription": "Sync your website to import other content"
     },
-    "sync": "Sync Website",
+    "sync": {
+      "title": "Populate Entities",
+      "description": "Import all content from your WordPress site including posts, pages, menus, SEO data, and custom fields.",
+      "populate": "Populate from WordPress",
+      "syncing": "Syncing...",
+      "resync": "Re-sync Content",
+      "stop": "Stop Syncing",
+      "starting": "Starting sync...",
+      "fetchingTypes": "Fetching content types...",
+      "fetchingEntities": "Fetching {type}...",
+      "fetchingMenus": "Fetching menus...",
+      "completed": "Sync completed successfully!",
+      "failed": "Sync failed. Please try again.",
+      "cancelled": "Sync was cancelled.",
+      "lastSync": "Last synced"
+    },
     "syncing": "Syncing...",
     "lastSync": "Last synced",
     "status": "Status",
@@ -602,12 +620,83 @@
       "title": "WordPress Plugin",
       "description": "To automatically sync content from your WordPress site, you'll need to install the Ghost Post Connect plugin.",
       "download": "Download Plugin",
+      "downloading": "Downloading...",
       "instructions": {
         "title": "Installation Instructions",
         "step1": "Download the plugin file (.zip) by clicking the button below",
         "step2": "Go to your WordPress Dashboard → Plugins → Add New → Upload Plugin",
         "step3": "Select the downloaded ZIP file and click \"Install Now\"",
         "step4": "Activate the plugin and enter the API key shown in settings"
+      }
+    },
+    "untitled": "Untitled",
+    "notFound": "Entity not found",
+    "edit": {
+      "tabs": {
+        "content": "Content",
+        "seo": "SEO",
+        "customFields": "Custom Fields",
+        "media": "Media",
+        "settings": "Settings"
+      },
+      "basicInfo": "Basic Information",
+      "titlePlaceholder": "Enter title...",
+      "slug": "Slug",
+      "slugPlaceholder": "page-slug",
+      "excerpt": "Excerpt",
+      "excerptPlaceholder": "Enter a short description...",
+      "content": "Content",
+      "contentPlaceholder": "Start writing your content...",
+      "visual": "Visual",
+      "html": "HTML",
+      "featuredImage": "Featured Image",
+      "noFeaturedImage": "No featured image set",
+      "featuredImageUrl": "Image URL",
+      "seo": {
+        "title": "SEO Settings",
+        "noData": "No SEO data available. Install Yoast SEO or RankMath to manage SEO.",
+        "plugin": "SEO Plugin",
+        "general": "General",
+        "social": "Social",
+        "advanced": "Advanced",
+        "metaTitle": "SEO Title",
+        "metaTitlePlaceholder": "Enter SEO title...",
+        "metaDescription": "Meta Description",
+        "metaDescriptionPlaceholder": "Enter meta description...",
+        "focusKeyword": "Focus Keyword",
+        "focusKeywordPlaceholder": "Enter focus keyword...",
+        "canonicalUrl": "Canonical URL",
+        "noTitle": "No SEO title set",
+        "noDescription": "No meta description set",
+        "ogTitle": "Facebook Title",
+        "ogDescription": "Facebook Description",
+        "ogImage": "Facebook Image",
+        "twitterTitle": "Twitter Title",
+        "twitterDescription": "Twitter Description",
+        "twitterImage": "Twitter Image",
+        "indexing": "Allow search engines to index",
+        "indexYes": "Index this page",
+        "indexNo": "Do not index",
+        "indexDescription": "Allow search engines to show this page in search results",
+        "following": "Follow links",
+        "followYes": "Follow links on this page",
+        "followNo": "Don't follow links",
+        "followDescription": "Allow search engines to follow links on this page"
+      },
+      "acf": {
+        "title": "Custom Fields",
+        "noFields": "No custom fields available for this content.",
+        "otherFields": "Other Fields"
+      },
+      "metadata": {
+        "entityInfo": "Entity Information",
+        "id": "ID",
+        "externalId": "External ID",
+        "createdAt": "Created At",
+        "updatedAt": "Last Updated",
+        "publishedAt": "Published At",
+        "rawMeta": "Raw Metadata",
+        "noMeta": "No additional metadata available"
       }
     }
   },
@@ -769,6 +858,8 @@
       "autoInstallTitle": "Auto-Install Plugin",
       "autoInstallDesc": "Enter your WordPress admin credentials to automatically install and activate the plugin. Your credentials are encrypted and deleted immediately after installation.",
       "autoInstallSuccess": "Plugin installed successfully! Waiting for activation...",
+      "autoInstallFailed": "Auto-install failed",
+      "wpAdminUrl": "WordPress Admin URL",
       "wpUsername": "WordPress Username",
       "wpUsernamePlaceholder": "admin",
       "wpPassword": "WordPress Password",
@@ -790,7 +881,22 @@
       "step2": "Go to WordPress Dashboard → Plugins → Add New → Upload Plugin",
       "step3": "Upload the ZIP file and click \"Install Now\"",
       "step4": "Activate the plugin - it will connect automatically",
-      "description": "Install our WordPress plugin to enable seamless content synchronization, automatic publishing, and real-time analytics integration with your WordPress site."
+      "description": "Install our WordPress plugin to enable seamless content synchronization, automatic publishing, and real-time analytics integration with your WordPress site.",
+      "disconnect": "Disconnect",
+      "disconnecting": "Disconnecting...",
+      "disconnectConfirm": "Are you sure you want to disconnect? You will need to download and install the plugin again to reconnect.",
+      "disconnectFailed": "Failed to disconnect",
+      "errors": {
+        "restApiUnreachable": "Could not reach WordPress REST API. Make sure the site is accessible, REST API is enabled, and not blocked by security plugins.",
+        "restApiError": "WordPress REST API returned an error. The REST API may be disabled or blocked by a firewall.",
+        "authRequestFailed": "Could not connect to WordPress for authentication. Check the site URL and make sure it's accessible.",
+        "authFailed": "Authentication failed. Check your username and password. For security, we recommend using an Application Password.",
+        "insufficientPermissions": "This user does not have permission to install plugins. Administrator access is required.",
+        "pluginsApiUnavailable": "WordPress plugins API is not available on this site. Please install the plugin manually.",
+        "activationFailed": "The plugin is installed but could not be activated. Try activating it manually from the Plugins page.",
+        "manualInstallRequired": "The plugin cannot be installed automatically. Please download the plugin and install it manually.",
+        "unknownError": "An unexpected error occurred during installation. Please try again or install manually."
+      }
     },
     "maintenance": {
       "title": "Maintenance Mode",

@@ -74,6 +74,11 @@ $last_error = get_option('gp_connector_last_error', null);
             <button type="button" class="button" id="gp-send-ping">
                 <?php esc_html_e('Send Ping', 'ghost-post-connector'); ?>
             </button>
+            <?php if ($status === 'connected'): ?>
+            <button type="button" class="button button-link-delete" id="gp-disconnect">
+                <?php esc_html_e('Disconnect', 'ghost-post-connector'); ?>
+            </button>
+            <?php endif; ?>
         </div>
     </div>
     
@@ -226,6 +231,37 @@ jQuery(document).ready(function($) {
             },
             complete: function() {
                 $btn.prop('disabled', false).text('<?php esc_html_e('Send Ping', 'ghost-post-connector'); ?>');
+            }
+        });
+    });
+    
+    $('#gp-disconnect').on('click', function() {
+        if (!confirm('<?php esc_html_e('Are you sure you want to disconnect from Ghost Post? You can reconnect later by downloading a new plugin.', 'ghost-post-connector'); ?>')) {
+            return;
+        }
+        
+        var $btn = $(this);
+        $btn.prop('disabled', true).text('<?php esc_html_e('Disconnecting...', 'ghost-post-connector'); ?>');
+        
+        $.ajax({
+            url: ajaxurl,
+            method: 'POST',
+            data: {
+                action: 'gp_disconnect'
+            },
+            success: function(response) {
+                if (response.success) {
+                    alert('<?php esc_html_e('Disconnected successfully.', 'ghost-post-connector'); ?>');
+                    location.reload();
+                } else {
+                    alert('<?php esc_html_e('Disconnect failed:', 'ghost-post-connector'); ?> ' + response.data);
+                }
+            },
+            error: function() {
+                alert('<?php esc_html_e('Disconnect failed. Please try again.', 'ghost-post-connector'); ?>');
+            },
+            complete: function() {
+                $btn.prop('disabled', false).text('<?php esc_html_e('Disconnect', 'ghost-post-connector'); ?>');
             }
         });
     });
