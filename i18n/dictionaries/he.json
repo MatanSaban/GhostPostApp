@@ -124,7 +124,18 @@
     "connecting": "מתחבר...",
     "creating": "יוצר...",
     "loginFailed": "ההתחברות נכשלה. אנא נסה שוב.",
-    "and": "ו"
+    "and": "ו",
+    "consentRequiredForGoogle": "אנא אשר את התנאים לפני ההמשך עם Google",
+    "useGoogleLogin": "אנא התחבר באמצעות אמצעי ההתחברות המקורי שלך",
+    "emailExistsConnectGoogle": "כתובת האימייל כבר רשומה. התחבר עם סיסמה וחבר את חשבון Google שלך בהגדרות.",
+    "completeRegistration": "יש לך הרשמה בתהליך. אנא השלם אותה או התחבר עם אימייל וסיסמה.",
+    "noAccount": "לא נמצא חשבון. אנא הירשם תחילה.",
+    "googleConnected": "חשבון Google חובר בהצלחה",
+    "googleDisconnected": "חשבון Google נותק בהצלחה",
+    "googleAlreadyConnected": "חשבון Google זה כבר מחובר לחשבון אחר",
+    "setPasswordFirst": "עליך להגדיר סיסמה לפני ניתוק Google. זה מבטיח שתוכל עדיין להתחבר לחשבון שלך.",
+    "passwordSet": "הסיסמה הוגדרה בהצלחה",
+    "passwordUpdated": "הסיסמה עודכנה בהצלחה"
   },
   "nav": {
     "dashboard": "לוח בקרה",

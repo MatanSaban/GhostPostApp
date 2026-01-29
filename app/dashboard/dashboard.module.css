@@ -326,6 +326,7 @@
 .logoutButton {
   display: flex;
   align-items: center;
+  justify-content: flex-start;
   gap: 0.75rem;
   width: 100%;
   padding: 0.75rem;
@@ -1056,12 +1057,6 @@
 /* Navigation Items RTL */
 :global(html[dir="rtl"]) .navItem {
   /* flex-direction: row-reverse; */
-  text-align: right;
-}
-
-/* Logout Button RTL */
-:global(html[dir="rtl"]) .logoutButton {
-  flex-direction: row-reverse;
   text-align: right;
 }
 

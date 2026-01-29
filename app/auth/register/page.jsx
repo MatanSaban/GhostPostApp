@@ -42,7 +42,7 @@ export default async function RegisterPage({ searchParams }) {
       createAccount: t('auth.createAccount'),
       orContinueWith: t('auth.orContinueWith'),
       google: t('auth.google'),
-      github: t('auth.github'),
+      consentRequiredForGoogle: t('auth.consentRequiredForGoogle'),
     },
     otp: {
       chooseMethod: t('registration.otp.chooseMethod'),

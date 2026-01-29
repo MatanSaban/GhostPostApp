@@ -183,10 +183,14 @@
 .formRow {
   display: flex;
   gap: 1rem;
-}
 
-.formRow .formGroup {
-  flex: 1;
+  @media (max-width: 640px) {
+    flex-direction: column;
+  }
+
+  .formGroup {
+    flex: 1;
+  }
 }
 
 .formGroup {
@@ -237,6 +241,15 @@
   }
 }
 
+.inputError {
+  border-color: #ef4444 !important;
+  
+  &:focus {
+    border-color: #ef4444 !important;
+    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.15) !important;
+  }
+}
+
 .forgotPassword {
   display: flex;
   justify-content: flex-end;
@@ -268,6 +281,18 @@
   margin-top: 0.125rem;
   accent-color: var(--primary);
   cursor: pointer;
+}
+
+.checkboxError {
+  outline: 2px solid #ef4444;
+  outline-offset: 2px;
+}
+
+.termsGroupError {
+  padding: 0.5rem;
+  margin: -0.5rem;
+  border-radius: var(--radius-md);
+  background: rgba(239, 68, 68, 0.05);
 }
 
 .termsLabel {
@@ -359,8 +384,8 @@
 }
 
 .socialButtons {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
+  display: flex;
+  justify-content: center;
   gap: 0.75rem;
 }
 
@@ -369,7 +394,7 @@
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  padding: 0.75rem 1rem;
+  padding: 0.75rem 2.5rem;
   font-size: 0.9375rem;
   font-weight: 500;
   color: var(--foreground);

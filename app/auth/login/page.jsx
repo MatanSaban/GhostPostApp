@@ -17,7 +17,6 @@ export default async function LoginPage() {
     connect: t('auth.connect'),
     orContinueWith: t('auth.orContinueWith'),
     google: t('auth.google'),
-    github: t('auth.github'),
   };
 
   return (

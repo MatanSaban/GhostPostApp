@@ -124,7 +124,18 @@
     "connecting": "Connecting...",
     "creating": "Creating...",
     "loginFailed": "Login failed. Please try again.",
-    "and": "and"
+    "and": "and",
+    "consentRequiredForGoogle": "Please accept the terms before continuing with Google",
+    "useGoogleLogin": "Please login using your original sign-in method",
+    "emailExistsConnectGoogle": "Email already registered. Login with password and connect your Google account in settings.",
+    "completeRegistration": "You have a pending registration. Please complete it or login with email and password.",
+    "noAccount": "No account found. Please register first.",
+    "googleConnected": "Google account connected successfully",
+    "googleDisconnected": "Google account disconnected successfully",
+    "googleAlreadyConnected": "This Google account is already connected to another account",
+    "setPasswordFirst": "You must set a password before disconnecting Google. This ensures you can still log in to your account.",
+    "passwordSet": "Password set successfully",
+    "passwordUpdated": "Password updated successfully"
   },
   "nav": {
     "dashboard": "Dashboard",
