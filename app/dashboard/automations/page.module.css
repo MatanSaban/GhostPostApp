@@ -1,0 +1,327 @@
+/* Automations Page Styles */
+
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.pageHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+
+  @media (max-width: 640px) {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+}
+
+.headerContent {
+  flex: 1;
+}
+
+.pageTitle {
+  font-size: 1.875rem;
+  font-weight: 600;
+  color: var(--foreground);
+}
+
+.pageSubtitle {
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+  margin-top: 0.25rem;
+}
+
+/* Stats Grid */
+.statsGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+
+  @media (max-width: 1200px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  @media (max-width: 640px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Automations Card */
+.automationsCard {
+  position: relative;
+  padding: 1.5rem;
+  border-radius: var(--radius-xl);
+  background: linear-gradient(135deg, rgba(147, 51, 234, 0.03) 0%, rgba(59, 130, 246, 0.03) 100%);
+  border: 1px solid rgba(147, 51, 234, 0.15);
+
+  .dark & {
+    background: linear-gradient(135deg, rgba(123, 44, 191, 0.1) 0%, rgba(67, 97, 238, 0.05) 100%);
+    border-color: rgba(123, 44, 191, 0.2);
+  }
+}
+
+.cardHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+}
+
+.cardTitle {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--foreground);
+}
+
+/* Automations List */
+.automationsList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.automationItem {
+  display: grid;
+  grid-template-columns: auto 1fr auto auto;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  background: var(--background);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-lg);
+  transition: all var(--transition-fast);
+
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+
+  &:hover {
+    border-color: var(--primary);
+  }
+
+  .dark & {
+    background: rgba(0, 0, 0, 0.4);
+    border-color: rgba(123, 44, 191, 0.1);
+
+    &:hover {
+      border-color: rgba(123, 44, 191, 0.3);
+    }
+  }
+}
+
+.automationIcon {
+  width: 2.5rem;
+  height: 2.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-lg);
+  flex-shrink: 0;
+
+  &.purple {
+    background: rgba(147, 51, 234, 0.1);
+    border: 1px solid rgba(147, 51, 234, 0.3);
+    color: #9333ea;
+
+    .dark & {
+      background: rgba(123, 44, 191, 0.2);
+      border-color: rgba(123, 44, 191, 0.3);
+      color: #c084fc;
+    }
+  }
+
+  &.blue {
+    background: rgba(59, 130, 246, 0.1);
+    border: 1px solid rgba(59, 130, 246, 0.3);
+    color: #3b82f6;
+
+    .dark & {
+      background: rgba(67, 97, 238, 0.2);
+      border-color: rgba(67, 97, 238, 0.3);
+      color: #60a5fa;
+    }
+  }
+
+  &.green {
+    background: rgba(16, 185, 129, 0.1);
+    border: 1px solid rgba(16, 185, 129, 0.3);
+    color: #10b981;
+
+    .dark & {
+      background: rgba(0, 255, 157, 0.2);
+      border-color: rgba(0, 255, 157, 0.3);
+      color: #00FF9D;
+    }
+  }
+
+  &.orange {
+    background: rgba(249, 115, 22, 0.1);
+    border: 1px solid rgba(249, 115, 22, 0.3);
+    color: #f97316;
+
+    .dark & {
+      background: rgba(249, 115, 22, 0.2);
+      border-color: rgba(249, 115, 22, 0.3);
+      color: #fb923c;
+    }
+  }
+}
+
+.automationInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-width: 0;
+}
+
+.automationName {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--foreground);
+}
+
+.automationDescription {
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+}
+
+.automationStats {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+
+  @media (max-width: 768px) {
+    flex-wrap: wrap;
+  }
+}
+
+.statItem {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.statValue {
+  font-weight: 600;
+  color: var(--foreground);
+}
+
+/* Toggle Switch */
+.toggleSwitch {
+  position: relative;
+  width: 3rem;
+  height: 1.5rem;
+  background: var(--muted);
+  border-radius: 9999px;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  flex-shrink: 0;
+
+  &.active {
+    background: var(--gradient-primary);
+  }
+
+  .dark & {
+    background: rgba(0, 0, 0, 0.4);
+
+    &.active {
+      background: var(--gradient-primary);
+    }
+  }
+}
+
+.toggleKnob {
+  position: absolute;
+  top: 0.125rem;
+  left: 0.125rem;
+  width: 1.25rem;
+  height: 1.25rem;
+  background: white;
+  border-radius: 50%;
+  transition: transform var(--transition-fast);
+  box-shadow: var(--shadow-sm);
+
+  .active & {
+    transform: translateX(1.5rem);
+  }
+}
+
+/* Activity Log */
+.activityCard {
+  position: relative;
+  padding: 1.5rem;
+  border-radius: var(--radius-xl);
+  background: linear-gradient(135deg, rgba(147, 51, 234, 0.03) 0%, rgba(59, 130, 246, 0.03) 100%);
+  border: 1px solid rgba(147, 51, 234, 0.15);
+
+  .dark & {
+    background: linear-gradient(135deg, rgba(123, 44, 191, 0.1) 0%, rgba(67, 97, 238, 0.05) 100%);
+    border-color: rgba(123, 44, 191, 0.2);
+  }
+}
+
+.activityList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.activityItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1rem;
+  background: var(--background);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-lg);
+
+  .dark & {
+    background: rgba(0, 0, 0, 0.4);
+    border-color: rgba(123, 44, 191, 0.1);
+  }
+}
+
+.activityContent {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.activityDot {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+
+  &.success {
+    background: #10b981;
+
+    .dark & {
+      background: #00FF9D;
+    }
+  }
+
+  &.info {
+    background: #3b82f6;
+  }
+
+  &.warning {
+    background: #f59e0b;
+  }
+}
+
+.activityText {
+  font-size: 0.875rem;
+  color: var(--foreground);
+}
+
+.activityTime {
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+}

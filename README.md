@@ -1,36 +1,159 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Ghost Post Platform
+
+AI-Powered SEO Automation Platform
+
+## Tech Stack
+
+- **Framework**: Next.js 15+
+- **Database**: MongoDB with Prisma ORM
+- **Styling**: CSS Modules with nested syntax
+- **Font**: Poppins (with support for future multi-language fonts)
+- **Language**: JavaScript/JSX
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
 
+- Node.js 18+ 
+- MongoDB database (local or Atlas)
+
+### Installation
+
+1. Install dependencies:
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+2. Copy environment file and configure:
+```bash
+cp .env.example .env
+```
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+3. Update `.env` with your MongoDB connection string:
+```
+DATABASE_URL="mongodb+srv://username:password@cluster.mongodb.net/ghostpost?retryWrites=true&w=majority"
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+4. Generate Prisma client:
+```bash
+npm run prisma:generate
+```
 
-## Learn More
+5. Push schema to database:
+```bash
+npm run prisma:push
+```
 
-To learn more about Next.js, take a look at the following resources:
+6. Run development server:
+```bash
+npm run dev
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Open [http://localhost:3000](http://localhost:3000) to see the platform.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Project Structure
 
-## Deploy on Vercel
+```
+gp-platform/
+├── app/
+│   ├── auth/
+│   │   ├── login/
+│   │   │   └── page.jsx
+│   │   ├── register/
+│   │   │   ├── page.jsx
+│   │   │   └── thank-you/
+│   │   │       └── page.jsx
+│   │   ├── auth.module.css
+│   │   └── layout.jsx
+│   ├── dashboard/
+│   │   ├── [feature]/
+│   │   │   └── page.jsx
+│   │   ├── dashboard.module.css
+│   │   ├── layout.jsx
+│   │   ├── page.jsx
+│   │   └── page.module.css
+│   ├── components/
+│   │   └── ui/
+│   │       ├── button.jsx
+│   │       ├── card.jsx
+│   │       ├── input.jsx
+│   │       ├── theme-toggle.jsx
+│   │       └── index.js
+│   ├── context/
+│   │   └── theme-context.jsx
+│   ├── styles/
+│   │   ├── fonts.css
+│   │   └── theme.css
+│   ├── globals.css
+│   ├── layout.jsx
+│   └── page.jsx
+├── lib/
+│   └── prisma.js
+├── prisma/
+│   └── schema.prisma
+├── package.json
+└── README.md
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Features
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### Authentication
+- `/auth/login` - User login
+- `/auth/register` - User registration
+- `/auth/register/thank-you` - Registration success
+
+### Dashboard
+- `/dashboard` - Main command center
+- `/dashboard/site-interview` - Site profile questionnaire
+- `/dashboard/content-planner` - Content calendar and planning
+- `/dashboard/automations` - Automation workflows
+- `/dashboard/link-building` - Backlink management
+- `/dashboard/redirections` - URL redirect management
+- `/dashboard/seo-frontend` - Frontend SEO analysis
+- `/dashboard/seo-backend` - Technical SEO monitoring
+- `/dashboard/site-audit` - Site audit & Core Web Vitals
+- `/dashboard/keyword-strategy` - Keyword research & tracking
+- `/dashboard/settings` - Platform settings
+
+## Theme System
+
+The platform supports light and dark themes with a theme toggle button.
+
+Theme variables are defined in `app/styles/theme.css` and can be customized.
+
+## Font Support
+
+Currently using Poppins font. The font system is designed to support multiple fonts for future internationalization:
+
+- Fonts are imported in `app/styles/fonts.css`
+- CSS variable `--font-primary` controls the main font
+
+## Development
+
+### CSS Modules
+
+All components use CSS Modules with fully nested syntax (like SCSS):
+
+```css
+.card {
+  background: var(--card);
+  
+  .dark & {
+    background: var(--gradient-card);
+  }
+  
+  &:hover {
+    transform: translateY(-2px);
+  }
+}
+```
+
+### Adding New Dashboard Pages
+
+1. Create a new folder under `app/dashboard/[feature-name]/`
+2. Add `page.jsx` with the page component
+3. The navigation menu in `layout.jsx` will automatically include the route
+
+## License
+
+Private - Ghost Post © 2026

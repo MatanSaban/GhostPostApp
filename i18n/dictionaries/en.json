@@ -1,693 +1,2580 @@
 {
-  "metadata": {
-    "title": "Ghost Post - AI-Powered SEO Automation",
-    "description": "The first autonomous AI agent that optimizes, writes, and manages your site's SEO while you sleep."
+  "brand": {
+    "name": "Ghost Post",
+    "initial": "G"
   },
-  "nav": {
-    "home": "Home",
-    "features": "Features",
-    "pricing": "Pricing",
-    "howItWorks": "How It Works",
-    "blog": "Blog",
-    "about": "About",
-    "contact": "Contact",
-    "faq": "FAQ",
-    "login": "Login",
-    "signUp": "Sign Up",
-    "getStarted": "Get Started"
+  "homepage": {
+    "taglineHighlight": "AI-Powered SEO Automation",
+    "taglineText": "for modern businesses. Let our intelligent agents handle your content strategy while you focus on growth.",
+    "copyright": "© 2026 Ghost Post."
   },
-  "hero": {
-    "badge": "AI-Powered SEO",
-    "title": "Your Website's SEO on",
-    "titleHighlight": "Autopilot",
-    "subtitle": "The first autonomous AI agent that optimizes, writes, and manages your site's SEO while you sleep. Set it and forget it.",
-    "cta": "Start Free Trial",
-    "secondaryCta": "Watch Demo",
-    "trustedBy": "Trusted by 500+ companies worldwide"
+  "theme": {
+    "switchToLight": "Switch to light mode",
+    "switchToDark": "Switch to dark mode"
   },
-  "features": {
-    "badge": "Powerful Features",
-    "titlePrefix": "Why Choose",
-    "titleHighlight": "Ghost Post",
-    "subtitle": "Powerful features that work together to dominate search rankings",
-    "items": [
-      {
-        "icon": "brain",
-        "title": "Autonomous AI Agent",
-        "description": "Ghost works 24/7 analyzing, optimizing, and implementing SEO strategies without human intervention.",
-        "color": "purple"
-      },
-      {
-        "icon": "sparkles",
-        "title": "Content Generation",
-        "description": "Automatically creates SEO-optimized content based on keyword research and competitor analysis.",
-        "color": "blue"
-      },
-      {
-        "icon": "trending",
-        "title": "Real-Time Optimization",
-        "description": "Continuously monitors rankings and adapts strategies to maintain top search positions.",
-        "color": "green"
-      },
-      {
-        "icon": "zap",
-        "title": "Smart Automations",
-        "description": "Automate meta tags, internal linking, image optimization, and technical SEO fixes.",
-        "color": "purple"
-      },
-      {
-        "icon": "clock",
-        "title": "Time Machine Mode",
-        "description": "Set it and forget it. Ghost handles everything from keyword research to content publishing.",
-        "color": "blue"
-      },
-      {
-        "icon": "shield",
-        "title": "Safe & Compliant",
-        "description": "Follows Google guidelines and best practices to ensure sustainable, penalty-free growth.",
-        "color": "green"
-      }
-    ],
-    "metaTitle": "Features - Ghost Post",
-    "metaDescription": "Explore 100+ automated SEO features powered by AI",
-    "badge": "100+ Automated Features",
-    "title": "Complete",
-    "titleHighlight": "Ghost Post",
-    "subtitle": "Everything you need to dominate search rankings, powered by autonomous AI that works 24/7.",
-    "pageBadge": "100+ Automated Features",
-    "pageTitle": "All Features of",
-    "pageTitleHighlight": "Ghost Post",
-    "pageSubtitle": "Everything you need to dominate search rankings, powered by autonomous AI that works 24/7.",
-    "aiContent": "AI-Powered Content Generation",
-    "aiContentDesc": "Ghost analyzes your niche, competitors, and top-ranking content to automatically generate SEO-optimized articles, product descriptions, and landing pages that rank.",
-    "aiContentBenefits": [
-      "Natural language processing for human-quality content",
-      "Keyword optimization based on search intent",
-      "Automatic content scheduling and publishing",
-      "Competitor content gap analysis",
-      "Multi-format content (blogs, products, FAQs)",
-      "Brand voice customization"
-    ],
-    "articlesGenerated": "Articles Generated Daily",
-    "keywordResearch": "Intelligent Keyword Research",
-    "keywordResearchDesc": "Discover high-value keywords with low competition. Ghost continuously monitors search trends and identifies new opportunities before your competitors do.",
-    "keywordResearchBenefits": [
-      "Real-time keyword difficulty analysis",
-      "Long-tail keyword discovery",
-      "Search intent classification",
-      "Seasonal trend predictions",
-      "Keyword clustering and grouping",
-      "SERP feature opportunities"
-    ],
-    "keywordsAnalyzed": "Keywords Analyzed",
-    "linkBuilding": "Automated Link Building",
-    "linkBuildingDesc": "Ghost identifies link-building opportunities, reaches out to relevant websites, and secures high-quality backlinks for your site automatically.",
-    "linkBuildingBenefits": [
-      "AI-powered outreach email generation",
-      "Broken link opportunity detection",
-      "Internal linking optimization",
-      "Backlink quality monitoring",
-      "Guest post opportunity finder",
-      "Link reclamation"
-    ],
-    "backlinksBuilt": "Backlinks Built",
-    "technicalSeo": "Technical SEO Automation",
-    "technicalSeoDesc": "Automatically fix technical issues that hurt your rankings. Ghost handles meta tags, sitemaps, robots.txt, structured data, and more.",
-    "technicalSeoBenefits": [
-      "Auto-generated meta descriptions",
-      "Schema markup implementation",
-      "XML sitemap automatic updates",
-      "Page speed optimization",
-      "Mobile usability fixes",
-      "Canonical tag management"
-    ],
-    "issueDetection": "Issue Detection Rate",
-    "mediaOptimization": "Image & Media Optimization",
-    "mediaOptimizationDesc": "Compress images, generate alt text, and optimize media files for faster loading and better SEO without manual intervention.",
-    "mediaOptimizationBenefits": [
-      "Automatic image compression",
-      "AI-generated alt text",
-      "Lazy loading implementation",
-      "WebP format conversion",
-      "Responsive image sizing",
-      "Image sitemap generation"
-    ],
-    "imagesOptimized": "Images Optimized",
-    "analytics": "Advanced Analytics & Reporting",
-    "analyticsDesc": "Track your SEO performance with detailed analytics, competitor comparisons, and actionable insights delivered to your inbox.",
-    "analyticsBenefits": [
-      "Real-time ranking tracking",
-      "Traffic source analysis",
-      "ROI measurement",
-      "Custom report generation",
-      "Competitor traffic estimation",
-      "Conversion funnel analysis"
-    ],
-    "dataPointsTracked": "Data Points Tracked",
-    "ctaTitle": "Ready to automate your SEO?",
-    "ctaDescription": "Start your 14-day free trial and experience the power of AI-driven SEO.",
-    "ctaButton": "Start Free Trial"
-  },
-  "howItWorks": {
-    "badge": "Simple Process",
-    "titlePrefix": "How Ghost",
-    "titleHighlight": "Works",
-    "title": "How Ghost Post",
-    "subtitle": "From setup to results, Ghost handles everything automatically",
-    "metaTitle": "How It Works - Ghost Post",
-    "metaDescription": "From setup to success in 6 simple steps",
-    "step1Title": "Connect Your Site",
-    "step1Description": "Simple one-click integration with your website. Ghost analyzes your current SEO state and identifies opportunities.",
-    "step1Duration": "5 minutes",
-    "step1Details": [
-      "Secure connection to your website",
-      "Automatic site structure analysis",
-      "Existing content scanning",
-      "Technical issues identification"
-    ],
-    "step2Title": "Comprehensive SEO Analysis",
-    "step2Description": "Ghost deep-scans your site and identifies all available SEO opportunities.",
-    "step2Duration": "24 hours",
-    "step2Details": [
-      "Full site crawl",
-      "Speed and performance check",
-      "Competitor analysis",
-      "Initial keyword research"
-    ],
-    "step3Title": "Strategy Building",
-    "step3Description": "Ghost builds a customized SEO strategy for your business based on collected data.",
-    "step3Duration": "Automatic",
-    "step3Details": [
-      "Detailed content plan",
-      "Keyword strategy",
-      "Task prioritization",
-      "Implementation timeline"
-    ],
-    "step4Title": "Automatic Content Creation",
-    "step4Description": "Ghost generates SEO-optimized content automatically based on the strategy.",
-    "step4Duration": "Continuous",
-    "step4Details": [
-      "Optimized article creation",
-      "Meta description optimization",
-      "Alt text generation for images",
-      "Internal link building"
-    ],
-    "step5Title": "Automatic Implementation",
-    "step5Description": "Ghost implements changes and technical fixes automatically and safely.",
-    "step5Duration": "Continuous",
-    "step5Details": [
-      "New content publishing",
-      "Technical error fixes",
-      "Meta tag updates",
-      "Image optimization"
-    ],
-    "step6Title": "Monitoring & Growth",
-    "step6Description": "Track your rankings improve in real-time. Ghost continues to optimize.",
-    "step6Duration": "24/7",
-    "step6Details": [
-      "Real-time ranking tracking",
-      "Weekly performance reports",
-      "Automatic strategy adjustment",
-      "Significant change alerts"
-    ],
-    "ctaTitle": "Ready to get started?",
-    "ctaDescription": "Connect your website and let Ghost handle your SEO automatically.",
-    "ctaButton": "Start Free Trial",
-    "steps": [
-      {
-        "step": "01",
-        "title": "Connect Your Site",
-        "description": "Simple one-click integration with your website. Ghost analyzes your current SEO state and identifies opportunities."
-      },
-      {
-        "step": "02",
-        "title": "AI Takes Over",
-        "description": "Ghost creates a comprehensive SEO strategy, generates optimized content, and implements technical fixes automatically."
-      },
-      {
-        "step": "03",
-        "title": "Watch Growth",
-        "description": "Monitor your rankings improve in real-time. Ghost continuously optimizes based on performance data."
-      }
-    ]
-  },
-  "pricing": {
-    "badge": "14-Day Free Trial",
-    "titlePrefix": "Simple,",
-    "titleHighlight": "Transparent Pricing",
-    "subtitle": "Choose the plan that fits your business. No hidden fees, cancel anytime.",
-    "monthly": "Monthly",
-    "annual": "Annual",
-    "save": "Save 20%",
-    "perMonth": "/month",
-    "billedAnnually": "Billed ${amount}/year",
-    "custom": "Custom",
-    "popularBadge": "Most Popular",
-    "startFreeTrial": "Start Free Trial",
-    "contactSales": "Contact Sales",
-    "faqTitle": "Frequently Asked Questions",
-    "starterName": "Starter",
-    "starterCta": "Start Free Trial",
-    "starterDescription": "Perfect for small businesses and startups",
-    "starterFeatures": [
-      "Up to 10,000 monthly visitors",
-      "5 content pieces per month",
-      "Basic keyword tracking",
-      "Technical SEO automation",
-      "Email support"
-    ],
-    "proName": "Professional",
-    "proCta": "Start Free Trial",
-    "proDescription": "For growing businesses serious about SEO",
-    "proFeatures": [
-      "Up to 100,000 monthly visitors",
-      "20 content pieces per month",
-      "Advanced keyword strategy",
-      "Full SEO automation",
-      "Link building assistance",
-      "Priority support"
-    ],
-    "enterpriseName": "Enterprise",
-    "enterpriseCta": "Contact Sales",
-    "enterpriseDescription": "For large organizations with complex needs",
-    "enterpriseFeatures": [
-      "Unlimited traffic",
-      "Unlimited content",
-      "Multi-site support",
-      "Custom integrations",
-      "Dedicated account manager",
-      "24/7 phone support"
-    ],
-    "faqs": [
-      {
-        "question": "How does the free trial work?",
-        "answer": "Start with a 14-day free trial on any plan. No credit card required. Experience the full power of Ghost Post with all features unlocked."
-      },
-      {
-        "question": "Can I change plans later?",
-        "answer": "Yes! You can upgrade or downgrade your plan at any time. Upgrades take effect immediately with prorated billing."
-      },
-      {
-        "question": "What happens if I exceed my visitor limit?",
-        "answer": "We'll send you a notification when you're approaching 80% of your limit. You can either upgrade or continue with a small overage fee."
-      },
-      {
-        "question": "Is Ghost Post safe for my website?",
-        "answer": "Absolutely. Ghost follows all Google Webmaster Guidelines and uses only white-hat, approved SEO techniques."
-      },
-      {
-        "question": "Do you offer refunds?",
-        "answer": "Yes, we offer a 30-day money-back guarantee on all plans. If you're not satisfied, we'll refund your payment in full."
-      }
-    ],
-    "plans": [
-      {
-        "name": "Starter",
-        "price": "$99",
-        "period": "/month",
-        "description": "Perfect for small businesses and startups",
-        "features": [
-          "Up to 10,000 monthly visitors",
-          "5 content pieces per month",
-          "Basic keyword tracking",
-          "Technical SEO automation",
-          "Email support"
-        ],
-        "cta": "Start Free Trial",
-        "popular": false
-      },
-      {
-        "name": "Professional",
-        "price": "$299",
-        "period": "/month",
-        "description": "For growing businesses serious about SEO",
-        "features": [
-          "Up to 100,000 monthly visitors",
-          "20 content pieces per month",
-          "Advanced keyword strategy",
-          "Full SEO automation",
-          "Link building assistance",
-          "Priority support"
-        ],
-        "cta": "Start Free Trial",
-        "popular": true
-      },
-      {
-        "name": "Enterprise",
-        "price": "Custom",
-        "period": "",
-        "description": "For large organizations with complex needs",
-        "features": [
-          "Unlimited traffic",
-          "Unlimited content",
-          "Multi-site support",
-          "Custom integrations",
-          "Dedicated account manager",
-          "24/7 phone support"
-        ],
-        "cta": "Contact Sales",
-        "popular": false
-      }
-    ],
-    "faq": {
-      "title": "Frequently Asked Questions",
-      "items": [
-        {
-          "question": "How does the free trial work?",
-          "answer": "Start with a 14-day free trial on any plan. No credit card required. Experience the full power of Ghost Post with all features unlocked."
-        },
-        {
-          "question": "Can I change plans later?",
-          "answer": "Yes! You can upgrade or downgrade your plan at any time. Upgrades take effect immediately with prorated billing."
-        },
-        {
-          "question": "What happens if I exceed my visitor limit?",
-          "answer": "We'll send you a notification when you're approaching 80% of your limit. You can either upgrade or continue with a small overage fee."
-        },
-        {
-          "question": "Is Ghost Post safe for my website?",
-          "answer": "Absolutely. Ghost follows all Google Webmaster Guidelines and uses only white-hat, approved SEO techniques."
-        },
-        {
-          "question": "Do you offer refunds?",
-          "answer": "Yes, we offer a 30-day money-back guarantee on all plans. If you're not satisfied, we'll refund your payment in full."
-        }
-      ]
-    }
-  },
-  "cta": {
-    "title": "Ready to Automate Your SEO?",
-    "description": "Join hundreds of businesses growing their organic traffic with Ghost Post",
-    "button": "Start Free Trial"
-  },
-  "about": {
-    "badge": "Our Story",
-    "title": "About",
-    "titleHighlight": "Ghost Post",
-    "subtitle": "We're on a mission to democratize SEO and make it accessible to businesses of all sizes.",
-    "metaTitle": "About - Ghost Post",
-    "metaDescription": "Learn about our mission to revolutionize SEO with AI",
-    "stat1Value": "500+",
-    "stat1Label": "Businesses Served",
-    "stat2Value": "50M+",
-    "stat2Label": "Keywords Ranked",
-    "stat3Value": "99.9%",
-    "stat3Label": "Uptime",
-    "stat4Value": "24/7",
-    "stat4Label": "AI Support",
-    "storyTitle": "Our Story",
-    "storyParagraph1": "Ghost Post was founded in 2024 by a team of AI researchers and SEO experts who saw an opportunity to revolutionize how businesses approach search engine optimization.",
-    "storyParagraph2": "We believed that the future of SEO wasn't about manual optimization or hiring expensive agencies—it was about building intelligent systems that could learn, adapt, and execute SEO strategies autonomously.",
-    "storyParagraph3": "Today, Ghost Post powers SEO for hundreds of businesses worldwide, from startups to enterprise companies, helping them achieve sustainable organic growth without the complexity and cost of traditional SEO.",
-    "valuesTitle": "Our Values",
-    "value1Title": "Innovation First",
-    "value1Description": "We're constantly pushing the boundaries of what's possible with AI-powered SEO.",
-    "value2Title": "Customer Obsessed",
-    "value2Description": "Your success is our success. We're not happy until you're ranking #1.",
-    "value3Title": "Transparency",
-    "value3Description": "We believe in honest, white-hat SEO practices. No tricks, no shortcuts.",
-    "value4Title": "Speed & Efficiency",
-    "value4Description": "We move fast and deliver results faster than any traditional agency.",
-    "teamTitle": "Leadership Team",
-    "member1Name": "Alex Chen",
-    "member1Role": "CEO & Co-Founder",
-    "member1Bio": "Former Google engineer with 15 years of experience in search and AI.",
-    "member2Name": "Sarah Johnson",
-    "member2Role": "CTO & Co-Founder",
-    "member2Bio": "PhD in Machine Learning from Stanford. Built AI systems at OpenAI.",
-    "member3Name": "Michael Park",
-    "member3Role": "VP of Product",
-    "member3Bio": "10+ years building SEO tools at Moz and Ahrefs.",
-    "member4Name": "Emily Davis",
-    "member4Role": "VP of Customer Success",
-    "member4Bio": "Passionate about helping businesses grow through organic search.",
-    "ctaTitle": "Join us on our mission",
-    "ctaDescription": "Ready to experience the future of SEO? Start your free trial today.",
-    "ctaButton": "Get Started Free",
-    "mission": {
-      "title": "Our Mission",
-      "description": "To empower every business owner to compete in organic search, regardless of their technical expertise or budget."
-    },
-    "story": {
-      "title": "Our Story",
-      "paragraphs": [
-        "Ghost Post was founded in 2024 by a team of SEO experts and AI engineers who were frustrated by how complex and expensive SEO had become.",
-        "We believed that AI could handle the heavy lifting of SEO while delivering better results than traditional agencies. After two years of development, Ghost Post was born.",
-        "Today, we help over 500 businesses automate their SEO and grow their organic traffic. Our AI has generated over 50,000 pieces of content and improved rankings for millions of keywords."
-      ]
-    },
-    "values": {
-      "title": "Our Values",
-      "items": [
-        {
-          "title": "Transparency",
-          "description": "We believe in honest, white-hat SEO practices. No tricks, no shortcuts."
-        },
-        {
-          "title": "Innovation",
-          "description": "We're constantly improving our AI to deliver better results for our customers."
-        },
-        {
-          "title": "Customer Success",
-          "description": "Your success is our success. We're not happy until you're ranking #1."
-        }
-      ]
-    }
-  },
-  "contact": {
-    "badge": "24/7 Support",
-    "title": "Get in",
-    "titleHighlight": "Touch",
-    "subtitle": "Have questions about GhostPost? We'd love to hear from you. Send us a message and we'll respond as soon as possible.",
-    "metaTitle": "Contact - Ghost Post",
-    "metaDescription": "Get in touch with the Ghost Post team",
-    "infoTitle": "Contact Information",
-    "infoDescription": "Fill out the form and our team will get back to you within 24 hours.",
-    "emailTitle": "Email",
-    "emailValue": "hello@ghostpost.ai",
-    "phoneTitle": "Phone",
-    "phoneValue": "+1 (555) 123-4567",
-    "locationTitle": "Office",
-    "locationValue": "San Francisco, CA",
-    "followUs": "Follow us",
-    "name": "Name",
-    "namePlaceholder": "John Doe",
-    "email": "Email",
-    "emailPlaceholder": "john@example.com",
-    "company": "Company (Optional)",
-    "companyPlaceholder": "Your Company",
-    "subject": "Subject",
-    "selectSubject": "Select a subject",
-    "subjectGeneral": "General Inquiry",
-    "subjectSales": "Sales",
-    "subjectSupport": "Technical Support",
-    "subjectPartnership": "Partnership",
-    "subjectOther": "Other",
-    "message": "Message",
-    "messagePlaceholder": "Tell us how we can help...",
-    "submit": "Send Message",
-    "sending": "Sending...",
-    "successTitle": "Message Sent!",
-    "successMessage": "Thank you for reaching out. We'll get back to you within 24 hours.",
-    "sendAnother": "Send Another Message",
-    "info": {
-      "title": "Contact Information",
-      "description": "Fill out the form and our team will get back to you within 24 hours.",
-      "email": "Email",
-      "phone": "Phone",
-      "office": "Office",
-      "followUs": "Follow us"
-    },
-    "form": {
-      "name": "Name",
-      "namePlaceholder": "John Doe",
-      "email": "Email",
-      "emailPlaceholder": "john@example.com",
-      "company": "Company (Optional)",
-      "companyPlaceholder": "Your Company",
-      "subject": "Subject",
-      "selectSubject": "Select a subject",
-      "subjects": {
-        "general": "General Inquiry",
-        "sales": "Sales",
-        "support": "Technical Support",
-        "partnership": "Partnership",
-        "other": "Other"
-      },
-      "message": "Message",
-      "messagePlaceholder": "Tell us how we can help...",
-      "submit": "Send Message",
-      "sending": "Sending..."
-    },
-    "success": {
-      "title": "Message Sent!",
-      "message": "Thank you for reaching out. We'll get back to you within 24 hours.",
-      "sendAnother": "Send Another Message"
-    }
-  },
-  "faq": {
-    "badge": "Got Questions?",
-    "title": "Frequently Asked",
-    "titleHighlight": "Questions",
-    "subtitle": "Find answers to common questions about GhostPost. Can't find what you're looking for? Contact our support team.",
-    "searchPlaceholder": "Search questions...",
-    "categories": {
-      "all": "All",
-      "general": "General",
-      "pricing": "Pricing",
-      "features": "Features",
-      "technical": "Technical"
-    },
-    "noResults": "No questions found matching your search.",
-    "clearFilters": "Clear filters",
-    "cta": {
-      "title": "Still have questions?",
-      "description": "Our support team is here to help. Reach out and we'll get back to you within 24 hours.",
-      "button": "Contact Support"
-    }
-  },
-  "blog": {
-    "badge": "Latest Updates",
-    "title": "The",
-    "titleHighlight": "Ghost Post",
-    "titleSuffix": "Blog",
-    "titleBefore": true,
-    "subtitle": "Insights, tips, and strategies to dominate search rankings",
-    "readMore": "Read More",
-    "readArticle": "Read Article",
-    "minRead": "min read",
-    "featured": "Featured",
-    "all": "All",
-    "categorySEO": "SEO",
-    "categoryContent": "Content",
-    "categoryTechnical": "Technical",
-    "categoryAI": "AI",
-    "categoryCaseStudies": "Case Studies",
-    "post1Title": "The Future of SEO: How AI is Revolutionizing Search",
-    "post1Excerpt": "Discover how artificial intelligence is transforming the way we approach search engine optimization and what it means for your business.",
-    "post2Title": "10 Essential SEO Strategies for 2026",
-    "post2Excerpt": "Stay ahead of the competition with these proven SEO strategies that will help you dominate search rankings this year.",
-    "post3Title": "Technical SEO: A Complete Guide",
-    "post3Excerpt": "Master the technical aspects of SEO with our comprehensive guide covering site speed, crawlability, and more.",
-    "post4Title": "Content Marketing Best Practices",
-    "post4Excerpt": "Learn how to create content that ranks, engages, and converts your target audience.",
-    "post5Title": "Case Study: 300% Traffic Increase in 6 Months",
-    "post5Excerpt": "See how one e-commerce company tripled their organic traffic using Ghost Post's AI-powered automation.",
-    "post6Title": "Understanding Core Web Vitals",
-    "post6Excerpt": "Everything you need to know about Google's Core Web Vitals and how to optimize for them.",
-    "post7Title": "Keyword Research in the Age of AI",
-    "post7Excerpt": "Traditional keyword research is evolving. Learn how AI is changing the game and how to adapt.",
-    "post8Title": "Building a Content Calendar That Works",
-    "post8Excerpt": "Plan your content strategy effectively with our guide to creating and maintaining a content calendar."
-  },
-  "blogPost": {
-    "backToBlog": "Back to Blog",
-    "notFound": "Post not found",
-    "bookmark": "Bookmark",
-    "share": "Share",
-    "shareArticle": "Share this article",
-    "relatedArticles": "Related Articles",
-    "headOfSEO": "Head of SEO",
-    "seoSpecialist": "SEO Specialist",
-    "technicalLead": "Technical Lead",
-    "contentStrategist": "Content Strategist",
-    "caseStudyAuthor": "Case Study Author",
-    "performanceExpert": "Performance Expert",
-    "seoResearcher": "SEO Researcher",
-    "contentManager": "Content Manager",
-    "tagAI": "AI",
-    "tagSEO": "SEO",
-    "tagAutomation": "Automation",
-    "tagFuture": "Future",
-    "tagStrategy": "Strategy",
-    "tagRankings": "Rankings",
-    "tagTechnical": "Technical",
-    "tagGuide": "Guide",
-    "tagContent": "Content",
-    "tagMarketing": "Marketing",
-    "tagCaseStudy": "Case Study",
-    "tagSuccess": "Success",
-    "tagGrowth": "Growth",
-    "tagPerformance": "Performance",
-    "tagGoogle": "Google",
-    "tagKeywords": "Keywords",
-    "tagResearch": "Research",
-    "tagPlanning": "Planning",
-    "contentPlaceholder": "This is where the full article content would be displayed. In a production environment, this content would be fetched from a CMS or database and rendered with proper formatting.",
-    "sectionTitle1": "Key Takeaways",
-    "sectionTitle2": "Conclusion",
-    "takeaway1": "AI-powered SEO tools are becoming essential for staying competitive",
-    "takeaway2": "Automation handles repetitive tasks while humans focus on strategy",
-    "takeaway3": "Data-driven decisions lead to better outcomes",
-    "takeaway4": "Continuous optimization is key to long-term success",
-    "conclusion": "The future of SEO is here, and it's powered by AI. By embracing these new tools and technologies, businesses can achieve better results with less manual effort."
-  },
-  "footer": {
-    "description": "The first autonomous AI agent that optimizes, writes, and manages your site's SEO while you sleep.",
-    "product": "Product",
-    "company": "Company",
-    "resources": "Resources",
-    "legal": "Legal",
-    "links": {
-      "features": "Features",
-      "pricing": "Pricing",
-      "howItWorks": "How It Works",
-      "integrations": "Integrations",
-      "about": "About",
-      "blog": "Blog",
-      "careers": "Careers",
-      "contact": "Contact",
-      "documentation": "Documentation",
-      "helpCenter": "Help Center",
-      "community": "Community",
-      "apiReference": "API Reference",
-      "privacy": "Privacy Policy",
-      "terms": "Terms of Service",
-      "cookies": "Cookie Policy"
-    },
-    "newsletter": {
-      "title": "Subscribe to our newsletter",
-      "placeholder": "Enter your email",
-      "button": "Subscribe"
-    },
-    "copyright": "© {year} Ghost Post. All rights reserved."
-  },
-  "auth": {
-    "login": {
-      "title": "Welcome Back",
-      "subtitle": "Sign in to your Ghost Post account",
-      "email": "Email",
-      "password": "Password",
-      "forgotPassword": "Forgot password?",
-      "submit": "Sign In",
-      "noAccount": "Don't have an account?",
-      "signUp": "Sign up",
-      "orContinueWith": "Or continue with",
-      "google": "Google"
-    },
-    "register": {
-      "title": "Create Account",
-      "subtitle": "Start your 14-day free trial",
-      "name": "Full Name",
-      "email": "Email",
-      "password": "Password",
-      "confirmPassword": "Confirm Password",
-      "submit": "Create Account",
-      "hasAccount": "Already have an account?",
-      "signIn": "Sign in",
-      "orContinueWith": "Or continue with",
-      "google": "Google",
-      "terms": "By creating an account, you agree to our",
-      "termsLink": "Terms of Service",
-      "and": "and",
-      "privacyLink": "Privacy Policy"
-    }
+  "language": {
+    "changeLanguage": "Change language"
   },
   "common": {
-    "learnMore": "Learn More",
-    "getStarted": "Get Started",
-    "startFreeTrial": "Start Free Trial",
-    "contactUs": "Contact Us",
-    "readMore": "Read More"
+    "loading": "Loading...",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "add": "Add",
+    "search": "Search",
+    "filter": "Filter",
+    "export": "Export",
+    "import": "Import",
+    "back": "Back",
+    "next": "Next",
+    "previous": "Previous",
+    "submit": "Submit",
+    "confirm": "Confirm",
+    "close": "Close",
+    "yes": "Yes",
+    "no": "No",
+    "or": "or",
+    "and": "and",
+    "all": "All",
+    "none": "None",
+    "select": "Select",
+    "selected": "Selected",
+    "noResults": "No results found",
+    "error": "Error",
+    "success": "Success",
+    "warning": "Warning",
+    "info": "Info",
+    "view": "View",
+    "actions": "Actions",
+    "type": "Type",
+    "status": "Status",
+    "date": "Date",
+    "hits": "Hits",
+    "from": "From",
+    "to": "To",
+    "target": "Target",
+    "active": "Active",
+    "comingSoon": "Coming soon",
+    "viewAll": "View All",
+    "create": "Create",
+    "new": "New",
+    "numbers": {
+      "zero": "0",
+      "one": "1",
+      "two": "2",
+      "three": "3",
+      "four": "4",
+      "five": "5",
+      "six": "6",
+      "seven": "7",
+      "eight": "8",
+      "nine": "9",
+      "ten": "10"
+    },
+    "match": "match",
+    "skip": "Skip",
+    "confident": "confident",
+    "minimum": "minimum",
+    "expand": "Expand",
+    "collapse": "Collapse",
+    "saving": "Saving..."
+  },
+  "auth": {
+    "login": "Log In",
+    "logout": "Log Out",
+    "register": "Sign Up",
+    "firstName": "First Name",
+    "lastName": "Last Name",
+    "phoneNumber": "Phone Number",
+    "email": "Email",
+    "password": "Password",
+    "confirmPassword": "Confirm Password",
+    "forgotPassword": "Forgot Password?",
+    "resetPassword": "Reset Password",
+    "rememberMe": "Remember me",
+    "noAccount": "Don't have an account?",
+    "hasAccount": "Already have an account?",
+    "signUpNow": "Sign up now",
+    "loginNow": "Log in now",
+    "systemAccess": "System Access",
+    "connectWorkspace": "Connect to your Ghost Post workspace",
+    "createAccount": "Create Account",
+    "joinGhostPost": "Join Ghost Post and automate your SEO",
+    "fullName": "Full Name",
+    "connect": "Connect",
+    "orContinueWith": "Or continue with",
+    "termsAgree": "I agree to the",
+    "termsOfService": "Terms of Service",
+    "privacyPolicy": "Privacy Policy",
+    "createOne": "Create one",
+    "welcomeGhostPost": "Welcome to Ghost Post!",
+    "accountCreatedSuccess": "Your account has been created successfully. You're now ready to start automating your SEO and content strategy with our AI-powered platform.",
+    "emailPlaceholder": "Enter your email",
+    "passwordPlaceholder": "Enter your password",
+    "namePlaceholder": "Enter your full name",
+    "firstNamePlaceholder": "Enter your first name",
+    "lastNamePlaceholder": "Enter your last name",
+    "phoneNumberPlaceholder": "Enter your phone number",
+    "createPasswordPlaceholder": "Create a password",
+    "confirmPasswordPlaceholder": "Confirm your password",
+    "consentText": "I agree to receive marketing communications and accept the",
+    "google": "Google",
+    "github": "GitHub",
+    "connecting": "Connecting...",
+    "creating": "Creating...",
+    "loginFailed": "Login failed. Please try again.",
+    "and": "and"
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "siteInterview": "Site Interview",
+    "contentPlanner": "Content Planner",
+    "aiContentWizard": "AI Content Wizard",
+    "automations": "Automations",
+    "linkBuilding": "Link Building",
+    "redirections": "Redirections",
+    "seoFrontend": "SEO Frontend",
+    "seoBackend": "SEO Backend",
+    "siteAudit": "Site Audit",
+    "keywordStrategy": "Keyword Strategy",
+    "settings": "Settings",
+    "entities": {
+      "title": "Entities",
+      "pages": "Pages",
+      "posts": "Posts",
+      "projects": "Projects",
+      "services": "Services",
+      "products": "Products",
+      "other": "Other"
+    },
+    "admin": {
+      "title": "Admin Panel",
+      "accounts": "Platform Accounts",
+      "users": "Platform Users",
+      "subscriptions": "Subscriptions",
+      "plans": "Plans Settings",
+      "interviewQuestions": "Interview Questions",
+      "translations": "Translations",
+      "interviewFlow": "Interview Flow",
+      "botActions": "Bot Actions"
+    }
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "commandCenter": "Command Center",
+    "subtitle": "Your AI-powered SEO dashboard overview",
+    "welcome": "Welcome back",
+    "overview": "Overview",
+    "recentActivity": "Recent Activity",
+    "quickActions": "Quick Actions",
+    "trafficOverview": "Traffic Overview",
+    "siteHealthScore": "Site Health Score",
+    "aiAgentActivity": "AI Agent Activity",
+    "viewAllActivity": "View All Activity",
+    "overallScore": "Overall Score",
+    "healthImproved": "Your site health has improved by {percent}% this month",
+    "performance": "Performance",
+    "seo": "SEO",
+    "bestPractices": "Best Practices",
+    "chartComingSoon": "Traffic chart visualization coming soon",
+    "stats": {
+      "organicVisitors": "Organic Visitors",
+      "totalPageViews": "Total Page Views",
+      "avgSessionDuration": "Avg. Session Duration",
+      "overallSeoScore": "Overall SEO Score",
+      "totalKeywords": "Total Keywords",
+      "rankedKeywords": "Ranked Keywords",
+      "avgPosition": "Avg. Position",
+      "organicTraffic": "Organic Traffic",
+      "contentPieces": "Content Pieces",
+      "backlinks": "Backlinks"
+    },
+    "activity": {
+      "publishedArticles": "Published {count} optimized articles",
+      "fixedLinks": "Fixed {count} broken internal links",
+      "newKeywords": "Generated {count} new keyword opportunities",
+      "updatedMeta": "Updated meta descriptions for {count} pages"
+    }
+  },
+  "siteInterview": {
+    "title": "Site Interview",
+    "subtitle": "Tell us about your site so Ghost can optimize it better",
+    "interviewProgress": "Interview Progress",
+    "helpGhost": "Help Ghost Agent understand your site better",
+    "startInterview": "Start Interview",
+    "completion": "Completion",
+    "goalsObjectives": "Goals & Objectives",
+    "businessGoalsQuestion": "What are your primary business goals for the next 12 months?",
+    "goalsPlaceholder": "Describe your main goals... (e.g., increase organic traffic by 50%, generate more leads, establish thought leadership)",
+    "skipForNow": "Skip for now",
+    "nextQuestion": "Next Question",
+    "aiInsights": "AI Insights",
+    "status": {
+      "complete": "Complete",
+      "inProgress": "In Progress",
+      "pending": "Pending"
+    },
+    "steps": {
+      "basicInfo": "Basic Info",
+      "businessGoals": "Business Goals",
+      "targetAudience": "Target Audience",
+      "competitors": "Competitors",
+      "keywords": "Keywords"
+    },
+    "progressSteps": {
+      "businessInfo": "Business Info",
+      "targetAudience": "Target Audience",
+      "goals": "Goals",
+      "brandVoice": "Brand Voice",
+      "contentStyle": "Content Style"
+    },
+    "sections": {
+      "businessInfo": {
+        "title": "Business Information",
+        "q1": "What is your primary business?",
+        "a1": "E-commerce - Vintage Clothing",
+        "q2": "Who is your target audience?",
+        "a2": "Fashion enthusiasts aged 25-45, interested in sustainable and vintage fashion",
+        "q3": "What are your main products/services?",
+        "a3": "Vintage clothing, accessories, and styling consultations"
+      },
+      "seoGoals": {
+        "title": "SEO Goals",
+        "q1": "What are your primary SEO objectives?",
+        "a1": "Increase organic traffic by 50%, rank for vintage clothing keywords",
+        "q2": "Target geographic regions?",
+        "a2": "Israel (primary), US and Europe (secondary)",
+        "q3": "Competitor websites?",
+        "a3": "vintagefashion.co.il, retrostyle.com, thriftcloset.co.il"
+      },
+      "contentStrategy": {
+        "title": "Content Strategy",
+        "q1": "Current content types?",
+        "a1": "Product descriptions, blog articles, styling guides",
+        "q2": "Publishing frequency?",
+        "a2": "2-3 articles per week",
+        "q3": "Tone and voice?",
+        "a3": "Not yet defined"
+      },
+      "technicalDetails": {
+        "title": "Technical Details",
+        "q1": "CMS Platform?",
+        "q2": "Hosting provider?",
+        "q3": "Current site speed score?",
+        "notAnswered": "Not answered"
+      }
+    },
+    "insights": {
+      "educational": "Based on your answers, your content should focus on educational, value-driven topics",
+      "practical": "Your target audience prefers practical, actionable advice over theoretical content",
+      "caseStudies": "Consider highlighting case studies and success stories to build trust"
+    }
+  },
+  "siteAudit": {
+    "title": "Site Audit & Core Web Vitals",
+    "subtitle": "Monitor your site's performance and health metrics",
+    "runAudit": "Run New Audit",
+    "performance": "Performance",
+    "excellentPerformance": "Excellent Performance",
+    "performingWell": "Your site is performing well across all metrics",
+    "coreWebVitals": "Core Web Vitals",
+    "lastUpdated": "Last updated",
+    "hoursAgo": "{count} hours ago",
+    "threshold": "Threshold",
+    "performanceTrend": "Performance Trend",
+    "trendPercent": "+16%",
+    "lastWeeks": "Last 4 weeks",
+    "recommendations": "Recommendations",
+    "autoOptimize": "Auto-Optimize",
+    "applyFix": "Apply Fix",
+    "vitals": {
+      "lcp": "Largest Contentful Paint",
+      "fid": "First Input Delay",
+      "cls": "Cumulative Layout Shift",
+      "ttfb": "Time to First Byte",
+      "fcp": "First Contentful Paint",
+      "tti": "Time to Interactive",
+      "tbt": "Total Blocking Time"
+    },
+    "weeks": {
+      "week1": "Week 1",
+      "week2": "Week 2",
+      "week3": "Week 3",
+      "week4": "Week 4"
+    },
+    "recommendationTitles": {
+      "optimizeImages": "Optimize Image Sizes",
+      "enableCaching": "Enable Browser Caching",
+      "deferJavascript": "Defer JavaScript Loading"
+    },
+    "recommendationDescriptions": {
+      "optimizeImagesDesc": "8 images are larger than 500KB. Compressing them could improve LCP by 0.3s.",
+      "enableCachingDesc": "Set longer cache times for static resources to improve repeat visit performance.",
+      "deferJavascriptDesc": "3 non-critical scripts can be deferred to improve initial page load."
+    }
+  },
+  "seoFrontend": {
+    "title": "SEO Frontend",
+    "subtitle": "Optimize on-page SEO elements",
+    "comingSoon": "SEO Frontend features coming soon"
+  },
+  "seoBackend": {
+    "title": "SEO Backend",
+    "subtitle": "Technical SEO and server configuration",
+    "comingSoon": "SEO Backend features coming soon"
+  },
+  "linkBuilding": {
+    "title": "Link Building",
+    "subtitle": "Build quality backlinks for your site",
+    "comingSoon": "Link Building features coming soon",
+    "findOpportunities": "Find Opportunities",
+    "totalBacklinks": "Total Backlinks",
+    "domainAuthority": "Domain Authority",
+    "newThisMonth": "New This Month",
+    "lostLinks": "Lost Links",
+    "opportunities": "Link Opportunities",
+    "opportunitiesSubtitle": "AI-discovered backlink prospects",
+    "recentBacklinks": "Recent Backlinks",
+    "recentBacklinksSubtitle": "Links pointing to your site",
+    "match": "Match",
+    "contact": "Contact",
+    "stats": {
+      "totalBacklinks": "Total Backlinks",
+      "referringDomains": "Referring Domains",
+      "domainAuthority": "Domain Authority",
+      "newOpportunities": "New Opportunities"
+    },
+    "categories": {
+      "techBlog": "Tech Blog",
+      "business": "Business",
+      "seo": "SEO",
+      "marketing": "Marketing"
+    },
+    "types": {
+      "guestPost": "Guest Post",
+      "mention": "Mention",
+      "listicle": "Listicle",
+      "review": "Review"
+    },
+    "dates": {
+      "jan15": "Jan 15",
+      "jan12": "Jan 12",
+      "jan10": "Jan 10",
+      "jan8": "Jan 8"
+    },
+    "table": {
+      "source": "Source",
+      "da": "DA",
+      "type": "Type",
+      "date": "Date"
+    }
+  },
+  "automations": {
+    "title": "Automations",
+    "subtitle": "Automate your SEO workflows",
+    "comingSoon": "Automation features coming soon",
+    "createAutomation": "Create Automation",
+    "yourAutomations": "Your Automations",
+    "activeAutomations": "Active Automations",
+    "runsThisMonth": "Runs This Month",
+    "successRate": "Success Rate",
+    "timeSaved": "Time Saved",
+    "tasks": "tasks",
+    "last": "Last:",
+    "stats": {
+      "activeAutomations": "Active Automations",
+      "tasksCompleted": "Tasks Completed",
+      "runningToday": "Running Today",
+      "successRate": "Success Rate"
+    },
+    "items": {
+      "contentPublishing": {
+        "name": "Content Publishing",
+        "description": "Auto-publish scheduled posts at optimal times"
+      },
+      "internalLinking": {
+        "name": "Internal Linking",
+        "description": "Automatically add relevant internal links to new content"
+      },
+      "imageOptimization": {
+        "name": "Image Optimization",
+        "description": "Compress and optimize images for better page speed"
+      },
+      "metaUpdates": {
+        "name": "Meta Updates",
+        "description": "Update meta descriptions based on content changes"
+      }
+    },
+    "activity": {
+      "publishedArticles": "Published {count} optimized articles",
+      "addedInternalLinks": "Added {count} internal links to new posts",
+      "optimizedImages": "Optimized {count} images across site",
+      "updatedMetaDescriptions": "Updated {count} meta descriptions"
+    }
+  },
+  "contentPlanner": {
+    "title": "Content Planner",
+    "subtitle": "Plan and schedule your content with AI-powered insights",
+    "addContent": "Add Content",
+    "calendar": "Calendar",
+    "list": "List",
+    "allContent": "All Content",
+    "aiWizard": "AI Content Wizard",
+    "totalPosts": "Total Posts",
+    "published": "Published",
+    "scheduled": "Scheduled",
+    "drafts": "Drafts",
+    "draft": "Draft",
+    "blogPost": "Blog Post",
+    "guide": "Guide",
+    "tutorial": "Tutorial",
+    "status": {
+      "draft": "Draft",
+      "scheduled": "Scheduled",
+      "published": "Published",
+      "inReview": "In Review"
+    },
+    "stats": {
+      "totalPosts": "Total Posts",
+      "published": "Published",
+      "scheduled": "Scheduled",
+      "drafts": "Drafts"
+    },
+    "weekDays": {
+      "sun": "Sun",
+      "mon": "Mon",
+      "tue": "Tue",
+      "wed": "Wed",
+      "thu": "Thu",
+      "fri": "Fri",
+      "sat": "Sat"
+    },
+    "sampleContent": {
+      "seoBestPractices": "10 SEO Best Practices for 2024",
+      "coreWebVitals": "How to Improve Core Web Vitals",
+      "aiContentGuide": "AI Content Generation: Complete Guide",
+      "linkBuildingStrategies": "Link Building Strategies That Work",
+      "date1": "Jan 15, 2024",
+      "date2": "Jan 22, 2024",
+      "date3": "Jan 25, 2024"
+    }
+  },
+  "keywordStrategy": {
+    "title": "Keyword Strategy",
+    "subtitle": "Track rankings and discover new keyword opportunities",
+    "addKeyword": "Add Keyword",
+    "importKeywords": "Import Keywords",
+    "aiResearch": "AI Keyword Research",
+    "opportunities": "Keyword Opportunities",
+    "opportunitiesSubtitle": "AI-discovered keywords to target",
+    "currentRankings": "Current Rankings",
+    "rankingsSubtitle": "Your tracked keyword positions",
+    "targetKeyword": "Target Keyword",
+    "keyword": "Keyword",
+    "volume": "Volume",
+    "cpc": "CPC",
+    "position": "Position",
+    "traffic": "Traffic",
+    "trend": "Trend",
+    "easy": "Easy",
+    "medium": "Medium",
+    "hard": "Hard",
+    "trackedKeywords": "Tracked Keywords",
+    "topRankings": "Top 10 Rankings",
+    "monthlyVolume": "Monthly Volume",
+    "columns": {
+      "keyword": "Keyword",
+      "volume": "Volume",
+      "difficulty": "Difficulty",
+      "position": "Position",
+      "trend": "Trend",
+      "traffic": "Traffic",
+      "cpc": "CPC"
+    },
+    "stats": {
+      "trackedKeywords": "Tracked Keywords",
+      "top10Rankings": "Top 10 Rankings",
+      "monthlyVolume": "Monthly Volume",
+      "newOpportunities": "New Opportunities"
+    },
+    "difficulty": {
+      "easy": "Easy",
+      "medium": "Medium",
+      "hard": "Hard"
+    }
+  },
+  "entities": {
+    "title": "Website Entities",
+    "subtitle": "View and manage content from your website",
+    "pages": {
+      "title": "Pages",
+      "subtitle": "Static pages from your website",
+      "empty": "No pages found",
+      "emptyDescription": "Sync your website to import pages"
+    },
+    "posts": {
+      "title": "Posts",
+      "subtitle": "Blog posts and articles from your website",
+      "empty": "No posts found",
+      "emptyDescription": "Sync your website to import blog posts"
+    },
+    "projects": {
+      "title": "Projects",
+      "subtitle": "Portfolio projects from your website",
+      "empty": "No projects found",
+      "emptyDescription": "Sync your website to import projects"
+    },
+    "services": {
+      "title": "Services",
+      "subtitle": "Services offered on your website",
+      "empty": "No services found",
+      "emptyDescription": "Sync your website to import services"
+    },
+    "products": {
+      "title": "Products",
+      "subtitle": "Products from your website",
+      "empty": "No products found",
+      "emptyDescription": "Sync your website to import products"
+    },
+    "other": {
+      "title": "Other",
+      "subtitle": "Other content types from your website",
+      "empty": "No other content found",
+      "emptyDescription": "Sync your website to import other content"
+    },
+    "sync": "Sync Website",
+    "syncing": "Syncing...",
+    "lastSync": "Last synced",
+    "status": "Status",
+    "published": "Published",
+    "draft": "Draft",
+    "archived": "Archived",
+    "actions": "Actions",
+    "viewOnSite": "View on site",
+    "search": "Search entities...",
+    "totalEntities": "Total Entities",
+    "syncFailed": "Sync failed",
+    "syncSuccess": "Website synced successfully",
+    "noSiteSelected": "No Site Selected",
+    "selectSiteFirst": "Please select a site from the dropdown to manage entities",
+    "integration": {
+      "title": "Connect Your Website",
+      "description": "Connect your website to import and manage its content entities"
+    },
+    "detection": {
+      "detect": "Detect Platform",
+      "detecting": "Detecting...",
+      "failed": "Could not detect platform. Using custom integration."
+    },
+    "discovery": {
+      "scanning": "Scanning website for content types...",
+      "failed": "Could not discover content types. Please try again.",
+      "found": "Found {count} content types on your website",
+      "noTypes": "No content types discovered",
+      "noTypesDescription": "Click the button below to scan your website for content types",
+      "scan": "Scan Website"
+    },
+    "types": {
+      "select": "Select Entity Types",
+      "selectDescription": "Choose which content types you want to import and manage",
+      "save": "Save Entity Types",
+      "enabled": "Enabled Entity Types",
+      "pages": "Pages",
+      "posts": "Posts",
+      "projects": "Projects",
+      "services": "Services",
+      "products": "Products",
+      "other": "Other"
+    },
+    "plugin": {
+      "title": "WordPress Plugin",
+      "description": "To automatically sync content from your WordPress site, you'll need to install the Ghost Post Connect plugin.",
+      "download": "Download Plugin",
+      "instructions": {
+        "title": "Installation Instructions",
+        "step1": "Download the plugin file (.zip) by clicking the button below",
+        "step2": "Go to your WordPress Dashboard → Plugins → Add New → Upload Plugin",
+        "step3": "Select the downloaded ZIP file and click \"Install Now\"",
+        "step4": "Activate the plugin and enter the API key shown in settings"
+      }
+    }
+  },
+  "redirections": {
+    "title": "Redirections",
+    "subtitle": "Manage URL redirects to maintain SEO health",
+    "addRedirect": "Add Redirect",
+    "createNew": "Create New Redirect",
+    "activeRedirects": "Active Redirects",
+    "fromUrl": "From URL",
+    "toUrl": "To URL",
+    "fromUrlPlaceholder": "/old-page",
+    "toUrlPlaceholder": "/new-page",
+    "from": "From",
+    "to": "To",
+    "type": "Type",
+    "hits": "Hits",
+    "permanent": "301 (Permanent)",
+    "temporary": "302 (Temporary)",
+    "totalHits": "Total Hits",
+    "brokenLinks": "Broken Links",
+    "successRate": "Success Rate",
+    "stats": {
+      "activeRedirects": "Active Redirects",
+      "totalHits": "Total Hits",
+      "brokenLinks": "Broken Links",
+      "successRate": "Success Rate"
+    }
+  },
+  "settings": {
+    "title": "Settings",
+    "subtitle": "Configure your Ghost Post preferences and integrations",
+    "general": "General",
+    "aiConfiguration": "AI Configuration",
+    "scheduling": "Scheduling",
+    "notifications": "Notifications",
+    "seoSettings": "SEO",
+    "integrations": "Integrations",
+    "team": "Team",
+    "users": "Users",
+    "subscription": "Subscription",
+    "account": "Account",
+    "billing": "Billing",
+    "api": "API",
+    "language": "Language",
+    "theme": "Theme",
+    "darkMode": "Dark Mode",
+    "lightMode": "Light Mode",
+    "systemTheme": "System Theme",
+    "saveChanges": "Save Changes",
+    "descriptions": {
+      "general": "Configure basic website settings and preferences",
+      "aiConfiguration": "Customize AI models and content generation settings",
+      "scheduling": "Manage automated tasks and content scheduling",
+      "notifications": "Control email and notification preferences",
+      "seo": "Optimize search engine visibility settings",
+      "integrations": "Connect third-party services and APIs",
+      "team": "Manage team members and permissions",
+      "users": "Invite and manage users in your account",
+      "subscription": "View and manage your subscription plan",
+      "account": "Update your personal account information",
+      "roles": "Create and manage roles for your account members",
+      "permissions": "Assign permissions to each role in your account"
+    },
+    "fields": {
+      "siteUrl": "Site URL",
+      "siteName": "Site Name",
+      "timezone": "Timezone",
+      "siteUrlPlaceholder": "https://your-site.com",
+      "siteNamePlaceholder": "My Website",
+      "siteUrlHint": "Website URL cannot be changed after creation",
+      "languageHint": "Platform language for this website",
+      "timezoneHint": "Your timezone for this website (default from account settings)",
+      "notEditable": "Not editable",
+      "noSiteSelected": "Please select a site first",
+      "saveSuccess": "Settings saved successfully",
+      "saving": "Saving..."
+    },
+    "languages": {
+      "english": "English",
+      "hebrew": "Hebrew",
+      "spanish": "Spanish",
+      "french": "French",
+      "german": "German",
+      "portuguese": "Portuguese",
+      "italian": "Italian",
+      "russian": "Russian",
+      "arabic": "Arabic",
+      "chinese": "Chinese",
+      "japanese": "Japanese"
+    },
+    "countries": {
+      "worldwide": "Worldwide",
+      "israel": "Israel",
+      "unitedStates": "United States",
+      "unitedKingdom": "United Kingdom",
+      "canada": "Canada",
+      "australia": "Australia",
+      "germany": "Germany",
+      "france": "France",
+      "spain": "Spain",
+      "italy": "Italy",
+      "netherlands": "Netherlands",
+      "brazil": "Brazil",
+      "mexico": "Mexico",
+      "india": "India",
+      "japan": "Japan",
+      "china": "China",
+      "southKorea": "South Korea",
+      "russia": "Russia",
+      "uae": "United Arab Emirates",
+      "saudiArabia": "Saudi Arabia",
+      "southAfrica": "South Africa",
+      "poland": "Poland",
+      "sweden": "Sweden",
+      "norway": "Norway",
+      "denmark": "Denmark",
+      "finland": "Finland",
+      "austria": "Austria",
+      "switzerland": "Switzerland",
+      "belgium": "Belgium",
+      "portugal": "Portugal",
+      "greece": "Greece",
+      "turkey": "Turkey",
+      "thailand": "Thailand",
+      "singapore": "Singapore",
+      "malaysia": "Malaysia",
+      "indonesia": "Indonesia",
+      "philippines": "Philippines",
+      "vietnam": "Vietnam",
+      "argentina": "Argentina",
+      "chile": "Chile",
+      "colombia": "Colombia",
+      "newZealand": "New Zealand",
+      "ireland": "Ireland"
+    },
+    "timezones": {
+      "utc": "UTC",
+      "easternTime": "Eastern Time",
+      "pacificTime": "Pacific Time",
+      "london": "London",
+      "israel": "Israel"
+    },
+    "wordpress": {
+      "title": "WordPress Plugin",
+      "connected": "Connected",
+      "notConnected": "Not Connected",
+      "downloadPlugin": "Download Plugin",
+      "description": "Install our WordPress plugin to enable seamless content synchronization, automatic publishing, and real-time analytics integration with your WordPress site."
+    },
+    "maintenance": {
+      "title": "Maintenance Mode",
+      "description": "Temporarily disable all automated operations"
+    },
+    "ai": {
+      "textModel": "Text Generation Model",
+      "imageModel": "Image Generation Model",
+      "maxTokens": "Max Monthly Tokens",
+      "temperature": "Creativity Temperature",
+      "precise": "Precise",
+      "creative": "Creative",
+      "prompts": "AI Prompts",
+      "textPrompt": "Text Generation Prompt",
+      "imagePrompt": "Image Generation Prompt",
+      "textPromptPlaceholder": "Enter your text generation prompt...",
+      "imagePromptPlaceholder": "Enter your image generation prompt...",
+      "safetyOptimization": "Safety & Optimization",
+      "autoOptimization": "Auto Optimization",
+      "autoOptimizationDesc": "Automatically optimize content for SEO and readability",
+      "contentSafety": "Content Safety",
+      "contentSafetyDesc": "Filter potentially harmful or inappropriate content",
+      "models": {
+        "gpt4turbo": "GPT-4 Turbo",
+        "gpt4": "GPT-4",
+        "gpt35turbo": "GPT-3.5 Turbo",
+        "claude3opus": "Claude 3 Opus",
+        "dalle3": "DALL-E 3",
+        "dalle2": "DALL-E 2",
+        "midjourney": "Midjourney",
+        "stableDiffusion": "Stable Diffusion"
+      }
+    },
+    "schedulingSection": {
+      "scheduledTasks": "Scheduled Tasks",
+      "queueSettings": "Queue Settings",
+      "queueConcurrency": "Queue Concurrency",
+      "retryAttempts": "Retry Attempts",
+      "addScheduledTask": "Add Scheduled Task",
+      "lastRun": "Last run:",
+      "edit": "Edit",
+      "cronJobs": {
+        "contentGeneration": "Content Generation",
+        "seoOptimization": "SEO Optimization",
+        "linkBuildingCheck": "Link Building Check"
+      },
+      "lastRunTimes": {
+        "hoursAgo": "{count} hours ago",
+        "yesterday": "Yesterday",
+        "daysAgo": "{count} days ago"
+      }
+    },
+    "notificationsSection": {
+      "emailNotifications": "Email Notifications",
+      "newContentPublished": "New Content Published",
+      "newContentPublishedDesc": "Get notified when new content is published",
+      "weeklyReport": "Weekly Report",
+      "weeklyReportDesc": "Receive weekly performance summary",
+      "errorAlerts": "Error Alerts",
+      "errorAlertsDesc": "Get notified about system errors",
+      "marketingUpdates": "Marketing Updates",
+      "marketingUpdatesDesc": "Product updates and tips",
+      "slackIntegration": "Slack Integration",
+      "slackWebhookUrl": "Slack Webhook URL",
+      "slackWebhookPlaceholder": "https://hooks.slack.com/services/...",
+      "enableSlack": "Enable Slack Notifications",
+      "enableSlackDesc": "Send notifications to your Slack channel"
+    },
+    "seo": {
+      "siteNameSeo": "Site Name (for SEO)",
+      "defaultOgImage": "Default OG Image URL",
+      "defaultOgImagePlaceholder": "https://example.com/og-image.jpg",
+      "metaDescription": "Default Meta Description",
+      "metaDescriptionPlaceholder": "A brief description of your website...",
+      "technicalSeo": "Technical SEO",
+      "autoSitemap": "Auto-generate Sitemap",
+      "autoSitemapDesc": "Automatically generate and update sitemap.xml",
+      "robotsTxt": "Robots.txt Management",
+      "robotsTxtDesc": "Manage robots.txt file automatically",
+      "schemaMarkup": "Schema Markup",
+      "schemaMarkupDesc": "Add structured data to improve rich snippets"
+    },
+    "integrationsSection": {
+      "connectedSyncing": "Connected and syncing",
+      "notConnected": "Not connected",
+      "configure": "Configure",
+      "connect": "Connect",
+      "addIntegration": "Add Integration"
+    },
+    "teamSection": {
+      "inviteTeamMember": "Invite Team Member",
+      "roles": {
+        "owner": "Owner",
+        "admin": "Admin",
+        "editor": "Editor",
+        "viewer": "Viewer"
+      },
+      "statuses": {
+        "active": "Active",
+        "pending": "Pending",
+        "inactive": "Inactive"
+      }
+    },
+    "usersSection": {
+      "title": "Account Users",
+      "description": "Invite and manage users who have access to this account",
+      "inviteUser": "Invite User",
+      "inviteUserDescription": "Send an invitation to a user to join this account",
+      "email": "Email Address",
+      "emailPlaceholder": "user@example.com",
+      "selectRole": "Select Role",
+      "rolePlaceholder": "Choose a role...",
+      "sendInvite": "Send Invitation",
+      "sending": "Sending...",
+      "inviteSent": "Invitation sent successfully",
+      "inviteFailed": "Failed to send invitation",
+      "userAlreadyMember": "This user is already a member of this account",
+      "columns": {
+        "user": "User",
+        "email": "Email",
+        "role": "Role",
+        "status": "Status",
+        "joinedAt": "Joined",
+        "actions": "Actions"
+      },
+      "statuses": {
+        "active": "Active",
+        "pending": "Pending Invite",
+        "suspended": "Suspended",
+        "removed": "Removed"
+      },
+      "roles": {
+        "owner": "Owner",
+        "admin": "Admin",
+        "editor": "Editor",
+        "viewer": "Viewer",
+        "user": "User"
+      },
+      "actions": {
+        "changeRole": "Change Role",
+        "resendInvite": "Resend Invitation",
+        "remove": "Remove from Account",
+        "suspend": "Suspend User",
+        "activate": "Activate User"
+      },
+      "confirmRemove": {
+        "title": "Remove User from Account",
+        "message": "Are you sure you want to remove this user from your account? They will lose access to all resources.",
+        "confirm": "Remove User",
+        "cancel": "Cancel"
+      },
+      "changeRoleModal": {
+        "title": "Change User Role",
+        "message": "Select a new role for this user:",
+        "confirm": "Save Changes",
+        "cancel": "Cancel"
+      },
+      "noUsers": "No users found",
+      "noUsersDescription": "Invite users to give them access to this account",
+      "ownerBadge": "Owner",
+      "youBadge": "You",
+      "pendingInvite": "Invitation pending",
+      "inviteExpired": "Invitation expired"
+    },
+    "subscriptionSection": {
+      "plan": "Plan",
+      "tokenUsage": "Token Usage",
+      "nextBillingDate": "Next billing date:",
+      "billingActions": "Billing Actions",
+      "upgradePlan": "Upgrade Plan",
+      "updatePaymentMethod": "Update Payment Method",
+      "viewInvoices": "View Invoices",
+      "perMonth": "per month",
+      "statuses": {
+        "active": "Active",
+        "cancelled": "Cancelled",
+        "expired": "Expired",
+        "trialing": "Trialing"
+      }
+    },
+    "roles": "Roles",
+    "permissions": "Permissions",
+    "rolesSection": {
+      "title": "Roles Management",
+      "description": "Manage roles and their permissions for your account",
+      "addRole": "Add Role",
+      "editRole": "Edit Role",
+      "deleteRole": "Delete Role",
+      "roleName": "Role Name",
+      "namePlaceholder": "Enter role name",
+      "descriptionPlaceholder": "Enter role description (optional)",
+      "members": "Members",
+      "type": "Type",
+      "systemRole": "System",
+      "customRole": "Custom",
+      "noRoles": "No roles found",
+      "deleteConfirm": "Delete Role",
+      "deleteWarning": "Are you sure you want to delete the role \"{name}\"? This action cannot be undone.",
+      "cannotDeleteSystem": "System roles cannot be deleted",
+      "cannotDeleteWithMembers": "Cannot delete role with assigned members",
+      "roleCreated": "Role created successfully",
+      "roleUpdated": "Role updated successfully",
+      "roleDeleted": "Role deleted successfully",
+      "saveFailed": "Failed to save role",
+      "deleteFailed": "Failed to delete role",
+      "columns": {
+        "name": "Name",
+        "description": "Description",
+        "members": "Members",
+        "type": "Type",
+        "actions": "Actions"
+      }
+    },
+    "permissionsSection": {
+      "title": "Permissions Management",
+      "description": "Manage permissions for each role in your account",
+      "selectRole": "Select Role",
+      "selectRolePlaceholder": "Choose a role...",
+      "searchPermissions": "Search permissions...",
+      "permissionsFor": "Permissions for",
+      "selectAll": "Select All",
+      "deselectAll": "Deselect All",
+      "savePermissions": "Save Permissions",
+      "permissionsSaved": "Permissions saved successfully",
+      "saved": "Saved",
+      "saveFailed": "Failed to save permissions",
+      "selectRoleMessage": "Select a role to manage its permissions",
+      "ownerNotice": "Owner role has all permissions and cannot be modified",
+      "coreModules": "Core Modules",
+      "settingsTabs": "Settings Tabs",
+      "module": "Module",
+      "settingsTab": "Settings Tab",
+      "capabilities": {
+        "view": "View",
+        "edit": "Edit",
+        "delete": "Delete",
+        "create": "Create"
+      },
+      "modules": {
+        "account": "Account",
+        "members": "Members",
+        "roles": "Roles",
+        "sites": "Sites",
+        "content": "Content",
+        "keywords": "Keywords",
+        "redirections": "Redirections",
+        "interview": "Interview",
+        "audit": "Audit Log",
+        "settings_general": "General Settings",
+        "settings_ai": "AI Configuration",
+        "settings_scheduling": "Scheduling",
+        "settings_notifications": "Notifications",
+        "settings_seo": "SEO Settings",
+        "settings_integrations": "Integrations",
+        "settings_team": "Team",
+        "settings_roles": "Roles & Permissions",
+        "settings_subscription": "Subscription"
+      },
+      "categories": {
+        "account": "Account",
+        "members": "Members",
+        "roles": "Roles",
+        "sites": "Sites",
+        "content": "Content",
+        "keywords": "Keywords",
+        "redirections": "Redirections",
+        "interview": "Interview",
+        "audit": "Audit",
+        "settings": "Settings"
+      },
+      "permissions": {
+        "ACCOUNT_VIEW": "View Account",
+        "ACCOUNT_EDIT": "Edit Account",
+        "ACCOUNT_DELETE": "Delete Account",
+        "ACCOUNT_BILLING_VIEW": "View Billing",
+        "ACCOUNT_BILLING_MANAGE": "Manage Billing",
+        "MEMBERS_VIEW": "View Members",
+        "MEMBERS_INVITE": "Invite Members",
+        "MEMBERS_EDIT": "Edit Members",
+        "MEMBERS_REMOVE": "Remove Members",
+        "ROLES_VIEW": "View Roles",
+        "ROLES_CREATE": "Create Roles",
+        "ROLES_EDIT": "Edit Roles",
+        "ROLES_DELETE": "Delete Roles",
+        "SITES_VIEW": "View Sites",
+        "SITES_CREATE": "Create Sites",
+        "SITES_EDIT": "Edit Sites",
+        "SITES_DELETE": "Delete Sites",
+        "CONTENT_VIEW": "View Content",
+        "CONTENT_CREATE": "Create Content",
+        "CONTENT_EDIT": "Edit Content",
+        "CONTENT_DELETE": "Delete Content",
+        "CONTENT_PUBLISH": "Publish Content",
+        "KEYWORDS_VIEW": "View Keywords",
+        "KEYWORDS_CREATE": "Create Keywords",
+        "KEYWORDS_EDIT": "Edit Keywords",
+        "KEYWORDS_DELETE": "Delete Keywords",
+        "REDIRECTIONS_VIEW": "View Redirections",
+        "REDIRECTIONS_CREATE": "Create Redirections",
+        "REDIRECTIONS_EDIT": "Edit Redirections",
+        "REDIRECTIONS_DELETE": "Delete Redirections",
+        "INTERVIEW_VIEW": "View Interview",
+        "INTERVIEW_EDIT": "Edit Interview",
+        "AUDIT_VIEW": "View Audit Log",
+        "AUDIT_RUN": "Run Audit",
+        "SETTINGS_GENERAL_VIEW": "View General Settings",
+        "SETTINGS_GENERAL_EDIT": "Edit General Settings",
+        "SETTINGS_AI_VIEW": "View AI Settings",
+        "SETTINGS_AI_EDIT": "Edit AI Settings",
+        "SETTINGS_SCHEDULING_VIEW": "View Scheduling",
+        "SETTINGS_SCHEDULING_EDIT": "Edit Scheduling",
+        "SETTINGS_NOTIFICATIONS_VIEW": "View Notifications",
+        "SETTINGS_NOTIFICATIONS_EDIT": "Edit Notifications",
+        "SETTINGS_SEO_VIEW": "View SEO Settings",
+        "SETTINGS_SEO_EDIT": "Edit SEO Settings",
+        "SETTINGS_INTEGRATIONS_VIEW": "View Integrations",
+        "SETTINGS_INTEGRATIONS_EDIT": "Edit Integrations",
+        "SETTINGS_TEAM_VIEW": "View Team",
+        "SETTINGS_TEAM_EDIT": "Edit Team",
+        "SETTINGS_ROLES_VIEW": "View Roles Settings",
+        "SETTINGS_ROLES_EDIT": "Edit Roles Settings",
+        "SETTINGS_SUBSCRIPTION_VIEW": "View Subscription",
+        "SETTINGS_SUBSCRIPTION_EDIT": "Edit Subscription"
+      }
+    },
+    "accountSection": {
+      "fullName": "Full Name",
+      "emailAddress": "Email Address",
+      "changePassword": "Change Password",
+      "currentPassword": "Current Password",
+      "currentPasswordPlaceholder": "Enter current password",
+      "newPassword": "New Password",
+      "newPasswordPlaceholder": "Enter new password",
+      "confirmNewPassword": "Confirm New Password",
+      "confirmPasswordPlaceholder": "Confirm new password",
+      "dangerZone": "Danger Zone",
+      "deleteAccount": "Delete Account",
+      "deleteAccountDesc": "Permanently delete your account and all data"
+    }
+  },
+  "notifications": {
+    "title": "Notifications",
+    "markAllRead": "Mark all as read",
+    "noNotifications": "No new notifications",
+    "viewAll": "View all",
+    "viewAllNotifications": "View all notifications",
+    "items": {
+      "newBlogPost": {
+        "title": "New blog post ready",
+        "message": "Your article \"10 SEO Tips for 2026\" has been generated and is ready for review."
+      },
+      "aiInsight": {
+        "title": "AI Insight Available",
+        "message": "Ghost Agent found 3 new keyword opportunities for your site."
+      },
+      "interviewIncomplete": {
+        "title": "Interview Incomplete",
+        "message": "Complete your site interview to unlock full AI capabilities."
+      },
+      "trafficMilestone": {
+        "title": "Traffic Milestone",
+        "message": "Congratulations! Your site reached 10,000 monthly visitors."
+      }
+    },
+    "time": {
+      "fiveMinAgo": "5 min ago",
+      "oneHourAgo": "1 hour ago",
+      "twoHoursAgo": "2 hours ago",
+      "oneDayAgo": "1 day ago"
+    }
+  },
+  "user": {
+    "profile": "Profile",
+    "credits": "Credits",
+    "plan": "Plan",
+    "upgrade": "Upgrade",
+    "manageAccount": "Manage Account",
+    "myAccount": "My Account",
+    "subscriptions": "Subscriptions",
+    "myCredits": "My Credits",
+    "addCredits": "Add Credits",
+    "upgradePlan": "Upgrade Plan",
+    "plans": {
+      "free": "Free",
+      "starter": "Starter",
+      "pro": "Pro",
+      "enterprise": "Enterprise"
+    }
+  },
+  "sites": {
+    "selectSite": "Select a site",
+    "activeSite": "Active Site",
+    "addSite": "Add new site",
+    "noSites": "No sites added yet",
+    "manageSites": "Manage Sites",
+    "add": {
+      "title": "Add New Website",
+      "urlLabel": "Website Address",
+      "urlPlaceholder": "https://example.com",
+      "urlHint": "Enter your website URL and we'll verify it's accessible",
+      "validate": "Check",
+      "validating": "Checking...",
+      "validUrl": "Website is accessible",
+      "invalidUrl": "Website is not accessible",
+      "validationFailed": "Failed to validate URL",
+      "nameLabel": "Website Name",
+      "namePlaceholder": "My Website",
+      "create": "Add Website",
+      "creating": "Adding..."
+    }
+  },
+  "chat": {
+    "title": "Ghost Assistant",
+    "placeholder": "Ask Ghost anything...",
+    "send": "Send",
+    "openChat": "Chat with Ghost",
+    "newConversation": "New Conversation",
+    "searchConversations": "Search conversations...",
+    "conversations": "Conversations",
+    "todayConversations": "Today",
+    "yesterdayConversations": "Yesterday",
+    "olderConversations": "Older",
+    "ghostAgent": "Ghost Agent",
+    "thinking": "Thinking...",
+    "suggestions": "Suggestions",
+    "typeMessage": "Type your message...",
+    "searchPlaceholder": "Search conversations...",
+    "inputPlaceholder": "Type your message...",
+    "sections": {
+      "conversations": "Conversations",
+      "quickActions": "Quick Actions",
+      "aiConfiguration": "AI Configuration",
+      "activeSession": "Active Session"
+    },
+    "agentInfo": {
+      "name": "Ghost Agent",
+      "status": "Active & Learning"
+    },
+    "buttons": {
+      "retry": "Retry"
+    },
+    "actions": {
+      "startAnalysis": "Start Analysis"
+    },
+    "quickActions": {
+      "generateContent": "Generate Content",
+      "quickSeoAudit": "Quick SEO Audit",
+      "createBrief": "Create Brief",
+      "analyticsReport": "Analytics Report"
+    },
+    "aiConfig": {
+      "textGeneration": "Text Generation",
+      "imageGeneration": "Image Generation"
+    },
+    "statusText": {
+      "usingForResponses": "Using {engine} for responses"
+    },
+    "contextMessages": {
+      "dashboard": "Your site performance is up 24% this month. Should I analyze what's driving this growth?",
+      "siteInterview": "I noticed you haven't completed the technical details section. Shall I help gather that information?",
+      "contentPlanner": "I can help you plan and organize content for your website. Want me to analyze trends and suggest article ideas?",
+      "automations": "I can create a new automation to fix broken links automatically. Want me to set it up?",
+      "linkBuilding": "I found 12 new high-quality backlink opportunities. Should I draft outreach emails?",
+      "redirections": "Detected 3 redirect chains that could impact SEO. Should I optimize them?",
+      "seoFrontend": "12 images are missing alt text. I can generate optimized descriptions now. Proceed?",
+      "seoBackend": "Your sitemap is missing 8 pages. Should I update it automatically?",
+      "siteAudit": "I can optimize 8 images to improve your LCP score by 0.3s. Want me to proceed?",
+      "keywordStrategy": "Found 4 low-competition keywords with high potential. Should I create content briefs?",
+      "settings": "Your automation settings look good. Need help configuring anything else?",
+      "default": "I'm here to help with your SEO needs. What would you like to work on?"
+    },
+    "sampleChats": {
+      "seoStrategy": {
+        "title": "SEO Strategy Discussion",
+        "preview": "Your site performance is up 24%..."
+      },
+      "contentCalendar": {
+        "title": "Content Calendar Planning",
+        "preview": "I analyzed current trends for..."
+      },
+      "keywordResearch": {
+        "title": "Keyword Research",
+        "preview": "Found 4 low-competition keywords..."
+      },
+      "linkBuilding": {
+        "title": "Link Building Campaign",
+        "preview": "I found 12 new high-quality..."
+      },
+      "technicalSeo": {
+        "title": "Technical SEO Audit",
+        "preview": "Detected 3 redirect chains..."
+      }
+    },
+    "timestamps": {
+      "twoMinAgo": "2m ago",
+      "oneHourAgo": "1h ago",
+      "threeHoursAgo": "3h ago",
+      "yesterday": "Yesterday"
+    },
+    "aiResponses": {
+      "processing": "Processing your request... I'll analyze the data and get back to you shortly."
+    },
+    "successMessages": {
+      "analysisStarted": "Analysis started successfully"
+    },
+    "quickActionResponses": {
+      "generateContent": "I'll help you generate content. What topic would you like me to write about? I can create blog posts, product descriptions, or meta content.",
+      "quickSeoAudit": "Starting quick SEO audit... I'll analyze your site's technical SEO, content optimization, and performance metrics.",
+      "createBrief": "Let's create a content brief. What's the main keyword or topic you want to target?",
+      "analyticsReport": "Generating analytics report... I'll compile your traffic data, keyword rankings, and conversion metrics.",
+      "default": "How can I help you with that?"
+    }
+  },
+  "errors": {
+    "generic": "Something went wrong. Please try again.",
+    "notFound": "Page not found",
+    "unauthorized": "You are not authorized to access this page",
+    "networkError": "Network error. Please check your connection.",
+    "permissionDenied": "You don't have permission to access this page",
+    "permissionDeniedDescription": "Contact your account administrator if you believe you should have access.",
+    "goToDashboard": "Go to Dashboard"
+  },
+  "time": {
+    "hoursAgo": "{count} hours ago",
+    "daysAgo": "{count} days ago",
+    "minutesAgo": "{count} minutes ago",
+    "justNow": "Just now",
+    "sun": "Sun",
+    "mon": "Mon",
+    "tue": "Tue",
+    "wed": "Wed",
+    "thu": "Thu",
+    "fri": "Fri",
+    "sat": "Sat",
+    "january": "January",
+    "february": "February",
+    "march": "March",
+    "april": "April",
+    "may": "May",
+    "june": "June",
+    "july": "July",
+    "august": "August",
+    "september": "September",
+    "october": "October",
+    "november": "November",
+    "december": "December"
+  },
+  "aiWizard": {
+    "title": "AI Content Wizard",
+    "subtitle": "Create AI-powered content in minutes",
+    "generateContent": "Generate Content",
+    "steps": {
+      "topic": "Topic",
+      "preferences": "Preferences",
+      "scheduling": "Scheduling",
+      "review": "Review"
+    },
+    "step1": {
+      "title": "What Do You Want to Write About?",
+      "description": "Tell us what you want to write about",
+      "topicLabel": "Main Topic or Title",
+      "topicPlaceholder": "e.g., Complete Guide to Vintage Denim Care",
+      "keywordsLabel": "Target Keywords",
+      "keywordsPlaceholder": "e.g., vintage denim, denim care, how to wash vintage jeans",
+      "keywordsHint": "💡 Tip: Include 3-5 relevant keywords for optimal SEO",
+      "audienceLabel": "Target Audience",
+      "audiencePlaceholder": "e.g., Vintage fashion enthusiasts, collectors"
+    },
+    "step2": {
+      "title": "Content Preferences",
+      "description": "Customize your content preferences",
+      "contentTypeLabel": "Content Type",
+      "toneLabel": "Writing Tone",
+      "lengthLabel": "Content Length"
+    },
+    "step3": {
+      "title": "Publishing Schedule",
+      "description": "When should this content be published?",
+      "publishDateLabel": "Publish Date",
+      "publishDateHint": "Leave empty to create as draft",
+      "aiImagesLabel": "Generate AI Images",
+      "aiImagesDesc": "Include relevant images in your content",
+      "seoLabel": "SEO Optimization",
+      "seoDesc": "Optimize for search engines automatically",
+      "autoPublishLabel": "Auto-Publish",
+      "autoPublishDesc": "Publish automatically when ready"
+    },
+    "step4": {
+      "title": "Review & Launch",
+      "description": "Confirm your settings and start creating",
+      "contentDetails": "Content Details",
+      "writingStyle": "Writing Style",
+      "publishingOptions": "Publishing Options",
+      "topicLabel": "Topic:",
+      "keywordsLabel": "Keywords:",
+      "audienceLabel": "Audience:",
+      "typeLabel": "Type:",
+      "toneLabel": "Tone:",
+      "lengthLabel": "Length:",
+      "publishDateLabel": "Publish Date:",
+      "notSpecified": "Not specified",
+      "saveAsDraft": "Save as draft",
+      "aiImages": "AI Images",
+      "seoOptimization": "SEO Optimization",
+      "autoPublish": "Auto-Publish"
+    },
+    "contentTypes": {
+      "blogPost": "Blog Post",
+      "blogPostDesc": "Long-form article optimized for SEO",
+      "productPage": "Product Page",
+      "productPageDesc": "E-commerce product description",
+      "landingPage": "Landing Page",
+      "landingPageDesc": "Conversion-focused landing page",
+      "socialMedia": "Social Media",
+      "socialMediaDesc": "Short-form social content"
+    },
+    "tones": {
+      "professional": "Professional",
+      "casual": "Casual",
+      "friendly": "Friendly",
+      "authoritative": "Authoritative",
+      "conversational": "Conversational"
+    },
+    "lengths": {
+      "short": "Short",
+      "shortWords": "300-500 words",
+      "medium": "Medium",
+      "mediumWords": "800-1,200 words",
+      "long": "Long",
+      "longWords": "1,500-2,500 words"
+    }
+  },
+  "interviewWizard": {
+    "title": "Site Interview Wizard",
+    "questionProgress": "Question {current} of {total}",
+    "interviewComplete": "Interview Complete!",
+    "creatingStrategy": "Creating your personalized SEO strategy...",
+    "inputPlaceholder": "Type your answer...",
+    "seoScore": "SEO Score",
+    "placeholders": {
+      "enterKeyword": "Enter a keyword and press Enter",
+      "enterCompetitorUrl": "Add competitor URL (e.g., https://competitor.com)"
+    },
+    "actions": {
+      "retry": "Retry",
+      "edit": "Edit",
+      "saveAndSend": "Save & Send"
+    },
+    "messages": {
+      "analyzing": "Analyzing your website... This may take a moment.",
+      "crawlComplete": "I've analyzed your website! Here's what I found:",
+      "crawlError": "I couldn't access your website. Please check the URL and try again.",
+      "foundKeywords": "Found {count} keyword suggestions based on your website. Select the ones you want to target:",
+      "analyzingCompetitors": "Analyzing your competitors...",
+      "findingCompetitors": "Searching Google for competitors based on your keywords...",
+      "foundCompetitors": "Found {count} competitors based on your keywords. Select the relevant ones:",
+      "noCompetitorsFound": "No competitors found. Add your own or skip this step.",
+      "analyzingStyle": "Analyzing your content style from your articles...",
+      "recommendedStyle": "Based on your content, we recommend: {style}",
+      "detectingPlatform": "Detecting your website platform...",
+      "detectedPlatform": "Detected: {platform}",
+      "platformFromCrawl": "We detected your platform as {platform}",
+      "platformFromAI": "Our AI identified your platform as {platform}",
+      "generatingKeywords": "Generating keyword suggestions from your website...",
+      "noKeywordSuggestions": "No keyword suggestions available. Please try again.",
+      "fetchingArticles": "Fetching your latest blog articles...",
+      "articlesFound": "Found {count} articles on your blog",
+      "noArticlesFound": "No articles found on your website. You can skip this step.",
+      "untitledArticle": "Untitled Article",
+      "languageDetected": "We detected your website language as {language}",
+      "internalLinksDefault": "Based on your existing posts, we suggest {count} internal links per 1000 words",
+      "internalLinksSEO": "SEO best practice: 2-4 internal links per 1000 words helps with rankings and user navigation",
+      "selectKeywordsFirst": "Please select keywords first to find competitors",
+      "manuallyAdded": "Manually added"
+    },
+    "hints": {
+      "pressEnterToAdd": "Press Enter to add"
+    },
+    "questions": {
+      "welcome": "👋 Hi! I'm your Ghost AI Agent. I'll help you create a comprehensive SEO profile for your website. Let's start with the basics!",
+      "websiteUrl": "What's your website URL?",
+      "businessType": "What type of business do you run?",
+      "primaryProducts": "What are your main products or services? Describe what you offer to your customers.",
+      "targetAudience": "Who is your target audience? Tell me about their demographics, interests, and behaviors.",
+      "mainKeywords": "What are the main keywords you want to rank for? List 5-10 primary keywords related to your business.",
+      "competitors": "Who are your main competitors? Please provide 3-5 competitor website URLs.",
+      "targetRegions": "What geographic regions are you targeting?",
+      "seoGoals": "What are your primary SEO goals?",
+      "currentTraffic": "What's your current monthly organic traffic? (Approximate number is fine)",
+      "contentTypes": "What types of content do you currently publish?",
+      "publishingFrequency": "How often do you publish new content?",
+      "toneVoice": "What's your brand's tone and voice? (e.g., Professional, casual, friendly, authoritative, etc.)",
+      "cmsplatform": "What CMS platform do you use? (e.g., WordPress, Shopify, Wix, Custom, etc.)",
+      "hostingProvider": "Who is your hosting provider? (e.g., AWS, GoDaddy, Bluehost, etc.)",
+      "monthlyBudget": "What's your monthly SEO budget?",
+      "hasExistingContent": "Do you have existing content on your website?",
+      "brandVoice": "Let's define your brand voice. Based on your business, I'll suggest a tone and style for your content.",
+      "reviewSummary": "Here's a summary of your responses. Please review and make any changes if needed.",
+      "complete": "🎉 Excellent! I've collected all the information I need. Your personalized SEO strategy is ready!"
+    },
+    "ai": {
+      "thinking": "Ghost is thinking...",
+      "typing": "Ghost is typing...",
+      "error": "Sorry, I encountered an error. Please try again.",
+      "chatMode": "Chat Mode",
+      "formMode": "Form Mode",
+      "switchToChat": "Switch to Chat Mode",
+      "switchToForm": "Switch to Form Mode",
+      "sendMessage": "Send Message",
+      "messagePlaceholder": "Type a message to Ghost AI...",
+      "suggestionsTitle": "AI Suggestions",
+      "acceptSuggestion": "Accept",
+      "rejectSuggestion": "Reject",
+      "regenerateSuggestion": "Regenerate",
+      "askQuestion": "Ask Ghost AI",
+      "noSuggestions": "No suggestions available"
+    },
+    "buttons": {
+      "next": "Next",
+      "back": "Back",
+      "skip": "Skip",
+      "submit": "Submit",
+      "confirm": "Confirm",
+      "cancel": "Cancel",
+      "finish": "Finish Interview",
+      "startOver": "Start Over",
+      "saveProgress": "Save Progress",
+      "continue": "Continue"
+    },
+    "progress": {
+      "title": "Interview Progress",
+      "complete": "Complete",
+      "inProgress": "In Progress",
+      "notStarted": "Not Started",
+      "questionsAnswered": "{answered} of {total} questions answered",
+      "percentComplete": "{percent}% complete"
+    },
+    "status": {
+      "loading": "Loading interview...",
+      "saving": "Saving response...",
+      "submitting": "Submitting...",
+      "error": "An error occurred",
+      "success": "Response saved",
+      "validationError": "Please fix the errors before continuing"
+    },
+    "useSuggestion": "Use this",
+    "validation": {
+      "required": "This field is required",
+      "minLength": "Minimum {min} characters required",
+      "maxLength": "Maximum {max} characters allowed",
+      "pattern": "Invalid format",
+      "email": "Please enter a valid email address",
+      "url": "Please enter a valid URL",
+      "number": "Please enter a valid number",
+      "minValue": "Value must be at least {min}",
+      "maxValue": "Value must be at most {max}",
+      "minSelections": "Please select at least {min} options",
+      "maxSelections": "Please select at most {max} options"
+    },
+    "questionTypes": {
+      "greeting": {
+        "continue": "Let's Get Started"
+      },
+      "input": {
+        "placeholder": "Enter your response..."
+      },
+      "confirmation": {
+        "yes": "Yes",
+        "no": "No",
+        "confirm": "Confirm",
+        "deny": "Deny"
+      },
+      "selection": {
+        "placeholder": "Select an option",
+        "searchPlaceholder": "Search options...",
+        "noResults": "No results found"
+      },
+      "multiSelection": {
+        "placeholder": "Select options",
+        "selectAll": "Select All",
+        "clearAll": "Clear All",
+        "selected": "{count} selected"
+      },
+      "slider": {
+        "min": "Min",
+        "max": "Max"
+      },
+      "fileUpload": {
+        "dragDrop": "Drag and drop files here",
+        "or": "or",
+        "browse": "Browse Files",
+        "maxSize": "Max file size: {size}MB",
+        "acceptedTypes": "Accepted types: {types}",
+        "uploading": "Uploading...",
+        "uploadError": "Upload failed",
+        "remove": "Remove"
+      },
+      "dynamic": {
+        "loading": "Loading options...",
+        "noData": "No data available",
+        "refresh": "Refresh"
+      },
+      "editableData": {
+        "edit": "Edit",
+        "save": "Save",
+        "cancel": "Cancel",
+        "reset": "Reset to Original"
+      },
+      "aiSuggestion": {
+        "generating": "Generating suggestions...",
+        "accept": "Accept Suggestion",
+        "modify": "Modify",
+        "regenerate": "Generate New Suggestion",
+        "useOwn": "Use My Own Answer"
+      }
+    }
+  },
+  "registration": {
+    "steps": {
+      "account": "Account",
+      "verify": "Verify",
+      "organization": "Organization",
+      "interview": "Interview",
+      "plan": "Plan",
+      "payment": "Payment"
+    },
+    "progressSteps": {
+      "goToStep": "Go to step"
+    },
+    "navigation": {
+      "previous": "Previous",
+      "next": "Next"
+    },
+    "otp": {
+      "chooseMethod": "How would you like to verify your account?",
+      "viaSms": "Via SMS",
+      "viaEmail": "Via Email",
+      "codeSentToPhone": "We sent a verification code to your phone",
+      "codeSentToEmail": "We sent a verification code to your email",
+      "enterCode": "Enter the 4-digit code",
+      "verify": "Verify",
+      "resendCode": "Resend Code",
+      "resendIn": "Resend in",
+      "seconds": "seconds",
+      "verificationSuccess": "Verification Successful!",
+      "verificationSuccessMessage": "Your account has been verified. Let's continue setting up your profile.",
+      "verificationFailed": "Invalid Code",
+      "verificationFailedMessage": "The code you entered is incorrect. Please try again.",
+      "tryAgain": "Try Again",
+      "continue": "Continue",
+      "verifying": "Verifying...",
+      "devModeCode": "Dev mode: Your code is",
+      "verificationError": "Verification failed. Please try again.",
+      "failedToVerify": "Failed to verify code. Please try again.",
+      "failedToResend": "Failed to resend code. Please try again."
+    },
+    "accountSetup": {
+      "title": "Set Up Your Organization",
+      "description": "Create your organization to get started with Ghost Post.",
+      "nameLabel": "Organization Name",
+      "namePlaceholder": "Enter your organization name",
+      "slugLabel": "Organization URL",
+      "slugPlaceholder": "your-organization",
+      "slugPrefix": "ghostpost.com/",
+      "slugHint": "This will be your unique URL. Only lowercase letters, numbers, and hyphens allowed.",
+      "slugAvailable": "Available!",
+      "slugTooShort": "Slug must be at least 3 characters",
+      "slugTooLong": "Slug must be at most 50 characters",
+      "slugInvalidFormat": "Slug must contain only lowercase letters, numbers, and hyphens",
+      "slugTaken": "This URL is already taken",
+      "checkError": "Error checking availability",
+      "nameRequired": "Organization name is required",
+      "slugRequired": "Organization URL is required",
+      "slugNotAvailable": "Please choose an available URL",
+      "createError": "Failed to create organization",
+      "creating": "Creating...",
+      "continue": "Continue"
+    },
+    "interview": {
+      "title": "Tell Us About Your Business",
+      "subtitle": "Help us personalize your SEO strategy",
+      "greeting": "Welcome to GhostPost! I'm your AI assistant and I'll help you set up your account. Let's learn about your business to create the perfect SEO strategy.",
+      "startButton": "Start Setup",
+      "questions": {
+        "websiteUrl": "What is your website address?",
+        "contentLanguage": "What language should your content be written in?",
+        "businessConfirmation": "Does this information look correct?",
+        "keywords": "Select keywords relevant to your business",
+        "targetLocation": "Where do you want your website to be found?",
+        "competitors": "Select competitors relevant to your business",
+        "fetchArticles": "Fetching your latest blog articles...",
+        "writingStyle": "What writing style best fits your brand?",
+        "websitePlatform": "What platform is your website built on?",
+        "internalLinksCount": "How many internal links per 1000 words?",
+        "favoriteArticles": "Select up to 3 articles that represent your preferred content style"
+      },
+      "writingStyles": {
+        "professional": "Professional",
+        "casual": "Casual & Relaxed",
+        "technical": "Technical & Detailed",
+        "friendly": "Warm & Friendly",
+        "authoritative": "Authoritative & Expert",
+        "conversational": "Conversational"
+      },
+      "platforms": {
+        "wordpress": "WordPress",
+        "shopify": "Shopify",
+        "wix": "Wix",
+        "squarespace": "Squarespace",
+        "webflow": "Webflow",
+        "magento": "Magento",
+        "drupal": "Drupal",
+        "joomla": "Joomla",
+        "custom": "Custom Built",
+        "other": "Other"
+      },
+      "intentions": {
+        "seo": "Improve SEO Rankings",
+        "blog": "Maintain a Blog",
+        "traffic": "Increase Website Traffic",
+        "branding": "Build Brand Awareness",
+        "leadGen": "Generate Leads",
+        "authority": "Establish Industry Authority",
+        "socialMedia": "Create Social Media Content"
+      },
+      "errors": {
+        "invalidUrl": "Please enter a valid website URL",
+        "required": "This field is required",
+        "minSelections": "Please select at least {min} options",
+        "maxSelections": "You can select up to {max} options"
+      },
+      "actions": {
+        "next": "Next",
+        "back": "Back",
+        "skip": "Skip",
+        "finish": "Finish Setup",
+        "confirm": "Confirm",
+        "edit": "Edit"
+      },
+      "fields": {
+        "businessName": "Business Name",
+        "phone": "Phone Number",
+        "email": "Email",
+        "about": "About",
+        "category": "Business Category",
+        "address": "Address"
+      },
+      "placeholders": {
+        "websiteUrl": "https://www.yourwebsite.com",
+        "competitors": "Enter competitor URLs or names",
+        "competitorUrl": "Add competitor URL (e.g., https://competitor.com)"
+      },
+      "hints": {
+        "languageDetected": "We detected your website language as {language}",
+        "platformDetected": "We detected your platform as {platform}",
+        "keywordsFromCrawl": "These keywords were suggested based on your website content",
+        "competitorsFromKeywords": "These competitors were found using Google Search based on your keywords and target location",
+        "writingStyleAnalyzed": "We analyzed your existing content and suggest: {style}",
+        "internalLinksRecommendation": "Based on your existing posts, we recommend {count} internal links per 1000 words. SEO best practice is 2-4 links per 1000 words.",
+        "selectFavoriteArticles": "Select up to 3 articles that best represent your content style",
+        "targetLocationDefault": "We suggest {location} based on your website language",
+        "pressEnterToAdd": "Press Enter to add"
+      }
+    },
+    "languages": {
+      "english": "English",
+      "hebrew": "Hebrew",
+      "spanish": "Spanish",
+      "french": "French",
+      "german": "German",
+      "portuguese": "Portuguese",
+      "italian": "Italian",
+      "russian": "Russian",
+      "arabic": "Arabic",
+      "chinese": "Chinese",
+      "japanese": "Japanese"
+    },
+    "countries": {
+      "israel": "Israel",
+      "unitedStates": "United States",
+      "unitedKingdom": "United Kingdom",
+      "germany": "Germany",
+      "france": "France",
+      "spain": "Spain",
+      "italy": "Italy",
+      "netherlands": "Netherlands",
+      "australia": "Australia",
+      "canada": "Canada",
+      "brazil": "Brazil",
+      "mexico": "Mexico",
+      "india": "India",
+      "japan": "Japan",
+      "southKorea": "South Korea",
+      "global": "Global (No Geographic Focus)"
+    },
+    "plans": {
+      "title": "Choose Your Plan",
+      "subtitle": "Select the plan that best fits your needs",
+      "selectPlan": "Select Plan",
+      "selected": "Selected",
+      "popular": "Most Popular",
+      "basic": {
+        "name": "Basic",
+        "price": "$29",
+        "period": "/month",
+        "description": "Perfect for small businesses",
+        "features": {
+          "0": "1 Website",
+          "1": "Basic SEO Audit",
+          "2": "Keyword Tracking (50)",
+          "3": "Monthly Reports",
+          "4": "Email Support"
+        }
+      },
+      "pro": {
+        "name": "Pro",
+        "price": "$79",
+        "period": "/month",
+        "description": "For growing businesses",
+        "features": {
+          "0": "3 Websites",
+          "1": "Advanced SEO Audit",
+          "2": "Keyword Tracking (200)",
+          "3": "AI Content Assistant",
+          "4": "Weekly Reports",
+          "5": "Priority Support"
+        }
+      },
+      "enterprise": {
+        "name": "Enterprise",
+        "price": "$199",
+        "period": "/month",
+        "description": "For large organizations",
+        "features": {
+          "0": "Unlimited Websites",
+          "1": "Full SEO Suite",
+          "2": "Unlimited Keywords",
+          "3": "AI Content Generation",
+          "4": "Real-time Reports",
+          "5": "Dedicated Account Manager",
+          "6": "Custom Integrations"
+        }
+      },
+      "continueToPay": "Continue to Payment"
+    },
+    "payment": {
+      "title": "Payment Details",
+      "subtitle": "Complete your subscription",
+      "cardNumber": "Card Number",
+      "cardNumberPlaceholder": "1234 5678 9012 3456",
+      "expiry": "Expiry Date",
+      "expiryPlaceholder": "MM/YY",
+      "cvv": "CVV",
+      "cvvPlaceholder": "123",
+      "cardholderName": "Cardholder Name",
+      "cardholderNamePlaceholder": "John Doe",
+      "payNow": "Pay Now",
+      "processing": "Processing...",
+      "securePayment": "Your payment is secure and encrypted",
+      "orderSummary": "Order Summary",
+      "plan": "Plan",
+      "billingCycle": "Monthly",
+      "total": "Total"
+    },
+    "success": {
+      "successTitle": "Payment Successful!",
+      "successMessage": "Welcome to Ghost Post! Your account is now active and ready to use.",
+      "yourPlan": "Your Plan",
+      "goToDashboard": "Go to Dashboard"
+    },
+    "errors": {
+      "registrationFailed": "Registration failed. Please try again.",
+      "failedToSendOtp": "Failed to send verification code. Please try again.",
+      "missingRequiredFields": "Please fill in all required fields",
+      "mustAgreeToTerms": "You must agree to the terms and conditions",
+      "invalidEmailFormat": "Please enter a valid email address",
+      "emailAlreadyExists": "A user with this email already exists",
+      "registrationError": "An error occurred during registration. Please try again.",
+      "missingUserIdOrMethod": "Missing user information. Please try again.",
+      "invalidOtpMethod": "Invalid verification method. Please use SMS or Email.",
+      "userNotFound": "User not found. Please try again.",
+      "failedToSendOtpError": "Failed to send verification code. Please try again.",
+      "missingUserIdOrCode": "Missing verification information. Please try again.",
+      "noOtpFound": "No verification code found. Please request a new one.",
+      "codeAlreadyUsed": "This code has already been used. Please request a new one.",
+      "codeExpired": "Verification code has expired. Please request a new one.",
+      "tooManyAttempts": "Too many failed attempts. Please request a new code.",
+      "invalidCode": "Invalid code. Please try again.",
+      "failedToVerifyOtp": "Failed to verify code. Please try again.",
+      "slugRequired": "Organization URL is required",
+      "invalidSlugFormat": "URL must contain only lowercase letters, numbers, and hyphens",
+      "slugTooShort": "URL must be at least 3 characters long",
+      "slugTooLong": "URL must be at most 50 characters long",
+      "slugTaken": "This URL is already taken",
+      "failedToCheckSlug": "Failed to check URL availability. Please try again.",
+      "missingAccountFields": "Missing required fields. Please fill in all fields.",
+      "failedToCreateAccount": "Failed to create organization. Please try again.",
+      "emailPasswordRequired": "Email and password are required",
+      "invalidCredentials": "Invalid email or password",
+      "accountDeactivated": "Your account has been deactivated. Please contact support.",
+      "useOriginalSignIn": "Please login using your original sign-in method",
+      "loginError": "An error occurred during login. Please try again."
+    }
+  },
+  "admin": {
+    "title": "Admin Panel",
+    "subtitle": "Platform management and configuration",
+    "accounts": {
+      "title": "Platform Accounts",
+      "subtitle": "Manage all accounts registered on the platform",
+      "searchPlaceholder": "Search accounts...",
+      "addAccount": "Add Account",
+      "columns": {
+        "name": "Account Name",
+        "owner": "Owner",
+        "plan": "Plan",
+        "status": "Status",
+        "createdAt": "Created",
+        "actions": "Actions"
+      },
+      "statuses": {
+        "active": "Active",
+        "inactive": "Inactive",
+        "suspended": "Suspended",
+        "pending": "Pending"
+      },
+      "actions": {
+        "view": "View Details",
+        "edit": "Edit",
+        "suspend": "Suspend",
+        "activate": "Activate",
+        "delete": "Delete"
+      },
+      "form": {
+        "name": "Account Name",
+        "slug": "Slug",
+        "isActive": "Active",
+        "ownerEmail": "Owner Email",
+        "ownerEmailPlaceholder": "Enter owner's email (optional)",
+        "usersCount": "Users Count",
+        "logo": "Logo URL",
+        "website": "Website",
+        "industry": "Industry",
+        "timezone": "Timezone",
+        "defaultLanguage": "Default Language",
+        "billingEmail": "Billing Email",
+        "generalEmail": "General Email"
+      },
+      "deleteConfirm": {
+        "title": "Delete Account",
+        "message": "Are you sure you want to delete {name}? This will remove all associated data and cannot be undone."
+      },
+      "noAccounts": "No accounts found",
+      "noPlan": "No Plan",
+      "totalAccounts": "Total Accounts"
+    },
+    "users": {
+      "title": "Platform Users",
+      "subtitle": "Manage all users across the platform",
+      "searchPlaceholder": "Search users...",
+      "addUser": "Add User",
+      "columns": {
+        "name": "Name",
+        "email": "Email",
+        "accounts": "Accounts",
+        "role": "Role",
+        "status": "Status",
+        "lastLogin": "Last Login",
+        "actions": "Actions"
+      },
+      "roles": {
+        "superAdmin": "Super Admin",
+        "owner": "Owner",
+        "admin": "Admin",
+        "editor": "Editor",
+        "viewer": "Viewer"
+      },
+      "statuses": {
+        "active": "Active",
+        "inactive": "Inactive",
+        "suspended": "Suspended"
+      },
+      "actions": {
+        "view": "View Profile",
+        "edit": "Edit",
+        "impersonate": "Impersonate",
+        "suspend": "Suspend",
+        "activate": "Activate",
+        "delete": "Delete"
+      },
+      "form": {
+        "firstName": "First Name",
+        "lastName": "Last Name",
+        "email": "Email",
+        "password": "Password",
+        "role": "Role",
+        "superAdmin": "Super Admin",
+        "phoneNumber": "Phone Number",
+        "image": "Profile Image URL",
+        "primaryAuthMethod": "Primary Auth Method",
+        "selectedLanguage": "Preferred Language",
+        "preferredCurrency": "Preferred Currency",
+        "registrationStep": "Registration Step",
+        "emailVerified": "Email Verified",
+        "phoneVerified": "Phone Verified",
+        "consentGiven": "Consent Given",
+        "isActive": "Active",
+        "createdAt": "Created At",
+        "linkToAccount": "Link to Account",
+        "noAccount": "No account (standalone user)"
+      },
+      "deleteConfirm": {
+        "title": "Delete User",
+        "message": "Are you sure you want to delete {name}? This action cannot be undone."
+      },
+      "noUsers": "No users found",
+      "totalUsers": "Total Users"
+    },
+    "subscriptions": {
+      "title": "Subscriptions",
+      "subtitle": "Manage platform subscriptions and billing",
+      "searchPlaceholder": "Search subscriptions...",
+      "columns": {
+        "account": "Account",
+        "plan": "Plan",
+        "status": "Status",
+        "billing": "Billing Cycle",
+        "amount": "Amount",
+        "nextBilling": "Next Billing",
+        "actions": "Actions"
+      },
+      "statuses": {
+        "active": "Active",
+        "canceled": "Canceled",
+        "pastDue": "Past Due",
+        "trialing": "Trialing"
+      },
+      "billingCycles": {
+        "monthly": "Monthly",
+        "yearly": "Yearly",
+        "perMonth": "/mo",
+        "perYear": "/yr"
+      },
+      "actions": {
+        "view": "View Details",
+        "modify": "Modify Plan",
+        "cancel": "Cancel Subscription",
+        "refund": "Refund"
+      },
+      "noSubscriptions": "No subscriptions found",
+      "totalSubscriptions": "Total Subscriptions",
+      "mrr": "Monthly Recurring Revenue",
+      "arr": "Annual Recurring Revenue",
+      "viewTitle": "Subscription Details",
+      "periodStart": "Period Start",
+      "periodEnd": "Period End",
+      "cancelScheduled": "Cancel Scheduled",
+      "recentPayments": "Recent Payments",
+      "changePlan": "Change Plan",
+      "changePlanDescription": "Change subscription plan for {account}",
+      "selectNewPlan": "Select New Plan",
+      "selectPlan": "Select a plan...",
+      "confirmCancel": "Cancel Subscription",
+      "confirmReactivate": "Reactivate Subscription",
+      "cancelWarning": "This subscription will be canceled at the end of the current billing period.",
+      "reactivateInfo": "This will reactivate the subscription and start a new billing period.",
+      "accountLabel": "Account",
+      "paymentStatuses": {
+        "succeeded": "Succeeded",
+        "pending": "Pending",
+        "failed": "Failed",
+        "refunded": "Refunded",
+        "canceled": "Canceled"
+      }
+    },
+    "plans": {
+      "title": "Plans Settings",
+      "subtitle": "Configure subscription plans and pricing",
+      "addPlan": "Add Plan",
+      "searchPlaceholder": "Search plans...",
+      "columns": {
+        "name": "Plan Name",
+        "description": "Description",
+        "price": "Price",
+        "billing": "Billing",
+        "features": "Features",
+        "subscribers": "Subscribers",
+        "status": "Status",
+        "actions": "Actions"
+      },
+      "statuses": {
+        "active": "Active",
+        "inactive": "Inactive",
+        "archived": "Archived"
+      },
+      "actions": {
+        "edit": "Edit Plan",
+        "duplicate": "Duplicate",
+        "archive": "Archive",
+        "delete": "Delete",
+        "translate": "Translate"
+      },
+      "translations": {
+        "selectLanguage": "Select Language",
+        "original": "Original",
+        "save": "Save Translation",
+        "deleteTranslation": "Delete Translation",
+        "featuresPlaceholder": "One feature per line",
+        "featuresHint": "Enter one feature per line. Keep the same number and order of features as the original."
+      },
+      "noPlans": "No plans configured",
+      "form": {
+        "monthly": "Monthly",
+        "yearly": "Yearly",
+        "yearlyPlaceholder": "Leave empty for price × 10"
+      },
+      "planNames": {
+        "free": "Free",
+        "starter": "Starter",
+        "professional": "Professional",
+        "enterprise": "Enterprise",
+        "basic": "Basic",
+        "pro": "Pro",
+        "premium": "Premium"
+      },
+      "planDescriptions": {
+        "free": "Get started with basic features",
+        "starter": "Perfect for small businesses",
+        "professional": "For growing teams and agencies",
+        "enterprise": "Custom solutions for large organizations",
+        "basic": "Essential features for beginners",
+        "pro": "Advanced tools for professionals",
+        "premium": "Full access to all features"
+      },
+      "features": {
+        "title": "Plan Features",
+        "add": "Add Feature",
+        "remove": "Remove"
+      }
+    },
+    "interviewQuestions": {
+      "title": "Interview Questions",
+      "subtitle": "Manage registration interview questions",
+      "addQuestion": "Add Question",
+      "addCategory": "Add Category",
+      "searchPlaceholder": "Search questions...",
+      "columns": {
+        "order": "Order",
+        "question": "Question",
+        "type": "Type",
+        "required": "Required",
+        "category": "Category",
+        "actions": "Actions"
+      },
+      "types": {
+        "text": "Text",
+        "textarea": "Long Text",
+        "select": "Select",
+        "multiselect": "Multi-Select",
+        "radio": "Radio",
+        "checkbox": "Checkbox",
+        "scale": "Scale"
+      },
+      "actions": {
+        "edit": "Edit Question",
+        "duplicate": "Duplicate",
+        "moveUp": "Move Up",
+        "moveDown": "Move Down",
+        "delete": "Delete"
+      },
+      "noQuestions": "No questions configured",
+      "categories": {
+        "title": "Categories",
+        "add": "Add Category",
+        "edit": "Edit Category"
+      },
+      "categoryNames": {
+        "businessGoals": "Business Goals",
+        "targetAudience": "Target Audience",
+        "contentStrategy": "Content Strategy",
+        "technicalSetup": "Technical Setup"
+      },
+      "questions": {
+        "businessGoals": "What are your primary business goals for the next 12 months?",
+        "industry": "What industry or niche is your business in?",
+        "targetAudience": "Who is your primary target audience?",
+        "ageRange": "What age range is your target audience?",
+        "publishFrequency": "How often do you want to publish content?",
+        "contentTypes": "What types of content do you want to create?",
+        "seoKnowledge": "Rate your current SEO knowledge (1-10)",
+        "websiteUrl": "What is your website URL?"
+      },
+      "options": {
+        "industries": ["E-commerce", "SaaS", "Healthcare", "Finance", "Education", "Real Estate", "Other"],
+        "ageRanges": ["18-24", "25-34", "35-44", "45-54", "55-64", "65+"],
+        "publishFrequencies": ["Daily", "Weekly", "Bi-weekly", "Monthly"],
+        "contentTypes": ["Blog Posts", "Landing Pages", "Product Descriptions", "Email Newsletters", "Social Media Posts"]
+      },
+      "form": {
+        "questionKey": "Translation Key",
+        "placeholder": "Placeholder Text",
+        "commaSeparated": "comma-separated"
+      }
+    },
+    "common": {
+      "search": "Search",
+      "filter": "Filter",
+      "export": "Export",
+      "import": "Import",
+      "refresh": "Refresh",
+      "loading": "Loading...",
+      "noResults": "No results found",
+      "uncategorized": "Uncategorized",
+      "optional": "optional",
+      "allCategories": "All Categories",
+      "allTypes": "All Types",
+      "allStatus": "All Status",
+      "active": "Active",
+      "inactive": "Inactive",
+      "selectCategory": "Select a category",
+      "confirmDelete": "Are you sure you want to delete this item?",
+      "deleteWarning": "This action cannot be undone.",
+      "save": "Save",
+      "saving": "Saving...",
+      "create": "Create",
+      "cancel": "Cancel",
+      "close": "Close",
+      "edit": "Edit",
+      "delete": "Delete",
+      "view": "View",
+      "duplicate": "Duplicate",
+      "test": "Test",
+      "moveUp": "Move Up",
+      "moveDown": "Move Down",
+      "rows": "Rows",
+      "results": "results",
+      "all": "All",
+      "actions": "Actions",
+      "saved": "Saved",
+      "saveFailed": "Save failed",
+      "deleted": "Deleted",
+      "deleteFailed": "Delete failed",
+      "error": "An error occurred",
+      "select": "Select...",
+      "pagination": {
+        "showing": "Showing",
+        "to": "to",
+        "of": "of",
+        "items": {
+          "accounts": "accounts",
+          "users": "users",
+          "subscriptions": "subscriptions"
+        }
+      },
+      "time": {
+        "justNow": "Just now",
+        "hoursAgo": "{hours}h ago",
+        "yesterday": "Yesterday"
+      },
+      "allCategories": "All Categories",
+      "features": "features",
+      "options": "Options",
+      "more": "+{count} more",
+      "reactivate": "Reactivate",
+      "trialEnds": "Trial ends {date}",
+      "canceledOn": "Canceled {date}",
+      "processing": "Processing...",
+      "yes": "Yes",
+      "no": "No"
+    },
+    "stats": {
+      "totalPlans": "Total Plans",
+      "totalSubscribers": "Total Subscribers",
+      "avgPrice": "Avg Price",
+      "totalQuestions": "Total Questions",
+      "activeQuestions": "Active",
+      "inactiveQuestions": "Inactive",
+      "botActions": "Bot Actions",
+      "questionTypes": "Question Types",
+      "categories": "Categories",
+      "required": "Required",
+      "totalActions": "Total Actions",
+      "activeActions": "Active",
+      "inactiveActions": "Inactive",
+      "totalAccounts": "Total Accounts",
+      "activeAccounts": "Active",
+      "totalUsers": "Total Users",
+      "activeUsers": "Active"
+    },
+    "translations": {
+      "title": "Translations",
+      "subtitle": "Manage languages, namespaces and translation keys",
+      "totalKeys": "Total Keys",
+      "languages": "Languages",
+      "namespaces": "Namespaces",
+      "namespace": "Namespace",
+      "allNamespaces": "All Namespaces",
+      "filterKeys": "Filter keys...",
+      "newKey": "New key (e.g. dashboard.welcome)",
+      "description": "Description",
+      "addKey": "Add Key",
+      "keyAdded": "Key added",
+      "newLocale": "New locale (e.g. he)",
+      "languageName": "Language name",
+      "fallback": "Fallback (e.g. he,en)",
+      "addLanguage": "Add Language",
+      "languageAdded": "Language added",
+      "showLanguages": "Show languages",
+      "deleteSelected": "Delete Selected",
+      "deleteKeys": "Delete Keys",
+      "deleteKeysConfirm": "Delete selected keys and all their translations?",
+      "key": "Key",
+      "editKey": "Edit Key",
+      "noKeys": "No keys found",
+      "import": "Import",
+      "importTitle": "Import Translation JSON",
+      "language": "Language",
+      "jsonFile": "JSON file",
+      "createMissing": "Create missing keys",
+      "defaultNamespace": "Default namespace for new keys",
+      "selectLanguage": "Select a language",
+      "selectNamespace": "Select namespace",
+      "export": "Export",
+      "exported": "Exported successfully",
+      "rtl": "RTL",
+      "file": "File",
+      "more": "more",
+      "parseError": "Parse error",
+      "importFailed": "Import failed",
+      "failed": "Operation failed",
+      "importSuccess": "Import: {keys} keys, {translations} translations",
+      "reload": "Reload",
+      "reloadTranslations": "Reload translations from database",
+      "translationsReloaded": "Translations reloaded successfully"
+    },
+    "interviewFlow": {
+      "title": "Interview Flow",
+      "subtitle": "Manage the interview questions and flow for new users",
+      "addQuestion": "Add Question",
+      "editQuestion": "Edit Question",
+      "deleteQuestion": "Delete Question",
+      "noQuestions": "No questions found",
+      "createFirst": "Create your first interview question to get started",
+      "searchPlaceholder": "Search questions...",
+      "totalQuestions": "Total Questions",
+      "activeQuestions": "Active",
+      "inactiveQuestions": "Inactive",
+      "questionTypes": "Question Types",
+      "question": "Question",
+      "type": "Type",
+      "order": "Order",
+      "status": "Status",
+      "actions": "Actions",
+      "active": "Active",
+      "inactive": "Inactive",
+      "moveUp": "Move Up",
+      "moveDown": "Move Down",
+      "confirmDelete": "Are you sure you want to delete this question?",
+      "deleteSuccess": "Question deleted successfully",
+      "saveSuccess": "Question saved successfully",
+      "tabs": {
+        "basic": "Basic Info",
+        "input": "Input Config",
+        "validation": "Validation",
+        "ai": "AI Config",
+        "conditions": "Conditions"
+      },
+      "fields": {
+        "translationKey": "Translation Key",
+        "translationKeyHelp": "The key used for i18n translations",
+        "questionType": "Question Type",
+        "type": "Question Type",
+        "isActive": "Is Active",
+        "order": "Display Order",
+        "saveToField": "Save to Field",
+        "saveToFieldHelp": "Optional field name to save the response to",
+        "saveToFieldPlaceholder": "e.g., businessName, websiteUrl",
+        "dependsOn": "Depends On",
+        "dependsOnHelp": "Question ID that must be answered first",
+        "aiPromptHint": "AI Prompt Hint",
+        "aiPromptHintHelp": "Additional context for the AI about this question"
+      },
+      "columns": {
+        "key": "Translation Key",
+        "type": "Type",
+        "actions": "Bot Actions",
+        "status": "Status"
+      },
+      "types": {
+        "GREETING": "Greeting",
+        "INPUT": "Text Input",
+        "CONFIRMATION": "Confirmation",
+        "SELECTION": "Single Selection",
+        "MULTI_SELECTION": "Multiple Selection",
+        "DYNAMIC": "Dynamic Content",
+        "EDITABLE_DATA": "Editable Data",
+        "FILE_UPLOAD": "File Upload",
+        "SLIDER": "Slider",
+        "AI_SUGGESTION": "AI Suggestion",
+        "greeting": "Greeting",
+        "input": "Text Input",
+        "confirmation": "Confirmation",
+        "selection": "Single Selection",
+        "multiSelection": "Multiple Selection",
+        "dynamic": "Dynamic Content",
+        "editableData": "Editable Data",
+        "fileUpload": "File Upload",
+        "slider": "Slider",
+        "aiSuggestion": "AI Suggestion"
+      },
+      "inputConfig": {
+        "title": "Input Configuration",
+        "inputType": "Input Type",
+        "placeholder": "Placeholder Text",
+        "defaultValue": "Default Value",
+        "options": "Options",
+        "optionsHelp": "One option per line",
+        "optionsPlaceholder": "Option 1\nOption 2\nOption 3",
+        "addOption": "Add Option",
+        "removeOption": "Remove Option",
+        "min": "Minimum Value",
+        "max": "Maximum Value",
+        "step": "Step Value",
+        "accept": "Accepted File Types",
+        "maxSize": "Max File Size (bytes)",
+        "multiple": "Allow Multiple Files",
+        "dataSource": "Data Source",
+        "dataSourceHelp": "API endpoint to fetch dynamic data",
+        "displayTemplate": "Display Template",
+        "templateHelp": "Use {{result}} to reference action result",
+        "allowEdit": "Allow Editing",
+        "confirmLabel": "Confirm Button Label",
+        "denyLabel": "Deny Button Label",
+        "sourceAction": "Source Action",
+        "selectAction": "Select an action...",
+        "suggestionType": "Suggestion Type",
+        "suggestionTypePlaceholder": "e.g., keywords, topics, titles",
+        "allowCustom": "Allow Custom Input",
+        "message": "Greeting Message",
+        "fieldsJson": "Fields (JSON format)",
+        "fieldsPlaceholder": "[{\"key\": \"title\", \"label\": \"Title\", \"type\": \"text\"}]",
+        "allowAddItems": "Allow Add Items",
+        "allowRemoveItems": "Allow Remove Items",
+        "minSelections": "Min Selections",
+        "maxSelections": "Max Selections (empty = unlimited)",
+        "inputTypes": {
+          "text": "Text",
+          "email": "Email",
+          "tel": "Phone",
+          "url": "URL",
+          "number": "Number",
+          "textarea": "Multi-line Text"
+        }
+      },
+      "validation": {
+        "title": "Validation Rules",
+        "required": "Required Field",
+        "minLength": "Minimum Length",
+        "maxLength": "Maximum Length",
+        "pattern": "Pattern (Regex)",
+        "patternPlaceholder": "e.g., ^https?://.+",
+        "errorMessage": "Custom Error Message",
+        "min": "Minimum Value",
+        "max": "Maximum Value",
+        "minSelections": "Minimum Selections",
+        "maxSelections": "Maximum Selections"
+      },
+      "aiConfig": {
+        "title": "AI Configuration",
+        "enabled": "Enable AI Suggestions",
+        "systemPrompt": "System Prompt",
+        "systemPromptHelp": "Instructions for the AI when generating suggestions",
+        "allowedActions": "Allowed Bot Actions",
+        "allowedActionsHelp": "Bot actions that can be triggered from this question",
+        "autoActions": "Auto Actions",
+        "autoActionsHelp": "Bot actions to run automatically when this question is answered",
+        "noActionsAvailable": "No bot actions available. Create bot actions first."
+      },
+      "conditions": {
+        "title": "Display Conditions",
+        "dependsOn": "Depends On (Question ID)",
+        "dependsOnPlaceholder": "ID of the question this depends on",
+        "showCondition": "Show Condition (JSON)",
+        "showConditionPlaceholder": "{\"field\": \"hasWebsite\", \"operator\": \"equals\", \"value\": true}",
+        "showConditionHelp": "Use conditions to control when this question appears. The show condition is a JSON object that specifies the field, operator, and value to check.",
+        "example": "Example: {\"operator\": \"equals\", \"field\": \"q1\", \"value\": \"yes\"}",
+        "operators": {
+          "equals": "Equals",
+          "notEquals": "Not Equals",
+          "contains": "Contains",
+          "exists": "Exists",
+          "isEmpty": "Is Empty",
+          "greaterThan": "Greater Than",
+          "lessThan": "Less Than",
+          "and": "AND (all conditions must match)",
+          "or": "OR (any condition must match)"
+        }
+      }
+    },
+    "botActions": {
+      "title": "Bot Actions",
+      "subtitle": "Manage automated actions that the AI bot can perform",
+      "addAction": "Add Action",
+      "editAction": "Edit Action",
+      "deleteAction": "Delete Action",
+      "deleteTitle": "Delete Action",
+      "deleteMessage": "Are you sure you want to delete this action? This action cannot be undone.",
+      "noActions": "No bot actions found",
+      "createFirst": "Create your first bot action to enable AI automation",
+      "searchPlaceholder": "Search actions...",
+      "totalActions": "Total Actions",
+      "activeActions": "Active",
+      "inactiveActions": "Inactive",
+      "actionsByCategory": "By Category",
+      "action": "Action",
+      "category": "Category",
+      "trigger": "Trigger",
+      "status": "Status",
+      "actions": "Actions",
+      "active": "Active",
+      "inactive": "Inactive",
+      "testAction": "Test Action",
+      "testResult": "Test Result",
+      "testSuccess": "Action executed successfully",
+      "testError": "Action execution failed",
+      "confirmDelete": "Are you sure you want to delete this action?",
+      "deleteSuccess": "Action deleted successfully",
+      "saveSuccess": "Action saved successfully",
+      "tabs": {
+        "basic": "Basic Info",
+        "schema": "Schema",
+        "example": "Example"
+      },
+      "columns": {
+        "name": "Name",
+        "handler": "Handler",
+        "description": "Description",
+        "status": "Status"
+      },
+      "fields": {
+        "name": "Action Name",
+        "nameHelp": "Unique identifier for this action",
+        "namePlaceholder": "CRAWL_WEBSITE",
+        "handler": "Handler Path",
+        "handlerPlaceholder": "handlers/crawl-website",
+        "displayName": "Display Name",
+        "displayNameHelp": "Human-readable name shown in the UI",
+        "description": "Description",
+        "descriptionHelp": "Describe what this action does",
+        "descriptionPlaceholder": "Describe what this action does...",
+        "category": "Category",
+        "isActive": "Active",
+        "requiredPermissions": "Required Permissions",
+        "requiredPermissionsHelp": "Permissions needed to execute this action",
+        "parametersSchema": "Parameters Schema (JSON Schema)",
+        "returnsSchema": "Returns Schema (JSON Schema)",
+        "exampleParameters": "Example Parameters (JSON)",
+        "examplePlaceholder": "{\"url\": \"https://example.com\"}",
+        "exampleHelp": "This example will be used as default when testing the action."
+      },
+      "categories": {
+        "data_fetch": "Data Fetch",
+        "data_update": "Data Update",
+        "external_api": "External API",
+        "notification": "Notification",
+        "validation": "Validation",
+        "other": "Other"
+      },
+      "actionSchema": {
+        "title": "Action Schema",
+        "description": "Define the function schema for the AI to call",
+        "parameters": "Parameters",
+        "parametersHelp": "JSON Schema defining the action parameters",
+        "example": "Example schema for fetching user data"
+      },
+      "implementation": {
+        "title": "Implementation",
+        "type": "Implementation Type",
+        "types": {
+          "api_call": "API Call",
+          "database_query": "Database Query",
+          "custom_function": "Custom Function"
+        },
+        "endpoint": "API Endpoint",
+        "method": "HTTP Method",
+        "headers": "Headers (JSON)",
+        "bodyTemplate": "Body Template",
+        "query": "Database Query",
+        "function": "Function Name"
+      },
+      "test": {
+        "title": "Test Action",
+        "parameters": "Parameters (JSON)",
+        "context": "Test Context (JSON)",
+        "run": "Run Test",
+        "running": "Running...",
+        "output": "Output",
+        "success": "Success",
+        "error": "Error"
+      }
+    }
+  },
+  "acceptInvite": {
+    "title": "You're Invited!",
+    "subtitle": "Accept this invitation to join",
+    "invalidToken": "Invalid or Expired Invitation",
+    "invalidTokenMessage": "This invitation link is invalid or has expired. Please contact the person who invited you to request a new invitation.",
+    "expiredToken": "Invitation Expired",
+    "expiredTokenMessage": "This invitation has expired. Please contact the person who invited you to request a new invitation.",
+    "alreadyAccepted": "Invitation Already Accepted",
+    "alreadyAcceptedMessage": "You have already accepted this invitation. You can log in to your account.",
+    "accountInfo": "Account Information",
+    "accountName": "Account",
+    "yourRole": "Your Role",
+    "invitedBy": "Invited By",
+    "existingUser": {
+      "title": "Welcome Back!",
+      "subtitle": "Sign in to accept your invitation"
+    },
+    "newUser": {
+      "title": "Create Your Account",
+      "subtitle": "Fill in your details to accept the invitation"
+    },
+    "success": {
+      "title": "Welcome to the Team!",
+      "subtitle": "You've successfully joined",
+      "goToDashboard": "Go to Dashboard"
+    },
+    "goToLogin": "Go to Login",
+    "requestNewInvite": "Request New Invite"
   }
 }

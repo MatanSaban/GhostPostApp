@@ -1,0 +1,1128 @@
+.dashboardContainer {
+  height: 100vh;
+  display: flex;
+  background: var(--background);
+  color: var(--foreground);
+  transition: background-color var(--transition-normal), color var(--transition-normal);
+  overflow: hidden;
+}
+
+/* Sidebar */
+.sidebar {
+  width: 280px;
+  height: 100vh;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 1rem;
+  background: var(--sidebar-background);
+  border-right: 1px solid var(--sidebar-border);
+  overflow-y: auto;
+  transition: all var(--transition-normal);
+
+  .dark & {
+    background: linear-gradient(180deg, #0f0f1a 0%, #0A0A0A 100%);
+  }
+}
+
+.sidebarLogo {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.logoIcon {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-lg);
+  background: var(--gradient-primary);
+  object-fit: contain;
+  padding: 4px;
+}
+
+.logoText {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--foreground);
+}
+
+/* Site Selector */
+.siteSelector {
+  padding: 0 0.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.siteSelectorLabel {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--muted-foreground);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.5rem;
+}
+
+.siteSelectorButton {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem;
+  background: rgba(123, 44, 191, 0.1);
+  border: 1px solid rgba(123, 44, 191, 0.2);
+  border-radius: var(--radius-lg);
+  color: var(--foreground);
+  font-size: 0.875rem;
+  transition: all var(--transition-fast);
+
+  &:hover {
+    background: rgba(123, 44, 191, 0.15);
+    border-color: rgba(123, 44, 191, 0.3);
+  }
+}
+
+.siteSelectorIcon {
+  width: 1rem;
+  height: 1rem;
+  color: var(--muted-foreground);
+}
+
+/* Navigation */
+.navigation {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  overflow-y: auto;
+}
+
+.navItem {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  border-radius: var(--radius-lg);
+  color: var(--muted-foreground);
+  font-size: 0.875rem;
+  font-weight: 500;
+  text-decoration: none;
+  transition: all var(--transition-fast);
+  border: 1px solid transparent;
+
+  &:hover {
+    color: var(--foreground);
+    background: var(--muted);
+
+    .dark & {
+      background: rgba(255, 255, 255, 0.05);
+    }
+  }
+
+  &.active {
+    color: var(--primary);
+    background: var(--sidebar-active);
+    border-color: var(--sidebar-active-border);
+    box-shadow: var(--shadow-purple);
+
+    .dark & {
+      color: #c084fc;
+    }
+  }
+}
+
+.navIcon {
+  width: 1.25rem;
+  height: 1.25rem;
+  flex-shrink: 0;
+}
+
+.navLabel {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Admin Navigation Divider */
+.navDivider {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 1rem;
+  margin-bottom: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  border-top: 1px solid var(--sidebar-border);
+}
+
+.navDividerIcon {
+  width: 1rem;
+  height: 1rem;
+  color: var(--primary);
+  flex-shrink: 0;
+}
+
+.navDividerLabel {
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--primary);
+}
+
+/* Admin Nav Items */
+.adminNavItem {
+  position: relative;
+  padding-inline-start: 0.75rem;
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset-inline-start: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 2px;
+    height: 60%;
+    background: var(--primary);
+    opacity: 0;
+    transition: opacity var(--transition-fast);
+  }
+
+  &.active::before,
+  &:hover::before {
+    opacity: 1;
+  }
+
+  &.active {
+    background: rgba(123, 44, 191, 0.15);
+    border-color: rgba(123, 44, 191, 0.3);
+  }
+}
+
+/* Expandable Nav Group */
+.navGroup {
+  display: flex;
+  flex-direction: column;
+}
+
+.navGroupToggle {
+  cursor: pointer;
+  background: transparent;
+  border: 1px solid transparent;
+  width: 100%;
+  text-align: start;
+
+  &:hover {
+    color: var(--foreground);
+    background: var(--muted);
+
+    .dark & {
+      background: rgba(255, 255, 255, 0.05);
+    }
+  }
+}
+
+.navChevron {
+  width: 1rem;
+  height: 1rem;
+  flex-shrink: 0;
+  margin-inline-start: auto;
+  transition: transform var(--transition-fast);
+  /* Reset any global RTL transforms */
+  transform: none !important;
+}
+
+.navChevronButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.25rem;
+  margin-inline-start: auto;
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  color: inherit;
+  transition: background var(--transition-fast);
+
+  &:hover {
+    background: rgba(123, 44, 191, 0.1);
+  }
+
+  .navChevron {
+    margin-inline-start: 0;
+  }
+}
+
+/* When open, rotate to point down */
+.navChevronOpen {
+  transform: rotate(90deg) !important;
+}
+
+/* In RTL, flip the chevron to point left when closed */
+:global(html[dir="rtl"]) .navChevron:not(.navChevronOpen) {
+  transform: scaleX(-1) !important;
+}
+
+/* In RTL when open, rotate to point down */
+:global(html[dir="rtl"]) .navChevronOpen {
+  transform: scaleX(-1) rotate(90deg) !important;
+}
+
+.navGroupItems {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows var(--transition-normal);
+}
+
+.navGroupItemsOpen {
+  grid-template-rows: 1fr;
+}
+
+.navGroupItemsInner {
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.navSubItem {
+  padding-inline-start: 2.5rem;
+  font-size: 0.825rem;
+  position: relative;
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset-inline-start: 1.25rem;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: var(--muted-foreground);
+    transition: all var(--transition-fast);
+  }
+
+  &.active::before,
+  &:hover::before {
+    background: var(--primary);
+  }
+
+  &.active {
+    color: var(--primary);
+    background: var(--sidebar-active);
+    border-color: var(--sidebar-active-border);
+  }
+}
+
+/* Logout */
+.logoutSection {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--sidebar-border);
+}
+
+.logoutButton {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+  padding: 0.75rem;
+  border-radius: var(--radius-lg);
+  color: #ef4444;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: all var(--transition-fast);
+
+  &:hover {
+    background: rgba(239, 68, 68, 0.1);
+  }
+}
+
+/* Main Content */
+.mainContent {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* Header */
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.5rem;
+  background: var(--background);
+  border-bottom: 1px solid var(--border);
+  transition: all var(--transition-normal);
+
+  .dark & {
+    background: linear-gradient(90deg, #0A0A0A 0%, #0f0f1a 100%);
+    border-color: rgba(123, 44, 191, 0.1);
+  }
+}
+
+.breadcrumbs {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+}
+
+.breadcrumbItem {
+  color: var(--muted-foreground);
+}
+
+.breadcrumbWrapper {
+  display: inline;
+}
+
+.breadcrumbSeparator {
+  color: var(--muted-foreground);
+  opacity: 0.5;
+}
+
+.breadcrumbCurrent {
+  color: var(--primary);
+  font-weight: 500;
+}
+
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.notificationsWrapper {
+  position: relative;
+}
+
+.notificationButton {
+  position: relative;
+  padding: 0.5rem;
+  border-radius: var(--radius-lg);
+  color: var(--muted-foreground);
+  transition: all var(--transition-fast);
+
+  &:hover {
+    background: var(--muted);
+    color: var(--foreground);
+  }
+
+  :global(.dark) & {
+    &:hover {
+      background: rgba(255, 255, 255, 0.05);
+    }
+  }
+}
+
+.notificationBadge {
+  position: absolute;
+  top: 0.25rem;
+  right: 0.25rem;
+  min-width: 1rem;
+  height: 1rem;
+  padding: 0 0.25rem;
+  background: var(--primary);
+  border-radius: 50%;
+  border: 2px solid var(--background);
+  font-size: 0.625rem;
+  font-weight: 600;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Notifications Dropdown */
+.notificationsDropdown {
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  right: 0;
+  width: 380px;
+  max-height: 480px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-lg);
+  overflow: hidden;
+  z-index: 100;
+  animation: slideDown 0.2s ease;
+
+  :global(.dark) & {
+    background: #111111;
+    border-color: rgba(123, 44, 191, 0.2);
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+  }
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.notificationsHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1rem 0.75rem;
+  border-bottom: 1px solid var(--border);
+
+  :global(.dark) & {
+    border-color: rgba(123, 44, 191, 0.1);
+  }
+}
+
+.notificationsTitle {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--foreground);
+}
+
+.markAllReadButton {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--primary);
+  transition: opacity var(--transition-fast);
+
+  &:hover {
+    opacity: 0.8;
+  }
+}
+
+.notificationsList {
+  max-height: 360px;
+  overflow-y: auto;
+}
+
+.noNotifications {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 3rem 1rem;
+  color: var(--muted-foreground);
+
+  p {
+    font-size: 0.875rem;
+  }
+}
+
+.notificationItem {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 0.875rem 1rem;
+  text-decoration: none;
+  transition: background var(--transition-fast);
+  position: relative;
+  border-bottom: 1px solid var(--border-light);
+
+  &:hover {
+    background: var(--muted);
+  }
+
+  :global(.dark) & {
+    border-color: rgba(123, 44, 191, 0.05);
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.02);
+    }
+  }
+
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+.notificationItem.unread {
+  background: rgba(123, 44, 191, 0.03);
+
+  :global(.dark) & {
+    background: rgba(123, 44, 191, 0.08);
+  }
+
+  &::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 3px;
+    background: var(--primary);
+  }
+}
+
+.notificationIcon {
+  width: 2rem;
+  height: 2rem;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.notificationIcon.content {
+  background: rgba(59, 130, 246, 0.1);
+  color: #3b82f6;
+}
+
+.notificationIcon.ai {
+  background: rgba(123, 44, 191, 0.1);
+  color: var(--primary);
+}
+
+.notificationIcon.alert {
+  background: rgba(245, 158, 11, 0.1);
+  color: #f59e0b;
+}
+
+.notificationIcon.success {
+  background: rgba(16, 185, 129, 0.1);
+  color: #10b981;
+}
+
+.notificationContent {
+  flex: 1;
+  min-width: 0;
+}
+
+.notificationTitle {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--foreground);
+  margin-bottom: 0.125rem;
+}
+
+.notificationMessage {
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.notificationTime {
+  font-size: 0.6875rem;
+  color: var(--muted-foreground);
+  opacity: 0.7;
+  margin-top: 0.25rem;
+  display: block;
+}
+
+.notificationClose {
+  padding: 0.25rem;
+  border-radius: var(--radius-sm);
+  color: var(--muted-foreground);
+  opacity: 0;
+  transition: all var(--transition-fast);
+
+  &:hover {
+    background: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+  }
+}
+
+.notificationItem:hover .notificationClose {
+  opacity: 1;
+}
+
+.notificationsFooter {
+  padding: 0.75rem 1rem;
+  border-top: 1px solid var(--border);
+  text-align: center;
+
+  :global(.dark) & {
+    border-color: rgba(123, 44, 191, 0.1);
+  }
+}
+
+.viewAllButton {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--primary);
+  text-decoration: none;
+  transition: opacity var(--transition-fast);
+
+  &:hover {
+    opacity: 0.8;
+  }
+}
+
+.userMenuWrapper {
+  position: relative;
+}
+
+.userButton {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem;
+  border-radius: var(--radius-lg);
+  transition: all var(--transition-fast);
+
+  &:hover {
+    background: var(--muted);
+  }
+
+  :global(.dark) & {
+    &:hover {
+      background: rgba(255, 255, 255, 0.05);
+    }
+  }
+}
+
+.userAvatar {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  background: var(--gradient-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+/* User Menu Dropdown */
+.userMenuDropdown {
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  right: 0;
+  width: 280px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-lg);
+  overflow: hidden;
+  z-index: 100;
+  animation: slideDown 0.2s ease;
+
+  :global(.dark) & {
+    background: #111111;
+    border-color: rgba(123, 44, 191, 0.2);
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+  }
+}
+
+.userMenuHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem;
+  border-bottom: 1px solid var(--border);
+
+  :global(.dark) & {
+    border-color: rgba(123, 44, 191, 0.1);
+  }
+}
+
+.userMenuAvatar {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 50%;
+  background: var(--gradient-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.userMenuInfo {
+  display: flex;
+  flex-direction: column;
+}
+
+.userMenuName {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--foreground);
+}
+
+.userMenuEmail {
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+}
+
+/* Credits Section */
+.creditsSection {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1rem;
+  background: rgba(123, 44, 191, 0.05);
+  border-bottom: 1px solid var(--border);
+
+  :global(.dark) & {
+    background: rgba(123, 44, 191, 0.1);
+    border-color: rgba(123, 44, 191, 0.1);
+  }
+}
+
+.creditsInfo {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.creditsIcon {
+  color: var(--primary);
+}
+
+.creditsLabel {
+  font-size: 0.8125rem;
+  color: var(--muted-foreground);
+}
+
+.creditsValue {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--foreground);
+}
+
+.planBadge {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.25rem 0.5rem;
+  background: var(--gradient-primary);
+  border-radius: var(--radius-md);
+  color: white;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+/* Menu Items */
+.userMenuItems {
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--border);
+
+  :global(.dark) & {
+    border-color: rgba(123, 44, 191, 0.1);
+  }
+}
+
+.userMenuItem {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.625rem 1rem;
+  font-size: 0.8125rem;
+  color: var(--foreground);
+  text-decoration: none;
+  transition: background var(--transition-fast);
+
+  &:hover {
+    background: var(--muted);
+  }
+
+  :global(.dark) & {
+    &:hover {
+      background: rgba(255, 255, 255, 0.02);
+    }
+  }
+
+  svg {
+    color: var(--muted-foreground);
+  }
+}
+
+/* Action Buttons */
+.userMenuActions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--border);
+
+  :global(.dark) & {
+    border-color: rgba(123, 44, 191, 0.1);
+  }
+}
+
+.addCreditsButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: rgba(123, 44, 191, 0.1);
+  border: 1px solid rgba(123, 44, 191, 0.2);
+  border-radius: var(--radius-md);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--primary);
+  text-decoration: none;
+  transition: all var(--transition-fast);
+
+  &:hover {
+    background: rgba(123, 44, 191, 0.15);
+    border-color: rgba(123, 44, 191, 0.3);
+  }
+}
+
+.upgradePlanButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: var(--gradient-primary);
+  border-radius: var(--radius-md);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: white;
+  text-decoration: none;
+  transition: all var(--transition-fast);
+
+  &:hover {
+    opacity: 0.9;
+    box-shadow: 0 4px 12px rgba(123, 44, 191, 0.3);
+  }
+}
+
+/* User Menu Footer */
+.userMenuFooter {
+  padding: 0.5rem 0;
+}
+
+.userMenuLogout {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.625rem 1rem;
+  font-size: 0.8125rem;
+  color: #ef4444;
+  text-decoration: none;
+  transition: background var(--transition-fast);
+
+  &:hover {
+    background: rgba(239, 68, 68, 0.1);
+  }
+}
+
+/* Content Area */
+.contentArea {
+  flex: 1;
+  padding: 1.5rem;
+  overflow-y: auto;
+  height: calc(100vh - 60px);
+}
+
+.pageHeader {
+  margin-bottom: 1.5rem;
+}
+
+.pageTitle {
+  font-size: 1.875rem;
+  font-weight: 600;
+  color: var(--foreground);
+}
+
+/* Floating Chat Button */
+.floatingChatButton {
+  position: fixed;
+  bottom: 1.5rem;
+  right: 1.5rem;
+  width: 3.5rem;
+  height: 3.5rem;
+  border-radius: 50%;
+  background: var(--gradient-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  box-shadow: 0 10px 40px rgba(123, 44, 191, 0.4);
+  transition: all var(--transition-fast);
+  z-index: 200;
+
+  &:hover {
+    transform: scale(1.1);
+    box-shadow: 0 15px 50px rgba(123, 44, 191, 0.5);
+  }
+}
+
+.chatButtonGlow {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: var(--gradient-primary);
+  filter: blur(15px);
+  opacity: 0.6;
+  z-index: -1;
+}
+
+.chatButtonLogo {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+  filter: brightness(0) invert(1);
+}
+
+.chatButtonClose {
+  color: white;
+}
+
+.floatingChatButtonOpen {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  box-shadow: 0 10px 40px rgba(239, 68, 68, 0.4);
+
+  &:hover {
+    box-shadow: 0 15px 50px rgba(239, 68, 68, 0.5);
+  }
+
+  .chatButtonGlow {
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  }
+}
+
+.chatButtonBadge {
+  position: absolute;
+  top: 0.25rem;
+  right: 0.25rem;
+  width: 0.625rem;
+  height: 0.625rem;
+  background: var(--accent);
+  border-radius: 50%;
+  border: 2px solid white;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(0, 255, 157, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgba(0, 255, 157, 0);
+  }
+}
+
+/* ========================================
+   RTL (Right-to-Left) Support
+   ======================================== */
+
+/* Sidebar RTL */
+:global(html[dir="rtl"]) .sidebar {
+  border-right: none;
+  border-left: 1px solid var(--sidebar-border);
+}
+
+/* Main Content RTL - ensure proper text alignment */
+:global(html[dir="rtl"]) .mainContent {
+  text-align: right;
+}
+
+/* Header RTL */
+:global(html[dir="rtl"]) .header {
+  flex-direction: row-reverse;
+}
+
+:global(html[dir="rtl"]) .headerActions {
+  flex-direction: row-reverse;
+}
+
+/* Breadcrumbs RTL */
+:global(html[dir="rtl"]) .breadcrumbs {
+  flex-direction: row-reverse;
+}
+
+:global(html[dir="rtl"]) .breadcrumbSeparator {
+  transform: scaleX(-1);
+}
+
+/* Navigation Items RTL */
+:global(html[dir="rtl"]) .navItem {
+  /* flex-direction: row-reverse; */
+  text-align: right;
+}
+
+/* Logout Button RTL */
+:global(html[dir="rtl"]) .logoutButton {
+  flex-direction: row-reverse;
+  text-align: right;
+}
+
+/* User Menu RTL */
+:global(html[dir="rtl"]) .userMenuDropdown {
+  left: 0;
+  right: auto;
+}
+
+:global(html[dir="rtl"]) .userMenuHeader,
+:global(html[dir="rtl"]) .userMenuItem {
+  flex-direction: row-reverse;
+  text-align: right;
+}
+
+:global(html[dir="rtl"]) .userMenuInfo {
+  text-align: right;
+}
+
+/* Notifications RTL */
+:global(html[dir="rtl"]) .notificationsDropdown {
+  left: 0;
+  right: auto;
+}
+
+:global(html[dir="rtl"]) .notificationItem {
+  flex-direction: row-reverse;
+  text-align: right;
+}
+
+:global(html[dir="rtl"]) .notificationContent {
+  text-align: right;
+}
+
+/* Chat Button RTL */
+:global(html[dir="rtl"]) .floatingChatButton {
+  right: auto;
+  left: 1.5rem;
+}
+
+:global(html[dir="rtl"]) .chatButtonBadge {
+  right: auto;
+  left: 0.25rem;
+}
+
+/* Site Selector RTL */
+:global(html[dir="rtl"]) .siteSelectorButton {
+  flex-direction: row-reverse;
+  text-align: right;
+}
+
+/* Credits Section RTL */
+:global(html[dir="rtl"]) .creditsSection {
+  flex-direction: row-reverse;
+}
+
+:global(html[dir="rtl"]) .creditsInfo {
+  flex-direction: row-reverse;
+}
+
+/* Plan Badge RTL */
+:global(html[dir="rtl"]) .planBadge {
+  flex-direction: row-reverse;
+}

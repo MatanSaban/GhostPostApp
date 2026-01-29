@@ -1,0 +1,63 @@
+/* Polin Font - Primary font for Ghost Post Platform */
+/* Custom font that supports both English and Hebrew */
+
+/* Polin Font Face Definitions */
+@font-face {
+  font-family: 'Polin';
+  src: url('/fonts/polin/Polin-Hairline.woff2') format('woff2'),
+       url('/fonts/polin/Polin-Hairline.woff') format('woff'),
+       url('/fonts/polin/Polin-Hairline.ttf') format('truetype');
+  font-weight: 100;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Polin';
+  src: url('/fonts/polin/Polin-Thin.woff2') format('woff2'),
+       url('/fonts/polin/Polin-Thin.woff') format('woff'),
+       url('/fonts/polin/Polin-Thin.ttf') format('truetype');
+  font-weight: 200;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Polin';
+  src: url('/fonts/polin/Polin-Regular.woff2') format('woff2'),
+       url('/fonts/polin/Polin-Regular.woff') format('woff'),
+       url('/fonts/polin/Polin-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Polin';
+  src: url('/fonts/polin/Polin-Semibold.woff2') format('woff2'),
+       url('/fonts/polin/Polin-Semibold.woff') format('woff'),
+       url('/fonts/polin/Polin-Semibold.ttf') format('truetype');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Polin';
+  src: url('/fonts/polin/Polin-Extrabold.woff2') format('woff2'),
+       url('/fonts/polin/Polin-Extrabold.woff') format('woff'),
+       url('/fonts/polin/Polin-Extrabold.ttf') format('truetype');
+  font-weight: 800;
+  font-style: normal;
+  font-display: swap;
+}
+
+:root {
+  --font-primary: 'Polin', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-hebrew: 'Polin', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+/* RTL/Hebrew uses the same Polin font */
+html[dir="rtl"] {
+  --font-primary: 'Polin', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}

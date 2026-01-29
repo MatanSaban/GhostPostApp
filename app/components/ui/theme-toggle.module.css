@@ -1,0 +1,32 @@
+.themeToggle {
+  position: relative;
+  width: 2.5rem;
+  height: 2.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-lg);
+  background: rgba(123, 44, 191, 0.1);
+  border: 1px solid rgba(123, 44, 191, 0.3);
+  color: var(--primary);
+  transition: all var(--transition-fast);
+
+  &:hover {
+    background: rgba(123, 44, 191, 0.2);
+  }
+
+  .dark & {
+    background: rgba(123, 44, 191, 0.2);
+    border-color: rgba(123, 44, 191, 0.3);
+    color: #c084fc;
+
+    &:hover {
+      background: rgba(123, 44, 191, 0.3);
+    }
+  }
+}
+
+.icon {
+  width: 1.25rem;
+  height: 1.25rem;
+}

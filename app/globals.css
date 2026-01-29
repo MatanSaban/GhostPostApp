@@ -1,87 +1,117 @@
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&family=Rubik:wght@300;400;500;600;700;800&display=swap');
+@import './styles/fonts.css';
+@import './styles/theme.css';
 
-/* Custom Polin Font */
-@font-face {
-  font-family: 'Polin';
-  src: url('/fonts/polin/Polin-Hairline.woff2') format('woff2'),
-       url('/fonts/polin/Polin-Hairline.woff') format('woff'),
-       url('/fonts/polin/Polin-Hairline.ttf') format('truetype');
-  font-weight: 100;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'Polin';
-  src: url('/fonts/polin/Polin-Thin.woff2') format('woff2'),
-       url('/fonts/polin/Polin-Thin.woff') format('woff'),
-       url('/fonts/polin/Polin-Thin.ttf') format('truetype');
-  font-weight: 200;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'Polin';
-  src: url('/fonts/polin/Polin-Regular.woff2') format('woff2'),
-       url('/fonts/polin/Polin-Regular.woff') format('woff'),
-       url('/fonts/polin/Polin-Regular.ttf') format('truetype');
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'Polin';
-  src: url('/fonts/polin/Polin-Semibold.woff2') format('woff2'),
-       url('/fonts/polin/Polin-Semibold.woff') format('woff'),
-       url('/fonts/polin/Polin-Semibold.ttf') format('truetype');
-  font-weight: 600;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'Polin';
-  src: url('/fonts/polin/Polin-Extrabold.woff2') format('woff2'),
-       url('/fonts/polin/Polin-Extrabold.woff') format('woff'),
-       url('/fonts/polin/Polin-Extrabold.ttf') format('truetype');
-  font-weight: 800;
-  font-style: normal;
-  font-display: swap;
-}
-
-/* CSS Reset */
-*, *::before, *::after {
+* {
   box-sizing: border-box;
-  margin: 0;
   padding: 0;
+  margin: 0;
 }
 
-html {
-  line-height: 1.5;
-  -webkit-text-size-adjust: 100%;
-}
-
+html,
 body {
-  min-height: 100vh;
-  font-family: 'Polin', 'Poppins', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-  background: var(--gradient-bg-light);
-  color: var(--color-gray-900);
-  transition: background 0.3s, color 0.3s;
+  max-width: 100vw;
+  overflow-x: hidden;
+  font-family: var(--font-primary) !important;
+  background-color: var(--background);
+  color: var(--foreground);
+  transition: background-color var(--transition-normal), color var(--transition-normal);
+  * {
+    font-family: var(--font-primary) !important;
+  }
 }
 
-/* RTL Support - Hebrew font (Polin + Rubik fallback) */
-html[dir="rtl"] body {
-  font-family: 'Polin', 'Rubik', 'Poppins', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+a {
+  color: inherit;
+  text-decoration: none;
 }
 
-html.dark body {
-  background: var(--gradient-bg-dark);
-  color: white;
+button {
+  font-family: var(--font-primary) !important;
+  cursor: pointer;
+  border: none;
+  background: none;
 }
 
-/* RTL Logical Properties Support */
+input,
+textarea,
+select {
+  font-family: var(--font-primary);
+}
+
+/* Typography */
+h1 {
+  font-size: 2rem;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+h2 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+h4 {
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.5;
+}
+
+p {
+  font-size: 1rem;
+  line-height: 1.6;
+}
+
+/* Utility classes */
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--muted);
+  border-radius: var(--radius-sm);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--muted-foreground);
+  border-radius: var(--radius-sm);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--primary);
+}
+
+/* Selection */
+::selection {
+  background-color: var(--primary);
+  color: var(--primary-foreground);
+}
+
+/* ========================================
+   RTL (Right-to-Left) Support
+   ======================================== */
+
+/* RTL Direction Custom Properties */
 html[dir="rtl"] {
   --direction-start: right;
   --direction-end: left;
@@ -92,110 +122,70 @@ html[dir="ltr"] {
   --direction-end: right;
 }
 
-/* RTL Flex Direction Fixes */
-html[dir="rtl"] .flex-row {
+/* RTL Text Alignment */
+html[dir="rtl"] {
+  text-align: right;
+}
+
+/* RTL Flex Direction - Use these classes when you need reversed flex in RTL */
+html[dir="rtl"] .flex-row-rtl {
   flex-direction: row-reverse;
 }
 
-/* RTL Icon Flipping */
-html[dir="rtl"] .icon-flip {
-  transform: scaleX(-1);
-}
-
 /* RTL Arrow/Directional Icons - automatically flip arrows in RTL */
+html[dir="rtl"] .icon-flip,
 html[dir="rtl"] .arrow-icon,
-html[dir="rtl"] [class*="readMore"] svg,
-html[dir="rtl"] [class*="ctaButton"] svg,
-html[dir="rtl"] [class*="backIcon"],
-html[dir="rtl"] [class*="ctaIcon"],
 html[dir="rtl"] [class*="arrowIcon"],
-html[dir="rtl"] button svg[class*="arrow"],
-html[dir="rtl"] a svg[class*="arrow"] {
+html[dir="rtl"] [class*="backIcon"],
+html[dir="rtl"] [class*="chevron"]:not([class*="chevronDown"]):not([class*="chevronUp"]) {
   transform: scaleX(-1);
 }
 
-img, picture, video, canvas, svg {
-  display: block;
-  max-width: 100%;
+/* RTL Margin/Padding Logical Properties Helper Classes */
+.ms-auto {
+  margin-inline-start: auto;
 }
 
-input, button, textarea, select {
-  font: inherit;
+.me-auto {
+  margin-inline-end: auto;
 }
 
-p, h1, h2, h3, h4, h5, h6 {
-  overflow-wrap: break-word;
+.ps-0 {
+  padding-inline-start: 0;
 }
 
-a {
-  color: inherit;
-  text-decoration: none;
+.pe-0 {
+  padding-inline-end: 0;
 }
 
-ul, ol {
-  list-style: none;
+/* RTL Border Helpers */
+.border-s {
+  border-inline-start: 1px solid var(--border);
 }
 
-table {
-  border-collapse: collapse;
-  border-spacing: 0;
+.border-e {
+  border-inline-end: 1px solid var(--border);
 }
 
-/* CSS Variables */
-:root {
-  --color-purple-50: #f5f3ff;
-  --color-purple-100: #ede9fe;
-  --color-purple-200: #ddd6fe;
-  --color-purple-300: #c4b5fd;
-  --color-purple-400: #a78bfa;
-  --color-purple-500: #8b5cf6;
-  --color-purple-600: #7c3aed;
-  --color-purple-700: #6d28d9;
-  
-  --color-blue-400: #60a5fa;
-  --color-blue-500: #3b82f6;
-  --color-blue-600: #2563eb;
-  
-  --color-green-500: #22c55e;
-  --color-green-600: #16a34a;
-  --color-accent: #00FF9D;
-  
-  --color-gray-50: #f9fafb;
-  --color-gray-100: #f3f4f6;
-  --color-gray-200: #e5e7eb;
-  --color-gray-300: #d1d5db;
-  --color-gray-400: #9ca3af;
-  --color-gray-500: #6b7280;
-  --color-gray-600: #4b5563;
-  --color-gray-700: #374151;
-  --color-gray-800: #1f2937;
-  --color-gray-900: #111827;
-  
-  --gradient-primary: linear-gradient(135deg, var(--color-purple-600), var(--color-blue-600));
-  --gradient-bg-light: linear-gradient(135deg, #ffffff, rgba(245, 243, 255, 0.3), rgba(239, 246, 255, 0.3));
-  --gradient-bg-dark: linear-gradient(180deg, #0A0A0A 0%, #0F0F1A 50%, #1A0F2E 100%);
+/* RTL Float Helpers */
+.float-start {
+  float: inline-start;
 }
 
-/* Animations */
-@keyframes spin {
-  from { transform: translate(-50%, -50%) rotate(0deg); }
-  to { transform: translate(-50%, -50%) rotate(360deg); }
+.float-end {
+  float: inline-end;
 }
 
-@keyframes float {
-  0% { transform: translateY(0); }
-  50% { transform: translateY(-20px); }
-  100% { transform: translateY(0); }
+/* RTL Specific Scrollbar for horizontal scrolling */
+html[dir="rtl"] .horizontal-scroll {
+  direction: rtl;
 }
 
-@keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.5; }
-}
-
-@keyframes ping {
-  75%, 100% {
-    transform: scale(2);
-    opacity: 0;
-  }
+/* Ensure inputs maintain proper text direction for mixed content */
+html[dir="rtl"] input[type="email"],
+html[dir="rtl"] input[type="url"],
+html[dir="rtl"] input[type="tel"],
+html[dir="rtl"] input[type="number"] {
+  direction: ltr;
+  text-align: right;
 }

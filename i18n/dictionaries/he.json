@@ -1,689 +1,2578 @@
 {
-  "metadata": {
-    "title": "Ghost Post - אוטומציית SEO מונעת בינה מלאכותית",
-    "description": "הסוכן האוטונומי הראשון שמבצע אופטימיזציה, כותב ומנהל את ה-SEO של האתר שלך בזמן שאתה ישן."
+  "brand": {
+    "name": "Ghost Post",
+    "initial": "G"
   },
-  "nav": {
-    "home": "בית",
-    "features": "תכונות",
-    "pricing": "מחירון",
-    "howItWorks": "איך זה עובד",
-    "blog": "בלוג",
-    "about": "אודות",
-    "contact": "צור קשר",
-    "faq": "שאלות נפוצות",
-    "login": "התחברות",
-    "signUp": "התחילו עכשיו",
-    "getStarted": "התחל עכשיו"
+  "homepage": {
+    "taglineHighlight": "אוטומציית SEO מבוססת AI",
+    "taglineText": "לעסקים מודרניים. תנו לסוכנים החכמים שלנו לטפל באסטרטגיית התוכן בזמן שאתם מתמקדים בצמיחה.",
+    "copyright": "© 2026 Ghost Post."
   },
-  "hero": {
-    "badge": "SEO מונע בינה מלאכותית",
-    "title": "ה-SEO של האתר שלך על",
-    "titleHighlight": "טייס אוטומטי",
-    "subtitle": "הסוכן האוטונומי הראשון שמבצע אופטימיזציה, כותב ומנהל את ה-SEO של האתר שלך בזמן שאתה ישן. הגדר ושכח.",
-    "cta": "התחל ניסיון חינם",
-    "secondaryCta": "צפה בהדגמה",
-    "trustedBy": "למעלה מ-500 חברות סומכות עלינו"
+  "theme": {
+    "switchToLight": "עבור למצב בהיר",
+    "switchToDark": "עבור למצב כהה"
   },
-  "features": {
-    "badge": "תכונות חזקות",
-    "titlePrefix": "למה לבחור ב-",
-    "titleHighlight": "Ghost Post",
-    "subtitle": "תכונות חזקות שעובדות יחד לשליטה בדירוגי החיפוש",
-    "items": [
-      {
-        "icon": "brain",
-        "title": "סוכן AI אוטונומי",
-        "description": "Ghost עובד 24/7 לניתוח, אופטימיזציה ויישום אסטרטגיות SEO ללא התערבות אנושית.",
-        "color": "purple"
-      },
-      {
-        "icon": "sparkles",
-        "title": "יצירת תוכן",
-        "description": "יוצר אוטומטית תוכן ממוטב ל-SEO המבוסס על מחקר מילות מפתח וניתוח מתחרים.",
-        "color": "blue"
-      },
-      {
-        "icon": "trending",
-        "title": "אופטימיזציה בזמן אמת",
-        "description": "מנטר באופן רציף את הדירוגים ומתאים אסטרטגיות לשמירה על מיקומי החיפוש המובילים.",
-        "color": "green"
-      },
-      {
-        "icon": "zap",
-        "title": "אוטומציות חכמות",
-        "description": "אוטומציה של תגי מטא, קישורים פנימיים, אופטימיזציית תמונות ותיקוני SEO טכניים.",
-        "color": "purple"
-      },
-      {
-        "icon": "clock",
-        "title": "מצב טייס אוטומטי",
-        "description": "הגדר ושכח. Ghost מטפל בהכל ממחקר מילות מפתח ועד פרסום תוכן.",
-        "color": "blue"
-      },
-      {
-        "icon": "shield",
-        "title": "בטוח ותואם",
-        "description": "עוקב אחר הנחיות Google ושיטות עבודה מומלצות לצמיחה בת-קיימא ללא עונשים.",
-        "color": "green"
-      }
-    ],
-    "metaTitle": "תכונות - Ghost Post",
-    "metaDescription": "גלו למעלה מ-100 תכונות SEO אוטומטיות מונעות בינה מלאכותית",
-    "pageBadge": "למעלה מ-100 תכונות אוטומטיות",
-    "pageTitle": "כל התכונות של",
-    "pageTitleHighlight": "Ghost Post",
-    "pageSubtitle": "כל מה שצריך לשלוט בדירוגי החיפוש, מונע על ידי AI אוטונומי שעובד 24/7.",
-    "aiContent": "יצירת תוכן מונעת AI",
-    "aiContentDesc": "Ghost מנתח את הנישה, המתחרים והתוכן המדורג הטוב ביותר שלך כדי ליצור אוטומטית מאמרים, תיאורי מוצרים ודפי נחיתה ממוטבים ל-SEO.",
-    "aiContentBenefits": [
-      "עיבוד שפה טבעית לתוכן באיכות אנושית",
-      "אופטימיזציית מילות מפתח על בסיס כוונת חיפוש",
-      "תזמון ופרסום תוכן אוטומטי",
-      "ניתוח פערי תוכן מול מתחרים",
-      "תוכן רב-פורמטי (בלוגים, מוצרים, שאלות נפוצות)",
-      "התאמה אישית של קול המותג"
-    ],
-    "articlesGenerated": "מאמרים נוצרים מדי יום",
-    "keywordResearch": "מחקר מילות מפתח חכם",
-    "keywordResearchDesc": "גלו מילות מפתח בעלות ערך גבוה עם תחרות נמוכה. Ghost מנטר באופן רציף מגמות חיפוש ומזהה הזדמנויות חדשות לפני המתחרים.",
-    "keywordResearchBenefits": [
-      "ניתוח קושי מילות מפתח בזמן אמת",
-      "גילוי מילות מפתח ארוכות זנב",
-      "סיווג כוונת חיפוש",
-      "תחזיות מגמות עונתיות",
-      "קיבוץ וצביר מילות מפתח",
-      "הזדמנויות תכונות SERP"
-    ],
-    "keywordsAnalyzed": "מילות מפתח נותחו",
-    "linkBuilding": "בניית קישורים אוטומטית",
-    "linkBuildingDesc": "Ghost מזהה הזדמנויות לבניית קישורים, פונה לאתרים רלוונטיים ומאבטח קישורים נכנסים איכותיים לאתר שלך באופן אוטומטי.",
-    "linkBuildingBenefits": [
-      "יצירת מיילי פנייה מונעת AI",
-      "זיהוי הזדמנויות קישורים שבורים",
-      "אופטימיזציית קישורים פנימיים",
-      "ניטור איכות קישורים נכנסים",
-      "מציאת הזדמנויות פוסטים אורחים",
-      "החזרת קישורים"
-    ],
-    "backlinksBuilt": "קישורים נכנסים נבנו",
-    "technicalSeo": "אוטומציית SEO טכני",
-    "technicalSeoDesc": "תקנו אוטומטית בעיות טכניות שפוגעות בדירוגים. Ghost מטפל בתגי מטא, מפות אתר, robots.txt, נתונים מובנים ועוד.",
-    "technicalSeoBenefits": [
-      "תיאורי מטא שנוצרים אוטומטית",
-      "יישום Schema markup",
-      "עדכוני מפת אתר XML אוטומטיים",
-      "אופטימיזציית מהירות עמוד",
-      "תיקוני שימושיות במובייל",
-      "ניהול תגי canonical"
-    ],
-    "issueDetection": "שיעור זיהוי בעיות",
-    "mediaOptimization": "אופטימיזציית תמונות ומדיה",
-    "mediaOptimizationDesc": "דחיסת תמונות, יצירת טקסט חלופי ואופטימיזציית קבצי מדיה לטעינה מהירה יותר ו-SEO טוב יותר ללא התערבות ידנית.",
-    "mediaOptimizationBenefits": [
-      "דחיסת תמונות אוטומטית",
-      "טקסט חלופי שנוצר ב-AI",
-      "יישום טעינה עצלה",
-      "המרה לפורמט WebP",
-      "התאמת גודל תמונות רספונסיבית",
-      "יצירת מפת אתר לתמונות"
-    ],
-    "imagesOptimized": "תמונות עברו אופטימיזציה",
-    "analytics": "אנליטיקס ודיווחים מתקדמים",
-    "analyticsDesc": "עקבו אחר ביצועי ה-SEO שלכם עם אנליטיקס מפורט, השוואות מתחרים ותובנות פעילות שנשלחות לתיבת הדואר שלכם.",
-    "analyticsBenefits": [
-      "מעקב דירוגים בזמן אמת",
-      "ניתוח מקורות תנועה",
-      "מדידת ROI",
-      "יצירת דוחות מותאמים אישית",
-      "הערכת תנועת מתחרים",
-      "ניתוח משפך המרות"
-    ],
-    "dataPointsTracked": "נקודות נתונים נעקבות",
-    "ctaTitle": "מוכנים לאוטומציה של ה-SEO שלכם?",
-    "ctaDescription": "התחילו את הניסיון החינם ל-14 יום וחוו את העוצמה של SEO מונע AI.",
-    "ctaButton": "התחל ניסיון חינם"
-  },
-  "howItWorks": {
-    "badge": "תהליך פשוט",
-    "titlePrefix": "איך",
-    "titleHighlight": "עובד",
-    "title": "איך Ghost Post",
-    "subtitle": "מההגדרה ועד לתוצאות, Ghost מטפל בהכל אוטומטית",
-    "metaTitle": "איך זה עובד - Ghost Post",
-    "metaDescription": "מההגדרה להצלחה ב-6 שלבים פשוטים",
-    "step1Title": "חבר את האתר שלך",
-    "step1Description": "אינטגרציה בלחיצה אחת עם האתר שלך. Ghost מנתח את מצב ה-SEO הנוכחי ומזהה הזדמנויות.",
-    "step1Duration": "5 דקות",
-    "step1Details": [
-      "התחברות מאובטחת לאתר שלך",
-      "ניתוח אוטומטי של מבנה האתר",
-      "סריקת תוכן קיים",
-      "זיהוי בעיות טכניות"
-    ],
-    "step2Title": "ניתוח SEO מקיף",
-    "step2Description": "Ghost סורק את האתר שלך לעומק ומזהה את כל הזדמנויות ה-SEO הזמינות.",
-    "step2Duration": "24 שעות",
-    "step2Details": [
-      "סריקה מלאה של האתר",
-      "בדיקת מהירות וביצועים",
-      "ניתוח מתחרים",
-      "מחקר מילות מפתח ראשוני"
-    ],
-    "step3Title": "בניית אסטרטגיה",
-    "step3Description": "Ghost בונה אסטרטגיית SEO מותאמת אישית לעסק שלך על בסיס הנתונים שנאספו.",
-    "step3Duration": "אוטומטי",
-    "step3Details": [
-      "תכנית תוכן מפורטת",
-      "אסטרטגיית מילות מפתח",
-      "תעדוף משימות",
-      "לוח זמנים ליישום"
-    ],
-    "step4Title": "יצירת תוכן אוטומטית",
-    "step4Description": "Ghost מייצר תוכן ממוטב ל-SEO באופן אוטומטי על בסיס האסטרטגיה.",
-    "step4Duration": "רציף",
-    "step4Details": [
-      "יצירת מאמרים ממוטבים",
-      "אופטימיזציית תיאורי מטא",
-      "יצירת תגי alt לתמונות",
-      "בניית קישורים פנימיים"
-    ],
-    "step5Title": "יישום אוטומטי",
-    "step5Description": "Ghost מיישם שינויים ותיקונים טכניים באופן אוטומטי ובטוח.",
-    "step5Duration": "רציף",
-    "step5Details": [
-      "פרסום תוכן חדש",
-      "תיקון שגיאות טכניות",
-      "עדכון מטא תגים",
-      "אופטימיזציית תמונות"
-    ],
-    "step6Title": "מעקב וצמיחה",
-    "step6Description": "עקוב אחר שיפור הדירוגים שלך בזמן אמת. Ghost ממשיך לבצע אופטימיזציה.",
-    "step6Duration": "24/7",
-    "step6Details": [
-      "מעקב דירוגים בזמן אמת",
-      "דוחות ביצועים שבועיים",
-      "התאמת אסטרטגיה אוטומטית",
-      "התראות על שינויים משמעותיים"
-    ],
-    "ctaTitle": "מוכנים להתחיל?",
-    "ctaDescription": "חברו את האתר שלכם ותנו ל-Ghost לטפל ב-SEO שלכם אוטומטית.",
-    "ctaButton": "התחל ניסיון חינם",
-    "steps": [
-      {
-        "step": "01",
-        "title": "חבר את האתר שלך",
-        "description": "אינטגרציה בלחיצה אחת עם האתר שלך. Ghost מנתח את מצב ה-SEO הנוכחי ומזהה הזדמנויות."
-      },
-      {
-        "step": "02",
-        "title": "ה-AI משתלט",
-        "description": "Ghost יוצר אסטרטגיית SEO מקיפה, מייצר תוכן ממוטב ומיישם תיקונים טכניים אוטומטית."
-      },
-      {
-        "step": "03",
-        "title": "צפה בצמיחה",
-        "description": "עקוב אחר שיפור הדירוגים שלך בזמן אמת. Ghost ממשיך לבצע אופטימיזציה על סמך נתוני ביצועים."
-      }
-    ]
-  },
-  "pricing": {
-    "badge": "ניסיון חינם ל-14 יום",
-    "titlePrefix": "מחירון",
-    "titleHighlight": "פשוט ושקוף",
-    "subtitle": "בחר את התוכנית המתאימה לעסק שלך. ללא עלויות נסתרות, ביטול בכל עת.",
-    "monthly": "חודשי",
-    "annual": "שנתי",
-    "save": "חסוך 20%",
-    "perMonth": "/חודש",
-    "billedAnnually": "חיוב ${amount}/שנה",
-    "custom": "מותאם אישית",
-    "popularBadge": "הכי פופולרי",
-    "startFreeTrial": "התחל ניסיון חינם",
-    "contactSales": "צור קשר עם מכירות",
-    "faqTitle": "שאלות נפוצות",
-    "starterName": "בסיסי",
-    "starterCta": "התחל ניסיון חינם",
-    "proName": "מקצועי",
-    "proCta": "התחל ניסיון חינם",
-    "enterpriseName": "ארגוני",
-    "enterpriseCta": "צור קשר עם מכירות",
-    "starterDescription": "מושלם לעסקים קטנים וסטארטאפים",
-    "starterFeatures": [
-      "עד 10,000 מבקרים חודשיים",
-      "5 תכנים בחודש",
-      "מעקב מילות מפתח בסיסי",
-      "אוטומציית SEO טכני",
-      "תמיכה במייל"
-    ],
-    "proDescription": "לעסקים צומחים שרציניים לגבי SEO",
-    "proFeatures": [
-      "עד 100,000 מבקרים חודשיים",
-      "20 תכנים בחודש",
-      "אסטרטגיית מילות מפתח מתקדמת",
-      "אוטומציית SEO מלאה",
-      "סיוע בבניית קישורים",
-      "תמיכה בעדיפות"
-    ],
-    "enterpriseDescription": "לארגונים גדולים עם צרכים מורכבים",
-    "enterpriseFeatures": [
-      "תנועה ללא הגבלה",
-      "תוכן ללא הגבלה",
-      "תמיכה במספר אתרים",
-      "אינטגרציות מותאמות",
-      "מנהל לקוח ייעודי",
-      "תמיכה טלפונית 24/7"
-    ],
-    "faqs": [
-      {
-        "question": "איך עובד הניסיון החינם?",
-        "answer": "התחל עם ניסיון חינם של 14 יום בכל תוכנית. לא נדרש כרטיס אשראי. חווה את מלוא העוצמה של Ghost Post עם כל התכונות פתוחות."
-      },
-      {
-        "question": "האם אפשר לשנות תוכנית מאוחר יותר?",
-        "answer": "כן! אפשר לשדרג או לשנמך את התוכנית בכל עת. שדרוגים נכנסים לתוקף מיידית עם חיוב יחסי."
-      },
-      {
-        "question": "מה קורה אם עוברים את מגבלת המבקרים?",
-        "answer": "נשלח לך התראה כשתתקרב ל-80% מהמגבלה. תוכל לשדרג או להמשיך עם תשלום קטן נוסף."
-      },
-      {
-        "question": "האם Ghost Post בטוח לאתר שלי?",
-        "answer": "בהחלט. Ghost עוקב אחר כל הנחיות Google ומשתמש רק בטכניקות SEO לגיטימיות ומאושרות."
-      },
-      {
-        "question": "האם מציעים החזרים?",
-        "answer": "כן, אנחנו מציעים ערבות החזר כספי של 30 יום על כל התוכניות. אם לא מרוצים, נחזיר את התשלום במלואו."
-      }
-    ],
-    "plans": [
-      {
-        "name": "בסיסי",
-        "price": "₪349",
-        "period": "/חודש",
-        "description": "מושלם לעסקים קטנים וסטארטאפים",
-        "features": [
-          "עד 10,000 מבקרים חודשיים",
-          "5 תכנים בחודש",
-          "מעקב מילות מפתח בסיסי",
-          "אוטומציית SEO טכני",
-          "תמיכה במייל"
-        ],
-        "cta": "התחל ניסיון חינם",
-        "popular": false
-      },
-      {
-        "name": "מקצועי",
-        "price": "₪999",
-        "period": "/חודש",
-        "description": "לעסקים צומחים שרציניים לגבי SEO",
-        "features": [
-          "עד 100,000 מבקרים חודשיים",
-          "20 תכנים בחודש",
-          "אסטרטגיית מילות מפתח מתקדמת",
-          "אוטומציית SEO מלאה",
-          "סיוע בבניית קישורים",
-          "תמיכה בעדיפות"
-        ],
-        "cta": "התחל ניסיון חינם",
-        "popular": true
-      },
-      {
-        "name": "ארגוני",
-        "price": "מותאם אישית",
-        "period": "",
-        "description": "לארגונים גדולים עם צרכים מורכבים",
-        "features": [
-          "תנועה ללא הגבלה",
-          "תוכן ללא הגבלה",
-          "תמיכה במספר אתרים",
-          "אינטגרציות מותאמות",
-          "מנהל לקוח ייעודי",
-          "תמיכה טלפונית 24/7"
-        ],
-        "cta": "צור קשר עם מכירות",
-        "popular": false
-      }
-    ],
-    "faq": {
-      "title": "שאלות נפוצות",
-      "items": [
-        {
-          "question": "איך עובד הניסיון החינם?",
-          "answer": "התחל עם ניסיון חינם של 14 יום בכל תוכנית. לא נדרש כרטיס אשראי."
-        },
-        {
-          "question": "האם אפשר לשנות תוכנית מאוחר יותר?",
-          "answer": "כן! אפשר לשדרג או לשנמך את התוכנית בכל עת."
-        },
-        {
-          "question": "מה קורה אם עוברים את מגבלת המבקרים?",
-          "answer": "נשלח לך התראה ותוכל לשדרג או להמשיך עם תשלום קטן נוסף."
-        },
-        {
-          "question": "האם Ghost Post בטוח לאתר שלי?",
-          "answer": "בהחלט. Ghost עוקב אחר כל הנחיות Google ומשתמש רק בטכניקות SEO מאושרות."
-        },
-        {
-          "question": "האם מציעים החזרים?",
-          "answer": "כן, אנחנו מציעים ערבות החזר כספי של 30 יום על כל התוכניות."
-        }
-      ]
-    }
-  },
-  "cta": {
-    "title": "מוכן לאוטומציה של ה-SEO שלך?",
-    "description": "הצטרף למאות עסקים שמגדילים את התנועה האורגנית שלהם עם Ghost Post",
-    "button": "התחל ניסיון חינם"
-  },
-  "about": {
-    "badge": "הסיפור שלנו",
-    "title": "אודות",
-    "titleHighlight": "Ghost Post",
-    "subtitle": "אנחנו במשימה להנגיש SEO לעסקים בכל הגדלים.",
-    "metaTitle": "אודות - Ghost Post",
-    "metaDescription": "למדו על המשימה שלנו לחולל מהפכה ב-SEO עם בינה מלאכותית",
-    "stat1Value": "+500",
-    "stat1Label": "עסקים משתמשים",
-    "stat2Value": "+50M",
-    "stat2Label": "מילות מפתח מדורגות",
-    "stat3Value": "99.9%",
-    "stat3Label": "זמינות",
-    "stat4Value": "24/7",
-    "stat4Label": "תמיכת AI",
-    "storyTitle": "הסיפור שלנו",
-    "storyParagraph1": "Ghost Post נוסדה ב-2024 על ידי צוות חוקרי AI ומומחי SEO שזיהו הזדמנות לחולל מהפכה באופן שבו עסקים ניגשים לאופטימיזציית מנועי חיפוש.",
-    "storyParagraph2": "האמנו שעתיד ה-SEO לא נמצא באופטימיזציה ידנית או בשכירת סוכנויות יקרות - אלא בבניית מערכות חכמות שיכולות ללמוד, להסתגל ולבצע אסטרטגיות SEO באופן אוטונומי.",
-    "storyParagraph3": "היום, Ghost Post מניע SEO עבור מאות עסקים ברחבי העולם, מסטארטאפים ועד חברות ארגוניות, ועוזר להם להשיג צמיחה אורגנית בת קיימא ללא המורכבות והעלות של SEO מסורתי.",
-    "valuesTitle": "הערכים שלנו",
-    "value1Title": "חדשנות קודמת",
-    "value1Description": "אנחנו כל הזמן דוחפים את הגבולות של מה שאפשרי עם SEO מונע AI.",
-    "value2Title": "אובססיה ללקוח",
-    "value2Description": "ההצלחה שלך היא ההצלחה שלנו. אנחנו לא מרוצים עד שאתה במקום הראשון.",
-    "value3Title": "שקיפות",
-    "value3Description": "אנחנו מאמינים בשיטות SEO כנות ולגיטימיות. ללא טריקים, ללא קיצורי דרך.",
-    "value4Title": "מהירות ויעילות",
-    "value4Description": "אנחנו נעים מהר ומספקים תוצאות מהר יותר מכל סוכנות מסורתית.",
-    "teamTitle": "צוות ההנהלה",
-    "member1Name": "אלכס חן",
-    "member1Role": "מנכ\"ל ושותף מייסד",
-    "member1Bio": "מהנדס גוגל לשעבר עם 15 שנות ניסיון בחיפוש ו-AI.",
-    "member2Name": "שרה ג'ונסון",
-    "member2Role": "CTO ושותפה מייסדת",
-    "member2Bio": "דוקטורט בלמידת מכונה מסטנפורד. בנתה מערכות AI ב-OpenAI.",
-    "member3Name": "מייקל פארק",
-    "member3Role": "סמנכ\"ל מוצר",
-    "member3Bio": "10+ שנים בבניית כלי SEO ב-Moz ו-Ahrefs.",
-    "member4Name": "אמילי דייוויס",
-    "member4Role": "סמנכ\"לית הצלחת לקוחות",
-    "member4Bio": "נלהבת לעזור לעסקים לצמוח דרך חיפוש אורגני.",
-    "ctaTitle": "הצטרפו אלינו למשימה",
-    "ctaDescription": "מוכנים לחוות את עתיד ה-SEO? התחילו את תקופת הניסיון החינמית שלכם היום.",
-    "ctaButton": "התחילו בחינם",
-    "mission": {
-      "title": "המשימה שלנו",
-      "description": "להעצים כל בעל עסק להתחרות בחיפוש האורגני, ללא קשר למומחיות הטכנית או התקציב שלו."
-    },
-    "story": {
-      "title": "הסיפור שלנו",
-      "paragraphs": [
-        "Ghost Post נוסדה ב-2024 על ידי צוות של מומחי SEO ומהנדסי AI שהיו מתוסכלים ממורכבות והעלות של SEO.",
-        "האמנו שבינה מלאכותית יכולה לטפל בעבודה הכבדה של SEO תוך מתן תוצאות טובות יותר מסוכנויות מסורתיות. אחרי שנתיים של פיתוח, Ghost Post נולד.",
-        "היום, אנחנו עוזרים למעלה מ-500 עסקים לבצע אוטומציה ל-SEO שלהם ולהגדיל את התנועה האורגנית שלהם."
-      ]
-    },
-    "values": {
-      "title": "הערכים שלנו",
-      "items": [
-        {
-          "title": "שקיפות",
-          "description": "אנחנו מאמינים בשיטות SEO כנות ולגיטימיות. ללא טריקים, ללא קיצורי דרך."
-        },
-        {
-          "title": "חדשנות",
-          "description": "אנחנו משפרים כל הזמן את ה-AI שלנו כדי לספק תוצאות טובות יותר ללקוחותינו."
-        },
-        {
-          "title": "הצלחת לקוחות",
-          "description": "ההצלחה שלך היא ההצלחה שלנו. אנחנו לא מרוצים עד שאתה במקום הראשון."
-        }
-      ]
-    }
-  },
-  "contact": {
-    "badge": "תמיכה 24/7",
-    "title": "צור",
-    "titleHighlight": "קשר",
-    "subtitle": "יש לך שאלות על GhostPost? נשמח לשמוע ממך. שלח לנו הודעה ונחזור אליך בהקדם האפשרי.",
-    "metaTitle": "צור קשר - Ghost Post",
-    "metaDescription": "צור קשר עם צוות Ghost Post",
-    "infoTitle": "פרטי יצירת קשר",
-    "infoDescription": "מלא את הטופס וצוות שלנו יחזור אליך תוך 24 שעות.",
-    "emailTitle": "אימייל",
-    "emailValue": "hello@ghostpost.ai",
-    "phoneTitle": "טלפון",
-    "phoneValue": "+1 (555) 123-4567",
-    "locationTitle": "משרד",
-    "locationValue": "תל אביב, ישראל",
-    "followUs": "עקבו אחרינו",
-    "name": "שם",
-    "namePlaceholder": "ישראל ישראלי",
-    "email": "אימייל",
-    "emailPlaceholder": "israel@example.com",
-    "company": "חברה (אופציונלי)",
-    "companyPlaceholder": "החברה שלך",
-    "subject": "נושא",
-    "selectSubject": "בחר נושא",
-    "subjectGeneral": "פנייה כללית",
-    "subjectSales": "מכירות",
-    "subjectSupport": "תמיכה טכנית",
-    "subjectPartnership": "שותפות",
-    "subjectOther": "אחר",
-    "message": "הודעה",
-    "messagePlaceholder": "ספר לנו איך נוכל לעזור...",
-    "submit": "שלח הודעה",
-    "sending": "שולח...",
-    "successTitle": "ההודעה נשלחה!",
-    "successMessage": "תודה שפנית אלינו. נחזור אליך תוך 24 שעות.",
-    "sendAnother": "שלח הודעה נוספת",
-    "info": {
-      "title": "פרטי יצירת קשר",
-      "description": "מלא את הטופס וצוות שלנו יחזור אליך תוך 24 שעות.",
-      "email": "אימייל",
-      "phone": "טלפון",
-      "office": "משרד",
-      "followUs": "עקוב אחרינו"
-    },
-    "form": {
-      "name": "שם",
-      "namePlaceholder": "ישראל ישראלי",
-      "email": "אימייל",
-      "emailPlaceholder": "israel@example.com",
-      "company": "חברה (אופציונלי)",
-      "companyPlaceholder": "החברה שלך",
-      "subject": "נושא",
-      "selectSubject": "בחר נושא",
-      "subjects": {
-        "general": "פנייה כללית",
-        "sales": "מכירות",
-        "support": "תמיכה טכנית",
-        "partnership": "שותפות",
-        "other": "אחר"
-      },
-      "message": "הודעה",
-      "messagePlaceholder": "ספר לנו איך נוכל לעזור...",
-      "submit": "שלח הודעה",
-      "sending": "שולח..."
-    },
-    "success": {
-      "title": "ההודעה נשלחה!",
-      "message": "תודה שפנית אלינו. נחזור אליך תוך 24 שעות.",
-      "sendAnother": "שלח הודעה נוספת"
-    }
-  },
-  "faq": {
-    "badge": "יש שאלות?",
-    "title": "שאלות",
-    "titleHighlight": "נפוצות",
-    "subtitle": "מצא תשובות לשאלות נפוצות על GhostPost. לא מצאת את מה שחיפשת? צור קשר עם צוות התמיכה שלנו.",
-    "searchPlaceholder": "חפש שאלות...",
-    "categories": {
-      "all": "הכל",
-      "general": "כללי",
-      "pricing": "מחירון",
-      "features": "תכונות",
-      "technical": "טכני"
-    },
-    "noResults": "לא נמצאו שאלות התואמות לחיפוש שלך.",
-    "clearFilters": "נקה מסננים",
-    "cta": {
-      "title": "עדיין יש שאלות?",
-      "description": "צוות התמיכה שלנו כאן לעזור. פנה אלינו ונחזור אליך תוך 24 שעות.",
-      "button": "צור קשר עם התמיכה"
-    }
-  },
-  "blog": {
-    "badge": "עדכונים אחרונים",
-    "title": "הבלוג של",
-    "titleHighlight": "Ghost Post",
-    "titleBefore": true,
-    "subtitle": "תובנות, טיפים ואסטרטגיות לשליטה בדירוגי החיפוש",
-    "readMore": "קרא עוד",
-    "readArticle": "קרא את המאמר",
-    "minRead": "דקות קריאה",
-    "featured": "מובחרים",
-    "all": "הכל",
-    "categorySEO": "SEO",
-    "categoryContent": "תוכן",
-    "categoryTechnical": "טכני",
-    "categoryAI": "בינה מלאכותית",
-    "categoryCaseStudies": "מקרי בוחן",
-    "noPostsFound": "לא נמצאו פוסטים בקטגוריה זו.",
-    "post1Title": "עתיד ה-SEO: איך בינה מלאכותית מחוללת מהפכה בחיפוש",
-    "post1Excerpt": "גלו כיצד בינה מלאכותית משנה את הגישה שלנו לקידום אתרים ומה זה אומר עבור העסק שלכם.",
-    "post2Title": "10 אסטרטגיות SEO חיוניות ל-2026",
-    "post2Excerpt": "הישארו צעד אחד לפני המתחרים עם אסטרטגיות SEO מוכחות שיעזרו לכם לשלוט בדירוגים.",
-    "post3Title": "SEO טכני: המדריך המקיף",
-    "post3Excerpt": "שלטו בהיבטים הטכניים של SEO עם המדריך המקיף שלנו הכולל מהירות אתר, סריקה ועוד.",
-    "post4Title": "שיטות עבודה מומלצות לשיווק תוכן",
-    "post4Excerpt": "למדו כיצד ליצור תוכן שמדורג, מעניין וממיר את קהל היעד שלכם.",
-    "post5Title": "מקרה בוחן: גידול של 300% בתנועה תוך 6 חודשים",
-    "post5Excerpt": "גלו כיצד חברת מסחר אלקטרוני שילשה את התנועה האורגנית שלה באמצעות האוטומציה של Ghost Post.",
-    "post6Title": "הבנת Core Web Vitals",
-    "post6Excerpt": "כל מה שאתם צריכים לדעת על מדדי Core Web Vitals של גוגל וכיצד לבצע אופטימיזציה עבורם.",
-    "post7Title": "מחקר מילות מפתח בעידן הבינה המלאכותית",
-    "post7Excerpt": "מחקר מילות מפתח מסורתי משתנה. גלו כיצד AI משנה את כללי המשחק וכיצד להסתגל.",
-    "post8Title": "בניית לוח שנה יעיל לתוכן",
-    "post8Excerpt": "תכננו את אסטרטגיית התוכן שלכם ביעילות עם המדריך שלנו ליצירה ותחזוקה של לוח שנה לתוכן."
-  },
-  "blogPost": {
-    "backToBlog": "חזרה לבלוג",
-    "notFound": "הפוסט לא נמצא",
-    "bookmark": "שמור",
-    "share": "שתף",
-    "shareArticle": "שתפו את המאמר",
-    "relatedArticles": "מאמרים קשורים",
-    "headOfSEO": "ראש מחלקת SEO",
-    "seoSpecialist": "מומחה SEO",
-    "technicalLead": "ליד טכני",
-    "contentStrategist": "אסטרטג תוכן",
-    "caseStudyAuthor": "כותב מקרי בוחן",
-    "performanceExpert": "מומחה ביצועים",
-    "seoResearcher": "חוקר SEO",
-    "contentManager": "מנהל תוכן",
-    "tagAI": "בינה מלאכותית",
-    "tagSEO": "SEO",
-    "tagAutomation": "אוטומציה",
-    "tagFuture": "עתיד",
-    "tagStrategy": "אסטרטגיה",
-    "tagRankings": "דירוגים",
-    "tagTechnical": "טכני",
-    "tagGuide": "מדריך",
-    "tagContent": "תוכן",
-    "tagMarketing": "שיווק",
-    "tagCaseStudy": "מקרה בוחן",
-    "tagSuccess": "הצלחה",
-    "tagGrowth": "צמיחה",
-    "tagPerformance": "ביצועים",
-    "tagGoogle": "גוגל",
-    "tagKeywords": "מילות מפתח",
-    "tagResearch": "מחקר",
-    "tagPlanning": "תכנון",
-    "contentPlaceholder": "כאן יוצג תוכן המאמר המלא. בסביבת ייצור, תוכן זה יגיע ממערכת ניהול תוכן או מסד נתונים.",
-    "sectionTitle1": "נקודות מפתח",
-    "sectionTitle2": "סיכום",
-    "takeaway1": "כלי SEO מבוססי AI הופכים חיוניים לשמירה על תחרותיות",
-    "takeaway2": "אוטומציה מטפלת במשימות חוזרות בעוד בני אדם מתמקדים באסטרטגיה",
-    "takeaway3": "החלטות מבוססות נתונים מובילות לתוצאות טובות יותר",
-    "takeaway4": "אופטימיזציה מתמדת היא המפתח להצלחה לטווח ארוך",
-    "conclusion": "עתיד ה-SEO כאן, והוא מונע על ידי AI. על ידי אימוץ כלים וטכנולוגיות חדשות אלה, עסקים יכולים להשיג תוצאות טובות יותר עם פחות מאמץ ידני."
-  },
-  "footer": {
-    "description": "הסוכן האוטונומי הראשון שמבצע אופטימיזציה, כותב ומנהל את ה-SEO של האתר שלך בזמן שאתה ישן.",
-    "product": "מוצר",
-    "company": "חברה",
-    "resources": "משאבים",
-    "legal": "משפטי",
-    "links": {
-      "features": "תכונות",
-      "pricing": "מחירון",
-      "howItWorks": "איך זה עובד",
-      "integrations": "אינטגרציות",
-      "about": "אודות",
-      "blog": "בלוג",
-      "careers": "קריירה",
-      "contact": "צור קשר",
-      "documentation": "תיעוד",
-      "helpCenter": "מרכז עזרה",
-      "community": "קהילה",
-      "apiReference": "מדריך API",
-      "privacy": "מדיניות פרטיות",
-      "terms": "תנאי שימוש",
-      "cookies": "מדיניות עוגיות"
-    },
-    "newsletter": {
-      "title": "הירשם לניוזלטר שלנו",
-      "placeholder": "הכנס את האימייל שלך",
-      "button": "הרשמה"
-    },
-    "copyright": "© {year} Ghost Post. כל הזכויות שמורות."
-  },
-  "auth": {
-    "login": {
-      "title": "ברוך שובך",
-      "subtitle": "התחבר לחשבון Ghost Post שלך",
-      "email": "אימייל",
-      "password": "סיסמה",
-      "forgotPassword": "שכחת סיסמה?",
-      "submit": "התחבר",
-      "noAccount": "אין לך חשבון?",
-      "signUp": "הירשם",
-      "orContinueWith": "או המשך עם",
-      "google": "Google"
-    },
-    "register": {
-      "title": "צור חשבון",
-      "subtitle": "התחל את הניסיון החינם שלך ל-14 יום",
-      "name": "שם מלא",
-      "email": "אימייל",
-      "password": "סיסמה",
-      "confirmPassword": "אימות סיסמה",
-      "submit": "צור חשבון",
-      "hasAccount": "כבר יש לך חשבון?",
-      "signIn": "התחבר",
-      "orContinueWith": "או המשך עם",
-      "google": "Google",
-      "terms": "ביצירת חשבון, אתה מסכים ל",
-      "termsLink": "תנאי השימוש",
-      "and": "ול",
-      "privacyLink": "מדיניות הפרטיות"
-    }
+  "language": {
+    "changeLanguage": "שנה שפה"
   },
   "common": {
-    "learnMore": "למד עוד",
-    "getStarted": "התחל עכשיו",
-    "startFreeTrial": "התחל ניסיון חינם",
-    "contactUs": "צור קשר",
-    "readMore": "קרא עוד"
+    "loading": "טוען...",
+    "save": "שמור",
+    "cancel": "ביטול",
+    "delete": "מחק",
+    "edit": "ערוך",
+    "add": "הוסף",
+    "search": "חיפוש",
+    "filter": "סינון",
+    "export": "ייצוא",
+    "import": "ייבוא",
+    "back": "חזור",
+    "next": "הבא",
+    "previous": "הקודם",
+    "submit": "שלח",
+    "confirm": "אישור",
+    "close": "סגור",
+    "yes": "כן",
+    "no": "לא",
+    "or": "או",
+    "and": "ו",
+    "all": "הכל",
+    "none": "ללא",
+    "select": "בחר",
+    "selected": "נבחר",
+    "noResults": "לא נמצאו תוצאות",
+    "error": "שגיאה",
+    "success": "הצלחה",
+    "warning": "אזהרה",
+    "info": "מידע",
+    "view": "צפייה",
+    "actions": "פעולות",
+    "type": "סוג",
+    "status": "סטטוס",
+    "date": "תאריך",
+    "hits": "פגיעות",
+    "from": "מ",
+    "to": "אל",
+    "target": "יעד",
+    "active": "פעיל",
+    "comingSoon": "בקרוב",
+    "viewAll": "צפה בהכל",
+    "create": "צור",
+    "new": "חדש",
+    "numbers": {
+      "zero": "0",
+      "one": "1",
+      "two": "2",
+      "three": "3",
+      "four": "4",
+      "five": "5",
+      "six": "6",
+      "seven": "7",
+      "eight": "8",
+      "nine": "9",
+      "ten": "10"
+    },
+    "match": "התאמה",
+    "skip": "דלג",
+    "confident": "בטוח",
+    "minimum": "מינימום",
+    "expand": "הרחב",
+    "collapse": "כווץ",
+    "saving": "שומר..."
+  },
+  "auth": {
+    "login": "התחברות",
+    "logout": "התנתקות",
+    "register": "הרשמה",
+    "firstName": "שם פרטי",
+    "lastName": "שם משפחה",
+    "phoneNumber": "מספר טלפון",
+    "email": "אימייל",
+    "password": "סיסמה",
+    "confirmPassword": "אימות סיסמה",
+    "forgotPassword": "שכחת סיסמה?",
+    "resetPassword": "איפוס סיסמה",
+    "rememberMe": "זכור אותי",
+    "noAccount": "אין לך חשבון?",
+    "hasAccount": "יש לך כבר חשבון?",
+    "signUpNow": "הירשם עכשיו",
+    "loginNow": "התחבר עכשיו",
+    "systemAccess": "גישה למערכת",
+    "connectWorkspace": "התחבר לסביבת העבודה שלך ב-Ghost Post",
+    "createAccount": "יצירת חשבון",
+    "joinGhostPost": "הצטרף ל-Ghost Post ואוטמט את ה-SEO שלך",
+    "fullName": "שם מלא",
+    "connect": "התחבר",
+    "orContinueWith": "או המשך עם",
+    "termsAgree": "אני מסכים ל",
+    "termsOfService": "תנאי השימוש",
+    "privacyPolicy": "מדיניות הפרטיות",
+    "createOne": "צור חשבון",
+    "welcomeGhostPost": "ברוכים הבאים ל-Ghost Post!",
+    "accountCreatedSuccess": "החשבון שלך נוצר בהצלחה. אתה מוכן להתחיל לאוטמט את אסטרטגיית ה-SEO והתוכן שלך עם הפלטפורמה מונעת ה-AI שלנו.",
+    "emailPlaceholder": "הזן את האימייל שלך",
+    "passwordPlaceholder": "הזן את הסיסמה שלך",
+    "namePlaceholder": "הזן את שמך המלא",
+    "firstNamePlaceholder": "הזן את שמך הפרטי",
+    "lastNamePlaceholder": "הזן את שם המשפחה",
+    "phoneNumberPlaceholder": "הזן את מספר הטלפון שלך",
+    "createPasswordPlaceholder": "צור סיסמה",
+    "confirmPasswordPlaceholder": "אמת את הסיסמה שלך",
+    "consentText": "אני מסכים לקבל תקשורת שיווקית ומקבל את",
+    "google": "Google",
+    "github": "GitHub",
+    "connecting": "מתחבר...",
+    "creating": "יוצר...",
+    "loginFailed": "ההתחברות נכשלה. אנא נסה שוב.",
+    "and": "ו"
+  },
+  "nav": {
+    "dashboard": "לוח בקרה",
+    "siteInterview": "ראיון אתר",
+    "contentPlanner": "תכנון תוכן",
+    "aiContentWizard": "אשף תוכן AI",
+    "automations": "אוטומציות",
+    "linkBuilding": "בניית קישורים",
+    "redirections": "הפניות",
+    "seoFrontend": "SEO חזית",
+    "seoBackend": "SEO שרת",
+    "siteAudit": "ביקורת אתר",
+    "keywordStrategy": "אסטרטגיית מילות מפתח",
+    "settings": "הגדרות",
+    "entities": {
+      "title": "ישויות",
+      "pages": "דפים",
+      "posts": "פוסטים",
+      "projects": "פרויקטים",
+      "services": "שירותים",
+      "products": "מוצרים",
+      "other": "אחר"
+    },
+    "admin": {
+      "title": "פאנל ניהול אדמין",
+      "accounts": "חשבונות פלטפורמה",
+      "users": "משתמשי פלטפורמה",
+      "subscriptions": "מנויים",
+      "plans": "הגדרות תוכניות",
+      "interviewQuestions": "שאלות ראיון",
+      "translations": "תרגומים",
+      "interviewFlow": "מסלול ראיון",
+      "botActions": "פעולות בוט"
+    }
+  },
+  "dashboard": {
+    "title": "לוח בקרה",
+    "commandCenter": "מרכז פיקוד",
+    "subtitle": "סקירת לוח הבקרה מונעת ה-AI שלך",
+    "welcome": "ברוך שובך",
+    "overview": "סקירה כללית",
+    "recentActivity": "פעילות אחרונה",
+    "quickActions": "פעולות מהירות",
+    "trafficOverview": "סקירת תנועה",
+    "siteHealthScore": "ציון בריאות האתר",
+    "aiAgentActivity": "פעילות סוכן AI",
+    "viewAllActivity": "צפה בכל הפעילות",
+    "overallScore": "ציון כללי",
+    "healthImproved": "בריאות האתר שלך השתפרה ב-{percent}% החודש",
+    "performance": "ביצועים",
+    "seo": "SEO",
+    "bestPractices": "שיטות עבודה מומלצות",
+    "chartComingSoon": "תרשים תנועה בקרוב",
+    "stats": {
+      "organicVisitors": "מבקרים אורגניים",
+      "totalPageViews": "סה״כ צפיות בדף",
+      "avgSessionDuration": "זמן ביקור ממוצע",
+      "overallSeoScore": "ציון SEO כללי",
+      "totalKeywords": "סה״כ מילות מפתח",
+      "rankedKeywords": "מילות מפתח מדורגות",
+      "avgPosition": "מיקום ממוצע",
+      "organicTraffic": "תנועה אורגנית",
+      "contentPieces": "פריטי תוכן",
+      "backlinks": "קישורים נכנסים"
+    },
+    "activity": {
+      "publishedArticles": "פורסמו {count} מאמרים ממוטבים",
+      "fixedLinks": "תוקנו {count} קישורים פנימיים שבורים",
+      "newKeywords": "נמצאו {count} הזדמנויות מילות מפתח חדשות",
+      "updatedMeta": "עודכנו תיאורי מטא ל-{count} דפים"
+    }
+  },
+  "siteInterview": {
+    "title": "ראיון אתר",
+    "subtitle": "ספר לנו על האתר שלך כדי ש-Ghost יוכל לבצע אופטימיזציה טובה יותר",
+    "interviewProgress": "התקדמות הראיון",
+    "helpGhost": "עזור לסוכן Ghost להבין את האתר שלך טוב יותר",
+    "startInterview": "התחל ראיון",
+    "completion": "השלמה",
+    "goalsObjectives": "יעדים ומטרות",
+    "businessGoalsQuestion": "מהם היעדים העסקיים העיקריים שלך ל-12 החודשים הקרובים?",
+    "goalsPlaceholder": "תאר את היעדים העיקריים שלך... (למשל, הגדלת תנועה אורגנית ב-50%, יצירת לידים נוספים, ביסוס מנהיגות מחשבתית)",
+    "skipForNow": "דלג לעת עתה",
+    "nextQuestion": "השאלה הבאה",
+    "aiInsights": "תובנות AI",
+    "status": {
+      "complete": "הושלם",
+      "inProgress": "בתהליך",
+      "pending": "ממתין"
+    },
+    "steps": {
+      "basicInfo": "מידע בסיסי",
+      "businessGoals": "יעדים עסקיים",
+      "targetAudience": "קהל יעד",
+      "competitors": "מתחרים",
+      "keywords": "מילות מפתח"
+    },
+    "progressSteps": {
+      "businessInfo": "מידע עסקי",
+      "targetAudience": "קהל יעד",
+      "goals": "יעדים",
+      "brandVoice": "קול המותג",
+      "contentStyle": "סגנון תוכן"
+    },
+    "sections": {
+      "businessInfo": {
+        "title": "מידע עסקי",
+        "q1": "מהו העסק העיקרי שלך?",
+        "a1": "מסחר אלקטרוני - ביגוד וינטג'",
+        "q2": "מיהו קהל היעד שלך?",
+        "a2": "חובבי אופנה בגילאי 25-45, מתעניינים באופנה בת-קיימא ווינטג'",
+        "q3": "מהם המוצרים/השירותים העיקריים שלך?",
+        "a3": "ביגוד וינטג', אביזרים וייעוץ סטיילינג"
+      },
+      "seoGoals": {
+        "title": "יעדי SEO",
+        "q1": "מהם יעדי ה-SEO העיקריים שלך?",
+        "a1": "הגדלת תנועה אורגנית ב-50%, דירוג למילות מפתח של ביגוד וינטג'",
+        "q2": "אזורים גיאוגרפיים מטרה?",
+        "a2": "ישראל (ראשי), ארה\"ב ואירופה (משני)",
+        "q3": "אתרי מתחרים?",
+        "a3": "vintagefashion.co.il, retrostyle.com, thriftcloset.co.il"
+      },
+      "contentStrategy": {
+        "title": "אסטרטגיית תוכן",
+        "q1": "סוגי תוכן נוכחיים?",
+        "a1": "תיאורי מוצרים, מאמרי בלוג, מדריכי סטיילינג",
+        "q2": "תדירות פרסום?",
+        "a2": "2-3 מאמרים בשבוע",
+        "q3": "טון וקול?",
+        "a3": "טרם הוגדר"
+      },
+      "technicalDetails": {
+        "title": "פרטים טכניים",
+        "q1": "פלטפורמת CMS?",
+        "q2": "ספק אחסון?",
+        "q3": "ציון מהירות האתר הנוכחי?",
+        "notAnswered": "לא נענה"
+      }
+    },
+    "insights": {
+      "educational": "על סמך התשובות שלך, התוכן שלך צריך להתמקד בנושאים חינוכיים ובעלי ערך",
+      "practical": "קהל היעד שלך מעדיף עצות מעשיות וישימות על פני תוכן תיאורטי",
+      "caseStudies": "שקול להדגיש מקרי מבחן וסיפורי הצלחה לבניית אמון"
+    }
+  },
+  "siteAudit": {
+    "title": "ביקורת אתר ומדדי Core Web Vitals",
+    "subtitle": "עקוב אחר ביצועי האתר ומדדי הבריאות שלו",
+    "runAudit": "הרץ ביקורת חדשה",
+    "performance": "ביצועים",
+    "excellentPerformance": "ביצועים מצוינים",
+    "performingWell": "האתר שלך מתפקד היטב בכל המדדים",
+    "coreWebVitals": "מדדי Core Web Vitals",
+    "lastUpdated": "עודכן לאחרונה",
+    "hoursAgo": "לפני {count} שעות",
+    "threshold": "סף",
+    "performanceTrend": "מגמת ביצועים",
+    "trendPercent": "+16%",
+    "lastWeeks": "4 שבועות אחרונים",
+    "recommendations": "המלצות",
+    "autoOptimize": "אופטימיזציה אוטומטית",
+    "applyFix": "החל תיקון",
+    "vitals": {
+      "lcp": "Largest Contentful Paint",
+      "fid": "First Input Delay",
+      "cls": "Cumulative Layout Shift",
+      "ttfb": "Time to First Byte",
+      "fcp": "First Contentful Paint",
+      "tti": "Time to Interactive",
+      "tbt": "Total Blocking Time"
+    },
+    "weeks": {
+      "week1": "שבוע 1",
+      "week2": "שבוע 2",
+      "week3": "שבוע 3",
+      "week4": "שבוע 4"
+    },
+    "recommendationTitles": {
+      "optimizeImages": "מטב גודל תמונות",
+      "enableCaching": "הפעל מטמון דפדפן",
+      "deferJavascript": "דחה טעינת JavaScript"
+    },
+    "recommendationDescriptions": {
+      "optimizeImagesDesc": "8 תמונות גדולות מ-500KB. דחיסתן יכולה לשפר את LCP ב-0.3 שניות.",
+      "enableCachingDesc": "הגדר זמני מטמון ארוכים יותר למשאבים סטטיים לשיפור ביצועי ביקורים חוזרים.",
+      "deferJavascriptDesc": "3 סקריפטים לא קריטיים ניתנים לדחייה לשיפור טעינת הדף הראשונית."
+    }
+  },
+  "seoFrontend": {
+    "title": "SEO חזית",
+    "subtitle": "אופטימיזציה של אלמנטי SEO בדף",
+    "comingSoon": "תכונות SEO Frontend בקרוב"
+  },
+  "seoBackend": {
+    "title": "SEO שרת",
+    "subtitle": "SEO טכני והגדרות שרת",
+    "comingSoon": "תכונות SEO Backend בקרוב"
+  },
+  "linkBuilding": {
+    "title": "בניית קישורים",
+    "subtitle": "בנה קישורים נכנסים איכותיים לאתר שלך",
+    "comingSoon": "תכונות בניית קישורים בקרוב",
+    "findOpportunities": "מצא הזדמנויות",
+    "totalBacklinks": "סה״כ קישורים נכנסים",
+    "domainAuthority": "סמכות דומיין",
+    "newThisMonth": "חדשים החודש",
+    "lostLinks": "קישורים שאבדו",
+    "opportunities": "הזדמנויות קישורים",
+    "opportunitiesSubtitle": "הזדמנויות קישורים שהתגלו על ידי AI",
+    "recentBacklinks": "קישורים נכנסים אחרונים",
+    "recentBacklinksSubtitle": "קישורים שמפנים לאתר שלך",
+    "match": "התאמה",
+    "contact": "צור קשר",
+    "stats": {
+      "totalBacklinks": "סה״כ קישורים נכנסים",
+      "referringDomains": "דומיינים מפנים",
+      "domainAuthority": "סמכות דומיין",
+      "newOpportunities": "הזדמנויות חדשות"
+    },
+    "categories": {
+      "techBlog": "בלוג טכנולוגיה",
+      "business": "עסקים",
+      "seo": "SEO",
+      "marketing": "שיווק"
+    },
+    "types": {
+      "guestPost": "פוסט אורח",
+      "mention": "אזכור",
+      "listicle": "רשימה",
+      "review": "סקירה"
+    },
+    "dates": {
+      "jan15": "15 בינואר",
+      "jan12": "12 בינואר",
+      "jan10": "10 בינואר",
+      "jan8": "8 בינואר"
+    },
+    "table": {
+      "source": "מקור",
+      "da": "DA",
+      "type": "סוג",
+      "date": "תאריך"
+    }
+  },
+  "automations": {
+    "title": "אוטומציות",
+    "subtitle": "אוטמט את תהליכי ה-SEO שלך",
+    "comingSoon": "תכונות אוטומציה בקרוב",
+    "createAutomation": "צור אוטומציה",
+    "yourAutomations": "האוטומציות שלך",
+    "activeAutomations": "אוטומציות פעילות",
+    "runsThisMonth": "הרצות החודש",
+    "successRate": "אחוז הצלחה",
+    "timeSaved": "זמן שנחסך",
+    "tasks": "משימות",
+    "last": "אחרון:",
+    "stats": {
+      "activeAutomations": "אוטומציות פעילות",
+      "tasksCompleted": "משימות שהושלמו",
+      "runningToday": "פועלות היום",
+      "successRate": "אחוז הצלחה"
+    },
+    "items": {
+      "contentPublishing": {
+        "name": "פרסום תוכן",
+        "description": "פרסום אוטומטי של פוסטים מתוזמנים בזמנים אופטימליים"
+      },
+      "internalLinking": {
+        "name": "קישור פנימי",
+        "description": "הוספה אוטומטית של קישורים פנימיים רלוונטיים לתוכן חדש"
+      },
+      "imageOptimization": {
+        "name": "אופטימיזציית תמונות",
+        "description": "דחיסה ואופטימיזציה של תמונות למהירות דף טובה יותר"
+      },
+      "metaUpdates": {
+        "name": "עדכוני מטא",
+        "description": "עדכון תיאורי מטא על בסיס שינויי תוכן"
+      }
+    },
+    "activity": {
+      "publishedArticles": "פורסמו {count} מאמרים ממוטבים",
+      "addedInternalLinks": "נוספו {count} קישורים פנימיים לפוסטים חדשים",
+      "optimizedImages": "בוצעה אופטימיזציה ל-{count} תמונות באתר",
+      "updatedMetaDescriptions": "עודכנו {count} תיאורי מטא"
+    }
+  },
+  "contentPlanner": {
+    "title": "תכנון תוכן",
+    "subtitle": "תכנן ותזמן את התוכן שלך עם תובנות מונעות AI",
+    "addContent": "הוסף תוכן",
+    "calendar": "לוח שנה",
+    "list": "רשימה",
+    "allContent": "כל התוכן",
+    "aiWizard": "אשף תוכן AI",
+    "totalPosts": "סה״כ פוסטים",
+    "published": "פורסמו",
+    "scheduled": "מתוזמנים",
+    "drafts": "טיוטות",
+    "draft": "טיוטה",
+    "blogPost": "פוסט בלוג",
+    "guide": "מדריך",
+    "tutorial": "הדרכה",
+    "status": {
+      "draft": "טיוטה",
+      "scheduled": "מתוזמן",
+      "published": "פורסם",
+      "inReview": "בבדיקה"
+    },
+    "stats": {
+      "totalPosts": "סה״כ פוסטים",
+      "published": "פורסמו",
+      "scheduled": "מתוזמנים",
+      "drafts": "טיוטות"
+    },
+    "weekDays": {
+      "sun": "א׳",
+      "mon": "ב׳",
+      "tue": "ג׳",
+      "wed": "ד׳",
+      "thu": "ה׳",
+      "fri": "ו׳",
+      "sat": "ש׳"
+    },
+    "sampleContent": {
+      "seoBestPractices": "10 שיטות עבודה מומלצות ל-SEO בשנת 2024",
+      "coreWebVitals": "כיצד לשפר את מדדי Core Web Vitals",
+      "aiContentGuide": "יצירת תוכן עם AI: מדריך מקיף",
+      "linkBuildingStrategies": "אסטרטגיות בניית קישורים שעובדות",
+      "date1": "15 בינואר 2024",
+      "date2": "22 בינואר 2024",
+      "date3": "25 בינואר 2024"
+    }
+  },
+  "keywordStrategy": {
+    "title": "אסטרטגיית מילות מפתח",
+    "subtitle": "עקוב אחר דירוגים וגלה הזדמנויות מילות מפתח חדשות",
+    "addKeyword": "הוסף מילת מפתח",
+    "importKeywords": "ייבוא מילות מפתח",
+    "aiResearch": "מחקר מילות מפתח AI",
+    "opportunities": "הזדמנויות מילות מפתח",
+    "opportunitiesSubtitle": "מילות מפתח שנמצאו על ידי AI למיקוד",
+    "currentRankings": "דירוגים נוכחיים",
+    "rankingsSubtitle": "מיקומי מילות המפתח שלך במעקב",
+    "targetKeyword": "מקד מילת מפתח",
+    "keyword": "מילת מפתח",
+    "volume": "נפח",
+    "cpc": "עלות לקליק",
+    "position": "מיקום",
+    "traffic": "תנועה",
+    "trend": "מגמה",
+    "easy": "קל",
+    "medium": "בינוני",
+    "hard": "קשה",
+    "trackedKeywords": "מילות מפתח במעקב",
+    "topRankings": "דירוגים בטופ 10",
+    "monthlyVolume": "נפח חודשי",
+    "columns": {
+      "keyword": "מילת מפתח",
+      "volume": "נפח",
+      "difficulty": "קושי",
+      "position": "מיקום",
+      "trend": "מגמה",
+      "traffic": "תנועה",
+      "cpc": "עלות לקליק"
+    },
+    "stats": {
+      "trackedKeywords": "מילות מפתח במעקב",
+      "top10Rankings": "דירוגים בטופ 10",
+      "monthlyVolume": "נפח חודשי",
+      "newOpportunities": "הזדמנויות חדשות"
+    },
+    "difficulty": {
+      "easy": "קל",
+      "medium": "בינוני",
+      "hard": "קשה"
+    }
+  },
+  "entities": {
+    "title": "ישויות האתר",
+    "subtitle": "צפה ונהל תוכן מהאתר שלך",
+    "pages": {
+      "title": "דפים",
+      "subtitle": "דפים סטטיים מהאתר שלך",
+      "empty": "לא נמצאו דפים",
+      "emptyDescription": "סנכרן את האתר שלך לייבוא דפים"
+    },
+    "posts": {
+      "title": "פוסטים",
+      "subtitle": "פוסטים ומאמרים מהבלוג שלך",
+      "empty": "לא נמצאו פוסטים",
+      "emptyDescription": "סנכרן את האתר שלך לייבוא פוסטים"
+    },
+    "projects": {
+      "title": "פרויקטים",
+      "subtitle": "פרויקטי תיק עבודות מהאתר שלך",
+      "empty": "לא נמצאו פרויקטים",
+      "emptyDescription": "סנכרן את האתר שלך לייבוא פרויקטים"
+    },
+    "services": {
+      "title": "שירותים",
+      "subtitle": "שירותים המוצעים באתר שלך",
+      "empty": "לא נמצאו שירותים",
+      "emptyDescription": "סנכרן את האתר שלך לייבוא שירותים"
+    },
+    "products": {
+      "title": "מוצרים",
+      "subtitle": "מוצרים מהאתר שלך",
+      "empty": "לא נמצאו מוצרים",
+      "emptyDescription": "סנכרן את האתר שלך לייבוא מוצרים"
+    },
+    "other": {
+      "title": "אחר",
+      "subtitle": "סוגי תוכן אחרים מהאתר שלך",
+      "empty": "לא נמצא תוכן אחר",
+      "emptyDescription": "סנכרן את האתר שלך לייבוא תוכן אחר"
+    },
+    "sync": "סנכרן אתר",
+    "syncing": "מסנכרן...",
+    "lastSync": "סונכרן לאחרונה",
+    "status": "סטטוס",
+    "published": "פורסם",
+    "draft": "טיוטה",
+    "archived": "בארכיון",
+    "actions": "פעולות",
+    "viewOnSite": "צפה באתר",
+    "search": "חפש ישויות...",
+    "totalEntities": "סה״כ ישויות",
+    "syncFailed": "הסנכרון נכשל",
+    "syncSuccess": "האתר סונכרן בהצלחה",
+    "noSiteSelected": "לא נבחר אתר",
+    "selectSiteFirst": "בחר אתר מהרשימה כדי לנהל ישויות",
+    "integration": {
+      "title": "חבר את האתר שלך",
+      "description": "חבר את האתר שלך כדי לייבא ולנהל את תכני הישויות"
+    },
+    "detection": {
+      "detect": "זהה פלטפורמה",
+      "detecting": "מזהה...",
+      "failed": "לא ניתן לזהות את הפלטפורמה. משתמש בחיבור מותאם אישית."
+    },
+    "discovery": {
+      "scanning": "סורק את האתר לחיפוש סוגי תוכן...",
+      "failed": "לא ניתן לגלות סוגי תוכן. נסה שוב.",
+      "found": "נמצאו {count} סוגי תוכן באתר שלך",
+      "noTypes": "לא נמצאו סוגי תוכן",
+      "noTypesDescription": "לחץ על הכפתור למטה כדי לסרוק את האתר שלך",
+      "scan": "סרוק אתר"
+    },
+    "types": {
+      "select": "בחר סוגי ישויות",
+      "selectDescription": "בחר אילו סוגי תוכן ברצונך לייבא ולנהל",
+      "save": "שמור סוגי ישויות",
+      "enabled": "סוגי ישויות פעילים",
+      "pages": "עמודים",
+      "posts": "פוסטים",
+      "projects": "פרויקטים",
+      "services": "שירותים",
+      "products": "מוצרים",
+      "other": "אחר"
+    },
+    "plugin": {
+      "title": "תוסף WordPress",
+      "description": "כדי לסנכרן תוכן אוטומטית מאתר ה-WordPress שלך, תצטרך להתקין את התוסף Ghost Post Connect.",
+      "download": "הורד תוסף",
+      "instructions": {
+        "title": "הוראות התקנה",
+        "step1": "הורד את קובץ התוסף (.zip) על ידי לחיצה על הכפתור למטה",
+        "step2": "עבור ללוח הבקרה של WordPress שלך ← תוספים ← הוסף חדש ← העלה תוסף",
+        "step3": "בחר את קובץ ה-ZIP שהורדת ולחץ על \"התקן עכשיו\"",
+        "step4": "הפעל את התוסף והזן את מפתח ה-API שיוצג בהגדרות"
+      }
+    }
+  },
+  "redirections": {
+    "title": "הפניות",
+    "subtitle": "נהל הפניות URL לשמירה על בריאות SEO",
+    "addRedirect": "הוסף הפניה",
+    "createNew": "צור הפניה חדשה",
+    "activeRedirects": "הפניות פעילות",
+    "fromUrl": "מכתובת",
+    "toUrl": "לכתובת",
+    "fromUrlPlaceholder": "/עמוד-ישן",
+    "toUrlPlaceholder": "/עמוד-חדש",
+    "from": "מ",
+    "to": "אל",
+    "type": "סוג",
+    "hits": "פגיעות",
+    "permanent": "301 (קבוע)",
+    "temporary": "302 (זמני)",
+    "totalHits": "סה״כ פגיעות",
+    "brokenLinks": "קישורים שבורים",
+    "successRate": "אחוז הצלחה",
+    "stats": {
+      "activeRedirects": "הפניות פעילות",
+      "totalHits": "סה״כ פגיעות",
+      "brokenLinks": "קישורים שבורים",
+      "successRate": "אחוז הצלחה"
+    }
+  },
+  "settings": {
+    "title": "הגדרות",
+    "subtitle": "הגדר את העדפות Ghost Post והאינטגרציות שלך",
+    "general": "כללי",
+    "aiConfiguration": "תצורת AI",
+    "scheduling": "תזמון",
+    "notifications": "התראות",
+    "seoSettings": "SEO",
+    "integrations": "אינטגרציות",
+    "team": "צוות",
+    "users": "משתמשים",
+    "subscription": "מנוי",
+    "account": "חשבון",
+    "billing": "חיוב",
+    "api": "API",
+    "language": "שפה",
+    "theme": "ערכת נושא",
+    "darkMode": "מצב כהה",
+    "lightMode": "מצב בהיר",
+    "systemTheme": "ערכת מערכת",
+    "saveChanges": "שמור שינויים",
+    "descriptions": {
+      "general": "הגדר הגדרות אתר בסיסיות והעדפות",
+      "aiConfiguration": "התאם אישית מודלי AI והגדרות יצירת תוכן",
+      "scheduling": "נהל משימות אוטומטיות ותזמון תוכן",
+      "notifications": "שלוט בהעדפות אימייל והתראות",
+      "seo": "אופטימיזציה של הגדרות נראות במנועי חיפוש",
+      "integrations": "חבר שירותי צד שלישי ו-APIs",
+      "team": "נהל חברי צוות והרשאות",
+      "users": "הזמן ונהל משתמשים בחשבון שלך",
+      "subscription": "צפה ונהל את תוכנית המנוי שלך",
+      "account": "עדכן את פרטי החשבון האישי שלך",
+      "roles": "צור ונהל תפקידים עבור חברי החשבון שלך",
+      "permissions": "הקצה הרשאות לכל תפקיד בחשבון שלך"
+    },
+    "fields": {
+      "siteUrl": "כתובת האתר",
+      "siteName": "שם האתר",
+      "timezone": "אזור זמן",
+      "siteUrlPlaceholder": "https://your-site.com",
+      "siteNamePlaceholder": "האתר שלי",
+      "siteUrlHint": "לא ניתן לשנות את כתובת האתר לאחר היצירה",
+      "languageHint": "שפת הפלטפורמה עבור אתר זה",
+      "timezoneHint": "אזור הזמן שלך עבור אתר זה (ברירת מחדל מהגדרות החשבון)",
+      "notEditable": "לא ניתן לעריכה",
+      "noSiteSelected": "אנא בחר אתר קודם",
+      "saveSuccess": "ההגדרות נשמרו בהצלחה",
+      "saving": "שומר..."
+    },
+    "languages": {
+      "english": "אנגלית",
+      "hebrew": "עברית",
+      "spanish": "ספרדית",
+      "french": "צרפתית",
+      "german": "גרמנית",
+      "portuguese": "פורטוגזית",
+      "italian": "איטלקית",
+      "russian": "רוסית",
+      "arabic": "ערבית",
+      "chinese": "סינית",
+      "japanese": "יפנית"
+    },
+    "countries": {
+      "worldwide": "כל העולם",
+      "israel": "ישראל",
+      "unitedStates": "ארצות הברית",
+      "unitedKingdom": "בריטניה",
+      "canada": "קנדה",
+      "australia": "אוסטרליה",
+      "germany": "גרמניה",
+      "france": "צרפת",
+      "spain": "ספרד",
+      "italy": "איטליה",
+      "netherlands": "הולנד",
+      "belgium": "בלגיה",
+      "switzerland": "שוויץ",
+      "austria": "אוסטריה",
+      "sweden": "שוודיה",
+      "norway": "נורבגיה",
+      "denmark": "דנמרק",
+      "finland": "פינלנד",
+      "poland": "פולין",
+      "czechRepublic": "צ'כיה",
+      "portugal": "פורטוגל",
+      "greece": "יוון",
+      "ireland": "אירלנד",
+      "russia": "רוסיה",
+      "ukraine": "אוקראינה",
+      "turkey": "טורקיה",
+      "brazil": "ברזיל",
+      "mexico": "מקסיקו",
+      "argentina": "ארגנטינה",
+      "chile": "צ'ילה",
+      "colombia": "קולומביה",
+      "india": "הודו",
+      "china": "סין",
+      "japan": "יפן",
+      "southKorea": "דרום קוריאה",
+      "singapore": "סינגפור",
+      "hongKong": "הונג קונג",
+      "taiwan": "טייוואן",
+      "thailand": "תאילנד",
+      "vietnam": "וייטנאם",
+      "indonesia": "אינדונזיה",
+      "malaysia": "מלזיה",
+      "philippines": "פיליפינים",
+      "southAfrica": "דרום אפריקה",
+      "egypt": "מצרים",
+      "saudiArabia": "ערב הסעודית",
+      "uae": "איחוד האמירויות",
+      "newZealand": "ניו זילנד"
+    },
+    "timezones": {
+      "utc": "UTC",
+      "easternTime": "זמן מזרחי",
+      "pacificTime": "זמן מערבי",
+      "london": "לונדון",
+      "israel": "ישראל"
+    },
+    "wordpress": {
+      "title": "תוסף וורדפרס",
+      "connected": "מחובר",
+      "notConnected": "לא מחובר",
+      "downloadPlugin": "הורד תוסף",
+      "description": "התקן את תוסף הוורדפרס שלנו כדי לאפשר סנכרון תוכן חלק, פרסום אוטומטי ואינטגרציית אנליטיקס בזמן אמת עם אתר הוורדפרס שלך."
+    },
+    "maintenance": {
+      "title": "מצב תחזוקה",
+      "description": "השבת זמנית את כל הפעולות האוטומטיות"
+    },
+    "ai": {
+      "textModel": "מודל יצירת טקסט",
+      "imageModel": "מודל יצירת תמונות",
+      "maxTokens": "מקסימום טוקנים חודשי",
+      "temperature": "טמפרטורת יצירתיות",
+      "precise": "מדויק",
+      "creative": "יצירתי",
+      "prompts": "פרומפטים של AI",
+      "textPrompt": "פרומפט יצירת טקסט",
+      "imagePrompt": "פרומפט יצירת תמונות",
+      "textPromptPlaceholder": "הזן את הפרומפט ליצירת טקסט...",
+      "imagePromptPlaceholder": "הזן את הפרומפט ליצירת תמונות...",
+      "safetyOptimization": "בטיחות ואופטימיזציה",
+      "autoOptimization": "אופטימיזציה אוטומטית",
+      "autoOptimizationDesc": "בצע אופטימיזציה אוטומטית של תוכן ל-SEO וקריאות",
+      "contentSafety": "בטיחות תוכן",
+      "contentSafetyDesc": "סנן תוכן פוטנציאלית מזיק או לא הולם",
+      "models": {
+        "gpt4turbo": "GPT-4 Turbo",
+        "gpt4": "GPT-4",
+        "gpt35turbo": "GPT-3.5 Turbo",
+        "claude3opus": "Claude 3 Opus",
+        "dalle3": "DALL-E 3",
+        "dalle2": "DALL-E 2",
+        "midjourney": "Midjourney",
+        "stableDiffusion": "Stable Diffusion"
+      }
+    },
+    "schedulingSection": {
+      "scheduledTasks": "משימות מתוזמנות",
+      "queueSettings": "הגדרות תור",
+      "queueConcurrency": "ריבוי תור",
+      "retryAttempts": "ניסיונות חוזרים",
+      "addScheduledTask": "הוסף משימה מתוזמנת",
+      "lastRun": "הרצה אחרונה:",
+      "edit": "ערוך",
+      "cronJobs": {
+        "contentGeneration": "יצירת תוכן",
+        "seoOptimization": "אופטימיזציה לSEO",
+        "linkBuildingCheck": "בדיקת בניית קישורים"
+      },
+      "lastRunTimes": {
+        "hoursAgo": "לפני {count} שעות",
+        "yesterday": "אתמול",
+        "daysAgo": "לפני {count} ימים"
+      }
+    },
+    "notificationsSection": {
+      "emailNotifications": "התראות אימייל",
+      "newContentPublished": "תוכן חדש פורסם",
+      "newContentPublishedDesc": "קבל התראה כאשר תוכן חדש מפורסם",
+      "weeklyReport": "דוח שבועי",
+      "weeklyReportDesc": "קבל סיכום ביצועים שבועי",
+      "errorAlerts": "התראות שגיאה",
+      "errorAlertsDesc": "קבל התראה על שגיאות מערכת",
+      "marketingUpdates": "עדכוני שיווק",
+      "marketingUpdatesDesc": "עדכוני מוצר וטיפים",
+      "slackIntegration": "אינטגרציית Slack",
+      "slackWebhookUrl": "כתובת Webhook של Slack",
+      "slackWebhookPlaceholder": "https://hooks.slack.com/services/...",
+      "enableSlack": "הפעל התראות Slack",
+      "enableSlackDesc": "שלח התראות לערוץ ה-Slack שלך"
+    },
+    "seo": {
+      "siteNameSeo": "שם האתר (ל-SEO)",
+      "defaultOgImage": "כתובת תמונת OG ברירת מחדל",
+      "defaultOgImagePlaceholder": "https://example.com/og-image.jpg",
+      "metaDescription": "תיאור מטא ברירת מחדל",
+      "metaDescriptionPlaceholder": "תיאור קצר של האתר שלך...",
+      "technicalSeo": "SEO טכני",
+      "autoSitemap": "יצירה אוטומטית של Sitemap",
+      "autoSitemapDesc": "צור ועדכן אוטומטית את קובץ sitemap.xml",
+      "robotsTxt": "ניהול Robots.txt",
+      "robotsTxtDesc": "נהל את קובץ robots.txt באופן אוטומטי",
+      "schemaMarkup": "Schema Markup",
+      "schemaMarkupDesc": "הוסף נתונים מובנים לשיפור Rich Snippets"
+    },
+    "integrationsSection": {
+      "connectedSyncing": "מחובר ומסנכרן",
+      "notConnected": "לא מחובר",
+      "configure": "הגדר",
+      "connect": "חבר",
+      "addIntegration": "הוסף אינטגרציה"
+    },
+    "teamSection": {
+      "inviteTeamMember": "הזמן חבר צוות",
+      "roles": {
+        "owner": "בעלים",
+        "admin": "מנהל",
+        "editor": "עורך",
+        "viewer": "צופה"
+      },
+      "statuses": {
+        "active": "פעיל",
+        "pending": "ממתין",
+        "inactive": "לא פעיל"
+      }
+    },
+    "usersSection": {
+      "title": "משתמשי חשבון",
+      "description": "הזמן ונהל משתמשים שיש להם גישה לחשבון זה",
+      "inviteUser": "הזמן משתמש",
+      "inviteUserDescription": "שלח הזמנה למשתמש להצטרף לחשבון זה",
+      "email": "כתובת אימייל",
+      "emailPlaceholder": "user@example.com",
+      "selectRole": "בחר תפקיד",
+      "rolePlaceholder": "בחר תפקיד...",
+      "sendInvite": "שלח הזמנה",
+      "sending": "שולח...",
+      "inviteSent": "ההזמנה נשלחה בהצלחה",
+      "inviteFailed": "שליחת ההזמנה נכשלה",
+      "userAlreadyMember": "משתמש זה כבר חבר בחשבון זה",
+      "columns": {
+        "user": "משתמש",
+        "email": "אימייל",
+        "role": "תפקיד",
+        "status": "סטטוס",
+        "joinedAt": "הצטרף",
+        "actions": "פעולות"
+      },
+      "statuses": {
+        "active": "פעיל",
+        "pending": "ממתין להזמנה",
+        "suspended": "מושהה",
+        "removed": "הוסר"
+      },
+      "roles": {
+        "owner": "בעלים",
+        "admin": "מנהל",
+        "editor": "עורך",
+        "viewer": "צופה",
+        "user": "משתמש"
+      },
+      "actions": {
+        "changeRole": "שנה תפקיד",
+        "resendInvite": "שלח הזמנה מחדש",
+        "remove": "הסר מהחשבון",
+        "suspend": "השהה משתמש",
+        "activate": "הפעל משתמש"
+      },
+      "confirmRemove": {
+        "title": "הסר משתמש מהחשבון",
+        "message": "האם אתה בטוח שברצונך להסיר משתמש זה מהחשבון? הוא יאבד גישה לכל המשאבים.",
+        "confirm": "הסר משתמש",
+        "cancel": "ביטול"
+      },
+      "changeRoleModal": {
+        "title": "שנה תפקיד משתמש",
+        "message": "בחר תפקיד חדש עבור משתמש זה:",
+        "confirm": "שמור שינויים",
+        "cancel": "ביטול"
+      },
+      "noUsers": "לא נמצאו משתמשים",
+      "noUsersDescription": "הזמן משתמשים כדי לתת להם גישה לחשבון זה",
+      "ownerBadge": "בעלים",
+      "youBadge": "אתה",
+      "pendingInvite": "הזמנה ממתינה",
+      "inviteExpired": "ההזמנה פגה"
+    },
+    "subscriptionSection": {
+      "plan": "תוכנית",
+      "tokenUsage": "שימוש בטוקנים",
+      "nextBillingDate": "תאריך חיוב הבא:",
+      "billingActions": "פעולות חיוב",
+      "upgradePlan": "שדרג תוכנית",
+      "updatePaymentMethod": "עדכן אמצעי תשלום",
+      "viewInvoices": "צפה בחשבוניות",
+      "perMonth": "לחודש",
+      "statuses": {
+        "active": "פעיל",
+        "cancelled": "בוטל",
+        "expired": "פג תוקף",
+        "trialing": "בניסיון"
+      }
+    },
+    "roles": "תפקידים",
+    "permissions": "הרשאות",
+    "rolesSection": {
+      "title": "ניהול תפקידים",
+      "description": "נהל תפקידים והרשאותיהם עבור החשבון שלך",
+      "addRole": "הוסף תפקיד",
+      "editRole": "ערוך תפקיד",
+      "deleteRole": "מחק תפקיד",
+      "roleName": "שם התפקיד",
+      "namePlaceholder": "הזן שם תפקיד",
+      "descriptionPlaceholder": "הזן תיאור תפקיד (אופציונלי)",
+      "members": "צוות",
+      "type": "סוג",
+      "systemRole": "מערכת",
+      "customRole": "מותאם",
+      "noRoles": "לא נמצאו תפקידים",
+      "deleteConfirm": "מחק תפקיד",
+      "deleteWarning": "האם אתה בטוח שברצונך למחוק את התפקיד \"{name}\"? פעולה זו לא ניתנת לביטול.",
+      "cannotDeleteSystem": "לא ניתן למחוק תפקידי מערכת",
+      "cannotDeleteWithMembers": "לא ניתן למחוק תפקיד עם חברי צוות מוקצים",
+      "roleCreated": "התפקיד נוצר בהצלחה",
+      "roleUpdated": "התפקיד עודכן בהצלחה",
+      "roleDeleted": "התפקיד נמחק בהצלחה",
+      "saveFailed": "שמירת התפקיד נכשלה",
+      "deleteFailed": "מחיקת התפקיד נכשלה",
+      "columns": {
+        "name": "שם",
+        "description": "תיאור",
+        "members": "חברי צוות",
+        "type": "סוג",
+        "actions": "פעולות"
+      }
+    },
+    "permissionsSection": {
+      "title": "ניהול הרשאות",
+      "description": "נהל הרשאות עבור כל תפקיד בחשבון שלך",
+      "selectRole": "בחר תפקיד",
+      "selectRolePlaceholder": "בחר תפקיד...",
+      "searchPermissions": "חפש הרשאות...",
+      "permissionsFor": "הרשאות עבור",
+      "selectAll": "בחר הכל",
+      "deselectAll": "בטל בחירת הכל",
+      "savePermissions": "שמור הרשאות",
+      "permissionsSaved": "ההרשאות נשמרו בהצלחה",
+      "saved": "נשמר",
+      "saveFailed": "שמירת ההרשאות נכשלה",
+      "selectRoleMessage": "בחר תפקיד כדי לנהל את ההרשאות שלו",
+      "ownerNotice": "לתפקיד בעלים יש את כל ההרשאות ולא ניתן לשנות אותו",
+      "coreModules": "מודולים ראשיים",
+      "settingsTabs": "לשוניות הגדרות",
+      "module": "מודול",
+      "settingsTab": "לשונית הגדרות",
+      "capabilities": {
+        "view": "צפייה",
+        "edit": "עריכה",
+        "delete": "מחיקה",
+        "create": "יצירה"
+      },
+      "modules": {
+        "account": "חשבון",
+        "members": "צוות",
+        "roles": "תפקידים",
+        "sites": "אתרים",
+        "content": "תוכן",
+        "keywords": "מילות מפתח",
+        "redirections": "הפניות",
+        "interview": "ראיון",
+        "audit": "יומן פעילות",
+        "settings_general": "הגדרות כלליות",
+        "settings_ai": "תצורת AI",
+        "settings_scheduling": "תזמון",
+        "settings_notifications": "התראות",
+        "settings_seo": "הגדרות SEO",
+        "settings_integrations": "אינטגרציות",
+        "settings_team": "צוות",
+        "settings_roles": "תפקידים והרשאות",
+        "settings_subscription": "מנוי"
+      },
+      "categories": {
+        "account": "חשבון",
+        "members": "צוות",
+        "roles": "תפקידים",
+        "sites": "אתרים",
+        "content": "תוכן",
+        "keywords": "מילות מפתח",
+        "redirections": "הפניות",
+        "interview": "ראיון",
+        "audit": "יומן פעילות",
+        "settings": "הגדרות"
+      },
+      "permissions": {
+        "ACCOUNT_VIEW": "צפייה בחשבון",
+        "ACCOUNT_EDIT": "עריכת חשבון",
+        "ACCOUNT_DELETE": "מחיקת חשבון",
+        "ACCOUNT_BILLING_VIEW": "צפייה בחיוב",
+        "ACCOUNT_BILLING_MANAGE": "ניהול חיוב",
+        "MEMBERS_VIEW": "צפייה בחברי צוות",
+        "MEMBERS_INVITE": "הזמנת חברי צוות",
+        "MEMBERS_EDIT": "עריכת חברי צוות",
+        "MEMBERS_REMOVE": "הסרת חברי צוות",
+        "ROLES_VIEW": "צפייה בתפקידים",
+        "ROLES_CREATE": "יצירת תפקידים",
+        "ROLES_EDIT": "עריכת תפקידים",
+        "ROLES_DELETE": "מחיקת תפקידים",
+        "SITES_VIEW": "צפייה באתרים",
+        "SITES_CREATE": "יצירת אתרים",
+        "SITES_EDIT": "עריכת אתרים",
+        "SITES_DELETE": "מחיקת אתרים",
+        "CONTENT_VIEW": "צפייה בתוכן",
+        "CONTENT_CREATE": "יצירת תוכן",
+        "CONTENT_EDIT": "עריכת תוכן",
+        "CONTENT_DELETE": "מחיקת תוכן",
+        "CONTENT_PUBLISH": "פרסום תוכן",
+        "KEYWORDS_VIEW": "צפייה במילות מפתח",
+        "KEYWORDS_CREATE": "יצירת מילות מפתח",
+        "KEYWORDS_EDIT": "עריכת מילות מפתח",
+        "KEYWORDS_DELETE": "מחיקת מילות מפתח",
+        "REDIRECTIONS_VIEW": "צפייה בהפניות",
+        "REDIRECTIONS_CREATE": "יצירת הפניות",
+        "REDIRECTIONS_EDIT": "עריכת הפניות",
+        "REDIRECTIONS_DELETE": "מחיקת הפניות",
+        "INTERVIEW_VIEW": "צפייה בראיון",
+        "INTERVIEW_EDIT": "עריכת ראיון",
+        "AUDIT_VIEW": "צפייה ביומן פעילות",
+        "AUDIT_RUN": "הרצת ביקורת",
+        "SETTINGS_GENERAL_VIEW": "צפייה בהגדרות כלליות",
+        "SETTINGS_GENERAL_EDIT": "עריכת הגדרות כלליות",
+        "SETTINGS_AI_VIEW": "צפייה בהגדרות AI",
+        "SETTINGS_AI_EDIT": "עריכת הגדרות AI",
+        "SETTINGS_SCHEDULING_VIEW": "צפייה בתזמון",
+        "SETTINGS_SCHEDULING_EDIT": "עריכת תזמון",
+        "SETTINGS_NOTIFICATIONS_VIEW": "צפייה בהתראות",
+        "SETTINGS_NOTIFICATIONS_EDIT": "עריכת התראות",
+        "SETTINGS_SEO_VIEW": "צפייה בהגדרות SEO",
+        "SETTINGS_SEO_EDIT": "עריכת הגדרות SEO",
+        "SETTINGS_INTEGRATIONS_VIEW": "צפייה באינטגרציות",
+        "SETTINGS_INTEGRATIONS_EDIT": "עריכת אינטגרציות",
+        "SETTINGS_TEAM_VIEW": "צפייה בצוות",
+        "SETTINGS_TEAM_EDIT": "עריכת צוות",
+        "SETTINGS_ROLES_VIEW": "צפייה בהגדרות תפקידים",
+        "SETTINGS_ROLES_EDIT": "עריכת הגדרות תפקידים",
+        "SETTINGS_SUBSCRIPTION_VIEW": "צפייה במנוי",
+        "SETTINGS_SUBSCRIPTION_EDIT": "עריכת מנוי"
+      }
+    },
+    "accountSection": {
+      "fullName": "שם מלא",
+      "emailAddress": "כתובת אימייל",
+      "changePassword": "שנה סיסמה",
+      "currentPassword": "סיסמה נוכחית",
+      "currentPasswordPlaceholder": "הזן סיסמה נוכחית",
+      "newPassword": "סיסמה חדשה",
+      "newPasswordPlaceholder": "הזן סיסמה חדשה",
+      "confirmNewPassword": "אשר סיסמה חדשה",
+      "confirmPasswordPlaceholder": "אשר סיסמה חדשה",
+      "dangerZone": "אזור סכנה",
+      "deleteAccount": "מחק חשבון",
+      "deleteAccountDesc": "מחק לצמיתות את החשבון וכל הנתונים שלך"
+    }
+  },
+  "notifications": {
+    "title": "התראות",
+    "markAllRead": "סמן הכל כנקרא",
+    "noNotifications": "אין התראות חדשות",
+    "viewAll": "צפה בהכל",
+    "viewAllNotifications": "צפה בכל ההתראות",
+    "items": {
+      "newBlogPost": {
+        "title": "פוסט בלוג חדש מוכן",
+        "message": "המאמר שלך \"10 טיפים ל-SEO לשנת 2026\" נוצר ומוכן לסקירה."
+      },
+      "aiInsight": {
+        "title": "תובנת AI זמינה",
+        "message": "סוכן Ghost מצא 3 הזדמנויות מילות מפתח חדשות לאתר שלך."
+      },
+      "interviewIncomplete": {
+        "title": "הראיון לא הושלם",
+        "message": "השלם את ראיון האתר כדי לפתוח יכולות AI מלאות."
+      },
+      "trafficMilestone": {
+        "title": "אבן דרך בתנועה",
+        "message": "מזל טוב! האתר שלך הגיע ל-10,000 מבקרים חודשיים."
+      }
+    },
+    "time": {
+      "fiveMinAgo": "לפני 5 דקות",
+      "oneHourAgo": "לפני שעה",
+      "twoHoursAgo": "לפני שעתיים",
+      "oneDayAgo": "לפני יום"
+    }
+  },
+  "user": {
+    "profile": "פרופיל",
+    "credits": "קרדיטים",
+    "plan": "תוכנית",
+    "upgrade": "שדרג",
+    "manageAccount": "נהל חשבון",
+    "myAccount": "החשבון שלי",
+    "subscriptions": "מנויים",
+    "myCredits": "הקרדיטים שלי",
+    "addCredits": "הוסף קרדיטים",
+    "upgradePlan": "שדרג תוכנית",
+    "plans": {
+      "free": "חינם",
+      "starter": "מתחיל",
+      "pro": "מקצועי",
+      "enterprise": "ארגוני"
+    }
+  },
+  "sites": {
+    "selectSite": "בחר אתר",
+    "activeSite": "אתר פעיל",
+    "addSite": "הוסף אתר חדש",
+    "noSites": "לא נוספו אתרים עדיין",
+    "manageSites": "נהל אתרים",
+    "add": {
+      "title": "הוסף אתר חדש",
+      "urlLabel": "כתובת האתר",
+      "urlPlaceholder": "https://example.com",
+      "urlHint": "הזן את כתובת האתר שלך ואנחנו נוודא שהוא נגיש",
+      "validate": "בדוק",
+      "validating": "בודק...",
+      "validUrl": "האתר נגיש",
+      "invalidUrl": "האתר אינו נגיש",
+      "validationFailed": "בדיקת הכתובת נכשלה",
+      "nameLabel": "שם האתר",
+      "namePlaceholder": "האתר שלי",
+      "create": "הוסף אתר",
+      "creating": "מוסיף..."
+    }
+  },
+  "chat": {
+    "title": "עוזר Ghost",
+    "placeholder": "שאל את Ghost כל דבר...",
+    "send": "שלח",
+    "openChat": "צ'אט עם Ghost",
+    "newConversation": "שיחה חדשה",
+    "searchConversations": "חפש שיחות...",
+    "conversations": "שיחות",
+    "todayConversations": "היום",
+    "yesterdayConversations": "אתמול",
+    "olderConversations": "ישן יותר",
+    "ghostAgent": "סוכן Ghost",
+    "thinking": "חושב...",
+    "suggestions": "הצעות",
+    "typeMessage": "הקלד את ההודעה שלך...",
+    "searchPlaceholder": "חפש שיחות...",
+    "inputPlaceholder": "הקלד את ההודעה שלך...",
+    "sections": {
+      "conversations": "שיחות",
+      "quickActions": "פעולות מהירות",
+      "aiConfiguration": "הגדרות AI",
+      "activeSession": "סשן פעיל"
+    },
+    "agentInfo": {
+      "name": "סוכן Ghost",
+      "status": "פעיל ולומד"
+    },
+    "buttons": {
+      "retry": "נסה שוב"
+    },
+    "actions": {
+      "startAnalysis": "התחל ניתוח"
+    },
+    "quickActions": {
+      "generateContent": "צור תוכן",
+      "quickSeoAudit": "ביקורת SEO מהירה",
+      "createBrief": "צור תקציר",
+      "analyticsReport": "דוח אנליטיקס"
+    },
+    "aiConfig": {
+      "textGeneration": "יצירת טקסט",
+      "imageGeneration": "יצירת תמונות"
+    },
+    "statusText": {
+      "usingForResponses": "משתמש ב-{engine} לתשובות"
+    },
+    "contextMessages": {
+      "dashboard": "ביצועי האתר שלך עלו ב-24% החודש. האם לנתח מה מניע את הצמיחה הזו?",
+      "siteInterview": "שמתי לב שלא השלמת את חלק הפרטים הטכניים. האם לעזור לאסוף את המידע הזה?",
+      "contentPlanner": "אני יכול לעזור לך לתכנן ולארגן תוכן לאתר שלך. רוצה שאנתח מגמות ואציע רעיונות למאמרים?",
+      "automations": "אני יכול ליצור אוטומציה חדשה לתיקון קישורים שבורים באופן אוטומטי. רוצה שאגדיר את זה?",
+      "linkBuilding": "מצאתי 12 הזדמנויות חדשות לקישורים איכותיים. האם לנסח מיילים ליצירת קשר?",
+      "redirections": "זוהו 3 שרשראות הפניות שעלולות להשפיע על SEO. האם לבצע אופטימיזציה?",
+      "seoFrontend": "12 תמונות חסרות טקסט חלופי. אני יכול ליצור תיאורים ממוטבים עכשיו. להמשיך?",
+      "seoBackend": "מפת האתר שלך חסרה 8 דפים. האם לעדכן אותה אוטומטית?",
+      "siteAudit": "אני יכול לבצע אופטימיזציה ל-8 תמונות כדי לשפר את ציון ה-LCP ב-0.3 שניות. רוצה שאמשיך?",
+      "keywordStrategy": "נמצאו 4 מילות מפתח עם תחרות נמוכה ופוטנציאל גבוה. האם ליצור תקצירי תוכן?",
+      "settings": "הגדרות האוטומציה שלך נראות טוב. צריך עזרה בהגדרת משהו נוסף?",
+      "default": "אני כאן לעזור עם צרכי ה-SEO שלך. על מה תרצה לעבוד?"
+    },
+    "sampleChats": {
+      "seoStrategy": {
+        "title": "דיון אסטרטגיית SEO",
+        "preview": "ביצועי האתר שלך עלו ב-24%..."
+      },
+      "contentCalendar": {
+        "title": "תכנון לוח שנה לתוכן",
+        "preview": "ניתחתי מגמות עדכניות עבור..."
+      },
+      "keywordResearch": {
+        "title": "מחקר מילות מפתח",
+        "preview": "נמצאו 4 מילות מפתח עם תחרות נמוכה..."
+      },
+      "linkBuilding": {
+        "title": "קמפיין בניית קישורים",
+        "preview": "מצאתי 12 הזדמנויות איכותיות חדשות..."
+      },
+      "technicalSeo": {
+        "title": "ביקורת SEO טכני",
+        "preview": "זוהו 3 שרשראות הפניות..."
+      }
+    },
+    "timestamps": {
+      "twoMinAgo": "לפני 2 דקות",
+      "oneHourAgo": "לפני שעה",
+      "threeHoursAgo": "לפני 3 שעות",
+      "yesterday": "אתמול"
+    },
+    "aiResponses": {
+      "processing": "מעבד את הבקשה שלך... אנתח את הנתונים ואחזור אליך בקרוב."
+    },
+    "successMessages": {
+      "analysisStarted": "הניתוח החל בהצלחה"
+    },
+    "quickActionResponses": {
+      "generateContent": "אעזור לך ליצור תוכן. על איזה נושא תרצה שאכתוב? אני יכול ליצור פוסטים לבלוג, תיאורי מוצרים או תוכן מטא.",
+      "quickSeoAudit": "מתחיל ביקורת SEO מהירה... אנתח את ה-SEO הטכני של האתר, אופטימיזציית תוכן ומדדי ביצועים.",
+      "createBrief": "בוא ניצור תקציר תוכן. מהי מילת המפתח או הנושא העיקרי שאתה רוצה למקד?",
+      "analyticsReport": "מייצר דוח אנליטיקס... אאסוף את נתוני התנועה, דירוגי מילות המפתח ומדדי ההמרה שלך.",
+      "default": "איך אני יכול לעזור לך בזה?"
+    }
+  },
+  "errors": {
+    "generic": "משהו השתבש. אנא נסה שוב.",
+    "notFound": "הדף לא נמצא",
+    "unauthorized": "אינך מורשה לגשת לדף זה",
+    "networkError": "שגיאת רשת. אנא בדוק את החיבור שלך.",
+    "permissionDenied": "אין לך הרשאה לגשת לדף זה",
+    "permissionDeniedDescription": "צור קשר עם מנהל החשבון שלך אם אתה מאמין שצריכה להיות לך גישה.",
+    "goToDashboard": "עבור ללוח הבקרה"
+  },
+  "time": {
+    "hoursAgo": "לפני {count} שעות",
+    "daysAgo": "לפני {count} ימים",
+    "minutesAgo": "לפני {count} דקות",
+    "justNow": "עכשיו",
+    "sun": "א׳",
+    "mon": "ב׳",
+    "tue": "ג׳",
+    "wed": "ד׳",
+    "thu": "ה׳",
+    "fri": "ו׳",
+    "sat": "ש׳",
+    "january": "ינואר",
+    "february": "פברואר",
+    "march": "מרץ",
+    "april": "אפריל",
+    "may": "מאי",
+    "june": "יוני",
+    "july": "יולי",
+    "august": "אוגוסט",
+    "september": "ספטמבר",
+    "october": "אוקטובר",
+    "november": "נובמבר",
+    "december": "דצמבר"
+  },
+  "aiWizard": {
+    "title": "אשף תוכן AI",
+    "subtitle": "צור תוכן מונע AI בדקות",
+    "generateContent": "צור תוכן",
+    "steps": {
+      "topic": "נושא",
+      "preferences": "העדפות",
+      "scheduling": "תזמון",
+      "review": "סקירה"
+    },
+    "step1": {
+      "title": "על מה תרצה לכתוב?",
+      "description": "ספר לנו על מה אתה רוצה לכתוב",
+      "topicLabel": "נושא או כותרת ראשית",
+      "topicPlaceholder": "לדוגמה: מדריך מקיף לטיפול בג׳ינס וינטג׳",
+      "keywordsLabel": "מילות מפתח",
+      "keywordsPlaceholder": "לדוגמה: ג׳ינס וינטג׳, טיפול בג׳ינס, איך לכבס ג׳ינס וינטג׳",
+      "keywordsHint": "💡 טיפ: כלול 3-5 מילות מפתח רלוונטיות לאופטימיזציה מיטבית",
+      "audienceLabel": "קהל יעד",
+      "audiencePlaceholder": "לדוגמה: חובבי אופנת וינטג׳, אספנים"
+    },
+    "step2": {
+      "title": "העדפות תוכן",
+      "description": "התאם אישית את העדפות התוכן שלך",
+      "contentTypeLabel": "סוג תוכן",
+      "toneLabel": "טון כתיבה",
+      "lengthLabel": "אורך תוכן"
+    },
+    "step3": {
+      "title": "לוח זמנים לפרסום",
+      "description": "מתי יש לפרסם תוכן זה?",
+      "publishDateLabel": "תאריך פרסום",
+      "publishDateHint": "השאר ריק כדי לשמור כטיוטה",
+      "aiImagesLabel": "צור תמונות AI",
+      "aiImagesDesc": "כלול תמונות רלוונטיות בתוכן שלך",
+      "seoLabel": "אופטימיזציית SEO",
+      "seoDesc": "בצע אופטימיזציה למנועי חיפוש באופן אוטומטי",
+      "autoPublishLabel": "פרסום אוטומטי",
+      "autoPublishDesc": "פרסם אוטומטית כשמוכן"
+    },
+    "step4": {
+      "title": "סקירה והשקה",
+      "description": "אשר את ההגדרות והתחל ליצור",
+      "contentDetails": "פרטי תוכן",
+      "writingStyle": "סגנון כתיבה",
+      "publishingOptions": "אפשרויות פרסום",
+      "topicLabel": "נושא:",
+      "keywordsLabel": "מילות מפתח:",
+      "audienceLabel": "קהל יעד:",
+      "typeLabel": "סוג:",
+      "toneLabel": "טון:",
+      "lengthLabel": "אורך:",
+      "publishDateLabel": "תאריך פרסום:",
+      "notSpecified": "לא צוין",
+      "saveAsDraft": "שמור כטיוטה",
+      "aiImages": "תמונות AI",
+      "seoOptimization": "אופטימיזציית SEO",
+      "autoPublish": "פרסום אוטומטי"
+    },
+    "contentTypes": {
+      "blogPost": "פוסט בלוג",
+      "blogPostDesc": "מאמר ארוך ממוטב ל-SEO",
+      "productPage": "דף מוצר",
+      "productPageDesc": "תיאור מוצר למסחר אלקטרוני",
+      "landingPage": "דף נחיתה",
+      "landingPageDesc": "דף נחיתה ממוקד המרות",
+      "socialMedia": "מדיה חברתית",
+      "socialMediaDesc": "תוכן קצר לרשתות חברתיות"
+    },
+    "tones": {
+      "professional": "מקצועי",
+      "casual": "לא רשמי",
+      "friendly": "ידידותי",
+      "authoritative": "סמכותי",
+      "conversational": "שיחתי"
+    },
+    "lengths": {
+      "short": "קצר",
+      "shortWords": "300-500 מילים",
+      "medium": "בינוני",
+      "mediumWords": "800-1,200 מילים",
+      "long": "ארוך",
+      "longWords": "1,500-2,500 מילים"
+    }
+  },
+  "interviewWizard": {
+    "title": "אשף ראיון האתר",
+    "questionProgress": "שאלה {current} מתוך {total}",
+    "interviewComplete": "הראיון הושלם!",
+    "creatingStrategy": "יוצר את אסטרטגיית ה-SEO המותאמת אישית שלך...",
+    "inputPlaceholder": "הקלד את תשובתך...",
+    "seoScore": "ציון SEO",
+    "placeholders": {
+      "enterKeyword": "הכנס מילת מפתח ולחץ Enter",
+      "enterCompetitorUrl": "הכנס כתובת אתר מתחרה ולחץ Enter"
+    },
+    "actions": {
+      "retry": "נסה שוב",
+      "edit": "ערוך",
+      "saveAndSend": "שמור ושלח"
+    },
+    "messages": {
+      "analyzing": "מנתח את האתר שלך... זה עשוי לקחת רגע.",
+      "crawlComplete": "ניתחתי את האתר שלך! הנה מה שמצאתי:",
+      "crawlError": "לא הצלחתי לגשת לאתר שלך. אנא בדוק את הכתובת ונסה שוב.",
+      "foundKeywords": "מצאתי {count} הצעות למילות מפתח בהתבסס על תוכן האתר שלך. בחר את אלה שאתה רוצה למקד:",
+      "analyzingCompetitors": "מנתח את המתחרים שלך...",
+      "analyzingStyle": "מנתח את סגנון התוכן שלך...",
+      "recommendedStyle": "מומלץ: {style}",
+      "detectingPlatform": "מזהה את הפלטפורמה של האתר שלך...",
+      "detectedPlatform": "זוהה: {platform}",
+      "generatingKeywords": "מייצר הצעות למילות מפתח...",
+      "noKeywordSuggestions": "אין הצעות למילות מפתח זמינות. אנא נסה שוב.",
+      "fetchingArticles": "מביא מאמרים מהאתר שלך...",
+      "noArticlesFound": "לא נמצאו מאמרים באתר שלך. ניתן לדלג על שלב זה.",
+      "untitledArticle": "מאמר ללא כותרת",
+      "findingCompetitors": "מחפש מתחרים בגוגל על בסיס מילות המפתח שבחרת...",
+      "foundCompetitors": "מצאתי {count} מתחרים. בחר את אלה שרלוונטיים לעסק שלך:",
+      "noCompetitorsFound": "לא נמצאו מתחרים. ניתן להוסיף בעצמך או לדלג על שלב זה.",
+      "manuallyAdded": "נוסף ידנית",
+      "platformFromCrawl": "זיהינו שהאתר שלך בנוי על {platform}. האם זה נכון?",
+      "languageDetected": "זיהינו שהתוכן שלך הוא ב{language}.",
+      "internalLinksDefault": "על בסיס המאמרים שלך, אנו ממליצים על {count} קישורים פנימיים לכל 1000 מילים.",
+      "analyzingInternalLinks": "מנתח קישורים פנימיים במאמרים שלך...",
+      "fetchingBlogPosts": "מביא את המאמרים האחרונים מהבלוג שלך..."
+    },
+    "questions": {
+      "welcome": "👋 שלום! אני סוכן ה-AI Ghost שלך. אעזור לך ליצור פרופיל SEO מקיף לאתר שלך. בוא נתחיל!",
+      "websiteUrl": "מה כתובת האתר שלך?",
+      "businessType": "איזה סוג עסק אתה מנהל?",
+      "primaryProducts": "מהם המוצרים או השירותים העיקריים שלך? תאר מה אתה מציע ללקוחות שלך.",
+      "targetAudience": "מיהו קהל היעד שלך? ספר לי על הדמוגרפיה, התחומי עניין וההתנהגויות שלהם.",
+      "mainKeywords": "מהן מילות המפתח העיקריות שאתה רוצה לדרג בהן? רשום 5-10 מילות מפתח עיקריות הקשורות לעסק שלך.",
+      "competitors": "מי המתחרים העיקריים שלך? אנא ספק 3-5 כתובות אתרים של מתחרים.",
+      "targetRegions": "לאילו אזורים גיאוגרפיים אתה מכוון?",
+      "seoGoals": "מהן מטרות ה-SEO העיקריות שלך?",
+      "currentTraffic": "מהי התנועה האורגנית החודשית הנוכחית שלך? (מספר משוער מספיק)",
+      "contentTypes": "אילו סוגי תוכן אתה מפרסם כיום?",
+      "publishingFrequency": "באיזו תדירות אתה מפרסם תוכן חדש?",
+      "toneVoice": "מהו הטון והקול של המותג שלך? (למשל, מקצועי, נינוח, ידידותי, סמכותי וכו')",
+      "cmsplatform": "באיזו פלטפורמת CMS אתה משתמש? (למשל, WordPress, Shopify, Wix, מותאם אישית וכו')",
+      "hostingProvider": "מי ספק האחסון שלך? (למשל, AWS, GoDaddy, Bluehost וכו')",
+      "monthlyBudget": "מהי תקציב ה-SEO החודשי שלך?",
+      "hasExistingContent": "האם יש לך תוכן קיים באתר?",
+      "brandVoice": "בוא נגדיר את קול המותג שלך. על סמך העסק שלך, אציע טון וסגנון לתוכן שלך.",
+      "reviewSummary": "הנה סיכום התשובות שלך. אנא בדוק ובצע שינויים במידת הצורך.",
+      "complete": "🎉 מצוין! אספתי את כל המידע שאני צריך. אסטרטגיית ה-SEO המותאמת אישית שלך מוכנה!"
+    },
+    "ai": {
+      "thinking": "Ghost חושב...",
+      "typing": "Ghost מקליד...",
+      "error": "מצטער, נתקלתי בשגיאה. אנא נסה שוב.",
+      "chatMode": "מצב צ'אט",
+      "formMode": "מצב טופס",
+      "switchToChat": "עבור למצב צ'אט",
+      "switchToForm": "עבור למצב טופס",
+      "sendMessage": "שלח הודעה",
+      "messagePlaceholder": "הקלד הודעה ל-Ghost AI...",
+      "suggestionsTitle": "הצעות AI",
+      "acceptSuggestion": "קבל",
+      "rejectSuggestion": "דחה",
+      "regenerateSuggestion": "צור מחדש",
+      "askQuestion": "שאל את Ghost AI",
+      "noSuggestions": "אין הצעות זמינות"
+    },
+    "buttons": {
+      "next": "הבא",
+      "back": "חזור",
+      "skip": "דלג",
+      "submit": "שלח",
+      "confirm": "אשר",
+      "cancel": "בטל",
+      "finish": "סיים ראיון",
+      "startOver": "התחל מחדש",
+      "saveProgress": "שמור התקדמות",
+      "continue": "המשך"
+    },
+    "progress": {
+      "title": "התקדמות הראיון",
+      "complete": "הושלם",
+      "inProgress": "בתהליך",
+      "notStarted": "לא התחיל",
+      "questionsAnswered": "{answered} מתוך {total} שאלות נענו",
+      "percentComplete": "{percent}% הושלם"
+    },
+    "status": {
+      "loading": "טוען ראיון...",
+      "saving": "שומר תשובה...",
+      "submitting": "שולח...",
+      "error": "אירעה שגיאה",
+      "success": "התשובה נשמרה",
+      "validationError": "אנא תקן את השגיאות לפני המשך"
+    },
+    "hints": {
+      "pressEnterToAdd": "לחץ Enter להוספה"
+    },
+    "useSuggestion": "השתמש בזה",
+    "validation": {
+      "required": "שדה זה הוא חובה",
+      "minLength": "נדרשים לפחות {min} תווים",
+      "maxLength": "מותרים עד {max} תווים",
+      "pattern": "פורמט לא חוקי",
+      "email": "אנא הזן כתובת אימייל חוקית",
+      "url": "אנא הזן כתובת URL חוקית",
+      "number": "אנא הזן מספר חוקי",
+      "minValue": "הערך חייב להיות לפחות {min}",
+      "maxValue": "הערך חייב להיות לכל היותר {max}",
+      "minSelections": "אנא בחר לפחות {min} אפשרויות",
+      "maxSelections": "אנא בחר עד {max} אפשרויות"
+    },
+    "questionTypes": {
+      "greeting": {
+        "continue": "בוא נתחיל"
+      },
+      "input": {
+        "placeholder": "הזן את תשובתך..."
+      },
+      "confirmation": {
+        "yes": "כן",
+        "no": "לא",
+        "confirm": "אשר",
+        "deny": "דחה"
+      },
+      "selection": {
+        "placeholder": "בחר אפשרות",
+        "searchPlaceholder": "חפש אפשרויות...",
+        "noResults": "לא נמצאו תוצאות"
+      },
+      "multiSelection": {
+        "placeholder": "בחר אפשרויות",
+        "selectAll": "בחר הכל",
+        "clearAll": "נקה הכל",
+        "selected": "{count} נבחרו"
+      },
+      "slider": {
+        "min": "מינימום",
+        "max": "מקסימום"
+      },
+      "fileUpload": {
+        "dragDrop": "גרור ושחרר קבצים כאן",
+        "or": "או",
+        "browse": "עיין בקבצים",
+        "maxSize": "גודל קובץ מקסימלי: {size}MB",
+        "acceptedTypes": "סוגים מותרים: {types}",
+        "uploading": "מעלה...",
+        "uploadError": "ההעלאה נכשלה",
+        "remove": "הסר"
+      },
+      "dynamic": {
+        "loading": "טוען אפשרויות...",
+        "noData": "אין נתונים זמינים",
+        "refresh": "רענן"
+      },
+      "editableData": {
+        "edit": "ערוך",
+        "save": "שמור",
+        "cancel": "בטל",
+        "reset": "אפס למקור"
+      },
+      "aiSuggestion": {
+        "generating": "מייצר הצעות...",
+        "accept": "קבל הצעה",
+        "modify": "שנה",
+        "regenerate": "צור הצעה חדשה",
+        "useOwn": "השתמש בתשובה שלי"
+      }
+    }
+  },
+  "registration": {
+    "steps": {
+      "account": "חשבון",
+      "verify": "אימות",
+      "organization": "ארגון",
+      "interview": "ראיון",
+      "plan": "תוכנית",
+      "payment": "תשלום"
+    },
+    "progressSteps": {
+      "goToStep": "עבור לשלב"
+    },
+    "navigation": {
+      "previous": "הקודם",
+      "next": "הבא"
+    },
+    "otp": {
+      "chooseMethod": "כיצד תרצה לאמת את חשבונך?",
+      "viaSms": "באמצעות SMS",
+      "viaEmail": "באמצעות אימייל",
+      "codeSentToPhone": "שלחנו קוד אימות לטלפון שלך",
+      "codeSentToEmail": "שלחנו קוד אימות לאימייל שלך",
+      "enterCode": "הזן את הקוד בן 4 הספרות",
+      "verify": "אמת",
+      "resendCode": "שלח קוד מחדש",
+      "resendIn": "שליחה מחדש בעוד",
+      "seconds": "שניות",
+      "verificationSuccess": "האימות הצליח!",
+      "verificationSuccessMessage": "החשבון שלך אומת. בוא נמשיך להגדיר את הפרופיל שלך.",
+      "verificationFailed": "קוד שגוי",
+      "verificationFailedMessage": "הקוד שהזנת אינו נכון. אנא נסה שוב.",
+      "tryAgain": "נסה שוב",
+      "continue": "המשך",
+      "verifying": "מאמת...",
+      "devModeCode": "מצב פיתוח: הקוד שלך הוא",
+      "verificationError": "האימות נכשל. אנא נסה שוב.",
+      "failedToVerify": "נכשל באימות הקוד. אנא נסה שוב.",
+      "failedToResend": "נכשל בשליחת הקוד מחדש. אנא נסה שוב."
+    },
+    "accountSetup": {
+      "title": "הגדר את הארגון שלך",
+      "description": "צור את הארגון שלך כדי להתחיל עם Ghost Post.",
+      "nameLabel": "שם הארגון",
+      "namePlaceholder": "הזן את שם הארגון",
+      "slugLabel": "כתובת URL של הארגון",
+      "slugPlaceholder": "הארגון-שלך",
+      "slugPrefix": "ghostpost.com/",
+      "slugHint": "זו תהיה הכתובת הייחודית שלך. רק אותיות קטנות באנגלית, מספרים ומקפים מותרים.",
+      "slugAvailable": "זמין!",
+      "slugTooShort": "הכתובת חייבת להיות לפחות 3 תווים",
+      "slugTooLong": "הכתובת חייבת להיות לכל היותר 50 תווים",
+      "slugInvalidFormat": "הכתובת חייבת להכיל רק אותיות קטנות באנגלית, מספרים ומקפים",
+      "slugTaken": "כתובת URL זו כבר תפוסה",
+      "checkError": "שגיאה בבדיקת זמינות",
+      "nameRequired": "שם הארגון נדרש",
+      "slugRequired": "כתובת URL נדרשת",
+      "slugNotAvailable": "אנא בחר כתובת זמינה",
+      "createError": "נכשל ביצירת הארגון",
+      "creating": "יוצר...",
+      "continue": "המשך"
+    },
+    "interview": {
+      "title": "ספר לנו על העסק שלך",
+      "subtitle": "עזור לנו להתאים אישית את אסטרטגיית ה-SEO שלך",
+      "greeting": "ברוכים הבאים ל-GhostPost! אני העוזר ה-AI שלך ואעזור לך להקים את החשבון. בואו נלמד על העסק שלך כדי ליצור את אסטרטגיית ה-SEO המושלמת.",
+      "startButton": "התחל הגדרה",
+      "questions": {
+        "websiteUrl": "מה כתובת האתר שלך?",
+        "contentLanguage": "באיזו שפה התוכן שלך צריך להיכתב?",
+        "businessConfirmation": "האם המידע הזה נראה נכון?",
+        "keywords": "בחר מילות מפתח רלוונטיות לעסק שלך",
+        "targetLocation": "היכן אתה רוצה שהאתר שלך יימצא?",
+        "competitors": "בחר מתחרים רלוונטיים לעסק שלך",
+        "fetchArticles": "מביא את המאמרים האחרונים מהבלוג שלך...",
+        "writingStyle": "איזה סגנון כתיבה מתאים למותג שלך?",
+        "websitePlatform": "על איזו פלטפורמה האתר שלך בנוי?",
+        "internalLinksCount": "כמה קישורים פנימיים לכל 1000 מילים?",
+        "favoriteArticles": "בחר עד 3 מאמרים שמייצגים את סגנון התוכן המועדף עליך"
+      },
+      "writingStyles": {
+        "professional": "מקצועי",
+        "casual": "נינוח ולא פורמלי",
+        "technical": "טכני ומפורט",
+        "friendly": "חם וידידותי",
+        "authoritative": "סמכותי ומומחה",
+        "conversational": "שיחתי"
+      },
+      "platforms": {
+        "wordpress": "וורדפרס",
+        "shopify": "שופיפיי",
+        "wix": "וויקס",
+        "squarespace": "סקוורספייס",
+        "webflow": "ווב פלואו",
+        "magento": "מג'נטו",
+        "drupal": "דרופל",
+        "joomla": "ג'ומלה",
+        "custom": "בנייה מותאמת",
+        "other": "אחר"
+      },
+      "intentions": {
+        "seo": "שיפור דירוג SEO",
+        "blog": "ניהול בלוג",
+        "traffic": "הגדלת תנועה לאתר",
+        "branding": "בניית מודעות למותג",
+        "leadGen": "יצירת לידים",
+        "authority": "ביסוס סמכות בתעשייה",
+        "socialMedia": "יצירת תוכן לרשתות חברתיות"
+      },
+      "errors": {
+        "invalidUrl": "אנא הזן כתובת אתר תקינה",
+        "required": "שדה זה הוא חובה",
+        "minSelections": "אנא בחר לפחות {min} אפשרויות",
+        "maxSelections": "ניתן לבחור עד {max} אפשרויות"
+      },
+      "actions": {
+        "next": "הבא",
+        "back": "חזור",
+        "skip": "דלג",
+        "finish": "סיום הגדרה",
+        "confirm": "אישור",
+        "edit": "עריכה"
+      },
+      "fields": {
+        "businessName": "שם העסק",
+        "phone": "מספר טלפון",
+        "email": "אימייל",
+        "about": "אודות",
+        "category": "קטגוריית עסק",
+        "address": "כתובת"
+      },
+      "placeholders": {
+        "websiteUrl": "https://www.yourwebsite.com",
+        "competitors": "הזן כתובות או שמות מתחרים"
+      },
+      "hints": {
+        "languageDetected": "זיהינו את שפת האתר שלך כ-{language}",
+        "platformDetected": "זיהינו את הפלטפורמה שלך כ-{platform}",
+        "keywordsFromCrawl": "מילות מפתח אלו הוצעו על בסיס תוכן האתר שלך",
+        "competitorsFromKeywords": "מתחרים אלו נמצאו על בסיס מילות המפתח שבחרת",
+        "writingStyleAnalyzed": "ניתחנו את התוכן הקיים שלך ומציעים: {style}",
+        "internalLinksRecommendation": "על בסיס הפוסטים הקיימים שלך, אנו ממליצים על {count} קישורים פנימיים לכל 1000 מילים. לפי SEO מיטבי: 2-4 קישורים לכל 1000 מילים.",
+        "selectFavoriteArticles": "בחר עד 3 מאמרים שמייצגים בצורה הטובה ביותר את סגנון התוכן שלך"
+      }
+    },
+    "languages": {
+      "english": "אנגלית",
+      "hebrew": "עברית",
+      "spanish": "ספרדית",
+      "french": "צרפתית",
+      "german": "גרמנית",
+      "portuguese": "פורטוגזית",
+      "italian": "איטלקית",
+      "russian": "רוסית",
+      "arabic": "ערבית",
+      "chinese": "סינית",
+      "japanese": "יפנית"
+    },
+    "countries": {
+      "israel": "ישראל",
+      "unitedStates": "ארצות הברית",
+      "unitedKingdom": "בריטניה",
+      "germany": "גרמניה",
+      "france": "צרפת",
+      "spain": "ספרד",
+      "italy": "איטליה",
+      "netherlands": "הולנד",
+      "australia": "אוסטרליה",
+      "canada": "קנדה",
+      "brazil": "ברזיל",
+      "mexico": "מקסיקו",
+      "india": "הודו",
+      "japan": "יפן",
+      "southKorea": "דרום קוריאה",
+      "global": "גלובלי (ללא מיקוד גאוגרפי)"
+    },
+    "plans": {
+      "title": "בחר את התוכנית שלך",
+      "subtitle": "בחר את התוכנית שמתאימה לצרכים שלך",
+      "selectPlan": "בחר תוכנית",
+      "selected": "נבחר",
+      "popular": "הכי פופולרי",
+      "basic": {
+        "name": "בסיסי",
+        "price": "₪99",
+        "period": "/לחודש",
+        "description": "מושלם לעסקים קטנים",
+        "features": {
+          "0": "אתר אחד",
+          "1": "ביקורת SEO בסיסית",
+          "2": "מעקב מילות מפתח (50)",
+          "3": "דוחות חודשיים",
+          "4": "תמיכה באימייל"
+        }
+      },
+      "pro": {
+        "name": "מקצועי",
+        "price": "₪279",
+        "period": "/לחודש",
+        "description": "לעסקים צומחים",
+        "features": {
+          "0": "3 אתרים",
+          "1": "ביקורת SEO מתקדמת",
+          "2": "מעקב מילות מפתח (200)",
+          "3": "עוזר תוכן AI",
+          "4": "דוחות שבועיים",
+          "5": "תמיכה בעדיפות"
+        }
+      },
+      "enterprise": {
+        "name": "ארגוני",
+        "price": "₪699",
+        "period": "/לחודש",
+        "description": "לארגונים גדולים",
+        "features": {
+          "0": "אתרים ללא הגבלה",
+          "1": "חבילת SEO מלאה",
+          "2": "מילות מפתח ללא הגבלה",
+          "3": "יצירת תוכן AI",
+          "4": "דוחות בזמן אמת",
+          "5": "מנהל חשבון ייעודי",
+          "6": "אינטגרציות מותאמות"
+        }
+      },
+      "continueToPay": "המשך לתשלום"
+    },
+    "payment": {
+      "title": "פרטי תשלום",
+      "subtitle": "השלם את המנוי שלך",
+      "cardNumber": "מספר כרטיס",
+      "cardNumberPlaceholder": "1234 5678 9012 3456",
+      "expiry": "תאריך תפוגה",
+      "expiryPlaceholder": "MM/YY",
+      "cvv": "CVV",
+      "cvvPlaceholder": "123",
+      "cardholderName": "שם בעל הכרטיס",
+      "cardholderNamePlaceholder": "ישראל ישראלי",
+      "payNow": "שלם עכשיו",
+      "processing": "מעבד...",
+      "securePayment": "התשלום שלך מאובטח ומוצפן",
+      "orderSummary": "סיכום הזמנה",
+      "plan": "תוכנית",
+      "billingCycle": "חודשי",
+      "total": "סה״כ"
+    },
+    "success": {
+      "successTitle": "התשלום הצליח!",
+      "successMessage": "ברוכים הבאים ל-Ghost Post! החשבון שלך פעיל ומוכן לשימוש.",
+      "yourPlan": "התוכנית שלך",
+      "goToDashboard": "עבור לדשבורד"
+    },
+    "errors": {
+      "registrationFailed": "ההרשמה נכשלה. אנא נסה שוב.",
+      "failedToSendOtp": "נכשל בשליחת קוד האימות. אנא נסה שוב.",
+      "missingRequiredFields": "אנא מלא את כל השדות הנדרשים",
+      "mustAgreeToTerms": "עליך להסכים לתנאי השימוש",
+      "invalidEmailFormat": "אנא הזן כתובת אימייל תקינה",
+      "emailAlreadyExists": "משתמש עם אימייל זה כבר קיים",
+      "registrationError": "אירעה שגיאה במהלך ההרשמה. אנא נסה שוב.",
+      "missingUserIdOrMethod": "מידע משתמש חסר. אנא נסה שוב.",
+      "invalidOtpMethod": "שיטת אימות לא תקינה. אנא השתמש ב-SMS או אימייל.",
+      "userNotFound": "משתמש לא נמצא. אנא נסה שוב.",
+      "failedToSendOtpError": "נכשל בשליחת קוד האימות. אנא נסה שוב.",
+      "missingUserIdOrCode": "מידע אימות חסר. אנא נסה שוב.",
+      "noOtpFound": "לא נמצא קוד אימות. אנא בקש קוד חדש.",
+      "codeAlreadyUsed": "קוד זה כבר נוצל. אנא בקש קוד חדש.",
+      "codeExpired": "קוד האימות פג תוקף. אנא בקש קוד חדש.",
+      "tooManyAttempts": "יותר מדי ניסיונות כושלים. אנא בקש קוד חדש.",
+      "invalidCode": "קוד שגוי. אנא נסה שוב.",
+      "failedToVerifyOtp": "נכשל באימות הקוד. אנא נסה שוב.",
+      "slugRequired": "כתובת URL של הארגון נדרשת",
+      "invalidSlugFormat": "הכתובת חייבת להכיל רק אותיות קטנות באנגלית, מספרים ומקפים",
+      "slugTooShort": "הכתובת חייבת להיות לפחות 3 תווים",
+      "slugTooLong": "הכתובת חייבת להיות לכל היותר 50 תווים",
+      "slugTaken": "כתובת URL זו כבר תפוסה",
+      "failedToCheckSlug": "נכשל בבדיקת זמינות הכתובת. אנא נסה שוב.",
+      "missingAccountFields": "שדות חובה חסרים. אנא מלא את כל השדות.",
+      "failedToCreateAccount": "נכשל ביצירת הארגון. אנא נסה שוב.",
+      "emailPasswordRequired": "אימייל וסיסמה נדרשים",
+      "invalidCredentials": "אימייל או סיסמה שגויים",
+      "accountDeactivated": "החשבון שלך הושבת. אנא פנה לתמיכה.",
+      "useOriginalSignIn": "אנא התחבר באמצעות שיטת ההתחברות המקורית שלך",
+      "loginError": "אירעה שגיאה במהלך ההתחברות. אנא נסה שוב."
+    }
+  },
+  "admin": {
+    "title": "פאנל ניהול אדמין",
+    "subtitle": "ניהול והגדרות הפלטפורמה",
+    "accounts": {
+      "title": "חשבונות פלטפורמה",
+      "subtitle": "ניהול כל החשבונות הרשומים בפלטפורמה",
+      "searchPlaceholder": "חיפוש חשבונות...",
+      "addAccount": "הוספת חשבון",
+      "columns": {
+        "name": "שם החשבון",
+        "owner": "בעלים",
+        "plan": "תוכנית",
+        "status": "סטטוס",
+        "createdAt": "נוצר",
+        "actions": "פעולות"
+      },
+      "statuses": {
+        "active": "פעיל",
+        "inactive": "לא פעיל",
+        "suspended": "מושעה",
+        "pending": "ממתין"
+      },
+      "actions": {
+        "view": "צפה בפרטים",
+        "edit": "עריכה",
+        "suspend": "השעה",
+        "activate": "הפעל",
+        "delete": "מחק"
+      },
+      "form": {
+        "name": "שם החשבון",
+        "slug": "Slug",
+        "isActive": "פעיל",
+        "ownerEmail": "אימייל בעלים",
+        "ownerEmailPlaceholder": "הזן אימייל בעלים (אופציונלי)",
+        "usersCount": "מספר משתמשים",
+        "logo": "כתובת לוגו",
+        "website": "אתר אינטרנט",
+        "industry": "תעשייה",
+        "timezone": "אזור זמן",
+        "defaultLanguage": "שפת ברירת מחדל",
+        "billingEmail": "אימייל לחיוב",
+        "generalEmail": "אימייל כללי"
+      },
+      "deleteConfirm": {
+        "title": "מחיקת חשבון",
+        "message": "האם אתה בטוח שברצונך למחוק את {name}? פעולה זו תמחק את כל הנתונים הקשורים ולא ניתנת לביטול."
+      },
+      "noAccounts": "לא נמצאו חשבונות",
+      "noPlan": "ללא תוכנית",
+      "totalAccounts": "סה״כ חשבונות"
+    },
+    "users": {
+      "title": "משתמשי פלטפורמה",
+      "subtitle": "ניהול כל המשתמשים בפלטפורמה",
+      "searchPlaceholder": "חיפוש משתמשים...",
+      "addUser": "הוספת משתמש",
+      "columns": {
+        "name": "שם",
+        "email": "אימייל",
+        "accounts": "חשבונות",
+        "role": "תפקיד",
+        "status": "סטטוס",
+        "lastLogin": "התחברות אחרונה",
+        "actions": "פעולות"
+      },
+      "roles": {
+        "superAdmin": "סופר אדמין",
+        "owner": "בעלים",
+        "admin": "מנהל",
+        "editor": "עורך",
+        "viewer": "צופה"
+      },
+      "statuses": {
+        "active": "פעיל",
+        "inactive": "לא פעיל",
+        "suspended": "מושעה"
+      },
+      "actions": {
+        "view": "צפה בפרופיל",
+        "edit": "עריכה",
+        "impersonate": "התחזות",
+        "suspend": "השעה",
+        "activate": "הפעל",
+        "delete": "מחק"
+      },
+      "form": {
+        "firstName": "שם פרטי",
+        "lastName": "שם משפחה",
+        "email": "אימייל",
+        "password": "סיסמה",
+        "role": "תפקיד",
+        "superAdmin": "סופר אדמין",
+        "phoneNumber": "מספר טלפון",
+        "image": "כתובת תמונת פרופיל",
+        "primaryAuthMethod": "שיטת אימות ראשית",
+        "selectedLanguage": "שפה מועדפת",
+        "preferredCurrency": "מטבע מועדף",
+        "registrationStep": "שלב הרשמה",
+        "emailVerified": "אימייל מאומת",
+        "phoneVerified": "טלפון מאומת",
+        "consentGiven": "הסכמה ניתנה",
+        "isActive": "פעיל",
+        "createdAt": "נוצר בתאריך",
+        "linkToAccount": "שייך לחשבון",
+        "noAccount": "ללא חשבון (משתמש עצמאי)"
+      },
+      "deleteConfirm": {
+        "title": "מחיקת משתמש",
+        "message": "האם אתה בטוח שברצונך למחוק את {name}? פעולה זו לא ניתנת לביטול."
+      },
+      "noUsers": "לא נמצאו משתמשים",
+      "totalUsers": "סה״כ משתמשים"
+    },
+    "subscriptions": {
+      "title": "מנויים",
+      "subtitle": "ניהול מנויים וחיובים בפלטפורמה",
+      "searchPlaceholder": "חיפוש מנויים...",
+      "columns": {
+        "account": "חשבון",
+        "plan": "תוכנית",
+        "status": "סטטוס",
+        "billing": "מחזור חיוב",
+        "amount": "סכום",
+        "nextBilling": "חיוב הבא",
+        "actions": "פעולות"
+      },
+      "statuses": {
+        "active": "פעיל",
+        "canceled": "בוטל",
+        "pastDue": "באיחור תשלום",
+        "trialing": "תקופת ניסיון"
+      },
+      "billingCycles": {
+        "monthly": "חודשי",
+        "yearly": "שנתי",
+        "perMonth": "/חודש",
+        "perYear": "/שנה"
+      },
+      "actions": {
+        "view": "צפה בפרטים",
+        "modify": "שנה תוכנית",
+        "cancel": "ביטול מנוי",
+        "refund": "החזר כספי"
+      },
+      "noSubscriptions": "לא נמצאו מנויים",
+      "totalSubscriptions": "סה״כ מנויים",
+      "mrr": "הכנסה חודשית חוזרת",
+      "arr": "הכנסה שנתית חוזרת",
+      "viewTitle": "פרטי מנוי",
+      "periodStart": "תחילת תקופה",
+      "periodEnd": "סיום תקופה",
+      "cancelScheduled": "ביטול מתוכנן",
+      "recentPayments": "תשלומים אחרונים",
+      "changePlan": "שינוי תוכנית",
+      "changePlanDescription": "שינוי תוכנית מנוי עבור {account}",
+      "selectNewPlan": "בחירת תוכנית חדשה",
+      "selectPlan": "בחר תוכנית...",
+      "confirmCancel": "ביטול מנוי",
+      "confirmReactivate": "הפעלה מחדש של מנוי",
+      "cancelWarning": "מנוי זה יבוטל בסוף תקופת החיוב הנוכחית.",
+      "reactivateInfo": "פעולה זו תפעיל מחדש את המנוי ותתחיל תקופת חיוב חדשה.",
+      "accountLabel": "חשבון",
+      "paymentStatuses": {
+        "succeeded": "הצליח",
+        "pending": "ממתין",
+        "failed": "נכשל",
+        "refunded": "הוחזר",
+        "canceled": "בוטל"
+      }
+    },
+    "plans": {
+      "title": "הגדרות תוכניות",
+      "subtitle": "הגדרת תוכניות מנוי ותמחור",
+      "addPlan": "הוספת תוכנית",
+      "searchPlaceholder": "חיפוש תוכניות...",
+      "columns": {
+        "name": "שם התוכנית",
+        "description": "תיאור",
+        "price": "מחיר",
+        "billing": "מחזור חיוב",
+        "features": "תכונות",
+        "subscribers": "מנויים",
+        "status": "סטטוס",
+        "actions": "פעולות"
+      },
+      "statuses": {
+        "active": "פעיל",
+        "inactive": "לא פעיל",
+        "archived": "בארכיון"
+      },
+      "actions": {
+        "edit": "ערוך תוכנית",
+        "duplicate": "שכפל",
+        "archive": "העבר לארכיון",
+        "delete": "מחק",
+        "translate": "תרגם"
+      },
+      "translations": {
+        "selectLanguage": "בחר שפה",
+        "original": "מקור",
+        "save": "שמור תרגום",
+        "deleteTranslation": "מחק תרגום",
+        "featuresPlaceholder": "תכונה אחת בכל שורה",
+        "featuresHint": "הזן תכונה אחת בכל שורה. שמור על אותו מספר וסדר תכונות כמו במקור."
+      },
+      "noPlans": "לא הוגדרו תוכניות",
+      "form": {
+        "monthly": "חודשי",
+        "yearly": "שנתי",
+        "yearlyPlaceholder": "השאר ריק למחיר × 10"
+      },
+      "planNames": {
+        "free": "חינם",
+        "starter": "התחלתי",
+        "professional": "מקצועי",
+        "enterprise": "ארגוני",
+        "basic": "בסיסי",
+        "pro": "פרו",
+        "premium": "פרמיום"
+      },
+      "planDescriptions": {
+        "free": "התחל עם תכונות בסיסיות",
+        "starter": "מושלם לעסקים קטנים",
+        "professional": "לצוותים וסוכנויות בצמיחה",
+        "enterprise": "פתרונות מותאמים לארגונים גדולים",
+        "basic": "תכונות חיוניות למתחילים",
+        "pro": "כלים מתקדמים למקצוענים",
+        "premium": "גישה מלאה לכל התכונות"
+      },
+      "features": {
+        "title": "תכונות התוכנית",
+        "add": "הוסף תכונה",
+        "remove": "הסר"
+      }
+    },
+    "interviewQuestions": {
+      "title": "שאלות ראיון",
+      "subtitle": "ניהול שאלות ראיון הרשמה",
+      "addQuestion": "הוספת שאלה",
+      "addCategory": "הוספת קטגוריה",
+      "searchPlaceholder": "חיפוש שאלות...",
+      "columns": {
+        "order": "סדר",
+        "question": "שאלה",
+        "type": "סוג",
+        "required": "חובה",
+        "category": "קטגוריה",
+        "actions": "פעולות"
+      },
+      "types": {
+        "text": "טקסט",
+        "textarea": "טקסט ארוך",
+        "select": "בחירה",
+        "multiselect": "בחירה מרובה",
+        "radio": "רדיו",
+        "checkbox": "תיבת סימון",
+        "scale": "סולם"
+      },
+      "actions": {
+        "edit": "ערוך שאלה",
+        "duplicate": "שכפל",
+        "moveUp": "הזז למעלה",
+        "moveDown": "הזז למטה",
+        "delete": "מחק"
+      },
+      "noQuestions": "לא הוגדרו שאלות",
+      "categories": {
+        "title": "קטגוריות",
+        "add": "הוסף קטגוריה",
+        "edit": "ערוך קטגוריה"
+      },
+      "categoryNames": {
+        "businessGoals": "מטרות עסקיות",
+        "targetAudience": "קהל יעד",
+        "contentStrategy": "אסטרטגיית תוכן",
+        "technicalSetup": "הגדרות טכניות"
+      },
+      "questions": {
+        "businessGoals": "מהן המטרות העסקיות העיקריות שלך ל-12 החודשים הקרובים?",
+        "industry": "באיזה תעשייה או נישה העסק שלך פועל?",
+        "targetAudience": "מי קהל היעד העיקרי שלך?",
+        "ageRange": "מהו טווח הגילאים של קהל היעד שלך?",
+        "publishFrequency": "באיזו תדירות אתה רוצה לפרסם תוכן?",
+        "contentTypes": "איזה סוגי תוכן אתה רוצה ליצור?",
+        "seoKnowledge": "דרג את הידע שלך ב-SEO (1-10)",
+        "websiteUrl": "מה כתובת האתר שלך?",
+        "targetLocation": "היכן אתה רוצה שהאתר שלך יימצא?"
+      },
+      "options": {
+        "industries": ["מסחר מקוון", "SaaS", "בריאות", "פיננסים", "חינוך", "נדל\"ן", "אחר"],
+        "ageRanges": ["18-24", "25-34", "35-44", "45-54", "55-64", "65+"],
+        "publishFrequencies": ["יומי", "שבועי", "דו-שבועי", "חודשי"],
+        "contentTypes": ["פוסטים לבלוג", "דפי נחיתה", "תיאורי מוצרים", "ניוזלטרים", "פוסטים לרשתות חברתיות"]
+      },
+      "form": {
+        "questionKey": "מפתח תרגום",
+        "placeholder": "טקסט מציין מקום",
+        "commaSeparated": "מופרדים בפסיקים"
+      }
+    },
+    "common": {
+      "search": "חיפוש",
+      "filter": "סינון",
+      "export": "ייצוא",
+      "import": "ייבוא",
+      "refresh": "רענון",
+      "loading": "טוען...",
+      "noResults": "לא נמצאו תוצאות",
+      "uncategorized": "ללא קטגוריה",
+      "optional": "אופציונלי",
+      "allCategories": "כל הקטגוריות",
+      "allTypes": "כל הסוגים",
+      "allStatus": "כל הסטטוסים",
+      "active": "פעיל",
+      "inactive": "לא פעיל",
+      "selectCategory": "בחר קטגוריה",
+      "confirmDelete": "האם אתה בטוח שברצונך למחוק פריט זה?",
+      "deleteWarning": "לא ניתן לבטל פעולה זו.",
+      "save": "שמור",
+      "saving": "שומר...",
+      "create": "צור",
+      "cancel": "ביטול",
+      "close": "סגור",
+      "edit": "עריכה",
+      "delete": "מחיקה",
+      "view": "צפייה",
+      "duplicate": "שכפל",
+      "test": "בדיקה",
+      "moveUp": "הזז למעלה",
+      "moveDown": "הזז למטה",
+      "rows": "שורות",
+      "results": "תוצאות",
+      "all": "הכל",
+      "actions": "פעולות",
+      "saved": "נשמר",
+      "saveFailed": "השמירה נכשלה",
+      "deleted": "נמחק",
+      "deleteFailed": "המחיקה נכשלה",
+      "error": "אירעה שגיאה",
+      "select": "בחר...",
+      "pagination": {
+        "showing": "מציג",
+        "to": "עד",
+        "of": "מתוך",
+        "items": {
+          "accounts": "חשבונות",
+          "users": "משתמשים",
+          "subscriptions": "מנויים"
+        }
+      },
+      "time": {
+        "justNow": "הרגע",
+        "hoursAgo": "לפני {hours} שעות",
+        "yesterday": "אתמול"
+      },
+      "features": "תכונות",
+      "options": "אפשרויות",
+      "more": "+{count} עוד",
+      "reactivate": "הפעל מחדש",
+      "trialEnds": "הניסיון מסתיים ב-{date}",
+      "canceledOn": "בוטל ב-{date}",
+      "processing": "מעבד...",
+      "yes": "כן",
+      "no": "לא"
+    },
+    "stats": {
+      "totalPlans": "סה״כ תוכניות",
+      "totalSubscribers": "סה״כ מנויים",
+      "avgPrice": "מחיר ממוצע",
+      "totalQuestions": "סה״כ שאלות",
+      "activeQuestions": "פעילות",
+      "inactiveQuestions": "לא פעילות",
+      "categories": "קטגוריות",
+      "required": "חובה",
+      "totalActions": "סה״כ פעולות",
+      "activeActions": "פעילות",
+      "inactiveActions": "לא פעילות",
+      "totalAccounts": "סה״כ חשבונות",
+      "activeAccounts": "פעילים",
+      "totalUsers": "סה״כ משתמשים",
+      "activeUsers": "פעילים"
+    },
+    "translations": {
+      "title": "תרגומים",
+      "subtitle": "ניהול שפות, מרחבי שמות ומפתחות תרגום",
+      "totalKeys": "סה״כ מפתחות",
+      "languages": "שפות",
+      "namespaces": "מרחבי שמות",
+      "namespace": "מרחב שמות",
+      "allNamespaces": "כל מרחבי השמות",
+      "filterKeys": "סינון מפתחות...",
+      "newKey": "מפתח חדש (למשל dashboard.welcome)",
+      "description": "תיאור",
+      "addKey": "הוסף מפתח",
+      "keyAdded": "המפתח נוסף",
+      "newLocale": "קוד שפה חדש (למשל he)",
+      "languageName": "שם השפה",
+      "fallback": "שפת גיבוי (למשל he,en)",
+      "addLanguage": "הוסף שפה",
+      "languageAdded": "השפה נוספה",
+      "showLanguages": "הצג שפות",
+      "deleteSelected": "מחק נבחרים",
+      "deleteKeys": "מחיקת מפתחות",
+      "deleteKeysConfirm": "למחוק את המפתחות הנבחרים ואת כל התרגומים שלהם?",
+      "key": "מפתח",
+      "editKey": "עריכת מפתח",
+      "noKeys": "לא נמצאו מפתחות",
+      "import": "ייבוא",
+      "importTitle": "ייבוא קובץ JSON של תרגומים",
+      "language": "שפה",
+      "jsonFile": "קובץ JSON",
+      "createMissing": "צור מפתחות חסרים",
+      "defaultNamespace": "מרחב שמות ברירת מחדל למפתחות חדשים",
+      "selectLanguage": "בחר שפה",
+      "selectNamespace": "בחר מרחב שמות",
+      "export": "ייצוא",
+      "exported": "הייצוא הצליח",
+      "rtl": "מימין לשמאל",
+      "file": "קובץ",
+      "more": "עוד",
+      "parseError": "שגיאת פרסור",
+      "importFailed": "הייבוא נכשל",
+      "failed": "הפעולה נכשלה",
+      "importSuccess": "ייבוא: {keys} מפתחות, {translations} תרגומים",
+      "reload": "רענון",
+      "reloadTranslations": "טען תרגומים מחדש מהמסד נתונים",
+      "translationsReloaded": "התרגומים נטענו מחדש בהצלחה"
+    },
+    "interviewFlow": {
+      "title": "מסלול ראיון",
+      "subtitle": "נהל את שאלות הראיון והמסלול עבור משתמשים חדשים",
+      "addQuestion": "הוסף שאלה",
+      "editQuestion": "ערוך שאלה",
+      "deleteQuestion": "מחק שאלה",
+      "noQuestions": "לא נמצאו שאלות",
+      "createFirst": "צור את שאלת הראיון הראשונה כדי להתחיל",
+      "searchPlaceholder": "חפש שאלות...",
+      "totalQuestions": "סך שאלות",
+      "activeQuestions": "פעילות",
+      "inactiveQuestions": "לא פעילות",
+      "questionTypes": "סוגי שאלות",
+      "question": "שאלה",
+      "type": "סוג",
+      "order": "סדר",
+      "status": "סטטוס",
+      "actions": "פעולות",
+      "active": "פעיל",
+      "inactive": "לא פעיל",
+      "moveUp": "הזז למעלה",
+      "moveDown": "הזז למטה",
+      "confirmDelete": "האם אתה בטוח שברצונך למחוק שאלה זו?",
+      "deleteSuccess": "השאלה נמחקה בהצלחה",
+      "saveSuccess": "השאלה נשמרה בהצלחה",
+      "tabs": {
+        "basic": "מידע בסיסי",
+        "input": "הגדרות קלט",
+        "validation": "אימות",
+        "ai": "הגדרות AI",
+        "conditions": "תנאים"
+      },
+      "fields": {
+        "translationKey": "מפתח תרגום",
+        "translationKeyHelp": "המפתח המשמש לתרגומים i18n",
+        "questionType": "סוג שאלה",
+        "isActive": "פעיל",
+        "order": "סדר תצוגה",
+        "saveToField": "שמור לשדה",
+        "saveToFieldHelp": "שם שדה אופציונלי לשמירת התשובה",
+        "saveToFieldPlaceholder": "למשל, businessName, websiteUrl",
+        "type": "סוג שאלה",
+        "dependsOn": "תלוי ב",
+        "dependsOnHelp": "מזהה שאלה שחייבת להיענות קודם",
+        "aiPromptHint": "רמז הנחיה ל-AI",
+        "aiPromptHintHelp": "הקשר נוסף ל-AI לגבי שאלה זו"
+      },
+      "columns": {
+        "key": "מפתח תרגום",
+        "type": "סוג",
+        "actions": "פעולות בוט",
+        "status": "סטטוס"
+      },
+      "types": {
+        "GREETING": "ברכה",
+        "INPUT": "קלט טקסט",
+        "CONFIRMATION": "אישור",
+        "SELECTION": "בחירה יחידה",
+        "MULTI_SELECTION": "בחירה מרובה",
+        "DYNAMIC": "תוכן דינמי",
+        "EDITABLE_DATA": "נתונים לעריכה",
+        "FILE_UPLOAD": "העלאת קובץ",
+        "SLIDER": "סליידר",
+        "AI_SUGGESTION": "הצעת AI",
+        "greeting": "ברכה",
+        "input": "קלט טקסט",
+        "confirmation": "אישור",
+        "selection": "בחירה יחידה",
+        "multiSelection": "בחירה מרובה",
+        "dynamic": "תוכן דינמי",
+        "editableData": "נתונים לעריכה",
+        "fileUpload": "העלאת קובץ",
+        "slider": "סליידר",
+        "aiSuggestion": "הצעת AI"
+      },
+      "inputConfig": {
+        "title": "הגדרות קלט",
+        "inputType": "סוג קלט",
+        "placeholder": "טקסט מציין מקום",
+        "defaultValue": "ערך ברירת מחדל",
+        "options": "אפשרויות",
+        "optionsHelp": "אפשרות אחת לשורה",
+        "optionsPlaceholder": "אפשרות 1\nאפשרות 2\nאפשרות 3",
+        "addOption": "הוסף אפשרות",
+        "removeOption": "הסר אפשרות",
+        "min": "ערך מינימלי",
+        "max": "ערך מקסימלי",
+        "step": "גודל צעד",
+        "accept": "סוגי קבצים מותרים",
+        "maxSize": "גודל קובץ מקסימלי (בתים)",
+        "multiple": "אפשר קבצים מרובים",
+        "dataSource": "מקור נתונים",
+        "dataSourceHelp": "נקודת קצה API לטעינת נתונים דינמיים",
+        "displayTemplate": "תבנית תצוגה",
+        "templateHelp": "השתמש ב-{{result}} להפניה לתוצאת הפעולה",
+        "allowEdit": "אפשר עריכה",
+        "confirmLabel": "תווית כפתור אישור",
+        "denyLabel": "תווית כפתור דחייה",
+        "sourceAction": "פעולת מקור",
+        "selectAction": "בחר פעולה...",
+        "suggestionType": "סוג הצעה",
+        "suggestionTypePlaceholder": "למשל, מילות מפתח, נושאים, כותרות",
+        "allowCustom": "אפשר קלט מותאם אישית",
+        "message": "הודעת ברכה",
+        "fieldsJson": "שדות (פורמט JSON)",
+        "fieldsPlaceholder": "[{\"key\": \"title\", \"label\": \"כותרת\", \"type\": \"text\"}]",
+        "allowAddItems": "אפשר הוספת פריטים",
+        "allowRemoveItems": "אפשר הסרת פריטים",
+        "minSelections": "בחירות מינימליות",
+        "maxSelections": "בחירות מקסימליות (ריק = ללא הגבלה)",
+        "inputTypes": {
+          "text": "טקסט",
+          "email": "אימייל",
+          "tel": "טלפון",
+          "url": "כתובת URL",
+          "number": "מספר",
+          "textarea": "טקסט רב-שורות"
+        }
+      },
+      "validation": {
+        "title": "כללי אימות",
+        "required": "שדה חובה",
+        "minLength": "אורך מינימלי",
+        "maxLength": "אורך מקסימלי",
+        "pattern": "תבנית (Regex)",
+        "patternPlaceholder": "למשל, ^https?://.+",
+        "errorMessage": "הודעת שגיאה מותאמת אישית",
+        "min": "ערך מינימלי",
+        "max": "ערך מקסימלי",
+        "minSelections": "בחירות מינימליות",
+        "maxSelections": "בחירות מקסימליות"
+      },
+      "aiConfig": {
+        "title": "הגדרות AI",
+        "enabled": "אפשר הצעות AI",
+        "systemPrompt": "הנחיית מערכת",
+        "systemPromptHelp": "הוראות ל-AI בעת יצירת הצעות",
+        "allowedActions": "פעולות בוט מותרות",
+        "allowedActionsHelp": "פעולות בוט שניתן להפעיל משאלה זו",
+        "autoActions": "פעולות אוטומטיות",
+        "autoActionsHelp": "פעולות בוט שירוצו אוטומטית כאשר שאלה זו נענית",
+        "noActionsAvailable": "אין פעולות בוט זמינות. צור פעולות בוט קודם."
+      },
+      "conditions": {
+        "title": "תנאי תצוגה",
+        "dependsOn": "תלוי ב (מזהה שאלה)",
+        "dependsOnPlaceholder": "מזהה השאלה שזו תלויה בה",
+        "showCondition": "תנאי הצגה (JSON)",
+        "showConditionPlaceholder": "{\"field\": \"hasWebsite\", \"operator\": \"equals\", \"value\": true}",
+        "showConditionHelp": "השתמש בתנאים לשליטה מתי שאלה זו תופיע. תנאי ההצגה הוא אובייקט JSON שמציין את השדה, האופרטור והערך לבדיקה.",
+        "example": "דוגמה: {\"operator\": \"equals\", \"field\": \"q1\", \"value\": \"yes\"}",
+        "operators": {
+          "equals": "שווה",
+          "notEquals": "לא שווה",
+          "contains": "מכיל",
+          "exists": "קיים",
+          "isEmpty": "ריק",
+          "greaterThan": "גדול מ",
+          "lessThan": "קטן מ",
+          "and": "וגם (כל התנאים חייבים להתקיים)",
+          "or": "או (לפחות תנאי אחד חייב להתקיים)"
+        }
+      }
+    },
+    "botActions": {
+      "title": "פעולות בוט",
+      "subtitle": "נהל פעולות אוטומטיות שהבוט AI יכול לבצע",
+      "addAction": "הוסף פעולה",
+      "editAction": "ערוך פעולה",
+      "deleteAction": "מחק פעולה",
+      "deleteTitle": "מחיקת פעולה",
+      "deleteMessage": "האם אתה בטוח שברצונך למחוק פעולה זו? פעולה זו אינה ניתנת לביטול.",
+      "noActions": "לא נמצאו פעולות בוט",
+      "createFirst": "צור את פעולת הבוט הראשונה כדי לאפשר אוטומציה של AI",
+      "searchPlaceholder": "חפש פעולות...",
+      "totalActions": "סך פעולות",
+      "activeActions": "פעילות",
+      "inactiveActions": "לא פעילות",
+      "actionsByCategory": "לפי קטגוריה",
+      "action": "פעולה",
+      "category": "קטגוריה",
+      "trigger": "טריגר",
+      "status": "סטטוס",
+      "actions": "פעולות",
+      "active": "פעיל",
+      "inactive": "לא פעיל",
+      "testAction": "בדוק פעולה",
+      "testResult": "תוצאת בדיקה",
+      "testSuccess": "הפעולה בוצעה בהצלחה",
+      "testError": "ביצוע הפעולה נכשל",
+      "confirmDelete": "האם אתה בטוח שברצונך למחוק פעולה זו?",
+      "deleteSuccess": "הפעולה נמחקה בהצלחה",
+      "saveSuccess": "הפעולה נשמרה בהצלחה",
+      "tabs": {
+        "basic": "מידע בסיסי",
+        "schema": "סכמה",
+        "example": "דוגמה"
+      },
+      "columns": {
+        "name": "שם",
+        "handler": "מטפל",
+        "description": "תיאור",
+        "status": "סטטוס"
+      },
+      "fields": {
+        "name": "שם פעולה",
+        "nameHelp": "מזהה ייחודי לפעולה זו",
+        "namePlaceholder": "CRAWL_WEBSITE",
+        "handler": "נתיב מטפל",
+        "handlerPlaceholder": "handlers/crawl-website",
+        "displayName": "שם תצוגה",
+        "displayNameHelp": "שם קריא לאדם שמוצג בממשק",
+        "description": "תיאור",
+        "descriptionHelp": "תאר מה הפעולה עושה",
+        "descriptionPlaceholder": "תאר מה הפעולה הזו עושה...",
+        "category": "קטגוריה",
+        "isActive": "פעיל",
+        "requiredPermissions": "הרשאות נדרשות",
+        "requiredPermissionsHelp": "הרשאות הנדרשות לביצוע פעולה זו",
+        "parametersSchema": "סכמת פרמטרים (JSON Schema)",
+        "returnsSchema": "סכמת החזרה (JSON Schema)",
+        "exampleParameters": "פרמטרים לדוגמה (JSON)",
+        "examplePlaceholder": "{\"url\": \"https://example.com\"}",
+        "exampleHelp": "דוגמה זו תשמש כברירת מחדל בעת בדיקת הפעולה."
+      },
+      "categories": {
+        "data_fetch": "שליפת נתונים",
+        "data_update": "עדכון נתונים",
+        "external_api": "API חיצוני",
+        "notification": "התראה",
+        "validation": "אימות",
+        "other": "אחר"
+      },
+      "actionSchema": {
+        "title": "סכמת פעולה",
+        "description": "הגדר את סכמת הפונקציה ל-AI לקריאה",
+        "parameters": "פרמטרים",
+        "parametersHelp": "JSON Schema המגדיר את פרמטרי הפעולה",
+        "example": "דוגמת סכמה לשליפת נתוני משתמש"
+      },
+      "implementation": {
+        "title": "מימוש",
+        "type": "סוג מימוש",
+        "types": {
+          "api_call": "קריאת API",
+          "database_query": "שאילתת מסד נתונים",
+          "custom_function": "פונקציה מותאמת"
+        },
+        "endpoint": "נקודת קצה API",
+        "method": "שיטת HTTP",
+        "headers": "כותרות (JSON)",
+        "bodyTemplate": "תבנית גוף הבקשה",
+        "query": "שאילתת מסד נתונים",
+        "function": "שם פונקציה"
+      },
+      "test": {
+        "title": "בדוק פעולה",
+        "parameters": "פרמטרים (JSON)",
+        "context": "קונטקסט בדיקה (JSON)",
+        "run": "הרץ בדיקה",
+        "running": "מריץ...",
+        "output": "פלט",
+        "success": "הצלחה",
+        "error": "שגיאה"
+      }
+    }
+  },
+  "acceptInvite": {
+    "title": "הוזמנת!",
+    "subtitle": "קבל/י את ההזמנה להצטרף",
+    "invalidToken": "הזמנה לא תקינה או פגה",
+    "invalidTokenMessage": "קישור ההזמנה אינו תקין או שפג תוקפו. אנא צור/י קשר עם מי שהזמין אותך כדי לבקש הזמנה חדשה.",
+    "expiredToken": "ההזמנה פגה",
+    "expiredTokenMessage": "תוקף ההזמנה פג. אנא צור/י קשר עם מי שהזמין אותך כדי לבקש הזמנה חדשה.",
+    "alreadyAccepted": "ההזמנה כבר התקבלה",
+    "alreadyAcceptedMessage": "כבר קיבלת את ההזמנה הזו. ניתן להתחבר לחשבון שלך.",
+    "accountInfo": "פרטי החשבון",
+    "accountName": "חשבון",
+    "yourRole": "התפקיד שלך",
+    "invitedBy": "הוזמנת על ידי",
+    "existingUser": {
+      "title": "ברוך שובך!",
+      "subtitle": "התחבר/י כדי לקבל את ההזמנה"
+    },
+    "newUser": {
+      "title": "צור/י את החשבון שלך",
+      "subtitle": "מלא/י את הפרטים כדי לקבל את ההזמנה"
+    },
+    "success": {
+      "title": "ברוך הבא לצוות!",
+      "subtitle": "הצטרפת בהצלחה ל",
+      "goToDashboard": "מעבר ללוח הבקרה"
+    },
+    "goToLogin": "מעבר להתחברות",
+    "requestNewInvite": "בקש/י הזמנה חדשה"
   }
 }

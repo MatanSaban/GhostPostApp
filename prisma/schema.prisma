@@ -1,48 +1,281 @@
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
-  provider = "prisma-client"
-  output   = "../app/generated/prisma"
+  provider = "prisma-client-js"
 }
 
 datasource db {
   provider = "mongodb"
+  url      = env("DATABASE_URL")
 }
 
-model User {
-  id            String    @id @default(auto()) @map("_id") @db.ObjectId
-  name          String?
-  email         String    @unique
-  emailVerified DateTime?
-  image         String?
-  password      String?
-  accounts      Account[]
-  sessions      Session[]
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-}
+// ==========================================
+// ACCOUNT (BUSINESS) MODEL
+// ==========================================
 
 model Account {
-  id                String  @id @default(auto()) @map("_id") @db.ObjectId
-  userId            String  @db.ObjectId
-  type              String
-  provider          String
+  id              String   @id @default(auto()) @map("_id") @db.ObjectId
+  name            String
+  slug            String   @unique
+  logo            String?
+  website         String?
+  industry        String?
+  timezone        String   @default("UTC")
+  defaultLanguage Language @default(EN)
+  billingEmail    String   // Email for invoices and billing notifications
+  generalEmail    String   // General contact email for the account
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  // Relations
+  members         AccountMember[]
+  sites           Site[]
+  subscription    Subscription?
+  payments        Payment[]
+  roles           Role[]
+}
+
+// ==========================================
+// ROLES & PERMISSIONS
+// ==========================================
+
+model Role {
+  id              String       @id @default(auto()) @map("_id") @db.ObjectId
+  accountId       String       @db.ObjectId
+  name            String
+  description     String?
+  permissions     Permission[]
+  isSystemRole    Boolean      @default(false)  // true for Owner, Admin, Editor, Viewer
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+
+  account         Account        @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  members         AccountMember[]
+
+  @@unique([accountId, name])
+}
+
+enum Permission {
+  // Account Management
+  ACCOUNT_VIEW
+  ACCOUNT_EDIT
+  ACCOUNT_DELETE
+  ACCOUNT_BILLING_VIEW
+  ACCOUNT_BILLING_MANAGE
+
+  // Member Management
+  MEMBERS_VIEW
+  MEMBERS_INVITE
+  MEMBERS_EDIT
+  MEMBERS_DELETE
+
+  // Role Management
+  ROLES_VIEW
+  ROLES_CREATE
+  ROLES_EDIT
+  ROLES_DELETE
+
+  // Site Management
+  SITES_VIEW
+  SITES_CREATE
+  SITES_EDIT
+  SITES_DELETE
+
+  // Content Management
+  CONTENT_VIEW
+  CONTENT_CREATE
+  CONTENT_EDIT
+  CONTENT_PUBLISH
+  CONTENT_DELETE
+
+  // Keyword Management
+  KEYWORDS_VIEW
+  KEYWORDS_CREATE
+  KEYWORDS_EDIT
+  KEYWORDS_DELETE
+
+  // Redirections
+  REDIRECTIONS_VIEW
+  REDIRECTIONS_CREATE
+  REDIRECTIONS_EDIT
+  REDIRECTIONS_DELETE
+
+  // Interview
+  INTERVIEW_VIEW
+  INTERVIEW_EDIT
+
+  // Site Audit
+  AUDIT_VIEW
+  AUDIT_RUN
+
+  // Settings - General
+  SETTINGS_GENERAL_VIEW
+  SETTINGS_GENERAL_EDIT
+
+  // Settings - AI Configuration
+  SETTINGS_AI_VIEW
+  SETTINGS_AI_EDIT
+
+  // Settings - Scheduling
+  SETTINGS_SCHEDULING_VIEW
+  SETTINGS_SCHEDULING_EDIT
+
+  // Settings - Notifications
+  SETTINGS_NOTIFICATIONS_VIEW
+  SETTINGS_NOTIFICATIONS_EDIT
+
+  // Settings - SEO
+  SETTINGS_SEO_VIEW
+  SETTINGS_SEO_EDIT
+
+  // Settings - Integrations
+  SETTINGS_INTEGRATIONS_VIEW
+  SETTINGS_INTEGRATIONS_EDIT
+
+  // Settings - Users
+  SETTINGS_USERS_VIEW
+  SETTINGS_USERS_EDIT
+
+  // Settings - Team
+  SETTINGS_TEAM_VIEW
+  SETTINGS_TEAM_EDIT
+
+  // Settings - Roles
+  SETTINGS_ROLES_VIEW
+  SETTINGS_ROLES_EDIT
+
+  // Settings - Subscription
+  SETTINGS_SUBSCRIPTION_VIEW
+  SETTINGS_SUBSCRIPTION_EDIT
+}
+
+model AccountMember {
+  id                 String            @id @default(auto()) @map("_id") @db.ObjectId
+  accountId          String            @db.ObjectId
+  userId             String?           @db.ObjectId      // Optional for PENDING invites
+  roleId             String            @db.ObjectId
+  isOwner            Boolean           @default(false)   // true for account creator
+  lastSelectedSiteId String?           @db.ObjectId      // Last site selected in this account
+  invitedBy          String?           @db.ObjectId
+  invitedAt          DateTime?
+  inviteEmail        String?                             // Email for pending invites
+  inviteToken        String?           @unique           // Token for accepting invite
+  inviteLanguage     String?                             // Language code for invite email (EN, HE, etc.)
+  joinedAt           DateTime          @default(now())
+  status             MemberStatus      @default(ACTIVE)
+
+  account            Account           @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  user               User?             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role               Role              @relation(fields: [roleId], references: [id])
+
+  @@unique([accountId, userId])
+  @@unique([accountId, inviteEmail])
+}
+
+enum MemberStatus {
+  PENDING    // Invited but not accepted
+  ACTIVE     // Active member
+  SUSPENDED  // Temporarily suspended
+  REMOVED    // Removed from account
+}
+
+// ==========================================
+// USER (PERSON) MODEL
+// ==========================================
+
+model User {
+  id                    String             @id @default(auto()) @map("_id") @db.ObjectId
+  email                 String             @unique
+  firstName             String?
+  lastName              String?
+  phoneNumber           String?
+  password              String?            // Hashed, for email/password auth
+  image                 String?
+  emailVerified         DateTime?
+  phoneVerified         DateTime?
+  primaryAuthMethod     AuthMethod         @default(EMAIL)
+  selectedLanguage      Language?          // Overrides account default if set
+  preferredCurrency     Currency?          // Overrides language-based default if set
+  lastSelectedAccountId String?            @db.ObjectId  // Last account user was working in
+  registrationStep      RegistrationStep   @default(VERIFY)  // Track incomplete registration
+  consentGiven          Boolean            @default(false)
+  consentDate           DateTime?
+  isActive              Boolean            @default(true)
+  isSuperAdmin          Boolean            @default(false)  // Platform-level admin (developer access)
+  lastLoginAt           DateTime?
+  createdAt             DateTime           @default(now())
+  updatedAt             DateTime           @updatedAt
+
+  // Relations
+  authProviders      AuthProvider[]
+  sessions           Session[]
+  accountMemberships AccountMember[]
+  otpCodes           OtpCode[]
+  interviews         UserInterview[]
+  sitePreferences    UserSitePreference[]
+}
+
+enum RegistrationStep {
+  VERIFY        // OTP verification pending
+  ACCOUNT_SETUP // Account/organization setup pending
+  INTERVIEW     // Site interview pending
+  PLAN          // Plan selection pending
+  PAYMENT       // Payment pending
+  COMPLETED     // Registration complete
+}
+
+enum AuthMethod {
+  EMAIL
+  GOOGLE
+  GITHUB
+  FACEBOOK
+  APPLE
+}
+
+// Language enum with RTL/LTR direction implied
+// RTL languages: HE, AR
+// LTR languages: EN, ES, FR, DE, PT, IT, RU, ZH, JA, KO
+enum Language {
+  EN  // English - LTR
+  HE  // Hebrew - RTL
+  AR  // Arabic - RTL
+  ES  // Spanish - LTR
+  FR  // French - LTR
+  DE  // German - LTR
+  PT  // Portuguese - LTR
+  IT  // Italian - LTR
+  RU  // Russian - LTR
+  ZH  // Chinese - LTR
+  JA  // Japanese - LTR
+  KO  // Korean - LTR
+}
+
+enum Currency {
+  USD  // US Dollar
+  ILS  // Israeli Shekel
+  EUR  // Euro
+  GBP  // British Pound
+}
+
+model AuthProvider {
+  id                String     @id @default(auto()) @map("_id") @db.ObjectId
+  userId            String     @db.ObjectId
+  provider          AuthMethod
   providerAccountId String
-  refresh_token     String?
-  access_token      String?
-  expires_at        Int?
-  token_type        String?
+  isPrimary         Boolean    @default(false)
+  accessToken       String?
+  refreshToken      String?
+  expiresAt         Int?
+  tokenType         String?
   scope             String?
-  id_token          String?
-  session_state     String?
+  idToken           String?
+  linkedAt          DateTime   @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([provider, providerAccountId])
+  @@unique([userId, provider])
 }
 
 model Session {
@@ -50,7 +283,11 @@ model Session {
   sessionToken String   @unique
   userId       String   @db.ObjectId
   expires      DateTime
-  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userAgent    String?
+  ipAddress    String?
+  createdAt    DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model VerificationToken {
@@ -62,9 +299,674 @@ model VerificationToken {
   @@unique([identifier, token])
 }
 
-model Post {
-  id        String   @id @default(auto()) @map("_id") @db.ObjectId
-  content   String
+model OtpCode {
+  id         String    @id @default(auto()) @map("_id") @db.ObjectId
+  userId     String?   @db.ObjectId
+  tempRegId  String?   @db.ObjectId  // For temp registration flow
+  code       String
+  method     OtpMethod
+  expiresAt  DateTime
+  verified   Boolean   @default(false)
+  attempts   Int       @default(0)
+  createdAt  DateTime  @default(now())
+
+  user       User?            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tempReg    TempRegistration? @relation(fields: [tempRegId], references: [id], onDelete: Cascade)
+}
+
+enum OtpMethod {
+  SMS
+  EMAIL
+}
+
+// ==========================================
+// TEMPORARY REGISTRATION
+// ==========================================
+
+model TempRegistration {
+  id              String            @id @default(auto()) @map("_id") @db.ObjectId
+  
+  // Step 1: Form data
+  email           String            @unique
+  firstName       String
+  lastName        String
+  phoneNumber     String?
+  password        String            // Hashed
+  consentGiven    Boolean           @default(false)
+  consentDate     DateTime?
+  
+  // Step 2: OTP verification
+  emailVerified   DateTime?
+  phoneVerified   DateTime?
+  otpMethod       OtpMethod?
+  
+  // Step 3: Account setup
+  accountName     String?
+  accountSlug     String?
+  
+  // Step 4: Interview data (stored as JSON)
+  interviewData   Json?
+  
+  // Step 5: Selected plan
+  selectedPlanId  String?           @db.ObjectId
+  
+  // Tracking
+  currentStep     TempRegStep       @default(FORM)
+  expiresAt       DateTime          // Auto-delete after X days
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  
+  // Relations
+  otpCodes        OtpCode[]
+}
+
+enum TempRegStep {
+  FORM           // Initial form submitted
+  VERIFY         // OTP verification pending
+  ACCOUNT_SETUP  // Account setup pending
+  INTERVIEW      // Interview pending
+  PLAN           // Plan selection pending
+  PAYMENT        // Payment pending
+}
+
+// ==========================================
+// SUBSCRIPTION & BILLING MODELS
+// ==========================================
+
+model Plan {
+  id            String          @id @default(auto()) @map("_id") @db.ObjectId
+  name          String          @unique
+  slug          String          @unique
+  description   String?
+  price         Float           // Monthly price
+  yearlyPrice   Float?          // Yearly price (optional, if null = price * 10)
+  currency      String          @default("USD")
+  interval      BillingInterval @default(MONTHLY)
+  features      String[]
+  maxSites      Int             @default(1)
+  maxMembers    Int             @default(1)
+  maxKeywords   Int             @default(100)
+  maxContent    Int             @default(50)
+  isActive      Boolean         @default(true)
+  sortOrder     Int             @default(0)
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+
+  subscriptions Subscription[]
+  translations  PlanTranslation[]
+}
+
+model PlanTranslation {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  planId      String   @db.ObjectId
+  language    Language
+  name        String
+  description String?
+  features    String[] // Translated features in same order as Plan.features
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  plan        Plan     @relation(fields: [planId], references: [id], onDelete: Cascade)
+
+  @@unique([planId, language])
+}
+
+enum BillingInterval {
+  MONTHLY
+  YEARLY
+}
+
+model Subscription {
+  id                 String             @id @default(auto()) @map("_id") @db.ObjectId
+  accountId          String             @unique @db.ObjectId
+  planId             String             @db.ObjectId
+  status             SubscriptionStatus @default(ACTIVE)
+  currentPeriodStart DateTime
+  currentPeriodEnd   DateTime
+  cancelAtPeriodEnd  Boolean            @default(false)
+  canceledAt         DateTime?
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+
+  account  Account   @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  plan     Plan      @relation(fields: [planId], references: [id])
+  payments Payment[]
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  CANCELED
+  PAST_DUE
+  TRIALING
+  EXPIRED
+}
+
+model Payment {
+  id              String        @id @default(auto()) @map("_id") @db.ObjectId
+  accountId       String        @db.ObjectId
+  subscriptionId  String?       @db.ObjectId
+  amount          Float
+  currency        String        @default("USD")
+  status          PaymentStatus @default(PENDING)
+  paymentMethod   String?
+  transactionId   String?
+  metadata        Json?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  account      Account       @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  subscription Subscription? @relation(fields: [subscriptionId], references: [id])
+}
+
+enum PaymentStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  REFUNDED
+}
+
+// ==========================================
+// SITE & INTERVIEW MODELS
+// ==========================================
+
+model Site {
+  id              String   @id @default(auto()) @map("_id") @db.ObjectId
+  accountId       String   @db.ObjectId
+  name            String
+  url             String
+  isActive        Boolean  @default(true)
+  maintenanceMode Boolean  @default(false)
+  platform        String?  // wordpress, custom, shopify, etc.
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  account         Account               @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  interview       Interview?
+  keywords        Keyword[]
+  contents        Content[]
+  redirections    Redirection[]
+  audits          SiteAudit[]
+  entityTypes     SiteEntityType[]
+  entities        SiteEntity[]
+  userPreferences UserSitePreference[]
+}
+
+// User-specific preferences per site (language, timezone overrides)
+model UserSitePreference {
+  id       String    @id @default(auto()) @map("_id") @db.ObjectId
+  userId   String    @db.ObjectId
+  siteId   String    @db.ObjectId
+  language Language? // Overrides user's default language for this site
+  timezone String?   // Overrides account's default timezone for this site
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  site     Site      @relation(fields: [siteId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, siteId])
+}
+
+// Entity type configuration per site (e.g., posts, pages, projects)
+model SiteEntityType {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  siteId      String   @db.ObjectId
+  name        String   // Display name (e.g., "Blog Posts", "Projects")
+  slug        String   // URL slug (e.g., "posts", "projects")
+  apiEndpoint String?  // WordPress REST API endpoint (e.g., "posts", "pages", "project")
+  isEnabled   Boolean  @default(true)
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  site     Site         @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  entities SiteEntity[]
+
+  @@unique([siteId, slug])
+  @@index([siteId])
+}
+
+// Website entity (individual content items)
+model SiteEntity {
+  id            String   @id @default(auto()) @map("_id") @db.ObjectId
+  siteId        String   @db.ObjectId
+  entityTypeId  String   @db.ObjectId
+  title         String
+  slug          String
+  url           String?
+  excerpt       String?
+  content       String?
+  status        EntityStatus @default(PUBLISHED)
+  featuredImage String?
+  metadata      Json?
+  externalId    String?  // ID from the original CMS (WordPress, etc.)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  publishedAt   DateTime?
+
+  site       Site           @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  entityType SiteEntityType @relation(fields: [entityTypeId], references: [id], onDelete: Cascade)
+
+  @@unique([siteId, entityTypeId, slug])
+  @@index([siteId, entityTypeId])
+}
+
+enum EntityStatus {
+  PUBLISHED
+  DRAFT
+  ARCHIVED
+}
+
+model Interview {
+  id          String              @id @default(auto()) @map("_id") @db.ObjectId
+  siteId      String              @unique @db.ObjectId
+  status      InterviewStatus     @default(IN_PROGRESS)
+  responses   InterviewResponse[]
+  completedAt DateTime?
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @updatedAt
+
+  site Site @relation(fields: [siteId], references: [id], onDelete: Cascade)
+}
+
+type InterviewResponse {
+  questionId String
+  question   String
+  answer     String
+  answeredAt DateTime
+}
+
+enum InterviewStatus {
+  IN_PROGRESS
+  COMPLETED
+}
+
+// ==========================================
+// KEYWORD & CONTENT MODELS
+// ==========================================
+
+model Keyword {
+  id           String        @id @default(auto()) @map("_id") @db.ObjectId
+  siteId       String        @db.ObjectId
+  keyword      String
+  searchVolume Int?
+  difficulty   Int?
+  cpc          Float?
+  intent       KeywordIntent?
+  position     Int?
+  url          String?
+  status       KeywordStatus @default(TRACKING)
+  tags         String[]
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  site     Site      @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  contents Content[]
+}
+
+enum KeywordIntent {
+  INFORMATIONAL
+  NAVIGATIONAL
+  TRANSACTIONAL
+  COMMERCIAL
+}
+
+enum KeywordStatus {
+  TRACKING
+  TARGETING
+  RANKING
+  ARCHIVED
+}
+
+model Content {
+  id              String        @id @default(auto()) @map("_id") @db.ObjectId
+  siteId          String        @db.ObjectId
+  keywordId       String?       @db.ObjectId
+  title           String
+  slug            String?
+  content         String?
+  excerpt         String?
+  status          ContentStatus @default(DRAFT)
+  type            ContentType   @default(BLOG_POST)
+  publishedAt     DateTime?
+  scheduledAt     DateTime?
+  metaTitle       String?
+  metaDescription String?
+  wordCount       Int?
+  aiGenerated     Boolean       @default(false)
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  site    Site     @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  keyword Keyword? @relation(fields: [keywordId], references: [id])
+}
+
+enum ContentStatus {
+  DRAFT
+  SCHEDULED
+  PUBLISHED
+  ARCHIVED
+}
+
+enum ContentType {
+  BLOG_POST
+  PAGE
+  PRODUCT
+  LANDING_PAGE
+}
+
+// ==========================================
+// SEO & TECHNICAL MODELS
+// ==========================================
+
+model Redirection {
+  id        String          @id @default(auto()) @map("_id") @db.ObjectId
+  siteId    String          @db.ObjectId
+  sourceUrl String
+  targetUrl String
+  type      RedirectionType @default(PERMANENT)
+  isActive  Boolean         @default(true)
+  hitCount  Int             @default(0)
+  lastHitAt DateTime?
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
+
+  site Site @relation(fields: [siteId], references: [id], onDelete: Cascade)
+
+  @@unique([siteId, sourceUrl])
+}
+
+enum RedirectionType {
+  PERMANENT // 301
+  TEMPORARY // 302
+  FOUND     // 307
+}
+
+model SiteAudit {
+  id          String       @id @default(auto()) @map("_id") @db.ObjectId
+  siteId      String       @db.ObjectId
+  status      AuditStatus  @default(PENDING)
+  score       Int?
+  issues      AuditIssue[]
+  startedAt   DateTime?
+  completedAt DateTime?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  site Site @relation(fields: [siteId], references: [id], onDelete: Cascade)
+}
+
+type AuditIssue {
+  type       String
+  severity   String
+  message    String
+  url        String?
+  suggestion String?
+}
+
+enum AuditStatus {
+  PENDING
+  RUNNING
+  COMPLETED
+  FAILED
+}
+
+// ==========================================
+// INTERVIEW SYSTEM
+// ==========================================
+
+// Question Types for the interview flow
+enum InterviewQuestionType {
+  GREETING          // Display only, no input
+  INPUT             // Single input field (text, url, email, number, etc.)
+  INPUT_WITH_AI     // Input field that triggers AI analysis after submit (e.g., competitors)
+  CONFIRMATION      // Yes/No with data preview
+  SELECTION         // Single choice (dropdown, radio, cards)
+  MULTI_SELECTION   // Multiple choices (checkboxes, tags)
+  DYNAMIC           // Options loaded from API/previous answers
+  EDITABLE_DATA     // Show data that user can edit (e.g., crawled business info)
+  FILE_UPLOAD       // Upload files
+  SLIDER            // Numeric range slider
+  AI_SUGGESTION     // AI generates options based on context
+  AUTO_ACTION       // Automatically runs an action and advances (no user input)
+}
+
+// User Interview Session status
+enum UserInterviewStatus {
+  NOT_STARTED
+  IN_PROGRESS
+  COMPLETED
+  ABANDONED
+}
+
+// Interview Question Templates (Admin-managed)
+model InterviewQuestion {
+  id              String                @id @default(auto()) @map("_id") @db.ObjectId
+  order           Int                   @default(0)
+  translationKey  String                @unique    // e.g., "interview.greeting", "interview.websiteUrl"
+  questionType    InterviewQuestionType @default(INPUT)
+  
+  // Input configuration (JSON)
+  // For INPUT: { inputType: "url", placeholder: "https://...", fieldName: "websiteUrl" }
+  // For SELECTION: { selectionMode: "radio", fieldName: "platform", options: [...] }
+  // For DYNAMIC: { selectionMode: "tags", fieldName: "keywords", optionsSource: "crawledKeywords" }
+  inputConfig     Json?
+  
+  // Validation rules (JSON)
+  // { required: true, minLength: 3, maxLength: 100, pattern: "...", errorKey: "..." }
+  validation      Json?
+  
+  // AI Bot configuration
+  aiPromptHint    String?               // Hint for AI on how to present this question
+  allowedActions  String[]              @default([])  // Actions AI can trigger: ["CRAWL_WEBSITE", "SAVE_FIELD"]
+  autoActions     Json?                 // Actions to auto-execute: [{ action: "CRAWL_WEBSITE", triggerOn: "submit" }]
+  saveToField     String?               // Auto-save response to this field in UserInterview.responses
+  
+  // Conditional display
+  dependsOn       String?               @db.ObjectId  // Previous question ID
+  showCondition   Json?                 // { field: "platform", operator: "equals", value: "wordpress" }
+  
+  isActive        Boolean               @default(true)
+  createdAt       DateTime              @default(now())
+  updatedAt       DateTime              @updatedAt
+
+  @@index([order])
+  @@map("interview_questions")
+}
+
+// Bot Actions (Admin-managed)
+model BotAction {
+  id            String   @id @default(auto()) @map("_id") @db.ObjectId
+  name          String   @unique    // "CRAWL_WEBSITE", "CREATE_ACCOUNT"
+  description   String              // Human-readable description for AI
+  handler       String              // Function name: "crawlWebsite", "createAccount"
+  
+  // JSON Schema for parameters AI must provide
+  // { type: "object", required: ["url"], properties: { url: { type: "string" } } }
+  parameters    Json
+  
+  // JSON Schema for what the handler returns
+  // { type: "object", properties: { success: { type: "boolean" }, data: { ... } } }
+  returns       Json
+  
+  // Example for AI context
+  example       Json?               // { input: { url: "..." }, output: { ... } }
+  
+  requiresAuth  Boolean             @default(true)
+  isActive      Boolean             @default(true)
+  createdAt     DateTime            @default(now())
+  updatedAt     DateTime            @updatedAt
+
+  @@map("bot_actions")
+}
+
+// User Interview Session
+model UserInterview {
+  id            String              @id @default(auto()) @map("_id") @db.ObjectId
+  userId        String              @db.ObjectId
+  siteId        String?             @db.ObjectId   // Created site account ID (after completion)
+  
+  status        UserInterviewStatus @default(NOT_STARTED)
+  currentStep   Int                 @default(0)    // Current question order
+  
+  // All user responses stored as JSON
+  // { websiteUrl: "...", platform: "wordpress", language: "en", keywords: [...] }
+  responses     Json                @default("{}")
+  
+  // Data from external sources (crawl, API calls, etc.)
+  // { crawledData: { title, description, ... }, keywordSuggestions: [...] }
+  externalData  Json?
+  
+  // AI conversation context for continuity
+  aiContext     Json?               // { lastMessage: "...", personality: "..." }
+  
+  startedAt     DateTime            @default(now())
+  completedAt   DateTime?
+  updatedAt     DateTime            @updatedAt
+
+  // Relations
+  user          User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  messages      InterviewMessage[]
+
+  @@index([userId])
+  @@index([status])
+  @@map("user_interviews")
+}
+
+// Interview Conversation History
+model InterviewMessage {
+  id            String          @id @default(auto()) @map("_id") @db.ObjectId
+  interviewId   String          @db.ObjectId
+  
+  role          MessageRole     // USER, ASSISTANT, SYSTEM, FUNCTION
+  content       String          // Message text
+  
+  // For function calls/results
+  functionCall  Json?           // { name: "CRAWL_WEBSITE", parameters: { url: "..." } }
+  functionResult Json?          // { success: true, data: { ... } }
+  
+  // UI component to show (if any)
+  uiComponent   Json?           // { type: "input", config: { ... } }
+  
+  questionId    String?         @db.ObjectId   // Related question ID
+  
+  createdAt     DateTime        @default(now())
+
+  interview     UserInterview   @relation(fields: [interviewId], references: [id], onDelete: Cascade)
+
+  @@index([interviewId])
+  @@map("interview_messages")
+}
+
+enum MessageRole {
+  USER
+  ASSISTANT
+  SYSTEM
+  FUNCTION
+}
+
+// ==========================================
+// LEGACY INTERVIEW CATEGORIES (TO BE MIGRATED)
+// ==========================================
+
+model InterviewCategory {
+  id        String              @id @default(auto()) @map("_id") @db.ObjectId
+  name      String              @unique
+  nameKey   String?             // Translation key for the name (e.g., "businessGoals")
+  order     Int                 @default(0)
+  isActive  Boolean             @default(true)
+  createdAt DateTime            @default(now())
+  updatedAt DateTime            @updatedAt
+  
+  questions LegacyInterviewQuestion[]
+}
+
+model LegacyInterviewQuestion {
+  id          String              @id @default(auto()) @map("_id") @db.ObjectId
+  categoryId  String              @db.ObjectId
+  question    String              // Default question text
+  questionKey String?             // Translation key (e.g., "businessGoals", "industry")
+  type        LegacyQuestionType  @default(TEXT)
+  placeholder String?
+  options     String[]            // For select, multiselect, radio, checkbox types
+  scaleMin    Int?                // For scale type
+  scaleMax    Int?                // For scale type
+  required    Boolean             @default(false)
+  order       Int                 @default(0)
+  isActive    Boolean             @default(true)
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @updatedAt
+
+  category    InterviewCategory   @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+}
+
+enum LegacyQuestionType {
+  TEXT
+  TEXTAREA
+  SELECT
+  MULTISELECT
+  RADIO
+  CHECKBOX
+  SCALE
+}
+
+// ==========================================
+// TRANSLATIONS (I18N ADMIN)
+// ==========================================
+
+enum TranslationStatus {
+  DRAFT
+  APPROVED
+}
+
+model I18nLanguage {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  locale    String   @unique
+  name      String
+  isRTL     Boolean  @default(false)
+  fallback  String[] @default([])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  translations I18nTranslation[]
+
+  @@map("i18n_languages")
+}
+
+model I18nKey {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  key         String   @unique
+  namespace   String
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  translations I18nTranslation[]
+
+  @@index([namespace])
+  @@map("i18n_keys")
+}
+
+model I18nTranslation {
+  id          String            @id @default(auto()) @map("_id") @db.ObjectId
+  keyId       String            @db.ObjectId
+  languageId  String            @db.ObjectId
+  key         String            // Denormalized key string
+  namespace   String            // Denormalized namespace
+  locale      String            // Denormalized locale
+  value       String
+  status      TranslationStatus @default(APPROVED)
+  version     Int               @default(1)
+  isLatest    Boolean           @default(true)
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+
+  keyRel      I18nKey           @relation(fields: [keyId], references: [id], onDelete: Cascade)
+  language    I18nLanguage      @relation(fields: [languageId], references: [id], onDelete: Cascade)
+
+  @@index([languageId, namespace, status])
+  @@index([locale, namespace, status])
+  @@index([keyId])
+  @@index([keyId, languageId, isLatest])
+  @@map("i18n_translations")
 }
