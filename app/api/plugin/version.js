@@ -7,7 +7,7 @@
  */
 
 // Current plugin version - increment this when making updates
-export const PLUGIN_VERSION = '1.2.1';
+export const PLUGIN_VERSION = '1.2.2';
 
 // Changelog for the current version
 export const PLUGIN_CHANGELOG = `
