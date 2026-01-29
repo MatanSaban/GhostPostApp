@@ -15,7 +15,7 @@
   color: var(--foreground);
   padding: 12px 18px;
   border-radius: var(--radius-lg);
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   box-shadow: var(--shadow-lg);
   z-index: 1000;
   border: 1px solid var(--border);
@@ -65,7 +65,7 @@
 }
 
 .nsLabel {
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   font-weight: 500;
   color: var(--muted-foreground);
   white-space: nowrap;
@@ -73,7 +73,7 @@
 
 .select {
   padding: 0.5rem 0.75rem;
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   background: var(--input);
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
@@ -107,7 +107,7 @@
 
 .input {
   padding: 0.5rem 0.75rem;
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   background: var(--input);
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
@@ -160,7 +160,7 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   color: var(--foreground);
   cursor: pointer;
 }
@@ -179,7 +179,7 @@
 }
 
 .languagesTitle {
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   font-weight: 500;
   color: var(--muted-foreground);
 }
@@ -213,7 +213,7 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   color: var(--muted-foreground);
 }
 
@@ -342,14 +342,14 @@
 .noKeys {
   padding: 2rem;
   text-align: center;
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   color: var(--muted-foreground);
 }
 
 .loading {
   padding: 2rem;
   text-align: center;
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   color: var(--muted-foreground);
 }
 
@@ -377,7 +377,7 @@
 }
 
 .formLabel {
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   font-weight: 500;
   color: var(--foreground);
   display: flex;
@@ -521,5 +521,5 @@
 }
 
 .emptyText {
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
 }

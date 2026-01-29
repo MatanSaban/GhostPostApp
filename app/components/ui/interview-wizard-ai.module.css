@@ -240,7 +240,7 @@
   justify-content: center;
   gap: 0.5rem;
   padding: 0.5rem 1rem;
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   font-weight: 500;
   background: var(--muted);
   border: 1px solid var(--border);
@@ -472,7 +472,7 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0.5rem 1rem;
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   background: var(--muted);
   border: 1px solid var(--border);
   border-radius: var(--radius-full);
@@ -572,7 +572,7 @@
 
 .fileItem {
   padding: 0.5rem 0.75rem;
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   background: var(--muted);
   border-radius: var(--radius-md);
   color: var(--foreground);
@@ -593,7 +593,7 @@
 }
 
 .editableField label {
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   font-weight: 500;
   color: var(--muted-foreground);
 }
@@ -613,7 +613,7 @@
 
 .suggestionChip {
   padding: 0.5rem 1rem;
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   background: var(--muted);
   border: 1px solid var(--border);
   border-radius: var(--radius-full);
@@ -650,7 +650,7 @@
   gap: 0.5rem;
   margin-top: 1rem;
   padding: 0.75rem 1.5rem;
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   font-weight: 500;
   background: var(--muted);
   border: 1px solid var(--border);

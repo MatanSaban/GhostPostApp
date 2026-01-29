@@ -30,7 +30,7 @@
 }
 
 .pageSubtitle {
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   color: var(--muted-foreground);
   margin-top: 0.25rem;
 }
@@ -58,7 +58,7 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0.5rem 1rem;
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   font-weight: 500;
   color: var(--muted-foreground);
   background: transparent;
@@ -185,7 +185,7 @@
   justify-content: flex-start;
   padding: 0.5rem 0.25rem;
   border-radius: var(--radius-md);
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   color: var(--foreground);
   background: var(--background);
   border: 1px solid transparent;
@@ -292,7 +292,7 @@
 }
 
 .contentTitle {
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   font-weight: 500;
   color: var(--foreground);
   white-space: nowrap;
@@ -306,7 +306,7 @@
 }
 
 .contentDate {
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   color: var(--muted-foreground);
 }
 

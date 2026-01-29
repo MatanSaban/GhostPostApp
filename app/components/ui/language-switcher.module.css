@@ -10,7 +10,7 @@
   border-radius: var(--radius-lg);
   background: transparent;
   color: var(--muted-foreground);
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   font-weight: 500;
   cursor: pointer;
   transition: all var(--transition-fast);
@@ -84,7 +84,7 @@
   border-radius: var(--radius-md);
   background: transparent;
   color: var(--foreground);
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   cursor: pointer;
   transition: all var(--transition-fast);
   border: none;

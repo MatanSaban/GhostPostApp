@@ -77,7 +77,7 @@
 }
 
 .chatListTitle {
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   font-weight: 600;
   color: #ffffff;
   margin: 0;
@@ -118,7 +118,7 @@
   background: #2a3150;
   border: 1px solid rgba(255, 255, 255, 0.05);
   color: #ffffff;
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   transition: all 0.2s ease;
 
   &::placeholder {
@@ -164,7 +164,7 @@
 }
 
 .chatItemTitle {
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   font-weight: 500;
   color: #ffffff;
   margin: 0;
@@ -273,7 +273,7 @@
 }
 
 .agentName {
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   font-weight: 600;
   color: #ffffff;
   margin: 0;
@@ -332,7 +332,7 @@
 }
 
 .messageText {
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   color: #1f2937;
   line-height: 1.6;
   margin: 0;
@@ -358,7 +358,7 @@
   border-radius: 0.5rem;
   background: #00b67a;
   color: #ffffff;
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   font-weight: 500;
   transition: all 0.2s ease;
 
@@ -372,7 +372,7 @@
   border-radius: 0.5rem;
   background: #e5e7eb;
   color: #374151;
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   font-weight: 500;
   transition: all 0.2s ease;
 
@@ -429,7 +429,7 @@
   border-radius: 0.5rem;
   background: rgba(239, 68, 68, 0.4);
   color: #ffffff;
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   transition: all 0.2s ease;
 
   &:hover {
@@ -473,7 +473,7 @@
   background: #2a3150;
   border: 1px solid rgba(255, 255, 255, 0.05);
   color: #ffffff;
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   transition: all 0.2s ease;
 
   &::placeholder {
@@ -550,7 +550,7 @@
 }
 
 .sectionTitle {
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   font-weight: 600;
   color: #ffffff;
   margin: 0 0 0.75rem 0;
@@ -650,7 +650,7 @@
   background: #2a3150;
   border: 1px solid rgba(255, 255, 255, 0.05);
   color: #ffffff;
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -689,7 +689,7 @@
   width: 100%;
   padding: 0.5rem 0.75rem;
   text-align: left;
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   color: #ffffff;
   transition: all 0.2s ease;
 

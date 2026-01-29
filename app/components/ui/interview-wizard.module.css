@@ -312,7 +312,7 @@
 }
 
 .messageText {
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   line-height: 1.5;
   color: var(--foreground);
 
@@ -402,7 +402,7 @@
 }
 
 .completionText {
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   color: var(--muted-foreground);
 }
 
@@ -430,7 +430,7 @@
   background: var(--background);
   border: 1px solid var(--border);
   color: var(--foreground);
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   transition: all var(--transition-fast);
 
   &::placeholder {
@@ -722,7 +722,7 @@
   border: 1px solid var(--border-subtle);
   background: var(--bg-secondary);
   color: var(--text-primary);
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   cursor: pointer;
   transition: all var(--transition-fast);
 
@@ -743,7 +743,7 @@
   padding: 1rem;
   text-align: center;
   color: var(--text-secondary);
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   width: 100%;
 }
 
@@ -779,7 +779,7 @@
   background: rgba(0, 255, 157, 0.1);
   border: 1px solid rgba(0, 255, 157, 0.3);
   border-radius: var(--radius-md);
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   color: var(--accent);
 }
 
@@ -825,7 +825,7 @@
   span {
     color: var(--text-primary);
     font-weight: 500;
-    font-size: 0.875rem;
+    font-size: 0.9375rem;
   }
 }
 
@@ -952,7 +952,7 @@
   background: rgba(255, 100, 100, 0.1);
   border: 1px solid rgba(255, 100, 100, 0.3);
   color: #ff6464;
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -1013,7 +1013,7 @@
 }
 
 .dataCardValue {
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   color: var(--foreground);
 }
 
@@ -1180,7 +1180,7 @@
   background: var(--gradient-primary);
   color: var(--text-inverse);
   font-weight: 500;
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   border: none;
   cursor: pointer;
   transition: all var(--transition-fast);

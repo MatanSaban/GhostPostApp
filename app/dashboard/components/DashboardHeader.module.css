@@ -22,7 +22,7 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
 }
 
 .breadcrumbItem {
@@ -144,7 +144,7 @@
 }
 
 .notificationsTitle {
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   font-weight: 600;
   color: var(--foreground);
 }
@@ -178,7 +178,7 @@
   color: var(--muted-foreground);
 
   p {
-    font-size: 0.875rem;
+    font-size: 0.9375rem;
   }
 }
 
@@ -415,7 +415,7 @@
   align-items: center;
   justify-content: center;
   color: white;
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   font-weight: 600;
 }
 
@@ -425,7 +425,7 @@
 }
 
 .userMenuName {
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   font-weight: 600;
   color: var(--foreground);
 }
@@ -466,7 +466,7 @@
 }
 
 .creditsValue {
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   font-weight: 600;
   color: var(--foreground);
 }

@@ -60,7 +60,7 @@
 }
 
 .progressSubtitle {
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   color: #6b7280;
 }
 
@@ -76,7 +76,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   margin-bottom: 0.5rem;
 }
 
@@ -215,7 +215,7 @@
 }
 
 .stepLabel {
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   font-weight: 600;
   color: #111827;
   white-space: nowrap;
@@ -311,13 +311,13 @@
   border-radius: 50%;
   background: linear-gradient(to right, #9333ea, #3b82f6);
   color: white;
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   font-weight: 600;
   box-shadow: 0 4px 14px rgba(147, 51, 234, 0.4);
 }
 
 .questionCategory {
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   font-weight: 500;
   color: #7c3aed;
 }
@@ -347,7 +347,7 @@
   background: white;
   border: 1px solid #e5e7eb;
   color: #111827;
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   line-height: 1.6;
   resize: vertical;
   transition: all 0.2s ease;
@@ -395,7 +395,7 @@
   background: transparent;
   border: 1px solid #e5e7eb;
   color: #6b7280;
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -428,7 +428,7 @@
   color: white;
   font-family: 'Poppins', sans-serif;
   font-weight: 600;
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   cursor: pointer;
   transition: transform 0.2s ease, opacity 0.2s ease;
 }
@@ -583,7 +583,7 @@
 }
 
 .questionLabel {
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   color: #6b7280;
   font-family: 'Poppins', sans-serif;
   margin-bottom: 0.5rem;
@@ -685,7 +685,7 @@
 }
 
 .insightText {
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   color: white;
   line-height: 1.6;
 }

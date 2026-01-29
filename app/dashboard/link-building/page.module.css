@@ -30,7 +30,7 @@
 }
 
 .pageSubtitle {
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   color: var(--muted-foreground);
   margin-top: 0.25rem;
 }
@@ -89,7 +89,7 @@
 }
 
 .cardSubtitle {
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   color: var(--muted-foreground);
 }
 
@@ -138,7 +138,7 @@
 }
 
 .opportunityDomain {
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   font-weight: 500;
   color: var(--foreground);
   white-space: nowrap;
@@ -256,7 +256,7 @@
   background: var(--background);
   border: 1px solid var(--border-light);
   border-radius: var(--radius-lg);
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   transition: all var(--transition-fast);
 
   @media (max-width: 768px) {

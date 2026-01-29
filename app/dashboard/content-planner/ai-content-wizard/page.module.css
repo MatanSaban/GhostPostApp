@@ -26,7 +26,7 @@
 }
 
 .pageSubtitle {
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   color: var(--muted-foreground);
   margin-top: 0.25rem;
 }
@@ -206,7 +206,7 @@
 }
 
 .stepDescription {
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   color: var(--muted-foreground);
   margin-top: 0.25rem;
 }
@@ -218,7 +218,7 @@
 
 .formLabel {
   display: block;
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   font-weight: 600;
   color: var(--muted-foreground);
   margin-bottom: 0.5rem;
@@ -227,7 +227,7 @@
 .formInput {
   width: 100%;
   padding: 0.75rem 1rem;
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   color: var(--foreground);
   background: var(--muted);
   border: 1px solid var(--border);
@@ -257,7 +257,7 @@
 .formTextarea {
   width: 100%;
   padding: 0.75rem 1rem;
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   color: var(--foreground);
   background: var(--muted);
   border: 1px solid var(--border);
@@ -349,7 +349,7 @@
 }
 
 .contentTypeName {
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   font-weight: 600;
   color: var(--foreground);
 
@@ -376,7 +376,7 @@
 
 .toneButton {
   padding: 0.5rem 1rem;
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   font-weight: 500;
   border-radius: var(--radius-lg);
   border: 1px solid var(--border);
@@ -441,7 +441,7 @@
 }
 
 .lengthName {
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   font-weight: 600;
   color: var(--foreground);
   margin-bottom: 0.25rem;
@@ -507,7 +507,7 @@
 }
 
 .optionLabel {
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   font-weight: 600;
   color: var(--foreground);
 }
@@ -598,14 +598,14 @@
 }
 
 .summaryTitle {
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   font-weight: 600;
   color: var(--foreground);
   margin-bottom: 0.5rem;
 }
 
 .summaryItem {
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   color: var(--muted-foreground);
   line-height: 1.6;
 }
@@ -618,7 +618,7 @@
   display: flex;
   gap: 1rem;
   margin-top: 0.5rem;
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
 }
 
 /* Launch Button */
@@ -686,7 +686,7 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0.75rem 1.5rem;
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   font-weight: 600;
   border-radius: var(--radius-lg);
   cursor: pointer;

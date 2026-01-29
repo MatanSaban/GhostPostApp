@@ -63,7 +63,7 @@
   width: 100%;
   padding: 0.625rem 0.75rem;
   padding-inline-start: 2.5rem;
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   background: var(--input);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
@@ -88,7 +88,7 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0.625rem 1rem;
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   font-weight: 500;
   background: var(--muted);
   border: 1px solid var(--border);
@@ -109,7 +109,7 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0.625rem 1.25rem;
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   font-weight: 600;
   background: var(--gradient-primary);
   border: none;
@@ -129,7 +129,7 @@
 .filterSelect {
   width: auto;
   padding: 0.75rem 2.5rem 0.75rem 1rem;
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   color: var(--foreground);
   background: var(--input-background, var(--input));
   border: 1px solid var(--input-border, var(--border));
@@ -269,7 +269,7 @@
 
 .tableBody td {
   padding: 1rem;
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   color: var(--foreground);
 }
 
@@ -287,7 +287,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   font-weight: 600;
   color: white;
 }
@@ -406,7 +406,7 @@
 }
 
 .emptyMessage {
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   color: var(--muted-foreground);
 }
 
@@ -420,7 +420,7 @@
 }
 
 .paginationInfo {
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   color: var(--muted-foreground);
 }
 
@@ -681,7 +681,7 @@
 
 .formLabel {
   display: block;
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   font-weight: 500;
   color: var(--foreground);
   margin-bottom: 0.5rem;
@@ -690,7 +690,7 @@
 .formSelect {
   width: 100%;
   padding: 0.625rem 0.875rem;
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   color: var(--foreground);
   background: var(--background);
   border: 1px solid var(--border);
@@ -716,7 +716,7 @@
   justify-content: center;
   gap: 0.5rem;
   padding: 0.625rem 1.25rem;
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   font-weight: 500;
   color: var(--primary-foreground);
   background: var(--primary);
@@ -741,7 +741,7 @@
   justify-content: center;
   gap: 0.5rem;
   padding: 0.625rem 1.25rem;
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   font-weight: 500;
   color: var(--foreground);
   background: var(--muted);
@@ -761,7 +761,7 @@
   justify-content: center;
   gap: 0.5rem;
   padding: 0.625rem 1.25rem;
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   font-weight: 500;
   color: white;
   background: var(--destructive);

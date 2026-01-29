@@ -24,7 +24,7 @@
 }
 
 .pageSubtitle {
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   color: var(--muted-foreground);
   margin-top: 0.25rem;
 }
@@ -149,7 +149,7 @@
 }
 
 .sectionDescription {
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   color: var(--muted-foreground);
   margin-top: 0.25rem;
 }
@@ -180,7 +180,7 @@
 }
 
 .formLabel {
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   font-weight: 600;
   color: var(--muted-foreground);
 }
@@ -188,7 +188,7 @@
 .formInput {
   width: 100%;
   padding: 0.75rem 1rem;
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   color: var(--foreground);
   background: var(--muted);
   border: 1px solid var(--border);
@@ -219,7 +219,7 @@
 .formSelect {
   width: 100%;
   padding: 0.75rem 1rem;
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   color: var(--foreground);
   background: var(--muted);
   border: 1px solid var(--border);
@@ -246,7 +246,7 @@
 .formTextarea {
   width: 100%;
   padding: 0.75rem 1rem;
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   color: var(--foreground);
   background: var(--muted);
   border: 1px solid var(--border);
@@ -349,7 +349,7 @@
 }
 
 .toggleLabel {
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   font-weight: 600;
   color: var(--foreground);
 }
@@ -410,7 +410,7 @@
 }
 
 .rangeValue {
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   font-weight: 600;
   color: var(--primary);
   font-family: 'Consolas', monospace;
@@ -508,7 +508,7 @@
 }
 
 .cronJobName {
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   font-weight: 600;
   color: var(--foreground);
 }
@@ -584,7 +584,7 @@
 }
 
 .memberName {
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   font-weight: 600;
   color: var(--foreground);
 }
@@ -746,7 +746,7 @@
 }
 
 .pricePeriod {
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   color: var(--muted-foreground);
 }
 
@@ -759,7 +759,7 @@
   align-items: center;
   justify-content: space-between;
   margin-bottom: 0.5rem;
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
 }
 
 .usageLabel {
@@ -793,7 +793,7 @@
 .addButton {
   width: 100%;
   padding: 1rem;
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   font-weight: 600;
   color: var(--primary);
   background: transparent;
@@ -827,7 +827,7 @@
 
 .saveButton {
   padding: 0.75rem 2rem;
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   font-weight: 600;
   color: white;
   background: var(--gradient-primary);
@@ -895,7 +895,7 @@
 }
 
 .pluginStatusText {
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   font-weight: 600;
   color: var(--foreground);
 }
@@ -920,7 +920,7 @@
 }
 
 .pluginDescription {
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   color: var(--muted-foreground);
   line-height: 1.6;
 }
@@ -959,7 +959,7 @@
 }
 
 .warningLabel {
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   font-weight: 600;
   color: var(--foreground);
 }
@@ -1057,12 +1057,12 @@
 
 /* Save feedback */
 .saveError {
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   color: #ef4444;
 }
 
 .saveSuccess {
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   color: #22c55e;
 }
 
@@ -1151,7 +1151,7 @@
   td {
     padding: 0.875rem 1rem;
     text-align: start;
-    font-size: 0.875rem;
+    font-size: 0.9375rem;
   }
 
   th {
@@ -1254,7 +1254,7 @@
   justify-content: center;
   gap: 0.5rem;
   padding: 0.625rem 1.25rem;
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   font-weight: 500;
   color: white;
   background: var(--gradient-primary);
@@ -1279,7 +1279,7 @@
   justify-content: center;
   gap: 0.5rem;
   padding: 0.625rem 1.25rem;
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   font-weight: 500;
   color: var(--foreground);
   background: var(--muted);
@@ -1299,7 +1299,7 @@
   justify-content: center;
   gap: 0.5rem;
   padding: 0.625rem 1.25rem;
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   font-weight: 500;
   color: white;
   background: rgb(239, 68, 68);
@@ -1322,7 +1322,7 @@
 .errorMessage {
   padding: 0.75rem 1rem;
   margin-bottom: 1rem;
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   color: rgb(239, 68, 68);
   background: rgba(239, 68, 68, 0.1);
   border-radius: var(--radius-md);
@@ -1366,7 +1366,7 @@
 .searchInput {
   width: 100%;
   padding: 0.625rem 0.75rem 0.625rem 2.25rem;
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   color: var(--foreground);
   background: var(--muted);
   border: 1px solid var(--border);
@@ -1418,7 +1418,7 @@
 
 .categoryTitle {
   font-weight: 600;
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   color: var(--foreground);
   text-transform: capitalize;
 }
@@ -1552,7 +1552,7 @@
 }
 
 .moduleName {
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   font-weight: 500;
   color: var(--foreground);
 }
@@ -1592,7 +1592,7 @@
   border: 1px solid rgba(147, 51, 234, 0.2);
   border-radius: var(--radius-lg);
   color: rgb(147, 51, 234);
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   font-weight: 500;
 
   svg {
@@ -1639,7 +1639,7 @@
   flex: 1;
   min-width: 200px;
   padding: 0.625rem 1rem;
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   border: 1px solid var(--border-light);
   border-radius: var(--radius-md);
   background: var(--background);
@@ -1665,7 +1665,7 @@
 .roleSelect {
   min-width: 150px;
   padding: 0.625rem 1rem;
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   border: 1px solid var(--border-light);
   border-radius: var(--radius-md);
   background: var(--background);
@@ -1688,7 +1688,7 @@
 .languageSelect {
   min-width: 100px;
   padding: 0.625rem 1rem;
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   border: 1px solid var(--border-light);
   border-radius: var(--radius-md);
   background: var(--background);
@@ -1713,7 +1713,7 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0.625rem 1.25rem;
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   font-weight: 500;
   color: white;
   background: var(--primary);
@@ -1844,7 +1844,7 @@
 }
 
 .userName {
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   font-weight: 600;
   color: var(--foreground);
   display: flex;
@@ -2025,7 +2025,7 @@
   }
 
   p {
-    font-size: 0.875rem;
+    font-size: 0.9375rem;
   }
 }
 
@@ -2083,7 +2083,7 @@
   }
 
   p {
-    font-size: 0.875rem;
+    font-size: 0.9375rem;
     color: var(--muted-foreground);
     margin-bottom: 1.25rem;
     line-height: 1.5;
@@ -2098,7 +2098,7 @@
 .roleSelectModal {
   width: 100%;
   padding: 0.625rem 1rem;
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   border: 1px solid var(--border-light);
   border-radius: var(--radius-md);
   background: var(--background);
@@ -2120,7 +2120,7 @@
 
 .cancelBtn {
   padding: 0.5rem 1rem;
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   font-weight: 500;
   color: var(--muted-foreground);
   background: var(--muted);
@@ -2140,7 +2140,7 @@
   align-items: center;
   gap: 0.375rem;
   padding: 0.5rem 1rem;
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   font-weight: 500;
   color: white;
   background: #ef4444;
@@ -2164,7 +2164,7 @@
   align-items: center;
   gap: 0.375rem;
   padding: 0.5rem 1rem;
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   font-weight: 500;
   color: white;
   background: var(--primary);
