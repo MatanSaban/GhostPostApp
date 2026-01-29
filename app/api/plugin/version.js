@@ -7,10 +7,15 @@
  */
 
 // Current plugin version - increment this when making updates
-export const PLUGIN_VERSION = '1.1.1';
+export const PLUGIN_VERSION = '1.1.2';
 
 // Changelog for the current version
 export const PLUGIN_CHANGELOG = `
+= 1.1.2 =
+* Added full data sync support (content, excerpt, ACF, SEO)
+* Added 'full' parameter to fetch complete entity data
+* Improved sync reliability for all field types
+
 = 1.1.0 =
 * Added automatic update system
 * Added ACF field metadata support (field types, choices, etc.)
@@ -30,4 +35,5 @@ export const PLUGIN_CHANGELOG = `
 export const VERSION_HISTORY = [
   { version: '1.0.0', date: '2025-01-01', description: 'Initial release' },
   { version: '1.1.0', date: '2026-01-29', description: 'Added auto-updates, ACF, and SEO support' },
+  { version: '1.1.2', date: '2026-01-29', description: 'Full data sync support' },
 ];

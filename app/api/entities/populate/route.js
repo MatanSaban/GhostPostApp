@@ -429,8 +429,8 @@ async function syncEntitiesForType(site, entityType) {
 
   while (hasMore) {
     try {
-      // Use the authenticated plugin API
-      const response = await getPosts(site, postTypeSlug, page, 50);
+      // Use the authenticated plugin API with full=true to get all data
+      const response = await getPosts(site, postTypeSlug, page, 50, true);
       
       // The plugin returns { items: [...], total, pages, page }
       const posts = response.items || response;
@@ -466,7 +466,9 @@ async function syncEntitiesForType(site, entityType) {
               taxonomies: post.taxonomies || {},
               meta: post.meta || {},
             },
-            seoData: post.seo_data || null,
+            // SEO data - plugin returns 'seo' not 'seo_data'
+            seoData: post.seo || null,
+            // ACF data - plugin returns 'acf'
             acfData: post.acf || null,
           };
 

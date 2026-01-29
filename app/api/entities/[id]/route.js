@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import prisma from '@/lib/prisma';
+import { updatePost, updateSeoData, updateAcfFields } from '@/lib/wp-api-client';
 
 const SESSION_COOKIE = 'user_session';
 
@@ -98,17 +99,30 @@ export async function PUT(request, { params }) {
 
     const { id } = await params;
     const body = await request.json();
+    const syncToWordPress = body.syncToWordPress !== false; // Default to true
 
     // Get user's account IDs
     const accountIds = user.accountMemberships.map(m => m.accountId);
 
-    // Get the entity to verify access
+    // Get the entity with site info for WordPress sync
     const existingEntity = await prisma.siteEntity.findUnique({
       where: { id },
       include: {
         site: {
           select: {
+            id: true,
+            url: true,
+            siteKey: true,
+            siteSecret: true,
             accountId: true,
+            connectionStatus: true,
+          },
+        },
+        entityType: {
+          select: {
+            id: true,
+            name: true,
+            slug: true,
           },
         },
       },
@@ -123,7 +137,65 @@ export async function PUT(request, { params }) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
     }
 
-    // Update the entity
+    // Sync to WordPress if enabled and site is connected
+    let wpSyncResult = null;
+    let wpSyncError = null;
+    
+    if (syncToWordPress && existingEntity.site.connectionStatus === 'CONNECTED' && existingEntity.externalId) {
+      try {
+        const postType = existingEntity.entityType?.slug || 'post';
+        const wpPostId = existingEntity.externalId;
+        
+        // Prepare data for WordPress
+        const wpData = {
+          title: body.title,
+          slug: body.slug,
+          excerpt: body.excerpt,
+          content: body.content,
+          status: body.status === 'PUBLISHED' ? 'publish' : 'draft',
+          featured_image: body.featuredImage,
+        };
+        
+        // Update post in WordPress
+        wpSyncResult = await updatePost(existingEntity.site, postType, wpPostId, wpData);
+        
+        // Update SEO data if provided
+        if (body.seoData) {
+          try {
+            await updateSeoData(existingEntity.site, wpPostId, body.seoData);
+          } catch (seoError) {
+            console.warn('Failed to update SEO data:', seoError.message);
+            // Don't fail the whole request for SEO errors
+          }
+        }
+        
+        // Update ACF fields if provided
+        if (body.acfData) {
+          try {
+            // Extract just the field values for updating
+            const acfValues = {};
+            if (body.acfData.fields) {
+              for (const field of body.acfData.fields) {
+                acfValues[field.name] = field.value;
+              }
+            }
+            if (Object.keys(acfValues).length > 0) {
+              await updateAcfFields(existingEntity.site, wpPostId, acfValues);
+            }
+          } catch (acfError) {
+            console.warn('Failed to update ACF fields:', acfError.message);
+            // Don't fail the whole request for ACF errors
+          }
+        }
+        
+      } catch (error) {
+        console.error('WordPress sync error:', error);
+        wpSyncError = error.message;
+        // Continue with local update even if WP sync fails
+      }
+    }
+
+    // Update the entity in our database
     const updatedEntity = await prisma.siteEntity.update({
       where: { id },
       data: {
@@ -152,6 +224,11 @@ export async function PUT(request, { params }) {
     return NextResponse.json({ 
       entity: updatedEntity,
       message: 'Entity updated successfully',
+      wpSync: {
+        attempted: syncToWordPress && existingEntity.site.connectionStatus === 'CONNECTED',
+        success: wpSyncResult !== null && wpSyncError === null,
+        error: wpSyncError,
+      },
     });
   } catch (error) {
     console.error('Failed to update entity:', error);

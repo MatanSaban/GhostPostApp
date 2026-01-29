@@ -42,33 +42,52 @@ async function fetchWordPressEntities(site, postTypeSlug) {
   if (!postTypeSlug) return entities;
 
   try {
-    // Use authenticated plugin API
-    const response = await getPosts(site, postTypeSlug, 1, 100);
+    let page = 1;
+    let hasMore = true;
+    const perPage = 100;
     
-    // The plugin returns { items: [...], total, pages, page }
-    const items = response.items || response;
-    
-    if (!Array.isArray(items)) {
-      console.log(`No items returned for ${postTypeSlug}`);
-      return entities;
-    }
+    while (hasMore) {
+      // Use authenticated plugin API with full=true (default)
+      const response = await getPosts(site, postTypeSlug, page, perPage, true);
+      
+      // The plugin returns { items: [...], total, pages, page }
+      const items = response.items || response;
+      const totalPages = response.pages || 1;
+      
+      if (!Array.isArray(items) || items.length === 0) {
+        hasMore = false;
+        break;
+      }
 
-    for (const item of items) {
-      entities.push({
-        externalId: String(item.id),
-        title: item.title || 'Untitled',
-        slug: item.slug,
-        url: item.permalink || item.link,
-        excerpt: item.excerpt || null,
-        content: item.content || null,
-        status: item.status === 'publish' ? 'PUBLISHED' : 'DRAFT',
-        featuredImage: item.featured_image || null,
-        publishedAt: item.date ? new Date(item.date) : null,
-        // Additional data
-        metadata: item.meta ? JSON.stringify(item.meta) : null,
-        acfData: item.acf ? item.acf : null,
-        seoData: item.seo ? item.seo : null,
-      });
+      for (const item of items) {
+        entities.push({
+          externalId: String(item.id),
+          title: item.title || 'Untitled',
+          slug: item.slug,
+          url: item.permalink || item.link,
+          excerpt: item.excerpt || null,
+          content: item.content || null,
+          status: item.status === 'publish' ? 'PUBLISHED' : 'DRAFT',
+          featuredImage: item.featured_image || null,
+          publishedAt: item.date ? new Date(item.date) : null,
+          // Additional data - store as objects (Prisma JSON fields)
+          metadata: item.meta || null,
+          acfData: item.acf || null,
+          seoData: item.seo || null,
+          // Extra fields
+          author: item.author || null,
+          categories: item.categories || [],
+          tags: item.tags || [],
+          taxonomies: item.taxonomies || null,
+        });
+      }
+      
+      // Check if there are more pages
+      if (page >= totalPages || items.length < perPage) {
+        hasMore = false;
+      } else {
+        page++;
+      }
     }
     
     console.log(`Fetched ${entities.length} ${postTypeSlug} from plugin API`);

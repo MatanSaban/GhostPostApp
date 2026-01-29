@@ -40,11 +40,14 @@ class GP_Content_Manager {
             $args['category_name'] = $params['category'];
         }
         
+        // Check if full data is requested (for sync operations)
+        $include_full = !empty($params['full']) && ($params['full'] === 'true' || $params['full'] === '1' || $params['full'] === true);
+        
         $query = new WP_Query($args);
         $items = array();
         
         foreach ($query->posts as $post) {
-            $items[] = $this->format_post($post);
+            $items[] = $this->format_post($post, $include_full);
         }
         
         return new WP_REST_Response(array(
