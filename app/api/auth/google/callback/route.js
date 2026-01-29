@@ -62,13 +62,19 @@ export async function GET(request) {
     
     const { mode, consent } = oauthState;
     
+    console.log('[Google OAuth Callback] Starting token exchange...');
+    
     // Exchange code for tokens
     const tokens = await exchangeCodeForTokens(code);
+    
+    console.log('[Google OAuth Callback] Token exchange successful, getting user info...');
     
     // Get user info from Google
     const googleUser = await getGoogleUserInfo(tokens.access_token);
     
-    // Clear the OAuth state cookie
+    console.log('[Google OAuth Callback] Got user info:', googleUser.email, 'Mode:', mode);
+    
+    // Handle the OAuth callback
     const response = await handleOAuthCallback({
       mode,
       consent,
@@ -78,13 +84,15 @@ export async function GET(request) {
       cookieStore,
     });
     
+    console.log('[Google OAuth Callback] Callback handled successfully');
+    
     // Clear the OAuth state cookie
     response.cookies.delete('google_oauth_state');
     
     return response;
     
   } catch (error) {
-    console.error('Google OAuth callback error:', error);
+    console.error('[Google OAuth Callback] Error:', error.message, error.stack);
     return NextResponse.redirect(
       new URL('/auth/login?error=oauth_failed', request.url)
     );
@@ -114,6 +122,8 @@ async function handleOAuthCallback({ mode, consent, googleUser, tokens, request,
  * Handle Google login
  */
 async function handleGoogleLogin({ googleUser, normalizedEmail, tokens, request, cookieStore }) {
+  console.log('[Google OAuth Login] Checking for existing auth provider...');
+  
   // Check if user exists with this Google account
   const authProvider = await prisma.authProvider.findUnique({
     where: {
@@ -124,6 +134,8 @@ async function handleGoogleLogin({ googleUser, normalizedEmail, tokens, request,
     },
     include: { user: true },
   });
+  
+  console.log('[Google OAuth Login] Auth provider found:', !!authProvider);
   
   if (authProvider?.user) {
     // User exists with Google - log them in
