@@ -161,6 +161,7 @@
   font-weight: 600;
   color: var(--muted-foreground);
   transition: all var(--transition-fast);
+  text-align: center;
 
   &:hover {
     color: var(--foreground);
