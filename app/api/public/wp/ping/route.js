@@ -28,8 +28,8 @@ export async function POST(request) {
       );
     }
 
-    // Get site by key
-    const site = await prisma.site.findUnique({
+    // Get site by key (using findFirst since siteKey is indexed but not unique due to MongoDB null constraints)
+    const site = await prisma.site.findFirst({
       where: { siteKey },
       select: {
         id: true,
