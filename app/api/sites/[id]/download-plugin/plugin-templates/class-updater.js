@@ -37,9 +37,9 @@ class GP_Updater {
     private $cache_key = 'gp_connector_update_check';
 
     /**
-     * Cache duration in seconds (12 hours)
+     * Cache duration in seconds (1 hour - for faster update detection)
      */
-    private $cache_duration = 43200;
+    private $cache_duration = 3600;
 
     /**
      * Constructor

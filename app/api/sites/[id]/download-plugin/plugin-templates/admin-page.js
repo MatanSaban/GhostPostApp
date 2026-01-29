@@ -100,7 +100,12 @@ $last_error = get_option('gp_connector_last_error', null);
             </tr>
             <tr>
                 <th><?php esc_html_e('Plugin Version', 'ghost-post-connector'); ?></th>
-                <td><?php echo esc_html(GP_CONNECTOR_VERSION); ?></td>
+                <td>
+                    <?php echo esc_html(GP_CONNECTOR_VERSION); ?>
+                    <button type="button" class="button button-small" id="gp-check-updates" style="margin-left: 10px;">
+                        <?php esc_html_e('Check for Updates', 'ghost-post-connector'); ?>
+                    </button>
+                </td>
             </tr>
             <tr>
                 <th><?php esc_html_e('WordPress Version', 'ghost-post-connector'); ?></th>
@@ -184,6 +189,36 @@ $last_error = get_option('gp_connector_last_error', null);
 
 <script>
 jQuery(document).ready(function($) {
+    $('#gp-check-updates').on('click', function() {
+        var $btn = $(this);
+        $btn.prop('disabled', true).text('<?php esc_html_e('Checking...', 'ghost-post-connector'); ?>');
+        
+        $.ajax({
+            url: ajaxurl,
+            method: 'POST',
+            data: {
+                action: 'gp_check_for_updates'
+            },
+            success: function(response) {
+                if (response.success) {
+                    if (response.data.update_available) {
+                        alert('<?php esc_html_e('Update available! Version', 'ghost-post-connector'); ?> ' + response.data.version + '. <?php esc_html_e('Go to Plugins page to update.', 'ghost-post-connector'); ?>');
+                    } else {
+                        alert('<?php esc_html_e('You have the latest version!', 'ghost-post-connector'); ?>');
+                    }
+                } else {
+                    alert('<?php esc_html_e('Failed to check for updates.', 'ghost-post-connector'); ?>');
+                }
+            },
+            error: function() {
+                alert('<?php esc_html_e('Failed to check for updates.', 'ghost-post-connector'); ?>');
+            },
+            complete: function() {
+                $btn.prop('disabled', false).text('<?php esc_html_e('Check for Updates', 'ghost-post-connector'); ?>');
+            }
+        });
+    });
+
     $('#gp-test-connection').on('click', function() {
         var $btn = $(this);
         $btn.prop('disabled', true).text('<?php esc_html_e('Testing...', 'ghost-post-connector'); ?>');
