@@ -7,10 +7,13 @@
  */
 
 // Current plugin version - increment this when making updates
-export const PLUGIN_VERSION = '1.2.2';
+export const PLUGIN_VERSION = '1.2.3';
 
 // Changelog for the current version
 export const PLUGIN_CHANGELOG = `
+= 1.2.3 =
+* Fixed: Check for Updates now properly refreshes WordPress update transient
+
 = 1.2.1 =
 * Added "Check for Updates" button in plugin admin page
 * Reduced update check cache to 1 hour for faster update detection

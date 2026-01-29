@@ -243,12 +243,20 @@ class GP_Updater {
             wp_send_json_error('Unauthorized');
         }
 
-        // Clear cache and force check
+        // Clear our cache
         delete_transient($this->cache_key);
+        
+        // Fetch fresh update info
         $update_info = $this->fetch_update_info();
 
         if ($update_info) {
+            // Cache the result
             set_transient($this->cache_key, $update_info, $this->cache_duration);
+            
+            // Force WordPress to refresh its update transient
+            delete_site_transient('update_plugins');
+            wp_update_plugins();
+            
             wp_send_json_success($update_info);
         } else {
             wp_send_json_error('Failed to check for updates');
