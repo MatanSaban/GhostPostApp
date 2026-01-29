@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { ChevronRight, Search, Check, Plus, X, Loader2, AlertCircle, Globe } from 'lucide-react';
+import { ChevronRight, Search, Check, Plus, X, Loader2, AlertCircle, Globe, Plug, PlugZap } from 'lucide-react';
 import { useLocale } from '@/app/context/locale-context';
 import { useSite } from '@/app/context/site-context';
 import styles from './site-selector.module.css';
@@ -326,6 +326,22 @@ export function SiteSelector({ onSiteChange }) {
           onClick={handleToggle}
         >
           <span className={styles.selectedName}>{selectedSite?.name || t('sites.selectSite')}</span>
+          {selectedSite?.platform === 'wordpress' && (
+            <span 
+              className={`${styles.connectionDot} ${
+                selectedSite.connectionStatus === 'CONNECTED' ? styles.connected : 
+                selectedSite.connectionStatus === 'DISCONNECTED' ? styles.disconnected : 
+                selectedSite.connectionStatus === 'ERROR' ? styles.error : 
+                styles.pending
+              }`}
+              title={
+                selectedSite.connectionStatus === 'CONNECTED' ? t('sites.status.connected') :
+                selectedSite.connectionStatus === 'DISCONNECTED' ? t('sites.status.disconnected') :
+                selectedSite.connectionStatus === 'ERROR' ? t('sites.status.error') :
+                t('sites.status.pending')
+              }
+            />
+          )}
           <ChevronRight className={`${styles.chevron} ${isOpen ? styles.chevronOpen : ''}`} size={18} />
         </button>
 
@@ -354,7 +370,25 @@ export function SiteSelector({ onSiteChange }) {
                     onClick={() => handleSelect(site)}
                   >
                     <div className={styles.siteInfo}>
-                      <span className={styles.siteName}>{site.name}</span>
+                      <div className={styles.siteNameRow}>
+                        <span className={styles.siteName}>{site.name}</span>
+                        {site.platform === 'wordpress' && (
+                          <span 
+                            className={`${styles.connectionDot} ${
+                              site.connectionStatus === 'CONNECTED' ? styles.connected : 
+                              site.connectionStatus === 'DISCONNECTED' ? styles.disconnected : 
+                              site.connectionStatus === 'ERROR' ? styles.error : 
+                              styles.pending
+                            }`}
+                            title={
+                              site.connectionStatus === 'CONNECTED' ? t('sites.status.connected') :
+                              site.connectionStatus === 'DISCONNECTED' ? t('sites.status.disconnected') :
+                              site.connectionStatus === 'ERROR' ? t('sites.status.error') :
+                              t('sites.status.pending')
+                            }
+                          />
+                        )}
+                      </div>
                       <span className={styles.siteUrl}>{site.url}</span>
                     </div>
                     {site.id === selectedSite?.id && (

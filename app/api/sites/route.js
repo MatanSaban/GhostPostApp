@@ -1,6 +1,11 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import prisma from '@/lib/prisma';
+import { 
+  generateSiteKey, 
+  generateSiteSecret, 
+  DEFAULT_SITE_PERMISSIONS 
+} from '@/lib/site-keys';
 
 const SESSION_COOKIE = 'user_session';
 
@@ -113,16 +118,34 @@ export async function POST(request) {
       );
     }
 
+    // Generate site connection keys
+    const siteKey = generateSiteKey();
+    const siteSecret = generateSiteSecret();
+
     const site = await prisma.site.create({
       data: {
         name,
         url,
-        platform: body.platform || null,
+        platform: body.platform || 'wordpress',
         accountId: targetAccountId,
+        siteKey,
+        siteSecret,
+        connectionStatus: 'PENDING',
+        sitePermissions: DEFAULT_SITE_PERMISSIONS,
       },
     });
 
-    return NextResponse.json({ site }, { status: 201 });
+    // Return site without the secret (it should only be in the downloaded plugin)
+    const { siteSecret: _, ...siteWithoutSecret } = site;
+
+    return NextResponse.json({ 
+      site: siteWithoutSecret,
+      // Include siteKey for display but never siteSecret
+      connectionInfo: {
+        siteKey: site.siteKey,
+        status: site.connectionStatus,
+      }
+    }, { status: 201 });
   } catch (error) {
     console.error('Failed to create site:', error);
     return NextResponse.json(

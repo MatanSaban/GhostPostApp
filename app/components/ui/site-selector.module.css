@@ -169,6 +169,12 @@
   overflow: hidden;
 }
 
+.siteNameRow {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
 .siteName {
   font-size: 0.875rem;
   font-weight: 500;
@@ -176,6 +182,46 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+/* Connection Status Dot */
+.connectionDot {
+  flex-shrink: 0;
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  
+  &.connected {
+    background: #10b981;
+    box-shadow: 0 0 6px rgba(16, 185, 129, 0.5);
+    animation: pulse 2s ease-in-out infinite;
+
+    .dark & {
+      background: #00FF9D;
+      box-shadow: 0 0 6px rgba(0, 255, 157, 0.5);
+    }
+  }
+
+  &.pending {
+    background: #6b7280;
+  }
+
+  &.disconnected {
+    background: #f59e0b;
+  }
+
+  &.error {
+    background: #ef4444;
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
 }
 
 .siteUrl {

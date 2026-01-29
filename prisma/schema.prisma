@@ -480,6 +480,24 @@ model Site {
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
+  // WordPress Plugin Connection
+  siteKey              String?                    // Public identifier: "gp_site_abc123"
+  siteSecret           String?                    // Private key for HMAC signing
+  connectionStatus     SiteConnectionStatus @default(PENDING)
+  lastPingAt           DateTime?
+  pluginVersion        String?
+  wpVersion            String?
+  phpVersion           String?
+  wpTimezone           String?
+  wpLocale             String?
+  sitePermissions      SitePermission[]
+
+  // Auto-install credentials (temporary, deleted after install)
+  wpAdminUrl           String?                    // WP admin URL for auto-install
+  wpAdminUsername      String?                    // Encrypted, temporary
+  wpAdminPassword      String?                    // Encrypted, temporary
+  autoInstallExpiresAt DateTime?                  // Credentials expire after this time
+
   account         Account               @relation(fields: [accountId], references: [id], onDelete: Cascade)
   interview       Interview?
   keywords        Keyword[]
@@ -489,6 +507,37 @@ model Site {
   entityTypes     SiteEntityType[]
   entities        SiteEntity[]
   userPreferences UserSitePreference[]
+
+  @@index([siteKey])
+}
+
+enum SiteConnectionStatus {
+  PENDING      // Site created, waiting for plugin install
+  CONNECTING   // Auto-install in progress
+  CONNECTED    // Plugin installed and verified
+  DISCONNECTED // Plugin was connected but now unreachable
+  ERROR        // Connection error
+}
+
+enum SitePermission {
+  CONTENT_READ
+  CONTENT_CREATE
+  CONTENT_UPDATE
+  CONTENT_DELETE
+  CONTENT_PUBLISH
+  MEDIA_UPLOAD
+  MEDIA_DELETE
+  SEO_UPDATE
+  REDIRECTS_MANAGE
+  SITE_INFO_READ
+  CPT_READ
+  CPT_CREATE
+  CPT_UPDATE
+  CPT_DELETE
+  ACF_READ
+  ACF_UPDATE
+  TAXONOMY_READ
+  TAXONOMY_MANAGE
 }
 
 // User-specific preferences per site (language, timezone overrides)

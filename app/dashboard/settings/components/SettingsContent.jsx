@@ -39,6 +39,7 @@ import {
 import { useSite } from '@/app/context/site-context';
 import { useLocale } from '@/app/context/locale-context';
 import { usePermissions } from '@/app/hooks/usePermissions';
+import WordPressPluginSection from './WordPressPluginSection';
 import styles from '../page.module.css';
 
 const iconMap = {
@@ -443,23 +444,7 @@ function GeneralSettings({ general, setGeneral, translations, canEdit = true }) 
             <Puzzle className={styles.subsectionIcon} />
             {t.wordpressTitle}
           </h3>
-          <div className={styles.pluginBox}>
-            <div className={styles.pluginHeader}>
-              <div className={styles.pluginStatus}>
-                <div className={`${styles.pluginDot} ${!general.pluginConnected ? styles.disconnected : ''}`}></div>
-                <span className={styles.pluginStatusText}>
-                  {general.pluginConnected ? t.wordpressConnected : t.wordpressNotConnected}
-                </span>
-              </div>
-              <button className={styles.downloadButton}>
-                <Download size={14} />
-                {t.wordpressDownloadPlugin}
-              </button>
-            </div>
-            <p className={styles.pluginDescription}>
-              {t.wordpressDescription}
-            </p>
-          </div>
+          <WordPressPluginSection translations={t} />
         </div>
       )}
 
