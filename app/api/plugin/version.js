@@ -7,10 +7,15 @@
  */
 
 // Current plugin version - increment this when making updates
-export const PLUGIN_VERSION = "1.8.1";
+export const PLUGIN_VERSION = "1.8.2";
 
 // Changelog for the current version
 export const PLUGIN_CHANGELOG = `
+= 1.8.2 =
+* FIXED: Critical PHP syntax errors in media manager (variable escaping)
+* Fixed all double-escaped variables causing fatal errors
+* Plugin now activates without errors
+
 = 1.8.1 =
 * FIXED: PHP syntax error in media manager (array callback escaping issue)
 * Resolved fatal error on plugin activation/update
@@ -139,5 +144,10 @@ export const VERSION_HISTORY = [
     version: "1.8.1",
     date: "2026-01-30",
     description: "Fixed PHP syntax error in media manager",
+  },
+  {
+    version: "1.8.2",
+    date: "2026-01-30",
+    description: "Fixed all variable escaping issues in media manager",
   },
 ];

@@ -69,9 +69,9 @@ class GP_Media_Manager {
     /**
      * Set auto-convert setting
      */
-    public function set_auto_convert(\\$enabled) {
-        update_option(self::AUTO_CONVERT_OPTION, (bool) \\$enabled);
-        return \\$this->is_auto_convert_enabled();
+    public function set_auto_convert(\$enabled) {
+        update_option(self::AUTO_CONVERT_OPTION, (bool) \$enabled);
+        return \$this->is_auto_convert_enabled();
     }
     
     /**
@@ -79,28 +79,28 @@ class GP_Media_Manager {
      */
     public function get_settings() {
         return new WP_REST_Response(array(
-            'autoConvertToWebp' => \\$this->is_auto_convert_enabled(),
+            'autoConvertToWebp' => \$this->is_auto_convert_enabled(),
         ), 200);
     }
     
     /**
      * Update settings
      */
-    public function update_settings(\\$params) {
-        if (isset(\\$params['autoConvertToWebp'])) {
-            \\$this->set_auto_convert(\\$params['autoConvertToWebp']);
+    public function update_settings(\$params) {
+        if (isset(\$params['autoConvertToWebp'])) {
+            \$this->set_auto_convert(\$params['autoConvertToWebp']);
         }
         
-        return \\$this->get_settings();
+        return \$this->get_settings();
     }
     
     /**
      * Maybe convert uploaded file to WebP
      */
-    public function maybe_convert_upload_to_webp(\\$upload, \\$context = 'upload') {
+    public function maybe_convert_upload_to_webp(\$upload, \$context = 'upload') {
         // Only process if auto-convert is enabled
-        if (!\\$this->is_auto_convert_enabled()) {
-            return \\$upload;
+        if (!\$this->is_auto_convert_enabled()) {
+            return \$upload;
         }
         
         // Only process images that can be converted
@@ -1311,7 +1311,7 @@ class GP_Media_Manager {
         $current_filename = basename(get_attached_file($image_id));
         
         // Call Ghost Post AI API
-        $ai_result = \\$this->call_ghost_post_ai($image_url, $current_filename, $page_context, $language);
+        $ai_result = \$this->call_ghost_post_ai($image_url, $current_filename, $page_context, $language);
         
         if (is_wp_error($ai_result)) {
             return new WP_REST_Response(array('error' => $ai_result->get_error_message()), 500);
@@ -1329,7 +1329,7 @@ class GP_Media_Manager {
         
         // Apply filename if requested
         if ($apply_filename && !empty($ai_result['suggestedFilename'])) {
-            $rename_result = \\$this->rename_attachment($image_id, $ai_result['suggestedFilename']);
+            $rename_result = \$this->rename_attachment($image_id, $ai_result['suggestedFilename']);
             if (!is_wp_error($rename_result)) {
                 $result['applied']['filename'] = true;
                 $result['new_url'] = $rename_result['new_url'];
@@ -1375,7 +1375,7 @@ class GP_Media_Manager {
         $failed_count = 0;
         
         foreach ($image_ids as $image_id) {
-            $result = \\$this->ai_optimize_image(array(
+            $result = \$this->ai_optimize_image(array(
                 'image_id' => $image_id,
                 'apply_filename' => $apply_filename,
                 'apply_alt_text' => $apply_alt_text,
@@ -1540,13 +1540,13 @@ class GP_Media_Manager {
         
         // Replace old URLs in content
         if ($old_url !== $new_url) {
-            \\$this->replace_image_urls_in_content($old_url, $new_url);
+            \$this->replace_image_urls_in_content($old_url, $new_url);
         }
         
         // Create redirect if old URL is different
         $redirect_created = false;
         if ($old_url !== $new_url) {
-            $redirect_created = \\$this->create_redirect($old_url, $new_url);
+            $redirect_created = \$this->create_redirect($old_url, $new_url);
         }
         
         return array(
@@ -1596,7 +1596,7 @@ class GP_Media_Manager {
             }
             
             // Update .htaccess with redirect rules
-            \\$this->update_htaccess_redirects();
+            \$this->update_htaccess_redirects();
             
             return true;
         }
@@ -1696,7 +1696,7 @@ class GP_Media_Manager {
      */
     public function clear_image_redirects() {
         delete_option('gp_image_redirects');
-        \\$this->update_htaccess_redirects();
+        \$this->update_htaccess_redirects();
         
         return new WP_REST_Response(array(
             'success' => true,
