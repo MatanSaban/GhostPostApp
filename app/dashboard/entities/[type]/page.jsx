@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, use } from 'react';
+import { useState, useEffect, use, useRef } from 'react';
 import { FileText, Newspaper, FolderKanban, Briefcase, Package, MoreHorizontal, Database } from 'lucide-react';
 import { useLocale } from '@/app/context/locale-context';
 import { useSite } from '@/app/context/site-context';
@@ -33,6 +33,9 @@ export default function EntityTypePage({ params }) {
     published: 0,
     draft: 0,
   });
+  
+  // Abort controller for cancelling sync
+  const syncAbortControllerRef = useRef(null);
 
   const Icon = TYPE_ICONS[type] || Database;
 
@@ -102,20 +105,37 @@ export default function EntityTypePage({ params }) {
   const handleSync = async () => {
     if (!selectedSite?.id) return;
     
+    // Create abort controller for this sync
+    syncAbortControllerRef.current = new AbortController();
+    
     setIsSyncing(true);
     try {
       const response = await fetch('/api/entities/sync', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ siteId: selectedSite.id, type }),
+        signal: syncAbortControllerRef.current.signal,
       });
       
       if (response.ok) {
         await fetchEntities();
       }
     } catch (error) {
-      console.error('Failed to sync entities:', error);
+      if (error.name === 'AbortError') {
+        console.log('Sync was cancelled');
+      } else {
+        console.error('Failed to sync entities:', error);
+      }
     } finally {
+      setIsSyncing(false);
+      syncAbortControllerRef.current = null;
+    }
+  };
+
+  const handleStopSync = () => {
+    if (syncAbortControllerRef.current) {
+      syncAbortControllerRef.current.abort();
+      syncAbortControllerRef.current = null;
       setIsSyncing(false);
     }
   };
@@ -174,10 +194,12 @@ export default function EntityTypePage({ params }) {
       <div className={styles.pageHeader}>
         <div className={styles.headerContent}>
           <h1 className={styles.pageTitle}>
-            {entityType.name || t(`entities.${type}.title`)}
+            {entityType?.name || t(`entities.${type}.title`)}
           </h1>
           <p className={styles.pageSubtitle}>
-            {t(`entities.${type}.subtitle`) || t('entities.subtitle')}
+            {entityType?.name 
+              ? t('entities.subtitle') 
+              : t(`entities.${type}.subtitle`) || t('entities.subtitle')}
           </p>
         </div>
       </div>
@@ -199,7 +221,9 @@ export default function EntityTypePage({ params }) {
       <EntitiesTable
         entities={entities}
         entityType={type}
+        entityTypeName={entityType?.name}
         onSync={handleSync}
+        onStopSync={handleStopSync}
         isLoading={isLoading}
         isSyncing={isSyncing}
         lastSyncDate={lastSyncDate}

@@ -93,7 +93,7 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  font-size: 0.875rem;
+  font-size: 0.9375;
   color: var(--muted-foreground);
 }
 
@@ -145,7 +145,7 @@
   background: var(--muted);
   border: 1px solid var(--border);
   color: var(--foreground);
-  font-size: 0.875rem;
+  font-size: 0.9375;
   text-decoration: none;
   transition: all 0.2s;
 
@@ -168,7 +168,7 @@
   background: var(--primary);
   border: none;
   color: var(--primary-foreground);
-  font-size: 0.875rem;
+  font-size: 0.9375;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s;
@@ -210,7 +210,7 @@
   border: none;
   border-bottom: 2px solid transparent;
   color: var(--muted-foreground);
-  font-size: 0.875rem;
+  font-size: 0.9375;
   cursor: pointer;
   transition: all 0.2s;
   white-space: nowrap;
@@ -253,7 +253,7 @@
 }
 
 .fieldLabel {
-  font-size: 0.875rem;
+  font-size: 0.9375;
   font-weight: 500;
   color: var(--foreground);
 }
@@ -271,7 +271,7 @@
   border: 1px solid var(--border);
   background: var(--background);
   color: var(--foreground);
-  font-size: 0.875rem;
+  font-size: 0.9375;
   transition: all 0.2s;
 
   &:focus {
@@ -292,6 +292,11 @@
 }
 
 /* Featured Image */
+.featuredImageContainer {
+  cursor: pointer;
+  width: fit-content;
+}
+
 .featuredImagePreview {
   width: 100%;
   max-width: 400px;
@@ -300,6 +305,12 @@
   border: 1px solid var(--border);
   overflow: hidden;
   background: var(--muted);
+  position: relative;
+  transition: border-color 0.15s;
+
+  &:hover {
+    border-color: var(--primary);
+  }
 
   img {
     width: 100%;
@@ -308,19 +319,10 @@
   }
 }
 
-.noImage {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  height: 100%;
-  gap: 0.5rem;
+.fieldHint {
+  font-size: 0.75rem;
   color: var(--muted-foreground);
-
-  svg {
-    width: 2rem;
-    height: 2rem;
-  }
+  margin-top: 0.25rem;
 }
 
 /* Card Sections */
@@ -394,7 +396,7 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  font-size: 0.875rem;
+  font-size: 0.9375;
   font-weight: 500;
   color: var(--foreground);
 }
@@ -451,7 +453,7 @@
 .toggleLabels {
   display: flex;
   flex-direction: column;
-  font-size: 0.875rem;
+  font-size: 0.9375;
 }
 
 .toggleOnLabel,
@@ -488,7 +490,7 @@
   }
 
   span {
-    font-size: 0.875rem;
+    font-size: 0.9375;
     color: var(--foreground);
   }
 }
@@ -500,6 +502,11 @@
   gap: 0.5rem;
 }
 
+.imageFieldContainer {
+  cursor: pointer;
+  width: fit-content;
+}
+
 .imagePreview {
   width: 150px;
   height: 150px;
@@ -507,6 +514,12 @@
   border: 1px solid var(--border);
   overflow: hidden;
   background: var(--muted);
+  position: relative;
+  transition: border-color 0.15s;
+
+  &:hover {
+    border-color: var(--primary);
+  }
 
   img {
     width: 100%;
@@ -515,7 +528,73 @@
   }
 }
 
+.imageOverlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.15s;
+
+  .imagePreview:hover & {
+    opacity: 1;
+  }
+}
+
+.imageRemoveBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  background: var(--destructive);
+  color: var(--destructive-foreground);
+  border: none;
+  cursor: pointer;
+  transition: transform 0.15s;
+
+  &:hover {
+    transform: scale(1.1);
+  }
+
+  svg {
+    width: 1rem;
+    height: 1rem;
+  }
+}
+
+.noImage {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  color: var(--muted-foreground);
+  padding: 1rem;
+  text-align: center;
+
+  svg {
+    width: 1.5rem;
+    height: 1.5rem;
+  }
+
+  span {
+    font-size: 0.75rem;
+  }
+}
+
 /* Gallery Field */
+.galleryFieldWrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
 .galleryField {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
@@ -528,11 +607,155 @@
   border: 1px solid var(--border);
   overflow: hidden;
   background: var(--muted);
+  position: relative;
 
   img {
     width: 100%;
     height: 100%;
     object-fit: cover;
+  }
+
+  &:hover .galleryRemoveBtn {
+    opacity: 1;
+  }
+}
+
+.galleryRemoveBtn {
+  position: absolute;
+  top: 0.25rem;
+  right: 0.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 50%;
+  background: var(--destructive);
+  color: var(--destructive-foreground);
+  border: none;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.15s;
+
+  svg {
+    width: 0.75rem;
+    height: 0.75rem;
+  }
+}
+
+.galleryAddItem {
+  aspect-ratio: 1;
+  border-radius: var(--radius-md);
+  border: 2px dashed var(--border);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  cursor: pointer;
+  color: var(--muted-foreground);
+  transition: all 0.15s;
+
+  &:hover {
+    border-color: var(--primary);
+    color: var(--primary);
+  }
+
+  svg {
+    width: 1.25rem;
+    height: 1.25rem;
+  }
+
+  span {
+    font-size: 0.75rem;
+  }
+}
+
+/* Image Picker Field (reusable) */
+.imagePickerField {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.imagePickerContainer {
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  overflow: hidden;
+  background: var(--muted);
+  position: relative;
+  cursor: pointer;
+  transition: border-color 0.15s;
+
+  &:hover {
+    border-color: var(--primary);
+  }
+
+  &:hover .imagePickerOverlay {
+    opacity: 1;
+  }
+}
+
+.imagePickerPreview {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.imagePickerOverlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+.imagePickerRemoveBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  background: var(--destructive);
+  color: var(--destructive-foreground);
+  border: none;
+  cursor: pointer;
+  transition: transform 0.15s;
+
+  &:hover {
+    transform: scale(1.1);
+  }
+
+  svg {
+    width: 1rem;
+    height: 1rem;
+  }
+}
+
+.imagePickerPlaceholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  color: var(--muted-foreground);
+  padding: 1rem;
+  text-align: center;
+  min-height: 80px;
+
+  svg {
+    width: 1.5rem;
+    height: 1.5rem;
+  }
+
+  span {
+    font-size: 0.75rem;
   }
 }
 
@@ -560,7 +783,7 @@
 }
 
 .repeaterItemTitle {
-  font-size: 0.875rem;
+  font-size: 0.9375;
   font-weight: 500;
   color: var(--muted-foreground);
 }
@@ -579,7 +802,7 @@
   padding: 0.5rem 0.75rem;
   background: var(--muted);
   border-radius: var(--radius-md);
-  font-size: 0.875rem;
+  font-size: 0.9375;
   color: var(--primary);
   text-decoration: none;
 
@@ -603,7 +826,7 @@
 }
 
 .colorValue {
-  font-size: 0.875rem;
+  font-size: 0.9375;
   font-family: monospace;
   color: var(--foreground);
 }
@@ -659,13 +882,13 @@
 }
 
 .seoPreviewUrl {
-  font-size: 0.875rem;
+  font-size: 0.9375;
   color: #006621;
   margin-bottom: 0.25rem;
 }
 
 .seoPreviewDescription {
-  font-size: 0.875rem;
+  font-size: 0.9375;
   color: #545454;
   line-height: 1.5;
 }
@@ -701,13 +924,13 @@
 }
 
 .metadataKey {
-  font-size: 0.875rem;
+  font-size: 0.9375;
   font-weight: 500;
   color: var(--foreground);
 }
 
 .metadataValue {
-  font-size: 0.875rem;
+  font-size: 0.9375;
   color: var(--muted-foreground);
   font-family: monospace;
   max-width: 60%;

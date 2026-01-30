@@ -165,6 +165,12 @@
   font-family: var(--font-mono);
 }
 
+.scheduledDate {
+  font-size: 0.7rem;
+  color: rgb(139, 92, 246);
+  margin-top: 0.25rem;
+}
+
 .statusBadge {
   display: inline-flex;
   align-items: center;
@@ -187,6 +193,21 @@
   &.archived {
     background: rgba(156, 163, 175, 0.1);
     color: rgb(156, 163, 175);
+  }
+  
+  &.pending {
+    background: rgba(249, 115, 22, 0.1);
+    color: rgb(249, 115, 22);
+  }
+  
+  &.scheduled {
+    background: rgba(139, 92, 246, 0.1);
+    color: rgb(139, 92, 246);
+  }
+  
+  &.private {
+    background: rgba(59, 130, 246, 0.1);
+    color: rgb(59, 130, 246);
   }
 }
 
@@ -931,7 +952,7 @@
 
 .syncDescription {
   color: var(--muted-foreground);
-  font-size: 0.875rem;
+  font-size: 0.9375;
   line-height: 1.5;
   margin: 0.25rem 0 0 0;
 }
@@ -957,12 +978,12 @@
 
 .syncProgressText {
   flex: 1;
-  font-size: 0.875rem;
+  font-size: 0.9375;
   color: var(--foreground);
 }
 
 .syncProgressPercent {
-  font-size: 0.875rem;
+  font-size: 0.9375;
   font-weight: 600;
   color: var(--primary);
 }

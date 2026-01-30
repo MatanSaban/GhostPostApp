@@ -7,10 +7,16 @@
  */
 
 // Current plugin version - increment this when making updates
-export const PLUGIN_VERSION = '1.2.3';
+export const PLUGIN_VERSION = '1.3.0';
 
 // Changelog for the current version
 export const PLUGIN_CHANGELOG = `
+= 1.3.0 =
+* Added Media API: Get single media item, update media metadata
+* Enhanced wp-api-client with full media management functions
+* Upload media from URL, base64, or Buffer
+* Delete and update media with alt text, title, caption, description
+
 = 1.2.3 =
 * Fixed: Check for Updates now properly refreshes WordPress update transient
 
@@ -44,4 +50,6 @@ export const VERSION_HISTORY = [
   { version: '1.1.0', date: '2026-01-29', description: 'Added auto-updates, ACF, and SEO support' },
   { version: '1.2.0', date: '2026-01-29', description: 'Full data sync support' },
   { version: '1.2.1', date: '2026-01-29', description: 'Added Check for Updates button' },
+  { version: '1.2.3', date: '2026-01-30', description: 'Fixed WordPress update transient refresh' },
+  { version: '1.3.0', date: '2026-01-30', description: 'Added Media API for upload, get, update, delete' },
 ];

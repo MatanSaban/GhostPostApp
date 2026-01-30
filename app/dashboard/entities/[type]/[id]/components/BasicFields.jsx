@@ -9,8 +9,19 @@ export function BasicFields({ formData, onChange }) {
   const statusOptions = [
     { value: 'PUBLISHED', label: t('entities.published') },
     { value: 'DRAFT', label: t('entities.draft') },
+    { value: 'PENDING', label: t('entities.pending') },
+    { value: 'SCHEDULED', label: t('entities.scheduled') },
+    { value: 'PRIVATE', label: t('entities.private') },
     { value: 'ARCHIVED', label: t('entities.archived') },
   ];
+
+  // Format date for datetime-local input
+  const formatDateForInput = (date) => {
+    if (!date) return '';
+    const d = new Date(date);
+    // Format as YYYY-MM-DDTHH:MM for datetime-local input
+    return d.toISOString().slice(0, 16);
+  };
 
   return (
     <div className={styles.card}>
@@ -54,7 +65,17 @@ export function BasicFields({ formData, onChange }) {
             </label>
             <select
               value={formData.status}
-              onChange={(e) => onChange('status', e.target.value)}
+              onChange={(e) => {
+                const newStatus = e.target.value;
+                onChange('status', newStatus);
+                // Auto-set scheduledAt to future date if switching to SCHEDULED
+                if (newStatus === 'SCHEDULED' && !formData.scheduledAt) {
+                  const futureDate = new Date();
+                  futureDate.setDate(futureDate.getDate() + 1); // Default to tomorrow
+                  futureDate.setHours(9, 0, 0, 0); // 9:00 AM
+                  onChange('scheduledAt', futureDate.toISOString());
+                }
+              }}
               className={styles.selectInput}
             >
               {statusOptions.map(option => (
@@ -64,6 +85,25 @@ export function BasicFields({ formData, onChange }) {
               ))}
             </select>
           </div>
+
+          {/* Scheduled Date - Only show when status is SCHEDULED */}
+          {formData.status === 'SCHEDULED' && (
+            <div className={styles.fieldGroup}>
+              <label className={styles.fieldLabel}>
+                {t('entities.scheduledDate')}
+              </label>
+              <input
+                type="datetime-local"
+                value={formatDateForInput(formData.scheduledAt)}
+                onChange={(e) => {
+                  const date = e.target.value ? new Date(e.target.value).toISOString() : null;
+                  onChange('scheduledAt', date);
+                }}
+                className={styles.textInput}
+                min={new Date().toISOString().slice(0, 16)} // Can't schedule in the past
+              />
+            </div>
+          )}
 
           {/* Excerpt - Full Width */}
           <div className={`${styles.fieldGroup}`} style={{ gridColumn: '1 / -1' }}>

@@ -607,6 +607,7 @@ model SiteEntity {
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
   publishedAt   DateTime?
+  scheduledAt   DateTime?    // For scheduled posts - when to publish
 
   site       Site           @relation(fields: [siteId], references: [id], onDelete: Cascade)
   entityType SiteEntityType @relation(fields: [entityTypeId], references: [id], onDelete: Cascade)
@@ -619,7 +620,11 @@ model SiteEntity {
 enum EntityStatus {
   PUBLISHED
   DRAFT
+  PENDING
+  SCHEDULED
+  PRIVATE
   ARCHIVED
+  TRASH
 }
 
 enum EntitySyncStatus {

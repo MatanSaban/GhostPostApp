@@ -60,6 +60,17 @@ async function fetchWordPressEntities(site, postTypeSlug) {
       }
 
       for (const item of items) {
+        // Map WordPress status to our EntityStatus
+        const statusMap = {
+          'publish': 'PUBLISHED',
+          'draft': 'DRAFT',
+          'pending': 'PENDING',
+          'future': 'SCHEDULED',
+          'private': 'PRIVATE',
+          'trash': 'TRASH',
+        };
+        const mappedStatus = statusMap[item.status] || 'DRAFT';
+        
         entities.push({
           externalId: String(item.id),
           title: item.title || 'Untitled',
@@ -67,9 +78,10 @@ async function fetchWordPressEntities(site, postTypeSlug) {
           url: item.permalink || item.link,
           excerpt: item.excerpt || null,
           content: item.content || null,
-          status: item.status === 'publish' ? 'PUBLISHED' : 'DRAFT',
+          status: mappedStatus,
           featuredImage: item.featured_image || null,
           publishedAt: item.date ? new Date(item.date) : null,
+          scheduledAt: item.status === 'future' && item.date ? new Date(item.date) : null,
           // Additional data - store as objects (Prisma JSON fields)
           metadata: item.meta || null,
           acfData: item.acf || null,

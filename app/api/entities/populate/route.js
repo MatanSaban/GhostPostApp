@@ -453,6 +453,7 @@ async function syncEntitiesForType(site, entityType) {
             status: mapPostStatus(post.status),
             featuredImage: post.featured_image || null,
             publishedAt: post.date ? new Date(post.date) : null,
+            scheduledAt: post.status === 'future' && post.date ? new Date(post.date) : null,
             externalId: String(post.id),
             metadata: {
               author: post.author_name || null,
@@ -630,12 +631,16 @@ function mapPostStatus(wpStatus) {
     case 'publish':
       return 'PUBLISHED';
     case 'draft':
-    case 'pending':
     case 'auto-draft':
       return 'DRAFT';
-    case 'trash':
+    case 'pending':
+      return 'PENDING';
+    case 'future':
+      return 'SCHEDULED';
     case 'private':
-      return 'ARCHIVED';
+      return 'PRIVATE';
+    case 'trash':
+      return 'TRASH';
     default:
       return 'DRAFT';
   }

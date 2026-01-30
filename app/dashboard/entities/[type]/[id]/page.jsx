@@ -23,6 +23,7 @@ import { ContentEditor } from './components/ContentEditor';
 import { SEOFields } from './components/SEOFields';
 import { ACFFields } from './components/ACFFields';
 import { MetadataFields } from './components/MetadataFields';
+import { ImagePickerField } from './components/ImagePickerField';
 
 export default function EntityEditPage({ params }) {
   const { type, id } = use(params);
@@ -45,6 +46,7 @@ export default function EntityEditPage({ params }) {
     content: '',
     status: 'DRAFT',
     featuredImage: '',
+    scheduledAt: null,
     seoData: null,
     acfData: null,
     metadata: null,
@@ -77,6 +79,7 @@ export default function EntityEditPage({ params }) {
         content: data.entity.content || '',
         status: data.entity.status || 'DRAFT',
         featuredImage: data.entity.featuredImage || '',
+        scheduledAt: data.entity.scheduledAt || null,
         seoData: data.entity.seoData || null,
         acfData: data.entity.acfData || null,
         metadata: data.entity.metadata || null,
@@ -239,6 +242,9 @@ export default function EntityEditPage({ params }) {
           <SEOFields 
             seoData={formData.seoData}
             onChange={(value) => handleFieldChange('seoData', value)}
+            siteUrl={selectedSite?.url}
+            slug={formData.slug}
+            entityType={entity?.entityType}
           />
         )}
 
@@ -255,22 +261,11 @@ export default function EntityEditPage({ params }) {
               <label className={styles.fieldLabel}>
                 {t('entities.edit.featuredImage')}
               </label>
-              <div className={styles.featuredImagePreview}>
-                {formData.featuredImage ? (
-                  <img src={formData.featuredImage} alt={formData.title} />
-                ) : (
-                  <div className={styles.noImage}>
-                    <ImageIcon />
-                    <span>{t('entities.edit.noFeaturedImage')}</span>
-                  </div>
-                )}
-              </div>
-              <input
-                type="url"
+              <ImagePickerField
                 value={formData.featuredImage || ''}
-                onChange={(e) => handleFieldChange('featuredImage', e.target.value)}
-                placeholder={t('entities.edit.featuredImageUrl')}
-                className={styles.textInput}
+                onChange={(url) => handleFieldChange('featuredImage', url)}
+                label={t('entities.edit.featuredImage')}
+                previewSize="large"
               />
             </div>
           </div>

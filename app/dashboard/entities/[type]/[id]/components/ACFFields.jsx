@@ -8,8 +8,11 @@ import {
   Plus,
   Trash2,
   GripVertical,
+  Image as ImageIcon,
+  X,
 } from 'lucide-react';
 import { useLocale } from '@/app/context/locale-context';
+import { MediaModal } from '@/app/dashboard/components/MediaModal';
 import styles from '../edit.module.css';
 
 // Individual field renderers
@@ -174,44 +177,134 @@ function TrueFalseField({ field, value, onChange }) {
   );
 }
 
-function ImageField({ field, value }) {
+function ImageField({ field, value, onChange }) {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const { t } = useLocale();
+  
   const imageUrl = typeof value === 'object' ? value?.url : value;
+  const imageId = typeof value === 'object' ? value?.id : null;
+
+  const handleSelect = (media) => {
+    // Store the full media object for ACF
+    onChange({
+      id: media.id,
+      url: media.url,
+      alt: media.alt || '',
+      title: media.title || '',
+      width: media.width,
+      height: media.height,
+      sizes: media.sizes,
+    });
+  };
+
+  const handleRemove = (e) => {
+    e.stopPropagation();
+    onChange(null);
+  };
 
   return (
     <div className={styles.imageField}>
-      {imageUrl ? (
-        <div className={styles.imagePreview}>
-          <img src={imageUrl} alt="" />
-        </div>
-      ) : (
-        <div className={styles.imagePreview}>
-          <div className={styles.noImage}>
-            <span>No image</span>
+      <div 
+        className={styles.imageFieldContainer}
+        onClick={() => setIsModalOpen(true)}
+      >
+        {imageUrl ? (
+          <div className={styles.imagePreview}>
+            <img src={imageUrl} alt="" />
+            <div className={styles.imageOverlay}>
+              <button 
+                type="button"
+                className={styles.imageRemoveBtn}
+                onClick={handleRemove}
+                title={t('media.modal.removeImage')}
+              >
+                <X />
+              </button>
+            </div>
           </div>
-        </div>
-      )}
+        ) : (
+          <div className={styles.imagePreview}>
+            <div className={styles.noImage}>
+              <ImageIcon />
+              <span>{t('media.modal.selectImage')}</span>
+            </div>
+          </div>
+        )}
+      </div>
+      
+      <MediaModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onSelect={handleSelect}
+        allowedTypes={['image']}
+        title={t('media.modal.selectImage')}
+      />
     </div>
   );
 }
 
-function GalleryField({ field, value }) {
+function GalleryField({ field, value, onChange }) {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const { t } = useLocale();
+  
   const images = Array.isArray(value) ? value : [];
 
+  const handleSelect = (mediaItems) => {
+    // Append new images to existing ones
+    const newImages = Array.isArray(mediaItems) ? mediaItems : [mediaItems];
+    const formattedImages = newImages.map(media => ({
+      id: media.id,
+      url: media.url,
+      alt: media.alt || '',
+      title: media.title || '',
+      width: media.width,
+      height: media.height,
+      sizes: media.sizes,
+    }));
+    onChange([...images, ...formattedImages]);
+  };
+
+  const handleRemove = (index, e) => {
+    e.stopPropagation();
+    const newImages = images.filter((_, i) => i !== index);
+    onChange(newImages);
+  };
+
   return (
-    <div className={styles.galleryField}>
-      {images.map((img, index) => {
-        const imageUrl = typeof img === 'object' ? img?.url : img;
-        return (
-          <div key={index} className={styles.galleryItem}>
-            {imageUrl && <img src={imageUrl} alt="" />}
-          </div>
-        );
-      })}
-      {images.length === 0 && (
-        <div className={styles.noImage}>
-          <span>No images</span>
+    <div className={styles.galleryFieldWrapper}>
+      <div className={styles.galleryField}>
+        {images.map((img, index) => {
+          const imageUrl = typeof img === 'object' ? img?.url : img;
+          return (
+            <div key={index} className={styles.galleryItem}>
+              {imageUrl && <img src={imageUrl} alt="" />}
+              <button 
+                type="button"
+                className={styles.galleryRemoveBtn}
+                onClick={(e) => handleRemove(index, e)}
+              >
+                <X />
+              </button>
+            </div>
+          );
+        })}
+        <div 
+          className={styles.galleryAddItem}
+          onClick={() => setIsModalOpen(true)}
+        >
+          <Plus />
+          <span>{t('common.add')}</span>
         </div>
-      )}
+      </div>
+      
+      <MediaModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onSelect={handleSelect}
+        multiple={true}
+        allowedTypes={['image']}
+        title={t('media.modal.selectImages')}
+      />
     </div>
   );
 }
@@ -383,10 +476,10 @@ function ACFFieldRenderer({ field, value, onChange }) {
     
     case 'image':
     case 'file':
-      return <ImageField field={field} value={value} />;
+      return <ImageField field={field} value={value} onChange={handleChange} />;
     
     case 'gallery':
-      return <GalleryField field={field} value={value} />;
+      return <GalleryField field={field} value={value} onChange={handleChange} />;
     
     case 'link':
       return <LinkField field={field} value={value} />;

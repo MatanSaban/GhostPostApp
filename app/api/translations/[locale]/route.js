@@ -74,11 +74,39 @@ export async function GET(request, { params }) {
       for (const t of translations) {
         const parts = t.key.split('.');
         let current = dbTranslations;
+        
         for (let i = 0; i < parts.length - 1; i++) {
-          if (!current[parts[i]]) current[parts[i]] = {};
-          current = current[parts[i]];
+          const part = parts[i];
+          // If the current path doesn't exist, create an empty object
+          if (!current[part]) {
+            current[part] = {};
+          } 
+          // If it exists but is a string, convert to object with _self
+          else if (typeof current[part] === 'string') {
+            current[part] = { _self: current[part] };
+          }
+          // If it's somehow not an object (shouldn't happen), skip this translation
+          else if (typeof current[part] !== 'object') {
+            console.warn(`Skipping translation ${t.key} - path conflict`);
+            continue;
+          }
+          current = current[part];
         }
-        current[parts[parts.length - 1]] = t.value;
+        
+        // Handle the final key
+        const finalKey = parts[parts.length - 1];
+        if (typeof current !== 'object' || current === null) {
+          // This shouldn't happen but handle gracefully
+          console.warn(`Skipping translation ${t.key} - current is not an object`);
+          continue;
+        }
+        
+        if (typeof current[finalKey] === 'object' && current[finalKey] !== null) {
+          // If it's already an object (has children), store value as _self
+          current[finalKey]._self = t.value;
+        } else {
+          current[finalKey] = t.value;
+        }
       }
     } catch (dbError) {
       console.error('Database translation fetch error:', dbError);

@@ -3,11 +3,39 @@
 import { useState } from 'react';
 import { Eye, EyeOff, Globe, Share2, Twitter, Facebook } from 'lucide-react';
 import { useLocale } from '@/app/context/locale-context';
+import { ImagePickerField } from './ImagePickerField';
 import styles from '../edit.module.css';
 
-export function SEOFields({ seoData, onChange }) {
+export function SEOFields({ seoData, onChange, siteUrl, slug, entityType }) {
   const { t } = useLocale();
   const [activeSection, setActiveSection] = useState('general');
+
+  // Helper to decode and display URL-encoded strings (like Hebrew slugs)
+  const decodeSlug = (encodedSlug) => {
+    if (!encodedSlug) return '';
+    try {
+      return decodeURIComponent(encodedSlug);
+    } catch {
+      return encodedSlug;
+    }
+  };
+
+  // Build the preview URL
+  const getPreviewUrl = () => {
+    if (!siteUrl) return 'example.com › page-slug';
+    
+    // Remove protocol and trailing slash from site URL
+    let displayUrl = siteUrl.replace(/^https?:\/\//, '').replace(/\/$/, '');
+    
+    // Add entity type path if available (e.g., /services/)
+    const entityPath = entityType?.slug ? `/${entityType.slug}` : '';
+    
+    // Add slug if available
+    const decodedSlug = decodeSlug(slug);
+    const slugPath = decodedSlug ? `/${decodedSlug}` : '';
+    
+    return `${displayUrl}${entityPath}${slugPath}`;
+  };
 
   const handleChange = (field, value) => {
     onChange({
@@ -101,7 +129,7 @@ export function SEOFields({ seoData, onChange }) {
               {seoData.title || t('entities.edit.seo.noTitle')}
             </div>
             <div className={styles.seoPreviewUrl}>
-              example.com › page-slug
+              {getPreviewUrl()}
             </div>
             <div className={styles.seoPreviewDescription}>
               {seoData.description || t('entities.edit.seo.noDescription')}
@@ -217,12 +245,11 @@ export function SEOFields({ seoData, onChange }) {
                   <label className={styles.fieldLabel}>
                     {t('entities.edit.seo.ogImage')}
                   </label>
-                  <input
-                    type="url"
+                  <ImagePickerField
                     value={seoData.og?.image || ''}
-                    onChange={(e) => handleNestedChange('og', 'image', e.target.value)}
-                    className={styles.textInput}
-                    placeholder="https://..."
+                    onChange={(url) => handleNestedChange('og', 'image', url)}
+                    label={t('entities.edit.seo.ogImage')}
+                    previewSize="large"
                   />
                 </div>
               </div>
@@ -265,12 +292,11 @@ export function SEOFields({ seoData, onChange }) {
                   <label className={styles.fieldLabel}>
                     {t('entities.edit.seo.twitterImage')}
                   </label>
-                  <input
-                    type="url"
+                  <ImagePickerField
                     value={seoData.twitter?.image || ''}
-                    onChange={(e) => handleNestedChange('twitter', 'image', e.target.value)}
-                    className={styles.textInput}
-                    placeholder="https://..."
+                    onChange={(url) => handleNestedChange('twitter', 'image', url)}
+                    label={t('entities.edit.seo.twitterImage')}
+                    previewSize="large"
                   />
                 </div>
               </div>

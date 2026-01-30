@@ -188,9 +188,21 @@ class GP_API_Handler {
         ));
         
         register_rest_route($namespace, '/media/(?P<id>\\d+)', array(
-            'methods' => 'DELETE',
-            'callback' => array($this, 'delete_media'),
-            'permission_callback' => array($this, 'validate_request'),
+            array(
+                'methods' => 'GET',
+                'callback' => array($this, 'get_media_item'),
+                'permission_callback' => array($this, 'validate_request'),
+            ),
+            array(
+                'methods' => 'PUT',
+                'callback' => array($this, 'update_media'),
+                'permission_callback' => array($this, 'validate_request'),
+            ),
+            array(
+                'methods' => 'DELETE',
+                'callback' => array($this, 'delete_media'),
+                'permission_callback' => array($this, 'validate_request'),
+            ),
         ));
         
         // SEO
@@ -493,6 +505,20 @@ class GP_API_Handler {
             return new WP_REST_Response(array('error' => 'Permission denied'), 403);
         }
         return $this->media_manager->delete($request['id']);
+    }
+    
+    public function get_media_item(WP_REST_Request $request) {
+        if (!gp_has_permission('CONTENT_READ')) {
+            return new WP_REST_Response(array('error' => 'Permission denied'), 403);
+        }
+        return $this->media_manager->get_item($request['id']);
+    }
+    
+    public function update_media(WP_REST_Request $request) {
+        if (!gp_has_permission('MEDIA_UPLOAD')) {
+            return new WP_REST_Response(array('error' => 'Permission denied'), 403);
+        }
+        return $this->media_manager->update($request['id'], $request->get_json_params());
     }
     
     // ==========================================

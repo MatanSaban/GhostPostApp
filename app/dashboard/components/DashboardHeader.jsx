@@ -22,6 +22,7 @@ import { ThemeToggle } from '@/app/components/ui/theme-toggle';
 import { LanguageSwitcher } from '@/app/components/ui/language-switcher';
 import { useLocale } from '@/app/context/locale-context';
 import { useUser } from '@/app/context/user-context';
+import { useSite } from '@/app/context/site-context';
 import styles from './DashboardHeader.module.css';
 
 // Sample user data
@@ -90,6 +91,13 @@ const segmentTranslationKeys = {
   'site-audit': 'nav.siteAudit',
   'keyword-strategy': 'nav.keywordStrategy',
   'settings': 'nav.settings',
+  // Entities pages
+  'entities': 'nav.entities.title',
+  'pages': 'nav.entities.pages',
+  'posts': 'nav.entities.posts',
+  'projects': 'nav.entities.projects',
+  'services': 'nav.entities.services',
+  'products': 'nav.entities.products',
   // Admin pages
   'admin': 'nav.admin.title',
   'users': 'nav.admin.users',
@@ -107,13 +115,52 @@ export function DashboardHeader({ user = defaultUser }) {
   const router = useRouter();
   const { t } = useLocale();
   const { clearUser } = useUser();
+  const { selectedSite } = useSite();
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [notifications, setNotifications] = useState(defaultNotifications);
+  const [entityTypes, setEntityTypes] = useState([]);
+  const [entityTitle, setEntityTitle] = useState(null);
+  const [entityId, setEntityId] = useState(null);
   const notificationsRef = useRef(null);
   const userMenuRef = useRef(null);
 
   const unreadCount = notifications.filter(n => !n.read).length;
+
+  // Fetch entity types for breadcrumb labels
+  useEffect(() => {
+    if (selectedSite?.id && pathname.includes('/entities/')) {
+      fetch(`/api/entities/types?siteId=${selectedSite.id}`)
+        .then(res => res.ok ? res.json() : { types: [] })
+        .then(data => setEntityTypes(data.types || []))
+        .catch(() => setEntityTypes([]));
+    }
+  }, [selectedSite?.id, pathname]);
+
+  // Fetch entity title for breadcrumb when on entity edit page
+  useEffect(() => {
+    // Match pattern: /dashboard/entities/{type}/{id}
+    const match = pathname.match(/\/dashboard\/entities\/[^/]+\/([a-f0-9]{24})$/i);
+    if (match) {
+      const id = match[1];
+      if (id !== entityId) {
+        setEntityId(id);
+        fetch(`/api/entities/${id}`)
+          .then(res => res.ok ? res.json() : null)
+          .then(data => {
+            if (data?.entity?.title) {
+              setEntityTitle(data.entity.title);
+            } else {
+              setEntityTitle(null);
+            }
+          })
+          .catch(() => setEntityTitle(null));
+      }
+    } else {
+      setEntityTitle(null);
+      setEntityId(null);
+    }
+  }, [pathname, entityId]);
 
   // Logout handler
   const handleLogout = async () => {
@@ -168,13 +215,41 @@ export function DashboardHeader({ user = defaultUser }) {
     const breadcrumbs = [{ label: t('nav.dashboard'), path: '/dashboard' }];
     
     let currentPath = '/dashboard';
-    segments.forEach((segment) => {
+    let isInEntities = false;
+    let entityTypeIndex = -1;
+    
+    segments.forEach((segment, index) => {
       currentPath += `/${segment}`;
+      
+      // Track if we're inside /entities path
+      if (segment === 'entities') {
+        isInEntities = true;
+        entityTypeIndex = index + 1; // Next segment is the entity type
+      }
+      
+      // Check for static translation key first
       const translationKey = segmentTranslationKeys[segment];
-      const label = translationKey ? t(translationKey) : segment
-        .split('-')
-        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-        .join(' ');
+      let label;
+      
+      if (translationKey) {
+        label = t(translationKey);
+      } else if (isInEntities && index > 0) {
+        // We're inside entities path - check if this is an entity type slug
+        const entityType = entityTypes.find(et => et.slug === segment);
+        if (entityType) {
+          label = entityType.name;
+        } else if (index > entityTypeIndex) {
+          // This is likely an entity ID - show entity title if available
+          label = entityTitle || t('common.edit');
+        } else {
+          // Fallback: title-case the segment
+          label = segment.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+        }
+      } else {
+        // Fallback: title-case the segment
+        label = segment.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+      }
+      
       breadcrumbs.push({ label, path: currentPath });
     });
     

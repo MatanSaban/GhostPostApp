@@ -147,14 +147,30 @@ export async function PUT(request, { params }) {
         const wpPostId = existingEntity.externalId;
         
         // Prepare data for WordPress
+        // Map our status to WordPress status
+        const statusToWp = {
+          'PUBLISHED': 'publish',
+          'DRAFT': 'draft',
+          'PENDING': 'pending',
+          'SCHEDULED': 'future',
+          'PRIVATE': 'private',
+          'TRASH': 'trash',
+          'ARCHIVED': 'trash',
+        };
+        
         const wpData = {
           title: body.title,
           slug: body.slug,
           excerpt: body.excerpt,
           content: body.content,
-          status: body.status === 'PUBLISHED' ? 'publish' : 'draft',
+          status: statusToWp[body.status] || 'draft',
           featured_image: body.featuredImage,
         };
+        
+        // Add scheduled date for future posts
+        if (body.status === 'SCHEDULED' && body.scheduledAt) {
+          wpData.date = new Date(body.scheduledAt).toISOString();
+        }
         
         // Update post in WordPress
         wpSyncResult = await updatePost(existingEntity.site, postType, wpPostId, wpData);
@@ -205,6 +221,7 @@ export async function PUT(request, { params }) {
         content: body.content,
         status: body.status,
         featuredImage: body.featuredImage,
+        scheduledAt: body.status === 'SCHEDULED' ? (body.scheduledAt ? new Date(body.scheduledAt) : null) : null,
         seoData: body.seoData,
         acfData: body.acfData,
         metadata: body.metadata,

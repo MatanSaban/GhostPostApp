@@ -1,45 +1,31 @@
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 
-async function updateTranslations() {
-  console.log('Updating Hebrew translations in database...');
+async function fixConflictingTranslations() {
+  console.log('Fixing conflicting translations in database...');
 
-  // Update admin.subscriptions.actions.cancel
-  const result1 = await prisma.i18nTranslation.updateMany({
+  // Delete entities.sync which conflicts with entities.sync.{nested}
+  const deleteResult = await prisma.i18nTranslation.deleteMany({
     where: { 
-      key: 'admin.subscriptions.actions.cancel',
-      locale: 'he',
-      isLatest: true
-    },
-    data: { value: 'ביטול מנוי' }
+      key: 'entities.sync'
+    }
   });
-  console.log('Updated admin.subscriptions.actions.cancel:', result1.count);
+  console.log('Deleted entities.sync translations:', deleteResult.count);
 
-  // Update admin.common.cancel  
-  const result2 = await prisma.i18nTranslation.updateMany({
-    where: { 
-      key: 'admin.common.cancel',
-      locale: 'he',
-      isLatest: true
+  // Check remaining sync translations
+  const remaining = await prisma.i18nTranslation.findMany({
+    where: {
+      key: { startsWith: 'entities.sync' }
     },
-    data: { value: 'ביטול' }
+    select: { key: true, value: true, locale: true }
   });
-  console.log('Updated admin.common.cancel:', result2.count);
+  console.log('Remaining entities.sync.* translations:', remaining);
 
-  // Update admin.common.close
-  const result3 = await prisma.i18nTranslation.updateMany({
-    where: { 
-      key: 'admin.common.close',
-      locale: 'he',
-      isLatest: true
-    },
-    data: { value: 'סגור' }
-  });
-  console.log('Updated admin.common.close:', result3.count);
-
-  console.log('Done!');
+  await prisma.$disconnect();
 }
 
-updateTranslations()
-  .catch(console.error)
-  .finally(() => prisma.$disconnect());
+fixConflictingTranslations().catch(e => {
+  console.error(e);
+  prisma.$disconnect();
+});
+

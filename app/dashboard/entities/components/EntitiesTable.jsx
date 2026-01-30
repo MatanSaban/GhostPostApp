@@ -9,6 +9,7 @@ import {
   Edit, 
   Trash2,
   FileText,
+  StopCircle,
 } from 'lucide-react';
 import { useLocale } from '@/app/context/locale-context';
 import styles from '../entities.module.css';
@@ -16,7 +17,9 @@ import styles from '../entities.module.css';
 export function EntitiesTable({ 
   entities = [], 
   entityType,
+  entityTypeName,
   onSync,
+  onStopSync,
   isLoading = false,
   isSyncing = false,
   lastSyncDate = null,
@@ -35,6 +38,11 @@ export function EntitiesTable({
     return new Date(dateString).toLocaleDateString();
   };
 
+  const formatDateTime = (dateString) => {
+    if (!dateString) return '-';
+    return new Date(dateString).toLocaleString();
+  };
+
   const getStatusClass = (status) => {
     switch (status?.toLowerCase()) {
       case 'published':
@@ -42,10 +50,18 @@ export function EntitiesTable({
         return styles.published;
       case 'draft':
         return styles.draft;
+      case 'pending':
+        return styles.pending;
+      case 'scheduled':
+      case 'future':
+        return styles.scheduled;
+      case 'private':
+        return styles.private;
       case 'archived':
+      case 'trash':
         return styles.archived;
       default:
-        return styles.published;
+        return styles.draft;
     }
   };
 
@@ -56,10 +72,19 @@ export function EntitiesTable({
         return t('entities.published');
       case 'draft':
         return t('entities.draft');
+      case 'pending':
+        return t('entities.pending');
+      case 'scheduled':
+      case 'future':
+        return t('entities.scheduled');
+      case 'private':
+        return t('entities.private');
       case 'archived':
         return t('entities.archived');
+      case 'trash':
+        return t('entities.trash');
       default:
-        return t('entities.published');
+        return t('entities.draft');
     }
   };
 
@@ -68,7 +93,7 @@ export function EntitiesTable({
       <div className={styles.tableHeader}>
         <div>
           <h2 className={styles.tableTitle}>
-            {t(`entities.${entityType}.title`)}
+            {entityTypeName || t(`entities.${entityType}.title`)}
           </h2>
           {lastSyncDate && (
             <span className={styles.dateCell}>
@@ -86,14 +111,23 @@ export function EntitiesTable({
               onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
-          <button 
-            className={`${styles.syncButton} ${isSyncing ? styles.syncButtonLoading : ''}`}
-            onClick={onSync}
-            disabled={isSyncing}
-          >
-            <RefreshCw />
-            <span>{isSyncing ? t('entities.syncing') : t('entities.sync')}</span>
-          </button>
+          {isSyncing ? (
+            <button 
+              className={`${styles.syncButton} ${styles.stopButton}`}
+              onClick={onStopSync}
+            >
+              <StopCircle />
+              <span>{t('entities.sync.stop')}</span>
+            </button>
+          ) : (
+            <button 
+              className={styles.syncButton}
+              onClick={onSync}
+            >
+              <RefreshCw />
+              <span>{t('entities.syncEntity', { name: entityTypeName || entityType })}</span>
+            </button>
+          )}
         </div>
       </div>
 
@@ -129,6 +163,12 @@ export function EntitiesTable({
                   <span className={`${styles.statusBadge} ${getStatusClass(entity.status)}`}>
                     {getStatusText(entity.status)}
                   </span>
+                  {/* Show scheduled date for scheduled posts */}
+                  {(entity.status?.toLowerCase() === 'scheduled' || entity.status?.toLowerCase() === 'future') && entity.scheduledAt && (
+                    <div className={styles.scheduledDate}>
+                      {formatDateTime(entity.scheduledAt)}
+                    </div>
+                  )}
                 </td>
                 <td className={styles.dateCell}>
                   {formatDate(entity.date || entity.createdAt)}

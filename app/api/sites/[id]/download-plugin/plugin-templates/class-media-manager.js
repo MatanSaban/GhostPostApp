@@ -54,6 +54,75 @@ class GP_Media_Manager {
     }
     
     /**
+     * Get single media item
+     * 
+     * @param int $id Attachment ID
+     * @return WP_REST_Response
+     */
+    public function get_item($id) {
+        $attachment = get_post($id);
+        
+        if (!$attachment || $attachment->post_type !== 'attachment') {
+            return new WP_REST_Response(array('error' => 'Attachment not found'), 404);
+        }
+        
+        return new WP_REST_Response($this->format_attachment($attachment), 200);
+    }
+    
+    /**
+     * Update media metadata
+     * 
+     * @param int $id Attachment ID
+     * @param array $data Data to update
+     * @return WP_REST_Response
+     */
+    public function update($id, $data) {
+        $attachment = get_post($id);
+        
+        if (!$attachment || $attachment->post_type !== 'attachment') {
+            return new WP_REST_Response(array('error' => 'Attachment not found'), 404);
+        }
+        
+        $update_data = array('ID' => $id);
+        
+        // Update title
+        if (isset($data['title'])) {
+            $update_data['post_title'] = sanitize_text_field($data['title']);
+        }
+        
+        // Update caption
+        if (isset($data['caption'])) {
+            $update_data['post_excerpt'] = sanitize_textarea_field($data['caption']);
+        }
+        
+        // Update description
+        if (isset($data['description'])) {
+            $update_data['post_content'] = sanitize_textarea_field($data['description']);
+        }
+        
+        // Update post if there are changes
+        if (count($update_data) > 1) {
+            $result = wp_update_post($update_data, true);
+            if (is_wp_error($result)) {
+                return new WP_REST_Response(array('error' => $result->get_error_message()), 500);
+            }
+        }
+        
+        // Update alt text
+        if (isset($data['alt'])) {
+            update_post_meta($id, '_wp_attachment_image_alt', sanitize_text_field($data['alt']));
+        }
+        
+        // Refresh the attachment data
+        $attachment = get_post($id);
+        
+        return new WP_REST_Response(array(
+            'message' => 'Media updated',
+            'attachment' => $this->format_attachment($attachment),
+        ), 200);
+    }
+    
+    /**
      * Upload media from request
      * 
      * @param WP_REST_Request $request
