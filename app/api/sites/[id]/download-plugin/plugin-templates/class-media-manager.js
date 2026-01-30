@@ -16,6 +16,134 @@ if (!defined('ABSPATH')) {
 class GP_Media_Manager {
     
     /**
+     * Option name for auto-convert setting
+     */
+    const AUTO_CONVERT_OPTION = 'gp_auto_convert_webp';
+    
+    /**
+     * Constructor - register hooks for auto-conversion
+     */
+    public function __construct() {
+        // Hook into upload process to auto-convert to WebP
+        add_filter('wp_handle_upload', array($this, 'maybe_convert_upload_to_webp'), 10, 2);
+    }
+    
+    /**
+     * Check if auto-convert is enabled
+     */
+    public function is_auto_convert_enabled() {
+        return (bool) get_option(self::AUTO_CONVERT_OPTION, false);
+    }
+    
+    /**
+     * Set auto-convert setting
+     */
+    public function set_auto_convert($enabled) {
+        update_option(self::AUTO_CONVERT_OPTION, (bool) $enabled);
+        return $this->is_auto_convert_enabled();
+    }
+    
+    /**
+     * Get settings
+     */
+    public function get_settings() {
+        return new WP_REST_Response(array(
+            'autoConvertToWebp' => $this->is_auto_convert_enabled(),
+        ), 200);
+    }
+    
+    /**
+     * Update settings
+     */
+    public function update_settings($params) {
+        if (isset($params['autoConvertToWebp'])) {
+            $this->set_auto_convert($params['autoConvertToWebp']);
+        }
+        
+        return $this->get_settings();
+    }
+    
+    /**
+     * Maybe convert uploaded file to WebP
+     */
+    public function maybe_convert_upload_to_webp($upload, $context = 'upload') {
+        // Only process if auto-convert is enabled
+        if (!$this->is_auto_convert_enabled()) {
+            return $upload;
+        }
+        
+        // Only process images that can be converted
+        $convertible_types = array('image/jpeg', 'image/png', 'image/gif');
+        if (!in_array($upload['type'], $convertible_types)) {
+            return $upload;
+        }
+        
+        // Check if GD or Imagick is available
+        $has_gd = extension_loaded('gd') && function_exists('imagewebp');
+        $has_imagick = extension_loaded('imagick') && class_exists('Imagick');
+        
+        if (!$has_gd && !$has_imagick) {
+            return $upload;
+        }
+        
+        $original_file = $upload['file'];
+        $webp_file = preg_replace('/\\.(jpe?g|png|gif)$/i', '.webp', $original_file);
+        
+        try {
+            // Convert to WebP
+            if ($has_imagick) {
+                $image = new Imagick($original_file);
+                $image->setImageFormat('webp');
+                $image->setImageCompressionQuality(85);
+                $image->writeImage($webp_file);
+                $image->destroy();
+            } else {
+                switch ($upload['type']) {
+                    case 'image/jpeg':
+                        $image = imagecreatefromjpeg($original_file);
+                        break;
+                    case 'image/png':
+                        $image = imagecreatefrompng($original_file);
+                        imagepalettetotruecolor($image);
+                        imagealphablending($image, true);
+                        imagesavealpha($image, true);
+                        break;
+                    case 'image/gif':
+                        $image = imagecreatefromgif($original_file);
+                        break;
+                    default:
+                        return $upload;
+                }
+                
+                if (!$image) {
+                    return $upload;
+                }
+                
+                imagewebp($image, $webp_file, 85);
+                imagedestroy($image);
+            }
+            
+            // If WebP was created successfully, update upload data
+            if (file_exists($webp_file)) {
+                // Delete original file
+                if (file_exists($original_file)) {
+                    unlink($original_file);
+                }
+                
+                // Update upload data to point to WebP file
+                $upload['file'] = $webp_file;
+                $upload['url'] = preg_replace('/\\.(jpe?g|png|gif)$/i', '.webp', $upload['url']);
+                $upload['type'] = 'image/webp';
+            }
+        } catch (Exception $e) {
+            // On error, return original upload unchanged
+            error_log('GP WebP conversion failed: ' . $e->getMessage());
+        }
+        
+        return $upload;
+    }
+    
+    /**
      * Get list of media items
      * 
      * @param array $params Query parameters

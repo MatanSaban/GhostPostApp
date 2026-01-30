@@ -7,14 +7,19 @@
  */
 
 // Current plugin version - increment this when making updates
-export const PLUGIN_VERSION = '1.4.0';
+export const PLUGIN_VERSION = '1.5.0';
 
 // Changelog for the current version
 export const PLUGIN_CHANGELOG = `
+= 1.5.0 =
+* Added WebP auto-convert on upload: Automatically converts JPEG/PNG/GIF to WebP when enabled
+* New API endpoint: /media/settings (GET/PUT) for managing auto-convert setting
+* Setting stored in WordPress for reliable auto-conversion on all uploads
+
 = 1.4.0 =
 * Added WebP Conversion Tool: Get media stats, convert images to WebP
 * New API endpoints: /media/stats, /media/convert-to-webp
-* Auto-convert images on upload (when enabled in platform)
+* Batch convert existing images to WebP format
 
 = 1.3.0 =
 * Added Media API: Get single media item, update media metadata
@@ -57,4 +62,6 @@ export const VERSION_HISTORY = [
   { version: '1.2.1', date: '2026-01-29', description: 'Added Check for Updates button' },
   { version: '1.2.3', date: '2026-01-30', description: 'Fixed WordPress update transient refresh' },
   { version: '1.3.0', date: '2026-01-30', description: 'Added Media API for upload, get, update, delete' },
+  { version: '1.4.0', date: '2026-01-30', description: 'Added WebP conversion tool and batch convert' },
+  { version: '1.5.0', date: '2026-01-30', description: 'Added WebP auto-convert on upload' },
 ];

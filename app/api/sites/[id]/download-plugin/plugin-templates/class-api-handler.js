@@ -205,6 +205,34 @@ class GP_API_Handler {
             ),
         ));
         
+        // Media Stats
+        register_rest_route($namespace, '/media/stats', array(
+            'methods' => 'GET',
+            'callback' => array($this, 'get_media_stats'),
+            'permission_callback' => array($this, 'validate_request'),
+        ));
+        
+        // Convert to WebP
+        register_rest_route($namespace, '/media/convert-to-webp', array(
+            'methods' => 'POST',
+            'callback' => array($this, 'convert_to_webp'),
+            'permission_callback' => array($this, 'validate_request'),
+        ));
+        
+        // Media Settings (auto-convert to WebP)
+        register_rest_route($namespace, '/media/settings', array(
+            array(
+                'methods' => 'GET',
+                'callback' => array($this, 'get_media_settings'),
+                'permission_callback' => array($this, 'validate_request'),
+            ),
+            array(
+                'methods' => 'PUT',
+                'callback' => array($this, 'update_media_settings'),
+                'permission_callback' => array($this, 'validate_request'),
+            ),
+        ));
+        
         // SEO
         register_rest_route($namespace, '/seo/(?P<id>\\d+)', array(
             array(
@@ -547,6 +575,20 @@ class GP_API_Handler {
             return new WP_REST_Response(array('error' => 'Permission denied'), 403);
         }
         return $this->media_manager->convert_to_webp($request->get_json_params());
+    }
+    
+    public function get_media_settings(WP_REST_Request $request) {
+        if (!gp_has_permission('CONTENT_READ')) {
+            return new WP_REST_Response(array('error' => 'Permission denied'), 403);
+        }
+        return $this->media_manager->get_settings();
+    }
+    
+    public function update_media_settings(WP_REST_Request $request) {
+        if (!gp_has_permission('MEDIA_UPLOAD')) {
+            return new WP_REST_Response(array('error' => 'Permission denied'), 403);
+        }
+        return $this->media_manager->update_settings($request->get_json_params());
     }
     
     // ==========================================
