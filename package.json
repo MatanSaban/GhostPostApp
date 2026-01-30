@@ -17,6 +17,7 @@
   },
   "dependencies": {
     "@ai-sdk/google": "^3.0.13",
+    "@floating-ui/dom": "^1.7.5",
     "@prisma/client": "^6.0.0",
     "@tiptap/extension-color": "^3.18.0",
     "@tiptap/extension-highlight": "^3.18.0",
