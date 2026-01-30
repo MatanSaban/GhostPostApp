@@ -510,6 +510,9 @@ model Site {
   lastEntitySyncAt     DateTime?                  // Last successful sync
   entitySyncError      String?                    // Last sync error if any
 
+  // Tool settings (WebP conversion, etc.)
+  toolSettings         Json?                      // { autoConvertToWebp: boolean, ... }
+
   account         Account               @relation(fields: [accountId], references: [id], onDelete: Cascade)
   interview       Interview?
   keywords        Keyword[]

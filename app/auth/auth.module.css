@@ -318,7 +318,7 @@
   position: relative;
   width: 100%;
   padding: 0.875rem 1.5rem;
-  font-size: 1rem;
+  font-size: 1.02rem;
   font-weight: 600;
   color: white;
   background: var(--gradient-primary);
@@ -481,7 +481,7 @@
 }
 
 .thankYouText {
-  font-size: 1rem;
+  font-size: 1.02rem;
   color: var(--muted-foreground);
   margin-bottom: 2rem;
   line-height: 1.6;
@@ -492,7 +492,7 @@
   align-items: center;
   gap: 0.5rem;
   padding: 1rem 2rem;
-  font-size: 1rem;
+  font-size: 1.02rem;
   font-weight: 600;
   color: white;
   background: var(--gradient-primary);
@@ -1415,7 +1415,7 @@
 }
 
 .orderSummaryTitle {
-  font-size: 1rem;
+  font-size: 1.02rem;
   font-weight: 600;
   color: var(--foreground);
   margin-bottom: 1rem;
@@ -1444,7 +1444,7 @@
 .orderRow.orderTotal {
   padding-top: 0.75rem;
   border-top: 1px solid var(--border);
-  font-size: 1rem;
+  font-size: 1.02rem;
   font-weight: 600;
 }
 
@@ -1710,7 +1710,7 @@
 .slugCheck,
 .slugX {
   padding-right: 1rem;
-  font-size: 1rem;
+  font-size: 1.02rem;
 }
 
 .slugCheck {
@@ -2030,7 +2030,7 @@
   justify-content: center;
   gap: 0.5rem;
   padding: 0.875rem 1.5rem;
-  font-size: 1rem;
+  font-size: 1.02rem;
   font-weight: 600;
   color: white;
   background: var(--gradient-primary);

@@ -214,6 +214,7 @@
     "seoBackend": "SEO שרת",
     "siteAudit": "ביקורת אתר",
     "keywordStrategy": "אסטרטגיית מילות מפתח",
+    "tools": "כלים",
     "settings": "הגדרות",
     "entities": {
       "title": "ישויות",
@@ -792,6 +793,24 @@
       "totalHits": "סה״כ פגיעות",
       "brokenLinks": "קישורים שבורים",
       "successRate": "אחוז הצלחה"
+    }
+  },
+  "tools": {
+    "title": "כלים",
+    "subtitle": "כלי עזר ואופטימיזציה לאתר שלך",
+    "selectSite": "בחר אתר כדי להשתמש בכלים",
+    "webp": {
+      "title": "המרת תמונות ל-WebP",
+      "description": "המר את התמונות שלך לפורמט WebP לטעינה מהירה יותר ו-SEO טוב יותר",
+      "autoConvert": "המרה אוטומטית בהעלאה",
+      "autoConvertDesc": "המר תמונות אוטומטית ל-WebP בהעלאה לוורדפרס",
+      "totalImages": "סה״כ תמונות",
+      "webpImages": "תמונות WebP",
+      "nonWebpImages": "לא הומרו",
+      "refreshStats": "רענן סטטיסטיקות",
+      "convertAll": "המר את כל התמונות",
+      "converting": "ממיר",
+      "conversionComplete": "ההמרה הושלמה! {converted} הומרו, {failed} נכשלו."
     }
   },
   "settings": {

@@ -197,7 +197,7 @@
 .formHeader {
   h4 {
     margin: 0 0 0.5rem 0;
-    font-size: 1rem;
+    font-size: 1.02rem;
     font-weight: 600;
     color: var(--foreground);
   }

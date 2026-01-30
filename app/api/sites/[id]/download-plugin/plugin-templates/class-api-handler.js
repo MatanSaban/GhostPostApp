@@ -273,6 +273,20 @@ class GP_API_Handler {
                 'permission_callback' => array($this, 'validate_request'),
             ),
         ));
+        
+        // Media stats (for WebP conversion tool)
+        register_rest_route($namespace, '/media/stats', array(
+            'methods' => 'GET',
+            'callback' => array($this, 'get_media_stats'),
+            'permission_callback' => array($this, 'validate_request'),
+        ));
+        
+        // Convert images to WebP
+        register_rest_route($namespace, '/media/convert-to-webp', array(
+            'methods' => 'POST',
+            'callback' => array($this, 'convert_to_webp'),
+            'permission_callback' => array($this, 'validate_request'),
+        ));
     }
     
     /**
@@ -519,6 +533,20 @@ class GP_API_Handler {
             return new WP_REST_Response(array('error' => 'Permission denied'), 403);
         }
         return $this->media_manager->update($request['id'], $request->get_json_params());
+    }
+    
+    public function get_media_stats(WP_REST_Request $request) {
+        if (!gp_has_permission('CONTENT_READ')) {
+            return new WP_REST_Response(array('error' => 'Permission denied'), 403);
+        }
+        return $this->media_manager->get_stats();
+    }
+    
+    public function convert_to_webp(WP_REST_Request $request) {
+        if (!gp_has_permission('MEDIA_UPLOAD')) {
+            return new WP_REST_Response(array('error' => 'Permission denied'), 403);
+        }
+        return $this->media_manager->convert_to_webp($request->get_json_params());
     }
     
     // ==========================================

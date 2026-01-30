@@ -520,7 +520,7 @@
 }
 
 .placeholderText {
-  font-size: 1rem;
+  font-size: 1.02rem;
   color: var(--muted-foreground);
   max-width: 400px;
 }

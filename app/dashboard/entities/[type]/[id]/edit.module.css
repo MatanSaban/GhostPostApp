@@ -93,7 +93,7 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  font-size: 0.9375;
+  font-size: 0.9375rem;
   color: var(--muted-foreground);
 }
 
@@ -145,7 +145,7 @@
   background: var(--muted);
   border: 1px solid var(--border);
   color: var(--foreground);
-  font-size: 0.9375;
+  font-size: 0.9375rem;
   text-decoration: none;
   transition: all 0.2s;
 
@@ -168,7 +168,7 @@
   background: var(--primary);
   border: none;
   color: var(--primary-foreground);
-  font-size: 0.9375;
+  font-size: 0.9375rem;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s;
@@ -210,7 +210,7 @@
   border: none;
   border-bottom: 2px solid transparent;
   color: var(--muted-foreground);
-  font-size: 0.9375;
+  font-size: 0.9375rem;
   cursor: pointer;
   transition: all 0.2s;
   white-space: nowrap;
@@ -253,7 +253,7 @@
 }
 
 .fieldLabel {
-  font-size: 0.9375;
+  font-size: 0.9375rem;
   font-weight: 500;
   color: var(--foreground);
 }
@@ -271,7 +271,7 @@
   border: 1px solid var(--border);
   background: var(--background);
   color: var(--foreground);
-  font-size: 0.9375;
+  font-size: 0.9375rem;
   transition: all 0.2s;
 
   &:focus {
@@ -372,7 +372,7 @@
 }
 
 .acfGroupTitle {
-  font-size: 1rem;
+  font-size: 1.02rem;
   font-weight: 600;
   color: var(--foreground);
   margin-bottom: 1rem;
@@ -396,7 +396,7 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  font-size: 0.9375;
+  font-size: 0.9375rem;
   font-weight: 500;
   color: var(--foreground);
 }
@@ -453,7 +453,7 @@
 .toggleLabels {
   display: flex;
   flex-direction: column;
-  font-size: 0.9375;
+  font-size: 0.9375rem;
 }
 
 .toggleOnLabel,
@@ -490,7 +490,7 @@
   }
 
   span {
-    font-size: 0.9375;
+    font-size: 0.9375rem;
     color: var(--foreground);
   }
 }
@@ -783,7 +783,7 @@
 }
 
 .repeaterItemTitle {
-  font-size: 0.9375;
+  font-size: 0.9375rem;
   font-weight: 500;
   color: var(--muted-foreground);
 }
@@ -802,7 +802,7 @@
   padding: 0.5rem 0.75rem;
   background: var(--muted);
   border-radius: var(--radius-md);
-  font-size: 0.9375;
+  font-size: 0.9375rem;
   color: var(--primary);
   text-decoration: none;
 
@@ -826,7 +826,7 @@
 }
 
 .colorValue {
-  font-size: 0.9375;
+  font-size: 0.9375rem;
   font-family: monospace;
   color: var(--foreground);
 }
@@ -882,13 +882,13 @@
 }
 
 .seoPreviewUrl {
-  font-size: 0.9375;
+  font-size: 0.9375rem;
   color: #006621;
   margin-bottom: 0.25rem;
 }
 
 .seoPreviewDescription {
-  font-size: 0.9375;
+  font-size: 0.9375rem;
   color: #545454;
   line-height: 1.5;
 }
@@ -924,13 +924,13 @@
 }
 
 .metadataKey {
-  font-size: 0.9375;
+  font-size: 0.9375rem;
   font-weight: 500;
   color: var(--foreground);
 }
 
 .metadataValue {
-  font-size: 0.9375;
+  font-size: 0.9375rem;
   color: var(--muted-foreground);
   font-family: monospace;
   max-width: 60%;

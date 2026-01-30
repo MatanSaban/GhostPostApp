@@ -77,7 +77,7 @@
   background: transparent;
   border: none;
   cursor: pointer;
-  font-size: 0.9375;
+  font-size: 0.9375rem;
   font-weight: 500;
   color: var(--muted-foreground);
   transition: all 0.15s;
@@ -140,7 +140,7 @@
   padding: 0.5rem 2.25rem 0.5rem 0.75rem;
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
-  font-size: 0.9375;
+  font-size: 0.9375rem;
   background: var(--background);
   color: var(--foreground);
 
@@ -192,7 +192,7 @@
 }
 
 .previewTitle {
-  font-size: 0.9375;
+  font-size: 0.9375rem;
   font-weight: 600;
   color: var(--foreground);
   margin: 0;
@@ -226,7 +226,7 @@
   background: var(--destructive);
   color: var(--destructive-foreground);
   border-radius: var(--radius-md);
-  font-size: 0.9375;
+  font-size: 0.9375rem;
   margin-bottom: 1rem;
 }
 
@@ -367,7 +367,7 @@
 }
 
 .pageInfo {
-  font-size: 0.9375;
+  font-size: 0.9375rem;
   color: var(--muted-foreground);
 }
 
@@ -426,7 +426,7 @@
 }
 
 .footerInfo {
-  font-size: 0.9375;
+  font-size: 0.9375rem;
   color: var(--muted-foreground);
 }
 
@@ -441,7 +441,7 @@
   background: transparent;
   border: 1px solid var(--border);
   cursor: pointer;
-  font-size: 0.9375;
+  font-size: 0.9375rem;
   font-weight: 500;
   color: var(--foreground);
   transition: all 0.15s;
@@ -457,7 +457,7 @@
   background: var(--primary);
   border: none;
   cursor: pointer;
-  font-size: 0.9375;
+  font-size: 0.9375rem;
   font-weight: 500;
   color: var(--primary-foreground);
   transition: all 0.15s;
@@ -497,7 +497,7 @@
   padding: 0.5rem 0.75rem;
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   background: var(--background);
   color: var(--foreground);
   
@@ -512,7 +512,7 @@
   padding: 0.5rem 0.75rem;
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   background: var(--background);
   color: var(--foreground);
   resize: vertical;
@@ -534,7 +534,7 @@
   color: var(--primary-foreground);
   border: none;
   border-radius: var(--radius-md);
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.15s;

@@ -23,6 +23,7 @@ import {
   Database,
   ChevronRight,
   Lock,
+  Wrench,
 } from 'lucide-react';
 import { GhostChatPopup } from '@/app/components/ui/ghost-chat-popup';
 import { SiteSelector } from '@/app/components/ui/site-selector';
@@ -230,7 +231,16 @@ export default function DashboardLayout({ children, title = 'Dashboard', breadcr
           </div>
           )}
 
-          {/* Settings - Below Entities */}
+          {/* Tools - Below Entities */}
+          <Link
+            href="/dashboard/tools"
+            className={`${styles.navItem} ${pathname === '/dashboard/tools' || pathname.startsWith('/dashboard/tools/') ? styles.active : ''}`}
+          >
+            <Wrench className={styles.navIcon} />
+            <span className={styles.navLabel}>{t('nav.tools')}</span>
+          </Link>
+
+          {/* Settings - Below Tools */}
           <Link
             href="/dashboard/settings"
             className={`${styles.navItem} ${pathname === '/dashboard/settings' ? styles.active : ''}`}

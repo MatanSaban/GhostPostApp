@@ -214,6 +214,7 @@
     "seoBackend": "SEO Backend",
     "siteAudit": "Site Audit",
     "keywordStrategy": "Keyword Strategy",
+    "tools": "Tools",
     "settings": "Settings",
     "entities": {
       "title": "Entities",
@@ -792,6 +793,24 @@
       "totalHits": "Total Hits",
       "brokenLinks": "Broken Links",
       "successRate": "Success Rate"
+    }
+  },
+  "tools": {
+    "title": "Tools",
+    "subtitle": "Utilities and optimization tools for your website",
+    "selectSite": "Please select a site to use the tools",
+    "webp": {
+      "title": "WebP Image Conversion",
+      "description": "Convert your images to WebP format for faster loading and better SEO",
+      "autoConvert": "Auto-convert on upload",
+      "autoConvertDesc": "Automatically convert images to WebP when uploading to WordPress",
+      "totalImages": "Total Images",
+      "webpImages": "WebP Images",
+      "nonWebpImages": "Not Converted",
+      "refreshStats": "Refresh Statistics",
+      "convertAll": "Convert All Images",
+      "converting": "Converting",
+      "conversionComplete": "Conversion complete! {converted} converted, {failed} failed."
     }
   },
   "settings": {

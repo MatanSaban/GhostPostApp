@@ -585,7 +585,7 @@
   border: 1px solid var(--border-subtle);
   background: var(--bg-primary);
   color: var(--text-primary);
-  font-size: 1rem;
+  font-size: 1.02rem;
   cursor: pointer;
   appearance: none;
   transition: all var(--transition-fast);
@@ -666,7 +666,7 @@
   border: 1px solid var(--border-subtle);
   background: var(--bg-primary);
   color: var(--text-primary);
-  font-size: 1rem;
+  font-size: 1.02rem;
   transition: all var(--transition-fast);
 
   &::placeholder {
@@ -691,7 +691,7 @@
   background: var(--bg-tertiary);
   color: var(--text-secondary);
   border-radius: 50%;
-  font-size: 1rem;
+  font-size: 1.02rem;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -784,7 +784,7 @@
 }
 
 .detectedIcon {
-  font-size: 1rem;
+  font-size: 1.02rem;
 }
 
 .searchableOption {
@@ -928,7 +928,7 @@
   border: 1px solid var(--border-subtle);
   background: var(--bg-primary);
   color: var(--text-primary);
-  font-size: 1rem;
+  font-size: 1.02rem;
   resize: vertical;
   min-height: 80px;
   transition: all var(--transition-fast);

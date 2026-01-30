@@ -233,7 +233,7 @@
         padding: 0;
         border-radius: 0;
         color: inherit;
-        font-size: 0.875rem;
+        font-size: 0.9375rem;
       }
     }
 
@@ -375,7 +375,7 @@
 
 .dialogCancel {
   padding: 0.5rem 1rem;
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   font-weight: 500;
   color: var(--muted-foreground);
   background: transparent;
@@ -392,7 +392,7 @@
 
 .dialogSubmit {
   padding: 0.5rem 1rem;
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   font-weight: 500;
   color: var(--primary-foreground);
   background: var(--primary);

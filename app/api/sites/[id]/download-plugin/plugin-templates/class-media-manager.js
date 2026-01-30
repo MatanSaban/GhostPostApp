@@ -378,6 +378,177 @@ class GP_Media_Manager {
         
         return $sizes;
     }
+    
+    /**
+     * Get media statistics
+     * 
+     * @return WP_REST_Response
+     */
+    public function get_stats() {
+        global $wpdb;
+        
+        // Count total images
+        $total = (int) $wpdb->get_var(
+            "SELECT COUNT(*) FROM {$wpdb->posts} 
+             WHERE post_type = 'attachment' 
+             AND post_mime_type LIKE 'image/%'"
+        );
+        
+        // Count WebP images
+        $webp = (int) $wpdb->get_var(
+            "SELECT COUNT(*) FROM {$wpdb->posts} 
+             WHERE post_type = 'attachment' 
+             AND post_mime_type = 'image/webp'"
+        );
+        
+        $non_webp = $total - $webp;
+        
+        return new WP_REST_Response(array(
+            'total' => $total,
+            'webp' => $webp,
+            'nonWebp' => $non_webp,
+        ), 200);
+    }
+    
+    /**
+     * Convert images to WebP format
+     * 
+     * @param array $params Parameters (all: bool, ids: array)
+     * @return WP_REST_Response
+     */
+    public function convert_to_webp($params) {
+        require_once ABSPATH . 'wp-admin/includes/image.php';
+        require_once ABSPATH . 'wp-admin/includes/file.php';
+        
+        $all = !empty($params['all']);
+        $ids = !empty($params['ids']) ? array_map('intval', $params['ids']) : array();
+        
+        // Get images to convert
+        $args = array(
+            'post_type' => 'attachment',
+            'post_status' => 'inherit',
+            'post_mime_type' => array('image/jpeg', 'image/png', 'image/gif'),
+            'posts_per_page' => $all ? -1 : count($ids),
+            'fields' => 'ids',
+        );
+        
+        if (!$all && !empty($ids)) {
+            $args['post__in'] = $ids;
+        }
+        
+        $query = new WP_Query($args);
+        $attachment_ids = $query->posts;
+        
+        $converted = 0;
+        $failed = 0;
+        $errors = array();
+        
+        foreach ($attachment_ids as $attachment_id) {
+            $result = $this->convert_single_to_webp($attachment_id);
+            
+            if ($result === true) {
+                $converted++;
+            } else {
+                $failed++;
+                $errors[] = array(
+                    'id' => $attachment_id,
+                    'error' => $result,
+                );
+            }
+        }
+        
+        return new WP_REST_Response(array(
+            'total' => count($attachment_ids),
+            'converted' => $converted,
+            'failed' => $failed,
+            'errors' => $errors,
+        ), 200);
+    }
+    
+    /**
+     * Convert a single image to WebP
+     * 
+     * @param int $attachment_id
+     * @return bool|string True on success, error message on failure
+     */
+    private function convert_single_to_webp($attachment_id) {
+        $file_path = get_attached_file($attachment_id);
+        
+        if (!$file_path || !file_exists($file_path)) {
+            return 'File not found';
+        }
+        
+        $mime_type = get_post_mime_type($attachment_id);
+        
+        // Skip if already WebP
+        if ($mime_type === 'image/webp') {
+            return 'Already WebP';
+        }
+        
+        // Check if GD or Imagick is available
+        if (!function_exists('imagecreatefromstring') && !extension_loaded('imagick')) {
+            return 'No image library available (GD or Imagick required)';
+        }
+        
+        // Create WebP path
+        $path_info = pathinfo($file_path);
+        $webp_path = $path_info['dirname'] . '/' . $path_info['filename'] . '.webp';
+        
+        try {
+            // Use Imagick if available (better quality)
+            if (extension_loaded('imagick')) {
+                $image = new Imagick($file_path);
+                $image->setImageFormat('webp');
+                $image->setImageCompressionQuality(82);
+                $image->writeImage($webp_path);
+                $image->destroy();
+            } else {
+                // Use GD library
+                $image = imagecreatefromstring(file_get_contents($file_path));
+                if (!$image) {
+                    return 'Failed to create image from file';
+                }
+                
+                // Preserve transparency for PNG
+                if ($mime_type === 'image/png') {
+                    imagepalettetotruecolor($image);
+                    imagealphablending($image, true);
+                    imagesavealpha($image, true);
+                }
+                
+                if (!imagewebp($image, $webp_path, 82)) {
+                    imagedestroy($image);
+                    return 'Failed to save WebP image';
+                }
+                imagedestroy($image);
+            }
+            
+            if (!file_exists($webp_path)) {
+                return 'WebP file was not created';
+            }
+            
+            // Delete original file
+            @unlink($file_path);
+            
+            // Update attachment file path
+            update_attached_file($attachment_id, $webp_path);
+            
+            // Update post mime type
+            wp_update_post(array(
+                'ID' => $attachment_id,
+                'post_mime_type' => 'image/webp',
+            ));
+            
+            // Regenerate metadata
+            $metadata = wp_generate_attachment_metadata($attachment_id, $webp_path);
+            wp_update_attachment_metadata($attachment_id, $metadata);
+            
+            return true;
+            
+        } catch (Exception $e) {
+            return $e->getMessage();
+        }
+    }
 }
 `;
 }

@@ -1,0 +1,376 @@
+.container {
+  padding: 1.5rem;
+  max-width: 900px;
+}
+
+.header {
+  margin-bottom: 2rem;
+}
+
+.title {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--foreground);
+  margin: 0 0 0.5rem;
+}
+
+.subtitle {
+  font-size: 0.9375rem;
+  color: var(--muted-foreground);
+  margin: 0;
+}
+
+.noSite {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem;
+  background: var(--muted);
+  border-radius: var(--radius-lg);
+  text-align: center;
+  
+  p {
+    margin: 0;
+    color: var(--muted-foreground);
+    font-size: 0.9375rem;
+  }
+}
+
+.noSiteIcon {
+  width: 3rem;
+  height: 3rem;
+  color: var(--muted-foreground);
+  margin-bottom: 1rem;
+}
+
+/* Tool Card */
+.toolCard {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 1.5rem;
+}
+
+.toolHeader {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.toolIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 3rem;
+  height: 3rem;
+  background: var(--primary);
+  color: var(--primary-foreground);
+  border-radius: var(--radius-md);
+  flex-shrink: 0;
+  
+  svg {
+    width: 1.5rem;
+    height: 1.5rem;
+  }
+}
+
+.toolInfo {
+  flex: 1;
+}
+
+.toolTitle {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--foreground);
+  margin: 0 0 0.25rem;
+}
+
+.toolDescription {
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+  margin: 0;
+}
+
+/* Setting Row */
+.settingRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem;
+  background: var(--muted);
+  border-radius: var(--radius-md);
+  margin-bottom: 1.5rem;
+}
+
+.settingInfo {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.settingIcon {
+  width: 1.25rem;
+  height: 1.25rem;
+  color: var(--muted-foreground);
+}
+
+.settingTitle {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--foreground);
+  margin: 0 0 0.125rem;
+}
+
+.settingDescription {
+  font-size: 0.8125rem;
+  color: var(--muted-foreground);
+  margin: 0;
+}
+
+/* Toggle Button */
+.toggle {
+  position: relative;
+  width: 3.25rem;
+  height: 1.75rem;
+  background: var(--border);
+  border: none;
+  border-radius: 9999px;
+  cursor: pointer;
+  transition: background 0.2s;
+  flex-shrink: 0;
+  
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+.toggleActive {
+  background: var(--primary);
+}
+
+.toggleThumb {
+  position: absolute;
+  top: 0.125rem;
+  left: 0.125rem;
+  width: 1.5rem;
+  height: 1.5rem;
+  background: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  
+  .toggleActive & {
+    transform: translateX(1.5rem);
+  }
+}
+
+.toggleIcon {
+  width: 0.75rem;
+  height: 0.75rem;
+  color: var(--muted-foreground);
+  
+  .toggleActive & {
+    color: var(--primary);
+  }
+}
+
+.toggleLoader {
+  width: 0.75rem;
+  height: 0.75rem;
+  color: var(--muted-foreground);
+  animation: spin 1s linear infinite;
+}
+
+/* Stats Grid */
+.statsGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.statCard {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 1rem;
+  background: var(--background);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  text-align: center;
+}
+
+.statSuccess {
+  border-color: var(--success, #22c55e);
+  background: rgba(34, 197, 94, 0.05);
+}
+
+.statWarning {
+  border-color: var(--warning, #f59e0b);
+  background: rgba(245, 158, 11, 0.05);
+}
+
+.statValue {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--foreground);
+  margin-bottom: 0.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.statLoader {
+  width: 1.25rem;
+  height: 1.25rem;
+  animation: spin 1s linear infinite;
+  color: var(--muted-foreground);
+}
+
+.statLabel {
+  font-size: 0.8125rem;
+  color: var(--muted-foreground);
+}
+
+/* Refresh Button */
+.refreshButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.625rem 1rem;
+  background: var(--muted);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--foreground);
+  cursor: pointer;
+  transition: all 0.15s;
+  margin-bottom: 1.5rem;
+  
+  svg {
+    width: 1rem;
+    height: 1rem;
+  }
+  
+  &:hover:not(:disabled) {
+    background: var(--accent);
+  }
+  
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+/* Action Section */
+.actionSection {
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--border);
+}
+
+.convertButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.875rem 1.5rem;
+  background: var(--primary);
+  color: var(--primary-foreground);
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+  
+  svg {
+    width: 1.125rem;
+    height: 1.125rem;
+  }
+  
+  &:hover:not(:disabled) {
+    opacity: 0.9;
+  }
+  
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+.successMessage {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 1rem;
+  padding: 0.75rem 1rem;
+  background: rgba(34, 197, 94, 0.1);
+  border: 1px solid var(--success, #22c55e);
+  border-radius: var(--radius-md);
+  color: var(--success, #22c55e);
+  font-size: 0.875rem;
+  
+  svg {
+    width: 1rem;
+    height: 1rem;
+    flex-shrink: 0;
+  }
+}
+
+.errorMessage {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 1rem;
+  padding: 0.75rem 1rem;
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid var(--destructive);
+  border-radius: var(--radius-md);
+  color: var(--destructive);
+  font-size: 0.875rem;
+  
+  svg {
+    width: 1rem;
+    height: 1rem;
+    flex-shrink: 0;
+  }
+}
+
+/* Animations */
+.spinning {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .statsGrid {
+    grid-template-columns: 1fr;
+  }
+  
+  .settingRow {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+  
+  .toggle {
+    align-self: flex-end;
+  }
+}
