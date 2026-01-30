@@ -1,16 +1,20 @@
 /**
  * Plugin Version Configuration
- * 
+ *
  * This file is the single source of truth for the plugin version.
  * Update the version here when making plugin changes, and all
  * connected WordPress sites will receive the update notification.
  */
 
 // Current plugin version - increment this when making updates
-export const PLUGIN_VERSION = '1.8.0';
+export const PLUGIN_VERSION = "1.8.1";
 
 // Changelog for the current version
 export const PLUGIN_CHANGELOG = `
+= 1.8.1 =
+* FIXED: PHP syntax error in media manager (array callback escaping issue)
+* Resolved fatal error on plugin activation/update
+
 = 1.8.0 =
 * NEW: AI Image Optimization - Generate SEO-friendly filenames and alt text using AI
 * AI-powered filename suggestions based on image content
@@ -80,15 +84,60 @@ export const PLUGIN_CHANGELOG = `
 
 // Version history for reference
 export const VERSION_HISTORY = [
-  { version: '1.0.0', date: '2025-01-01', description: 'Initial release' },
-  { version: '1.1.0', date: '2026-01-29', description: 'Added auto-updates, ACF, and SEO support' },
-  { version: '1.2.0', date: '2026-01-29', description: 'Full data sync support' },
-  { version: '1.2.1', date: '2026-01-29', description: 'Added Check for Updates button' },
-  { version: '1.2.3', date: '2026-01-30', description: 'Fixed WordPress update transient refresh' },
-  { version: '1.3.0', date: '2026-01-30', description: 'Added Media API for upload, get, update, delete' },
-  { version: '1.4.0', date: '2026-01-30', description: 'Added WebP conversion tool and batch convert' },
-  { version: '1.5.0', date: '2026-01-30', description: 'Added WebP auto-convert on upload' },
-  { version: '1.6.0', date: '2026-01-30', description: 'Added image selection, backups, history, and revert' },
-  { version: '1.7.0', date: '2026-01-30', description: 'Added queue system, cache flush, URL replacement' },
-  { version: '1.8.0', date: '2026-01-30', description: 'Added AI image optimization with filename and alt text' },
+  { version: "1.0.0", date: "2025-01-01", description: "Initial release" },
+  {
+    version: "1.1.0",
+    date: "2026-01-29",
+    description: "Added auto-updates, ACF, and SEO support",
+  },
+  {
+    version: "1.2.0",
+    date: "2026-01-29",
+    description: "Full data sync support",
+  },
+  {
+    version: "1.2.1",
+    date: "2026-01-29",
+    description: "Added Check for Updates button",
+  },
+  {
+    version: "1.2.3",
+    date: "2026-01-30",
+    description: "Fixed WordPress update transient refresh",
+  },
+  {
+    version: "1.3.0",
+    date: "2026-01-30",
+    description: "Added Media API for upload, get, update, delete",
+  },
+  {
+    version: "1.4.0",
+    date: "2026-01-30",
+    description: "Added WebP conversion tool and batch convert",
+  },
+  {
+    version: "1.5.0",
+    date: "2026-01-30",
+    description: "Added WebP auto-convert on upload",
+  },
+  {
+    version: "1.6.0",
+    date: "2026-01-30",
+    description: "Added image selection, backups, history, and revert",
+  },
+  {
+    version: "1.7.0",
+    date: "2026-01-30",
+    description: "Added queue system, cache flush, URL replacement",
+  },
+  {
+    version: "1.8.0",
+    date: "2026-01-30",
+    description: "Added AI image optimization with filename and alt text",
+  },
+  {
+    version: "1.8.1",
+    date: "2026-01-30",
+    description: "Fixed PHP syntax error in media manager",
+  },
 ];

@@ -45,13 +45,13 @@ class GP_Media_Manager {
      */
     public function __construct() {
         // Hook into upload process to auto-convert to WebP
-        add_filter('wp_handle_upload', array(\\$this, 'maybe_convert_upload_to_webp'), 10, 2);
+        add_filter('wp_handle_upload', array(\$this, 'maybe_convert_upload_to_webp'), 10, 2);
         
         // Register cron hook for queue processing
-        add_action('gp_process_webp_queue', array(\\$this, 'process_conversion_queue'));
+        add_action('gp_process_webp_queue', array(\$this, 'process_conversion_queue'));
         
         // Register cron hook for backup cleanup
-        add_action('gp_cleanup_old_backups', array(\\$this, 'cleanup_old_backups'));
+        add_action('gp_cleanup_old_backups', array(\$this, 'cleanup_old_backups'));
         
         // Schedule cron jobs if not already scheduled
         if (!wp_next_scheduled('gp_cleanup_old_backups')) {
