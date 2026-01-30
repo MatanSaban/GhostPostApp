@@ -1,9 +1,10 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { makePluginRequest } from '@/lib/wp-api-client';
 
 /**
  * GET /api/sites/[id]/tools/settings
- * Get tool settings for the site
+ * Get tool settings for the site (from WordPress plugin)
  */
 export async function GET(request, { params }) {
   try {
@@ -13,7 +14,9 @@ export async function GET(request, { params }) {
       where: { id },
       select: {
         id: true,
-        toolSettings: true,
+        url: true,
+        siteKey: true,
+        siteSecret: true,
       },
     });
     
@@ -21,11 +24,27 @@ export async function GET(request, { params }) {
       return NextResponse.json({ error: 'Site not found' }, { status: 404 });
     }
     
-    const settings = site.toolSettings || {};
+    // If site is not connected, return default settings
+    if (!site.siteKey || !site.siteSecret) {
+      return NextResponse.json({
+        autoConvertToWebp: false,
+      });
+    }
     
-    return NextResponse.json({
-      autoConvertToWebp: settings.autoConvertToWebp ?? false,
-    });
+    try {
+      // Fetch settings from WordPress plugin
+      const result = await makePluginRequest(site, '/media/settings', 'GET');
+      
+      return NextResponse.json({
+        autoConvertToWebp: result.autoConvertToWebp ?? false,
+      });
+    } catch (pluginError) {
+      // Plugin might not support settings endpoint yet
+      console.warn('Plugin settings not available:', pluginError.message);
+      return NextResponse.json({
+        autoConvertToWebp: false,
+      });
+    }
   } catch (error) {
     console.error('Error fetching tool settings:', error);
     return NextResponse.json(
@@ -37,7 +56,7 @@ export async function GET(request, { params }) {
 
 /**
  * PATCH /api/sites/[id]/tools/settings
- * Update tool settings for the site
+ * Update tool settings for the site (on WordPress plugin)
  */
 export async function PATCH(request, { params }) {
   try {
@@ -46,29 +65,32 @@ export async function PATCH(request, { params }) {
     
     const site = await prisma.site.findUnique({
       where: { id },
-      select: { id: true, toolSettings: true },
+      select: {
+        id: true,
+        url: true,
+        siteKey: true,
+        siteSecret: true,
+      },
     });
     
     if (!site) {
       return NextResponse.json({ error: 'Site not found' }, { status: 404 });
     }
     
-    const currentSettings = site.toolSettings || {};
-    const newSettings = {
-      ...currentSettings,
-    };
-    
-    if (typeof body.autoConvertToWebp === 'boolean') {
-      newSettings.autoConvertToWebp = body.autoConvertToWebp;
+    if (!site.siteKey || !site.siteSecret) {
+      return NextResponse.json(
+        { error: 'Site is not connected. Please install and activate the plugin.' },
+        { status: 400 }
+      );
     }
     
-    await prisma.site.update({
-      where: { id },
-      data: { toolSettings: newSettings },
+    // Update settings on WordPress plugin
+    const result = await makePluginRequest(site, '/media/settings', 'PUT', {
+      autoConvertToWebp: body.autoConvertToWebp ?? false,
     });
     
     return NextResponse.json({
-      autoConvertToWebp: newSettings.autoConvertToWebp ?? false,
+      autoConvertToWebp: result.autoConvertToWebp ?? false,
     });
   } catch (error) {
     console.error('Error updating tool settings:', error);
