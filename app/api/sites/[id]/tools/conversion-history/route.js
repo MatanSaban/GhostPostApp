@@ -24,21 +24,23 @@ export async function GET(request, { params }) {
       return NextResponse.json({ error: 'Site not found' }, { status: 404 });
     }
     
+    // If site is not connected, return empty history
     if (!site.siteKey || !site.siteSecret) {
-      return NextResponse.json(
-        { error: 'Site is not connected. Please install and activate the plugin.' },
-        { status: 400 }
-      );
+      return NextResponse.json({ items: [], total: 0 });
     }
     
-    // Fetch conversion history from WordPress plugin
-    const result = await makePluginRequest(site, '/media/conversion-history', 'GET');
-    
-    return NextResponse.json({
-      items: result.items ?? [],
-      total: result.total ?? 0,
-    });
-    
+    try {
+      // Fetch conversion history from WordPress plugin
+      const result = await makePluginRequest(site, '/media/conversion-history', 'GET');
+      
+      return NextResponse.json({
+        items: result.items ?? [],
+        total: result.total ?? 0,
+      });
+    } catch (pluginError) {
+      console.warn('Conversion history not available:', pluginError.message);
+      return NextResponse.json({ items: [], total: 0 });
+    }
   } catch (error) {
     console.error('Error fetching conversion history:', error);
     return NextResponse.json(
