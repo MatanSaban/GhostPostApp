@@ -233,6 +233,90 @@ class GP_API_Handler {
             ),
         ));
         
+        // Non-WebP Images List
+        register_rest_route($namespace, '/media/non-webp-images', array(
+            'methods' => 'GET',
+            'callback' => array($this, 'get_non_webp_images'),
+            'permission_callback' => array($this, 'validate_request'),
+        ));
+        
+        // Conversion History
+        register_rest_route($namespace, '/media/conversion-history', array(
+            'methods' => 'GET',
+            'callback' => array($this, 'get_conversion_history'),
+            'permission_callback' => array($this, 'validate_request'),
+        ));
+        
+        // Revert WebP
+        register_rest_route($namespace, '/media/revert-webp', array(
+            'methods' => 'POST',
+            'callback' => array($this, 'revert_webp'),
+            'permission_callback' => array($this, 'validate_request'),
+        ));
+        
+        // Queue for WebP Conversion
+        register_rest_route($namespace, '/media/queue-webp', array(
+            'methods' => 'POST',
+            'callback' => array($this, 'queue_for_webp'),
+            'permission_callback' => array($this, 'validate_request'),
+        ));
+        
+        // Queue Status
+        register_rest_route($namespace, '/media/queue-status', array(
+            'methods' => 'GET',
+            'callback' => array($this, 'get_queue_status'),
+            'permission_callback' => array($this, 'validate_request'),
+        ));
+        
+        // Clear Queue
+        register_rest_route($namespace, '/media/clear-queue', array(
+            'methods' => 'POST',
+            'callback' => array($this, 'clear_queue'),
+            'permission_callback' => array($this, 'validate_request'),
+        ));
+        
+        // AI Optimize Single Image
+        register_rest_route($namespace, '/media/ai-optimize', array(
+            'methods' => 'POST',
+            'callback' => array($this, 'ai_optimize_image'),
+            'permission_callback' => array($this, 'validate_request'),
+        ));
+        
+        // AI Optimize Batch
+        register_rest_route($namespace, '/media/ai-optimize-batch', array(
+            'methods' => 'POST',
+            'callback' => array($this, 'ai_optimize_batch'),
+            'permission_callback' => array($this, 'validate_request'),
+        ));
+        
+        // AI Settings
+        register_rest_route($namespace, '/media/ai-settings', array(
+            array(
+                'methods' => 'GET',
+                'callback' => array($this, 'get_ai_settings'),
+                'permission_callback' => array($this, 'validate_request'),
+            ),
+            array(
+                'methods' => 'PUT',
+                'callback' => array($this, 'update_ai_settings'),
+                'permission_callback' => array($this, 'validate_request'),
+            ),
+        ));
+        
+        // Image Redirects
+        register_rest_route($namespace, '/media/redirects', array(
+            array(
+                'methods' => 'GET',
+                'callback' => array($this, 'get_image_redirects'),
+                'permission_callback' => array($this, 'validate_request'),
+            ),
+            array(
+                'methods' => 'DELETE',
+                'callback' => array($this, 'clear_image_redirects'),
+                'permission_callback' => array($this, 'validate_request'),
+            ),
+        ));
+        
         // SEO
         register_rest_route($namespace, '/seo/(?P<id>\\d+)', array(
             array(
@@ -589,6 +673,90 @@ class GP_API_Handler {
             return new WP_REST_Response(array('error' => 'Permission denied'), 403);
         }
         return $this->media_manager->update_settings($request->get_json_params());
+    }
+    
+    public function get_non_webp_images(WP_REST_Request $request) {
+        if (!gp_has_permission('CONTENT_READ')) {
+            return new WP_REST_Response(array('error' => 'Permission denied'), 403);
+        }
+        return $this->media_manager->get_non_webp_images();
+    }
+    
+    public function get_conversion_history(WP_REST_Request $request) {
+        if (!gp_has_permission('CONTENT_READ')) {
+            return new WP_REST_Response(array('error' => 'Permission denied'), 403);
+        }
+        return $this->media_manager->get_conversion_history();
+    }
+    
+    public function revert_webp(WP_REST_Request $request) {
+        if (!gp_has_permission('MEDIA_UPLOAD')) {
+            return new WP_REST_Response(array('error' => 'Permission denied'), 403);
+        }
+        return $this->media_manager->revert_webp($request->get_json_params());
+    }
+    
+    public function queue_for_webp(WP_REST_Request $request) {
+        if (!gp_has_permission('MEDIA_UPLOAD')) {
+            return new WP_REST_Response(array('error' => 'Permission denied'), 403);
+        }
+        return $this->media_manager->queue_for_webp($request->get_json_params());
+    }
+    
+    public function get_queue_status(WP_REST_Request $request) {
+        if (!gp_has_permission('CONTENT_READ')) {
+            return new WP_REST_Response(array('error' => 'Permission denied'), 403);
+        }
+        return $this->media_manager->get_queue_status();
+    }
+    
+    public function clear_queue(WP_REST_Request $request) {
+        if (!gp_has_permission('MEDIA_UPLOAD')) {
+            return new WP_REST_Response(array('error' => 'Permission denied'), 403);
+        }
+        return $this->media_manager->clear_queue();
+    }
+    
+    public function ai_optimize_image(WP_REST_Request $request) {
+        if (!gp_has_permission('MEDIA_UPLOAD')) {
+            return new WP_REST_Response(array('error' => 'Permission denied'), 403);
+        }
+        return $this->media_manager->ai_optimize_image($request->get_json_params());
+    }
+    
+    public function ai_optimize_batch(WP_REST_Request $request) {
+        if (!gp_has_permission('MEDIA_UPLOAD')) {
+            return new WP_REST_Response(array('error' => 'Permission denied'), 403);
+        }
+        return $this->media_manager->ai_optimize_batch($request->get_json_params());
+    }
+    
+    public function get_ai_settings(WP_REST_Request $request) {
+        if (!gp_has_permission('MEDIA_UPLOAD')) {
+            return new WP_REST_Response(array('error' => 'Permission denied'), 403);
+        }
+        return $this->media_manager->get_ai_settings();
+    }
+    
+    public function update_ai_settings(WP_REST_Request $request) {
+        if (!gp_has_permission('MEDIA_UPLOAD')) {
+            return new WP_REST_Response(array('error' => 'Permission denied'), 403);
+        }
+        return $this->media_manager->update_ai_settings($request->get_json_params());
+    }
+    
+    public function get_image_redirects(WP_REST_Request $request) {
+        if (!gp_has_permission('MEDIA_UPLOAD')) {
+            return new WP_REST_Response(array('error' => 'Permission denied'), 403);
+        }
+        return $this->media_manager->get_image_redirects();
+    }
+    
+    public function clear_image_redirects(WP_REST_Request $request) {
+        if (!gp_has_permission('MEDIA_UPLOAD')) {
+            return new WP_REST_Response(array('error' => 'Permission denied'), 403);
+        }
+        return $this->media_manager->clear_image_redirects();
     }
     
     // ==========================================

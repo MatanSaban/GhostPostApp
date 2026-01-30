@@ -7,10 +7,34 @@
  */
 
 // Current plugin version - increment this when making updates
-export const PLUGIN_VERSION = '1.5.0';
+export const PLUGIN_VERSION = '1.8.0';
 
 // Changelog for the current version
 export const PLUGIN_CHANGELOG = `
+= 1.8.0 =
+* NEW: AI Image Optimization - Generate SEO-friendly filenames and alt text using AI
+* AI-powered filename suggestions based on image content
+* AI-generated descriptive alt text for accessibility and SEO
+* Automatic 301 redirects when renaming files (htaccess + Redirection plugin support)
+* Multi-language support for AI-generated content (EN, HE, ES, FR, DE)
+* New API endpoints: /media/ai-optimize, /media/ai-optimize-batch, /media/ai-settings, /media/redirects
+* Auto-optimization settings for new uploads
+
+= 1.7.0 =
+* Added queue system for batch WebP conversion (prevents server overload)
+* Added automatic backup cleanup: Backups older than 30 days are auto-deleted
+* Added cache flush after conversion: Supports WP Rocket, W3 Total Cache, LiteSpeed, Cloudflare, and more
+* Added URL replacement: Automatically updates image URLs in posts and page builders
+* New API endpoints: /media/queue-webp, /media/queue-status, /media/clear-queue
+* Added cron jobs for background queue processing and backup cleanup
+
+= 1.6.0 =
+* Added image selection modal for batch WebP conversion
+* Added backup system: Keep original images before converting
+* Added conversion history: Track converted images with backup info
+* Added revert functionality: Restore original images from backups
+* New API endpoints: /media/non-webp-images, /media/conversion-history, /media/revert-webp
+
 = 1.5.0 =
 * Added WebP auto-convert on upload: Automatically converts JPEG/PNG/GIF to WebP when enabled
 * New API endpoint: /media/settings (GET/PUT) for managing auto-convert setting
@@ -64,4 +88,7 @@ export const VERSION_HISTORY = [
   { version: '1.3.0', date: '2026-01-30', description: 'Added Media API for upload, get, update, delete' },
   { version: '1.4.0', date: '2026-01-30', description: 'Added WebP conversion tool and batch convert' },
   { version: '1.5.0', date: '2026-01-30', description: 'Added WebP auto-convert on upload' },
+  { version: '1.6.0', date: '2026-01-30', description: 'Added image selection, backups, history, and revert' },
+  { version: '1.7.0', date: '2026-01-30', description: 'Added queue system, cache flush, URL replacement' },
+  { version: '1.8.0', date: '2026-01-30', description: 'Added AI image optimization with filename and alt text' },
 ];

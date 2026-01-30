@@ -3,13 +3,12 @@ import { prisma } from '@/lib/prisma';
 import { makePluginRequest } from '@/lib/wp-api-client';
 
 /**
- * POST /api/sites/[id]/tools/convert-to-webp
- * Convert images to WebP format on the WordPress site
+ * GET /api/sites/[id]/tools/conversion-history
+ * Get WebP conversion history from the WordPress site
  */
-export async function POST(request, { params }) {
+export async function GET(request, { params }) {
   try {
     const { id } = await params;
-    const body = await request.json();
     
     const site = await prisma.site.findUnique({
       where: { id },
@@ -32,26 +31,18 @@ export async function POST(request, { params }) {
       );
     }
     
-    // Send conversion request to WordPress plugin
-    const requestBody = {
-      all: body.all ?? false,
-      ids: body.ids ?? [],
-      keep_backups: body.keepBackups ?? true,
-    };
-    
-    const result = await makePluginRequest(site, '/media/convert-to-webp', 'POST', requestBody);
+    // Fetch conversion history from WordPress plugin
+    const result = await makePluginRequest(site, '/media/conversion-history', 'GET');
     
     return NextResponse.json({
+      items: result.items ?? [],
       total: result.total ?? 0,
-      converted: result.converted ?? 0,
-      failed: result.failed ?? 0,
-      errors: result.errors ?? [],
-      backups: result.backups ?? [],
     });
+    
   } catch (error) {
-    console.error('Error converting to WebP:', error);
+    console.error('Error fetching conversion history:', error);
     return NextResponse.json(
-      { error: error.message || 'Failed to convert images' },
+      { error: error.message || 'Internal server error' },
       { status: 500 }
     );
   }
