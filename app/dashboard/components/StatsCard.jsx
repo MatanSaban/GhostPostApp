@@ -13,12 +13,15 @@ import {
   ExternalLink,
   CheckCircle,
   AlertTriangle,
+  AlertCircle,
   Calendar,
   Clock,
   Sparkles,
   Zap,
   RefreshCw,
-  Settings
+  Settings,
+  Database,
+  FileEdit,
 } from 'lucide-react';
 import styles from './shared.module.css';
 
@@ -33,6 +36,7 @@ const iconMap = {
   ExternalLink,
   CheckCircle,
   AlertTriangle,
+  AlertCircle,
   Calendar,
   Clock,
   Sparkles,
@@ -41,6 +45,8 @@ const iconMap = {
   Settings,
   TrendingUp,
   TrendingDown,
+  Database,
+  FileEdit,
 };
 
 export function StatsCard({ 

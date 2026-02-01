@@ -9,10 +9,13 @@ import styles from '../auth.module.css';
 export function InterviewStep({ translations, onComplete, initialData = {}, onAnswerSaved }) {
   const { t } = useLocale();
   
+  // Welcome message shown first (no input needed)
+  const welcomeMessage = t('interviewWizard.questions.welcome');
+  
   const questions = [
     {
-      id: 'welcome',
-      question: t('interviewWizard.questions.welcome'),
+      id: 'websiteUrl',
+      question: t('interviewWizard.questions.websiteUrl'),
       field: 'websiteUrl',
     },
     {
@@ -70,6 +73,14 @@ export function InterviewStep({ translations, onComplete, initialData = {}, onAn
     const restoredMessages = [];
     let messageId = 0;
 
+    // Always show welcome message first
+    restoredMessages.push({
+      id: messageId++,
+      type: 'agent',
+      content: welcomeMessage,
+      timestamp: new Date()
+    });
+
     for (let i = 0; i < answeredCount; i++) {
       // Add agent question
       restoredMessages.push({
@@ -104,7 +115,7 @@ export function InterviewStep({ translations, onComplete, initialData = {}, onAn
         onComplete(initialData);
       }, 1500);
     } else {
-      // Add the next question
+      // Add the next question after welcome
       restoredMessages.push({
         id: messageId++,
         type: 'agent',
@@ -116,7 +127,7 @@ export function InterviewStep({ translations, onComplete, initialData = {}, onAn
     }
 
     setInitialized(true);
-  }, [initialized, questions, initialData, t, onComplete]);
+  }, [initialized, questions, initialData, t, onComplete, welcomeMessage]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });

@@ -35,6 +35,7 @@ export async function GET(request) {
 
   const { searchParams } = new URL(request.url);
   const namespace = searchParams.get('namespace') || undefined;
+  const application = searchParams.get('application') || undefined; // PLATFORM or WEBSITE
   const limitParam = searchParams.get('limit');
   let take = 100;
   if (limitParam) {
@@ -43,7 +44,14 @@ export async function GET(request) {
   }
 
   try {
-    const where = namespace && namespace !== '__ALL__' ? { namespace } : {};
+    const where = {};
+    if (namespace && namespace !== '__ALL__') {
+      where.namespace = namespace;
+    }
+    if (application) {
+      where.application = application;
+    }
+    
     const total = await prisma.i18nKey.count({ where });
     
     const keys = await prisma.i18nKey.findMany({

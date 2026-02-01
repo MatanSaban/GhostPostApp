@@ -8,11 +8,23 @@ import {
   ExternalLink, 
   Edit, 
   Trash2,
+  X,
   FileText,
   StopCircle,
+  Loader2,
 } from 'lucide-react';
 import { useLocale } from '@/app/context/locale-context';
 import styles from '../entities.module.css';
+
+// Helper to decode URL-encoded strings (like Hebrew text)
+const decodeText = (text) => {
+  if (!text) return '';
+  try {
+    return decodeURIComponent(text);
+  } catch {
+    return text;
+  }
+};
 
 export function EntitiesTable({ 
   entities = [], 
@@ -20,17 +32,85 @@ export function EntitiesTable({
   entityTypeName,
   onSync,
   onStopSync,
+  onEntityRemoved,
   isLoading = false,
   isSyncing = false,
   lastSyncDate = null,
+  isPluginConnected = false,
 }) {
-  const { t } = useLocale();
+  const { t, locale } = useLocale();
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState('');
+  const [deletingId, setDeletingId] = useState(null);
+  const [deleteType, setDeleteType] = useState(null); // 'remove' or 'trash'
+
+  // Remove from platform only (local delete)
+  const handleRemoveFromPlatform = async (entity) => {
+    const confirmMessage = locale === 'he'
+      ? `האם אתה בטוח שברצונך להסיר את "${entity.title}" מהפלטפורמה?\nפעולה זו לא תשפיע על האתר של הלקוח.`
+      : `Are you sure you want to remove "${entity.title}" from the platform?\nThis will NOT affect the client's website.`;
+    
+    if (!confirm(confirmMessage)) return;
+
+    setDeletingId(entity.id);
+    setDeleteType('remove');
+
+    try {
+      const response = await fetch(`/api/entities/${entity.id}`, {
+        method: 'DELETE',
+      });
+
+      if (response.ok) {
+        onEntityRemoved?.(entity.id);
+      } else {
+        const data = await response.json();
+        console.error('Failed to remove entity:', data.error);
+        alert(locale === 'he' ? 'הסרת הפריט נכשלה' : 'Failed to remove item');
+      }
+    } catch (error) {
+      console.error('Failed to remove entity:', error);
+      alert(locale === 'he' ? 'הסרת הפריט נכשלה' : 'Failed to remove item');
+    } finally {
+      setDeletingId(null);
+      setDeleteType(null);
+    }
+  };
+
+  // Delete from WordPress (move to trash) and remove from platform
+  const handleDeleteFromWordPress = async (entity) => {
+    const confirmMessage = locale === 'he'
+      ? `האם אתה בטוח שברצונך למחוק את "${entity.title}"?\nפעולה זו תעביר את הפריט לאשפה באתר הלקוח.`
+      : `Are you sure you want to delete "${entity.title}"?\nThis will move the item to trash on the client's website.`;
+    
+    if (!confirm(confirmMessage)) return;
+
+    setDeletingId(entity.id);
+    setDeleteType('trash');
+
+    try {
+      const response = await fetch(`/api/entities/${entity.id}?deleteFromWP=true`, {
+        method: 'DELETE',
+      });
+
+      if (response.ok) {
+        onEntityRemoved?.(entity.id);
+      } else {
+        const data = await response.json();
+        console.error('Failed to delete entity:', data.error);
+        alert(locale === 'he' ? 'מחיקת הפריט נכשלה' : 'Failed to delete item');
+      }
+    } catch (error) {
+      console.error('Failed to delete entity:', error);
+      alert(locale === 'he' ? 'מחיקת הפריט נכשלה' : 'Failed to delete item');
+    } finally {
+      setDeletingId(null);
+      setDeleteType(null);
+    }
+  };
 
   const filteredEntities = entities.filter((entity) => 
-    entity.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    entity.slug?.toLowerCase().includes(searchQuery.toLowerCase())
+    decodeText(entity.title)?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    decodeText(entity.slug)?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const formatDate = (dateString) => {
@@ -156,8 +236,8 @@ export function EntitiesTable({
             {filteredEntities.map((entity) => (
               <tr key={entity.id || entity.slug}>
                 <td>
-                  <div className={styles.entityTitle}>{entity.title}</div>
-                  <div className={styles.entitySlug}>{entity.slug}</div>
+                  <div className={styles.entityTitle}>{decodeText(entity.title)}</div>
+                  <div className={styles.entitySlug}>{decodeText(entity.slug)}</div>
                 </td>
                 <td>
                   <span className={`${styles.statusBadge} ${getStatusClass(entity.status)}`}>
@@ -193,9 +273,34 @@ export function EntitiesTable({
                     >
                       <Edit />
                     </button>
-                    <button className={`${styles.actionButton} ${styles.delete}`}>
-                      <Trash2 />
+                    {/* Remove from platform only (X button) */}
+                    <button 
+                      className={`${styles.actionButton} ${styles.remove}`}
+                      onClick={() => handleRemoveFromPlatform(entity)}
+                      disabled={deletingId === entity.id}
+                      title={locale === 'he' ? 'הסר מהפלטפורמה' : 'Remove from platform'}
+                    >
+                      {deletingId === entity.id && deleteType === 'remove' ? (
+                        <Loader2 className={styles.spinningIcon} />
+                      ) : (
+                        <X />
+                      )}
                     </button>
+                    {/* Delete from WordPress (Trash button) - only show if plugin connected */}
+                    {isPluginConnected && (
+                      <button 
+                        className={`${styles.actionButton} ${styles.delete}`}
+                        onClick={() => handleDeleteFromWordPress(entity)}
+                        disabled={deletingId === entity.id}
+                        title={locale === 'he' ? 'מחק מהאתר' : 'Delete from website'}
+                      >
+                        {deletingId === entity.id && deleteType === 'trash' ? (
+                          <Loader2 className={styles.spinningIcon} />
+                        ) : (
+                          <Trash2 />
+                        )}
+                      </button>
+                    )}
                   </div>
                 </td>
               </tr>

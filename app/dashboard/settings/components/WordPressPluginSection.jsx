@@ -29,7 +29,21 @@ const CONNECTION_STATUS = {
   ERROR: 'ERROR',
 };
 
-export default function WordPressPluginSection({ translations }) {
+/**
+ * WordPressPluginSection - Reusable component for WordPress plugin connection
+ * 
+ * @param {Object} props
+ * @param {Object} props.translations - Translation strings for the component
+ * @param {boolean} props.compact - If true, shows a more compact version (no auto-install)
+ * @param {boolean} props.showInstructions - If true, always shows installation instructions (for entities page)
+ * @param {function} props.onConnectionChange - Callback when connection status changes
+ */
+export default function WordPressPluginSection({ 
+  translations, 
+  compact = false, 
+  showInstructions = false,
+  onConnectionChange,
+}) {
   const t = translations;
   const { selectedSite, refreshSites } = useSite();
   
@@ -151,6 +165,7 @@ export default function WordPressPluginSection({ translations }) {
 
       // Refresh sites to get updated connection status
       refreshSites();
+      onConnectionChange?.();
     } catch (error) {
       console.error('Download error:', error);
       setDownloadError(error.message);
@@ -212,6 +227,7 @@ export default function WordPressPluginSection({ translations }) {
       
       // Refresh sites to get updated status
       refreshSites();
+      onConnectionChange?.();
     } catch (error) {
       console.error('Auto-install error:', error);
       setAutoInstallError(error.message);
@@ -253,6 +269,7 @@ export default function WordPressPluginSection({ translations }) {
 
       // Refresh sites to get updated status
       refreshSites();
+      onConnectionChange?.();
     } catch (error) {
       console.error('Disconnect error:', error);
       setDisconnectError(error.message);
@@ -262,7 +279,7 @@ export default function WordPressPluginSection({ translations }) {
   };
 
   return (
-    <div className={styles.container}>
+    <div className={`${styles.container} ${compact ? styles.compact : ''}`}>
       {/* Status Header */}
       <div className={styles.statusHeader}>
         <div className={styles.statusInfo}>
@@ -296,7 +313,7 @@ export default function WordPressPluginSection({ translations }) {
             )}
           </button>
           
-          {!isConnected && (
+          {!isConnected && !compact && (
             <button 
               className={styles.autoInstallButton}
               onClick={() => setShowAutoInstall(!showAutoInstall)}
@@ -489,8 +506,8 @@ export default function WordPressPluginSection({ translations }) {
         </div>
       )}
 
-      {/* Installation Steps (when not connected) */}
-      {!isConnected && !showAutoInstall && (
+      {/* Installation Steps (when not connected or showInstructions is true) */}
+      {(showInstructions || (!isConnected && !showAutoInstall)) && (
         <div className={styles.installationSteps}>
           <h4 className={styles.stepsTitle}>
             {t?.wordpress?.howToInstall || 'How to Install'}

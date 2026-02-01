@@ -35,9 +35,11 @@ import {
   Send,
   RefreshCw,
   Ban,
+  Building2,
 } from 'lucide-react';
 import { useSite } from '@/app/context/site-context';
 import { useLocale } from '@/app/context/locale-context';
+import { useUser } from '@/app/context/user-context';
 import { usePermissions } from '@/app/hooks/usePermissions';
 import WordPressPluginSection from './WordPressPluginSection';
 import styles from '../page.module.css';
@@ -55,28 +57,60 @@ const iconMap = {
   User,
   Shield,
   Key,
+  Globe,
+  Building2,
 };
 
-export default function SettingsContent({ translations, settingsTabs, initialData }) {
+// Account-level tab IDs that require special permissions
+const ACCOUNT_TAB_IDS = ['users', 'roles', 'permissions', 'subscription', 'account'];
+
+export default function SettingsContent({ translations, websiteTabs, accountTabs, mainTabs, initialData }) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { direction, locale } = useLocale();
+  const { direction, locale, t } = useLocale();
   const { selectedSite } = useSite();
+  const { user } = useUser();
   
   // Get user permissions
-  const { filterTabs, canEditTab, isLoading: permissionsLoading, isOwner } = usePermissions();
+  const { filterTabs, canEditTab, isLoading: permissionsLoading, isOwner, checkAccess } = usePermissions();
+  
+  // Check if user can access any account-level settings
+  const canAccessAccountSettings = useMemo(() => {
+    if (permissionsLoading) return true; // Show while loading to prevent flicker
+    if (isOwner) return true;
+    
+    // Check if user has VIEW permission for any account-related module
+    const accountModules = ['ACCOUNT', 'MEMBERS', 'ROLES', 'SETTINGS_TEAM', 'SETTINGS_ROLES', 'SETTINGS_SUBSCRIPTION'];
+    return accountModules.some(module => checkAccess(module, 'VIEW'));
+  }, [isOwner, checkAccess, permissionsLoading]);
   
   // Filter tabs based on user permissions
-  const availableTabs = useMemo(() => {
-    if (permissionsLoading) {
-      // While loading, show all tabs to prevent layout shift
-      return settingsTabs;
-    }
-    return filterTabs(settingsTabs);
-  }, [settingsTabs, filterTabs, permissionsLoading]);
+  const availableWebsiteTabs = useMemo(() => {
+    if (permissionsLoading) return websiteTabs;
+    return filterTabs(websiteTabs);
+  }, [websiteTabs, filterTabs, permissionsLoading]);
   
-  // Get initial tab from URL or default to first available
-  const validTabs = availableTabs.map(t => t.id);
+  const availableAccountTabs = useMemo(() => {
+    if (permissionsLoading) return accountTabs;
+    return filterTabs(accountTabs);
+  }, [accountTabs, filterTabs, permissionsLoading]);
+  
+  // Determine which main category to show based on URL or default
+  const getMainCategoryFromUrl = () => {
+    const tabFromUrl = searchParams.get('tab');
+    if (tabFromUrl && ACCOUNT_TAB_IDS.includes(tabFromUrl)) {
+      return 'account';
+    }
+    return 'website';
+  };
+  
+  const [activeMainCategory, setActiveMainCategory] = useState(getMainCategoryFromUrl);
+  
+  // Get the current tabs based on active main category
+  const currentTabs = activeMainCategory === 'account' ? availableAccountTabs : availableWebsiteTabs;
+  
+  // Get initial sub-tab from URL or default to first available
+  const validTabs = currentTabs.map(t => t.id);
   const getTabFromUrl = () => {
     const tabFromUrl = searchParams.get('tab');
     if (validTabs.includes(tabFromUrl)) {
@@ -87,10 +121,29 @@ export default function SettingsContent({ translations, settingsTabs, initialDat
   
   const [activeTab, setActiveTab] = useState(getTabFromUrl);
   const [indicatorStyle, setIndicatorStyle] = useState({});
+  const [mainIndicatorStyle, setMainIndicatorStyle] = useState({});
   const tabsRef = useRef({});
   const tabsListRef = useRef(null);
+  const mainTabsRef = useRef({});
+  const mainTabsListRef = useRef(null);
 
-  // Update active tab if it's no longer available (e.g., permissions changed)
+  // Update active main category when switching
+  const handleMainCategoryChange = (category) => {
+    if (category === activeMainCategory) return;
+    setActiveMainCategory(category);
+    
+    // Set the first tab of the new category
+    const newTabs = category === 'account' ? availableAccountTabs : availableWebsiteTabs;
+    const firstTab = newTabs[0]?.id || 'general';
+    setActiveTab(firstTab);
+    
+    // Update URL
+    const url = new URL(window.location.href);
+    url.searchParams.set('tab', firstTab);
+    window.history.replaceState({}, '', url.toString());
+  };
+
+  // Update active tab if it's no longer available (e.g., permissions changed or category changed)
   useEffect(() => {
     if (!permissionsLoading && !validTabs.includes(activeTab) && validTabs.length > 0) {
       setActiveTab(validTabs[0]);
@@ -125,8 +178,47 @@ export default function SettingsContent({ translations, settingsTabs, initialDat
   // Team State (read-only from server)
   const [team] = useState(initialData.team);
 
-  // Subscription State (read-only from server)
-  const [subscription] = useState(initialData.subscription);
+  // Subscription State - derived from user context with real data
+  const subscription = useMemo(() => {
+    const userSub = user?.subscription;
+    const plan = userSub?.plan;
+    
+    if (!userSub || !plan) {
+      // Fallback to initial data if no subscription found
+      return initialData.subscription;
+    }
+    
+    // Get translated status label
+    const statusKey = userSub.status?.toLowerCase() || 'active';
+    const statusLabel = t(`settings.subscriptionSection.statuses.${statusKey}`) || userSub.status;
+    
+    // Get plan name (use translation if available, otherwise plan name)
+    // Language enum is uppercase (EN, HE), locale is lowercase (en, he)
+    const planTranslation = plan.translations?.find(
+      tr => tr.language?.toUpperCase() === locale?.toUpperCase()
+    );
+    const planLabel = planTranslation?.name || plan.name || t('user.plans.free');
+    
+    return {
+      plan: plan.slug || 'free',
+      planLabel: planLabel,
+      price: plan.price || 0,
+      yearlyPrice: plan.yearlyPrice || null,
+      currency: plan.currency || 'USD',
+      interval: plan.interval || 'MONTHLY',
+      status: userSub.status || 'ACTIVE',
+      statusLabel: statusLabel,
+      currentPeriodStart: userSub.currentPeriodStart,
+      currentPeriodEnd: userSub.currentPeriodEnd,
+      nextBillingDate: userSub.currentPeriodEnd, // Next billing is when current period ends
+      cancelAtPeriodEnd: userSub.cancelAtPeriodEnd || false,
+      // Token usage - placeholder values for now (can be enhanced with actual usage tracking)
+      tokensUsed: 0,
+      tokensLimit: 500000, // Default estimate
+      features: planTranslation?.features || plan.features || [],
+      limitations: planTranslation?.limitations || plan.limitations || [],
+    };
+  }, [user, locale, t, initialData.subscription]);
 
   // Update indicator position when tab, direction, locale, or site changes
   useEffect(() => {
@@ -169,7 +261,31 @@ export default function SettingsContent({ translations, settingsTabs, initialDat
         observer.disconnect();
       }
     };
-  }, [activeTab, direction, locale, selectedSite?.id]);
+  }, [activeTab, direction, locale, selectedSite?.id, activeMainCategory]);
+
+  // Update main tabs indicator position
+  useEffect(() => {
+    if (!canAccessAccountSettings) return;
+    
+    const updateMainIndicator = () => {
+      const activeButton = mainTabsRef.current[activeMainCategory];
+      if (activeButton && mainTabsListRef.current) {
+        const containerRect = mainTabsListRef.current.getBoundingClientRect();
+        const buttonRect = activeButton.getBoundingClientRect();
+        setMainIndicatorStyle({
+          left: buttonRect.left - containerRect.left,
+          width: buttonRect.width,
+        });
+      }
+    };
+
+    updateMainIndicator();
+    window.addEventListener('resize', updateMainIndicator);
+    
+    return () => {
+      window.removeEventListener('resize', updateMainIndicator);
+    };
+  }, [activeMainCategory, direction, locale, canAccessAccountSettings]);
 
   const renderTabContent = () => {
     switch (activeTab) {
@@ -202,7 +318,7 @@ export default function SettingsContent({ translations, settingsTabs, initialDat
     }
   };
 
-  const activeTabData = availableTabs.find(tab => tab.id === activeTab);
+  const activeTabData = currentTabs.find(tab => tab.id === activeTab);
   const ActiveIcon = iconMap[activeTabData?.iconName] || Settings;
 
   // Check if user can edit the current tab
@@ -210,6 +326,38 @@ export default function SettingsContent({ translations, settingsTabs, initialDat
 
   return (
     <>
+      {/* Main Category Tabs - Only show if user can access account settings */}
+      {canAccessAccountSettings && (
+        <div className={styles.mainTabsContainer}>
+          <div className={styles.mainTabsList} ref={mainTabsListRef}>
+            <div 
+              className={styles.mainTabIndicator} 
+              style={{
+                left: mainIndicatorStyle.left,
+                width: mainIndicatorStyle.width,
+              }}
+            />
+            <button
+              ref={(el) => (mainTabsRef.current['website'] = el)}
+              onClick={() => handleMainCategoryChange('website')}
+              className={`${styles.mainTabButton} ${activeMainCategory === 'website' ? styles.active : ''}`}
+            >
+              <Globe className={styles.mainTabIcon} />
+              <span>{mainTabs.website.label}</span>
+            </button>
+            <button
+              ref={(el) => (mainTabsRef.current['account'] = el)}
+              onClick={() => handleMainCategoryChange('account')}
+              className={`${styles.mainTabButton} ${activeMainCategory === 'account' ? styles.active : ''}`}
+            >
+              <Building2 className={styles.mainTabIcon} />
+              <span>{mainTabs.account.label}</span>
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Sub-tabs for the active category */}
       <div className={styles.tabsContainer}>
         <div className={styles.tabsList} ref={tabsListRef}>
           <div 
@@ -220,7 +368,7 @@ export default function SettingsContent({ translations, settingsTabs, initialDat
               top: indicatorStyle.top,
             }}
           />
-          {availableTabs.map((tab) => {
+          {currentTabs.map((tab) => {
             const Icon = iconMap[tab.iconName] || Settings;
             return (
               <button
@@ -1262,10 +1410,32 @@ function UsersSettings({ translations, canEdit = true }) {
     }
   };
 
-  const getRoleLabel = (roleName) => {
-    if (!roleName) return us.roles?.user || 'User';
-    const roleKey = roleName.toLowerCase();
-    return us.roles?.[roleKey] || roleName;
+  // Get translated role label - uses key for lookup, falls back to name
+  const getRoleLabel = (roleKey, roleName) => {
+    // If called with a single argument (role object), extract key and name
+    if (roleKey && typeof roleKey === 'object') {
+      const role = roleKey;
+      roleName = role.name;
+      roleKey = role.key;
+    }
+    
+    if (!roleKey && !roleName) return us.roles?.user || 'User';
+    
+    // Try to find translation by key first
+    if (roleKey) {
+      const translatedByKey = us.roles?.[roleKey];
+      if (translatedByKey) return translatedByKey;
+    }
+    
+    // Fall back to looking up by lowercased name
+    if (roleName) {
+      const nameKey = roleName.toLowerCase().replace(/\s+/g, '_');
+      const translatedByName = us.roles?.[nameKey];
+      if (translatedByName) return translatedByName;
+    }
+    
+    // Final fallback: return the name as-is
+    return roleName || roleKey || 'User';
   };
 
   if (isLoading) {
@@ -1301,7 +1471,7 @@ function UsersSettings({ translations, canEdit = true }) {
               >
                 {roles.filter(r => r.name !== 'Owner').map((role) => (
                   <option key={role.id} value={role.id}>
-                    {getRoleLabel(role.name)}
+                    {getRoleLabel(role)}
                   </option>
                 ))}
               </select>
@@ -1379,8 +1549,8 @@ function UsersSettings({ translations, canEdit = true }) {
                 </div>
                 
                 <div className={styles.roleCell}>
-                  <span className={`${styles.roleBadge} ${styles[member.role?.name?.toLowerCase() || 'user']}`}>
-                    {getRoleLabel(member.role?.name)}
+                  <span className={`${styles.roleBadge} ${styles[member.role?.key || member.role?.name?.toLowerCase() || 'user']}`}>
+                    {getRoleLabel(member.role)}
                   </span>
                 </div>
                 
@@ -1512,7 +1682,7 @@ function UsersSettings({ translations, canEdit = true }) {
             >
               {roles.filter(r => r.name !== 'Owner').map((role) => (
                 <option key={role.id} value={role.id}>
-                  {getRoleLabel(role.name)}
+                  {getRoleLabel(role)}
                 </option>
               ))}
             </select>
@@ -1588,8 +1758,10 @@ function TeamSettings({ team, translations, canEdit = true }) {
 // Subscription Settings Component
 function SubscriptionSettings({ subscription, translations, canEdit = true }) {
   const t = translations;
-  const { locale } = useLocale();
-  const usagePercentage = (subscription.tokensUsed / subscription.tokensLimit) * 100;
+  const { locale, t: translate } = useLocale();
+  const usagePercentage = subscription.tokensLimit > 0 
+    ? (subscription.tokensUsed / subscription.tokensLimit) * 100 
+    : 0;
 
   // Format date according to current locale
   const formatDate = (dateString) => {
@@ -1602,6 +1774,24 @@ function SubscriptionSettings({ subscription, translations, canEdit = true }) {
     });
   };
 
+  // Format currency
+  const formatPrice = (price, currency = 'USD') => {
+    return new Intl.NumberFormat(locale === 'he' ? 'he-IL' : 'en-US', {
+      style: 'currency',
+      currency: currency,
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 2,
+    }).format(price);
+  };
+
+  // Get period label based on interval
+  const getPeriodLabel = () => {
+    if (subscription.interval === 'YEARLY') {
+      return translate('settings.subscriptionSection.perYear') || '/year';
+    }
+    return t.subscriptionPerMonth || '/month';
+  };
+
   return (
     <>
       <div className={styles.subscriptionCard}>
@@ -1611,14 +1801,17 @@ function SubscriptionSettings({ subscription, translations, canEdit = true }) {
               <Crown size={20} style={{ display: 'inline', marginRight: '0.5rem' }} />
               {subscription.planLabel} {t.subscriptionPlan}
             </div>
-            <div className={styles.planStatus}>
-              <Check size={14} />
+            <div className={`${styles.planStatus} ${subscription.status !== 'ACTIVE' ? styles.statusWarning : ''}`}>
+              {subscription.status === 'ACTIVE' ? <Check size={14} /> : <AlertTriangle size={14} />}
               {subscription.statusLabel}
+              {subscription.cancelAtPeriodEnd && (
+                <span className={styles.cancelNotice}> ({translate('settings.subscriptionSection.cancelsAtPeriodEnd') || 'Cancels at period end'})</span>
+              )}
             </div>
           </div>
           <div className={styles.planPrice}>
-            <div className={styles.priceAmount}>${subscription.price}</div>
-            <div className={styles.pricePeriod}>{t.subscriptionPerMonth}</div>
+            <div className={styles.priceAmount}>{formatPrice(subscription.price, subscription.currency)}</div>
+            <div className={styles.pricePeriod}>{getPeriodLabel()}</div>
           </div>
         </div>
 
@@ -1632,7 +1825,7 @@ function SubscriptionSettings({ subscription, translations, canEdit = true }) {
           <div className={styles.usageTrack}>
             <div 
               className={styles.usageFill} 
-              style={{ width: `${usagePercentage}%` }}
+              style={{ width: `${Math.min(usagePercentage, 100)}%` }}
             ></div>
           </div>
         </div>
@@ -1668,24 +1861,64 @@ function SubscriptionSettings({ subscription, translations, canEdit = true }) {
 // Account Settings Component
 function AccountSettings({ translations, canEdit = true }) {
   const t = translations;
+  const router = useRouter();
+  const { locale } = useLocale();
+  const { user } = useUser();
+  const accountSection = t?.accountSection || {};
   
   const [account, setAccount] = useState({
-    name: 'John Doe',
-    email: 'john@example.com',
+    name: user?.firstName && user?.lastName ? `${user.firstName} ${user.lastName}` : '',
+    email: user?.email || '',
     currentPassword: '',
     newPassword: '',
     confirmPassword: '',
   });
+  
+  // Delete account state
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteConfirmText, setDeleteConfirmText] = useState('');
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState(null);
+  
+  // The confirmation text required (language-specific)
+  const requiredConfirmText = locale === 'he' ? 'מחיקת חשבון' : 'DELETE ACCOUNT';
+  const canDelete = deleteConfirmText === requiredConfirmText;
 
   const updateField = (field, value) => {
     setAccount(prev => ({ ...prev, [field]: value }));
+  };
+  
+  const handleDeleteAccount = async () => {
+    if (!canDelete) return;
+    
+    setIsDeleting(true);
+    setDeleteError(null);
+    
+    try {
+      const response = await fetch('/api/account/delete', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+      });
+      
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || 'Failed to delete account');
+      }
+      
+      // Redirect to home page after successful deletion
+      router.push('/');
+    } catch (error) {
+      console.error('Delete account error:', error);
+      setDeleteError(error.message);
+      setIsDeleting(false);
+    }
   };
 
   return (
     <>
       <div className={styles.formGrid}>
         <div className={styles.formGroup}>
-          <label className={styles.formLabel}>{t.accountFullName}</label>
+          <label className={styles.formLabel}>{accountSection.fullName || t.accountFullName}</label>
           <input 
             type="text" 
             className={styles.formInput}
@@ -1694,7 +1927,7 @@ function AccountSettings({ translations, canEdit = true }) {
           />
         </div>
         <div className={styles.formGroup}>
-          <label className={styles.formLabel}>{t.accountEmailAddress}</label>
+          <label className={styles.formLabel}>{accountSection.emailAddress || t.accountEmailAddress}</label>
           <input 
             type="email" 
             className={styles.formInput}
@@ -1707,37 +1940,37 @@ function AccountSettings({ translations, canEdit = true }) {
       <div className={styles.subsection}>
         <h3 className={styles.subsectionTitle}>
           <Shield className={styles.subsectionIcon} />
-          {t.accountChangePassword}
+          {accountSection.changePassword || t.accountChangePassword}
         </h3>
         <div className={styles.formGrid}>
           <div className={`${styles.formGroup} ${styles.fullWidth}`}>
-            <label className={styles.formLabel}>{t.accountCurrentPassword}</label>
+            <label className={styles.formLabel}>{accountSection.currentPassword || t.accountCurrentPassword}</label>
             <input 
               type="password" 
               className={styles.formInput}
               value={account.currentPassword}
               onChange={(e) => updateField('currentPassword', e.target.value)}
-              placeholder={t.accountCurrentPasswordPlaceholder}
+              placeholder={accountSection.currentPasswordPlaceholder || t.accountCurrentPasswordPlaceholder}
             />
           </div>
           <div className={styles.formGroup}>
-            <label className={styles.formLabel}>{t.accountNewPassword}</label>
+            <label className={styles.formLabel}>{accountSection.newPassword || t.accountNewPassword}</label>
             <input 
               type="password" 
               className={styles.formInput}
               value={account.newPassword}
               onChange={(e) => updateField('newPassword', e.target.value)}
-              placeholder={t.accountNewPasswordPlaceholder}
+              placeholder={accountSection.newPasswordPlaceholder || t.accountNewPasswordPlaceholder}
             />
           </div>
           <div className={styles.formGroup}>
-            <label className={styles.formLabel}>{t.accountConfirmNewPassword}</label>
+            <label className={styles.formLabel}>{accountSection.confirmNewPassword || t.accountConfirmNewPassword}</label>
             <input 
               type="password" 
               className={styles.formInput}
               value={account.confirmPassword}
               onChange={(e) => updateField('confirmPassword', e.target.value)}
-              placeholder={t.accountConfirmPasswordPlaceholder}
+              placeholder={accountSection.confirmPasswordPlaceholder || t.accountConfirmPasswordPlaceholder}
             />
           </div>
         </div>
@@ -1746,21 +1979,22 @@ function AccountSettings({ translations, canEdit = true }) {
       <div className={styles.subsection}>
         <h3 className={styles.subsectionTitle}>
           <AlertTriangle className={styles.subsectionIcon} />
-          {t.accountDangerZone}
+          {accountSection.dangerZone || t.accountDangerZone}
         </h3>
         <div className={styles.warningBox}>
           <div className={styles.warningContent}>
             <AlertTriangle className={styles.warningIcon} />
             <div className={styles.warningInfo}>
-              <span className={styles.warningLabel}>{t.accountDeleteAccount}</span>
-              <span className={styles.warningDescription}>{t.accountDeleteAccountDesc}</span>
+              <span className={styles.warningLabel}>{accountSection.deleteAccount || t.accountDeleteAccount}</span>
+              <span className={styles.warningDescription}>{accountSection.deleteAccountDesc || t.accountDeleteAccountDesc}</span>
             </div>
           </div>
           <button 
             className={styles.editButton}
             style={{ background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444' }}
+            onClick={() => setShowDeleteModal(true)}
           >
-            {t.accountDeleteAccount}
+            {accountSection.deleteAccount || t.accountDeleteAccount}
           </button>
         </div>
       </div>
@@ -1768,6 +2002,81 @@ function AccountSettings({ translations, canEdit = true }) {
       <div className={styles.saveButtonWrapper}>
         <button className={styles.saveButton}>{t.saveChanges}</button>
       </div>
+      
+      {/* Delete Account Modal */}
+      {showDeleteModal && (
+        <div className={styles.modalOverlay} onClick={() => !isDeleting && setShowDeleteModal(false)}>
+          <div className={styles.deleteAccountModal} onClick={(e) => e.stopPropagation()}>
+            <div className={styles.deleteAccountHeader}>
+              <AlertTriangle className={styles.deleteAccountIcon} />
+              <h2 className={styles.deleteAccountTitle}>
+                {accountSection.deleteAccountTitle || 'Delete Account Permanently'}
+              </h2>
+            </div>
+            
+            <div className={styles.deleteAccountWarning}>
+              {accountSection.deleteAccountWarning || 'This action is irreversible. Once your account is deleted, the data cannot be recovered.'}
+            </div>
+            
+            <div className={styles.deleteAccountConsequences}>
+              <h4>{accountSection.deleteAccountConsequences || 'What will be deleted:'}</h4>
+              <ul>
+                <li><X size={14} /> {accountSection.deleteAccountConsequence1 || 'All websites linked to this account'}</li>
+                <li><X size={14} /> {accountSection.deleteAccountConsequence2 || 'All content, keywords, and data'}</li>
+                <li><X size={14} /> {accountSection.deleteAccountConsequence3 || 'All team members will lose access'}</li>
+                <li><X size={14} /> {accountSection.deleteAccountConsequence4 || 'Subscription will be cancelled without refund'}</li>
+              </ul>
+            </div>
+            
+            <div className={styles.deleteAccountConfirm}>
+              <label className={styles.deleteAccountConfirmLabel}>
+                {accountSection.deleteAccountConfirmLabel || `To confirm, type "${requiredConfirmText}" in the field below:`}
+              </label>
+              <input
+                type="text"
+                className={styles.deleteAccountInput}
+                value={deleteConfirmText}
+                onChange={(e) => setDeleteConfirmText(e.target.value)}
+                placeholder={accountSection.deleteAccountConfirmPlaceholder || `Type ${requiredConfirmText}`}
+                disabled={isDeleting}
+              />
+            </div>
+            
+            {deleteError && (
+              <div className={styles.deleteAccountError}>
+                {deleteError}
+              </div>
+            )}
+            
+            <div className={styles.deleteAccountActions}>
+              <button 
+                className={styles.deleteAccountCancelBtn}
+                onClick={() => setShowDeleteModal(false)}
+                disabled={isDeleting}
+              >
+                {accountSection.deleteAccountCancel || 'Cancel'}
+              </button>
+              <button 
+                className={styles.deleteAccountConfirmBtn}
+                onClick={handleDeleteAccount}
+                disabled={!canDelete || isDeleting}
+              >
+                {isDeleting ? (
+                  <>
+                    <Loader2 size={16} className={styles.spinningIcon} />
+                    {accountSection.deleteAccountDeleting || 'Deleting...'}
+                  </>
+                ) : (
+                  <>
+                    <Trash2 size={16} />
+                    {accountSection.deleteAccountButton || 'Delete Account Permanently'}
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }
@@ -1781,8 +2090,45 @@ function RolesSettings({ translations, canEdit = true }) {
   const [modalOpen, setModalOpen] = useState(false);
   const [editingRole, setEditingRole] = useState(null);
   const [deleteConfirm, setDeleteConfirm] = useState(null);
-  const [formData, setFormData] = useState({ name: '', description: '' });
+  const [formData, setFormData] = useState({ key: '', name: '', description: '' });
   const [error, setError] = useState(null);
+
+  const us = translations?.usersSection || {};
+
+  // Get translated role label - uses key for lookup, falls back to name
+  const getRoleLabel = (role) => {
+    if (!role) return us.roles?.user || 'User';
+    const roleKey = role.key;
+    const roleName = role.name;
+    
+    // Try to find translation by key first
+    if (roleKey) {
+      const translatedByKey = us.roles?.[roleKey];
+      if (translatedByKey) return translatedByKey;
+    }
+    
+    // Fall back to looking up by lowercased name
+    if (roleName) {
+      const nameKey = roleName.toLowerCase().replace(/\s+/g, '_');
+      const translatedByName = us.roles?.[nameKey];
+      if (translatedByName) return translatedByName;
+    }
+    
+    // Final fallback: return the name as-is
+    return roleName || roleKey || 'User';
+  };
+
+  // Validate key field - only allow English letters, numbers, underscores, and hyphens
+  const validateKey = (value) => {
+    return /^[a-zA-Z0-9_-]*$/.test(value);
+  };
+
+  const handleKeyChange = (e) => {
+    const value = e.target.value.toLowerCase();
+    if (validateKey(value)) {
+      setFormData({ ...formData, key: value });
+    }
+  };
 
   // Fetch roles
   useEffect(() => {
@@ -1805,14 +2151,14 @@ function RolesSettings({ translations, canEdit = true }) {
 
   const handleAdd = () => {
     setEditingRole(null);
-    setFormData({ name: '', description: '' });
+    setFormData({ key: '', name: '', description: '' });
     setError(null);
     setModalOpen(true);
   };
 
   const handleEdit = (role) => {
     setEditingRole(role);
-    setFormData({ name: role.name, description: role.description || '' });
+    setFormData({ key: role.key || '', name: role.name, description: role.description || '' });
     setError(null);
     setModalOpen(true);
   };
@@ -1931,7 +2277,7 @@ function RolesSettings({ translations, canEdit = true }) {
                     <td>
                       <div className={styles.roleNameCell}>
                         <Shield size={16} />
-                        <span>{role.name}</span>
+                        <span>{getRoleLabel(role)}</span>
                       </div>
                     </td>
                     <td>{role.description || '-'}</td>
@@ -1988,6 +2334,21 @@ function RolesSettings({ translations, canEdit = true }) {
                   <div className={styles.errorMessage}>{error}</div>
                 )}
                 <div className={styles.formGroup}>
+                  <label className={styles.formLabel}>{t('settings.rolesSection.key')}</label>
+                  <input
+                    type="text"
+                    className={styles.formInput}
+                    value={formData.key}
+                    onChange={handleKeyChange}
+                    placeholder={t('settings.rolesSection.keyPlaceholder')}
+                    required
+                    disabled={editingRole?.isSystemRole}
+                    dir="ltr"
+                    style={{ textAlign: 'left' }}
+                  />
+                  <span className={styles.formHint}>{t('settings.rolesSection.keyHint')}</span>
+                </div>
+                <div className={styles.formGroup}>
                   <label className={styles.formLabel}>{t('settings.rolesSection.columns.name')}</label>
                   <input
                     type="text"
@@ -2034,7 +2395,7 @@ function RolesSettings({ translations, canEdit = true }) {
               </button>
             </div>
             <div className={styles.modalBody}>
-              <p>{t('settings.rolesSection.deleteWarning').replace('{name}', deleteConfirm.name)}</p>
+              <p>{t('settings.rolesSection.deleteWarning').replace('{name}', getRoleLabel(deleteConfirm))}</p>
             </div>
             <div className={styles.modalFooter}>
               <button className={styles.secondaryButton} onClick={() => setDeleteConfirm(null)}>
@@ -2066,6 +2427,31 @@ function PermissionsSettings({ translations, canEdit = true }) {
   const [isSaving, setIsSaving] = useState(false);
   const [rolePermissions, setRolePermissions] = useState([]);
   const [saveSuccess, setSaveSuccess] = useState(false);
+
+  const us = translations?.usersSection || {};
+
+  // Get translated role label - uses key for lookup, falls back to name
+  const getRoleLabel = (role) => {
+    if (!role) return us.roles?.user || 'User';
+    const roleKey = role.key;
+    const roleName = role.name;
+    
+    // Try to find translation by key first
+    if (roleKey) {
+      const translatedByKey = us.roles?.[roleKey];
+      if (translatedByKey) return translatedByKey;
+    }
+    
+    // Fall back to looking up by lowercased name
+    if (roleName) {
+      const nameKey = roleName.toLowerCase().replace(/\s+/g, '_');
+      const translatedByName = us.roles?.[nameKey];
+      if (translatedByName) return translatedByName;
+    }
+    
+    // Final fallback: return the name as-is
+    return roleName || roleKey || 'User';
+  };
 
   // Fetch roles and permissions
   useEffect(() => {
@@ -2372,7 +2758,7 @@ function PermissionsSettings({ translations, canEdit = true }) {
               <option value="">{t('settings.permissionsSection.selectRolePlaceholder')}</option>
               {roles.map((role) => (
                 <option key={role.id} value={role.id}>
-                  {role.name} {role.isSystemRole ? `(${t('settings.rolesSection.systemRole')})` : ''}
+                  {getRoleLabel(role)} {role.isSystemRole ? `(${t('settings.rolesSection.systemRole')})` : ''}
                 </option>
               ))}
             </select>

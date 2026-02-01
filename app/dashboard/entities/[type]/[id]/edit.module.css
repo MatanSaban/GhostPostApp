@@ -110,7 +110,7 @@
 .status {
   padding: 0.125rem 0.5rem;
   border-radius: var(--radius-sm);
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   font-weight: 500;
   text-transform: uppercase;
 
@@ -259,7 +259,7 @@
 }
 
 .fieldDescription {
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   color: var(--muted-foreground);
 }
 
@@ -320,7 +320,7 @@
 }
 
 .fieldHint {
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   color: var(--muted-foreground);
   margin-top: 0.25rem;
 }
@@ -402,12 +402,12 @@
 }
 
 .requiredBadge {
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   color: var(--destructive, #ef4444);
 }
 
 .acfFieldInstructions {
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   color: var(--muted-foreground);
 }
 
@@ -459,7 +459,7 @@
 .toggleOnLabel,
 .toggleOffLabel {
   color: var(--muted-foreground);
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
 }
 
 /* Select Field */
@@ -584,7 +584,7 @@
   }
 
   span {
-    font-size: 0.75rem;
+    font-size: 0.8125rem;
   }
 }
 
@@ -667,7 +667,7 @@
   }
 
   span {
-    font-size: 0.75rem;
+    font-size: 0.8125rem;
   }
 }
 
@@ -755,7 +755,7 @@
   }
 
   span {
-    font-size: 0.75rem;
+    font-size: 0.8125rem;
   }
 }
 

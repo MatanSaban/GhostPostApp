@@ -196,9 +196,11 @@ export default async function RegisterPage({ searchParams }) {
 
         <RegistrationFlow translations={translations} initialStep={initialStep} />
 
-        <div className={styles.authFooter}>
-          {translations.hasAccount} <Link href="/auth/login">{translations.loginNow}</Link>
-        </div>
+        {!['success', 'payment'].includes(initialStep) && (
+          <div className={styles.authFooter}>
+            {translations.hasAccount} <Link href="/auth/login">{translations.loginNow}</Link>
+          </div>
+        )}
       </div>
     </div>
   );

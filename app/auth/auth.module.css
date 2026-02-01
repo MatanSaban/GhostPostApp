@@ -572,7 +572,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   font-weight: 600;
   background: var(--muted);
   color: var(--muted-foreground);
@@ -609,7 +609,7 @@
 }
 
 .progressStepLabel {
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   color: var(--muted-foreground);
   white-space: nowrap;
   display: none;
@@ -960,7 +960,7 @@
   display: flex;
   justify-content: flex-end;
   margin-bottom: 0.5rem;
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   color: var(--muted-foreground);
 }
 
@@ -1300,7 +1300,7 @@
 }
 
 .planDescription {
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   color: var(--muted-foreground);
 }
 
@@ -1460,6 +1460,7 @@
 
 .cardInputWrapper {
   position: relative;
+  direction: ltr; /* Keep card input always LTR */
 }
 
 .cardIcon {
@@ -1470,18 +1471,8 @@
   color: var(--muted-foreground);
 }
 
-[dir="rtl"] .cardIcon {
-  left: auto;
-  right: 1rem;
-}
-
 .cardInput {
   padding-left: 2.75rem !important;
-}
-
-[dir="rtl"] .cardInput {
-  padding-left: 1rem !important;
-  padding-right: 2.75rem !important;
 }
 
 .securePaymentNote {
@@ -1489,7 +1480,7 @@
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   color: var(--muted-foreground);
   margin-top: 0.5rem;
 }
@@ -1603,7 +1594,7 @@
 }
 
 .successPlanLabel {
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   color: var(--muted-foreground);
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -1722,19 +1713,19 @@
 }
 
 .fieldError {
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   color: #ef4444;
   margin-top: 0.25rem;
 }
 
 .fieldSuccess {
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   color: #10b981;
   margin-top: 0.25rem;
 }
 
 .fieldHint {
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   color: var(--muted-foreground);
   margin-top: 0.25rem;
 }
@@ -2138,4 +2129,520 @@
     left: auto;
     right: 0.875rem;
   }
+}
+
+/* ============================================
+   PROACTIVE ONBOARDING - Analysis Progress
+   ============================================ */
+
+.analysisContainer {
+  padding: 1rem 1.5rem;
+  margin: 0.5rem 0;
+}
+
+.analysisProgressContainer {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  padding: 1.25rem;
+  
+  .dark & {
+    background: rgba(0, 0, 0, 0.3);
+    border-color: rgba(123, 44, 191, 0.2);
+  }
+}
+
+.analysisHeader {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.analysisIcon {
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--gradient-primary);
+  border-radius: var(--radius-lg);
+  color: white;
+  flex-shrink: 0;
+}
+
+.analysisIconSpinner {
+  animation: spin 1s linear infinite;
+}
+
+.analysisIconComplete {
+  color: white;
+}
+
+.analysisIconError {
+  color: white;
+}
+
+.analysisHeaderText {
+  flex: 1;
+}
+
+.analysisTitle {
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 0 0 0.25rem;
+  color: var(--foreground);
+}
+
+.analysisUrl {
+  font-size: 0.8125rem;
+  color: var(--muted-foreground);
+  margin: 0;
+  word-break: break-all;
+}
+
+.analysisProgressBar {
+  height: 6px;
+  background: var(--muted);
+  border-radius: 3px;
+  overflow: hidden;
+  margin-bottom: 1rem;
+  
+  .dark & {
+    background: rgba(123, 44, 191, 0.2);
+  }
+}
+
+.analysisProgressFill {
+  height: 100%;
+  background: var(--gradient-primary);
+  border-radius: 3px;
+  transition: width 0.5s ease;
+}
+
+.analysisLogs {
+  max-height: 200px;
+  overflow-y: auto;
+  font-family: 'SF Mono', 'Consolas', monospace;
+  font-size: 0.75rem;
+  padding: 0.5rem;
+  background: var(--muted);
+  border-radius: var(--radius-md);
+  
+  .dark & {
+    background: rgba(0, 0, 0, 0.4);
+  }
+}
+
+.analysisLogItem {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.375rem 0;
+  color: var(--muted-foreground);
+  
+  &.logcomplete {
+    color: var(--accent);
+  }
+  
+  &.logerror {
+    color: var(--destructive);
+  }
+}
+
+.analysisLogIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  flex-shrink: 0;
+}
+
+.logSpinner {
+  animation: spin 1s linear infinite;
+}
+
+.analysisLogText {
+  flex: 1;
+}
+
+.analysisError {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  margin-top: 0.75rem;
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  border-radius: var(--radius-md);
+  color: var(--destructive);
+  font-size: 0.8125rem;
+}
+
+/* ============================================
+   PROACTIVE ONBOARDING - Confirmation Buttons
+   ============================================ */
+
+.confirmationButtons {
+  display: flex;
+  gap: 0.75rem;
+  padding: 0.75rem 1.5rem;
+  justify-content: center;
+}
+
+.confirmButton {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1.25rem;
+  border-radius: var(--radius-lg);
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: all var(--transition-fast);
+  cursor: pointer;
+  border: none;
+  
+  &.confirmYes {
+    background: var(--gradient-primary);
+    color: white;
+    
+    &:hover {
+      transform: scale(1.02);
+      box-shadow: var(--shadow-glow-sm);
+    }
+  }
+  
+  &.confirmEdit {
+    background: var(--muted);
+    color: var(--foreground);
+    
+    &:hover {
+      background: var(--muted-foreground-hover);
+    }
+    
+    .dark & {
+      background: rgba(123, 44, 191, 0.2);
+      
+      &:hover {
+        background: rgba(123, 44, 191, 0.3);
+      }
+    }
+  }
+}
+
+.cancelEditBtn {
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--muted);
+  border-radius: var(--radius-lg);
+  color: var(--muted-foreground);
+  transition: all var(--transition-fast);
+  border: none;
+  cursor: pointer;
+  
+  &:hover {
+    background: var(--destructive);
+    color: white;
+  }
+}
+
+/* ============================================
+   PROACTIVE ONBOARDING - Competitor Selector
+   ============================================ */
+
+.competitorContainer {
+  padding: 0.75rem 1.5rem;
+  
+  .confirmButton {
+    margin-top: 1rem;
+    width: 100%;
+    padding: 0.875rem 1.5rem;
+    justify-content: center;
+    background: var(--gradient-primary);
+    color: white;
+    font-size: 1rem;
+    font-weight: 600;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+    
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-glow-sm);
+    }
+    
+    &:active {
+      transform: translateY(0);
+    }
+  }
+}
+
+.competitorSelectorContainer {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 1rem;
+  
+  .dark & {
+    background: rgba(0, 0, 0, 0.2);
+    border-color: rgba(123, 44, 191, 0.2);
+  }
+}
+
+.competitorList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.competitorItem {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  background: var(--muted);
+  border: 2px solid transparent;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  
+  &:hover {
+    border-color: var(--primary);
+  }
+  
+  &.competitorSelected {
+    border-color: var(--accent);
+    background: rgba(0, 255, 157, 0.1);
+    
+    .dark & {
+      background: rgba(0, 255, 157, 0.15);
+    }
+  }
+  
+  .dark & {
+    background: rgba(0, 0, 0, 0.3);
+  }
+}
+
+.competitorCheckbox {
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.competitorCheckIcon {
+  color: var(--accent);
+}
+
+.competitorCheckEmpty {
+  width: 18px;
+  height: 18px;
+  border: 2px solid var(--border);
+  border-radius: var(--radius-sm);
+  
+  .dark & {
+    border-color: rgba(123, 44, 191, 0.4);
+  }
+}
+
+.competitorInfo {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex: 1;
+}
+
+.competitorIcon {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--primary);
+  border-radius: var(--radius-sm);
+  color: white;
+  flex-shrink: 0;
+}
+
+.competitorDetails {
+  display: flex;
+  flex-direction: column;
+}
+
+.competitorDomain {
+  font-weight: 500;
+  color: var(--foreground);
+}
+
+.competitorRanking {
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+}
+
+.competitorLink {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--muted-foreground);
+  border-radius: var(--radius-sm);
+  transition: all var(--transition-fast);
+  
+  &:hover {
+    background: var(--primary);
+    color: white;
+  }
+}
+
+.competitorManualList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--border);
+}
+
+.competitorManualLabel {
+  width: 100%;
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+  margin-bottom: 0.25rem;
+}
+
+.competitorManualItem {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.375rem 0.75rem;
+  background: rgba(0, 255, 157, 0.1);
+  border: 1px solid var(--accent);
+  border-radius: var(--radius-full);
+  font-size: 0.8125rem;
+  color: var(--foreground);
+}
+
+.competitorRemoveBtn {
+  width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  color: var(--muted-foreground);
+  cursor: pointer;
+  padding: 0;
+  
+  &:hover {
+    color: var(--destructive);
+  }
+}
+
+.competitorAddSection {
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--border);
+}
+
+.competitorAddInput {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.competitorUrlInput {
+  flex: 1;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
+  background: var(--input-background);
+  border: 1px solid var(--input-border);
+  border-radius: var(--radius-md);
+  color: var(--foreground);
+  
+  &:focus {
+    outline: none;
+    border-color: var(--primary);
+  }
+  
+  .dark & {
+    background: rgba(0, 0, 0, 0.4);
+    border-color: rgba(123, 44, 191, 0.3);
+  }
+}
+
+.competitorAddBtn {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.5rem 0.875rem;
+  background: var(--gradient-primary);
+  border: none;
+  border-radius: var(--radius-md);
+  color: white;
+  font-size: 0.8125rem;
+  cursor: pointer;
+  
+  &:hover {
+    opacity: 0.9;
+  }
+}
+
+.competitorCancelBtn {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--muted);
+  border: none;
+  border-radius: var(--radius-md);
+  color: var(--muted-foreground);
+  cursor: pointer;
+  
+  &:hover {
+    background: var(--destructive);
+    color: white;
+  }
+}
+
+.competitorShowAddBtn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  background: none;
+  border: 1px dashed var(--border);
+  border-radius: var(--radius-md);
+  color: var(--muted-foreground);
+  font-size: 0.8125rem;
+  cursor: pointer;
+  width: 100%;
+  justify-content: center;
+  
+  &:hover {
+    border-color: var(--primary);
+    color: var(--primary);
+  }
+}
+
+.competitorError {
+  margin-top: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  background: rgba(239, 68, 68, 0.1);
+  border-radius: var(--radius-md);
+  font-size: 0.8125rem;
+  color: var(--destructive);
+}
+
+.competitorCount {
+  margin-top: 0.75rem;
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+  text-align: center;
 }

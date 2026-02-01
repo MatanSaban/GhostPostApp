@@ -80,18 +80,145 @@ export default function PlansSettingsPage() {
     description: '',
     price: '',
     yearlyPrice: '',
-    features: '',
     isActive: true,
   });
+  
+  // Dynamic features state - array of {id, key, label}
+  const [features, setFeatures] = useState([]);
+  
+  // Add a feature
+  const addFeature = () => {
+    setFeatures([...features, { 
+      id: `feature_${Date.now()}`,
+      key: '', 
+      label: '', 
+    }]);
+  };
+
+  // Remove a feature
+  const removeFeature = (index) => {
+    setFeatures(features.filter((_, i) => i !== index));
+  };
+
+  // Update a feature
+  const updateFeature = (index, field, value) => {
+    setFeatures(features.map((f, i) => 
+      i === index ? { ...f, [field]: value } : f
+    ));
+  };
+  
+  // Dynamic limitations state - array of {id, key, label, value, type}
+  const [limitations, setLimitations] = useState([]);
+  
+  // Predefined limitation types for quick add
+  const predefinedLimitations = [
+    { key: 'maxMembers', label: t('admin.plans.form.maxMembers'), defaultValue: '1', type: 'number' },
+    { key: 'maxSites', label: t('admin.plans.form.maxSites'), defaultValue: '1', type: 'number' },
+    { key: 'aiCredits', label: t('admin.plans.form.aiCredits'), defaultValue: '0', type: 'number' },
+    { key: 'maxKeywords', label: t('admin.plans.form.maxKeywords'), defaultValue: '100', type: 'number' },
+    { key: 'maxContent', label: t('admin.plans.form.maxContent'), defaultValue: '50', type: 'number' },
+    { key: 'maxAddOnSeats', label: t('admin.plans.form.maxAddOnSeats'), defaultValue: '', type: 'number' },
+    { key: 'maxAddOnSites', label: t('admin.plans.form.maxAddOnSites'), defaultValue: '', type: 'number' },
+  ];
+
+  // Add a limitation
+  const addLimitation = (limitationType = null) => {
+    if (limitationType) {
+      // Check if already exists
+      if (limitations.some(l => l.key === limitationType.key)) return;
+      setLimitations([...limitations, { 
+        id: `predefined_${limitationType.key}`,
+        key: limitationType.key, 
+        label: limitationType.label, 
+        value: limitationType.defaultValue,
+        type: limitationType.type 
+      }]);
+    } else {
+      // Add custom limitation with stable ID and empty key for user to fill
+      setLimitations([...limitations, { 
+        id: `custom_${Date.now()}`,
+        key: '', 
+        label: '', 
+        value: '',
+        type: 'number',
+        isCustom: true 
+      }]);
+    }
+  };
+
+  // Remove a limitation
+  const removeLimitation = (index) => {
+    setLimitations(limitations.filter((_, i) => i !== index));
+  };
+
+  // Update a limitation value
+  const updateLimitation = (index, field, value) => {
+    setLimitations(limitations.map((l, i) => 
+      i === index ? { ...l, [field]: value } : l
+    ));
+  };
 
   // Translation form state
   const [selectedLanguage, setSelectedLanguage] = useState('HE');
   const [translationData, setTranslationData] = useState({
     name: '',
     description: '',
-    features: '',
+    features: [], // Array of {key, label} for translated feature labels
+    limitations: [],
   });
   const [existingTranslations, setExistingTranslations] = useState({});
+  
+  // Helper to get all limitations from the plan
+  const getAllPlanLimitations = (plan) => {
+    if (!plan) return [];
+    
+    // Get limitations from the limitations array
+    if (plan.limitations && Array.isArray(plan.limitations)) {
+      return plan.limitations.map(l => ({ key: l.key, label: l.label }));
+    }
+    
+    return [];
+  };
+  
+  // Update limitation translation
+  const updateLimitationTranslation = (key, translatedLabel) => {
+    setTranslationData(prev => {
+      const existing = prev.limitations.find(l => l.key === key);
+      if (existing) {
+        return {
+          ...prev,
+          limitations: prev.limitations.map(l => 
+            l.key === key ? { ...l, label: translatedLabel } : l
+          ),
+        };
+      } else {
+        return {
+          ...prev,
+          limitations: [...prev.limitations, { key, label: translatedLabel }],
+        };
+      }
+    });
+  };
+
+  // Update feature translation
+  const updateFeatureTranslation = (key, translatedLabel) => {
+    setTranslationData(prev => {
+      const existing = prev.features.find(f => f.key === key);
+      if (existing) {
+        return {
+          ...prev,
+          features: prev.features.map(f => 
+            f.key === key ? { ...f, label: translatedLabel } : f
+          ),
+        };
+      } else {
+        return {
+          ...prev,
+          features: [...prev.features, { key, label: translatedLabel }],
+        };
+      }
+    });
+  };
 
   // Redirect non-admin users
   useEffect(() => {
@@ -145,9 +272,36 @@ export default function PlansSettingsPage() {
       description: plan.description || '',
       price: plan.monthlyPrice?.toString() || '',
       yearlyPrice: plan.yearlyPrice?.toString() || '',
-      features: plan.features.map(f => f.name).join('\n'),
       isActive: plan.status === 'active',
     });
+    
+    // Load features from plan - array of {key, label}
+    const planFeatures = Array.isArray(plan.features) 
+      ? plan.features.map((f, idx) => ({
+          id: f.id || `feature_${idx}_${Date.now()}`,
+          key: f.key || '',
+          label: f.label || '',
+        }))
+      : [];
+    setFeatures(planFeatures);
+    
+    // Build limitations from plan data
+    const planLimitations = [];
+    
+    // Load limitations from the limitations JSON array
+    if (plan.limitations && Array.isArray(plan.limitations)) {
+      plan.limitations.forEach((l, idx) => {
+        planLimitations.push({ 
+          id: l.id || `limitation_${idx}`, 
+          key: l.key,
+          label: l.label,
+          value: l.value?.toString() || '',
+          type: l.type || 'number',
+        });
+      });
+    }
+    
+    setLimitations(planLimitations);
     setEditModalOpen(true);
   };
 
@@ -160,9 +314,16 @@ export default function PlansSettingsPage() {
       description: '',
       price: '',
       yearlyPrice: '',
-      features: '',
       isActive: true,
     });
+    // Start with empty features
+    setFeatures([]);
+    // Start with suggested limitations
+    setLimitations([
+      { id: 'new_maxMembers', key: 'maxMembers', label: t('admin.plans.form.maxMembers'), value: '1', type: 'number' },
+      { id: 'new_maxSites', key: 'maxSites', label: t('admin.plans.form.maxSites'), value: '1', type: 'number' },
+      { id: 'new_aiCredits', key: 'aiCredits', label: t('admin.plans.form.aiCredits'), value: '0', type: 'number' },
+    ]);
     setEditModalOpen(true);
   };
 
@@ -178,10 +339,23 @@ export default function PlansSettingsPage() {
     setIsSubmitting(true);
 
     try {
-      const featuresArray = formData.features
-        .split('\n')
-        .map(f => f.trim())
-        .filter(f => f);
+      // Build features array from dynamic state - filter out empty entries
+      const featuresArray = features
+        .filter(f => f.key.trim() || f.label.trim())
+        .map(f => ({
+          key: f.key.trim(),
+          label: f.label.trim(),
+        }));
+
+      // Build limitations array - all limitations are stored in the JSON field
+      const limitationsArray = limitations
+        .filter(l => l.key.trim())
+        .map(l => ({
+          key: l.key.trim(),
+          label: l.label.trim(),
+          value: l.type === 'number' ? parseInt(l.value) || 0 : l.value,
+          type: l.type || 'number',
+        }));
 
       const payload = {
         name: formData.name,
@@ -191,6 +365,8 @@ export default function PlansSettingsPage() {
         yearlyPrice: formData.yearlyPrice ? parseFloat(formData.yearlyPrice) : null,
         features: featuresArray,
         isActive: formData.isActive,
+        // All limitations stored as JSON array
+        limitations: limitationsArray,
       };
 
       let response;
@@ -287,7 +463,8 @@ export default function PlansSettingsPage() {
     setTranslationData({
       name: existing?.name || '',
       description: existing?.description || '',
-      features: existing?.features?.join('\n') || '',
+      features: existing?.features || [],
+      limitations: existing?.limitations || [],
     });
     setTranslateModalOpen(true);
   };
@@ -299,7 +476,8 @@ export default function PlansSettingsPage() {
     setTranslationData({
       name: existing?.name || '',
       description: existing?.description || '',
-      features: existing?.features?.join('\n') || '',
+      features: existing?.features || [],
+      limitations: existing?.limitations || [],
     });
   };
 
@@ -310,10 +488,15 @@ export default function PlansSettingsPage() {
     setIsSubmitting(true);
 
     try {
+      // Filter out empty feature translations
       const featuresArray = translationData.features
-        .split('\n')
-        .map(f => f.trim())
-        .filter(f => f);
+        .filter(f => f.label && f.label.trim())
+        .map(f => ({ key: f.key, label: f.label.trim() }));
+
+      // Filter out empty limitation translations
+      const limitationsArray = translationData.limitations
+        .filter(l => l.label && l.label.trim())
+        .map(l => ({ key: l.key, label: l.label.trim() }));
 
       const response = await fetch(`/api/admin/plans/${selectedPlan.id}/translations`, {
         method: 'POST',
@@ -323,6 +506,7 @@ export default function PlansSettingsPage() {
           name: translationData.name,
           description: translationData.description,
           features: featuresArray,
+          limitations: limitationsArray,
         }),
       });
 
@@ -338,6 +522,7 @@ export default function PlansSettingsPage() {
           name: translationData.name,
           description: translationData.description,
           features: featuresArray,
+          limitations: limitationsArray,
         },
       }));
 
@@ -378,7 +563,7 @@ export default function PlansSettingsPage() {
       });
 
       // Reset form
-      setTranslationData({ name: '', description: '', features: '' });
+      setTranslationData({ name: '', description: '', features: [], limitations: [] });
       loadPlans();
     } catch (error) {
       console.error('Error deleting translation:', error);
@@ -682,13 +867,139 @@ export default function PlansSettingsPage() {
             onChange={(e) => setFormData({ ...formData, yearlyPrice: e.target.value })}
             placeholder={t('admin.plans.form.yearlyPlaceholder')}
           />
-          <FormTextarea
-            label={`${t('admin.plans.columns.features')} (${t('admin.common.options')})`}
-            value={formData.features}
-            onChange={(e) => setFormData({ ...formData, features: e.target.value })}
-            placeholder="One feature per line"
-            rows={4}
-          />
+
+          {/* Dynamic Features Section */}
+          <div className={styles.formSection}>
+            <div className={styles.formSectionHeader}>
+              <h4 className={styles.formSectionTitle}>{t('admin.plans.columns.features')}</h4>
+              <button 
+                type="button" 
+                className={styles.addLimitationBtn}
+                onClick={addFeature}
+                title={t('admin.plans.form.addFeature')}
+              >
+                <Plus size={16} />
+              </button>
+            </div>
+            
+            {features.length === 0 ? (
+              <p className={styles.formSectionHint}>{t('admin.plans.form.noFeatures')}</p>
+            ) : (
+              <div className={styles.limitationsList}>
+                {features.map((feature, index) => (
+                  <div key={feature.id} className={styles.limitationItem}>
+                    <input
+                      type="text"
+                      className={styles.limitationKeyInput}
+                      placeholder={t('admin.plans.form.featureKey')}
+                      value={feature.key}
+                      onChange={(e) => updateFeature(index, 'key', e.target.value.replace(/[^a-zA-Z0-9_]/g, ''))}
+                    />
+                    <input
+                      type="text"
+                      className={styles.limitationLabelInput}
+                      placeholder={t('admin.plans.form.featureLabel')}
+                      value={feature.label}
+                      onChange={(e) => updateFeature(index, 'label', e.target.value)}
+                    />
+                    <button
+                      type="button"
+                      className={styles.removeLimitationBtn}
+                      onClick={() => removeFeature(index)}
+                      title={t('admin.common.remove')}
+                    >
+                      <X size={16} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Dynamic Limitations Section */}
+          <div className={styles.formSection}>
+            <div className={styles.formSectionHeader}>
+              <h4 className={styles.formSectionTitle}>{t('admin.plans.form.limitations')}</h4>
+              <div className={styles.limitationActions}>
+                <select 
+                  className={styles.limitationSelect}
+                  onChange={(e) => {
+                    const selected = predefinedLimitations.find(l => l.key === e.target.value);
+                    if (selected) addLimitation(selected);
+                    e.target.value = '';
+                  }}
+                  value=""
+                >
+                  <option value="">{t('admin.plans.form.addLimitation')}</option>
+                  {predefinedLimitations
+                    .filter(l => !limitations.some(existing => existing.key === l.key))
+                    .map(l => (
+                      <option key={l.key} value={l.key}>{l.label}</option>
+                    ))
+                  }
+                </select>
+                <button 
+                  type="button" 
+                  className={styles.addLimitationBtn}
+                  onClick={() => addLimitation()}
+                  title={t('admin.plans.form.addCustomLimitation')}
+                >
+                  <Plus size={16} />
+                </button>
+              </div>
+            </div>
+            
+            {limitations.length === 0 ? (
+              <p className={styles.formSectionHint}>{t('admin.plans.form.noLimitations')}</p>
+            ) : (
+              <div className={styles.limitationsList}>
+                {limitations.map((limitation, index) => (
+                  <div key={limitation.id} className={styles.limitationItem}>
+                    {limitation.isCustom ? (
+                      <>
+                        <input
+                          type="text"
+                          className={styles.limitationKeyInput}
+                          placeholder={t('admin.plans.form.limitationKey')}
+                          value={limitation.key}
+                          onChange={(e) => updateLimitation(index, 'key', e.target.value.replace(/[^a-zA-Z0-9_]/g, ''))}
+                        />
+                        <input
+                          type="text"
+                          className={styles.limitationLabelInput}
+                          placeholder={t('admin.plans.form.limitationLabel')}
+                          value={limitation.label}
+                          onChange={(e) => updateLimitation(index, 'label', e.target.value)}
+                        />
+                      </>
+                    ) : (
+                      <>
+                        <code className={styles.limitationKey}>{limitation.key}</code>
+                        <span className={styles.limitationLabel}>{limitation.label}</span>
+                      </>
+                    )}
+                    <input
+                      type="number"
+                      className={styles.limitationValueInput}
+                      placeholder={t('admin.plans.form.unlimitedPlaceholder')}
+                      value={limitation.value}
+                      onChange={(e) => updateLimitation(index, 'value', e.target.value)}
+                      min="0"
+                    />
+                    <button
+                      type="button"
+                      className={styles.removeLimitationBtn}
+                      onClick={() => removeLimitation(index)}
+                      title={t('admin.common.remove')}
+                    >
+                      <X size={16} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
           <FormCheckbox
             label={t('admin.plans.statuses.active')}
             checked={formData.isActive}
@@ -753,7 +1064,7 @@ export default function PlansSettingsPage() {
                 <div><strong>{t('admin.plans.columns.features')}:</strong></div>
                 <ul style={{ margin: '0.25rem 0 0 1.5rem', padding: 0 }}>
                   {selectedPlan.features.map((f, idx) => (
-                    <li key={idx}>{f.name}</li>
+                    <li key={idx}>{f.label || f.key}</li>
                   ))}
                 </ul>
               </div>
@@ -773,16 +1084,62 @@ export default function PlansSettingsPage() {
               rows={2}
               placeholder={selectedPlan.description || ''}
             />
-            <FormTextarea
-              label={`${t('admin.plans.columns.features')} (${selectedLanguage})`}
-              value={translationData.features}
-              onChange={(e) => setTranslationData({ ...translationData, features: e.target.value })}
-              placeholder={t('admin.plans.translations.featuresPlaceholder')}
-              rows={4}
-            />
-            <p style={{ fontSize: '0.75rem', color: 'var(--muted-foreground)', marginTop: '-0.5rem', marginBottom: '1rem' }}>
-              {t('admin.plans.translations.featuresHint')}
-            </p>
+
+            {/* Features Translations */}
+            {selectedPlan.features.length > 0 && (
+              <div className={styles.formSection} style={{ marginTop: '1.5rem' }}>
+                <h4 className={styles.formSectionTitle}>{t('admin.plans.translations.features')}</h4>
+                <p className={styles.formSectionHint}>{t('admin.plans.translations.featuresHint')}</p>
+                <div className={styles.limitationsList}>
+                  {selectedPlan.features.map((feature) => {
+                    const translatedValue = translationData.features.find(f => f.key === feature.key)?.label || '';
+                    return (
+                      <div key={feature.key} className={styles.limitationItem}>
+                        <div className={styles.limitationOriginal}>
+                          <code className={styles.limitationKey}>{feature.key}</code>
+                          <span className={styles.limitationLabel}>{feature.label}</span>
+                        </div>
+                        <input
+                          type="text"
+                          className={styles.limitationTranslationInput}
+                          placeholder={`${feature.label} (${selectedLanguage})`}
+                          value={translatedValue}
+                          onChange={(e) => updateFeatureTranslation(feature.key, e.target.value)}
+                        />
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Limitations Translations */}
+            {getAllPlanLimitations(selectedPlan).length > 0 && (
+              <div className={styles.formSection} style={{ marginTop: '1.5rem' }}>
+                <h4 className={styles.formSectionTitle}>{t('admin.plans.translations.limitations')}</h4>
+                <p className={styles.formSectionHint}>{t('admin.plans.translations.limitationsHint')}</p>
+                <div className={styles.limitationsList}>
+                  {getAllPlanLimitations(selectedPlan).map((limitation) => {
+                    const translatedValue = translationData.limitations.find(l => l.key === limitation.key)?.label || '';
+                    return (
+                      <div key={limitation.key} className={styles.limitationItem}>
+                        <div className={styles.limitationOriginal}>
+                          <code className={styles.limitationKey}>{limitation.key}</code>
+                          <span className={styles.limitationLabel}>{limitation.label}</span>
+                        </div>
+                        <input
+                          type="text"
+                          className={styles.limitationTranslationInput}
+                          placeholder={`${limitation.label} (${selectedLanguage})`}
+                          value={translatedValue}
+                          onChange={(e) => updateLimitationTranslation(limitation.key, e.target.value)}
+                        />
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
 
             <FormActions>
               {existingTranslations[selectedLanguage] && (

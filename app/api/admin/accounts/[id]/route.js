@@ -218,6 +218,12 @@ export async function DELETE(request, { params }) {
       where: { id },
       include: {
         subscription: true,
+        members: {
+          where: { isOwner: true },
+          include: {
+            user: true,
+          },
+        },
         _count: {
           select: { members: true },
         },
@@ -236,13 +242,24 @@ export async function DELETE(request, { params }) {
       );
     }
 
+    // Get the owner user
+    const ownerMembership = account.members[0];
+    const ownerUser = ownerMembership?.user;
+
+    // Safety check: Don't delete if owner is super admin
+    if (ownerUser?.isSuperAdmin) {
+      return NextResponse.json(
+        { error: 'Cannot delete account owned by a super admin' },
+        { status: 400 }
+      );
+    }
+
     // Delete in transaction
     await prisma.$transaction(async (tx) => {
-      // Delete all memberships
-      await tx.accountMember.deleteMany({
-        where: { accountId: id },
-      });
-
+      // Delete account-related data
+      await tx.aiCreditsLog.deleteMany({ where: { accountId: id } });
+      await tx.addOnPurchase.deleteMany({ where: { subscription: { accountId: id } } });
+      
       // Delete subscription if exists
       if (account.subscription) {
         await tx.subscription.delete({
@@ -250,13 +267,39 @@ export async function DELETE(request, { params }) {
         });
       }
 
+      // Delete all memberships first (they reference roles)
+      await tx.accountMember.deleteMany({
+        where: { accountId: id },
+      });
+
+      // Delete roles (after memberships are deleted)
+      await tx.role.deleteMany({ where: { accountId: id } });
+      
+      // Delete sites
+      await tx.site.deleteMany({ where: { accountId: id } });
+
       // Delete the account
       await tx.account.delete({
         where: { id },
       });
+
+      // Delete the owner user if exists
+      if (ownerUser) {
+        // Delete user-related records
+        await tx.authProvider.deleteMany({ where: { userId: ownerUser.id } });
+        await tx.session.deleteMany({ where: { userId: ownerUser.id } });
+        await tx.otpCode.deleteMany({ where: { userId: ownerUser.id } });
+        await tx.userInterview.deleteMany({ where: { userId: ownerUser.id } });
+        await tx.userSitePreference.deleteMany({ where: { userId: ownerUser.id } });
+        await tx.accountMember.deleteMany({ where: { userId: ownerUser.id } });
+        await tx.user.delete({ where: { id: ownerUser.id } });
+      }
     });
 
-    return NextResponse.json({ success: true });
+    return NextResponse.json({ 
+      success: true,
+      deletedOwner: ownerUser ? ownerUser.email : null,
+    });
   } catch (error) {
     console.error('Error deleting account:', error);
     return NextResponse.json(

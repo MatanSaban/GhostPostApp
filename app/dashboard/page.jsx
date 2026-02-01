@@ -53,9 +53,9 @@ export default async function DashboardPage() {
   ];
 
   const quickActionsData = [
-    { label: t('nav.contentPlanner'), href: '/dashboard/content-planner', iconName: 'FileText' },
-    { label: t('nav.keywordStrategy'), href: '/dashboard/keyword-strategy', iconName: 'Target' },
-    { label: t('nav.siteAudit'), href: '/dashboard/site-audit', iconName: 'Activity' },
+    { label: t('nav.strategy.contentPlanner'), href: '/dashboard/strategy/content-planner', iconName: 'FileText' },
+    { label: t('nav.strategy.keywords'), href: '/dashboard/strategy/keywords', iconName: 'Target' },
+    { label: t('nav.tools.siteAudit'), href: '/dashboard/technical-seo/site-audit', iconName: 'Activity' },
   ];
 
   return (

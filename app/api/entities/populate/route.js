@@ -473,13 +473,29 @@ async function syncEntitiesForType(site, entityType) {
             acfData: post.acf || null,
           };
 
-          // Check if entity exists
-          const existing = await prisma.siteEntity.findFirst({
+          // Check if entity exists - first by externalId, then by slug
+          let existing = await prisma.siteEntity.findFirst({
             where: {
               siteId: site.id,
               externalId: String(post.id),
             },
           });
+
+          // If not found by externalId, try to find by slug within the same entity type
+          // This allows us to update entities that were created via crawl (without externalId)
+          if (!existing && post.slug) {
+            existing = await prisma.siteEntity.findFirst({
+              where: {
+                siteId: site.id,
+                entityTypeId: entityType.id,
+                slug: post.slug,
+              },
+            });
+            
+            if (existing) {
+              console.log(`[Populate] Found existing entity by slug "${post.slug}" - updating with WordPress data`);
+            }
+          }
 
           if (existing) {
             await prisma.siteEntity.update({

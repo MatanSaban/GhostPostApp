@@ -28,6 +28,7 @@ import {
 } from 'lucide-react';
 import { useLocale } from '@/app/context/locale-context';
 import { useSite } from '@/app/context/site-context';
+import WordPressPluginSection from '@/app/dashboard/settings/components/WordPressPluginSection';
 import styles from './entities.module.css';
 
 // Icon mapping for entity types
@@ -65,6 +66,7 @@ export default function EntitiesPage() {
   const [isDiscovering, setIsDiscovering] = useState(false);
   const [discoveryError, setDiscoveryError] = useState(null);
   const [editingType, setEditingType] = useState(null);
+  const [populatedInfo, setPopulatedInfo] = useState(null); // { created, updated, totalEntities }
 
   // Entity sync state
   const [syncStatus, setSyncStatus] = useState(null); // 'NEVER' | 'SYNCING' | 'COMPLETED' | 'ERROR'
@@ -303,28 +305,27 @@ export default function EntitiesPage() {
     }
   };
 
+  // PHASE 1: Quick discovery - just find post types
   const discoverEntityTypes = async () => {
     if (!selectedSite?.id) return;
 
     setIsDiscovering(true);
     setDiscoveryError(null);
+    setPopulatedInfo(null);
 
     try {
-      const response = await fetch('/api/entities/discover', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ siteId: selectedSite.id }),
-      });
-
+      // Use new scan endpoint for phase 1 (GET request)
+      const response = await fetch(`/api/entities/scan?siteId=${selectedSite.id}`);
       const data = await response.json();
 
-      if (data.success && data.entityTypes) {
-        setDiscoveredTypes(data.entityTypes);
-        // Pre-select core types
-        const coreTypes = data.entityTypes
-          .filter(t => t.isCore)
+      if (data.success && data.postTypes) {
+        console.log('[Discovery] Discovered types:', data.postTypes);
+        setDiscoveredTypes(data.postTypes);
+        // Pre-select core types and types with content
+        const autoSelect = data.postTypes
+          .filter(t => t.isCore || t.entityCount > 0)
           .map(t => t.slug);
-        setSelectedTypes(coreTypes);
+        setSelectedTypes(autoSelect);
       } else {
         setDiscoveryError(data.error || t('entities.discovery.failed'));
       }
@@ -333,6 +334,230 @@ export default function EntitiesPage() {
       setDiscoveryError(t('entities.discovery.failed'));
     } finally {
       setIsDiscovering(false);
+    }
+  };
+
+  // PHASE 2: Populate entities after user saves selected types
+  const handleSaveAndPopulate = async () => {
+    if (!selectedSite?.id || selectedTypes.length === 0) return;
+
+    setIsSaving(true);
+
+    try {
+      // First, save the entity types
+      const types = selectedTypes.map(slug => {
+        const discovered = discoveredTypes.find(t => t.slug === slug);
+        console.log('[SaveTypes] Discovered type:', slug, discovered);
+        
+        // Get the proper display name based on locale
+        // Priority: locale-specific name > general name > slug
+        let displayName = discovered?.name || slug;
+        if (locale === 'he' && discovered?.nameHe) {
+          displayName = discovered.nameHe;
+        }
+        
+        return {
+          slug,
+          name: displayName,
+          apiEndpoint: discovered?.restEndpoint || discovered?.apiEndpoint || slug,
+          sitemaps: discovered?.sitemaps || [],
+          isEnabled: true,
+        };
+      });
+
+      console.log('[SaveTypes] Saving types:', types);
+
+      const saveResponse = await fetch('/api/entities/types', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ siteId: selectedSite.id, types }),
+      });
+
+      if (!saveResponse.ok) {
+        throw new Error('Failed to save entity types');
+      }
+
+      const saveData = await saveResponse.json();
+      setEnabledTypes(saveData.types || []);
+      setDiscoveredTypes([]);
+      setSelectedTypes([]);
+
+      // Now trigger Phase 2: Populate entities
+      setSyncStatus('SYNCING');
+      setSyncProgress(0);
+
+      // Check if plugin is connected - use plugin API, otherwise use scan/crawl
+      const isPluginConnected = selectedSite?.connectionStatus === 'CONNECTED';
+
+      if (isPluginConnected) {
+        // Use plugin-based population
+        setSyncMessage(t('entities.sync.starting') || 'Starting sync...');
+
+        const populateResponse = await fetch('/api/entities/populate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ siteId: selectedSite.id }),
+        });
+
+        if (!populateResponse.ok) {
+          const data = await populateResponse.json();
+          setSyncStatus('ERROR');
+          setSyncError(data.error || t('entities.sync.failed'));
+          return;
+        }
+
+        // Plugin sync started - status will be updated via polling
+        // The polling effect will handle the rest
+      } else {
+        // Use sitemap/crawl-based population
+        setSyncMessage(t('entities.sync.populatingEntities') || 'Populating entities...');
+
+        const populateResponse = await fetch('/api/entities/scan', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ 
+            siteId: selectedSite.id, 
+            phase: 'populate',
+          }),
+        });
+
+        const populateData = await populateResponse.json();
+
+        if (populateData.success) {
+          setPopulatedInfo({
+            created: populateData.stats?.created || 0,
+            updated: populateData.stats?.updated || 0,
+            totalEntities: (populateData.stats?.created || 0) + (populateData.stats?.updated || 0),
+          });
+          setSyncStatus('COMPLETED');
+          setSyncMessage('');
+        } else {
+          setSyncStatus('ERROR');
+          setSyncError(populateData.error || 'Population failed');
+        }
+      }
+
+      // Refresh sidebar
+      router.refresh();
+    } catch (error) {
+      console.error('Failed to save and populate:', error);
+      setSyncStatus('ERROR');
+      setSyncError(error.message);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  // FULL CRAWL: Populate entities + Deep crawl (for sites without plugin)
+  const handleCrawlEntities = async () => {
+    if (!selectedSite?.id || syncStatus === 'SYNCING') return;
+
+    setSyncStatus('SYNCING');
+    setSyncProgress(0);
+    setSyncMessage(t('entities.crawl.populating') || 'Fetching content from website...');
+    setSyncError(null);
+
+    try {
+      // Phase 2: Populate entities (creates/updates from sitemap/REST API)
+      const populateResponse = await fetch('/api/entities/scan', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          siteId: selectedSite.id, 
+          phase: 'populate',
+        }),
+      });
+
+      const populateData = await populateResponse.json();
+
+      if (!populateData.success) {
+        setSyncStatus('ERROR');
+        setSyncError(populateData.error || 'Failed to fetch content');
+        return;
+      }
+
+      const totalEntities = (populateData.stats?.created || 0) + (populateData.stats?.updated || 0);
+      setSyncProgress(50);
+      setSyncMessage(t('entities.crawl.deepCrawling') || `Found ${totalEntities} items. Deep crawling pages...`);
+
+      // Phase 3: Deep crawl with forceRescan to update all entities
+      const crawlResponse = await fetch('/api/entities/scan', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          siteId: selectedSite.id, 
+          phase: 'crawl',
+          options: { 
+            batchSize: 100,
+            forceRescan: true, // Always rescan all entities when user initiates a crawl
+          },
+        }),
+      });
+
+      const crawlData = await crawlResponse.json();
+
+      if (crawlData.success) {
+        setPopulatedInfo({
+          created: populateData.stats?.created || 0,
+          updated: populateData.stats?.updated || 0,
+          totalEntities,
+          enriched: crawlData.stats?.enriched || 0,
+        });
+        setSyncStatus('COMPLETED');
+        setSyncMessage(
+          locale === 'he'
+            ? `הסריקה הושלמה! נמצאו ${totalEntities} פריטים, הועשרו ${crawlData.stats?.enriched || 0}`
+            : `Crawl complete! Found ${totalEntities} items, enriched ${crawlData.stats?.enriched || 0} with metadata`
+        );
+      } else {
+        setSyncStatus('ERROR');
+        setSyncError(crawlData.error || 'Deep crawl failed');
+      }
+
+      router.refresh();
+    } catch (error) {
+      console.error('Crawl error:', error);
+      setSyncStatus('ERROR');
+      setSyncError(error.message);
+    }
+  };
+
+  // PHASE 3: Deep crawl to enrich entity data
+  const handleDeepCrawl = async () => {
+    if (!selectedSite?.id || syncStatus === 'SYNCING') return;
+
+    setSyncStatus('SYNCING');
+    setSyncProgress(0);
+    setSyncMessage(t('entities.sync.deepCrawling') || 'Deep crawling pages...');
+    setSyncError(null);
+
+    try {
+      const response = await fetch('/api/entities/scan', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          siteId: selectedSite.id, 
+          phase: 'crawl',
+          options: { 
+            batchSize: 100,
+            forceRescan: true, // Rescan all entities
+          },
+        }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        setSyncStatus('COMPLETED');
+        setSyncMessage(`Crawled ${data.stats?.crawled || 0} pages, enriched ${data.stats?.enriched || 0}`);
+      } else {
+        setSyncStatus('ERROR');
+        setSyncError(data.error || 'Deep crawl failed');
+      }
+    } catch (error) {
+      console.error('Deep crawl error:', error);
+      setSyncStatus('ERROR');
+      setSyncError(error.message);
     }
   };
 
@@ -348,46 +573,10 @@ export default function EntitiesPage() {
     setDiscoveredTypes(prev => 
       prev.map(t => 
         t.slug === slug 
-          ? { ...t, name: newLabel, nameHe: newLabel }
+          ? { ...t, name: newLabel }
           : t
       )
     );
-  };
-
-  const handleSaveTypes = async () => {
-    if (!selectedSite?.id || selectedTypes.length === 0) return;
-
-    setIsSaving(true);
-
-    try {
-      const types = selectedTypes.map(slug => {
-        const discovered = discoveredTypes.find(t => t.slug === slug);
-        return {
-          slug,
-          name: discovered ? (locale === 'he' ? discovered.nameHe : discovered.name) : slug,
-          apiEndpoint: discovered?.apiEndpoint || slug,
-        };
-      });
-
-      const response = await fetch('/api/entities/types', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ siteId: selectedSite.id, types }),
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        setEnabledTypes(data.types || []);
-        setDiscoveredTypes([]);
-        setSelectedTypes([]);
-        // Trigger sidebar refresh
-        router.refresh();
-      }
-    } catch (error) {
-      console.error('Failed to save entity types:', error);
-    } finally {
-      setIsSaving(false);
-    }
   };
 
   if (!selectedSite) {
@@ -502,7 +691,7 @@ export default function EntitiesPage() {
               </div>
             )}
 
-            {/* Discovered types */}
+            {/* Discovered types (during discovery flow) */}
             {!isDiscovering && discoveredTypes.length > 0 && (
               <>
                 <h3 className={styles.sectionTitle}>{t('entities.types.select')}</h3>
@@ -510,13 +699,27 @@ export default function EntitiesPage() {
                   {t('entities.discovery.found', { count: discoveredTypes.length })}
                 </p>
 
+                {/* Show populated entities info */}
+                {populatedInfo && populatedInfo.totalEntities > 0 && (
+                  <div className={styles.populatedInfo}>
+                    <CheckCircle2 className={styles.populatedIcon} />
+                    <span>
+                      {locale === 'he' 
+                        ? `נמצאו ${populatedInfo.totalEntities} פריטי תוכן מהאתר`
+                        : `Found ${populatedInfo.totalEntities} content items from sitemap`}
+                    </span>
+                  </div>
+                )}
+
                 <div className={styles.entityTypeGrid}>
                   {discoveredTypes.map((entityType) => {
                     const Icon = getIconForType(entityType.slug);
                     const isSelected = selectedTypes.includes(entityType.slug);
                     const isEnabled = enabledTypes.some(t => t.slug === entityType.slug);
                     const isEditing = editingType === entityType.slug;
-                    const displayName = locale === 'he' ? entityType.nameHe : entityType.name;
+                    // Always fallback to name, then slug as last resort
+                    const displayName = (locale === 'he' ? entityType.nameHe : entityType.name) || entityType.name || entityType.slug;
+                    const entityCount = entityType.entityCount || 0;
 
                     return (
                       <div
@@ -546,6 +749,9 @@ export default function EntitiesPage() {
                           ) : (
                             <span className={styles.entityTypeName}>{displayName}</span>
                           )}
+                          {entityCount > 0 && (
+                            <span className={styles.entityCountBadge}>{entityCount}</span>
+                          )}
                           {entityType.isCore && (
                             <span className={styles.coreTypeBadge}>Core</span>
                           )}
@@ -569,27 +775,76 @@ export default function EntitiesPage() {
                 <div className={styles.saveSection}>
                   <button
                     className={styles.saveButton}
-                    onClick={handleSaveTypes}
+                    onClick={handleSaveAndPopulate}
                     disabled={isSaving || selectedTypes.length === 0}
                   >
                     {isSaving ? (
                       <>
                         <Loader2 className={styles.spinningIcon} />
-                        {t('common.saving')}
+                        {syncMessage || t('entities.sync.populatingEntities') || 'Populating...'}
                       </>
                     ) : (
                       <>
-                        <Plus />
-                        {t('entities.types.save')}
+                        <CloudDownload />
+                        {t('entities.types.saveAndPopulate') || 'Save & Populate Entities'}
                       </>
                     )}
                   </button>
+                  <p className={styles.saveHint}>
+                    {locale === 'he' 
+                      ? `${selectedTypes.length} סוגי תוכן נבחרו`
+                      : `${selectedTypes.length} content types selected`}
+                  </p>
                 </div>
               </>
             )}
 
-            {/* No types discovered - Manual scan button */}
-            {!isDiscovering && discoveredTypes.length === 0 && !discoveryError && (
+            {/* Show enabled types (after discovery is saved) */}
+            {!isDiscovering && discoveredTypes.length === 0 && enabledTypes.length > 0 && !discoveryError && (
+              <>
+                <div className={styles.enabledTypesHeader}>
+                  <div>
+                    <h3 className={styles.sectionTitle}>{t('entities.types.configured') || 'Configured Content Types'}</h3>
+                    <p className={styles.sectionDescription}>
+                      {locale === 'he' 
+                        ? `${enabledTypes.length} סוגי תוכן מוגדרים לסנכרון`
+                        : `${enabledTypes.length} content types configured for sync`}
+                    </p>
+                  </div>
+                  <button 
+                    className={styles.rescanButton}
+                    onClick={discoverEntityTypes}
+                  >
+                    <RefreshCw size={16} />
+                    {t('entities.discovery.rescan') || 'Rescan'}
+                  </button>
+                </div>
+
+                <div className={styles.entityTypeGrid}>
+                  {enabledTypes.map((entityType) => {
+                    const Icon = getIconForType(entityType.slug);
+                    const displayName = entityType.name || entityType.slug;
+
+                    return (
+                      <Link
+                        key={entityType.id}
+                        href={`/dashboard/entities/${entityType.slug}`}
+                        className={`${styles.entityTypeCard} ${styles.enabled}`}
+                      >
+                        <div className={styles.entityTypeContent}>
+                          <Icon className={styles.entityTypeIcon} />
+                          <span className={styles.entityTypeName}>{displayName}</span>
+                          <CheckCircle2 className={styles.enabledIcon} />
+                        </div>
+                      </Link>
+                    );
+                  })}
+                </div>
+              </>
+            )}
+
+            {/* No types discovered AND no enabled types - Manual scan button */}
+            {!isDiscovering && discoveredTypes.length === 0 && enabledTypes.length === 0 && !discoveryError && (
               <div className={styles.noTypesState}>
                 <Search className={styles.noTypesIcon} />
                 <h4>{t('entities.discovery.noTypes')}</h4>
@@ -607,44 +862,86 @@ export default function EntitiesPage() {
         )}
       </div>
 
-      {/* WordPress Plugin Section */}
-      {platform === 'wordpress' && enabledTypes.length > 0 && (
+      {/* WordPress Plugin Section - Shows when WordPress is detected */}
+      {platform === 'wordpress' && (
         <div className={styles.pluginCard}>
           <div className={styles.pluginHeader}>
-            <Download className={styles.pluginIcon} />
-            <h3 className={styles.sectionTitle}>{t('entities.plugin.title')}</h3>
+            <Link2 className={styles.pluginIcon} />
+            <div>
+              <h3 className={styles.sectionTitle}>{t('entities.plugin.title')}</h3>
+              <p className={styles.pluginDescription}>
+                {t('entities.plugin.description')}
+              </p>
+            </div>
           </div>
-          <p className={styles.pluginDescription}>
-            {t('entities.plugin.description')}
-          </p>
-          <div className={styles.pluginInstructions}>
-            <h4 className={styles.pluginInstructionsTitle}>{t('entities.plugin.instructions.title')}</h4>
-            <ol className={styles.pluginSteps}>
-              <li>{t('entities.plugin.instructions.step1')}</li>
-              <li>{t('entities.plugin.instructions.step2')}</li>
-              <li>{t('entities.plugin.instructions.step3')}</li>
-              <li>{t('entities.plugin.instructions.step4')}</li>
-            </ol>
-          </div>
-          <button 
-            className={styles.downloadButton}
-            onClick={handleDownloadPlugin}
-            disabled={isDownloadingPlugin}
-          >
-            <Download />
-            {isDownloadingPlugin ? t('entities.plugin.downloading') : t('entities.plugin.download')}
-          </button>
+          
+          {/* Show enabled post types */}
+          {enabledTypes.length > 0 && (
+            <div className={styles.enabledTypesPreview}>
+              <span className={styles.enabledTypesLabel}>
+                {locale === 'he' ? 'סוגי תוכן נבחרים:' : 'Selected content types:'}
+              </span>
+              <div className={styles.enabledTypesBadges}>
+                {enabledTypes.map((type) => {
+                  const Icon = getIconForType(type.slug);
+                  return (
+                    <span key={type.id} className={styles.typeBadgeSmall}>
+                      <Icon size={14} />
+                      {type.name}
+                    </span>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+          
+          <WordPressPluginSection
+            translations={{
+              wordpress: {
+                title: t('entities.plugin.title'),
+                connected: t('settings.wordpress.connected') || 'Connected',
+                notConnected: t('settings.wordpress.notConnected') || 'Not Connected',
+                connecting: t('settings.wordpress.connecting') || 'Connecting...',
+                disconnected: t('settings.wordpress.disconnected') || 'Disconnected',
+                error: t('settings.wordpress.error') || 'Error',
+                connectedDesc: t('entities.plugin.connectedDesc') || 'Plugin is active and syncing content',
+                notConnectedDesc: t('entities.plugin.notConnectedDesc') || 'Install the plugin for automatic content sync',
+                downloadPlugin: t('entities.plugin.download') || 'Download Plugin',
+                downloading: t('entities.plugin.downloading') || 'Downloading...',
+                howToInstall: t('entities.plugin.instructions.title') || 'How to Install',
+                step1: t('entities.plugin.instructions.step1') || 'Download the plugin ZIP file',
+                step2: t('entities.plugin.instructions.step2') || 'Go to WordPress → Plugins → Add New → Upload',
+                step3: t('entities.plugin.instructions.step3') || 'Upload the ZIP file and click Install',
+                step4: t('entities.plugin.instructions.step4') || 'Activate the plugin',
+                disconnect: t('settings.wordpress.disconnect') || 'Disconnect',
+                disconnecting: t('settings.wordpress.disconnecting') || 'Disconnecting...',
+                disconnectConfirm: t('settings.wordpress.disconnectConfirm'),
+              },
+            }}
+            compact={true}
+            showInstructions={true}
+            onConnectionChange={() => {
+              // Refresh to get new connection status
+              router.refresh();
+            }}
+          />
         </div>
       )}
 
-      {/* Entity Sync Section - Shows when connected to WordPress */}
-      {platform === 'wordpress' && selectedSite?.connectionStatus === 'CONNECTED' && (
+      {/* Entity Scan/Crawl Section - Shows after entity types are enabled */}
+      {platform === 'wordpress' && enabledTypes.length > 0 && (
         <div className={styles.syncCard}>
           <div className={styles.syncHeader}>
             <CloudDownload className={styles.syncIcon} />
             <div className={styles.syncHeaderContent}>
-              <h3 className={styles.sectionTitle}>{t('entities.sync.title')}</h3>
-              <p className={styles.syncDescription}>{t('entities.sync.description')}</p>
+              <h3 className={styles.sectionTitle}>
+                {t('entities.crawl.title') || 'Crawl Website'}
+              </h3>
+              <p className={styles.syncDescription}>
+                {selectedSite?.connectionStatus === 'CONNECTED'
+                  ? (t('entities.crawl.descriptionConnected') || 'Sync content directly from your WordPress site using the plugin.')
+                  : (t('entities.crawl.description') || 'Crawl your website to import content including titles, meta descriptions, and SEO data.')}
+              </p>
             </div>
           </div>
 
@@ -671,7 +968,7 @@ export default function EntitiesPage() {
           {syncStatus === 'COMPLETED' && (
             <div className={styles.syncSuccess}>
               <CheckCircle2 className={styles.syncSuccessIcon} />
-              <span>{t('entities.sync.completed')}</span>
+              <span>{syncMessage || t('entities.sync.completed')}</span>
             </div>
           )}
 
@@ -691,7 +988,7 @@ export default function EntitiesPage() {
             </div>
           )}
 
-          {/* Sync Button */}
+          {/* Crawl Button - Single unified button */}
           <div className={styles.syncActions}>
             {syncStatus === 'SYNCING' ? (
               <button
@@ -704,17 +1001,17 @@ export default function EntitiesPage() {
             ) : (
               <button
                 className={styles.syncButton}
-                onClick={handlePopulateEntities}
+                onClick={selectedSite?.connectionStatus === 'CONNECTED' ? handlePopulateEntities : handleCrawlEntities}
               >
                 {syncStatus === 'COMPLETED' || syncStatus === 'ERROR' || syncStatus === 'CANCELLED' ? (
                   <>
                     <RefreshCw />
-                    {t('entities.sync.resync')}
+                    {t('entities.crawl.rescan') || 'Scan Again'}
                   </>
                 ) : (
                   <>
-                    <CloudDownload />
-                    {t('entities.sync.populate')}
+                    <Search />
+                    {t('entities.crawl.scan') || 'Scan Website'}
                   </>
                 )}
               </button>

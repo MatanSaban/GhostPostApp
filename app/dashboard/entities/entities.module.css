@@ -43,14 +43,18 @@
 /* Stats Grid */
 .statsGrid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(5, 1fr);
   gap: 1rem;
 
   @media (max-width: 1200px) {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  @media (max-width: 768px) {
     grid-template-columns: repeat(2, 1fr);
   }
 
-  @media (max-width: 640px) {
+  @media (max-width: 480px) {
     grid-template-columns: 1fr;
   }
 }
@@ -127,7 +131,7 @@
 }
 
 .table th {
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -159,7 +163,7 @@
 }
 
 .entitySlug {
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   color: var(--muted-foreground);
   margin-top: 0.125rem;
   font-family: var(--font-mono);
@@ -177,7 +181,7 @@
   gap: 0.375rem;
   padding: 0.25rem 0.625rem;
   border-radius: var(--radius-full);
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   font-weight: 500;
   
   &.published {
@@ -235,6 +239,11 @@
     color: var(--foreground);
     border-color: var(--border);
   }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
   
   svg {
     width: 1rem;
@@ -247,6 +256,12 @@
   
   &.delete:hover {
     color: rgb(239, 68, 68);
+    background: rgba(239, 68, 68, 0.1);
+  }
+
+  &.remove:hover {
+    color: rgb(156, 163, 175);
+    background: var(--muted);
   }
   
   &.view:hover {
@@ -314,6 +329,25 @@
     width: 1rem;
     height: 1rem;
   }
+
+  &.stopButton {
+    background: var(--destructive);
+    
+    &:hover {
+      background: var(--destructive-hover, #dc2626);
+    }
+  }
+
+  &.deepCrawlButton {
+    background: var(--muted);
+    color: var(--foreground);
+    border: 1px solid var(--border);
+    
+    &:hover {
+      background: var(--muted-hover);
+      border-color: var(--primary);
+    }
+  }
 }
 
 .syncButtonLoading svg {
@@ -342,7 +376,7 @@
   gap: 0.375rem;
   padding: 0.25rem 0.625rem;
   border-radius: var(--radius-md);
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   font-weight: 500;
   background: rgba(123, 44, 191, 0.1);
   color: var(--primary);
@@ -452,7 +486,7 @@
   padding: 0.375rem 0.75rem;
   background: rgba(123, 44, 191, 0.1);
   color: var(--primary);
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   font-weight: 500;
   border-radius: var(--radius-full);
 }
@@ -721,6 +755,48 @@
   color: var(--foreground);
 }
 
+/* Enabled Types Header (after discovery is saved) */
+.enabledTypesHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.rescanButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: transparent;
+  color: var(--muted-foreground);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  white-space: nowrap;
+
+  &:hover {
+    background: var(--muted);
+    color: var(--foreground);
+    border-color: var(--muted-foreground);
+  }
+
+  svg {
+    width: 16px;
+    height: 16px;
+  }
+}
+
+.enabledIcon {
+  width: 16px;
+  height: 16px;
+  color: rgb(34, 197, 94);
+}
+
 /* Discovery States */
 .discoveringState {
   display: flex;
@@ -793,7 +869,7 @@
   color: var(--primary);
   border: 1px solid var(--primary);
   border-radius: var(--radius-md);
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   font-weight: 500;
   cursor: pointer;
   transition: all var(--transition-fast);
@@ -801,6 +877,41 @@
   &:hover {
     background: var(--primary);
     color: white;
+  }
+}
+
+.entityCountBadge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.5rem;
+  height: 1.5rem;
+  padding: 0 0.375rem;
+  background: var(--muted);
+  color: var(--muted-foreground);
+  font-size: 0.75rem;
+  font-weight: 600;
+  border-radius: var(--radius-full);
+  margin-inline-start: 0.25rem;
+}
+
+.populatedInfo {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  background: color-mix(in srgb, var(--success) 10%, transparent);
+  border: 1px solid color-mix(in srgb, var(--success) 30%, transparent);
+  border-radius: var(--radius-md);
+  color: var(--success);
+  font-size: 0.875rem;
+  font-weight: 500;
+  margin-bottom: 1rem;
+
+  .populatedIcon {
+    width: 1.125rem;
+    height: 1.125rem;
+    flex-shrink: 0;
   }
 }
 
@@ -841,21 +952,65 @@
 
 .pluginHeader {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 0.75rem;
+
+  > div {
+    flex: 1;
+  }
 }
 
 .pluginIcon {
   width: 1.5rem;
   height: 1.5rem;
   color: var(--primary);
+  flex-shrink: 0;
+  margin-top: 0.125rem;
 }
 
 .pluginDescription {
   color: var(--muted-foreground);
   font-size: 0.9375rem;
   line-height: 1.6;
-  margin: 0;
+  margin: 0.25rem 0 0 0;
+}
+
+/* Enabled Types Preview in Plugin Section */
+.enabledTypesPreview {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  background: var(--muted);
+  border-radius: var(--radius-md);
+}
+
+.enabledTypesLabel {
+  font-size: 0.8125rem;
+  color: var(--muted-foreground);
+  font-weight: 500;
+}
+
+.enabledTypesBadges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.typeBadgeSmall {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.25rem 0.625rem;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-full);
+  font-size: 0.8125rem;
+  color: var(--foreground);
+
+  svg {
+    color: var(--primary);
+  }
 }
 
 .pluginInstructions {

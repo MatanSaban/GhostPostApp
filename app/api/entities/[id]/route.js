@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import prisma from '@/lib/prisma';
-import { updatePost, updateSeoData, updateAcfFields } from '@/lib/wp-api-client';
+import { updatePost, updateSeoData, updateAcfFields, getPostBySlug } from '@/lib/wp-api-client';
 
 const SESSION_COOKIE = 'user_session';
 
@@ -251,6 +251,119 @@ export async function PUT(request, { params }) {
     console.error('Failed to update entity:', error);
     return NextResponse.json(
       { error: 'Failed to update entity' },
+      { status: 500 }
+    );
+  }
+}
+
+// DELETE - Remove entity from platform and optionally delete from WordPress
+export async function DELETE(request, { params }) {
+  try {
+    const user = await getAuthenticatedUser();
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const { id } = await params;
+    const { searchParams } = new URL(request.url);
+    const deleteFromWordPress = searchParams.get('deleteFromWP') === 'true';
+
+    // Get user's account IDs
+    const accountIds = user.accountMemberships.map(m => m.accountId);
+
+    // Get the entity with site info for WordPress sync
+    const entity = await prisma.siteEntity.findUnique({
+      where: { id },
+      include: {
+        site: {
+          select: {
+            id: true,
+            url: true,
+            siteKey: true,
+            siteSecret: true,
+            accountId: true,
+            connectionStatus: true,
+          },
+        },
+        entityType: {
+          select: {
+            id: true,
+            name: true,
+            slug: true,
+          },
+        },
+      },
+    });
+
+    if (!entity) {
+      return NextResponse.json({ error: 'Entity not found' }, { status: 404 });
+    }
+
+    // Verify the user has access to this entity's site
+    if (!accountIds.includes(entity.site.accountId)) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
+    }
+
+    // If deleteFromWordPress is true and site is connected, trash the post in WordPress
+    let wpDeleteResult = null;
+    let wpDeleteError = null;
+    
+    if (deleteFromWordPress && entity.site.connectionStatus === 'CONNECTED') {
+      try {
+        const postType = entity.entityType?.slug || 'post';
+        let wpPostId = entity.externalId;
+        
+        // If no externalId, try to find the post by slug
+        if (!wpPostId && entity.slug) {
+          console.log(`[Delete] No externalId, looking up post by slug "${entity.slug}"...`);
+          const wpPost = await getPostBySlug(entity.site, postType, entity.slug);
+          if (wpPost) {
+            wpPostId = String(wpPost.id);
+            console.log(`[Delete] Found post by slug: ID ${wpPostId}`);
+          } else {
+            console.log(`[Delete] Post not found in WordPress by slug "${entity.slug}"`);
+          }
+        }
+        
+        if (wpPostId) {
+          // Move to trash in WordPress by updating status to 'trash'
+          wpDeleteResult = await updatePost(entity.site, postType, wpPostId, {
+            status: 'trash',
+          });
+          
+          console.log(`[Delete] Moved post ${wpPostId} to trash in WordPress`);
+        } else {
+          wpDeleteError = 'Could not find post in WordPress';
+        }
+      } catch (error) {
+        console.error('WordPress delete error:', error);
+        wpDeleteError = error.message;
+        // Continue with local delete even if WP delete fails
+      }
+    }
+
+    // Delete the entity from our database
+    await prisma.siteEntity.delete({
+      where: { id },
+    });
+
+    console.log(`[Delete] Removed entity ${id} from platform${deleteFromWordPress ? ' (and trashed in WordPress)' : ''}`);
+
+    return NextResponse.json({ 
+      success: true,
+      message: deleteFromWordPress 
+        ? 'Entity deleted from platform and moved to trash in WordPress'
+        : 'Entity removed from platform',
+      wpDelete: {
+        attempted: deleteFromWordPress && entity.site.connectionStatus === 'CONNECTED',
+        success: wpDeleteResult !== null && wpDeleteError === null,
+        error: wpDeleteError,
+      },
+    });
+  } catch (error) {
+    console.error('Failed to delete entity:', error);
+    return NextResponse.json(
+      { error: 'Failed to delete entity' },
       { status: 500 }
     );
   }

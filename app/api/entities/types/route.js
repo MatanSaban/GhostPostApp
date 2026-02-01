@@ -83,6 +83,7 @@ export async function GET(request) {
         name: true,
         slug: true,
         apiEndpoint: true,
+        sitemaps: true,
       },
     });
 
@@ -131,6 +132,12 @@ export async function POST(request) {
     for (let i = 0; i < types.length; i++) {
       const type = types[i];
       
+      console.log(`[EntityTypes] Saving type: ${type.slug}`, {
+        name: type.name,
+        apiEndpoint: type.apiEndpoint,
+        sitemaps: type.sitemaps,
+      });
+      
       const entityType = await prisma.siteEntityType.upsert({
         where: {
           siteId_slug: {
@@ -140,7 +147,8 @@ export async function POST(request) {
         },
         update: {
           name: type.name,
-          apiEndpoint: type.apiEndpoint || null,
+          apiEndpoint: type.apiEndpoint || type.slug,
+          sitemaps: type.sitemaps || [],
           isEnabled: type.isEnabled !== false,
           sortOrder: i,
         },
@@ -148,7 +156,8 @@ export async function POST(request) {
           siteId,
           name: type.name,
           slug: type.slug,
-          apiEndpoint: type.apiEndpoint || null,
+          apiEndpoint: type.apiEndpoint || type.slug,
+          sitemaps: type.sitemaps || [],
           isEnabled: type.isEnabled !== false,
           sortOrder: i,
         },

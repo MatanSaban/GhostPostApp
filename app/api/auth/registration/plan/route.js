@@ -27,11 +27,19 @@ export async function POST(request) {
       );
     }
 
-    // Look up plan by slug (planId from frontend is the slug like 'basic', 'pro', 'enterprise')
-    const plan = await prisma.plan.findUnique({
-      where: { slug: planId },
+    // Look up plan by ID first, then by slug as fallback
+    let plan = await prisma.plan.findUnique({
+      where: { id: planId },
       select: { id: true, name: true, slug: true, price: true },
     });
+
+    // If not found by ID, try by slug
+    if (!plan) {
+      plan = await prisma.plan.findUnique({
+        where: { slug: planId },
+        select: { id: true, name: true, slug: true, price: true },
+      });
+    }
 
     if (!plan) {
       return NextResponse.json(

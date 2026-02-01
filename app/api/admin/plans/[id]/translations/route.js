@@ -60,7 +60,7 @@ export async function POST(request, { params }) {
 
     const { id } = await params;
     const body = await request.json();
-    const { language, name, description, features } = body;
+    const { language, name, description, features, limitations } = body;
 
     if (!language || !name) {
       return NextResponse.json(
@@ -87,6 +87,7 @@ export async function POST(request, { params }) {
         name,
         description: description || null,
         features: features || [],
+        limitations: limitations || [],
       },
       create: {
         planId: id,
@@ -94,6 +95,7 @@ export async function POST(request, { params }) {
         name,
         description: description || null,
         features: features || [],
+        limitations: limitations || [],
       },
     });
 

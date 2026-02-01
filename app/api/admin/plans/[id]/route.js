@@ -61,7 +61,16 @@ export async function PUT(request, { params }) {
 
     const { id } = await params;
     const body = await request.json();
-    const { name, slug, description, price, yearlyPrice, features, isActive } = body;
+    const { 
+      name, 
+      slug, 
+      description, 
+      price, 
+      yearlyPrice, 
+      features, 
+      isActive,
+      limitations,
+    } = body;
 
     // Check if plan exists
     const existingPlan = await prisma.plan.findUnique({ where: { id } });
@@ -87,6 +96,8 @@ export async function PUT(request, { params }) {
         ...(yearlyPrice !== undefined && { yearlyPrice: yearlyPrice ? parseFloat(yearlyPrice) : null }),
         ...(features !== undefined && { features }),
         ...(isActive !== undefined && { isActive }),
+        // All limitations stored as JSON array
+        ...(limitations !== undefined && { limitations }),
       },
     });
 
@@ -168,7 +179,9 @@ export async function POST(request, { params }) {
         slug: newSlug,
         description: originalPlan.description,
         price: originalPlan.price,
+        yearlyPrice: originalPlan.yearlyPrice,
         features: originalPlan.features,
+        limitations: originalPlan.limitations,
         isActive: false, // Duplicated plans start as inactive
         sortOrder,
       },

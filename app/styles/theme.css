@@ -86,6 +86,14 @@
   --accent: #00FF9D;
   --accent-foreground: #000000;
   
+  /* Light Blue - AI/Magic theme */
+  --light-blue: #38bdf8;
+  --light-blue-light: #7dd3fc;
+  --light-blue-bg: rgba(14, 165, 233, 0.2);
+  --light-blue-bg-hover: rgba(14, 165, 233, 0.3);
+  --light-blue-border: rgba(14, 165, 233, 0.3);
+  --light-blue-border-hover: rgba(14, 165, 233, 0.5);
+  
   /* Muted colors */
   --muted: #1f1f1f;
   --muted-foreground: #9ca3af;

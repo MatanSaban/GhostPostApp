@@ -24,6 +24,8 @@ import {
   ChevronRight,
   Lock,
   Wrench,
+  Lightbulb,
+  Globe,
 } from 'lucide-react';
 import { GhostChatPopup } from '@/app/components/ui/ghost-chat-popup';
 import { SiteSelector } from '@/app/components/ui/site-selector';
@@ -37,15 +39,27 @@ import styles from './dashboard.module.css';
 // Menu items with translation keys (entities added above settings)
 const menuItemsConfig = [
   { icon: LayoutDashboard, labelKey: 'nav.dashboard', path: '/dashboard' },
-  { icon: User, labelKey: 'nav.siteInterview', path: '/dashboard/site-interview' },
-  { icon: Calendar, labelKey: 'nav.contentPlanner', path: '/dashboard/content-planner' },
   // { icon: Zap, labelKey: 'nav.automations', path: '/dashboard/automations' },
   // { icon: Link2, labelKey: 'nav.linkBuilding', path: '/dashboard/link-building' },
-  { icon: RotateCcw, labelKey: 'nav.redirections', path: '/dashboard/redirections' },
   // { icon: Monitor, labelKey: 'nav.seoFrontend', path: '/dashboard/seo-frontend' },
   // { icon: Server, labelKey: 'nav.seoBackend', path: '/dashboard/seo-backend' },
   // { icon: Activity, labelKey: 'nav.siteAudit', path: '/dashboard/site-audit' },
-  { icon: Search, labelKey: 'nav.keywordStrategy', path: '/dashboard/keyword-strategy' },
+];
+
+// Strategy sub-items
+const strategyItemsConfig = [
+  { labelKey: 'nav.strategy.siteProfile', path: '/dashboard/strategy/site-profile' },
+  { labelKey: 'nav.strategy.keywords', path: '/dashboard/strategy/keywords' },
+  { labelKey: 'nav.strategy.contentPlanner', path: '/dashboard/strategy/content-planner' },
+  { labelKey: 'nav.strategy.aiWizard', path: '/dashboard/strategy/ai-content-wizard' },
+  { labelKey: 'nav.strategy.competitorAnalysis', path: '/dashboard/strategy/competitor-analysis' },
+];
+
+// Tools sub-items (Technical SEO)
+const toolsItemsConfig = [
+  { labelKey: 'nav.tools.redirections', path: '/dashboard/technical-seo/redirections' },
+  { labelKey: 'nav.tools.webpConverter', path: '/dashboard/technical-seo/webp-converter' },
+  { labelKey: 'nav.tools.siteAudit', path: '/dashboard/technical-seo/site-audit' },
 ];
 
 // Admin menu items - only visible to super admins
@@ -57,6 +71,7 @@ const adminMenuItemsConfig = [
   { icon: Bot, labelKey: 'nav.admin.interviewFlow', path: '/dashboard/admin/interview-flow' },
   { icon: Zap, labelKey: 'nav.admin.botActions', path: '/dashboard/admin/bot-actions' },
   { icon: Languages, labelKey: 'nav.admin.translations', path: '/dashboard/admin/translations' },
+  { icon: Globe, labelKey: 'nav.admin.website', path: '/dashboard/admin/website' },
 ];
 
 export default function DashboardLayout({ children, title = 'Dashboard', breadcrumb = 'Dashboard' }) {
@@ -67,8 +82,8 @@ export default function DashboardLayout({ children, title = 'Dashboard', breadcr
   const { selectedSite } = useSite();
   const { filterMenuItems, canViewPath, isLoading: isPermissionsLoading } = usePermissions();
   const [isChatOpen, setIsChatOpen] = useState(false);
-  const [isEntitiesOpen, setIsEntitiesOpen] = useState(false);
-  const [isAdminOpen, setIsAdminOpen] = useState(false);
+  // Single state for open menu - only one can be open at a time (accordion behavior)
+  const [openMenu, setOpenMenu] = useState(null); // 'strategy' | 'entities' | 'tools' | 'admin' | null
   const [entityTypes, setEntityTypes] = useState([]);
   const chatPopupRef = useRef(null);
 
@@ -145,13 +160,25 @@ export default function DashboardLayout({ children, title = 'Dashboard', breadcr
   const handleChevronClick = (e) => {
     e.stopPropagation();
     e.preventDefault();
-    setIsEntitiesOpen(!isEntitiesOpen);
+    setOpenMenu(openMenu === 'entities' ? null : 'entities');
+  };
+
+  const handleStrategyChevronClick = (e) => {
+    e.stopPropagation();
+    e.preventDefault();
+    setOpenMenu(openMenu === 'strategy' ? null : 'strategy');
+  };
+
+  const handleToolsChevronClick = (e) => {
+    e.stopPropagation();
+    e.preventDefault();
+    setOpenMenu(openMenu === 'tools' ? null : 'tools');
   };
 
   const handleAdminChevronClick = (e) => {
     e.stopPropagation();
     e.preventDefault();
-    setIsAdminOpen(!isAdminOpen);
+    setOpenMenu(openMenu === 'admin' ? null : 'admin');
   };
 
   return (
@@ -189,6 +216,41 @@ export default function DashboardLayout({ children, title = 'Dashboard', breadcr
             );
           })}
 
+          {/* Strategy Section - Expandable sub-items */}
+          <div className={styles.navGroup}>
+            <Link 
+              href="/dashboard/strategy"
+              className={`${styles.navItem} ${styles.navGroupToggle} ${pathname.startsWith('/dashboard/strategy') ? styles.active : ''}`}
+            >
+              <Lightbulb className={styles.navIcon} />
+              <span className={styles.navLabel}>{t('nav.strategy.title')}</span>
+              <button 
+                className={styles.navChevronButton}
+                onClick={handleStrategyChevronClick}
+                aria-label={openMenu === 'strategy' ? t('common.collapse') : t('common.expand')}
+              >
+                <ChevronRight className={`${styles.navChevron} ${openMenu === 'strategy' ? styles.navChevronOpen : ''}`} />
+              </button>
+            </Link>
+            <div className={`${styles.navGroupItems} ${openMenu === 'strategy' ? styles.navGroupItemsOpen : ''}`}>
+              <div className={styles.navGroupItemsInner}>
+                {strategyItemsConfig.map((item) => {
+                  const isActive = pathname === item.path || pathname.startsWith(item.path + '/');
+                  
+                  return (
+                    <Link
+                      key={item.path}
+                      href={item.path}
+                      className={`${styles.navItem} ${styles.navSubItem} ${isActive ? styles.active : ''}`}
+                    >
+                      <span className={styles.navLabel}>{t(item.labelKey)}</span>
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+
           {/* Entities Section - Dynamic with expandable sub-items */}
           {canViewPath('/dashboard/entities') && (
           <div className={styles.navGroup}>
@@ -202,14 +264,14 @@ export default function DashboardLayout({ children, title = 'Dashboard', breadcr
                 <button 
                   className={styles.navChevronButton}
                   onClick={handleChevronClick}
-                  aria-label={isEntitiesOpen ? t('common.collapse') : t('common.expand')}
+                  aria-label={openMenu === 'entities' ? t('common.collapse') : t('common.expand')}
                 >
-                  <ChevronRight className={`${styles.navChevron} ${isEntitiesOpen ? styles.navChevronOpen : ''}`} />
+                  <ChevronRight className={`${styles.navChevron} ${openMenu === 'entities' ? styles.navChevronOpen : ''}`} />
                 </button>
               )}
             </Link>
             {entityTypes.length > 0 && (
-              <div className={`${styles.navGroupItems} ${isEntitiesOpen ? styles.navGroupItemsOpen : ''}`}>
+              <div className={`${styles.navGroupItems} ${openMenu === 'entities' ? styles.navGroupItemsOpen : ''}`}>
                 <div className={styles.navGroupItemsInner}>
                   {entityTypes.map((entityType) => {
                     const isActive = pathname === `/dashboard/entities/${entityType.slug}` || 
@@ -225,20 +287,53 @@ export default function DashboardLayout({ children, title = 'Dashboard', breadcr
                       </Link>
                     );
                   })}
+                  {/* Media link */}
+                  <Link
+                    href="/dashboard/entities/media"
+                    className={`${styles.navItem} ${styles.navSubItem} ${pathname === '/dashboard/entities/media' ? styles.active : ''}`}
+                  >
+                    <span className={styles.navLabel}>{t('nav.entities.media')}</span>
+                  </Link>
                 </div>
               </div>
             )}
           </div>
           )}
 
-          {/* Tools - Below Entities */}
-          <Link
-            href="/dashboard/tools"
-            className={`${styles.navItem} ${pathname === '/dashboard/tools' || pathname.startsWith('/dashboard/tools/') ? styles.active : ''}`}
-          >
-            <Wrench className={styles.navIcon} />
-            <span className={styles.navLabel}>{t('nav.tools')}</span>
-          </Link>
+          {/* Tools Section (Technical SEO) - Expandable sub-items */}
+          <div className={styles.navGroup}>
+            <Link 
+              href="/dashboard/technical-seo"
+              className={`${styles.navItem} ${styles.navGroupToggle} ${pathname.startsWith('/dashboard/technical-seo') ? styles.active : ''}`}
+            >
+              <Wrench className={styles.navIcon} />
+              <span className={styles.navLabel}>{t('nav.tools.title')}</span>
+              <button 
+                className={styles.navChevronButton}
+                onClick={handleToolsChevronClick}
+                aria-label={openMenu === 'tools' ? t('common.collapse') : t('common.expand')}
+              >
+                <ChevronRight className={`${styles.navChevron} ${openMenu === 'tools' ? styles.navChevronOpen : ''}`} />
+              </button>
+            </Link>
+            <div className={`${styles.navGroupItems} ${openMenu === 'tools' ? styles.navGroupItemsOpen : ''}`}>
+              <div className={styles.navGroupItemsInner}>
+                {toolsItemsConfig.map((item) => {
+                  const isActive = pathname === item.path || pathname.startsWith(item.path + '/');
+                  
+                  return (
+                    <Link
+                      key={item.path}
+                      href={item.path}
+                      className={`${styles.navItem} ${styles.navSubItem} ${isActive ? styles.active : ''}`}
+                    >
+                      <span className={styles.navLabel}>{t(item.labelKey)}</span>
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
 
           {/* Settings - Below Tools */}
           <Link
@@ -258,9 +353,9 @@ export default function DashboardLayout({ children, title = 'Dashboard', breadcr
               >
                 <Shield className={styles.navIcon} />
                 <span className={styles.navLabel}>{t('nav.admin.title')}</span>
-                <ChevronRight className={`${styles.navChevron} ${isAdminOpen ? styles.navChevronOpen : ''}`} />
+                <ChevronRight className={`${styles.navChevron} ${openMenu === 'admin' ? styles.navChevronOpen : ''}`} />
               </button>
-              <div className={`${styles.navGroupItems} ${isAdminOpen ? styles.navGroupItemsOpen : ''}`}>
+              <div className={`${styles.navGroupItems} ${openMenu === 'admin' ? styles.navGroupItemsOpen : ''}`}>
                 <div className={styles.navGroupItemsInner}>
                   {adminMenuItemsConfig.map((item) => {
                     const Icon = item.icon;

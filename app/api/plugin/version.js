@@ -7,10 +7,14 @@
  */
 
 // Current plugin version - increment this when making updates
-export const PLUGIN_VERSION = "1.8.2";
+export const PLUGIN_VERSION = "1.8.3";
 
 // Changelog for the current version
 export const PLUGIN_CHANGELOG = `
+= 1.8.3 =
+* Updated permissions sync - ensures CPT_READ and other permissions are properly configured
+* Fixed custom post type access for entity sync
+
 = 1.8.2 =
 * FIXED: Critical PHP syntax errors in media manager (variable escaping)
 * Fixed all double-escaped variables causing fatal errors

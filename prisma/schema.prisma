@@ -26,6 +26,11 @@ model Account {
   billingEmail    String   // Email for invoices and billing notifications
   generalEmail    String   // General contact email for the account
   isActive        Boolean  @default(true)
+  
+  // AI Credits tracking
+  aiCreditsBalance   Int      @default(0)     // Current available AI credits
+  aiCreditsUsedTotal Int      @default(0)     // Total AI credits ever used
+  
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
   // Relations
@@ -34,6 +39,7 @@ model Account {
   subscription    Subscription?
   payments        Payment[]
   roles           Role[]
+  aiCreditsLogs   AiCreditsLog[]
 }
 
 // ==========================================
@@ -43,6 +49,7 @@ model Account {
 model Role {
   id              String       @id @default(auto()) @map("_id") @db.ObjectId
   accountId       String       @db.ObjectId
+  key             String?      // Unique key identifier (English only, e.g., "editor", "content_manager")
   name            String
   description     String?
   permissions     Permission[]
@@ -160,7 +167,7 @@ model AccountMember {
   invitedBy          String?           @db.ObjectId
   invitedAt          DateTime?
   inviteEmail        String?                             // Email for pending invites
-  inviteToken        String?           @unique           // Token for accepting invite
+  inviteToken        String?                             // Token for accepting invite
   inviteLanguage     String?                             // Language code for invite email (EN, HE, etc.)
   joinedAt           DateTime          @default(now())
   status             MemberStatus      @default(ACTIVE)
@@ -171,6 +178,11 @@ model AccountMember {
 
   @@unique([accountId, userId])
   @@unique([accountId, inviteEmail])
+  // Note: A user can only be owner of ONE account.
+  // This is enforced at the application level since MongoDB doesn't support
+  // partial unique indexes through Prisma. See lib/account-utils.js for validation.
+  @@index([userId, isOwner])
+  @@index([inviteToken])  // Index for fast lookup, not unique (allows null)
 }
 
 enum MemberStatus {
@@ -387,11 +399,15 @@ model Plan {
   yearlyPrice   Float?          // Yearly price (optional, if null = price * 10)
   currency      String          @default("USD")
   interval      BillingInterval @default(MONTHLY)
-  features      String[]
-  maxSites      Int             @default(1)
-  maxMembers    Int             @default(1)
-  maxKeywords   Int             @default(100)
-  maxContent    Int             @default(50)
+  
+  // Features - JSON array of {key, label} for plan capabilities
+  features      Json            @default("[]")
+  
+  // Limitations - JSON array of {key, label, value?, type?}
+  // All plan limitations are managed dynamically through this array
+  // Keys like 'maxSites', 'maxMembers', 'aiCredits' are used for enforcement
+  limitations   Json?           @default("[]")
+  
   isActive      Boolean         @default(true)
   sortOrder     Int             @default(0)
   createdAt     DateTime        @default(now())
@@ -407,7 +423,8 @@ model PlanTranslation {
   language    Language
   name        String
   description String?
-  features    String[] // Translated features in same order as Plan.features
+  features    Json?    // Translated features: [{key, label}]
+  limitations Json?    // Translated limitation labels: [{key, label}]
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -426,6 +443,7 @@ model Subscription {
   accountId          String             @unique @db.ObjectId
   planId             String             @db.ObjectId
   status             SubscriptionStatus @default(ACTIVE)
+  billingInterval    BillingInterval    @default(MONTHLY)  // Current billing interval
   currentPeriodStart DateTime
   currentPeriodEnd   DateTime
   cancelAtPeriodEnd  Boolean            @default(false)
@@ -433,9 +451,10 @@ model Subscription {
   createdAt          DateTime           @default(now())
   updatedAt          DateTime           @updatedAt
 
-  account  Account   @relation(fields: [accountId], references: [id], onDelete: Cascade)
-  plan     Plan      @relation(fields: [planId], references: [id])
-  payments Payment[]
+  account            Account            @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  plan               Plan               @relation(fields: [planId], references: [id])
+  payments           Payment[]
+  addOnPurchases     AddOnPurchase[]    // Purchased add-ons for this subscription
 }
 
 enum SubscriptionStatus {
@@ -444,6 +463,95 @@ enum SubscriptionStatus {
   PAST_DUE
   TRIALING
   EXPIRED
+}
+
+// ==========================================
+// ADD-ONS SYSTEM
+// ==========================================
+
+// Add-on product definitions (managed by admin)
+model AddOn {
+  id              String        @id @default(auto()) @map("_id") @db.ObjectId
+  name            String        @unique
+  slug            String        @unique
+  description     String?
+  type            AddOnType                     // Type of add-on
+  
+  // Pricing
+  price           Float                         // Price per unit
+  currency        String        @default("USD")
+  billingType     AddOnBillingType @default(RECURRING) // One-time or recurring
+  
+  // For quantity-based add-ons (e.g., AI Credits packs)
+  // null means add-on adds +1 of the resource
+  quantity        Int?                          // Quantity provided (e.g., 10000 for AI credits pack)
+  
+  isActive        Boolean       @default(true)
+  sortOrder       Int           @default(0)
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  purchases       AddOnPurchase[]
+  translations    AddOnTranslation[]
+}
+
+model AddOnTranslation {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  addOnId     String   @db.ObjectId
+  language    Language
+  name        String
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  addOn       AddOn    @relation(fields: [addOnId], references: [id], onDelete: Cascade)
+
+  @@unique([addOnId, language])
+}
+
+// Active add-on purchases for a subscription
+model AddOnPurchase {
+  id              String        @id @default(auto()) @map("_id") @db.ObjectId
+  subscriptionId  String        @db.ObjectId
+  addOnId         String        @db.ObjectId
+  quantity        Int           @default(1)     // How many of this add-on purchased
+  status          AddOnPurchaseStatus @default(ACTIVE)
+  
+  // For one-time purchases (like AI credits)
+  creditsRemaining Int?                         // Remaining credits from one-time purchase
+  
+  purchasedAt     DateTime      @default(now())
+  expiresAt       DateTime?                     // For recurring add-ons, matches subscription period
+  canceledAt      DateTime?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  subscription    Subscription  @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+  addOn           AddOn         @relation(fields: [addOnId], references: [id])
+
+  @@index([subscriptionId])
+  @@index([addOnId])
+}
+
+enum AddOnType {
+  SEATS           // Additional team members
+  SITES           // Additional websites
+  AI_CREDITS      // AI Credits pack
+  STORAGE         // Additional storage
+  KEYWORDS        // Additional keywords tracking
+  CONTENT         // Additional content items
+}
+
+enum AddOnBillingType {
+  RECURRING       // Billed every billing cycle
+  ONE_TIME        // One-time purchase (e.g., AI credits pack)
+}
+
+enum AddOnPurchaseStatus {
+  ACTIVE
+  EXPIRED
+  CANCELED
+  DEPLETED        // For one-time add-ons that are used up
 }
 
 model Payment {
@@ -468,6 +576,36 @@ enum PaymentStatus {
   COMPLETED
   FAILED
   REFUNDED
+}
+
+// AI Credits usage log for tracking and auditing
+model AiCreditsLog {
+  id          String          @id @default(auto()) @map("_id") @db.ObjectId
+  accountId   String          @db.ObjectId
+  userId      String?         @db.ObjectId  // User who triggered the usage (optional)
+  siteId      String?         @db.ObjectId  // Site context (optional)
+  
+  type        AiCreditsLogType              // Credit or debit
+  amount      Int                           // Number of credits
+  balance     Int                           // Balance after this transaction
+  
+  // Source tracking
+  source      String                        // e.g., "plan_renewal", "addon_purchase", "content_generation"
+  sourceId    String?                       // Related entity ID (addOnPurchaseId, contentId, etc.)
+  description String?                       // Human-readable description
+  
+  metadata    Json?                         // Additional context
+  createdAt   DateTime        @default(now())
+
+  account     Account         @relation(fields: [accountId], references: [id], onDelete: Cascade)
+
+  @@index([accountId])
+  @@index([createdAt])
+}
+
+enum AiCreditsLogType {
+  CREDIT      // Adding credits (purchase, plan renewal)
+  DEBIT       // Using credits (AI generation, etc.)
 }
 
 // ==========================================
@@ -579,6 +717,7 @@ model SiteEntityType {
   name        String   // Display name (e.g., "Blog Posts", "Projects")
   slug        String   // URL slug (e.g., "posts", "projects")
   apiEndpoint String?  // WordPress REST API endpoint (e.g., "posts", "pages", "project")
+  sitemaps    String[] // Sitemap URLs for this entity type
   isEnabled   Boolean  @default(true)
   sortOrder   Int      @default(0)
   createdAt   DateTime @default(now())
@@ -616,7 +755,7 @@ model SiteEntity {
   entityType SiteEntityType @relation(fields: [entityTypeId], references: [id], onDelete: Cascade)
 
   @@unique([siteId, entityTypeId, slug])
-  @@unique([siteId, externalId])
+  @@index([siteId, externalId])  // Index for fast lookup, not unique (allows null)
   @@index([siteId, entityTypeId])
 }
 
@@ -1032,17 +1171,26 @@ model I18nLanguage {
   @@map("i18n_languages")
 }
 
+// Application types for i18n translations
+enum I18nApplication {
+  PLATFORM  // gp-platform dashboard translations
+  WEBSITE   // gp-ws marketing website translations
+}
+
 model I18nKey {
-  id          String   @id @default(auto()) @map("_id") @db.ObjectId
-  key         String   @unique
+  id          String          @id @default(auto()) @map("_id") @db.ObjectId
+  key         String          @unique
   namespace   String
+  application I18nApplication @default(PLATFORM)
   description String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
 
   translations I18nTranslation[]
 
   @@index([namespace])
+  @@index([application])
+  @@index([application, namespace])
   @@map("i18n_keys")
 }
 
@@ -1052,6 +1200,7 @@ model I18nTranslation {
   languageId  String            @db.ObjectId
   key         String            // Denormalized key string
   namespace   String            // Denormalized namespace
+  application I18nApplication   @default(PLATFORM)  // Denormalized application
   locale      String            // Denormalized locale
   value       String
   status      TranslationStatus @default(APPROVED)
@@ -1065,6 +1214,7 @@ model I18nTranslation {
 
   @@index([languageId, namespace, status])
   @@index([locale, namespace, status])
+  @@index([application, locale, isLatest])
   @@index([keyId])
   @@index([keyId, languageId, isLatest])
   @@map("i18n_translations")

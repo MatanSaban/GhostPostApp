@@ -147,7 +147,7 @@
 }
 
 .opportunityMeta {
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   color: var(--muted-foreground);
 }
 
@@ -158,13 +158,13 @@
 }
 
 .scoreLabel {
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   color: var(--muted-foreground);
 }
 
 .scoreValue {
   padding: 0.25rem 0.75rem;
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   font-weight: 600;
   border-radius: var(--radius-md);
 
@@ -194,7 +194,7 @@
 
 .contactButton {
   padding: 0.5rem 1rem;
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   font-weight: 500;
   color: var(--primary);
   background: rgba(123, 44, 191, 0.1);
@@ -226,7 +226,7 @@
   grid-template-columns: 2fr 1fr 1fr 1fr;
   gap: 1rem;
   padding: 0.75rem 1rem;
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   font-weight: 500;
   color: var(--muted-foreground);
   border-bottom: 1px solid var(--border-light);
@@ -303,7 +303,7 @@
 }
 
 .domainUrl {
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   color: var(--muted-foreground);
   white-space: nowrap;
   overflow: hidden;

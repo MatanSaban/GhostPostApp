@@ -89,6 +89,19 @@
     "characters": "תווים"
   },
   "media": {
+    "title": "ספריית מדיה",
+    "items": "פריטים",
+    "search": "חיפוש מדיה...",
+    "upload": "העלאה",
+    "noMedia": "לא נמצאו פריטי מדיה",
+    "selectSite": "בחר אתר כדי לצפות במדיה",
+    "details": "פרטים",
+    "altText": "טקסט חלופי (Alt)",
+    "mediaTitle": "כותרת",
+    "caption": "כיתוב",
+    "description": "תיאור",
+    "url": "כתובת הקובץ",
+    "confirmDelete": "האם אתה בטוח שברצונך למחוק את פריט המדיה הזה?",
     "modal": {
       "title": "ספריית מדיה",
       "library": "ספריית מדיה",
@@ -204,25 +217,38 @@
   },
   "nav": {
     "dashboard": "לוח בקרה",
-    "siteInterview": "ראיון אתר",
-    "contentPlanner": "תכנון תוכן",
-    "aiContentWizard": "אשף תוכן AI",
+    "siteInterview": "פרופיל אתר",
+    "strategy": {
+      "title": "אסטרטגיה",
+      "siteProfile": "פרופיל אתר",
+      "keywords": "מחקר מילות מפתח",
+      "contentPlanner": "יומן תוכן",
+      "aiWizard": "אשף תוכן AI",
+      "competitorAnalysis": "ניתוח מתחרים"
+    },
     "automations": "אוטומציות",
     "linkBuilding": "בניית קישורים",
     "redirections": "הפניות",
     "seoFrontend": "SEO חזית",
     "seoBackend": "SEO שרת",
     "siteAudit": "ביקורת אתר",
-    "keywordStrategy": "אסטרטגיית מילות מפתח",
-    "tools": "כלים",
+    "tools": {
+      "title": "SEO טכני",
+      "overview": "כל הכלים",
+      "interview": "פרופיל אתר",
+      "redirections": "הפניות",
+      "webpConverter": "ממיר WebP",
+      "siteAudit": "דו״ח בריאות"
+    },
     "settings": "הגדרות",
     "entities": {
-      "title": "ישויות",
+      "title": "נכסי האתר",
       "pages": "דפים",
       "posts": "פוסטים",
       "projects": "פרויקטים",
       "services": "שירותים",
       "products": "מוצרים",
+      "media": "מדיה",
       "other": "אחר"
     },
     "admin": {
@@ -234,7 +260,8 @@
       "interviewQuestions": "שאלות ראיון",
       "translations": "תרגומים",
       "interviewFlow": "מסלול ראיון",
-      "botActions": "פעולות בוט"
+      "botActions": "פעולות בוט",
+      "website": "תוכן אתר"
     }
   },
   "dashboard": {
@@ -490,8 +517,35 @@
       "updatedMetaDescriptions": "עודכנו {count} תיאורי מטא"
     }
   },
+  "strategy": {
+    "overview": {
+      "title": "אסטרטגיה",
+      "subtitle": "תכנן ומטב את אסטרטגיית התוכן שלך עם כלים מונעי AI",
+      "openFeature": "פתח תכונה"
+    },
+    "siteProfile": {
+      "title": "פרופיל אתר",
+      "cardDescription": "הגדר את הזהות האתר, קהל היעד ומטרות העסק כדי להניע המלצות SEO מונעות AI."
+    },
+    "keywords": {
+      "title": "מחקר מילות מפתח",
+      "cardDescription": "חקור ועקוב אחר דירוג מילות מפתח, גלה הזדמנויות חדשות ומטב את התוכן שלך למנועי חיפוש."
+    },
+    "contentPlanner": {
+      "title": "יומן תוכן",
+      "cardDescription": "תכנן, תזמן וארגן את לוח השנה של התוכן שלך. עקוב אחר טיוטות, פוסטים מתוזמנים ותוכן שפורסם."
+    },
+    "aiWizard": {
+      "title": "אשף תוכן AI",
+      "cardDescription": "צור תקצירי תוכן ומתווים ממוטבי SEO באמצעות AI. קבל הצעות לכותרות, כותרות משנה ונקודות מפתח."
+    },
+    "competitorAnalysis": {
+      "title": "ניתוח מתחרים",
+      "cardDescription": "נתח את אסטרטגיות ה-SEO של המתחרים שלך, גלה את מילות המפתח המובילות שלהם ומצא פערי תוכן לניצול."
+    }
+  },
   "contentPlanner": {
-    "title": "תכנון תוכן",
+    "title": "יומן תוכן",
     "subtitle": "תכנן ותזמן את התוכן שלך עם תובנות מונעות AI",
     "addContent": "הוסף תוכן",
     "calendar": "לוח שנה",
@@ -538,7 +592,7 @@
     }
   },
   "keywordStrategy": {
-    "title": "אסטרטגיית מילות מפתח",
+    "title": "מחקר מילות מפתח",
     "subtitle": "עקוב אחר דירוגים וגלה הזדמנויות מילות מפתח חדשות",
     "addKeyword": "הוסף מילת מפתח",
     "importKeywords": "ייבוא מילות מפתח",
@@ -581,8 +635,42 @@
       "hard": "קשה"
     }
   },
+  "competitorAnalysis": {
+    "title": "ניתוח מתחרים",
+    "subtitle": "נתח ועקוב אחר אסטרטגיות ה-SEO של המתחרים שלך",
+    "selectSite": "בחר אתר כדי לנתח מתחרים",
+    "addCompetitor": "הוסף מתחרה",
+    "addFirstCompetitor": "הוסף את המתחרה הראשון שלך",
+    "trackedCompetitors": "מתחרים במעקב",
+    "sharedKeywords": "מילות מפתח משותפות",
+    "contentGaps": "פערי תוכן",
+    "noCompetitors": "לא נוספו מתחרים",
+    "noCompetitorsDescription": "התחל לעקוב אחר המתחרים שלך כדי לגלות הזדמנויות מילות מפתח ופערי תוכן."
+  },
+  "siteAudit": {
+    "title": "דו״ח בריאות",
+    "subtitle": "נתח את בריאות ה-SEO הטכני והביצועים של האתר שלך",
+    "selectSite": "בחר אתר להרצת הבדיקה",
+    "startScan": "הרץ בדיקה",
+    "scanning": "סורק...",
+    "runFirstScan": "הרץ את הבדיקה הראשונה שלך",
+    "healthScore": "ציון בריאות",
+    "passed": "עברו",
+    "warnings": "אזהרות",
+    "errors": "שגיאות",
+    "performance": "ביצועים",
+    "performanceDescription": "מהירות טעינה, זמני תגובה ומדדי Core Web Vitals",
+    "seoHealth": "בריאות SEO",
+    "seoHealthDescription": "תגיות מטא, נתונים מובנים וגורמי SEO בדף",
+    "security": "אבטחה",
+    "securityDescription": "תעודת SSL, סטטוס HTTPS וכותרות אבטחה",
+    "mobileFriendly": "ידידותי לנייד",
+    "mobileFriendlyDescription": "עיצוב רספונסיבי ובדיקות שימושיות בנייד",
+    "noScans": "אין בדיקות עדיין",
+    "noScansDescription": "הרץ את הבדיקה הראשונה שלך כדי לקבל דו״ח בריאות מקיף של האתר."
+  },
   "entities": {
-    "title": "ישויות האתר",
+    "title": "תוכן האתר",
     "subtitle": "צפה ונהל תוכן מהאתר שלך",
     "pages": {
       "title": "דפים",
@@ -620,8 +708,20 @@
       "empty": "לא נמצא תוכן אחר",
       "emptyDescription": "סנכרן את האתר שלך לייבוא תוכן אחר"
     },
+    "crawl": {
+      "title": "סריקת אתר",
+      "description": "סרוק את האתר שלך כדי לייבא תוכן כולל כותרות, תיאורי מטא ונתוני SEO.",
+      "descriptionConnected": "סנכרן תוכן ישירות מאתר ה-WordPress שלך באמצעות התוסף.",
+      "scan": "סרוק אתר",
+      "rescan": "סרוק שוב",
+      "start": "סרוק תוכן",
+      "populating": "מביא תוכן מהאתר...",
+      "deepCrawling": "סורק עמודים לעומק למטא-דאטה...",
+      "completed": "הסריקה הושלמה!",
+      "failed": "הסריקה נכשלה. נסה שוב."
+    },
     "sync": {
-      "title": "אכלוס ישויות",
+      "title": "אכלוס תוכן",
       "description": "ייבא את כל התוכן מאתר ה-WordPress שלך כולל פוסטים, עמודים, תפריטים, נתוני SEO ושדות מותאמים.",
       "populate": "אכלס מ-WordPress",
       "syncing": "מסנכרן...",
@@ -634,7 +734,10 @@
       "completed": "הסנכרון הושלם בהצלחה!",
       "failed": "הסנכרון נכשל. נסה שוב.",
       "cancelled": "הסנכרון בוטל.",
-      "lastSync": "סונכרן לאחרונה"
+      "lastSync": "סונכרן לאחרונה",
+      "deepCrawl": "סריקה עמוקה",
+      "deepCrawling": "סורק עמודים לעומק...",
+      "deepCrawlCompleted": "הסריקה העמוקה הושלמה! הועשרו {count} ישויות."
     },
     "syncingEntity": "מסנכרן \"{name}\"...",
     "syncEntity": "סנכרן \"{name}\"",
@@ -652,6 +755,11 @@
     "viewOnSite": "צפה באתר",
     "search": "חפש ישויות...",
     "totalEntities": "סה״כ ישויות",
+    "totalWithName": "סה״כ {entityName}",
+    "publishedWithName": "{entityName} פורסמו",
+    "draftWithName": "{entityName} בטיוטה",
+    "scheduledWithName": "{entityName} מתוזמנים",
+    "pendingWithName": "{entityName} ממתינים",
     "syncFailed": "הסנכרון נכשל",
     "syncSuccess": "האתר סונכרן בהצלחה",
     "noSiteSelected": "לא נבחר אתר",
@@ -671,13 +779,16 @@
       "found": "נמצאו {count} סוגי תוכן באתר שלך",
       "noTypes": "לא נמצאו סוגי תוכן",
       "noTypesDescription": "לחץ על הכפתור למטה כדי לסרוק את האתר שלך",
-      "scan": "סרוק אתר"
+      "scan": "סרוק אתר",
+      "rescan": "סרוק שוב"
     },
     "types": {
       "select": "בחר סוגי ישויות",
       "selectDescription": "בחר אילו סוגי תוכן ברצונך לייבא ולנהל",
       "save": "שמור סוגי ישויות",
+      "saveAndPopulate": "שמור ואכלס ישויות",
       "enabled": "סוגי ישויות פעילים",
+      "configured": "סוגי תוכן מוגדרים",
       "pages": "עמודים",
       "posts": "פוסטים",
       "projects": "פרויקטים",
@@ -687,15 +798,17 @@
     },
     "plugin": {
       "title": "תוסף WordPress",
-      "description": "כדי לסנכרן תוכן אוטומטית מאתר ה-WordPress שלך, תצטרך להתקין את התוסף Ghost Post Connect.",
+      "description": "כדי לסנכרן תוכן אוטומטית מאתר ה-WordPress שלך, התקן את התוסף Ghost Post Connect.",
+      "connectedDesc": "התוסף פעיל ומסנכרן תוכן",
+      "notConnectedDesc": "התקן את התוסף לסנכרון תוכן אוטומטי",
       "download": "הורד תוסף",
       "downloading": "מוריד...",
       "instructions": {
         "title": "הוראות התקנה",
-        "step1": "הורד את קובץ התוסף (.zip) על ידי לחיצה על הכפתור למטה",
-        "step2": "עבור ללוח הבקרה של WordPress שלך ← תוספים ← הוסף חדש ← העלה תוסף",
+        "step1": "הורד את קובץ התוסף (.zip) על ידי לחיצה על הכפתור למעלה",
+        "step2": "עבור ללוח הבקרה של WordPress ← תוספים ← הוסף חדש ← העלה תוסף",
         "step3": "בחר את קובץ ה-ZIP שהורדת ולחץ על \"התקן עכשיו\"",
-        "step4": "הפעל את התוסף והזן את מפתח ה-API שיוצג בהגדרות"
+        "step4": "הפעל את התוסף - הוא יתחבר אוטומטית"
       }
     },
     "untitled": "ללא כותרת",
@@ -796,9 +909,22 @@
     }
   },
   "tools": {
-    "title": "כלים",
+    "title": "SEO טכני",
     "subtitle": "כלי עזר ואופטימיזציה לאתר שלך",
     "selectSite": "בחר אתר כדי להשתמש בכלים",
+    "overview": {
+      "title": "SEO טכני",
+      "subtitle": "גישה לכל הכלים הטכניים לאופטימיזציה וניהול האתר שלך",
+      "openTool": "פתח כלי"
+    },
+    "interview": {
+      "title": "פרופיל אתר",
+      "description": "ענה על שאלות לגבי האתר שלך כדי לעזור לנו לייעל את התוכן ואסטרטגיית ה-SEO שלך"
+    },
+    "redirections": {
+      "title": "הפניות",
+      "description": "נהל הפניות URL כדי לשמר ערך SEO ולתקן קישורים שבורים"
+    },
     "webp": {
       "title": "המרת תמונות ל-WebP",
       "description": "המר את התמונות שלך לפורמט WebP לטעינה מהירה יותר ו-SEO טוב יותר",
@@ -838,6 +964,10 @@
       "addingToQueue": "מוסיף לתור...",
       "addedToQueue": "{count} תמונות נוספו לתור ההמרה"
     },
+    "siteAudit": {
+      "title": "דו״ח בריאות",
+      "description": "הרץ בדיקות מקיפות לניתוח בריאות ה-SEO הטכני והביצועים של האתר שלך"
+    },
     "ai": {
       "title": "אופטימיזציית תמונות עם AI",
       "description": "השתמש ב-AI ליצירת שמות קבצים וטקסט חלופי ידידותיים לקידום אתרים",
@@ -869,6 +999,10 @@
   "settings": {
     "title": "הגדרות",
     "subtitle": "הגדר את העדפות Ghost Post והאינטגרציות שלך",
+    "mainTabs": {
+      "website": "האתר הנוכחי",
+      "account": "חשבון"
+    },
     "general": "כללי",
     "aiConfiguration": "תצורת AI",
     "scheduling": "תזמון",
@@ -1136,6 +1270,11 @@
       "roles": {
         "owner": "בעלים",
         "admin": "מנהל",
+        "ceo": "מנכ\"ל",
+        "cfo": "סמנכ\"ל כספים",
+        "manager": "מנהל",
+        "team_lead": "ראש צוות",
+        "employee": "עובד",
         "editor": "עורך",
         "viewer": "צופה"
       },
@@ -1176,6 +1315,11 @@
       "roles": {
         "owner": "בעלים",
         "admin": "מנהל",
+        "ceo": "מנכ\"ל",
+        "cfo": "סמנכ\"ל כספים",
+        "manager": "מנהל",
+        "team_lead": "ראש צוות",
+        "employee": "עובד",
         "editor": "עורך",
         "viewer": "צופה",
         "user": "משתמש"
@@ -1215,11 +1359,15 @@
       "updatePaymentMethod": "עדכן אמצעי תשלום",
       "viewInvoices": "צפה בחשבוניות",
       "perMonth": "לחודש",
+      "perYear": "לשנה",
+      "cancelsAtPeriodEnd": "מתבטל בסוף התקופה",
       "statuses": {
         "active": "פעיל",
         "cancelled": "בוטל",
+        "canceled": "בוטל",
         "expired": "פג תוקף",
-        "trialing": "בניסיון"
+        "trialing": "בניסיון",
+        "past_due": "חוב בפיגור"
       }
     },
     "roles": "תפקידים",
@@ -1230,6 +1378,9 @@
       "addRole": "הוסף תפקיד",
       "editRole": "ערוך תפקיד",
       "deleteRole": "מחק תפקיד",
+      "key": "מפתח",
+      "keyPlaceholder": "למשל: editor, content_manager",
+      "keyHint": "אותיות באנגלית, מספרים, קווים תחתונים ומקפים בלבד",
       "roleName": "שם התפקיד",
       "namePlaceholder": "הזן שם תפקיד",
       "descriptionPlaceholder": "הזן תיאור תפקיד (אופציונלי)",
@@ -1297,6 +1448,7 @@
         "settings_seo": "הגדרות SEO",
         "settings_integrations": "אינטגרציות",
         "settings_team": "צוות",
+        "settings_users": "משתמשים",
         "settings_roles": "תפקידים והרשאות",
         "settings_subscription": "מנוי"
       },
@@ -1379,7 +1531,22 @@
       "confirmPasswordPlaceholder": "אשר סיסמה חדשה",
       "dangerZone": "אזור סכנה",
       "deleteAccount": "מחק חשבון",
-      "deleteAccountDesc": "מחק לצמיתות את החשבון וכל הנתונים שלך"
+      "deleteAccountDesc": "מחק לצמיתות את החשבון וכל הנתונים שלך",
+      "deleteAccountTitle": "מחיקת חשבון לצמיתות",
+      "deleteAccountWarning": "פעולה זו היא בלתי הפיכה. לאחר מחיקת החשבון, לא ניתן יהיה לשחזר את הנתונים.",
+      "deleteAccountConsequences": "מה יימחק:",
+      "deleteAccountConsequence1": "כל האתרים המקושרים לחשבון",
+      "deleteAccountConsequence2": "כל התוכן, מילות המפתח והנתונים",
+      "deleteAccountConsequence3": "כל חברי הצוות יאבדו גישה",
+      "deleteAccountConsequence4": "המנוי יבוטל ללא החזר",
+      "deleteAccountConfirmLabel": "כדי לאשר, הקלד \"מחיקת חשבון\" בשדה למטה:",
+      "deleteAccountConfirmPlaceholder": "הקלד מחיקת חשבון",
+      "deleteAccountConfirmText": "מחיקת חשבון",
+      "deleteAccountButton": "מחק חשבון לצמיתות",
+      "deleteAccountCancel": "ביטול",
+      "deleteAccountDeleting": "מוחק...",
+      "deleteAccountSuccess": "החשבון נמחק בהצלחה",
+      "deleteAccountError": "שגיאה במחיקת החשבון"
     }
   },
   "notifications": {
@@ -1415,7 +1582,9 @@
   },
   "user": {
     "profile": "פרופיל",
+    "myProfile": "הפרופיל שלי",
     "credits": "קרדיטים",
+    "aiCredits": "קרדיטים",
     "plan": "תוכנית",
     "upgrade": "שדרג",
     "manageAccount": "נהל חשבון",
@@ -1429,6 +1598,77 @@
       "starter": "מתחיל",
       "pro": "מקצועי",
       "enterprise": "ארגוני"
+    }
+  },
+  "profile": {
+    "title": "הפרופיל שלי",
+    "subtitle": "נהל את הפרטים האישיים והגדרות האבטחה שלך",
+    "tabs": {
+      "personal": "פרטים אישיים",
+      "security": "אבטחה",
+      "connections": "חשבונות מקושרים"
+    },
+    "saveSuccess": "הפרופיל נשמר בהצלחה",
+    "saveError": "שמירת הפרופיל נכשלה",
+    "verified": "מאומת",
+    "personalInfo": {
+      "title": "פרטים אישיים",
+      "description": "עדכן את הפרטים האישיים ופרטי הקשר שלך",
+      "firstName": "שם פרטי",
+      "firstNamePlaceholder": "הזן את שמך הפרטי",
+      "lastName": "שם משפחה",
+      "lastNamePlaceholder": "הזן את שם המשפחה שלך",
+      "email": "כתובת אימייל",
+      "emailHint": "פנה לתמיכה לשינוי כתובת האימייל",
+      "phone": "מספר טלפון",
+      "phonePlaceholder": "050-000-0000"
+    },
+    "image": {
+      "hint": "לחץ להעלאת תמונת פרופיל חדשה",
+      "formats": "JPG, PNG או GIF. עד 5MB.",
+      "invalidType": "נא להעלות קובץ תמונה",
+      "tooLarge": "התמונה חייבת להיות קטנה מ-5MB",
+      "uploadSuccess": "תמונת הפרופיל עודכנה",
+      "uploadError": "העלאת התמונה נכשלה"
+    },
+    "security": {
+      "title": "אבטחה",
+      "description": "נהל את הסיסמה והחשבונות המקושרים שלך"
+    },
+    "password": {
+      "title": "סיסמה",
+      "current": "סיסמה נוכחית",
+      "new": "סיסמה חדשה",
+      "confirm": "אישור סיסמה חדשה",
+      "requirements": "דרישות סיסמה:",
+      "minLength": "לפחות 8 תווים",
+      "change": "שנה סיסמה",
+      "allFieldsRequired": "נא למלא את כל שדות הסיסמה",
+      "mismatch": "הסיסמאות החדשות לא תואמות",
+      "tooShort": "הסיסמה חייבת להכיל לפחות 8 תווים",
+      "changeSuccess": "הסיסמה שונתה בהצלחה",
+      "changeError": "שינוי הסיסמה נכשל"
+    },
+    "connectedAccounts": {
+      "title": "חשבונות מקושרים",
+      "description": "נהל את החשבונות החברתיים המקושרים להתחברות קלה יותר",
+      "connected": "מחובר",
+      "connect": "חבר",
+      "disconnect": "נתק",
+      "google": "Google"
+    },
+    "google": {
+      "disconnectConfirm": "האם אתה בטוח שברצונך לנתק את חשבון Google?",
+      "disconnectSuccess": "חשבון Google נותק",
+      "disconnectError": "ניתוק חשבון Google נכשל"
+    },
+    "twoFactor": {
+      "title": "אימות דו-שלבי",
+      "description": "הוסף שכבת אבטחה נוספת לחשבון שלך",
+      "status": "סטטוס",
+      "disabled": "לא מופעל",
+      "enabled": "מופעל",
+      "enable": "הפעל אימות דו-שלבי"
     }
   },
   "sites": {
@@ -1722,8 +1962,8 @@
       "fetchingBlogPosts": "מביא את המאמרים האחרונים מהבלוג שלך..."
     },
     "questions": {
-      "welcome": "👋 שלום! אני סוכן ה-AI Ghost שלך. אעזור לך ליצור פרופיל SEO מקיף לאתר שלך. בוא נתחיל!",
-      "websiteUrl": "מה כתובת האתר שלך?",
+      "welcome": "👋 שלום! אני סוכן ה-AI Ghost שלך. אעזור לך ליצור פרופיל SEO מקיף לאתר שלך.",
+      "websiteUrl": "בוא נתחיל - מה כתובת האתר שלך?",
       "businessType": "איזה סוג עסק אתה מנהל?",
       "primaryProducts": "מהם המוצרים או השירותים העיקריים שלך? תאר מה אתה מציע ללקוחות שלך.",
       "targetAudience": "מיהו קהל היעד שלך? ספר לי על הדמוגרפיה, התחומי עניין וההתנהגויות שלהם.",
@@ -1790,6 +2030,63 @@
     },
     "hints": {
       "pressEnterToAdd": "לחץ Enter להוספה"
+    },
+    "proactive": {
+      "gettingStarted": "מתחילים",
+      "analyzing": "מנתח את האתר שלך...",
+      "urlPlaceholder": "הכנס כתובת אתר (למשל: www.example.com)",
+      "editPlaceholder": "הקלד את התיקון שלך...",
+      "confirmSelection": "אישור בחירה",
+      "yourSite": "האתר שלך",
+      "analysisDone": "סיימתי לנתח את האתר! זיהיתי שהוא בנוי על {platform} ובשפה {language}.",
+      "analysisError": "לא הצלחתי לגשת לאתר: {error}. אנא בדוק את הכתובת ונסה שוב.",
+      "identityWithNiche": "סיימתי את הסריקה. אני רואה שזהו אתר של **{name}** המתמחה ב**{niche}**. אני צודק?",
+      "identityBasic": "סיימתי את הסריקה. אני רואה שזהו האתר של **{name}**. האם זה נכון?",
+      "goalsConfirm": "על בסיס הניתוח, נראה שהמטרות העיקריות שלך הן: **{goals}**. האם אלו המטרות שלך?",
+      "audienceConfirm": "נראה שקהל היעד שלך הוא: **{audience}**. האם זה מדויק?",
+      "competitorsFound": "מצאתי {count} מתחרים מובילים בתחום שלך בתוצאות החיפוש. בחר את אלה הרלוונטיים או הוסף חדשים:",
+      "competitorsAdd": "לא מצאתי מתחרים ספציפיים. תוכל להוסיף את המתחרים שלך ידנית:",
+      "keywordsFound": "זיהיתי את מילות המפתח הבאות מהאתר שלך: **{keywords}**. האם אלו המילים שאתה רוצה לדרג בהן?",
+      "keywordsAdd": "לא מצאתי מילות מפתח ברורות. מהן מילות המפתח העיקריות שאתה רוצה לדרג בהן?",
+      "niches": {
+        "law": "משפטים ועריכת דין",
+        "medical": "רפואה ובריאות",
+        "dental": "רפואת שיניים",
+        "real-estate": "נדל\"ן",
+        "ecommerce": "מסחר אלקטרוני",
+        "restaurant": "מסעדנות ומזון",
+        "tech": "טכנולוגיה ותוכנה",
+        "marketing": "שיווק ופרסום",
+        "education": "חינוך והכשרה",
+        "finance": "פיננסים והשקעות"
+      }
+    },
+    "analysis": {
+      "analyzing": "מנתח את האתר שלך",
+      "complete": "הניתוח הושלם",
+      "error": "שגיאה בניתוח",
+      "logs": {
+        "handshake": "יוצר חיבור מאובטח עם {url}...",
+        "architecture": "מנתח ארכיטקטורת האתר וזיהוי פלטפורמה...",
+        "platform": "מזהה את מערכת ניהול התוכן...",
+        "entities": "מחלץ ישויות סמנטיות עיקריות...",
+        "seo": "בודק 50+ סיגנלים לבריאות SEO...",
+        "keywords": "מזהה מילות מפתח ונושאים מרכזיים...",
+        "competitors": "מנתח תחרות בתוצאות החיפוש...",
+        "synthesis": "מסנתז פרופיל אסטרטגיית AI...",
+        "complete": "הניתוח הושלם. מכין את הסיכום שלך."
+      }
+    },
+    "competitors": {
+      "maxReached": "ניתן לבחור עד {max} מתחרים",
+      "invalidUrl": "כתובת URL לא חוקית",
+      "alreadyExists": "מתחרה זה כבר קיים ברשימה",
+      "manuallyAdded": "נוספו ידנית",
+      "urlPlaceholder": "הכנס כתובת אתר של מתחרה...",
+      "add": "הוסף",
+      "addManually": "הוסף מתחרה ידנית",
+      "selected": "{count} מתוך {max} נבחרו",
+      "inSearch": "בתוצאות החיפוש"
     },
     "useSuggestion": "השתמש בזה",
     "validation": {
@@ -2349,15 +2646,39 @@
         "selectLanguage": "בחר שפה",
         "original": "מקור",
         "save": "שמור תרגום",
+        "saved": "התרגום נשמר בהצלחה",
         "deleteTranslation": "מחק תרגום",
-        "featuresPlaceholder": "תכונה אחת בכל שורה",
-        "featuresHint": "הזן תכונה אחת בכל שורה. שמור על אותו מספר וסדר תכונות כמו במקור."
+        "confirmDelete": "האם אתה בטוח שברצונך למחוק תרגום זה?",
+        "features": "תרגום תכונות",
+        "featuresHint": "תרגם את שמות התכונות שיוצגו למשתמשים",
+        "limitations": "תרגום מגבלות",
+        "limitationsHint": "תרגם את שמות המגבלות שיוצגו למשתמשים"
       },
       "noPlans": "לא הוגדרו תוכניות",
       "form": {
         "monthly": "חודשי",
         "yearly": "שנתי",
-        "yearlyPlaceholder": "השאר ריק למחיר × 10"
+        "yearlyPlaceholder": "השאר ריק למחיר × 10",
+        "limitations": "מגבלות",
+        "maxMembers": "חברי צוות",
+        "maxSites": "אתרים",
+        "aiCredits": "קרדיטים AI",
+        "maxKeywords": "מילות מפתח",
+        "maxContent": "תכנים",
+        "addOnLimits": "הרחבות רכישה",
+        "addOnLimitsHint": "השאר ריק לללא הגבלה",
+        "maxAddOnSeats": "מושבים נוספים (מקס)",
+        "maxAddOnSites": "אתרים נוספים (מקס)",
+        "unlimitedPlaceholder": "∞",
+        "addLimitation": "הוסף מגבלה...",
+        "addCustomLimitation": "הוסף מגבלה מותאמת אישית",
+        "noLimitations": "לא הוגדרו מגבלות. הוסף מגבלות מהרשימה או צור מגבלה מותאמת אישית.",
+        "limitationKey": "מפתח (אנגלית)",
+        "limitationLabel": "שם לתצוגה",
+        "addFeature": "הוסף תכונה",
+        "noFeatures": "לא הוגדרו תכונות. לחץ + להוספה.",
+        "featureKey": "מפתח (אנגלית)",
+        "featureLabel": "שם לתצוגה"
       },
       "planNames": {
         "free": "חינם",

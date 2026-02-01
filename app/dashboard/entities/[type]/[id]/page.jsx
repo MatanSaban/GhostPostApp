@@ -25,6 +25,16 @@ import { ACFFields } from './components/ACFFields';
 import { MetadataFields } from './components/MetadataFields';
 import { ImagePickerField } from './components/ImagePickerField';
 
+// Helper to decode URL-encoded strings (like Hebrew text)
+const decodeText = (text) => {
+  if (!text) return '';
+  try {
+    return decodeURIComponent(text);
+  } catch {
+    return text;
+  }
+};
+
 export default function EntityEditPage({ params }) {
   const { type, id } = use(params);
   const router = useRouter();
@@ -71,11 +81,11 @@ export default function EntityEditPage({ params }) {
       const data = await response.json();
       setEntity(data.entity);
       
-      // Initialize form data
+      // Initialize form data with decoded text fields
       setFormData({
-        title: data.entity.title || '',
-        slug: data.entity.slug || '',
-        excerpt: data.entity.excerpt || '',
+        title: decodeText(data.entity.title),
+        slug: decodeText(data.entity.slug),
+        excerpt: decodeText(data.entity.excerpt),
         content: data.entity.content || '',
         status: data.entity.status || 'DRAFT',
         featuredImage: data.entity.featuredImage || '',

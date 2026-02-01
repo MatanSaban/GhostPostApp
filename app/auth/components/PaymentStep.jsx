@@ -5,12 +5,22 @@ import { CreditCard, Lock, Loader2 } from 'lucide-react';
 import { ArrowIcon } from '@/app/components/ui/arrow-icon';
 import styles from '../auth.module.css';
 
-export function PaymentStep({ translations, selectedPlan, onComplete }) {
+export function PaymentStep({ translations, selectedPlan, userData, onComplete }) {
+  // Auto-populate cardholder name from user's first and last name
+  const defaultCardholderName = userData 
+    ? `${userData.firstName || ''} ${userData.lastName || ''}`.trim()
+    : '';
+  
+  // Default billing email from registration
+  const defaultBillingEmail = userData?.email || '';
+
   const [formData, setFormData] = useState({
     cardNumber: '',
     expiry: '',
     cvv: '',
-    cardholderName: '',
+    cardholderName: defaultCardholderName,
+    citizenId: '',
+    billingEmail: defaultBillingEmail,
   });
   const [isProcessing, setIsProcessing] = useState(false);
 
@@ -31,6 +41,8 @@ export function PaymentStep({ translations, selectedPlan, onComplete }) {
         .slice(0, 5);
     } else if (name === 'cvv') {
       formattedValue = value.replace(/\D/g, '').slice(0, 4);
+    } else if (name === 'citizenId') {
+      formattedValue = value.replace(/\D/g, '').slice(0, 9);
     }
 
     setFormData(prev => ({
@@ -54,7 +66,29 @@ export function PaymentStep({ translations, selectedPlan, onComplete }) {
     formData.cardNumber.length > 0 &&
     formData.expiry.length > 0 &&
     formData.cvv.length > 0 &&
-    formData.cardholderName.trim().length > 0;
+    formData.cardholderName.trim().length > 0 &&
+    formData.citizenId.length >= 5 &&
+    formData.billingEmail.includes('@');
+
+  // Calculate prices (convert USD to ILS)
+  const USD_TO_ILS_RATE = 3.6;
+  const VAT_RATE = 0.18;
+  
+  const getPriceBreakdown = (plan) => {
+    if (!plan?.monthlyPrice) return { basePrice: 0, vatAmount: 0, totalPrice: 0 };
+    
+    let basePrice = plan.monthlyPrice;
+    if (plan.currency === 'USD' || !plan.currency) {
+      basePrice = Math.round(plan.monthlyPrice * USD_TO_ILS_RATE);
+    }
+    
+    const vatAmount = Math.round(basePrice * VAT_RATE);
+    const totalPrice = basePrice + vatAmount;
+    
+    return { basePrice, vatAmount, totalPrice };
+  };
+
+  const priceBreakdown = getPriceBreakdown(selectedPlan);
 
   return (
     <div className={styles.paymentContainer}>
@@ -73,12 +107,20 @@ export function PaymentStep({ translations, selectedPlan, onComplete }) {
               <span>{selectedPlan?.name}</span>
             </div>
             <div className={styles.orderRow}>
-              <span>{translations.billingCycle}</span>
-              <span>{selectedPlan?.period?.replace('/', '')}</span>
+              <span>{translations.subscriptionType || 'סוג מנוי'}</span>
+              <span>{translations.monthly || 'חודשי'}</span>
+            </div>
+            <div className={styles.orderRow}>
+              <span>{translations.planPrice || 'מחיר תוכנית'}</span>
+              <span>₪{priceBreakdown.basePrice}</span>
+            </div>
+            <div className={styles.orderRow}>
+              <span>{translations.vat || 'מע״מ (18%)'}</span>
+              <span>₪{priceBreakdown.vatAmount}</span>
             </div>
             <div className={`${styles.orderRow} ${styles.orderTotal}`}>
               <span>{translations.total}</span>
-              <span>{selectedPlan?.price}{selectedPlan?.period}</span>
+              <span>₪{priceBreakdown.totalPrice}{selectedPlan?.period}</span>
             </div>
           </div>
         </div>
@@ -102,6 +144,40 @@ export function PaymentStep({ translations, selectedPlan, onComplete }) {
           </div>
 
           <div className={styles.formGroup}>
+            <label htmlFor="citizenId" className={styles.formLabel}>
+              {translations.citizenId || 'תעודת זהות'}
+            </label>
+            <input
+              type="text"
+              id="citizenId"
+              name="citizenId"
+              value={formData.citizenId}
+              onChange={handleChange}
+              className={styles.formInput}
+              placeholder={translations.citizenIdPlaceholder || 'הכנס תעודת זהות'}
+              dir="ltr"
+              required
+            />
+          </div>
+
+          <div className={styles.formGroup}>
+            <label htmlFor="billingEmail" className={styles.formLabel}>
+              {translations.billingEmail || 'אימייל לחיוב'}
+            </label>
+            <input
+              type="email"
+              id="billingEmail"
+              name="billingEmail"
+              value={formData.billingEmail}
+              onChange={handleChange}
+              className={styles.formInput}
+              placeholder={translations.billingEmailPlaceholder || 'אימייל לקבלת חשבונית'}
+              dir="ltr"
+              required
+            />
+          </div>
+
+          <div className={styles.formGroup}>
             <label htmlFor="cardNumber" className={styles.formLabel}>
               {translations.cardNumber}
             </label>
@@ -115,6 +191,7 @@ export function PaymentStep({ translations, selectedPlan, onComplete }) {
                 onChange={handleChange}
                 className={`${styles.formInput} ${styles.cardInput}`}
                 placeholder={translations.cardNumberPlaceholder}
+                dir="ltr"
                 required
               />
             </div>
@@ -133,6 +210,7 @@ export function PaymentStep({ translations, selectedPlan, onComplete }) {
                 onChange={handleChange}
                 className={styles.formInput}
                 placeholder={translations.expiryPlaceholder}
+                dir="ltr"
                 required
               />
             </div>
@@ -149,6 +227,7 @@ export function PaymentStep({ translations, selectedPlan, onComplete }) {
                 onChange={handleChange}
                 className={styles.formInput}
                 placeholder={translations.cvvPlaceholder}
+                dir="ltr"
                 required
               />
             </div>

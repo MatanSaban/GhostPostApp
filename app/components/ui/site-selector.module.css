@@ -6,7 +6,7 @@
 
 .label {
   display: block;
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   color: var(--muted-foreground);
   margin-bottom: 0.5rem;
 }
@@ -225,7 +225,7 @@
 }
 
 .siteUrl {
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   color: var(--muted-foreground);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -387,7 +387,7 @@
 }
 
 .formHint {
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   color: var(--muted-foreground);
   margin: 0;
 }
@@ -499,7 +499,7 @@
   background: rgba(123, 44, 191, 0.1);
   color: var(--primary);
   border-radius: var(--radius-full);
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   font-weight: 500;
 }
 

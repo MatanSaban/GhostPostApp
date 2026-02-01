@@ -23,6 +23,9 @@ import { AdminModal, ConfirmDialog, FormInput, FormCheckbox, FormSelect, FormAct
 import styles from '../admin.module.css';
 import modalStyles from '../components/AdminModal.module.css';
 
+// Protected user emails that cannot be deleted
+const PROTECTED_EMAILS = ['matansaban28@gmail.com'];
+
 export default function PlatformUsersPage() {
   const router = useRouter();
   const { t } = useLocale();
@@ -444,13 +447,15 @@ export default function PlatformUsersPage() {
                         >
                           <Edit2 size={16} />
                         </button>
-                        <button 
-                          className={`${styles.actionButton} ${styles.danger}`} 
-                          title={t('admin.users.actions.delete')}
-                          onClick={() => handleDeleteClick(user)}
-                        >
-                          <Trash2 size={16} />
-                        </button>
+                        {!PROTECTED_EMAILS.includes(user.email) && (
+                          <button 
+                            className={`${styles.actionButton} ${styles.danger}`} 
+                            title={t('admin.users.actions.delete')}
+                            onClick={() => handleDeleteClick(user)}
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        )}
                       </div>
                     </td>
                   </tr>

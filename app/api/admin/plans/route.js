@@ -66,15 +66,16 @@ export async function GET(request) {
       yearlyPrice: plan.yearlyPrice ?? plan.price * 10, // Default to 2 months free
       status: plan.isActive ? 'active' : 'archived',
       subscribersCount: plan._count.subscriptions,
-      features: plan.features.map((feature) => ({
-        name: feature,
-        included: true,
-      })),
+      // Features now stored as [{key, label}]
+      features: Array.isArray(plan.features) ? plan.features : [],
+      // All limitations stored in JSON field
+      limitations: plan.limitations || [],
       translations: plan.translations.reduce((acc, t) => {
         acc[t.language] = {
           name: t.name,
           description: t.description,
           features: t.features,
+          limitations: t.limitations || [],
         };
         return acc;
       }, {}),
@@ -117,7 +118,16 @@ export async function POST(request) {
     }
 
     const body = await request.json();
-    const { name, slug, description, price, yearlyPrice, features, isActive } = body;
+    const { 
+      name, 
+      slug, 
+      description, 
+      price, 
+      yearlyPrice, 
+      features, 
+      isActive,
+      limitations,
+    } = body;
 
     if (!name || !slug) {
       return NextResponse.json({ error: 'Name and slug are required' }, { status: 400 });
@@ -143,6 +153,8 @@ export async function POST(request) {
         features: features || [],
         isActive: isActive !== false,
         sortOrder,
+        // All limitations stored as JSON array
+        limitations: limitations || [],
       },
     });
 

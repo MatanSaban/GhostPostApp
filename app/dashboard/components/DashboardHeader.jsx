@@ -1,7 +1,8 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
 import {
   Bell,
@@ -23,16 +24,37 @@ import { LanguageSwitcher } from '@/app/components/ui/language-switcher';
 import { useLocale } from '@/app/context/locale-context';
 import { useUser } from '@/app/context/user-context';
 import { useSite } from '@/app/context/site-context';
+import { usePermissions } from '@/app/hooks/usePermissions';
 import styles from './DashboardHeader.module.css';
 
-// Sample user data
-const defaultUser = {
-  name: 'Demo Admin',
-  email: 'demo@ghostpost.io',
-  initials: 'DA',
-  credits: 150,
-  plan: 'Pro',
-};
+/**
+ * Get user initials from name or email
+ */
+function getUserInitials(firstName, lastName, email) {
+  if (firstName && lastName) {
+    return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
+  }
+  if (firstName) {
+    return firstName.substring(0, 2).toUpperCase();
+  }
+  if (email) {
+    return email.substring(0, 2).toUpperCase();
+  }
+  return '??';
+}
+
+/**
+ * Get display name from user data
+ */
+function getUserDisplayName(firstName, lastName, email) {
+  if (firstName && lastName) {
+    return `${firstName} ${lastName}`;
+  }
+  if (firstName) {
+    return firstName;
+  }
+  return email || 'User';
+}
 
 // Sample notifications data
 const defaultNotifications = [
@@ -54,7 +76,7 @@ const defaultNotifications = [
     messageKey: 'notifications.items.aiInsight.message',
     timeKey: 'notifications.time.oneHourAgo',
     read: false,
-    link: '/dashboard/keyword-strategy',
+    link: '/dashboard/strategy/keywords',
   },
   {
     id: 3,
@@ -81,18 +103,27 @@ const defaultNotifications = [
 // Mapping of path segments to translation keys
 const segmentTranslationKeys = {
   'site-interview': 'nav.siteInterview',
-  'content-planner': 'nav.contentPlanner',
-  'ai-content-wizard': 'nav.aiContentWizard',
+  'site-profile': 'nav.strategy.siteProfile',
+  'content-planner': 'nav.strategy.contentPlanner',
+  'ai-content-wizard': 'nav.strategy.aiWizard',
   'automations': 'nav.automations',
   'link-building': 'nav.linkBuilding',
-  'redirections': 'nav.redirections',
+  'redirections': 'nav.tools.redirections',
   'seo-frontend': 'nav.seoFrontend',
   'seo-backend': 'nav.seoBackend',
-  'site-audit': 'nav.siteAudit',
-  'keyword-strategy': 'nav.keywordStrategy',
+  'site-audit': 'nav.tools.siteAudit',
+  'keywords': 'nav.strategy.keywords',
+  'keyword-strategy': 'nav.strategy.keywords',
   'settings': 'nav.settings',
+  'strategy': 'nav.strategy.title',
+  'technical-seo': 'nav.tools.title',
+  'competitor-analysis': 'nav.strategy.competitorAnalysis',
+  'webp-converter': 'nav.tools.webpConverter',
+  // User pages
+  'profile': 'user.myProfile',
   // Entities pages
   'entities': 'nav.entities.title',
+  'media': 'nav.entities.media',
   'pages': 'nav.entities.pages',
   'posts': 'nav.entities.posts',
   'projects': 'nav.entities.projects',
@@ -110,12 +141,13 @@ const segmentTranslationKeys = {
   'translations': 'nav.admin.translations',
 };
 
-export function DashboardHeader({ user = defaultUser }) {
+export function DashboardHeader() {
   const pathname = usePathname();
   const router = useRouter();
-  const { t } = useLocale();
-  const { clearUser } = useUser();
+  const { t, locale } = useLocale();
+  const { user: contextUser, clearUser } = useUser();
   const { selectedSite } = useSite();
+  const { isOwner, canAccessTab } = usePermissions();
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [notifications, setNotifications] = useState(defaultNotifications);
@@ -125,7 +157,51 @@ export function DashboardHeader({ user = defaultUser }) {
   const notificationsRef = useRef(null);
   const userMenuRef = useRef(null);
 
+  // Derive user display data from context user
+  const user = useMemo(() => {
+    if (!contextUser) {
+      return {
+        name: 'Loading...',
+        email: '',
+        initials: '...',
+        image: null,
+        plan: 'free',
+        planName: null,
+        aiCredits: 0,
+      };
+    }
+    
+    // Get plan from subscription if available
+    const subscription = contextUser.subscription;
+    const plan = subscription?.plan;
+    const planSlug = plan?.slug || 'free';
+    
+    // Get translated plan name based on current locale
+    // translations array contains objects like { language: 'EN', name: 'Pro Plan' }
+    const planTranslation = plan?.translations?.find(
+      tr => tr.language?.toUpperCase() === locale?.toUpperCase()
+    );
+    const planName = planTranslation?.name || plan?.name || null;
+    
+    return {
+      name: getUserDisplayName(contextUser.firstName, contextUser.lastName, contextUser.email),
+      email: contextUser.email || '',
+      initials: getUserInitials(contextUser.firstName, contextUser.lastName, contextUser.email),
+      image: contextUser.image || null,
+      plan: planSlug,
+      planName: planName,
+      aiCredits: contextUser.aiCreditsBalance || 0,
+    };
+  }, [contextUser, locale]);
+
   const unreadCount = notifications.filter(n => !n.read).length;
+
+  // Check if user can access account/subscription features
+  // Owner OR has access to account + subscription settings tab
+  const canAccessBilling = useMemo(() => {
+    if (isOwner) return true;
+    return canAccessTab('account') && canAccessTab('subscription');
+  }, [isOwner, canAccessTab]);
 
   // Fetch entity types for breadcrumb labels
   useEffect(() => {
@@ -149,7 +225,12 @@ export function DashboardHeader({ user = defaultUser }) {
           .then(res => res.ok ? res.json() : null)
           .then(data => {
             if (data?.entity?.title) {
-              setEntityTitle(data.entity.title);
+              // Decode URL-encoded text (like Hebrew)
+              try {
+                setEntityTitle(decodeURIComponent(data.entity.title));
+              } catch {
+                setEntityTitle(data.entity.title);
+              }
             } else {
               setEntityTitle(null);
             }
@@ -362,7 +443,19 @@ export function DashboardHeader({ user = defaultUser }) {
             className={styles.userButton}
             onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
           >
-            <div className={styles.userAvatar}>{user.initials}</div>
+            <div className={styles.userAvatar}>
+              {user.image ? (
+                <Image
+                  src={user.image}
+                  alt={user.name}
+                  width={32}
+                  height={32}
+                  className={styles.userAvatarImage}
+                />
+              ) : (
+                user.initials
+              )}
+            </div>
           </button>
 
           {/* User Menu Dropdown */}
@@ -370,73 +463,100 @@ export function DashboardHeader({ user = defaultUser }) {
             <div className={styles.userMenuDropdown}>
               {/* User Info Header */}
               <div className={styles.userMenuHeader}>
-                <div className={styles.userMenuAvatar}>{user.initials}</div>
+                <div className={styles.userMenuAvatar}>
+                  {user.image ? (
+                    <Image
+                      src={user.image}
+                      alt={user.name}
+                      width={40}
+                      height={40}
+                      className={styles.userAvatarImage}
+                    />
+                  ) : (
+                    user.initials
+                  )}
+                </div>
                 <div className={styles.userMenuInfo}>
                   <span className={styles.userMenuName}>{user.name}</span>
                   <span className={styles.userMenuEmail}>{user.email}</span>
                 </div>
               </div>
 
-              {/* Credits Display */}
+              {/* Plan Display - Visible to everyone */}
               <div className={styles.creditsSection}>
-                <div className={styles.creditsInfo}>
-                  <Coins size={16} className={styles.creditsIcon} />
-                  <span className={styles.creditsLabel}>{t('user.credits')}</span>
-                  <span className={styles.creditsValue}>{user.credits}</span>
-                </div>
                 <div className={styles.planBadge}>
                   <Crown size={12} />
-                  <span>{t(`user.plans.${user.plan.toLowerCase()}`)}</span>
+                  <span>{user.planName || t(`user.plans.${user.plan}`)}</span>
+                </div>
+                <div className={styles.creditsInfo}>
+                  <span className={styles.creditsLabel}>{t('user.aiCredits') || 'קרדיטים'}</span>
+                  <span className={styles.creditsValue}>{user.aiCredits.toLocaleString()}</span>
                 </div>
               </div>
 
-              {/* Menu Items */}
+              {/* My Profile - Visible to everyone */}
               <div className={styles.userMenuItems}>
                 <Link 
-                  href="/dashboard/account" 
+                  href="/dashboard/profile" 
                   className={styles.userMenuItem}
                   onClick={() => setIsUserMenuOpen(false)}
                 >
                   <UserCircle size={18} />
-                  <span>{t('user.manageAccount')}</span>
-                </Link>
-                <Link 
-                  href="/dashboard/subscriptions" 
-                  className={styles.userMenuItem}
-                  onClick={() => setIsUserMenuOpen(false)}
-                >
-                  <CreditCard size={18} />
-                  <span>{t('settings.billing')}</span>
-                </Link>
-                <Link 
-                  href="/dashboard/credits" 
-                  className={styles.userMenuItem}
-                  onClick={() => setIsUserMenuOpen(false)}
-                >
-                  <Coins size={18} />
-                  <span>{t('user.credits')}</span>
+                  <span>{t('user.myProfile')}</span>
                 </Link>
               </div>
 
-              {/* Action Buttons */}
-              <div className={styles.userMenuActions}>
-                <Link 
-                  href="/dashboard/credits/add" 
-                  className={styles.addCreditsButton}
-                  onClick={() => setIsUserMenuOpen(false)}
-                >
-                  <Plus size={16} />
-                  <span>{t('common.add')} {t('user.credits')}</span>
-                </Link>
-                <Link 
-                  href="/dashboard/upgrade" 
-                  className={styles.upgradePlanButton}
-                  onClick={() => setIsUserMenuOpen(false)}
-                >
-                  <Crown size={16} />
-                  <span>{t('user.upgrade')} {t('user.plan')}</span>
-                </Link>
-              </div>
+              {/* Billing Menu Items - Only show if user has permissions */}
+              {canAccessBilling && (
+                <div className={styles.userMenuItems}>
+                  <Link 
+                    href="/dashboard/account" 
+                    className={styles.userMenuItem}
+                    onClick={() => setIsUserMenuOpen(false)}
+                  >
+                    <UserCircle size={18} />
+                    <span>{t('user.manageAccount')}</span>
+                  </Link>
+                  <Link 
+                    href="/dashboard/subscriptions" 
+                    className={styles.userMenuItem}
+                    onClick={() => setIsUserMenuOpen(false)}
+                  >
+                    <CreditCard size={18} />
+                    <span>{t('settings.billing')}</span>
+                  </Link>
+                  <Link 
+                    href="/dashboard/credits" 
+                    className={styles.userMenuItem}
+                    onClick={() => setIsUserMenuOpen(false)}
+                  >
+                    <Coins size={18} />
+                    <span>{t('user.credits')}</span>
+                  </Link>
+                </div>
+              )}
+
+              {/* Action Buttons - Only show if user can access billing */}
+              {canAccessBilling && (
+                <div className={styles.userMenuActions}>
+                  <Link 
+                    href="/dashboard/credits/add" 
+                    className={styles.addCreditsButton}
+                    onClick={() => setIsUserMenuOpen(false)}
+                  >
+                    <Plus size={16} />
+                    <span>{t('user.addCredits')}</span>
+                  </Link>
+                  <Link 
+                    href="/dashboard/upgrade" 
+                    className={styles.upgradePlanButton}
+                    onClick={() => setIsUserMenuOpen(false)}
+                  >
+                    <Crown size={16} />
+                    <span>{t('user.upgradePlan')}</span>
+                  </Link>
+                </div>
+              )}
 
               {/* Logout */}
               <div className={styles.userMenuFooter}>

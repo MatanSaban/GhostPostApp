@@ -200,7 +200,15 @@ export async function DELETE(request, { params }) {
     const user = await prisma.user.findUnique({
       where: { id },
       include: { 
-        accountMemberships: true,
+        accountMemberships: {
+          include: {
+            account: {
+              include: {
+                subscription: true,
+              },
+            },
+          },
+        },
       },
     });
 
@@ -218,18 +226,39 @@ export async function DELETE(request, { params }) {
       return NextResponse.json({ error: 'Cannot delete yourself' }, { status: 400 });
     }
 
-    // Delete all related records first
-    await prisma.$transaction([
-      prisma.accountMember.deleteMany({ where: { userId: id } }),
-      prisma.authProvider.deleteMany({ where: { userId: id } }),
-      prisma.session.deleteMany({ where: { userId: id } }),
-      prisma.otpCode.deleteMany({ where: { userId: id } }),
-      prisma.userInterview.deleteMany({ where: { userId: id } }),
-      prisma.userSitePreference.deleteMany({ where: { userId: id } }),
-      prisma.user.delete({ where: { id } }),
-    ]);
+    // Find accounts where this user is the owner
+    const ownedAccounts = user.accountMemberships.filter(m => m.isOwner);
 
-    return NextResponse.json({ message: 'User deleted successfully' });
+    // Delete all related records in a transaction
+    await prisma.$transaction(async (tx) => {
+      // For each owned account, delete the account and all its related data
+      for (const membership of ownedAccounts) {
+        const accountId = membership.accountId;
+        
+        // Delete account-related data
+        await tx.aiCreditsLog.deleteMany({ where: { accountId } });
+        await tx.addOnPurchase.deleteMany({ where: { subscription: { accountId } } });
+        await tx.subscription.deleteMany({ where: { accountId } });
+        await tx.role.deleteMany({ where: { accountId } });
+        await tx.site.deleteMany({ where: { accountId } });
+        await tx.accountMember.deleteMany({ where: { accountId } });
+        await tx.account.delete({ where: { id: accountId } });
+      }
+      
+      // Delete user-related records
+      await tx.accountMember.deleteMany({ where: { userId: id } });
+      await tx.authProvider.deleteMany({ where: { userId: id } });
+      await tx.session.deleteMany({ where: { userId: id } });
+      await tx.otpCode.deleteMany({ where: { userId: id } });
+      await tx.userInterview.deleteMany({ where: { userId: id } });
+      await tx.userSitePreference.deleteMany({ where: { userId: id } });
+      await tx.user.delete({ where: { id } });
+    });
+
+    return NextResponse.json({ 
+      message: 'User deleted successfully',
+      deletedAccounts: ownedAccounts.length,
+    });
   } catch (error) {
     console.error('Error deleting user:', error);
     return NextResponse.json({ error: 'Failed to delete user' }, { status: 500 });

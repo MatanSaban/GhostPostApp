@@ -37,6 +37,7 @@ export async function GET(request, { params }) {
     return NextResponse.json({
       role: {
         id: role.id,
+        key: role.key,
         name: role.name,
         description: role.description,
         permissions: role.permissions,
@@ -68,7 +69,7 @@ export async function PUT(request, { params }) {
 
     const { id } = await params;
     const body = await request.json();
-    const { name, description, permissions } = body;
+    const { key, name, description, permissions } = body;
 
     // Find the role
     const existingRole = await prisma.role.findFirst({
@@ -80,6 +81,32 @@ export async function PUT(request, { params }) {
 
     if (!existingRole) {
       return NextResponse.json({ error: 'Role not found' }, { status: 404 });
+    }
+
+    // Prevent changing key for system roles
+    if (existingRole.isSystemRole && key !== undefined && key.trim() !== existingRole.key) {
+      return NextResponse.json({ error: 'Cannot change the key of a system role' }, { status: 400 });
+    }
+
+    // Validate and check for duplicate key (if key is being changed)
+    if (key !== undefined && key.trim() !== existingRole.key) {
+      // Validate key format
+      const keyRegex = /^[a-z0-9_-]+$/;
+      if (!keyRegex.test(key.trim())) {
+        return NextResponse.json({ error: 'Role key must contain only lowercase English letters, numbers, underscores, and hyphens' }, { status: 400 });
+      }
+
+      const duplicateKeyRole = await prisma.role.findFirst({
+        where: {
+          accountId: member.accountId,
+          key: key.trim(),
+          id: { not: id },
+        },
+      });
+
+      if (duplicateKeyRole) {
+        return NextResponse.json({ error: 'A role with this key already exists' }, { status: 400 });
+      }
     }
 
     // Check for duplicate name (if name is being changed)
@@ -98,6 +125,7 @@ export async function PUT(request, { params }) {
     }
 
     const updateData = {};
+    if (key !== undefined) updateData.key = key.trim();
     if (name !== undefined) updateData.name = name.trim();
     if (description !== undefined) updateData.description = description?.trim() || null;
     if (permissions !== undefined) updateData.permissions = permissions;
@@ -115,6 +143,7 @@ export async function PUT(request, { params }) {
     return NextResponse.json({
       role: {
         id: updatedRole.id,
+        key: updatedRole.key,
         name: updatedRole.name,
         description: updatedRole.description,
         permissions: updatedRole.permissions,

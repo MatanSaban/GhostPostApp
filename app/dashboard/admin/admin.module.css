@@ -197,7 +197,7 @@
 }
 
 .statLabel {
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   font-weight: 500;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -215,7 +215,7 @@
   display: flex;
   align-items: center;
   gap: 0.25rem;
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   margin-top: 0.25rem;
 
   &.positive {
@@ -246,7 +246,7 @@
 
 .tableHeader th {
   padding: 0.875rem 1rem;
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -298,7 +298,7 @@
 }
 
 .userEmail {
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   color: var(--muted-foreground);
 }
 
@@ -307,7 +307,7 @@
   display: inline-flex;
   align-items: center;
   padding: 0.25rem 0.75rem;
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   font-weight: 600;
   border-radius: var(--radius-full);
 
@@ -340,7 +340,7 @@
   align-items: center;
   gap: 0.25rem;
   padding: 0.25rem 0.75rem;
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   font-weight: 600;
   border-radius: var(--radius-full);
   background: rgba(123, 44, 191, 0.1);
@@ -532,7 +532,7 @@
   display: inline-flex;
   align-items: center;
   padding: 2px 8px;
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   font-weight: 500;
   border-radius: 9999px;
 }
@@ -662,7 +662,7 @@
 }
 
 .detailLabel {
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   font-weight: 500;
   color: var(--muted-foreground);
   text-transform: uppercase;
@@ -777,5 +777,229 @@
   &:disabled {
     opacity: 0.5;
     cursor: not-allowed;
+  }
+}
+
+/* Form Section Styles */
+.formSection {
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--border);
+}
+
+.formSectionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+}
+
+.formSectionTitle {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--foreground);
+  margin: 0;
+}
+
+.formSectionHint {
+  font-size: 0.9375rem;
+  color: var(--muted-foreground);
+  margin: 0;
+}
+
+.formGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+
+  @media (max-width: 480px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Dynamic Limitations Styles */
+.limitationActions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.limitationSelect {
+  padding: 0.5rem 0.75rem;
+  font-size: 0.9375rem;
+  background: var(--input);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--foreground);
+  cursor: pointer;
+  min-width: 150px;
+
+  &:focus {
+    outline: none;
+    border-color: var(--primary);
+  }
+}
+
+.addLimitationBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background: var(--primary);
+  color: white;
+  border: none;
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+
+  &:hover {
+    background: var(--primary-hover);
+  }
+}
+
+.limitationsList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.limitationItem {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  background: var(--muted);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  flex-wrap: wrap;
+}
+
+.limitationKey {
+  font-size: 0.75rem;
+  font-family: monospace;
+  padding: 0.25rem 0.5rem;
+  background: var(--background);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--muted-foreground);
+  min-width: 80px;
+}
+
+.limitationKeyInput {
+  width: 100px;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.75rem;
+  font-family: monospace;
+  background: var(--background);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--foreground);
+
+  &:focus {
+    outline: none;
+    border-color: var(--primary);
+  }
+
+  &::placeholder {
+    color: var(--muted-foreground);
+  }
+}
+
+.limitationLabel {
+  flex: 1;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: var(--foreground);
+  min-width: 100px;
+}
+
+.limitationLabelInput {
+  flex: 1;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.9375rem;
+  background: var(--background);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--foreground);
+  min-width: 120px;
+
+  &:focus {
+    outline: none;
+    border-color: var(--primary);
+  }
+
+  &::placeholder {
+    color: var(--muted-foreground);
+  }
+}
+
+.limitationValueInput {
+  width: 100px;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.9375rem;
+  background: var(--background);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--foreground);
+  text-align: center;
+
+  &:focus {
+    outline: none;
+    border-color: var(--primary);
+  }
+
+  &::placeholder {
+    color: var(--muted-foreground);
+    font-size: 0.75rem;
+  }
+}
+
+.removeLimitationBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  background: transparent;
+  color: var(--muted-foreground);
+  border: none;
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+
+  &:hover {
+    background: var(--destructive);
+    color: white;
+  }
+}
+
+/* Limitation Translation Styles */
+.limitationOriginal {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 180px;
+}
+
+.limitationTranslationInput {
+  flex: 1;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.9375rem;
+  background: var(--background);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--foreground);
+  min-width: 150px;
+
+  &:focus {
+    outline: none;
+    border-color: var(--primary);
+  }
+
+  &::placeholder {
+    color: var(--muted-foreground);
   }
 }

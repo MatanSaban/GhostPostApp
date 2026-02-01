@@ -89,6 +89,19 @@
     "characters": "characters"
   },
   "media": {
+    "title": "Media Library",
+    "items": "items",
+    "search": "Search media...",
+    "upload": "Upload",
+    "noMedia": "No media items found",
+    "selectSite": "Please select a site to view media",
+    "details": "Details",
+    "altText": "Alt Text",
+    "mediaTitle": "Title",
+    "caption": "Caption",
+    "description": "Description",
+    "url": "File URL",
+    "confirmDelete": "Are you sure you want to delete this media item?",
     "modal": {
       "title": "Media Library",
       "library": "Media Library",
@@ -204,25 +217,38 @@
   },
   "nav": {
     "dashboard": "Dashboard",
-    "siteInterview": "Site Interview",
-    "contentPlanner": "Content Planner",
-    "aiContentWizard": "AI Content Wizard",
+    "siteInterview": "Site Profile",
+    "strategy": {
+      "title": "Strategy",
+      "siteProfile": "Site Profile",
+      "keywords": "Keyword Research",
+      "contentPlanner": "Content Calendar",
+      "aiWizard": "AI Content Wizard",
+      "competitorAnalysis": "Competitor Analysis"
+    },
     "automations": "Automations",
     "linkBuilding": "Link Building",
     "redirections": "Redirections",
     "seoFrontend": "SEO Frontend",
     "seoBackend": "SEO Backend",
     "siteAudit": "Site Audit",
-    "keywordStrategy": "Keyword Strategy",
-    "tools": "Tools",
+    "tools": {
+      "title": "Technical SEO",
+      "overview": "All Tools",
+      "interview": "Site Profile",
+      "redirections": "Redirections",
+      "webpConverter": "WebP Converter",
+      "siteAudit": "Site Health Report"
+    },
     "settings": "Settings",
     "entities": {
-      "title": "Entities",
+      "title": "Site Assets",
       "pages": "Pages",
       "posts": "Posts",
       "projects": "Projects",
       "services": "Services",
       "products": "Products",
+      "media": "Media",
       "other": "Other"
     },
     "admin": {
@@ -234,7 +260,8 @@
       "interviewQuestions": "Interview Questions",
       "translations": "Translations",
       "interviewFlow": "Interview Flow",
-      "botActions": "Bot Actions"
+      "botActions": "Bot Actions",
+      "website": "Website Content"
     }
   },
   "dashboard": {
@@ -490,8 +517,35 @@
       "updatedMetaDescriptions": "Updated {count} meta descriptions"
     }
   },
+  "strategy": {
+    "overview": {
+      "title": "Strategy",
+      "subtitle": "Plan and optimize your content strategy with AI-powered tools",
+      "openFeature": "Open Feature"
+    },
+    "siteProfile": {
+      "title": "Site Profile",
+      "cardDescription": "Define your site's identity, target audience, and business goals to power AI-driven SEO recommendations."
+    },
+    "keywords": {
+      "title": "Keyword Research",
+      "cardDescription": "Research and track keyword rankings, discover new opportunities, and optimize your content for search engines."
+    },
+    "contentPlanner": {
+      "title": "Content Calendar",
+      "cardDescription": "Plan, schedule, and organize your content calendar. Keep track of drafts, scheduled posts, and published content."
+    },
+    "aiWizard": {
+      "title": "AI Content Wizard",
+      "cardDescription": "Generate SEO-optimized content briefs and outlines using AI. Get suggestions for titles, headings, and key points."
+    },
+    "competitorAnalysis": {
+      "title": "Competitor Analysis",
+      "cardDescription": "Analyze your competitors' SEO strategies, discover their top keywords, and find content gaps to exploit."
+    }
+  },
   "contentPlanner": {
-    "title": "Content Planner",
+    "title": "Content Calendar",
     "subtitle": "Plan and schedule your content with AI-powered insights",
     "addContent": "Add Content",
     "calendar": "Calendar",
@@ -538,7 +592,7 @@
     }
   },
   "keywordStrategy": {
-    "title": "Keyword Strategy",
+    "title": "Keyword Research",
     "subtitle": "Track rankings and discover new keyword opportunities",
     "addKeyword": "Add Keyword",
     "importKeywords": "Import Keywords",
@@ -581,8 +635,42 @@
       "hard": "Hard"
     }
   },
+  "competitorAnalysis": {
+    "title": "Competitor Analysis",
+    "subtitle": "Analyze and track your competitors' SEO strategies",
+    "selectSite": "Please select a site to analyze competitors",
+    "addCompetitor": "Add Competitor",
+    "addFirstCompetitor": "Add Your First Competitor",
+    "trackedCompetitors": "Tracked Competitors",
+    "sharedKeywords": "Shared Keywords",
+    "contentGaps": "Content Gaps",
+    "noCompetitors": "No Competitors Added",
+    "noCompetitorsDescription": "Start tracking your competitors to discover keyword opportunities and content gaps."
+  },
+  "siteAudit": {
+    "title": "Site Health Report",
+    "subtitle": "Analyze your website's technical SEO health and performance",
+    "selectSite": "Please select a site to run the audit",
+    "startScan": "Run Audit",
+    "scanning": "Scanning...",
+    "runFirstScan": "Run Your First Audit",
+    "healthScore": "Health Score",
+    "passed": "Passed",
+    "warnings": "Warnings",
+    "errors": "Errors",
+    "performance": "Performance",
+    "performanceDescription": "Page speed, loading time, and Core Web Vitals metrics",
+    "seoHealth": "SEO Health",
+    "seoHealthDescription": "Meta tags, structured data, and on-page SEO factors",
+    "security": "Security",
+    "securityDescription": "SSL certificate, HTTPS status, and security headers",
+    "mobileFriendly": "Mobile Friendly",
+    "mobileFriendlyDescription": "Responsive design and mobile usability checks",
+    "noScans": "No Audits Yet",
+    "noScansDescription": "Run your first audit to get a comprehensive health report of your website."
+  },
   "entities": {
-    "title": "Website Entities",
+    "title": "Website Content",
     "subtitle": "View and manage content from your website",
     "pages": {
       "title": "Pages",
@@ -620,8 +708,20 @@
       "empty": "No other content found",
       "emptyDescription": "Sync your website to import other content"
     },
+    "crawl": {
+      "title": "Crawl Website",
+      "description": "Crawl your website to import content including titles, meta descriptions, and SEO data.",
+      "descriptionConnected": "Sync content directly from your WordPress site using the plugin.",
+      "scan": "Scan Website",
+      "rescan": "Scan Again",
+      "start": "Crawl Content",
+      "populating": "Fetching content from website...",
+      "deepCrawling": "Deep crawling pages for metadata...",
+      "completed": "Crawl complete!",
+      "failed": "Crawl failed. Please try again."
+    },
     "sync": {
-      "title": "Populate Entities",
+      "title": "Populate Content",
       "description": "Import all content from your WordPress site including posts, pages, menus, SEO data, and custom fields.",
       "populate": "Populate from WordPress",
       "syncing": "Syncing...",
@@ -634,7 +734,10 @@
       "completed": "Sync completed successfully!",
       "failed": "Sync failed. Please try again.",
       "cancelled": "Sync was cancelled.",
-      "lastSync": "Last synced"
+      "lastSync": "Last synced",
+      "deepCrawl": "Deep Crawl",
+      "deepCrawling": "Deep crawling pages...",
+      "deepCrawlCompleted": "Deep crawl completed! Enriched {count} entities."
     },
     "syncingEntity": "Syncing \"{name}\"...",
     "syncEntity": "Sync \"{name}\"",
@@ -652,6 +755,11 @@
     "viewOnSite": "View on site",
     "search": "Search entities...",
     "totalEntities": "Total Entities",
+    "totalWithName": "Total {entityName}",
+    "publishedWithName": "{entityName} Published",
+    "draftWithName": "{entityName} in Draft",
+    "scheduledWithName": "{entityName} Scheduled",
+    "pendingWithName": "{entityName} Pending",
     "syncFailed": "Sync failed",
     "syncSuccess": "Website synced successfully",
     "noSiteSelected": "No Site Selected",
@@ -671,13 +779,16 @@
       "found": "Found {count} content types on your website",
       "noTypes": "No content types discovered",
       "noTypesDescription": "Click the button below to scan your website for content types",
-      "scan": "Scan Website"
+      "scan": "Scan Website",
+      "rescan": "Rescan"
     },
     "types": {
       "select": "Select Entity Types",
       "selectDescription": "Choose which content types you want to import and manage",
       "save": "Save Entity Types",
+      "saveAndPopulate": "Save & Populate Entities",
       "enabled": "Enabled Entity Types",
+      "configured": "Configured Content Types",
       "pages": "Pages",
       "posts": "Posts",
       "projects": "Projects",
@@ -687,15 +798,17 @@
     },
     "plugin": {
       "title": "WordPress Plugin",
-      "description": "To automatically sync content from your WordPress site, you'll need to install the Ghost Post Connect plugin.",
+      "description": "Install the Ghost Post Connect plugin to sync content from your WordPress site.",
+      "connectedDesc": "Plugin is active and syncing content",
+      "notConnectedDesc": "Install the plugin for automatic content sync",
       "download": "Download Plugin",
       "downloading": "Downloading...",
       "instructions": {
         "title": "Installation Instructions",
-        "step1": "Download the plugin file (.zip) by clicking the button below",
+        "step1": "Download the plugin file (.zip) by clicking the button above",
         "step2": "Go to your WordPress Dashboard → Plugins → Add New → Upload Plugin",
         "step3": "Select the downloaded ZIP file and click \"Install Now\"",
-        "step4": "Activate the plugin and enter the API key shown in settings"
+        "step4": "Activate the plugin - it will connect automatically"
       }
     },
     "untitled": "Untitled",
@@ -796,9 +909,22 @@
     }
   },
   "tools": {
-    "title": "Tools",
+    "title": "Technical SEO",
     "subtitle": "Utilities and optimization tools for your website",
     "selectSite": "Please select a site to use the tools",
+    "overview": {
+      "title": "Technical SEO",
+      "subtitle": "Access all technical tools to optimize and manage your website",
+      "openTool": "Open Tool"
+    },
+    "interview": {
+      "title": "Site Profile",
+      "description": "Answer questions about your website to help us optimize your content and SEO strategy"
+    },
+    "redirections": {
+      "title": "Redirections",
+      "description": "Manage URL redirections to maintain SEO value and fix broken links"
+    },
     "webp": {
       "title": "WebP Image Conversion",
       "description": "Convert your images to WebP format for faster loading and better SEO",
@@ -838,6 +964,10 @@
       "addingToQueue": "Adding to queue...",
       "addedToQueue": "{count} images added to conversion queue"
     },
+    "siteAudit": {
+      "title": "Site Health Report",
+      "description": "Run comprehensive audits to analyze your website's technical SEO health and performance"
+    },
     "ai": {
       "title": "AI Image Optimization",
       "description": "Use AI to generate SEO-friendly filenames and alt text for your images",
@@ -869,6 +999,10 @@
   "settings": {
     "title": "Settings",
     "subtitle": "Configure your Ghost Post preferences and integrations",
+    "mainTabs": {
+      "website": "Current Website",
+      "account": "Account"
+    },
     "general": "General",
     "aiConfiguration": "AI Configuration",
     "scheduling": "Scheduling",
@@ -1131,6 +1265,11 @@
       "roles": {
         "owner": "Owner",
         "admin": "Admin",
+        "ceo": "CEO",
+        "cfo": "CFO",
+        "manager": "Manager",
+        "team_lead": "Team Lead",
+        "employee": "Employee",
         "editor": "Editor",
         "viewer": "Viewer"
       },
@@ -1171,6 +1310,11 @@
       "roles": {
         "owner": "Owner",
         "admin": "Admin",
+        "ceo": "CEO",
+        "cfo": "CFO",
+        "manager": "Manager",
+        "team_lead": "Team Lead",
+        "employee": "Employee",
         "editor": "Editor",
         "viewer": "Viewer",
         "user": "User"
@@ -1210,11 +1354,15 @@
       "updatePaymentMethod": "Update Payment Method",
       "viewInvoices": "View Invoices",
       "perMonth": "per month",
+      "perYear": "per year",
+      "cancelsAtPeriodEnd": "Cancels at period end",
       "statuses": {
         "active": "Active",
         "cancelled": "Cancelled",
+        "canceled": "Cancelled",
         "expired": "Expired",
-        "trialing": "Trialing"
+        "trialing": "Trialing",
+        "past_due": "Past Due"
       }
     },
     "roles": "Roles",
@@ -1225,6 +1373,9 @@
       "addRole": "Add Role",
       "editRole": "Edit Role",
       "deleteRole": "Delete Role",
+      "key": "Key",
+      "keyPlaceholder": "e.g., editor, content_manager",
+      "keyHint": "English letters, numbers, underscores, and hyphens only",
       "roleName": "Role Name",
       "namePlaceholder": "Enter role name",
       "descriptionPlaceholder": "Enter role description (optional)",
@@ -1292,6 +1443,7 @@
         "settings_seo": "SEO Settings",
         "settings_integrations": "Integrations",
         "settings_team": "Team",
+        "settings_users": "Users",
         "settings_roles": "Roles & Permissions",
         "settings_subscription": "Subscription"
       },
@@ -1374,7 +1526,22 @@
       "confirmPasswordPlaceholder": "Confirm new password",
       "dangerZone": "Danger Zone",
       "deleteAccount": "Delete Account",
-      "deleteAccountDesc": "Permanently delete your account and all data"
+      "deleteAccountDesc": "Permanently delete your account and all data",
+      "deleteAccountTitle": "Delete Account Permanently",
+      "deleteAccountWarning": "This action is irreversible. Once your account is deleted, the data cannot be recovered.",
+      "deleteAccountConsequences": "What will be deleted:",
+      "deleteAccountConsequence1": "All websites linked to this account",
+      "deleteAccountConsequence2": "All content, keywords, and data",
+      "deleteAccountConsequence3": "All team members will lose access",
+      "deleteAccountConsequence4": "Subscription will be cancelled without refund",
+      "deleteAccountConfirmLabel": "To confirm, type \"DELETE ACCOUNT\" in the field below:",
+      "deleteAccountConfirmPlaceholder": "Type DELETE ACCOUNT",
+      "deleteAccountConfirmText": "DELETE ACCOUNT",
+      "deleteAccountButton": "Delete Account Permanently",
+      "deleteAccountCancel": "Cancel",
+      "deleteAccountDeleting": "Deleting...",
+      "deleteAccountSuccess": "Account deleted successfully",
+      "deleteAccountError": "Error deleting account"
     }
   },
   "notifications": {
@@ -1410,7 +1577,9 @@
   },
   "user": {
     "profile": "Profile",
+    "myProfile": "My Profile",
     "credits": "Credits",
+    "aiCredits": "Credits",
     "plan": "Plan",
     "upgrade": "Upgrade",
     "manageAccount": "Manage Account",
@@ -1424,6 +1593,77 @@
       "starter": "Starter",
       "pro": "Pro",
       "enterprise": "Enterprise"
+    }
+  },
+  "profile": {
+    "title": "My Profile",
+    "subtitle": "Manage your personal information and security settings",
+    "tabs": {
+      "personal": "Personal Info",
+      "security": "Security",
+      "connections": "Connections"
+    },
+    "saveSuccess": "Profile saved successfully",
+    "saveError": "Failed to save profile",
+    "verified": "Verified",
+    "personalInfo": {
+      "title": "Personal Information",
+      "description": "Update your personal details and contact information",
+      "firstName": "First Name",
+      "firstNamePlaceholder": "Enter your first name",
+      "lastName": "Last Name",
+      "lastNamePlaceholder": "Enter your last name",
+      "email": "Email Address",
+      "emailHint": "Contact support to change your email address",
+      "phone": "Phone Number",
+      "phonePlaceholder": "+1 (555) 000-0000"
+    },
+    "image": {
+      "hint": "Click to upload a new profile picture",
+      "formats": "JPG, PNG or GIF. Max 5MB.",
+      "invalidType": "Please upload an image file",
+      "tooLarge": "Image must be less than 5MB",
+      "uploadSuccess": "Profile picture updated",
+      "uploadError": "Failed to upload image"
+    },
+    "security": {
+      "title": "Security",
+      "description": "Manage your password and connected accounts"
+    },
+    "password": {
+      "title": "Password",
+      "current": "Current Password",
+      "new": "New Password",
+      "confirm": "Confirm New Password",
+      "requirements": "Password requirements:",
+      "minLength": "At least 8 characters",
+      "change": "Change Password",
+      "allFieldsRequired": "Please fill in all password fields",
+      "mismatch": "New passwords do not match",
+      "tooShort": "Password must be at least 8 characters",
+      "changeSuccess": "Password changed successfully",
+      "changeError": "Failed to change password"
+    },
+    "connectedAccounts": {
+      "title": "Connected Accounts",
+      "description": "Manage your connected social accounts for easier sign-in",
+      "connected": "Connected",
+      "connect": "Connect",
+      "disconnect": "Disconnect",
+      "google": "Google"
+    },
+    "google": {
+      "disconnectConfirm": "Are you sure you want to disconnect your Google account?",
+      "disconnectSuccess": "Google account disconnected",
+      "disconnectError": "Failed to disconnect Google account"
+    },
+    "twoFactor": {
+      "title": "Two-Factor Authentication",
+      "description": "Add an extra layer of security to your account",
+      "status": "Status",
+      "disabled": "Not enabled",
+      "enabled": "Enabled",
+      "enable": "Enable 2FA"
     }
   },
   "sites": {
@@ -1722,8 +1962,8 @@
       "pressEnterToAdd": "Press Enter to add"
     },
     "questions": {
-      "welcome": "👋 Hi! I'm your Ghost AI Agent. I'll help you create a comprehensive SEO profile for your website. Let's start with the basics!",
-      "websiteUrl": "What's your website URL?",
+      "welcome": "👋 Hi! I'm your Ghost AI Agent. I'll help you create a comprehensive SEO profile for your website.",
+      "websiteUrl": "Let's start - what's your website URL?",
       "businessType": "What type of business do you run?",
       "primaryProducts": "What are your main products or services? Describe what you offer to your customers.",
       "targetAudience": "Who is your target audience? Tell me about their demographics, interests, and behaviors.",
@@ -1789,6 +2029,63 @@
       "validationError": "Please fix the errors before continuing"
     },
     "useSuggestion": "Use this",
+    "proactive": {
+      "gettingStarted": "Getting Started",
+      "analyzing": "Analyzing your website...",
+      "urlPlaceholder": "Enter website URL (e.g., www.example.com)",
+      "editPlaceholder": "Type your correction...",
+      "confirmSelection": "Confirm Selection",
+      "yourSite": "Your website",
+      "analysisDone": "Analysis complete! I detected your site is built on {platform} in {language}.",
+      "analysisError": "I couldn't access your website: {error}. Please check the URL and try again.",
+      "identityWithNiche": "I've completed the scan. I can see this is **{name}**, specializing in **{niche}**. Is this correct?",
+      "identityBasic": "I've completed the scan. I can see this is **{name}**. Is this correct?",
+      "goalsConfirm": "Based on my analysis, your main goals appear to be: **{goals}**. Is this accurate?",
+      "audienceConfirm": "Your target audience appears to be: **{audience}**. Is this accurate?",
+      "competitorsFound": "I found {count} top competitors in your space from search results. Select the relevant ones or add new:",
+      "competitorsAdd": "I couldn't find specific competitors. You can add your competitors manually:",
+      "keywordsFound": "I identified these keywords from your website: **{keywords}**. Are these the keywords you want to rank for?",
+      "keywordsAdd": "I couldn't find clear keywords. What are the main keywords you want to rank for?",
+      "niches": {
+        "law": "Legal Services",
+        "medical": "Healthcare & Medical",
+        "dental": "Dental Services",
+        "real-estate": "Real Estate",
+        "ecommerce": "E-commerce",
+        "restaurant": "Restaurant & Food",
+        "tech": "Technology & Software",
+        "marketing": "Marketing & Advertising",
+        "education": "Education & Training",
+        "finance": "Finance & Investment"
+      }
+    },
+    "analysis": {
+      "analyzing": "Analyzing your website",
+      "complete": "Analysis complete",
+      "error": "Analysis error",
+      "logs": {
+        "handshake": "Establishing secure connection with {url}...",
+        "architecture": "Analyzing site architecture & CMS fingerprint...",
+        "platform": "Detecting content management system...",
+        "entities": "Extracting semantic core entities...",
+        "seo": "Cross-referencing 50+ SEO health signals...",
+        "keywords": "Identifying keywords and key topics...",
+        "competitors": "Analyzing competition via SERP analysis...",
+        "synthesis": "Synthesizing AI strategy profile...",
+        "complete": "Analysis complete. Preparing your briefing."
+      }
+    },
+    "competitors": {
+      "maxReached": "You can select up to {max} competitors",
+      "invalidUrl": "Invalid URL",
+      "alreadyExists": "This competitor is already in the list",
+      "manuallyAdded": "Manually added",
+      "urlPlaceholder": "Enter competitor website URL...",
+      "add": "Add",
+      "addManually": "Add competitor manually",
+      "selected": "{count} of {max} selected",
+      "inSearch": "in search results"
+    },
     "validation": {
       "required": "This field is required",
       "minLength": "Minimum {min} characters required",
@@ -2349,15 +2646,39 @@
         "selectLanguage": "Select Language",
         "original": "Original",
         "save": "Save Translation",
+        "saved": "Translation saved successfully",
         "deleteTranslation": "Delete Translation",
-        "featuresPlaceholder": "One feature per line",
-        "featuresHint": "Enter one feature per line. Keep the same number and order of features as the original."
+        "confirmDelete": "Are you sure you want to delete this translation?",
+        "features": "Feature Translations",
+        "featuresHint": "Translate the feature names displayed to users",
+        "limitations": "Limitation Translations",
+        "limitationsHint": "Translate the limitation names displayed to users"
       },
       "noPlans": "No plans configured",
       "form": {
         "monthly": "Monthly",
         "yearly": "Yearly",
-        "yearlyPlaceholder": "Leave empty for price × 10"
+        "yearlyPlaceholder": "Leave empty for price × 10",
+        "limitations": "Limitations",
+        "maxMembers": "Team Members",
+        "maxSites": "Websites",
+        "aiCredits": "AI Credits",
+        "maxKeywords": "Keywords",
+        "maxContent": "Content Items",
+        "addOnLimits": "Add-on Limits",
+        "addOnLimitsHint": "Leave empty for unlimited",
+        "maxAddOnSeats": "Add-on Seats (Max)",
+        "maxAddOnSites": "Add-on Websites (Max)",
+        "unlimitedPlaceholder": "∞",
+        "addLimitation": "Add limitation...",
+        "addCustomLimitation": "Add custom limitation",
+        "noLimitations": "No limitations defined. Add from the list or create a custom one.",
+        "limitationKey": "Key (code)",
+        "limitationLabel": "Display name",
+        "addFeature": "Add feature",
+        "noFeatures": "No features defined. Click + to add one.",
+        "featureKey": "Key (code)",
+        "featureLabel": "Display name"
       },
       "planNames": {
         "free": "Free",

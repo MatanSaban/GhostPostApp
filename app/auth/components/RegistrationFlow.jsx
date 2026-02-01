@@ -6,7 +6,7 @@ import { RegisterForm } from './RegisterForm';
 import { OtpMethodModal } from './OtpMethodModal';
 import { OtpVerificationStep } from './OtpVerificationStep';
 import { AccountSetupStep } from './AccountSetupStep';
-import { InterviewStep } from './InterviewStep';
+import { InterviewStep } from './InterviewStepProactive'; // Proactive onboarding version
 import { PlanSelectionStep } from './PlanSelectionStep';
 import { PaymentStep } from './PaymentStep';
 import { PaymentSuccessStep } from './PaymentSuccessStep';
@@ -329,7 +329,8 @@ export function RegistrationFlow({ translations, initialStep = 'form' }) {
   };
 
   const handleGoToDashboard = () => {
-    router.push('/dashboard');
+    // Use window.location for a full page reload to ensure fresh user context
+    window.location.href = '/dashboard';
   };
 
   const handleStepClick = (stepId, stepIndex) => {
@@ -404,6 +405,7 @@ export function RegistrationFlow({ translations, initialStep = 'form' }) {
           <PaymentStep
             translations={translations.payment}
             selectedPlan={registrationData.selectedPlan}
+            userData={registrationData.formData}
             onComplete={handlePaymentComplete}
           />
         );

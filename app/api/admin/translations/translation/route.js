@@ -35,7 +35,7 @@ export async function POST(request) {
 
   try {
     const body = await request.json();
-    const { keyId, locale, value } = body;
+    const { keyId, locale, value, application } = body;
 
     if (!keyId || !locale) {
       return NextResponse.json({ error: 'Missing keyId or locale' }, { status: 400 });
@@ -57,13 +57,14 @@ export async function POST(request) {
       data: { isLatest: false }
     });
 
-    // Create new translation
+    // Create new translation (use application from key if not provided)
     const created = await prisma.i18nTranslation.create({
       data: {
         keyId,
         languageId: lang.id,
         key: key.key,
         namespace: key.namespace,
+        application: application || key.application || 'PLATFORM',
         locale: lang.locale,
         value: value || '',
         status: 'APPROVED',

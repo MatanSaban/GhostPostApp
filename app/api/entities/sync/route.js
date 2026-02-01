@@ -179,21 +179,40 @@ export async function POST(request) {
     }
 
     let totalSynced = 0;
+    let totalUpdated = 0;
+    let totalCreated = 0;
     
     for (const entityType of entityTypes) {
       // Fetch entities using authenticated plugin API with post type slug
       const fetchedEntities = await fetchWordPressEntities(site, entityType.slug);
       
-      // Upsert each entity using siteId + externalId as unique identifier
+      // Upsert each entity - try to match by externalId first, then by slug
       for (const entity of fetchedEntities) {
-        await prisma.siteEntity.upsert({
-          where: {
-            siteId_externalId: {
+        try {
+          // First, try to find existing entity by externalId
+          let existingEntity = await prisma.siteEntity.findFirst({
+            where: {
               siteId: site.id,
               externalId: entity.externalId,
             },
-          },
-          update: {
+          });
+
+          // If not found by externalId, try to find by slug within the same entity type
+          if (!existingEntity && entity.slug) {
+            existingEntity = await prisma.siteEntity.findFirst({
+              where: {
+                siteId: site.id,
+                entityTypeId: entityType.id,
+                slug: entity.slug,
+              },
+            });
+            
+            if (existingEntity) {
+              console.log(`[Sync] Found existing entity by slug "${entity.slug}" - will update with WordPress data`);
+            }
+          }
+
+          const entityData = {
             entityTypeId: entityType.id,
             title: entity.title,
             slug: entity.slug,
@@ -206,26 +225,31 @@ export async function POST(request) {
             metadata: entity.metadata,
             acfData: entity.acfData,
             seoData: entity.seoData,
+            externalId: entity.externalId, // Always set externalId from WordPress
             updatedAt: new Date(),
-          },
-          create: {
-            siteId: site.id,
-            entityTypeId: entityType.id,
-            title: entity.title,
-            slug: entity.slug,
-            url: entity.url,
-            excerpt: entity.excerpt,
-            content: entity.content,
-            status: entity.status,
-            featuredImage: entity.featuredImage,
-            externalId: entity.externalId,
-            publishedAt: entity.publishedAt,
-            metadata: entity.metadata,
-            acfData: entity.acfData,
-            seoData: entity.seoData,
-          },
-        });
-        totalSynced++;
+          };
+
+          if (existingEntity) {
+            // Update existing entity
+            await prisma.siteEntity.update({
+              where: { id: existingEntity.id },
+              data: entityData,
+            });
+            totalUpdated++;
+          } else {
+            // Create new entity
+            await prisma.siteEntity.create({
+              data: {
+                siteId: site.id,
+                ...entityData,
+              },
+            });
+            totalCreated++;
+          }
+          totalSynced++;
+        } catch (error) {
+          console.error(`[Sync] Error syncing entity ${entity.slug}:`, error.message);
+        }
       }
     }
 
@@ -235,10 +259,14 @@ export async function POST(request) {
       data: { updatedAt: new Date() },
     });
 
+    console.log(`[Sync] Complete: ${totalSynced} total (${totalUpdated} updated, ${totalCreated} created)`);
+
     return NextResponse.json({ 
       success: true,
       synced: totalSynced,
-      message: `Synced ${totalSynced} entities`,
+      updated: totalUpdated,
+      created: totalCreated,
+      message: `Synced ${totalSynced} entities (${totalUpdated} updated, ${totalCreated} created)`,
     });
   } catch (error) {
     console.error('Failed to sync entities:', error);

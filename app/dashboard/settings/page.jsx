@@ -5,20 +5,31 @@ import styles from './page.module.css';
 export default async function SettingsPage() {
   const t = await getTranslations();
 
-  const settingsTabs = [
+  // Website-specific settings tabs (related to the currently selected site)
+  const websiteTabs = [
     { id: 'general', label: t('settings.general'), iconName: 'Settings', description: t('settings.descriptions.general') },
     { id: 'ai-configuration', label: t('settings.aiConfiguration'), iconName: 'Sparkles', description: t('settings.descriptions.aiConfiguration') },
     { id: 'scheduling', label: t('settings.scheduling'), iconName: 'Calendar', description: t('settings.descriptions.scheduling') },
     { id: 'notifications', label: t('settings.notifications'), iconName: 'Bell', description: t('settings.descriptions.notifications') },
     { id: 'seo', label: t('settings.seoSettings'), iconName: 'Search', description: t('settings.descriptions.seo') },
     { id: 'integrations', label: t('settings.integrations'), iconName: 'Link', description: t('settings.descriptions.integrations') },
-    { id: 'users', label: t('settings.users'), iconName: 'UserPlus', description: t('settings.descriptions.users') },
     { id: 'team', label: t('settings.team'), iconName: 'Users', description: t('settings.descriptions.team') },
+  ];
+
+  // Account-level settings tabs (related to the account, not a specific site)
+  const accountTabs = [
+    { id: 'users', label: t('settings.users'), iconName: 'UserPlus', description: t('settings.descriptions.users') },
     { id: 'roles', label: t('settings.roles'), iconName: 'Shield', description: t('settings.descriptions.roles') },
     { id: 'permissions', label: t('settings.permissions'), iconName: 'Key', description: t('settings.descriptions.permissions') },
     { id: 'subscription', label: t('settings.subscription'), iconName: 'CreditCard', description: t('settings.descriptions.subscription') },
     { id: 'account', label: t('settings.account'), iconName: 'User', description: t('settings.descriptions.account') },
   ];
+
+  // Main category tabs for switching between website and account settings
+  const mainTabs = {
+    website: { id: 'website', label: t('settings.mainTabs.website'), iconName: 'Globe' },
+    account: { id: 'account', label: t('settings.mainTabs.account'), iconName: 'Building2' },
+  };
 
   // Initial data for settings (in a real app, this would come from a database)
   const initialData = {
@@ -305,6 +316,11 @@ export default async function SettingsPage() {
       roles: {
         owner: t('settings.usersSection.roles.owner'),
         admin: t('settings.usersSection.roles.admin'),
+        ceo: t('settings.usersSection.roles.ceo'),
+        cfo: t('settings.usersSection.roles.cfo'),
+        manager: t('settings.usersSection.roles.manager'),
+        team_lead: t('settings.usersSection.roles.team_lead'),
+        employee: t('settings.usersSection.roles.employee'),
         editor: t('settings.usersSection.roles.editor'),
         viewer: t('settings.usersSection.roles.viewer'),
         user: t('settings.usersSection.roles.user'),
@@ -372,7 +388,9 @@ export default async function SettingsPage() {
 
       <SettingsContent 
         translations={translations}
-        settingsTabs={settingsTabs}
+        websiteTabs={websiteTabs}
+        accountTabs={accountTabs}
+        mainTabs={mainTabs}
         initialData={initialData}
       />
     </div>

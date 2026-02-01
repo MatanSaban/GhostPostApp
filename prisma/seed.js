@@ -125,16 +125,15 @@ async function main() {
       currency: 'USD',
       interval: 'MONTHLY',
       features: [
-        '1 Website',
-        '100 Keywords',
-        '50 Content pieces/month',
-        'Basic SEO audit',
-        'Email support',
+        { key: 'seo_audit', label: 'Basic SEO audit' },
+        { key: 'email_support', label: 'Email support' },
       ],
-      maxSites: 1,
-      maxMembers: 1,
-      maxKeywords: 100,
-      maxContent: 50,
+      limitations: [
+        { key: 'maxSites', label: '1 Website', value: 1, type: 'number' },
+        { key: 'maxMembers', label: '1 Team member', value: 1, type: 'number' },
+        { key: 'maxKeywords', label: '100 Keywords', value: 100, type: 'number' },
+        { key: 'maxContent', label: '50 Content pieces/month', value: 50, type: 'number' },
+      ],
       isActive: true,
       sortOrder: 1,
     },
@@ -146,18 +145,17 @@ async function main() {
       currency: 'USD',
       interval: 'MONTHLY',
       features: [
-        '5 Websites',
-        '500 Keywords',
-        '200 Content pieces/month',
-        'Advanced SEO audit',
-        'Priority support',
-        'Team collaboration',
-        'API access',
+        { key: 'seo_audit', label: 'Advanced SEO audit' },
+        { key: 'priority_support', label: 'Priority support' },
+        { key: 'team_collab', label: 'Team collaboration' },
+        { key: 'api_access', label: 'API access' },
       ],
-      maxSites: 5,
-      maxMembers: 5,
-      maxKeywords: 500,
-      maxContent: 200,
+      limitations: [
+        { key: 'maxSites', label: '5 Websites', value: 5, type: 'number' },
+        { key: 'maxMembers', label: '5 Team members', value: 5, type: 'number' },
+        { key: 'maxKeywords', label: '500 Keywords', value: 500, type: 'number' },
+        { key: 'maxContent', label: '200 Content pieces/month', value: 200, type: 'number' },
+      ],
       isActive: true,
       sortOrder: 2,
     },
@@ -169,19 +167,18 @@ async function main() {
       currency: 'USD',
       interval: 'MONTHLY',
       features: [
-        'Unlimited Websites',
-        'Unlimited Keywords',
-        'Unlimited Content',
-        'White-label reports',
-        'Dedicated support',
-        'Custom integrations',
-        'SLA guarantee',
-        'Training sessions',
+        { key: 'white_label', label: 'White-label reports' },
+        { key: 'dedicated_support', label: 'Dedicated support' },
+        { key: 'custom_integrations', label: 'Custom integrations' },
+        { key: 'sla', label: 'SLA guarantee' },
+        { key: 'training', label: 'Training sessions' },
       ],
-      maxSites: 999,
-      maxMembers: 999,
-      maxKeywords: 99999,
-      maxContent: 99999,
+      limitations: [
+        { key: 'maxSites', label: 'Unlimited Websites', value: -1, type: 'number' },
+        { key: 'maxMembers', label: 'Unlimited Team members', value: -1, type: 'number' },
+        { key: 'maxKeywords', label: 'Unlimited Keywords', value: -1, type: 'number' },
+        { key: 'maxContent', label: 'Unlimited Content', value: -1, type: 'number' },
+      ],
       isActive: true,
       sortOrder: 3,
     },
@@ -258,36 +255,217 @@ async function main() {
     });
     console.log('✅ Account created/updated:', account.name);
 
-    // Create default role for the account
-    const adminRole = await prisma.role.upsert({
-      where: {
-        accountId_name: {
-          accountId: account.id,
-          name: 'Admin',
-        },
+    // Create default system roles for the account
+    // ALL_PERMISSIONS - Complete list of all available permissions
+    const ALL_PERMISSIONS = [
+      // Account Management
+      'ACCOUNT_VIEW', 'ACCOUNT_EDIT', 'ACCOUNT_DELETE', 'ACCOUNT_BILLING_VIEW', 'ACCOUNT_BILLING_MANAGE',
+      // Member Management
+      'MEMBERS_VIEW', 'MEMBERS_INVITE', 'MEMBERS_EDIT', 'MEMBERS_DELETE',
+      // Role Management
+      'ROLES_VIEW', 'ROLES_CREATE', 'ROLES_EDIT', 'ROLES_DELETE',
+      // Site Management
+      'SITES_VIEW', 'SITES_CREATE', 'SITES_EDIT', 'SITES_DELETE',
+      // Content Management
+      'CONTENT_VIEW', 'CONTENT_CREATE', 'CONTENT_EDIT', 'CONTENT_PUBLISH', 'CONTENT_DELETE',
+      // Keyword Management
+      'KEYWORDS_VIEW', 'KEYWORDS_CREATE', 'KEYWORDS_EDIT', 'KEYWORDS_DELETE',
+      // Redirections
+      'REDIRECTIONS_VIEW', 'REDIRECTIONS_CREATE', 'REDIRECTIONS_EDIT', 'REDIRECTIONS_DELETE',
+      // Interview
+      'INTERVIEW_VIEW', 'INTERVIEW_EDIT',
+      // Site Audit
+      'AUDIT_VIEW', 'AUDIT_RUN',
+      // Settings - General
+      'SETTINGS_GENERAL_VIEW', 'SETTINGS_GENERAL_EDIT',
+      // Settings - AI Configuration
+      'SETTINGS_AI_VIEW', 'SETTINGS_AI_EDIT',
+      // Settings - Scheduling
+      'SETTINGS_SCHEDULING_VIEW', 'SETTINGS_SCHEDULING_EDIT',
+      // Settings - Notifications
+      'SETTINGS_NOTIFICATIONS_VIEW', 'SETTINGS_NOTIFICATIONS_EDIT',
+      // Settings - SEO
+      'SETTINGS_SEO_VIEW', 'SETTINGS_SEO_EDIT',
+      // Settings - Integrations
+      'SETTINGS_INTEGRATIONS_VIEW', 'SETTINGS_INTEGRATIONS_EDIT',
+      // Settings - Users
+      'SETTINGS_USERS_VIEW', 'SETTINGS_USERS_EDIT',
+      // Settings - Team
+      'SETTINGS_TEAM_VIEW', 'SETTINGS_TEAM_EDIT',
+      // Settings - Roles
+      'SETTINGS_ROLES_VIEW', 'SETTINGS_ROLES_EDIT',
+      // Settings - Subscription
+      'SETTINGS_SUBSCRIPTION_VIEW', 'SETTINGS_SUBSCRIPTION_EDIT',
+    ];
+
+    const systemRoles = [
+      {
+        key: 'owner',
+        name: 'Owner',
+        description: 'Account owner with full access (unchangeable)',
+        permissions: ALL_PERMISSIONS,
       },
-      update: {},
-      create: {
-        accountId: account.id,
-        name: 'Admin',
-        description: 'Full access to account settings',
+      {
+        key: 'ceo',
+        name: 'CEO',
+        description: 'Chief Executive Officer - Full access to everything',
+        permissions: ALL_PERMISSIONS,
+      },
+      {
+        key: 'cfo',
+        name: 'CFO',
+        description: 'Chief Financial Officer - Financial and billing oversight',
         permissions: [
-          'ACCOUNT_VIEW',
-          'ACCOUNT_EDIT',
-          'MEMBERS_VIEW',
-          'MEMBERS_INVITE',
-          'MEMBERS_EDIT',
+          // Account - Full financial access
+          'ACCOUNT_VIEW', 'ACCOUNT_EDIT', 'ACCOUNT_BILLING_VIEW', 'ACCOUNT_BILLING_MANAGE',
+          // Members - View and manage
+          'MEMBERS_VIEW', 'MEMBERS_INVITE', 'MEMBERS_EDIT',
+          // Roles - View only
+          'ROLES_VIEW',
+          // Sites - View only
           'SITES_VIEW',
-          'SITES_CREATE',
-          'SITES_EDIT',
+          // Content - View only
           'CONTENT_VIEW',
-          'CONTENT_CREATE',
-          'CONTENT_EDIT',
-          'CONTENT_PUBLISH',
+          // Keywords - View only
+          'KEYWORDS_VIEW',
+          // Redirections - View only
+          'REDIRECTIONS_VIEW',
+          // Audit - Full access
+          'AUDIT_VIEW', 'AUDIT_RUN',
+          // Settings - General (view)
+          'SETTINGS_GENERAL_VIEW',
+          // Settings - Users (view)
+          'SETTINGS_USERS_VIEW',
+          // Settings - Subscription (full access)
+          'SETTINGS_SUBSCRIPTION_VIEW', 'SETTINGS_SUBSCRIPTION_EDIT',
         ],
-        isSystemRole: true,
       },
-    });
+      {
+        key: 'manager',
+        name: 'Manager',
+        description: 'Team manager - Content and team oversight',
+        permissions: [
+          // Account - View only
+          'ACCOUNT_VIEW',
+          // Members - View and invite
+          'MEMBERS_VIEW', 'MEMBERS_INVITE', 'MEMBERS_EDIT',
+          // Roles - View only
+          'ROLES_VIEW',
+          // Sites - Full access
+          'SITES_VIEW', 'SITES_CREATE', 'SITES_EDIT',
+          // Content - Full access
+          'CONTENT_VIEW', 'CONTENT_CREATE', 'CONTENT_EDIT', 'CONTENT_PUBLISH', 'CONTENT_DELETE',
+          // Keywords - Full access
+          'KEYWORDS_VIEW', 'KEYWORDS_CREATE', 'KEYWORDS_EDIT', 'KEYWORDS_DELETE',
+          // Redirections - Full access
+          'REDIRECTIONS_VIEW', 'REDIRECTIONS_CREATE', 'REDIRECTIONS_EDIT', 'REDIRECTIONS_DELETE',
+          // Interview - Full access
+          'INTERVIEW_VIEW', 'INTERVIEW_EDIT',
+          // Audit - Full access
+          'AUDIT_VIEW', 'AUDIT_RUN',
+          // Settings - General
+          'SETTINGS_GENERAL_VIEW', 'SETTINGS_GENERAL_EDIT',
+          // Settings - AI
+          'SETTINGS_AI_VIEW', 'SETTINGS_AI_EDIT',
+          // Settings - Scheduling
+          'SETTINGS_SCHEDULING_VIEW', 'SETTINGS_SCHEDULING_EDIT',
+          // Settings - Notifications
+          'SETTINGS_NOTIFICATIONS_VIEW', 'SETTINGS_NOTIFICATIONS_EDIT',
+          // Settings - SEO
+          'SETTINGS_SEO_VIEW', 'SETTINGS_SEO_EDIT',
+          // Settings - Integrations
+          'SETTINGS_INTEGRATIONS_VIEW', 'SETTINGS_INTEGRATIONS_EDIT',
+          // Settings - Team
+          'SETTINGS_TEAM_VIEW', 'SETTINGS_TEAM_EDIT',
+        ],
+      },
+      {
+        key: 'team_lead',
+        name: 'Team Lead',
+        description: 'Team lead - Content management and team coordination',
+        permissions: [
+          // Account - View only
+          'ACCOUNT_VIEW',
+          // Members - View only
+          'MEMBERS_VIEW',
+          // Sites - View and edit
+          'SITES_VIEW', 'SITES_EDIT',
+          // Content - Full access
+          'CONTENT_VIEW', 'CONTENT_CREATE', 'CONTENT_EDIT', 'CONTENT_PUBLISH',
+          // Keywords - Full access
+          'KEYWORDS_VIEW', 'KEYWORDS_CREATE', 'KEYWORDS_EDIT',
+          // Redirections - Create and edit
+          'REDIRECTIONS_VIEW', 'REDIRECTIONS_CREATE', 'REDIRECTIONS_EDIT',
+          // Interview - Full access
+          'INTERVIEW_VIEW', 'INTERVIEW_EDIT',
+          // Audit - View
+          'AUDIT_VIEW',
+          // Settings - General (view)
+          'SETTINGS_GENERAL_VIEW',
+          // Settings - AI (view)
+          'SETTINGS_AI_VIEW',
+          // Settings - Scheduling
+          'SETTINGS_SCHEDULING_VIEW', 'SETTINGS_SCHEDULING_EDIT',
+          // Settings - Notifications (view)
+          'SETTINGS_NOTIFICATIONS_VIEW',
+          // Settings - SEO (view)
+          'SETTINGS_SEO_VIEW',
+          // Settings - Team (view)
+          'SETTINGS_TEAM_VIEW',
+        ],
+      },
+      {
+        key: 'employee',
+        name: 'Employee',
+        description: 'Standard employee - Basic content access',
+        permissions: [
+          // Account - View only
+          'ACCOUNT_VIEW',
+          // Sites - View only
+          'SITES_VIEW',
+          // Content - Create and edit (no publish/delete)
+          'CONTENT_VIEW', 'CONTENT_CREATE', 'CONTENT_EDIT',
+          // Keywords - View and create
+          'KEYWORDS_VIEW', 'KEYWORDS_CREATE',
+          // Redirections - View only
+          'REDIRECTIONS_VIEW',
+          // Interview - View and edit (for content research)
+          'INTERVIEW_VIEW', 'INTERVIEW_EDIT',
+          // Settings - General (view)
+          'SETTINGS_GENERAL_VIEW',
+          // Settings - Notifications (personal)
+          'SETTINGS_NOTIFICATIONS_VIEW', 'SETTINGS_NOTIFICATIONS_EDIT',
+        ],
+      },
+    ];
+
+    let ownerRole = null;
+    for (const roleData of systemRoles) {
+      const role = await prisma.role.upsert({
+        where: {
+          accountId_name: {
+            accountId: account.id,
+            name: roleData.name,
+          },
+        },
+        update: {
+          key: roleData.key,
+          isSystemRole: true,
+        },
+        create: {
+          accountId: account.id,
+          key: roleData.key,
+          name: roleData.name,
+          description: roleData.description,
+          permissions: roleData.permissions,
+          isSystemRole: true,
+        },
+      });
+      if (roleData.key === 'owner') {
+        ownerRole = role;
+      }
+      console.log(`  ✅ System role created/updated: ${roleData.name}`);
+    }
 
     // Create account membership for owner
     await prisma.accountMember.upsert({
@@ -298,14 +476,14 @@ async function main() {
         },
       },
       update: {
-        roleId: adminRole.id,
+        roleId: ownerRole.id,
         isOwner: true,
         status: 'ACTIVE',
       },
       create: {
         accountId: account.id,
         userId: owner.id,
-        roleId: adminRole.id,
+        roleId: ownerRole.id,
         isOwner: true,
         status: 'ACTIVE',
       },

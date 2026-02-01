@@ -254,10 +254,57 @@ async function handleGoogleLogin({ googleUser, normalizedEmail, tokens, request,
     );
   }
   
-  // No user found - redirect to register
-  return NextResponse.redirect(
-    new URL('/auth/register?error=no_account', request.url)
+  // No user found - auto-register them with Google data
+  // Since they're trying to login with Google, we treat it as registration
+  console.log('[Google OAuth Login] No account found, auto-registering user:', normalizedEmail);
+  
+  return handleAutoGoogleRegister({ googleUser, normalizedEmail, tokens, request });
+}
+
+/**
+ * Handle automatic Google registration when user tries to login without an account
+ * Similar to handleGoogleRegister but without requiring consent from state
+ * (consent is implied by clicking "Login with Google" on a site with terms displayed)
+ */
+async function handleAutoGoogleRegister({ googleUser, normalizedEmail, tokens, request }) {
+  // Delete any existing temp registration for this email
+  await prisma.tempRegistration.deleteMany({
+    where: { email: normalizedEmail },
+  });
+  
+  // Create temp registration with Google data
+  // For Google registration, we skip OTP verification since email is already verified by Google
+  const tempReg = await prisma.tempRegistration.create({
+    data: {
+      email: normalizedEmail,
+      firstName: googleUser.firstName || '',
+      lastName: googleUser.lastName || '',
+      password: null, // No password for Google registration
+      authMethod: 'GOOGLE',
+      googleId: googleUser.id,
+      image: googleUser.picture,
+      consentGiven: true, // Implied consent by using Google login
+      consentDate: new Date(),
+      emailVerified: googleUser.emailVerified ? new Date() : null,
+      currentStep: 'ACCOUNT_SETUP', // Skip verification for Google users
+      expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
+    },
+  });
+  
+  // Set temp registration cookie
+  const response = NextResponse.redirect(
+    new URL('/auth/register?step=account-setup', request.url)
   );
+  
+  response.cookies.set(TEMP_REG_COOKIE, tempReg.id, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
+    maxAge: 60 * 60 * 24 * 7, // 7 days
+    path: '/',
+  });
+  
+  return response;
 }
 
 /**

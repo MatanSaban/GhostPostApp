@@ -32,6 +32,8 @@ export default function EntityTypePage({ params }) {
     total: 0,
     published: 0,
     draft: 0,
+    scheduled: 0,
+    pending: 0,
   });
   
   // Abort controller for cancelling sync
@@ -90,11 +92,19 @@ export default function EntityTypePage({ params }) {
           e.status?.toLowerCase() === 'published' || e.status?.toLowerCase() === 'publish'
         ).length || 0;
         const draft = data.entities?.filter(e => e.status?.toLowerCase() === 'draft').length || 0;
+        const scheduled = data.entities?.filter(e => 
+          e.status?.toLowerCase() === 'scheduled' || e.status?.toLowerCase() === 'future'
+        ).length || 0;
+        const pending = data.entities?.filter(e => 
+          e.status?.toLowerCase() === 'pending' || e.status?.toLowerCase() === 'pending review'
+        ).length || 0;
         
         setStats({
           total: data.entities?.length || 0,
           published,
           draft,
+          scheduled,
+          pending,
         });
       }
     } catch (error) {
@@ -110,15 +120,26 @@ export default function EntityTypePage({ params }) {
     
     setIsSyncing(true);
     try {
-      const response = await fetch('/api/entities/sync', {
+      // Use plugin sync if connected, otherwise use scan endpoint
+      const isPluginConnected = selectedSite?.connectionStatus === 'CONNECTED' && selectedSite?.siteKey;
+      
+      const endpoint = isPluginConnected ? '/api/entities/sync' : '/api/entities/scan';
+      const body = isPluginConnected 
+        ? { siteId: selectedSite.id, type }
+        : { siteId: selectedSite.id, phase: 'populate' };
+      
+      const response = await fetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ siteId: selectedSite.id, type }),
+        body: JSON.stringify(body),
         signal: syncAbortControllerRef.current.signal,
       });
       
       if (response.ok) {
         await fetchEntities();
+      } else {
+        const errorData = await response.json();
+        console.error('Sync failed:', errorData.error);
       }
     } catch (error) {
       if (error.name === 'AbortError') {
@@ -144,20 +165,42 @@ export default function EntityTypePage({ params }) {
     { 
       iconName: 'Database', 
       value: String(stats.total), 
-      label: t('entities.totalEntities'), 
+      label: entityType?.name 
+        ? t('entities.totalWithName', { entityName: entityType.name })
+        : t('entities.totalEntities'), 
       color: 'purple' 
     },
     { 
       iconName: 'CheckCircle', 
       value: String(stats.published), 
-      label: t('entities.published'), 
+      label: entityType?.name 
+        ? t('entities.publishedWithName', { entityName: entityType.name })
+        : t('entities.published'), 
       color: 'green' 
+    },
+    { 
+      iconName: 'Clock', 
+      value: String(stats.scheduled), 
+      label: entityType?.name 
+        ? t('entities.scheduledWithName', { entityName: entityType.name })
+        : t('entities.scheduled'), 
+      color: 'blue' 
+    },
+    { 
+      iconName: 'AlertCircle', 
+      value: String(stats.pending), 
+      label: entityType?.name 
+        ? t('entities.pendingWithName', { entityName: entityType.name })
+        : t('entities.pending'), 
+      color: 'orange' 
     },
     { 
       iconName: 'FileEdit', 
       value: String(stats.draft), 
-      label: t('entities.draft'), 
-      color: 'orange' 
+      label: entityType?.name 
+        ? t('entities.draftWithName', { entityName: entityType.name })
+        : t('entities.draft'), 
+      color: 'gray' 
     },
   ];
 
@@ -224,9 +267,14 @@ export default function EntityTypePage({ params }) {
         entityTypeName={entityType?.name}
         onSync={handleSync}
         onStopSync={handleStopSync}
+        onEntityRemoved={(entityId) => {
+          setEntities(prev => prev.filter(e => e.id !== entityId));
+          setStats(prev => ({ ...prev, total: prev.total - 1 }));
+        }}
         isLoading={isLoading}
         isSyncing={isSyncing}
         lastSyncDate={lastSyncDate}
+        isPluginConnected={selectedSite?.connectionStatus === 'CONNECTED' && !!selectedSite?.siteKey}
       />
     </div>
   );

@@ -32,6 +32,7 @@ export async function GET(request) {
 
     const formattedRoles = roles.map(role => ({
       id: role.id,
+      key: role.key,
       name: role.name,
       description: role.description,
       permissions: role.permissions,
@@ -64,10 +65,32 @@ export async function POST(request) {
     }
 
     const body = await request.json();
-    const { name, description, permissions = [] } = body;
+    const { key, name, description, permissions = [] } = body;
+
+    if (!key || typeof key !== 'string' || key.trim().length === 0) {
+      return NextResponse.json({ error: 'Role key is required' }, { status: 400 });
+    }
+
+    // Validate key format (English only, lowercase, alphanumeric with underscores/hyphens)
+    const keyRegex = /^[a-z0-9_-]+$/;
+    if (!keyRegex.test(key.trim())) {
+      return NextResponse.json({ error: 'Role key must contain only lowercase English letters, numbers, underscores, and hyphens' }, { status: 400 });
+    }
 
     if (!name || typeof name !== 'string' || name.trim().length === 0) {
       return NextResponse.json({ error: 'Role name is required' }, { status: 400 });
+    }
+
+    // Check for duplicate key
+    const existingKeyRole = await prisma.role.findFirst({
+      where: {
+        accountId: member.accountId,
+        key: key.trim(),
+      },
+    });
+
+    if (existingKeyRole) {
+      return NextResponse.json({ error: 'A role with this key already exists' }, { status: 400 });
     }
 
     // Check for duplicate name
@@ -85,6 +108,7 @@ export async function POST(request) {
     const newRole = await prisma.role.create({
       data: {
         account: { connect: { id: member.accountId } },
+        key: key.trim(),
         name: name.trim(),
         description: description?.trim() || null,
         permissions,
@@ -95,6 +119,7 @@ export async function POST(request) {
     return NextResponse.json({
       role: {
         id: newRole.id,
+        key: newRole.key,
         name: newRole.name,
         description: newRole.description,
         permissions: newRole.permissions,

@@ -186,7 +186,7 @@
 }
 
 .automationDescription {
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   color: var(--muted-foreground);
 }
 
@@ -194,7 +194,7 @@
   display: flex;
   align-items: center;
   gap: 1rem;
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   color: var(--muted-foreground);
 
   @media (max-width: 768px) {
@@ -322,6 +322,6 @@
 }
 
 .activityTime {
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   color: var(--muted-foreground);
 }
