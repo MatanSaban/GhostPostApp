@@ -25,7 +25,7 @@ import {
 } from 'lucide-react';
 import { useLocale } from '@/app/context/locale-context';
 import { useSite } from '@/app/context/site-context';
-import styles from './tools.module.css';
+import styles from '../technical-seo.module.css';
 
 export default function ToolsPage() {
   const { t } = useLocale();

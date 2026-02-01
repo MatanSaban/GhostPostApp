@@ -2,7 +2,7 @@ import {
   Edit,
   Trash2
 } from 'lucide-react';
-import { StatsCard } from '../components';
+import { StatsCard } from '@/app/dashboard/components';
 import { RedirectForm } from './components';
 import { getTranslations } from '@/i18n/server';
 import styles from './page.module.css';

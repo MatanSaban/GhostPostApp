@@ -1,7 +1,35 @@
 import { NextResponse } from 'next/server';
+import { cookies } from 'next/headers';
 import prisma from '@/lib/prisma';
-import { verifyAuth } from '@/lib/auth';
 import { getAccountResourceLimits } from '@/lib/account-utils';
+
+const SESSION_COOKIE = 'user_session';
+
+// Get authenticated user
+async function getAuthenticatedUser() {
+  try {
+    const cookieStore = await cookies();
+    const userId = cookieStore.get(SESSION_COOKIE)?.value;
+
+    if (!userId) {
+      return null;
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { 
+        id: true, 
+        email: true,
+        lastSelectedAccountId: true,
+      },
+    });
+
+    return user;
+  } catch (error) {
+    console.error('Auth error:', error);
+    return null;
+  }
+}
 
 /**
  * GET /api/account/resources
@@ -9,7 +37,7 @@ import { getAccountResourceLimits } from '@/lib/account-utils';
  */
 export async function GET(request) {
   try {
-    const user = await verifyAuth();
+    const user = await getAuthenticatedUser();
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }

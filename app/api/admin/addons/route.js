@@ -1,6 +1,38 @@
 import { NextResponse } from 'next/server';
+import { cookies } from 'next/headers';
 import prisma from '@/lib/prisma';
-import { verifySuperAdmin } from '@/lib/auth';
+
+const SESSION_COOKIE = 'user_session';
+
+// Verify user is a super admin
+async function verifySuperAdmin() {
+  try {
+    const cookieStore = await cookies();
+    const userId = cookieStore.get(SESSION_COOKIE)?.value;
+
+    if (!userId) {
+      return null;
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { 
+        id: true, 
+        email: true,
+        isSuperAdmin: true,
+      },
+    });
+
+    if (!user || !user.isSuperAdmin) {
+      return null;
+    }
+
+    return user;
+  } catch (error) {
+    console.error('Auth error:', error);
+    return null;
+  }
+}
 
 // GET all add-ons
 export async function GET(request) {
