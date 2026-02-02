@@ -78,7 +78,7 @@ export default function DashboardLayout({ children, title = 'Dashboard', breadcr
   const pathname = usePathname();
   const router = useRouter();
   const { t, isRtl } = useLocale();
-  const { isSuperAdmin, isLoading: isUserLoading, clearUser } = useUser();
+  const { user, isSuperAdmin, isLoading: isUserLoading, clearUser } = useUser();
   const { selectedSite } = useSite();
   const { filterMenuItems, canViewPath, isLoading: isPermissionsLoading } = usePermissions();
   const [isChatOpen, setIsChatOpen] = useState(false);
@@ -86,6 +86,44 @@ export default function DashboardLayout({ children, title = 'Dashboard', breadcr
   const [openMenu, setOpenMenu] = useState(null); // 'strategy' | 'entities' | 'tools' | 'admin' | null
   const [entityTypes, setEntityTypes] = useState([]);
   const chatPopupRef = useRef(null);
+
+  // Redirect to login if not authenticated
+  useEffect(() => {
+    if (!isUserLoading && !user) {
+      console.log('No user found in dashboard layout, redirecting to login');
+      router.push('/auth/login');
+    }
+  }, [user, isUserLoading, router]);
+
+  // Show loading state while checking authentication
+  if (isUserLoading) {
+    return (
+      <div style={{
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        height: '100vh',
+        background: 'var(--background)'
+      }}>
+        <div style={{ textAlign: 'center' }}>
+          <div style={{
+            width: '40px',
+            height: '40px',
+            border: '3px solid var(--border)',
+            borderTopColor: 'var(--primary)',
+            borderRadius: '50%',
+            animation: 'spin 1s linear infinite',
+            margin: '0 auto'
+          }}></div>
+        </div>
+      </div>
+    );
+  }
+
+  // Don't render dashboard if no user
+  if (!user) {
+    return null;
+  }
 
   // Filter menu items based on permissions
   const filteredMenuItems = useMemo(() => {
@@ -126,7 +164,7 @@ export default function DashboardLayout({ children, title = 'Dashboard', breadcr
         setEntityTypes([]);
         return;
       }
-      
+
       try {
         const response = await fetch(`/api/entities/types?siteId=${selectedSite.id}`);
         if (response.ok) {
@@ -187,9 +225,9 @@ export default function DashboardLayout({ children, title = 'Dashboard', breadcr
       <aside className={styles.sidebar}>
         {/* Logo */}
         <div className={styles.sidebarLogo}>
-          <img 
-            src="/ghostpost_logo.png" 
-            alt={t('brand.name')} 
+          <img
+            src="/ghostpost_logo.png"
+            alt={t('brand.name')}
             className={styles.logoIcon}
           />
           <span className={styles.logoText}>{t('brand.name')}</span>
@@ -203,7 +241,7 @@ export default function DashboardLayout({ children, title = 'Dashboard', breadcr
           {filteredMenuItems.map((item) => {
             const Icon = item.icon;
             const isActive = pathname === item.path;
-            
+
             return (
               <Link
                 key={item.path}
@@ -218,13 +256,13 @@ export default function DashboardLayout({ children, title = 'Dashboard', breadcr
 
           {/* Strategy Section - Expandable sub-items */}
           <div className={styles.navGroup}>
-            <Link 
+            <Link
               href="/dashboard/strategy"
               className={`${styles.navItem} ${styles.navGroupToggle} ${pathname.startsWith('/dashboard/strategy') ? styles.active : ''}`}
             >
               <Lightbulb className={styles.navIcon} />
               <span className={styles.navLabel}>{t('nav.strategy.title')}</span>
-              <button 
+              <button
                 className={styles.navChevronButton}
                 onClick={handleStrategyChevronClick}
                 aria-label={openMenu === 'strategy' ? t('common.collapse') : t('common.expand')}
@@ -236,7 +274,7 @@ export default function DashboardLayout({ children, title = 'Dashboard', breadcr
               <div className={styles.navGroupItemsInner}>
                 {strategyItemsConfig.map((item) => {
                   const isActive = pathname === item.path || pathname.startsWith(item.path + '/');
-                  
+
                   return (
                     <Link
                       key={item.path}
@@ -253,62 +291,62 @@ export default function DashboardLayout({ children, title = 'Dashboard', breadcr
 
           {/* Entities Section - Dynamic with expandable sub-items */}
           {canViewPath('/dashboard/entities') && (
-          <div className={styles.navGroup}>
-            <Link 
-              href="/dashboard/entities"
-              className={`${styles.navItem} ${styles.navGroupToggle} ${pathname.startsWith('/dashboard/entities') ? styles.active : ''}`}
-            >
-              <Database className={styles.navIcon} />
-              <span className={styles.navLabel}>{t('nav.entities.title')}</span>
-              {entityTypes.length > 0 && (
-                <button 
-                  className={styles.navChevronButton}
-                  onClick={handleChevronClick}
-                  aria-label={openMenu === 'entities' ? t('common.collapse') : t('common.expand')}
-                >
-                  <ChevronRight className={`${styles.navChevron} ${openMenu === 'entities' ? styles.navChevronOpen : ''}`} />
-                </button>
-              )}
-            </Link>
-            {entityTypes.length > 0 && (
-              <div className={`${styles.navGroupItems} ${openMenu === 'entities' ? styles.navGroupItemsOpen : ''}`}>
-                <div className={styles.navGroupItemsInner}>
-                  {entityTypes.map((entityType) => {
-                    const isActive = pathname === `/dashboard/entities/${entityType.slug}` || 
-                                     pathname.startsWith(`/dashboard/entities/${entityType.slug}/`);
-                    
-                    return (
-                      <Link
-                        key={entityType.id}
-                        href={`/dashboard/entities/${entityType.slug}`}
-                        className={`${styles.navItem} ${styles.navSubItem} ${isActive ? styles.active : ''}`}
-                      >
-                        <span className={styles.navLabel}>{entityType.name}</span>
-                      </Link>
-                    );
-                  })}
-                  {/* Media link */}
-                  <Link
-                    href="/dashboard/entities/media"
-                    className={`${styles.navItem} ${styles.navSubItem} ${pathname === '/dashboard/entities/media' ? styles.active : ''}`}
+            <div className={styles.navGroup}>
+              <Link
+                href="/dashboard/entities"
+                className={`${styles.navItem} ${styles.navGroupToggle} ${pathname.startsWith('/dashboard/entities') ? styles.active : ''}`}
+              >
+                <Database className={styles.navIcon} />
+                <span className={styles.navLabel}>{t('nav.entities.title')}</span>
+                {entityTypes.length > 0 && (
+                  <button
+                    className={styles.navChevronButton}
+                    onClick={handleChevronClick}
+                    aria-label={openMenu === 'entities' ? t('common.collapse') : t('common.expand')}
                   >
-                    <span className={styles.navLabel}>{t('nav.entities.media')}</span>
-                  </Link>
+                    <ChevronRight className={`${styles.navChevron} ${openMenu === 'entities' ? styles.navChevronOpen : ''}`} />
+                  </button>
+                )}
+              </Link>
+              {entityTypes.length > 0 && (
+                <div className={`${styles.navGroupItems} ${openMenu === 'entities' ? styles.navGroupItemsOpen : ''}`}>
+                  <div className={styles.navGroupItemsInner}>
+                    {entityTypes.map((entityType) => {
+                      const isActive = pathname === `/dashboard/entities/${entityType.slug}` ||
+                        pathname.startsWith(`/dashboard/entities/${entityType.slug}/`);
+
+                      return (
+                        <Link
+                          key={entityType.id}
+                          href={`/dashboard/entities/${entityType.slug}`}
+                          className={`${styles.navItem} ${styles.navSubItem} ${isActive ? styles.active : ''}`}
+                        >
+                          <span className={styles.navLabel}>{entityType.name}</span>
+                        </Link>
+                      );
+                    })}
+                    {/* Media link */}
+                    <Link
+                      href="/dashboard/entities/media"
+                      className={`${styles.navItem} ${styles.navSubItem} ${pathname === '/dashboard/entities/media' ? styles.active : ''}`}
+                    >
+                      <span className={styles.navLabel}>{t('nav.entities.media')}</span>
+                    </Link>
+                  </div>
                 </div>
-              </div>
-            )}
-          </div>
+              )}
+            </div>
           )}
 
           {/* Tools Section (Technical SEO) - Expandable sub-items */}
           <div className={styles.navGroup}>
-            <Link 
+            <Link
               href="/dashboard/technical-seo"
               className={`${styles.navItem} ${styles.navGroupToggle} ${pathname.startsWith('/dashboard/technical-seo') ? styles.active : ''}`}
             >
               <Wrench className={styles.navIcon} />
               <span className={styles.navLabel}>{t('nav.tools.title')}</span>
-              <button 
+              <button
                 className={styles.navChevronButton}
                 onClick={handleToolsChevronClick}
                 aria-label={openMenu === 'tools' ? t('common.collapse') : t('common.expand')}
@@ -320,7 +358,7 @@ export default function DashboardLayout({ children, title = 'Dashboard', breadcr
               <div className={styles.navGroupItemsInner}>
                 {toolsItemsConfig.map((item) => {
                   const isActive = pathname === item.path || pathname.startsWith(item.path + '/');
-                  
+
                   return (
                     <Link
                       key={item.path}
@@ -347,7 +385,7 @@ export default function DashboardLayout({ children, title = 'Dashboard', breadcr
           {/* Admin Section - Only visible to super admins */}
           {!isUserLoading && isSuperAdmin && (
             <div className={styles.navGroup}>
-              <button 
+              <button
                 className={`${styles.navItem} ${styles.navGroupToggle} ${styles.adminNavItem} ${pathname.startsWith('/dashboard/admin') ? styles.active : ''}`}
                 onClick={handleAdminChevronClick}
               >
@@ -360,7 +398,7 @@ export default function DashboardLayout({ children, title = 'Dashboard', breadcr
                   {adminMenuItemsConfig.map((item) => {
                     const Icon = item.icon;
                     const isActive = pathname === item.path || pathname.startsWith(item.path + '/');
-                    
+
                     return (
                       <Link
                         key={item.path}
@@ -399,7 +437,7 @@ export default function DashboardLayout({ children, title = 'Dashboard', breadcr
       </main>
 
       {/* Floating Chat Button */}
-      <button 
+      <button
         className={`${styles.floatingChatButton} ${isChatOpen ? styles.floatingChatButtonOpen : ''}`}
         onClick={handleFloatingButtonClick}
       >
@@ -407,9 +445,9 @@ export default function DashboardLayout({ children, title = 'Dashboard', breadcr
         {isChatOpen ? (
           <X size={24} className={styles.chatButtonClose} />
         ) : (
-          <img 
-            src="/ghostpost_logo.png" 
-            alt={t('chat.openChat')} 
+          <img
+            src="/ghostpost_logo.png"
+            alt={t('chat.openChat')}
             className={styles.chatButtonLogo}
           />
         )}
