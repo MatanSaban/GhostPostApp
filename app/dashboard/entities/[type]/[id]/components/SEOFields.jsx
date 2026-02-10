@@ -6,7 +6,7 @@ import { useLocale } from '@/app/context/locale-context';
 import { ImagePickerField } from './ImagePickerField';
 import styles from '../edit.module.css';
 
-export function SEOFields({ seoData, onChange, siteUrl, slug, entityType }) {
+export function SEOFields({ seoData, onChange, siteUrl, slug, entityType, entityUrl }) {
   const { t } = useLocale();
   const [activeSection, setActiveSection] = useState('general');
 
@@ -20,8 +20,28 @@ export function SEOFields({ seoData, onChange, siteUrl, slug, entityType }) {
     }
   };
 
-  // Build the preview URL
+  // Helper to get value supporting both flat (ogTitle) and nested (og.title) formats
+  const getSeoValue = (flatKey, nestedParent, nestedKey) => {
+    // Check nested format first (e.g., seoData.og.title)
+    if (seoData?.[nestedParent]?.[nestedKey]) {
+      return seoData[nestedParent][nestedKey];
+    }
+    // Fallback to flat format (e.g., seoData.ogTitle)
+    return seoData?.[flatKey] || '';
+  };
+
+  // Build the preview URL - prefer actual entity URL if available
   const getPreviewUrl = () => {
+    // If we have the actual entity URL, use it (most accurate)
+    if (entityUrl) {
+      try {
+        return decodeURIComponent(entityUrl.replace(/^https?:\/\//, ''));
+      } catch {
+        return entityUrl.replace(/^https?:\/\//, '');
+      }
+    }
+    
+    // Fallback to constructing URL from parts
     if (!siteUrl) return 'example.com › page-slug';
     
     // Remove protocol and trailing slash from site URL
@@ -35,6 +55,11 @@ export function SEOFields({ seoData, onChange, siteUrl, slug, entityType }) {
     const slugPath = decodedSlug ? `/${decodedSlug}` : '';
     
     return `${displayUrl}${entityPath}${slugPath}`;
+  };
+
+  // Get canonical URL - support both 'canonical' and 'canonicalUrl' keys
+  const getCanonicalUrl = () => {
+    return seoData?.canonical || seoData?.canonicalUrl || '';
   };
 
   const handleChange = (field, value) => {
@@ -194,7 +219,7 @@ export function SEOFields({ seoData, onChange, siteUrl, slug, entityType }) {
                   </label>
                   <input
                     type="url"
-                    value={seoData.canonical || ''}
+                    value={getCanonicalUrl()}
                     onChange={(e) => handleChange('canonical', e.target.value)}
                     className={styles.textInput}
                     placeholder="https://..."
@@ -225,7 +250,7 @@ export function SEOFields({ seoData, onChange, siteUrl, slug, entityType }) {
                   </label>
                   <input
                     type="text"
-                    value={seoData.og?.title || ''}
+                    value={getSeoValue('ogTitle', 'og', 'title')}
                     onChange={(e) => handleNestedChange('og', 'title', e.target.value)}
                     className={styles.textInput}
                   />
@@ -235,7 +260,7 @@ export function SEOFields({ seoData, onChange, siteUrl, slug, entityType }) {
                     {t('entities.edit.seo.ogDescription')}
                   </label>
                   <textarea
-                    value={seoData.og?.description || ''}
+                    value={getSeoValue('ogDescription', 'og', 'description')}
                     onChange={(e) => handleNestedChange('og', 'description', e.target.value)}
                     className={styles.textareaInput}
                     rows={2}
@@ -246,7 +271,7 @@ export function SEOFields({ seoData, onChange, siteUrl, slug, entityType }) {
                     {t('entities.edit.seo.ogImage')}
                   </label>
                   <ImagePickerField
-                    value={seoData.og?.image || ''}
+                    value={getSeoValue('ogImage', 'og', 'image')}
                     onChange={(url) => handleNestedChange('og', 'image', url)}
                     label={t('entities.edit.seo.ogImage')}
                     previewSize="large"
@@ -272,7 +297,7 @@ export function SEOFields({ seoData, onChange, siteUrl, slug, entityType }) {
                   </label>
                   <input
                     type="text"
-                    value={seoData.twitter?.title || ''}
+                    value={getSeoValue('twitterTitle', 'twitter', 'title')}
                     onChange={(e) => handleNestedChange('twitter', 'title', e.target.value)}
                     className={styles.textInput}
                   />
@@ -282,7 +307,7 @@ export function SEOFields({ seoData, onChange, siteUrl, slug, entityType }) {
                     {t('entities.edit.seo.twitterDescription')}
                   </label>
                   <textarea
-                    value={seoData.twitter?.description || ''}
+                    value={getSeoValue('twitterDescription', 'twitter', 'description')}
                     onChange={(e) => handleNestedChange('twitter', 'description', e.target.value)}
                     className={styles.textareaInput}
                     rows={2}
@@ -293,7 +318,7 @@ export function SEOFields({ seoData, onChange, siteUrl, slug, entityType }) {
                     {t('entities.edit.seo.twitterImage')}
                   </label>
                   <ImagePickerField
-                    value={seoData.twitter?.image || ''}
+                    value={getSeoValue('twitterImage', 'twitter', 'image')}
                     onChange={(url) => handleNestedChange('twitter', 'image', url)}
                     label={t('entities.edit.seo.twitterImage')}
                     previewSize="large"

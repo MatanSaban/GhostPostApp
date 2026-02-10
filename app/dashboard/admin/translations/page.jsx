@@ -16,6 +16,7 @@ import {
 import { useLocale } from '@/app/context/locale-context';
 import { useUser } from '@/app/context/user-context';
 import { AdminModal, ConfirmDialog, FormInput, FormTextarea, FormSelect, FormActions, PrimaryButton, SecondaryButton } from '../components/AdminModal';
+import { AdminPageSkeleton } from '@/app/dashboard/components';
 import SearchableSelect from '@/app/components/ui/searchable-select';
 import styles from './translations.module.css';
 import adminStyles from '../admin.module.css';
@@ -426,11 +427,7 @@ export default function TranslationsPage() {
   };
 
   if (isUserLoading) {
-    return (
-      <div className={adminStyles.loadingState}>
-        <div className={adminStyles.spinner} />
-      </div>
-    );
+    return <AdminPageSkeleton statsCount={0} columns={4} />;
   }
 
   if (!isSuperAdmin) {

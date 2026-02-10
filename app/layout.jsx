@@ -4,7 +4,9 @@ import { ThemeProvider } from '@/app/context/theme-context';
 import { LocaleProvider } from '@/app/context/locale-context';
 import { UserProvider } from '@/app/context/user-context';
 import { SiteProvider } from '@/app/context/site-context';
+import { BackgroundTasksProvider } from '@/app/context/background-tasks-context';
 import { SiteLocaleSync } from '@/app/components/SiteLocaleSync';
+import { BackgroundTasksNotification } from '@/app/components/ui/background-tasks-notification';
 import { locales, defaultLocale, getDirection } from '@/i18n/config';
 
 export const metadata = {
@@ -42,8 +44,11 @@ export default async function RootLayout({ children }) {
           <ThemeProvider>
             <UserProvider>
               <SiteProvider>
-                <SiteLocaleSync />
-                {children}
+                <BackgroundTasksProvider>
+                  <SiteLocaleSync />
+                  {children}
+                  <BackgroundTasksNotification />
+                </BackgroundTasksProvider>
               </SiteProvider>
             </UserProvider>
           </ThemeProvider>

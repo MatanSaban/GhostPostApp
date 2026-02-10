@@ -226,6 +226,7 @@ model User {
   otpCodes           OtpCode[]
   interviews         UserInterview[]
   sitePreferences    UserSitePreference[]
+  sitemapScans       SiteSitemap[]
 }
 
 enum RegistrationStep {
@@ -661,8 +662,78 @@ model Site {
   entities        SiteEntity[]
   userPreferences UserSitePreference[]
   menus           SiteMenu[]
+  sitemaps        SiteSitemap[]
+  competitors     Competitor[]
 
   @@index([siteKey])
+}
+
+// ==========================================
+// COMPETITOR ANALYSIS
+// ==========================================
+
+model Competitor {
+  id              String            @id @default(auto()) @map("_id") @db.ObjectId
+  siteId          String            @db.ObjectId
+  url             String            // Competitor page URL
+  domain          String            // Extracted domain (e.g., "example.com")
+  name            String?           // Business/competitor name (from discovery or manual)
+  favicon         String?           // Favicon URL (auto-fetched)
+  
+  // Discovery source
+  source          CompetitorSource  @default(MANUAL)
+  discoveryKeyword String?          // Keyword used to discover (for SERP source)
+  serpPosition    Int?              // Position in SERP when discovered
+  
+  // Scraped metrics (updated on each scan)
+  wordCount       Int?
+  h1Count         Int?
+  h2Count         Int?
+  h3Count         Int?
+  imageCount      Int?
+  videoCount      Int?
+  internalLinks   Int?
+  externalLinks   Int?
+  ttfb            Int?              // Time to First Byte in ms
+  
+  // Content structure (for AI analysis)
+  title           String?           // Page title
+  metaDescription String?
+  headings        Json?             // Array of {tag, text} for all headings
+  mainContent     String?           // Extracted main content text (for AI)
+  
+  // AI-generated insights
+  topicsCovered   Json?             // Array of topics identified by AI
+  contentGaps     Json?             // Compared to user's page
+  aiSummary       String?           // Brief AI summary of the page
+  
+  // Scan tracking
+  scanStatus      CompetitorScanStatus @default(PENDING)
+  lastScannedAt   DateTime?
+  scanError       String?
+  
+  isActive        Boolean           @default(true)
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+
+  site            Site              @relation(fields: [siteId], references: [id], onDelete: Cascade)
+
+  @@unique([siteId, url])
+  @@index([siteId, isActive])
+  @@index([domain])
+}
+
+enum CompetitorSource {
+  MANUAL    // User added manually
+  SERP      // Discovered via SERP scraping
+  AI        // Suggested by AI analysis
+}
+
+enum CompetitorScanStatus {
+  PENDING     // Not yet scanned
+  SCANNING    // Currently being scanned
+  COMPLETED   // Successfully scanned
+  ERROR       // Scan failed
 }
 
 enum SiteConnectionStatus {
@@ -701,6 +772,7 @@ model UserSitePreference {
   siteId   String    @db.ObjectId
   language Language? // Overrides user's default language for this site
   timezone String?   // Overrides account's default timezone for this site
+  uiPreferences Json? // UI preferences like view modes { competitorsView: 'list' | 'table', ... }
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -793,6 +865,48 @@ model SiteMenu {
 
   @@unique([siteId, slug])
   @@index([siteId])
+}
+
+// Sitemap discovered during entity scan
+model SiteSitemap {
+  id            String          @id @default(auto()) @map("_id") @db.ObjectId
+  siteId        String          @db.ObjectId
+  url           String          // Full sitemap URL
+  type          SitemapType     @default(STANDARD)
+  isIndex       Boolean         @default(false)  // True if this is a sitemap index
+  parentId      String?         @db.ObjectId     // Parent sitemap if discovered from index
+  urlCount      Int             @default(0)      // Number of URLs in this sitemap
+  content       String?         // Raw XML content (stored for reference)
+  entityTypes   String[]        // Entity types this sitemap contains (e.g., ["posts", "pages"])
+  lastScannedAt DateTime?       // Last time this sitemap was scanned
+  lastScannedBy String?         @db.ObjectId     // User who triggered the scan (null = system)
+  scanStatus    SitemapScanStatus @default(PENDING)
+  scanError     String?         // Error message if scan failed
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+
+  site          Site            @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  parent        SiteSitemap?    @relation("SitemapHierarchy", fields: [parentId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  children      SiteSitemap[]   @relation("SitemapHierarchy")
+  scannedByUser User?           @relation(fields: [lastScannedBy], references: [id])
+
+  @@unique([siteId, url])
+  @@index([siteId])
+}
+
+enum SitemapType {
+  STANDARD     // Regular sitemap
+  INDEX        // Sitemap index pointing to other sitemaps
+  NEWS         // Google News sitemap
+  IMAGE        // Image sitemap
+  VIDEO        // Video sitemap
+}
+
+enum SitemapScanStatus {
+  PENDING      // Not yet scanned
+  SCANNING     // Scan in progress
+  COMPLETED    // Scan completed successfully
+  ERROR        // Scan failed
 }
 
 model Interview {

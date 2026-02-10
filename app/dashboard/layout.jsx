@@ -26,6 +26,7 @@ import {
   Wrench,
   Lightbulb,
   Globe,
+  Package,
 } from 'lucide-react';
 import { GhostChatPopup } from '@/app/components/ui/ghost-chat-popup';
 import { SiteSelector } from '@/app/components/ui/site-selector';
@@ -52,7 +53,7 @@ const strategyItemsConfig = [
   { labelKey: 'nav.strategy.keywords', path: '/dashboard/strategy/keywords' },
   { labelKey: 'nav.strategy.contentPlanner', path: '/dashboard/strategy/content-planner' },
   { labelKey: 'nav.strategy.aiWizard', path: '/dashboard/strategy/ai-content-wizard' },
-  { labelKey: 'nav.strategy.competitorAnalysis', path: '/dashboard/strategy/competitor-analysis' },
+  { labelKey: 'nav.strategy.competitorAnalysis', path: '/dashboard/strategy/competitors' },
 ];
 
 // Tools sub-items (Technical SEO)
@@ -68,6 +69,7 @@ const adminMenuItemsConfig = [
   { icon: Users, labelKey: 'nav.admin.users', path: '/dashboard/admin/users' },
   { icon: CreditCard, labelKey: 'nav.admin.subscriptions', path: '/dashboard/admin/subscriptions' },
   { icon: FileStack, labelKey: 'nav.admin.plans', path: '/dashboard/admin/plans' },
+  { icon: Package, labelKey: 'nav.admin.addons', path: '/dashboard/admin/addons' },
   { icon: Bot, labelKey: 'nav.admin.interviewFlow', path: '/dashboard/admin/interview-flow' },
   { icon: Zap, labelKey: 'nav.admin.botActions', path: '/dashboard/admin/bot-actions' },
   { icon: Languages, labelKey: 'nav.admin.translations', path: '/dashboard/admin/translations' },
@@ -84,8 +86,18 @@ export default function DashboardLayout({ children, title = 'Dashboard', breadcr
   const [isChatOpen, setIsChatOpen] = useState(false);
   // Single state for open menu - only one can be open at a time (accordion behavior)
   const [openMenu, setOpenMenu] = useState(null); // 'strategy' | 'entities' | 'tools' | 'admin' | null
+  const [transitionKey, setTransitionKey] = useState(0);
+  const [isPageVisible, setIsPageVisible] = useState(true);
   const [entityTypes, setEntityTypes] = useState([]);
   const chatPopupRef = useRef(null);
+
+  // Filter menu items based on permissions - MUST be before any early returns
+  const filteredMenuItems = useMemo(() => {
+    if (isPermissionsLoading) {
+      return menuItemsConfig; // Show all while loading to prevent flicker
+    }
+    return filterMenuItems(menuItemsConfig);
+  }, [filterMenuItems, isPermissionsLoading]);
 
   // Redirect to login if not authenticated
   useEffect(() => {
@@ -95,8 +107,52 @@ export default function DashboardLayout({ children, title = 'Dashboard', breadcr
     }
   }, [user, isUserLoading, router]);
 
+  // Check if current path is accessible, redirect if not - MUST be before any early returns
+  useEffect(() => {
+    if (!isPermissionsLoading && !isUserLoading && pathname !== '/dashboard') {
+      // Don't check admin pages (they have their own superAdmin check)
+      if (!pathname.startsWith('/dashboard/admin') && !canViewPath(pathname)) {
+        router.push('/dashboard');
+      }
+    }
+  }, [pathname, canViewPath, isPermissionsLoading, isUserLoading, router]);
+
+  // Page transition effect on route change
+  useEffect(() => {
+    setTransitionKey(prev => prev + 1);
+    setIsPageVisible(false);
+    const timer = setTimeout(() => {
+      setIsPageVisible(true);
+    }, 50);
+    return () => clearTimeout(timer);
+  }, [pathname]);
+
+  // Fetch enabled entity types for the selected site - MUST be before any early returns
+  useEffect(() => {
+    async function fetchEntityTypes() {
+      if (!selectedSite?.id) {
+        setEntityTypes([]);
+        return;
+      }
+
+      try {
+        const response = await fetch(`/api/entities/types?siteId=${selectedSite.id}`);
+        if (response.ok) {
+          const data = await response.json();
+          setEntityTypes(data.types || []);
+        }
+      } catch (error) {
+        console.error('Failed to fetch entity types:', error);
+        setEntityTypes([]);
+      }
+    }
+
+    fetchEntityTypes();
+  }, [selectedSite?.id]);
+
   // Show loading state while checking authentication
-  if (isUserLoading) {
+  // Only block if we have NO user at all (not even from localStorage)
+  if (isUserLoading && !user) {
     return (
       <div style={{
         display: 'flex',
@@ -125,24 +181,6 @@ export default function DashboardLayout({ children, title = 'Dashboard', breadcr
     return null;
   }
 
-  // Filter menu items based on permissions
-  const filteredMenuItems = useMemo(() => {
-    if (isPermissionsLoading) {
-      return menuItemsConfig; // Show all while loading to prevent flicker
-    }
-    return filterMenuItems(menuItemsConfig);
-  }, [filterMenuItems, isPermissionsLoading]);
-
-  // Check if current path is accessible, redirect if not
-  useEffect(() => {
-    if (!isPermissionsLoading && !isUserLoading && pathname !== '/dashboard') {
-      // Don't check admin pages (they have their own superAdmin check)
-      if (!pathname.startsWith('/dashboard/admin') && !canViewPath(pathname)) {
-        router.push('/dashboard');
-      }
-    }
-  }, [pathname, canViewPath, isPermissionsLoading, isUserLoading, router]);
-
   // Logout handler
   const handleLogout = async () => {
     try {
@@ -156,29 +194,6 @@ export default function DashboardLayout({ children, title = 'Dashboard', breadcr
       router.push('/auth/login');
     }
   };
-
-  // Fetch enabled entity types for the selected site
-  useEffect(() => {
-    async function fetchEntityTypes() {
-      if (!selectedSite?.id) {
-        setEntityTypes([]);
-        return;
-      }
-
-      try {
-        const response = await fetch(`/api/entities/types?siteId=${selectedSite.id}`);
-        if (response.ok) {
-          const data = await response.json();
-          setEntityTypes(data.types || []);
-        }
-      } catch (error) {
-        console.error('Failed to fetch entity types:', error);
-        setEntityTypes([]);
-      }
-    }
-
-    fetchEntityTypes();
-  }, [selectedSite?.id]);
 
   const handleFloatingButtonClick = () => {
     if (isChatOpen) {
@@ -325,12 +340,21 @@ export default function DashboardLayout({ children, title = 'Dashboard', breadcr
                         </Link>
                       );
                     })}
-                    {/* Media link */}
+                    {/* Media link - only show for connected WordPress sites */}
+                    {selectedSite?.platform === 'wordpress' && selectedSite?.connectionStatus === 'CONNECTED' && (
+                      <Link
+                        href="/dashboard/entities/media"
+                        className={`${styles.navItem} ${styles.navSubItem} ${pathname === '/dashboard/entities/media' ? styles.active : ''}`}
+                      >
+                        <span className={styles.navLabel}>{t('nav.entities.media')}</span>
+                      </Link>
+                    )}
+                    {/* Sitemaps link */}
                     <Link
-                      href="/dashboard/entities/media"
-                      className={`${styles.navItem} ${styles.navSubItem} ${pathname === '/dashboard/entities/media' ? styles.active : ''}`}
+                      href="/dashboard/entities/sitemaps"
+                      className={`${styles.navItem} ${styles.navSubItem} ${pathname.startsWith('/dashboard/entities/sitemaps') ? styles.active : ''}`}
                     >
-                      <span className={styles.navLabel}>{t('nav.entities.media')}</span>
+                      <span className={styles.navLabel}>{t('nav.entities.sitemaps')}</span>
                     </Link>
                   </div>
                 </div>
@@ -432,7 +456,9 @@ export default function DashboardLayout({ children, title = 'Dashboard', breadcr
 
         {/* Content */}
         <div className={styles.contentArea}>
-          {children}
+          <div key={transitionKey} className={`${styles.pageContainer} ${isPageVisible ? styles.pageIn : ''}`}>
+            {children}
+          </div>
         </div>
       </main>
 

@@ -126,7 +126,7 @@ export async function POST(request) {
       data: {
         name,
         url,
-        platform: body.platform || 'wordpress',
+        platform: body.platform || null,
         accountId: targetAccountId,
         siteKey,
         siteSecret,
@@ -150,6 +150,70 @@ export async function POST(request) {
     console.error('Failed to create site:', error);
     return NextResponse.json(
       { error: 'Failed to create site' },
+      { status: 500 }
+    );
+  }
+}
+
+// PATCH - Update a site (name, url, etc.)
+export async function PATCH(request) {
+  try {
+    const user = await getAuthenticatedUser();
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const body = await request.json();
+    const { siteId, name, url, platform } = body;
+
+    if (!siteId) {
+      return NextResponse.json(
+        { error: 'Site ID is required' },
+        { status: 400 }
+      );
+    }
+
+    // Get all account IDs the user has access to
+    const accountIds = user.accountMemberships.map(m => m.accountId);
+
+    // Check if site belongs to one of user's accounts
+    const site = await prisma.site.findFirst({
+      where: {
+        id: siteId,
+        accountId: { in: accountIds },
+      },
+    });
+
+    if (!site) {
+      return NextResponse.json(
+        { error: 'Site not found or unauthorized' },
+        { status: 404 }
+      );
+    }
+
+    // Build update data
+    const updateData = {};
+    if (name !== undefined) updateData.name = name.trim();
+    if (url !== undefined) updateData.url = url.trim();
+    if (platform !== undefined) updateData.platform = platform;
+
+    if (Object.keys(updateData).length === 0) {
+      return NextResponse.json(
+        { error: 'No fields to update' },
+        { status: 400 }
+      );
+    }
+
+    const updatedSite = await prisma.site.update({
+      where: { id: siteId },
+      data: updateData,
+    });
+
+    return NextResponse.json({ site: updatedSite });
+  } catch (error) {
+    console.error('Failed to update site:', error);
+    return NextResponse.json(
+      { error: 'Failed to update site' },
       { status: 500 }
     );
   }

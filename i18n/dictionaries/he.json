@@ -80,13 +80,56 @@
     "collapse": "כווץ",
     "saving": "שומר...",
     "save": "שמירה",
+    "saveChanges": "שמור שינויים",
     "insert": "הוספה",
     "saved": "נשמר",
     "copied": "הועתק!",
     "retry": "נסה שוב",
     "title": "כותרת",
     "goBack": "חזור אחורה",
-    "characters": "תווים"
+    "characters": "תווים",
+    "dismiss": "סגור",
+    "openInNewTab": "פתח בלשונית חדשה",
+    "refresh": "רענן",
+    "linksPerThousand": "קישורים / 1000 מילים",
+    "seconds": "שניות"
+  },
+  "backgroundTasks": {
+    "entityPopulation": {
+      "title": "מאכלס ישויות",
+      "starting": "מתחיל אכלוס ישויות...",
+      "populating": "מושך ישויות ממפת האתר...",
+      "deepCrawling": "סורק דפים לחילוץ מטאדאטה...",
+      "completed": "אכלוס הישויות הושלם!",
+      "completedWithCount": "הושלם! {crawled} עמודים נסרקו, {enriched} הועשרו",
+      "failed": "אכלוס הישויות נכשל",
+      "crawlFailed": "סריקה עמוקה נכשלה"
+    },
+    "entityPopulate": {
+      "title": "מסנכרן תוכן וורדפרס",
+      "starting": "מתחיל סנכרון וורדפרס...",
+      "syncing": "מסנכרן תוכן מוורדפרס...",
+      "completed": "סנכרון וורדפרס הושלם!",
+      "completedWithCount": "הסנכרון הושלם! {count} פריטים סונכרנו",
+      "failed": "סנכרון וורדפרס נכשל"
+    },
+    "entityCrawl": {
+      "title": "סורק אתר",
+      "starting": "מתחיל סריקת אתר...",
+      "populating": "מושך תוכן מהאתר...",
+      "foundItems": "נמצאו {count} פריטים. סורק דפים...",
+      "completed": "סריקת האתר הושלמה!",
+      "completedWithCount": "הסריקה הושלמה! {total} פריטים, {enriched} הועשרו",
+      "failed": "סריקת האתר נכשלה",
+      "crawlFailed": "סריקה עמוקה נכשלה"
+    },
+    "deepCrawl": {
+      "title": "סריקה עמוקה",
+      "starting": "סורק דפים לעומק...",
+      "completed": "הסריקה העמוקה הושלמה!",
+      "completedWithCount": "הושלם! נסרקו {crawled} דפים, הועשרו {enriched}",
+      "failed": "סריקה עמוקה נכשלה"
+    }
   },
   "media": {
     "title": "ספריית מדיה",
@@ -95,6 +138,7 @@
     "upload": "העלאה",
     "noMedia": "לא נמצאו פריטי מדיה",
     "selectSite": "בחר אתר כדי לצפות במדיה",
+    "requiresWordPress": "ספריית המדיה זמינה רק לאתרי וורדפרס עם תוסף מחובר",
     "details": "פרטים",
     "altText": "טקסט חלופי (Alt)",
     "mediaTitle": "כותרת",
@@ -249,6 +293,7 @@
       "services": "שירותים",
       "products": "מוצרים",
       "media": "מדיה",
+      "sitemaps": "מפות אתר",
       "other": "אחר"
     },
     "admin": {
@@ -257,6 +302,7 @@
       "users": "משתמשי פלטפורמה",
       "subscriptions": "מנויים",
       "plans": "הגדרות תוכניות",
+      "addons": "תוספות",
       "interviewQuestions": "שאלות ראיון",
       "translations": "תרגומים",
       "interviewFlow": "מסלול ראיון",
@@ -637,15 +683,100 @@
   },
   "competitorAnalysis": {
     "title": "ניתוח מתחרים",
-    "subtitle": "נתח ועקוב אחר אסטרטגיות ה-SEO של המתחרים שלך",
+    "subtitle": "נתח את התוכן של המתחרים שלך ומצא הזדמנויות לדרג גבוה יותר",
     "selectSite": "בחר אתר כדי לנתח מתחרים",
     "addCompetitor": "הוסף מתחרה",
     "addFirstCompetitor": "הוסף את המתחרה הראשון שלך",
     "trackedCompetitors": "מתחרים במעקב",
     "sharedKeywords": "מילות מפתח משותפות",
-    "contentGaps": "פערי תוכן",
-    "noCompetitors": "לא נוספו מתחרים",
-    "noCompetitorsDescription": "התחל לעקוב אחר המתחרים שלך כדי לגלות הזדמנויות מילות מפתח ופערי תוכן."
+    "contentGaps": "פערי תוכן שנמצאו",
+    "noCompetitors": "אין מתחרים עדיין",
+    "noCompetitorsDescription": "הוסף כתובות URL של מתחרים כדי לנתח את התוכן שלהם ולגלות הזדמנויות ליצור תוכן טוב יותר.",
+    "enterUrl": "הזן כתובת URL של מתחרה",
+    "urlPlaceholder": "https://competitor.com/page",
+    "addUrl": "הוסף כתובת",
+    "cancel": "ביטול",
+    "remove": "הסר",
+    "rescan": "סרוק מחדש",
+    "scanning": "סורק...",
+    "lastScanned": "נסרק לאחרונה",
+    "neverScanned": "טרם נסרק",
+    "scanError": "הסריקה נכשלה",
+    "pending": "ממתין לסריקה",
+    "limitReached": "הגעת למגבלת המתחרים",
+    "limitReachedDescription": "שדרג את התוכנית שלך כדי לעקוב אחר יותר מתחרים",
+    "remaining": "{count} נותרו",
+    "selected": "{count} נבחרו",
+    "selectedOfTotal": "{selected} נבחרו (מקומות פנויים: {available})",
+    "headToHead": "השוואה ישירה",
+    "headToHeadDescription": "השווה את מדדי העמוד שלך מול המתחרה",
+    "yourPage": "העמוד שלך",
+    "competitorPage": "מתחרה",
+    "wordCount": "ספירת מילים",
+    "headerStructure": "מבנה כותרות",
+    "h1Count": "תגיות H1",
+    "h2Count": "תגיות H2",
+    "h3Count": "תגיות H3",
+    "images": "תמונות",
+    "videos": "סרטונים",
+    "speed": "מהירות (TTFB)",
+    "ms": "מילישניות",
+    "words": "מילים",
+    "selectPageToCompare": "בחר אחד מהעמודים שלך להשוואה",
+    "compare": "השווה",
+    "contentGapAnalysis": "ניתוח פערי תוכן",
+    "contentGapDescription": "נושאים שהמתחרה שלך מכסה ושכדאי לך להוסיף",
+    "noGapsFound": "לא נמצאו פערים משמעותיים",
+    "gapImportance": {
+      "critical": "קריטי",
+      "important": "חשוב",
+      "niceToHave": "נחמד שיהיה"
+    },
+    "skyscraper": "גנוב אסטרטגיה ושכתב",
+    "skyscraperDescription": "צור מתווה משופר בהתבסס על מבנה המתחרה",
+    "generateOutline": "צור מתווה",
+    "generatingOutline": "מייצר...",
+    "scanCost": "עלות סריקה: {credits} קרדיטים",
+    "analysisCost": "עלות ניתוח: {credits} קרדיטים",
+    "winner": "טוב יותר",
+    "loser": "דורש עבודה",
+    "tie": "שווה",
+    "actions": "פעולות",
+    "viewDetails": "הצג פרטים",
+    "advantages": "היתרונות שלך",
+    "recommendations": "המלצות",
+    "overallAssessment": "הערכה כללית",
+    "difficultyToOutrank": "קושי לדרג גבוה יותר",
+    "easy": "קל",
+    "moderate": "בינוני",
+    "hard": "קשה",
+    "findWithAI": "מצא עם AI",
+    "findWithAIDescription": "מנתח את תוכן האתר שלך כדי לגלות מתחרים...",
+    "discoveringCompetitors": "מגלה מתחרים...",
+    "discoverCompetitors": "גלה מתחרים",
+    "noKeywordsForDiscovery": "לא נמצאו מילות מפתח לחיפוש מתחרים",
+    "discoveredCompetitors": "מתחרים שנמצאו",
+    "discoveredDescription": "בחר מתחרים להוספה לרשימת המעקב שלך",
+    "foundInKeywords": "נמצא ב-{count} מילות מפתח",
+    "addSelected": "הוסף נבחרים",
+    "competitorScore": "ציון",
+    "avgRank": "דירוג ממוצע",
+    "mainTopic": "נושא עיקרי",
+    "keywordsSearched": "מילות מפתח שנחפשו",
+    "listView": "תצוגת רשימה",
+    "tableView": "תצוגת טבלה",
+    "competitor": "מתחרה",
+    "status": "סטטוס",
+    "discoverConfirmDescription": "הבינה המלאכותית שלנו תנתח את תוכן האתר שלך, תזהה את הנושא העיקרי ותחפש בגוגל כדי למצוא את המתחרים המובילים שלך.",
+    "creditsUsed": "קרדיטים בשימוש",
+    "estimatedTime": "זמן משוער",
+    "whatYouGet": "מה תקבל",
+    "whatYouGetDescription": "10 המתחרים המובילים מדורגים לפי רלוונטיות",
+    "howItWorks": "איך זה עובד",
+    "step1": "AI מנתח את תוכן האתר ונתוני ה-SEO שלך",
+    "step2": "מזהה את הנושא העיקרי ומחלץ מילות מפתח רלוונטיות",
+    "step3": "מחפש בגוגל ומוצא את המתחרים המובילים שלך",
+    "startDiscovery": "התחל גילוי"
   },
   "siteAudit": {
     "title": "דו״ח בריאות",
@@ -708,6 +839,59 @@
       "empty": "לא נמצא תוכן אחר",
       "emptyDescription": "סנכרן את האתר שלך לייבוא תוכן אחר"
     },
+    "sitemaps": {
+      "title": "מפות אתר",
+      "subtitle": "מפות אתר XML שנמצאו באתר שלך",
+      "empty": {
+        "title": "לא נמצאו מפות אתר",
+        "description": "סרוק את האתר שלך לגילוי מפות אתר",
+        "scanNow": "סרוק אתר"
+      },
+      "noSite": "לא נבחר אתר",
+      "selectSiteFirst": "בחר אתר כדי לצפות במפות אתר",
+      "backToList": "חזרה למפות אתר",
+      "notFound": "מפת אתר לא נמצאה",
+      "resync": "סרוק מחדש",
+      "resyncing": "סורק מחדש...",
+      "resyncAll": "סרוק הכל",
+      "resyncAllProgress": "סורק את כל מפות האתר...",
+      "lastScanInfo": "פרטי הסריקה האחרונה",
+      "scanDate": "תאריך סריקה",
+      "neverScanned": "לא נסרק",
+      "scannedBy": "נסרק על ידי",
+      "system": "מערכת (אוטומטי)",
+      "urlsFound": "כתובות שנמצאו",
+      "resyncComplete": "הסריקה הושלמה",
+      "urlsScanned": "כתובות שנסרקו",
+      "newEntities": "ישויות חדשות",
+      "updatedEntities": "ישויות שעודכנו",
+      "urlsInSitemap": "כתובות במפת האתר",
+      "showingUrls": "מציג {count} מתוך {total} כתובות",
+      "rawContent": "תוכן גולמי של מפת האתר",
+      "childSitemaps": "מפות אתר משניות",
+      "stats": {
+        "total": "סה״כ מפות אתר",
+        "indexes": "אינדקסי מפות אתר",
+        "totalUrls": "סה״כ כתובות",
+        "lastScanned": "נסרק לאחרונה"
+      },
+      "status": {
+        "pending": "ממתין",
+        "scanning": "בסריקה",
+        "completed": "הושלם",
+        "error": "שגיאה"
+      },
+      "type": {
+        "index": "אינדקס מפת אתר",
+        "standard": "מפת אתר רגילה",
+        "news": "מפת אתר חדשות",
+        "image": "מפת אתר תמונות",
+        "video": "מפת אתר וידאו"
+      },
+      "parentIndex": "הורה: {name}",
+      "childCount": "{count} מפות אתר משניות",
+      "urls": "{count} כתובות"
+    },
     "crawl": {
       "title": "סריקת אתר",
       "description": "סרוק את האתר שלך כדי לייבא תוכן כולל כותרות, תיאורי מטא ונתוני SEO.",
@@ -732,9 +916,15 @@
       "fetchingEntities": "מביא {type}...",
       "fetchingMenus": "מביא תפריטים...",
       "completed": "הסנכרון הושלם בהצלחה!",
+      "error": "שגיאת סנכרון",
       "failed": "הסנכרון נכשל. נסה שוב.",
-      "cancelled": "הסנכרון בוטל.",
+      "cancelled": "בוטל",
+      "cancelledMessage": "הסנכרון בוטל. ניתן להמשיך בכל עת.",
+      "resume": "המשך סנכרון",
       "lastSync": "סונכרן לאחרונה",
+      "created": "נוצרו",
+      "updated": "עודכנו",
+      "total": "סה\"כ",
       "deepCrawl": "סריקה עמוקה",
       "deepCrawling": "סורק עמודים לעומק...",
       "deepCrawlCompleted": "הסריקה העמוקה הושלמה! הועשרו {count} ישויות."
@@ -763,7 +953,84 @@
     "syncFailed": "הסנכרון נכשל",
     "syncSuccess": "האתר סונכרן בהצלחה",
     "noSiteSelected": "לא נבחר אתר",
+    "noSearchResults": "לא נמצאו תוצאות התואמות לחיפוש. נסה מונח חיפוש אחר.",
     "selectSiteFirst": "בחר אתר מהרשימה כדי לנהל ישויות",
+    "removeFromPlatformTooltip": "הסר מהפלטפורמה",
+    "deleteFromWebsiteTooltip": "מחק מהאתר",
+    "refreshDataTooltip": "רענן נתונים",
+    "h1IssueTooltip": "בעיית H1: העמוד חסר כותרת H1 תקינה",
+    "removeFailed": "הסרת הפריט נכשלה",
+    "deleteFailed": "מחיקת הפריט נכשלה",
+    "removeItemConfirm": "האם אתה בטוח שברצונך להסיר את \"{title}\" מהפלטפורמה? פעולה זו לא תשפיע על האתר של הלקוח.",
+    "deleteItemConfirm": "האם אתה בטוח שברצונך למחוק את \"{title}\"? פעולה זו תעביר את הפריט לאשפה באתר הלקוח.",
+    "bulk": {
+      "selected": "{count} נבחרו",
+      "clearSelection": "נקה בחירה",
+      "selectAll": "בחר הכל",
+      "deselectAll": "בטל בחירת הכל",
+      "select": "בחר",
+      "deselect": "בטל בחירה",
+      "removeFromPlatform": "הסר מהפלטפורמה",
+      "deleteFromWebsite": "מחק מהאתר",
+      "removeConfirm": "האם אתה בטוח שברצונך להסיר {count} פריטים מהפלטפורמה? פעולה זו לא תשפיע על האתר של הלקוח.",
+      "deleteConfirm": "האם אתה בטוח שברצונך למחוק {count} פריטים? פעולה זו תעביר את הפריטים לאשפה באתר הלקוח.",
+      "removedCount": "הוסרו {success} מתוך {total} פריטים",
+      "deletedCount": "נמחקו {success} מתוך {total} פריטים",
+      "removeFailed": "הסרת הפריטים נכשלה",
+      "deleteFailed": "מחיקת הפריטים נכשלה"
+    },
+    "onboarding": {
+      "connect": {
+        "title": "חבר את האתר שלך",
+        "description": "כדי לייבא תוכן מאתר ה-WordPress שלך, התקן את תוסף Ghost Post. זה לוקח רק דקה!",
+        "downloadPlugin": "הורד תוסף",
+        "viewInstructions": "צפה בהוראות",
+        "step1": "הורד את קובץ ה-zip של התוסף",
+        "step2": "העלה והפעל אותו ב-WordPress",
+        "step3": "החיבור ייווצר אוטומטית"
+      },
+      "connectNonWP": {
+        "title": "סרוק את האתר שלך",
+        "description": "נסרוק את האתר שלך כדי לגלות סוגי תוכן ולעזור לך לייבא את התוכן שלך.",
+        "scanWebsite": "סרוק אתר",
+        "step1": "לחץ על כפתור הסריקה כדי לנתח את האתר",
+        "step2": "נזהה את סוגי התוכן הזמינים",
+        "step3": "בחר מה לייבא ל-Ghost Post"
+      },
+      "sync": {
+        "title": "מוכן לייבוא!",
+        "description": "האתר שלך מחובר. לחץ על הכפתור למטה כדי לייבא את ה{entityName} שלך.",
+        "syncNow": "ייבא עכשיו"
+      },
+      "empty": {
+        "title": "לא נמצאו {entityName}",
+        "description": "סנכרנו עם האתר שלך אבל לא מצאנו {entityName}. אם הוספת תוכן לאחרונה, נסה לסנכרן שוב.",
+        "syncAgain": "סנכרן שוב"
+      },
+      "success": {
+        "title": "הייבוא הושלם!",
+        "description": "ה{entityName} שלך יובאו בהצלחה."
+      }
+    },
+    "setup": {
+      "title": "הגדרות חיבור",
+      "site": "אתר",
+      "connected": "מחובר",
+      "detectHint": "זהה את פלטפורמת האתר שלך כדי לאפשר את אפשרויות החיבור הטובות ביותר.",
+      "detecting": "מזהה...",
+      "detectPlatform": "זהה פלטפורמה",
+      "nonWordPressTitle": "זוהה אתר שאינו WordPress",
+      "nonWordPressDesc": "נשתמש בסריקת מפת אתר כדי לייבא את התוכן שלך. חלק מהתכונות המתקדמות עשויות להיות מוגבלות."
+    },
+    "enabledTypes": {
+      "title": "סוגי תוכן מופעלים",
+      "syncAll": "סנכרן הכל"
+    },
+    "platforms": {
+      "other": "אחר"
+    },
+    "items": "פריטים",
+    "core": "ליבה",
     "integration": {
       "title": "חבר את האתר שלך",
       "description": "חבר את האתר שלך כדי לייבא ולנהל את תכני הישויות"
@@ -774,13 +1041,29 @@
       "failed": "לא ניתן לזהות את הפלטפורמה. משתמש בחיבור מותאם אישית."
     },
     "discovery": {
+      "title": "סוגי תוכן שהתגלו",
+      "selectTypes": "בחר את סוגי התוכן שברצונך לייבא ולנהל:",
+      "sitemapNotFound": "מפת אתר לא נמצאה",
+      "sitemapNotFoundDesc": "לא הצלחנו למצוא מפת אתר באתר שלך. תוכל להזין כתובת מפת אתר מותאמת אישית או לסרוק את האתר שלך לגילוי עמודים.",
+      "customSitemapLabel": "כתובת מפת אתר מותאמת אישית",
+      "tryCustom": "נסה כתובת זו",
+      "discoverByCrawling": "סרוק את האתר במקום",
+      "crawling": "סורק את האתר לחיפוש עמודים...",
+      "discovering": "מגלה סוגי תוכן...",
+      "saving": "שומר...",
+      "saveAndPopulate": "שמור וייבא",
       "scanning": "סורק את האתר לחיפוש סוגי תוכן...",
       "failed": "לא ניתן לגלות סוגי תוכן. נסה שוב.",
       "found": "נמצאו {count} סוגי תוכן באתר שלך",
       "noTypes": "לא נמצאו סוגי תוכן",
       "noTypesDescription": "לחץ על הכפתור למטה כדי לסרוק את האתר שלך",
       "scan": "סרוק אתר",
-      "rescan": "סרוק שוב"
+      "rescan": "סרוק שוב",
+      "manualSitemapLabel": "כתובת מפת האתר",
+      "scanSitemap": "סרוק",
+      "crawlWebsite": "סרוק את האתר במקום",
+      "crawlDescription": "נעבור על האתר שלך ונגלה עמודים אוטומטית (עשוי לקחת מספר דקות)",
+      "crawlFailed": "לא ניתן לסרוק את האתר. נסה שוב או ספק כתובת מפת אתר."
     },
     "types": {
       "select": "בחר סוגי ישויות",
@@ -789,6 +1072,10 @@
       "saveAndPopulate": "שמור ואכלס ישויות",
       "enabled": "סוגי ישויות פעילים",
       "configured": "סוגי תוכן מוגדרים",
+      "configuredCount": "{count} סוגי תוכן מוגדרים לסנכרון",
+      "selectedCount": "{count} סוגי תוכן נבחרו",
+      "selectedLabel": "סוגי תוכן נבחרים:",
+      "foundItems": "נמצאו {count} פריטי תוכן מהאתר",
       "pages": "עמודים",
       "posts": "פוסטים",
       "projects": "פרויקטים",
@@ -1012,6 +1299,12 @@
     "team": "צוות",
     "users": "משתמשים",
     "subscription": "מנוי",
+    "credits": {
+      "title": "קרדיטים",
+      "credits": "קרדיטים"
+    },
+    "addons": "תוספות",
+    "profile": "פרופיל",
     "account": "חשבון",
     "billing": "חיוב",
     "api": "API",
@@ -1031,7 +1324,10 @@
       "team": "נהל חברי צוות והרשאות",
       "users": "הזמן ונהל משתמשים בחשבון שלך",
       "subscription": "צפה ונהל את תוכנית המנוי שלך",
-      "account": "עדכן את פרטי החשבון האישי שלך",
+      "credits": "נהל את קרדיטי ה-AI והשימוש שלך",
+      "addons": "עיין ונהל תכונות נוספות",
+      "profile": "עדכן את הפרופיל האישי וההעדפות שלך",
+      "account": "נהל את הגדרות חשבון החברה",
       "roles": "צור ונהל תפקידים עבור חברי החשבון שלך",
       "permissions": "הקצה הרשאות לכל תפקיד בחשבון שלך"
     },
@@ -1353,6 +1649,7 @@
     "subscriptionSection": {
       "plan": "תוכנית",
       "tokenUsage": "שימוש בטוקנים",
+      "aiCreditsUsage": "שימוש בקרדיטים AI",
       "nextBillingDate": "תאריך חיוב הבא:",
       "billingActions": "פעולות חיוב",
       "upgradePlan": "שדרג תוכנית",
@@ -1361,6 +1658,36 @@
       "perMonth": "לחודש",
       "perYear": "לשנה",
       "cancelsAtPeriodEnd": "מתבטל בסוף התקופה",
+      "usageLimits": "שימוש ומגבלות",
+      "planFeatures": "תכונות התוכנית",
+      "unlimited": "ללא הגבלה",
+      "limitations": {
+        "maxSites": "אתרים",
+        "websites": "אתרים",
+        "maxMembers": "חברי צוות",
+        "users": "משתמשים",
+        "aiCredits": "קרדיטים AI",
+        "maxPages": "עמודים",
+        "maxPosts": "פוסטים בבלוג",
+        "storage": "אחסון",
+        "siteAudits": "ביקורת אתרים"
+      },
+      "features": {
+        "aiContentGeneration": "יצירת תוכן ב-AI",
+        "multipleWebsites": "מספר אתרים",
+        "teamMembers": "חברי צוות",
+        "prioritySupport": "תמיכה מוקדמת",
+        "advancedAnalytics": "אנליטיקה מתקדמת",
+        "customBranding": "מיתוג מותאם אישית",
+        "apiAccess": "גישת API",
+        "seoOptimization": "אופטימיזציה ל-SEO",
+        "scheduledPublishing": "פרסום מתוזמן",
+        "contentCalendar": "לוח שנה תוכן",
+        "bulkActions": "פעולות קבוציות",
+        "exportData": "ייצוא נתונים",
+        "whiteLabel": "White Label",
+        "dedicatedSupport": "תמיכה ייעודית"
+      },
       "statuses": {
         "active": "פעיל",
         "cancelled": "בוטל",
@@ -1368,6 +1695,80 @@
         "expired": "פג תוקף",
         "trialing": "בניסיון",
         "past_due": "חוב בפיגור"
+      }
+    },
+    "creditsSection": {
+      "title": "קרדיטים AI",
+      "available": "זמין",
+      "used": "בשימוש",
+      "usage": "שימוש",
+      "actions": "פעולות",
+      "description": "קרדיטים AI משמשים ליצירת תוכן, ניתוח נתונים ותכונות מונעות AI נוספות. הקרדיטים מתאפסים בתחילת כל תקופת חיוב.",
+      "usageLog": "היסטוריית שימוש",
+      "noLogs": "אין היסטוריית שימוש עדיין",
+      "errorLoadingLogs": "שגיאה בטעינת היסטוריית השימוש",
+      "unknownOperation": "פעולה לא ידועה",
+      "logColumns": {
+        "date": "תאריך",
+        "action": "פעולה",
+        "website": "אתר",
+        "user": "משתמש",
+        "credits": "קרדיטים",
+        "balance": "יתרה"
+      },
+      "operations": {
+        "CRAWL_WEBSITE": "סריקת אתר",
+        "GENERATE_KEYWORDS": "יצירת מילות מפתח",
+        "FIND_COMPETITORS": "חיפוש מתחרים",
+        "ANALYZE_WRITING_STYLE": "ניתוח סגנון כתיבה",
+        "FETCH_ARTICLES": "שליפת מאמרים",
+        "DETECT_PLATFORM": "זיהוי פלטפורמה",
+        "COMPLETE_INTERVIEW": "סיכום ראיון",
+        "INTERVIEW_CHAT": "צ'אט ראיון",
+        "GENERIC": "פעולת AI",
+        "IMAGE_ALT_OPTIMIZATION": "אופטימיזציית תמונה",
+        "ENTITY_REFRESH": "רענון תוכן"
+      },
+      "descriptions": {
+        "crawledWebsite": "סריקה: {url}",
+        "generatedKeywords": "נוצרו {count} מילות מפתח עבור {url}",
+        "foundCompetitors": "נמצאו {count} מתחרים עבור {keywords} מילות מפתח",
+        "analyzedWritingStyle": "ניתוח סגנון כתיבה עבור {url}",
+        "fetchedArticles": "שליפת מאמרים מ {url}",
+        "detectedPlatform": "זוהתה {platform} ב {url}",
+        "completedInterview": "הראיון הושלם עבור {url}",
+        "extractedFocusKeyword": "חילוץ מילת מפתח מ {url}",
+        "optimizedImageAlt": "אופטימיזצית Alt לתמונה ב {url}",
+        "entityEnrichment": "העשרת תוכן עבור {url}",
+        "websiteAnalysis": "ניתוח {url}",
+        "discoveredEntityTypes": "גילוי סוגי תוכן עבור {url}"
+      }
+    },
+    "addonsSection": {
+      "title": "תוספות זמינות",
+      "description": "שפר את חווית Ghost Post שלך עם תכונות ויכולות נוספות.",
+      "installed": "מותקן",
+      "install": "התקן",
+      "purchased": "נרכש",
+      "buy": "קנה",
+      "subscribe": "הירשם",
+      "oneTime": "חד פעמי",
+      "oneTimeBadge": "חד-פעמי",
+      "credits": "קרדיטים AI",
+      "noAddons": "אין תוספות זמינות כרגע.",
+      "items": {
+        "advancedAnalytics": {
+          "name": "אנליטיקה מתקדמת",
+          "description": "תובנות מעמיקות לביצועי התוכן שלך עם דוחות מפורטים וויזואליזציות."
+        },
+        "aiImages": {
+          "name": "יצירת תמונות AI",
+          "description": "צור תמונות מרהיבות לתוכן שלך באמצעות מודלי AI מתקדמים."
+        },
+        "multiLanguage": {
+          "name": "תמיכה רב-לשונית",
+          "description": "תרגם והתאם אוטומטית את התוכן שלך למספר שפות."
+        }
       }
     },
     "roles": "תפקידים",
@@ -1584,10 +1985,13 @@
     "profile": "פרופיל",
     "myProfile": "הפרופיל שלי",
     "credits": "קרדיטים",
-    "aiCredits": "קרדיטים",
+    "aiCredits": "קרדיטים AI",
+    "currentPlan": "תוכנית נוכחית",
     "plan": "תוכנית",
     "upgrade": "שדרג",
     "manageAccount": "נהל חשבון",
+    "companyAccount": "חשבון החברה",
+    "subscription": "דרגת מנוי",
     "myAccount": "החשבון שלי",
     "subscriptions": "מנויים",
     "myCredits": "הקרדיטים שלי",
@@ -1637,9 +2041,13 @@
     },
     "password": {
       "title": "סיסמה",
+      "description": "שנה את הסיסמה שלך כדי לשמור על אבטחת החשבון",
       "current": "סיסמה נוכחית",
+      "currentPlaceholder": "הזן את הסיסמה הנוכחית שלך",
       "new": "סיסמה חדשה",
+      "newPlaceholder": "הזן סיסמה חדשה",
       "confirm": "אישור סיסמה חדשה",
+      "confirmPlaceholder": "אשר את הסיסמה החדשה",
       "requirements": "דרישות סיסמה:",
       "minLength": "לפחות 8 תווים",
       "change": "שנה סיסמה",
@@ -1671,12 +2079,69 @@
       "enable": "הפעל אימות דו-שלבי"
     }
   },
+  "account": {
+    "title": "הגדרות חשבון",
+    "subtitle": "נהל את פרטי החשבון וההעדפות של הארגון שלך",
+    "saveSuccess": "הגדרות החשבון נשמרו בהצלחה",
+    "saveError": "שמירת הגדרות החשבון נכשלה",
+    "noAccountSelected": "לא נבחר חשבון",
+    "selectAccountMessage": "אנא בחר חשבון לניהול ההגדרות שלו",
+    "invalidImageType": "אנא העלה קובץ תמונה",
+    "imageTooLarge": "התמונה חייבת להיות קטנה מ-5MB",
+    "logoUpdated": "הלוגו עודכן בהצלחה",
+    "logoUploadError": "העלאת הלוגו נכשלה",
+    "logo": {
+      "title": "לוגו הארגון",
+      "change": "שנה לוגו",
+      "hint": "העלה את לוגו הארגון שלך. גודל מומלץ: 200x200 פיקסלים. פורמטים נתמכים: JPG, PNG, GIF."
+    },
+    "general": {
+      "title": "מידע כללי"
+    },
+    "emails": {
+      "title": "כתובות דואר אלקטרוני"
+    },
+    "regional": {
+      "title": "הגדרות אזוריות"
+    },
+    "fields": {
+      "name": "שם הארגון",
+      "namePlaceholder": "הזן את שם הארגון",
+      "slug": "כתובת URL של החשבון",
+      "slugHint": "לא ניתן לשנות לאחר יצירה",
+      "website": "אתר אינטרנט",
+      "industry": "תעשייה",
+      "selectIndustry": "בחר תעשייה",
+      "timezone": "אזור זמן",
+      "defaultLanguage": "שפת ברירת מחדל",
+      "generalEmail": "אימייל ליצירת קשר",
+      "generalEmailHint": "משמש לתקשורת כללית והתראות",
+      "billingEmail": "אימייל לחיוב",
+      "billingEmailHint": "משמש לחשבוניות והתראות חיוב"
+    },
+    "industries": {
+      "technology": "טכנולוגיה",
+      "ecommerce": "מסחר אלקטרוני",
+      "healthcare": "בריאות",
+      "finance": "פיננסים ובנקאות",
+      "education": "חינוך",
+      "media": "מדיה ובידור",
+      "realEstate": "נדל\"ן",
+      "travel": "תיירות ואירוח",
+      "food": "מזון ומשקאות",
+      "other": "אחר"
+    },
+    "dangerZone": "אזור סכנה",
+    "deleteAccount": "מחק חשבון",
+    "deleteAccountDesc": "מחק לצמיתות את חשבון הארגון וכל הנתונים המשויכים"
+  },
   "sites": {
     "selectSite": "בחר אתר",
     "activeSite": "אתר פעיל",
     "addSite": "הוסף אתר חדש",
     "noSites": "לא נוספו אתרים עדיין",
     "manageSites": "נהל אתרים",
+    "openWebsite": "פתח אתר",
     "status": {
       "connected": "התוסף מחובר",
       "disconnected": "התוסף מנותק",
@@ -1696,7 +2161,15 @@
       "nameLabel": "שם האתר",
       "namePlaceholder": "האתר שלי",
       "create": "הוסף אתר",
-      "creating": "מוסיף..."
+      "creating": "מוסיף...",
+      "aiSuggest": "הצעת AI",
+      "nonWordPressWarning": "Ghost Post תומך כרגע באתרי WordPress בלבד. ניתן עדיין להוסיף אתר זה, אך תכונות סנכרון התוכן לא יהיו זמינות."
+    },
+    "edit": {
+      "title": "עריכת אתר",
+      "nameLabel": "שם האתר",
+      "namePlaceholder": "הזן שם אתר",
+      "urlLabel": "כתובת האתר"
     }
   },
   "chat": {
@@ -1927,6 +2400,15 @@
     "creatingStrategy": "יוצר את אסטרטגיית ה-SEO המותאמת אישית שלך...",
     "inputPlaceholder": "הקלד את תשובתך...",
     "seoScore": "ציון SEO",
+    "welcome": {
+      "title": "ברוכים הבאים לראיון האתר",
+      "description": "נשאל אותך מספר שאלות כדי להבין טוב יותר את האתר והעסק שלך. זה יעזור לנו לספק המלצות מותאמות אישית.",
+      "duration": "5-10 דקות",
+      "questions": "{count} שאלות",
+      "estimatedCredits": "~42 קרדיטים AI",
+      "creditsNote": "💡 שים לב: הכמות עשויה להיות גבוהה יותר אם תשתמש ב\"נסה שוב\" בפעולות AI כמו יצירת מילות מפתח או חיפוש מתחרים.",
+      "startButton": "התחל ראיון"
+    },
     "placeholders": {
       "enterKeyword": "הכנס מילת מפתח ולחץ Enter",
       "enterCompetitorUrl": "הכנס כתובת אתר מתחרה ולחץ Enter"
@@ -1955,6 +2437,8 @@
       "foundCompetitors": "מצאתי {count} מתחרים. בחר את אלה שרלוונטיים לעסק שלך:",
       "noCompetitorsFound": "לא נמצאו מתחרים. ניתן להוסיף בעצמך או לדלג על שלב זה.",
       "manuallyAdded": "נוסף ידנית",
+      "ranksFor": "מדורג עבור",
+      "foundInKeywords": "נמצא ב-{count} מילות מפתח",
       "platformFromCrawl": "זיהינו שהאתר שלך בנוי על {platform}. האם זה נכון?",
       "languageDetected": "זיהינו שהתוכן שלך הוא ב{language}.",
       "internalLinksDefault": "על בסיס המאמרים שלך, אנו ממליצים על {count} קישורים פנימיים לכל 1000 מילים.",
@@ -2231,7 +2715,7 @@
         "contentLanguage": "באיזו שפה התוכן שלך צריך להיכתב?",
         "businessConfirmation": "האם המידע הזה נראה נכון?",
         "keywords": "בחר מילות מפתח רלוונטיות לעסק שלך",
-        "targetLocation": "היכן אתה רוצה שהאתר שלך יימצא?",
+        "targetLocation": "באיזו מדינה נמצא קהל היעד של האתר שלך?",
         "competitors": "בחר מתחרים רלוונטיים לעסק שלך",
         "fetchArticles": "מביא את המאמרים האחרונים מהבלוג שלך...",
         "writingStyle": "איזה סגנון כתיבה מתאים למותג שלך?",
@@ -2300,7 +2784,10 @@
         "keywordsFromCrawl": "מילות מפתח אלו הוצעו על בסיס תוכן האתר שלך",
         "competitorsFromKeywords": "מתחרים אלו נמצאו על בסיס מילות המפתח שבחרת",
         "writingStyleAnalyzed": "ניתחנו את התוכן הקיים שלך ומציעים: {style}",
-        "internalLinksRecommendation": "על בסיס הפוסטים הקיימים שלך, אנו ממליצים על {count} קישורים פנימיים לכל 1000 מילים. לפי SEO מיטבי: 2-4 קישורים לכל 1000 מילים.",
+        "internalLinksRecommendation": "על בסיס הפוסטים הקיימים שלך, אנו ממליצים על {count} קישורים פנימיים לכל 1000 מילים.",
+        "internalLinksSeoTip": "לפי שיטות עבודה מומלצות של SEO, כמות אופטימלית היא 3-5 קישורים פנימיים לכל 1000 מילים. קישורים פנימיים עוזרים לגוגל להבין את מבנה האתר, משפרים ניווט למשתמשים ומפזרים את ׳כוח הדף׳ (Page Authority) בין דפי האתר.",
+        "internalLinksRecommendedRange": "טווח מומלץ:",
+        "internalLinksDefault": "3-5",
         "selectFavoriteArticles": "בחר עד 3 מאמרים שמייצגים בצורה הטובה ביותר את סגנון התוכן שלך"
       }
     },
@@ -2704,6 +3191,61 @@
         "remove": "הסר"
       }
     },
+    "addons": {
+      "title": "ניהול תוספות",
+      "subtitle": "ניהול תוספות שמשתמשים יכולים לרכוש לחשבון שלהם",
+      "addAddOn": "הוסף תוספת",
+      "searchPlaceholder": "חיפוש תוספות...",
+      "allTypes": "כל הסוגים",
+      "columns": {
+        "name": "שם",
+        "description": "תיאור",
+        "type": "סוג",
+        "price": "מחיר",
+        "quantity": "כמות",
+        "purchases": "רכישות",
+        "status": "סטטוס",
+        "actions": "פעולות"
+      },
+      "types": {
+        "seats": "חברי צוות",
+        "sites": "אתרים נוספים",
+        "ai_credits": "חבילת קרדיטים AI",
+        "storage": "אחסון",
+        "keywords": "מעקב מילות מפתח",
+        "content": "פריטי תוכן"
+      },
+      "billingType": "סוג חיוב",
+      "billingTypes": {
+        "recurring": "חודשי מתחדש",
+        "oneTime": "רכישה חד-פעמית"
+      },
+      "statuses": {
+        "active": "פעיל",
+        "inactive": "לא פעיל"
+      },
+      "actions": {
+        "edit": "עריכת תוספת",
+        "archive": "העבר לארכיון",
+        "delete": "מחק",
+        "translate": "תרגום"
+      },
+      "translations": {
+        "selectLanguage": "בחר שפה",
+        "original": "מקורי",
+        "save": "שמור תרגום",
+        "saved": "התרגום נשמר בהצלחה",
+        "deleteTranslation": "מחק תרגום",
+        "confirmDelete": "האם אתה בטוח שברצונך למחוק תרגום זה?"
+      },
+      "noAddOns": "לא נמצאו תוספות",
+      "quantityHint": "השאר ריק עבור תוספות שמספקות +1 של משאב (כמו מושבים או אתרים נוספים)",
+      "stats": {
+        "total": "סה\"כ תוספות",
+        "active": "תוספות פעילות",
+        "purchases": "רכישות פעילות"
+      }
+    },
     "interviewQuestions": {
       "title": "שאלות ראיון",
       "subtitle": "ניהול שאלות ראיון הרשמה",
@@ -2755,7 +3297,7 @@
         "contentTypes": "איזה סוגי תוכן אתה רוצה ליצור?",
         "seoKnowledge": "דרג את הידע שלך ב-SEO (1-10)",
         "websiteUrl": "מה כתובת האתר שלך?",
-        "targetLocation": "היכן אתה רוצה שהאתר שלך יימצא?"
+        "targetLocation": "באיזו מדינה נמצא קהל היעד של האתר שלך?"
       },
       "options": {
         "industries": ["מסחר מקוון", "SaaS", "בריאות", "פיננסים", "חינוך", "נדל\"ן", "אחר"],

@@ -25,6 +25,7 @@ import {
 import { useLocale } from '@/app/context/locale-context';
 import { useUser } from '@/app/context/user-context';
 import { AdminModal, ConfirmDialog, FormInput, FormTextarea, FormSelect, FormCheckbox, FormActions, PrimaryButton, SecondaryButton } from '../components/AdminModal';
+import { AdminPageSkeleton, TableSkeleton } from '@/app/dashboard/components';
 import styles from '../admin.module.css';
 
 export default function BotActionsPage() {
@@ -297,11 +298,7 @@ export default function BotActionsPage() {
   };
 
   if (isUserLoading) {
-    return (
-      <div className={styles.loadingState}>
-        <div className={styles.spinner} />
-      </div>
-    );
+    return <AdminPageSkeleton statsCount={3} columns={5} />;
   }
 
   if (!isSuperAdmin) {
@@ -369,9 +366,7 @@ export default function BotActionsPage() {
       {/* Table */}
       <div className={styles.tableContainer}>
         {isLoading ? (
-          <div className={styles.loadingState}>
-            <div className={styles.spinner} />
-          </div>
+          <TableSkeleton rows={8} columns={5} hasActions />
         ) : filteredActions.length === 0 ? (
           <div className={styles.emptyState}>
             <Bot className={styles.emptyIcon} />

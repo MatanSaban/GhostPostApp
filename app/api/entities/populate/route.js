@@ -4,6 +4,29 @@ import prisma from '@/lib/prisma';
 import { syncAllEntities, getSiteInfo, getMenus, getPosts } from '@/lib/wp-api-client';
 
 const SESSION_COOKIE = 'user_session';
+const LOCALE_COOKIE = 'ghost-post-locale';
+
+// Sync progress message translations
+const SYNC_MESSAGES = {
+  en: {
+    starting: 'Starting sync...',
+    fetchingSiteInfo: 'Fetching site information...',
+    processingPostTypes: 'Processing content types...',
+    syncingType: (name) => `Syncing ${name}...`,
+    syncingMenus: 'Syncing menus...',
+    syncComplete: 'Sync complete!',
+    completedWithErrors: (count) => `Completed with ${count} error(s)`,
+  },
+  he: {
+    starting: 'מתחיל סנכרון...',
+    fetchingSiteInfo: 'מושך מידע על האתר...',
+    processingPostTypes: 'מעבד סוגי תוכן...',
+    syncingType: (name) => `מסנכרן ${name}...`,
+    syncingMenus: 'מסנכרן תפריטים...',
+    syncComplete: 'הסנכרון הושלם!',
+    completedWithErrors: (count) => `הושלם עם ${count} שגיאות`,
+  },
+};
 
 /**
  * POST /api/entities/populate
@@ -18,6 +41,10 @@ export async function POST(request) {
     if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+
+    // Get locale for translated messages
+    const locale = cookieStore.get(LOCALE_COOKIE)?.value || 'en';
+    const messages = SYNC_MESSAGES[locale] || SYNC_MESSAGES.en;
 
     const body = await request.json();
     const { siteId } = body;
@@ -74,14 +101,14 @@ export async function POST(request) {
       data: {
         entitySyncStatus: 'SYNCING',
         entitySyncProgress: 0,
-        entitySyncMessage: 'Starting sync...',
+        entitySyncMessage: messages.starting,
         entitySyncError: null,
       },
     });
 
     try {
       // Perform the sync
-      const result = await performFullSync(site);
+      const result = await performFullSync(site, messages);
 
       // Update status to completed
       await prisma.site.update({
@@ -92,7 +119,7 @@ export async function POST(request) {
           entitySyncMessage: null,
           lastEntitySyncAt: new Date(),
           entitySyncError: result.errors.length > 0 
-            ? `Completed with ${result.errors.length} error(s)` 
+            ? messages.completedWithErrors(result.errors.length) 
             : null,
         },
       });
@@ -271,8 +298,10 @@ export async function DELETE(request) {
 
 /**
  * Perform full sync of all entities from WordPress
+ * @param {Object} site - Site object from database
+ * @param {Object} messages - Translated messages for progress updates
  */
-async function performFullSync(site) {
+async function performFullSync(site, messages) {
   const stats = {
     postTypes: 0,
     entities: 0,
@@ -295,7 +324,7 @@ async function performFullSync(site) {
 
   try {
     // Step 1: Get site info with post types
-    await updateProgress(5, 'Fetching site information...');
+    await updateProgress(5, messages.fetchingSiteInfo);
     
     let siteInfo;
     try {
@@ -306,7 +335,7 @@ async function performFullSync(site) {
     }
 
     // Step 2: Create/update entity types from post types
-    await updateProgress(10, 'Processing post types...');
+    await updateProgress(10, messages.processingPostTypes);
     
     // Post types to exclude from syncing (internal/private types)
     const excludedPostTypes = [
@@ -315,6 +344,7 @@ async function performFullSync(site) {
       'elementor_icons',       // Elementor icons
       'elementor_snippet',     // Elementor snippets
       'e-landing-page',        // Elementor landing pages
+      'e-floating-buttons',    // Elementor floating buttons
       'oembed_cache',          // oEmbed cache
       'wp_global_styles',      // Global styles
       'custom_css',            // Custom CSS
@@ -327,32 +357,76 @@ async function performFullSync(site) {
       'acf-ui-options-page',   // ACF options pages
     ];
     
-    const postTypes = (siteInfo?.postTypes || []).filter(
-      pt => !excludedPostTypes.includes(pt.slug)
-    );
+    // WordPress REST API uses plural slugs (posts, pages) but post_type names are singular (post, page)
+    // We should use the REST API endpoint (plural) as the canonical slug to avoid duplicates
+    const seenSlugs = new Set();
+    const postTypes = (siteInfo?.postTypes || []).filter(pt => {
+      // Exclude internal types
+      if (excludedPostTypes.includes(pt.slug)) return false;
+      
+      // Deduplicate singular/plural versions - prefer the one with restBase
+      // WordPress returns both 'post' and 'posts', 'page' and 'pages'
+      const singularSlug = pt.slug.replace(/s$/, ''); // Remove trailing 's'
+      const pluralSlug = pt.slug.endsWith('s') ? pt.slug : pt.slug + 's';
+      
+      // If we've already seen the singular or plural version, skip this one
+      if (seenSlugs.has(singularSlug) || seenSlugs.has(pluralSlug)) {
+        console.log(`Skipping duplicate post type: ${pt.slug} (already have ${singularSlug} or ${pluralSlug})`);
+        return false;
+      }
+      
+      // Use the restBase as the canonical slug if available, otherwise use the original slug
+      const canonicalSlug = pt.restBase || pt.slug;
+      seenSlugs.add(canonicalSlug);
+      seenSlugs.add(singularSlug);
+      seenSlugs.add(pluralSlug);
+      
+      return true;
+    });
+    
+    // Get currently enabled entity types BEFORE updating from WordPress
+    // This preserves the user's selection
+    const existingEnabledTypes = await prisma.siteEntityType.findMany({
+      where: { siteId: site.id, isEnabled: true },
+      select: { slug: true },
+    });
+    const enabledSlugs = new Set(existingEnabledTypes.map(t => t.slug));
     
     for (const pt of postTypes) {
       try {
-        await prisma.siteEntityType.upsert({
+        // Check if this type already exists
+        const existing = await prisma.siteEntityType.findUnique({
           where: {
             siteId_slug: {
               siteId: site.id,
               slug: pt.slug,
             },
           },
-          create: {
-            siteId: site.id,
-            slug: pt.slug,
-            name: pt.name,
-            apiEndpoint: pt.restBase,
-            isEnabled: true,
-            sortOrder: pt.isBuiltin ? 0 : 10,
-          },
-          update: {
-            name: pt.name,
-            apiEndpoint: pt.restBase,
-          },
         });
+        
+        if (existing) {
+          // Update existing type - keep isEnabled as-is
+          await prisma.siteEntityType.update({
+            where: { id: existing.id },
+            data: {
+              name: pt.name,
+              apiEndpoint: pt.restBase,
+            },
+          });
+        } else {
+          // Create new type - disabled by default
+          // User must explicitly enable it in the UI
+          await prisma.siteEntityType.create({
+            data: {
+              siteId: site.id,
+              slug: pt.slug,
+              name: pt.name,
+              apiEndpoint: pt.restBase,
+              isEnabled: false, // Disabled by default - user must enable
+              sortOrder: pt.isBuiltin ? 0 : 10,
+            },
+          });
+        }
         stats.postTypes++;
       } catch (e) {
         errors.push({ type: 'post_type', slug: pt.slug, error: e.message });
@@ -367,6 +441,23 @@ async function performFullSync(site) {
       },
       data: { isEnabled: false },
     });
+    
+    // Also disable duplicate singular/plural types
+    // If both 'post' and 'posts' exist, disable 'post' (keep plural)
+    // If both 'page' and 'pages' exist, disable 'page' (keep plural)
+    const duplicateSingulars = ['post', 'page'];
+    for (const singular of duplicateSingulars) {
+      const pluralExists = await prisma.siteEntityType.findFirst({
+        where: { siteId: site.id, slug: singular + 's', isEnabled: true },
+      });
+      if (pluralExists) {
+        await prisma.siteEntityType.updateMany({
+          where: { siteId: site.id, slug: singular },
+          data: { isEnabled: false },
+        });
+        console.log(`Disabled duplicate singular type: ${singular} (keeping ${singular}s)`);
+      }
+    }
 
     // Step 3: Fetch entities for each post type
     const entityTypes = await prisma.siteEntityType.findMany({
@@ -378,7 +469,7 @@ async function performFullSync(site) {
     let typeIndex = 0;
     for (const entityType of entityTypes) {
       const progressBase = 15 + Math.floor((typeIndex / entityTypes.length) * 55);
-      await updateProgress(progressBase, `Syncing ${entityType.name}...`);
+      await updateProgress(progressBase, messages.syncingType(entityType.name));
 
       try {
         console.log(`Syncing entity type: ${entityType.slug} (${entityType.name})`);
@@ -396,7 +487,7 @@ async function performFullSync(site) {
     }
 
     // Step 4: Sync menus
-    await updateProgress(75, 'Syncing menus...');
+    await updateProgress(75, messages.syncingMenus);
     
     try {
       const menuResult = await syncMenus(site);
@@ -406,7 +497,7 @@ async function performFullSync(site) {
     }
 
     // Step 5: Done
-    await updateProgress(100, 'Sync complete!');
+    await updateProgress(100, messages.syncComplete);
 
   } catch (error) {
     errors.push({ type: 'general', error: error.message });

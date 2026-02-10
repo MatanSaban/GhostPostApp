@@ -1,7 +1,11 @@
 import { NextResponse } from 'next/server';
+import { cookies } from 'next/headers';
 import prisma from '@/lib/prisma';
 import { generateStructuredResponse } from '@/lib/ai/gemini';
+import { trackAIUsage } from '@/lib/ai/credits-service';
 import { z } from 'zod';
+
+const SESSION_COOKIE = 'user_session';
 
 /**
  * Fetch and parse WordPress sitemap
@@ -446,15 +450,42 @@ Return ONLY post types that actually exist on this site based on the data provid
  */
 export async function POST(request) {
   try {
+    // Check authentication
+    const cookieStore = await cookies();
+    const userId = cookieStore.get(SESSION_COOKIE)?.value;
+
+    if (!userId) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const { siteId } = await request.json();
 
     if (!siteId) {
       return NextResponse.json({ error: 'Site ID is required' }, { status: 400 });
     }
 
-    // Get the site
-    const site = await prisma.site.findUnique({
-      where: { id: siteId },
+    // Get user's accounts
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        accountMemberships: {
+          select: { accountId: true },
+        },
+      },
+    });
+
+    if (!user) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+    }
+
+    const accountIds = user.accountMemberships.map(m => m.accountId);
+
+    // Get the site and verify access
+    const site = await prisma.site.findFirst({
+      where: { 
+        id: siteId,
+        accountId: { in: accountIds },
+      },
     });
 
     if (!site) {
@@ -474,6 +505,9 @@ export async function POST(request) {
         platform: site.platform,
       }, { status: 400 });
     }
+
+    // Track whether AI was used (for credit tracking)
+    let usedAI = false;
 
     // Common Hebrew translations for post types
     const hebrewNames = {
@@ -598,6 +632,7 @@ export async function POST(request) {
     if (entityTypes.length > 0 && (sitemap.content || wpTypes)) {
       try {
         const aiTypes = await analyzeWithAI(sitemapData, wpTypes);
+        usedAI = true;  // Track that AI was called
         
         if (aiTypes && aiTypes.length > 0) {
           aiEnhanced = true;
@@ -694,6 +729,22 @@ export async function POST(request) {
       }
     }
 
+    // Track AI usage if AI was used for enhancement
+    let creditsUsed = 0;
+    if (usedAI) {
+      const trackResult = await trackAIUsage({
+        accountId: site.accountId,
+        userId,
+        siteId: site.id,
+        operation: 'GENERIC',
+        description: `Entity types discovery with AI enhancement`,
+      });
+      
+      if (trackResult.success) {
+        creditsUsed = trackResult.totalUsed;
+      }
+    }
+
     return NextResponse.json({
       success: true,
       entityTypes,
@@ -709,6 +760,8 @@ export async function POST(request) {
         typesCreated: populateStats.types,
         totalEntities: Object.values(sitemapEntities).reduce((sum, arr) => sum + arr.length, 0),
       },
+      // Include updated credits for frontend to update UI
+      creditsUpdated: creditsUsed > 0 ? { used: creditsUsed } : null,
     });
   } catch (error) {
     console.error('Entity discovery error:', error);

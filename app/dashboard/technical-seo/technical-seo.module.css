@@ -1,25 +1,3 @@
-.container {
-  padding: 1.5rem;
-  max-width: 900px;
-}
-
-.header {
-  margin-bottom: 2rem;
-}
-
-.title {
-  font-size: 1.75rem;
-  font-weight: 700;
-  color: var(--foreground);
-  margin: 0 0 0.5rem;
-}
-
-.subtitle {
-  font-size: 0.9375rem;
-  color: var(--muted-foreground);
-  margin: 0;
-}
-
 .noSite {
   display: flex;
   flex-direction: column;
@@ -1497,4 +1475,135 @@
   :global([dir="rtl"]) & {
     transform: scaleX(-1);
   }
+}
+
+/* ============================================
+   WebP Converter Skeleton Styles
+   ============================================ */
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--muted) 25%,
+    rgba(147, 51, 234, 0.06) 50%,
+    var(--muted) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: var(--radius-md);
+}
+
+.skeletonIcon {
+  width: 3rem;
+  height: 3rem;
+  border-radius: var(--radius-md);
+  flex-shrink: 0;
+}
+
+.skeletonIconAi {
+  background: linear-gradient(
+    90deg,
+    rgba(147, 51, 234, 0.1) 25%,
+    rgba(147, 51, 234, 0.2) 50%,
+    rgba(147, 51, 234, 0.1) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+.skeletonTitle {
+  width: 180px;
+  height: 1.25rem;
+  margin-bottom: 0.5rem;
+}
+
+.skeletonText {
+  width: 280px;
+  height: 1rem;
+}
+
+.skeletonSettingIcon {
+  width: 1.25rem;
+  height: 1.25rem;
+  border-radius: var(--radius-sm);
+  flex-shrink: 0;
+}
+
+.skeletonSettingTitle {
+  width: 140px;
+  height: 0.9375rem;
+  margin-bottom: 0.25rem;
+}
+
+.skeletonSettingDesc {
+  width: 200px;
+  height: 0.8125rem;
+}
+
+.skeletonToggle {
+  width: 3.25rem;
+  height: 1.75rem;
+  border-radius: 9999px;
+}
+
+.skeletonStatValue {
+  width: 48px;
+  height: 1.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.skeletonStatLabel {
+  width: 80px;
+  height: 0.875rem;
+}
+
+.skeletonRefreshButton {
+  width: 160px;
+  height: 40px;
+  margin-bottom: 1rem;
+}
+
+.skeletonConvertButton {
+  width: 200px;
+  height: 48px;
+}
+
+.skeletonAiButton {
+  width: 180px;
+  height: 48px;
+}
+
+/* Settings Card wrapper for skeleton */
+.settingsCard {
+  margin-bottom: 1.5rem;
+}
+
+/* AI Settings wrapper */
+.aiSettings {
+  background: var(--muted);
+  border-radius: var(--radius-md);
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.aiSubSettings {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
+}
+
+.toolIconAi {
+  background: linear-gradient(135deg, #9333ea 0%, #ec4899 100%);
 }

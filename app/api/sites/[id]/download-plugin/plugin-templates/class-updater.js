@@ -113,7 +113,7 @@ class GP_Updater {
                 'slug'        => $this->plugin_slug,
                 'plugin'      => $this->plugin_basename,
                 'new_version' => $this->current_version,
-                'url'         => 'https://ghostpost.io',
+                'url'         => 'https://ghostpost.co.il',
             );
         }
 

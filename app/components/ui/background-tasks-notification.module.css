@@ -1,0 +1,210 @@
+.container {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-width: 400px;
+  width: calc(100% - 40px);
+
+  @media (max-width: 768px) {
+    bottom: 10px;
+    right: 10px;
+    left: 10px;
+    width: auto;
+    max-width: none;
+  }
+}
+
+[dir="rtl"] .container {
+  right: auto;
+  left: 20px;
+
+  @media (max-width: 768px) {
+    left: 10px;
+    right: 10px;
+  }
+}
+
+.task {
+  background: var(--card);
+  border-radius: 12px;
+  box-shadow: var(--shadow-lg);
+  padding: 16px;
+  border: 1px solid var(--border);
+  animation: slideIn 0.3s ease-out;
+  
+  &.taskRunning {
+    border-color: var(--primary);
+    
+    .taskIcon {
+      color: var(--primary);
+    }
+  }
+
+  &.taskCompleted {
+    border-color: var(--success);
+    
+    .taskIcon {
+      color: var(--success);
+    }
+  }
+
+  &.taskError {
+    border-color: var(--error);
+    
+    .taskIcon {
+      color: var(--error);
+    }
+  }
+
+  &.taskCancelled {
+    border-color: var(--text-tertiary);
+    
+    .taskIcon {
+      color: var(--text-tertiary);
+    }
+  }
+}
+
+.taskHeader {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.taskIcon {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.taskContent {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.taskTitle {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.taskMessage {
+  font-size: 13px;
+  color: var(--text-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.taskActions {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.cancelButton {
+  padding: 4px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: var(--background-hover);
+    border-color: var(--text-tertiary);
+    color: var(--text-primary);
+  }
+}
+
+.dismissButton {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  border: none;
+  background: transparent;
+  color: var(--text-tertiary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: var(--background-hover);
+    color: var(--text-primary);
+  }
+}
+
+.progressContainer {
+  margin-top: 12px;
+  height: 4px;
+  background: var(--background);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.progressBar {
+  height: 100%;
+  background: var(--primary);
+  border-radius: 2px;
+  transition: width 0.3s ease;
+}
+
+.spinningIcon {
+  animation: spin 1s linear infinite;
+}
+
+.successIcon {
+  color: var(--success);
+}
+
+.errorIcon {
+  color: var(--error);
+}
+
+.cancelledIcon {
+  color: var(--text-tertiary);
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+[dir="rtl"] {
+  @keyframes slideIn {
+    from {
+      opacity: 0;
+      transform: translateX(-100%);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}

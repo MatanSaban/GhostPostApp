@@ -51,11 +51,11 @@ export async function GET(request) {
       requires_wp: '5.6',
       requires_php: '7.4',
       last_updated: new Date().toISOString().split('T')[0],
-      homepage: 'https://ghostpost.io',
+      homepage: 'https://ghostpost.co.il',
       plugin_name: 'Ghost Post Connector',
       slug: 'ghost-post-connector',
       author: 'Ghost Post',
-      author_profile: 'https://ghostpost.io',
+      author_profile: 'https://ghostpost.co.il',
       sections: {
         description: 'Connects your WordPress site to Ghost Post platform for AI-powered content management.',
         installation: 'Upload the plugin files to your WordPress installation and activate it.',

@@ -1,5 +1,3 @@
-'use client';
-
 import Link from 'next/link';
 import { 
   ImageIcon, 
@@ -7,7 +5,8 @@ import {
   Activity,
   ArrowRight,
 } from 'lucide-react';
-import { useLocale } from '@/app/context/locale-context';
+import { getTranslations } from '@/i18n/server';
+import { PageHeader } from '../components';
 import styles from './technical-seo.module.css';
 
 const toolsConfig = [
@@ -37,15 +36,15 @@ const toolsConfig = [
   },
 ];
 
-export default function ToolsOverviewPage() {
-  const { t } = useLocale();
+export default async function ToolsOverviewPage() {
+  const t = await getTranslations();
 
   return (
-    <div className={styles.container}>
-      <div className={styles.header}>
-        <h1 className={styles.title}>{t('tools.overview.title')}</h1>
-        <p className={styles.subtitle}>{t('tools.overview.subtitle')}</p>
-      </div>
+    <>
+      <PageHeader
+        title={t('tools.overview.title')}
+        subtitle={t('tools.overview.subtitle')}
+      />
       
       <div className={styles.toolsGrid}>
         {toolsConfig.map((tool) => {
@@ -67,6 +66,6 @@ export default function ToolsOverviewPage() {
           );
         })}
       </div>
-    </div>
+    </>
   );
 }

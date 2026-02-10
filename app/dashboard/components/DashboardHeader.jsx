@@ -117,7 +117,7 @@ const segmentTranslationKeys = {
   'settings': 'nav.settings',
   'strategy': 'nav.strategy.title',
   'technical-seo': 'nav.tools.title',
-  'competitor-analysis': 'nav.strategy.competitorAnalysis',
+  'competitors': 'nav.strategy.competitorAnalysis',
   'webp-converter': 'nav.tools.webpConverter',
   // User pages
   'profile': 'user.myProfile',
@@ -168,6 +168,7 @@ export function DashboardHeader() {
         plan: 'free',
         planName: null,
         aiCredits: 0,
+        aiCreditsLimit: 0,
       };
     }
     
@@ -177,11 +178,18 @@ export function DashboardHeader() {
     const planSlug = plan?.slug || 'free';
     
     // Get translated plan name based on current locale
-    // translations array contains objects like { language: 'EN', name: 'Pro Plan' }
+    // For standard plan slugs (free, starter, pro, enterprise), use i18n dictionary
+    // For custom plans, check translations array: { language: 'EN', name: 'Pro Plan' }
     const planTranslation = plan?.translations?.find(
       tr => tr.language?.toUpperCase() === locale?.toUpperCase()
     );
-    const planName = planTranslation?.name || plan?.name || null;
+    // Only use DB translation if it exists for current locale, otherwise let i18n handle it
+    const planName = planTranslation?.name || null;
+    
+    // Get AI credits limit from plan limitations
+    const limitations = plan?.limitations || [];
+    const aiCreditsLimitation = limitations.find?.(l => l.key === 'aiCredits');
+    const aiCreditsLimit = aiCreditsLimitation?.value || 0;
     
     return {
       name: getUserDisplayName(contextUser.firstName, contextUser.lastName, contextUser.email),
@@ -190,7 +198,8 @@ export function DashboardHeader() {
       image: contextUser.image || null,
       plan: planSlug,
       planName: planName,
-      aiCredits: contextUser.aiCreditsBalance || 0,
+      aiCreditsUsed: contextUser.aiCreditsUsed || 0,
+      aiCreditsLimit: aiCreditsLimit,
     };
   }, [contextUser, locale]);
 
@@ -484,20 +493,33 @@ export function DashboardHeader() {
 
               {/* Plan Display - Visible to everyone */}
               <div className={styles.creditsSection}>
-                <div className={styles.planBadge}>
-                  <Crown size={12} />
-                  <span>{user.planName || t(`user.plans.${user.plan}`)}</span>
+                <div className={styles.creditsHeader}>
+                  <span className={styles.currentPlanLabel}>{t('user.currentPlan') || 'Current Plan'}</span>
+                  <div className={styles.planBadge}>
+                    <Crown size={12} />
+                    <span>{user.planName || t(`user.plans.${user.plan}`)}</span>
+                  </div>
                 </div>
-                <div className={styles.creditsInfo}>
-                  <span className={styles.creditsLabel}>{t('user.aiCredits') || 'קרדיטים'}</span>
-                  <span className={styles.creditsValue}>{user.aiCredits.toLocaleString()}</span>
-                </div>
+                {user.aiCreditsLimit > 0 && (
+                  <div className={styles.creditsProgressBar}>
+                    <div 
+                      className={styles.creditsProgressFill} 
+                      style={{ width: `${Math.min((user.aiCreditsUsed / user.aiCreditsLimit) * 100, 100)}%` }}
+                    />
+                    <div className={styles.creditsProgressText}>
+                      <span className={styles.creditsLabel}>{t('user.aiCredits') || 'AI Credits'}</span>
+                      <span className={styles.creditsValue}>
+                        {user.aiCreditsUsed.toLocaleString()} / {user.aiCreditsLimit.toLocaleString()}
+                      </span>
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* My Profile - Visible to everyone */}
               <div className={styles.userMenuItems}>
                 <Link 
-                  href="/dashboard/profile" 
+                  href="/dashboard/settings?tab=profile" 
                   className={styles.userMenuItem}
                   onClick={() => setIsUserMenuOpen(false)}
                 >
@@ -510,23 +532,23 @@ export function DashboardHeader() {
               {canAccessBilling && (
                 <div className={styles.userMenuItems}>
                   <Link 
-                    href="/dashboard/account" 
+                    href="/dashboard/settings?tab=account" 
                     className={styles.userMenuItem}
                     onClick={() => setIsUserMenuOpen(false)}
                   >
                     <UserCircle size={18} />
-                    <span>{t('user.manageAccount')}</span>
+                    <span>{t('user.companyAccount')}</span>
                   </Link>
                   <Link 
-                    href="/dashboard/subscriptions" 
+                    href="/dashboard/settings?tab=subscription" 
                     className={styles.userMenuItem}
                     onClick={() => setIsUserMenuOpen(false)}
                   >
                     <CreditCard size={18} />
-                    <span>{t('settings.billing')}</span>
+                    <span>{t('user.subscription')}</span>
                   </Link>
                   <Link 
-                    href="/dashboard/credits" 
+                    href="/dashboard/settings?tab=credits" 
                     className={styles.userMenuItem}
                     onClick={() => setIsUserMenuOpen(false)}
                   >

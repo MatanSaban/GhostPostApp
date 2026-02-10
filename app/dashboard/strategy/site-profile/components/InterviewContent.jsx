@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { InterviewWizard } from '@/app/components/ui/interview-wizard';
 import { ArrowIcon } from '@/app/components/ui/arrow-icon';
+import { useSite } from '@/app/context/site-context';
 import styles from '../page.module.css';
 
 const iconMap = {
@@ -29,9 +30,14 @@ const iconMap = {
 export function InterviewContent({ translations, interviewSteps, sections, aiInsights }) {
   const [currentAnswer, setCurrentAnswer] = useState('');
   const [showWizard, setShowWizard] = useState(false);
+  const { selectedSite } = useSite();
   const progress = 60;
 
+  // Debug log for wizard state
+  console.log('[InterviewContent] showWizard:', showWizard, 'selectedSite:', selectedSite?.url);
+
   const handleStartInterview = () => {
+    console.log('[InterviewContent] handleStartInterview called');
     setShowWizard(true);
   };
 
@@ -60,7 +66,8 @@ export function InterviewContent({ translations, interviewSteps, sections, aiIns
       {showWizard && (
         <InterviewWizard 
           onClose={handleCloseWizard} 
-          onComplete={handleCompleteInterview} 
+          onComplete={handleCompleteInterview}
+          site={selectedSite}
         />
       )}
 

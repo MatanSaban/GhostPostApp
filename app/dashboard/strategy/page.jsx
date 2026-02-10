@@ -1,5 +1,3 @@
-'use client';
-
 import Link from 'next/link';
 import { 
   Search,
@@ -9,7 +7,7 @@ import {
   MessageSquare,
   ArrowRight,
 } from 'lucide-react';
-import { useLocale } from '@/app/context/locale-context';
+import { getTranslations } from '@/i18n/server';
 import styles from './strategy.module.css';
 
 const strategyFeaturesConfig = [
@@ -50,13 +48,13 @@ const strategyFeaturesConfig = [
     icon: Users,
     titleKey: 'strategy.competitorAnalysis.title',
     descriptionKey: 'strategy.competitorAnalysis.cardDescription',
-    href: '/dashboard/strategy/competitor-analysis',
+    href: '/dashboard/strategy/competitors',
     color: 'orange',
   },
 ];
 
-export default function StrategyOverviewPage() {
-  const { t } = useLocale();
+export default async function StrategyOverviewPage() {
+  const t = await getTranslations();
 
   return (
     <div className={styles.container}>

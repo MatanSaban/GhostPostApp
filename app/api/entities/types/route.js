@@ -127,6 +127,22 @@ export async function POST(request) {
       );
     }
 
+    // Get the slugs of types being saved (enabled)
+    const enabledSlugs = types.map(t => t.slug);
+    
+    // Disable any types that are NOT in the selection
+    // This ensures only the selected types are enabled
+    await prisma.siteEntityType.updateMany({
+      where: {
+        siteId,
+        slug: { notIn: enabledSlugs },
+        isEnabled: true,
+      },
+      data: { isEnabled: false },
+    });
+    
+    console.log(`[EntityTypes] Disabled types not in selection. Enabled: ${enabledSlugs.join(', ')}`);
+
     // Create or update each entity type
     const results = [];
     for (let i = 0; i < types.length; i++) {
@@ -149,7 +165,7 @@ export async function POST(request) {
           name: type.name,
           apiEndpoint: type.apiEndpoint || type.slug,
           sitemaps: type.sitemaps || [],
-          isEnabled: type.isEnabled !== false,
+          isEnabled: true, // Explicitly enable selected types
           sortOrder: i,
         },
         create: {
@@ -158,7 +174,7 @@ export async function POST(request) {
           slug: type.slug,
           apiEndpoint: type.apiEndpoint || type.slug,
           sitemaps: type.sitemaps || [],
-          isEnabled: type.isEnabled !== false,
+          isEnabled: true, // New types from selection are enabled
           sortOrder: i,
         },
       });

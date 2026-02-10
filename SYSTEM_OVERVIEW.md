@@ -932,8 +932,7 @@ export function verifyHmacSignature(payload, signature, secret) {
 - `/dashboard/seo-backend` - SEO טכני
 - `/dashboard/site-audit` - ביקורת אתר
 - `/dashboard/strategy/keywords` - מילות מפתח
-- `/dashboard/settings` - הגדרות
-- `/dashboard/profile` - פרופיל משתמש
+- `/dashboard/settings` - הגדרות (כולל פרופיל משתמש ב-`?tab=profile`)
 
 ### 11. מערכת הזמנות (Invitations)
 

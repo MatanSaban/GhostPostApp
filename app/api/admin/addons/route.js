@@ -39,7 +39,9 @@ export async function GET(request) {
   try {
     const { searchParams } = new URL(request.url);
     const type = searchParams.get('type');
-    const activeOnly = searchParams.get('active') !== 'false';
+    const activeParam = searchParams.get('active');
+    // Support 'all', 'false', or any falsy value to get all addons
+    const activeOnly = activeParam !== 'all' && activeParam !== 'false';
 
     const where = {
       ...(activeOnly && { isActive: true }),

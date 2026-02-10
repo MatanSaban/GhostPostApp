@@ -8,11 +8,11 @@ export function getPluginMainFile(version = PLUGIN_VERSION) {
   return `<?php
 /**
  * Plugin Name: Ghost Post Connector
- * Plugin URI: https://ghostpost.io
+ * Plugin URI: https://ghostpost.co.il
  * Description: Connects your WordPress site to Ghost Post platform for AI-powered content management.
  * Version: ${version}
  * Author: Ghost Post
- * Author URI: https://ghostpost.io
+ * Author URI: https://ghostpost.co.il
  * License: GPL v2 or later
  * License URI: https://www.gnu.org/licenses/gpl-2.0.html
  * Text Domain: ghost-post-connector

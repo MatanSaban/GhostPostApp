@@ -1,7 +1,56 @@
 import { NextResponse } from 'next/server';
+import { cookies } from 'next/headers';
 import { generateStructuredResponse } from '@/lib/ai/gemini';
+import { trackAIUsage } from '@/lib/ai/credits-service';
 import { z } from 'zod';
 import prisma from '@/lib/prisma';
+
+const SESSION_COOKIE = 'user_session';
+
+// Verify user has access to the site
+async function verifyUserSiteAccess(siteId) {
+  try {
+    const cookieStore = await cookies();
+    const userId = cookieStore.get(SESSION_COOKIE)?.value;
+
+    if (!userId) {
+      return { authorized: false, error: 'Unauthorized' };
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        accountMemberships: {
+          select: { accountId: true },
+        },
+      },
+    });
+
+    if (!user) {
+      return { authorized: false, error: 'User not found' };
+    }
+
+    const accountIds = user.accountMemberships.map(m => m.accountId);
+
+    const site = await prisma.site.findFirst({
+      where: {
+        id: siteId,
+        accountId: { in: accountIds },
+      },
+      select: { id: true, name: true, url: true, accountId: true },
+    });
+
+    if (!site) {
+      return { authorized: false, error: 'Site not found or access denied' };
+    }
+
+    return { authorized: true, userId: user.id, site };
+  } catch (error) {
+    console.error('Auth error:', error);
+    return { authorized: false, error: 'Authentication error' };
+  }
+}
 
 /**
  * POST /api/sites/[id]/tools/ai-image-optimize
@@ -20,6 +69,17 @@ import prisma from '@/lib/prisma';
 export async function POST(req, { params }) {
   try {
     const { id } = await params;
+    
+    // Verify user has access to this site
+    const authResult = await verifyUserSiteAccess(id);
+    if (!authResult.authorized) {
+      return NextResponse.json(
+        { error: authResult.error },
+        { status: 401 }
+      );
+    }
+    
+    const { userId, site } = authResult;
     const body = await req.json();
     const { imageUrl, currentFilename, pageContext, language = 'en' } = body;
 
@@ -27,19 +87,6 @@ export async function POST(req, { params }) {
       return NextResponse.json(
         { error: 'Image URL is required' },
         { status: 400 }
-      );
-    }
-
-    // Get site info for additional context
-    const site = await prisma.site.findUnique({
-      where: { id },
-      select: { name: true, url: true },
-    });
-
-    if (!site) {
-      return NextResponse.json(
-        { error: 'Site not found' },
-        { status: 404 }
       );
     }
 
@@ -93,9 +140,34 @@ Based on the image content, generate:
       temperature: 0.3, // Lower temperature for more consistent results
     });
 
+    // Track AI credits usage
+    let creditsUsed = 0;
+    if (site.accountId) {
+      const trackResult = await trackAIUsage({
+        accountId: site.accountId,
+        userId,
+        siteId: site.id,
+        operation: 'IMAGE_ALT_OPTIMIZATION',
+        description: `Optimized image alt text`,
+        metadata: {
+          websiteUrl: site.url,
+          imageUrl,
+          suggestedFilename: result.suggestedFilename,
+          descriptionKey: 'optimizedImageAlt',
+          descriptionParams: { filename: result.suggestedFilename },
+        },
+      });
+      
+      if (trackResult.success) {
+        creditsUsed = trackResult.totalUsed;
+      }
+    }
+
     return NextResponse.json({
       success: true,
       ...result,
+      // Include updated credits for frontend to update UI
+      creditsUpdated: creditsUsed > 0 ? { used: creditsUsed } : null,
     });
   } catch (error) {
     console.error('AI image optimization error:', error);
@@ -107,13 +179,25 @@ Based on the image content, generate:
 }
 
 /**
- * POST /api/sites/[id]/tools/ai-image-optimize/batch
+ * PUT /api/sites/[id]/tools/ai-image-optimize
  * 
  * Batch analyze multiple images
  */
 export async function PUT(req, { params }) {
   try {
     const { id } = await params;
+
+    // Verify user has access to this site
+    const authResult = await verifyUserSiteAccess(id);
+    if (!authResult.authorized) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+
+    const { site, user } = authResult;
+
     const body = await req.json();
     const { images, language = 'en' } = body;
 
@@ -129,19 +213,6 @@ export async function PUT(req, { params }) {
       return NextResponse.json(
         { error: 'Maximum 10 images per batch' },
         { status: 400 }
-      );
-    }
-
-    // Get site info
-    const site = await prisma.site.findUnique({
-      where: { id },
-      select: { name: true, url: true },
-    });
-
-    if (!site) {
-      return NextResponse.json(
-        { error: 'Site not found' },
-        { status: 404 }
       );
     }
 
@@ -185,9 +256,27 @@ Return results for all images.`;
       temperature: 0.3,
     });
 
+    // Track AI usage for each image in batch
+    let creditsUsed = 0;
+    for (let i = 0; i < images.length; i++) {
+      const trackResult = await trackAIUsage({
+        accountId: site.accountId,
+        userId: user.id,
+        siteId: site.id,
+        operation: 'IMAGE_ALT_OPTIMIZATION',
+        description: `Batch optimized image alt text (${i + 1}/${images.length})`,
+      });
+      
+      if (trackResult.success) {
+        creditsUsed = trackResult.totalUsed;
+      }
+    }
+
     return NextResponse.json({
       success: true,
       ...result,
+      // Include updated credits for frontend to update UI
+      creditsUpdated: creditsUsed > 0 ? { used: creditsUsed } : null,
     });
   } catch (error) {
     console.error('Batch AI image optimization error:', error);

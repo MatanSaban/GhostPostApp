@@ -1,0 +1,690 @@
+/* Skeleton Component Styles */
+
+/* Base Skeleton Animation */
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--skeleton-base) 0%,
+    var(--skeleton-base) 40%,
+    var(--skeleton-shine) 50%,
+    var(--skeleton-base) 60%,
+    var(--skeleton-base) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite ease-in-out;
+  
+  /* Light mode colors */
+  --skeleton-base: rgba(0, 0, 0, 0.08);
+  --skeleton-shine: rgba(0, 0, 0, 0.12);
+
+  .dark & {
+    --skeleton-base: rgba(255, 255, 255, 0.08);
+    --skeleton-shine: rgba(255, 255, 255, 0.15);
+  }
+}
+
+/* Stats Card Skeleton */
+.statsCard {
+  position: relative;
+  padding: 1.5rem;
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  min-height: 140px;
+
+  &.purple {
+    background: linear-gradient(135deg, rgba(147, 51, 234, 0.05) 0%, rgba(59, 130, 246, 0.05) 100%);
+    border: 1px solid rgba(147, 51, 234, 0.15);
+
+    .dark & {
+      background: linear-gradient(135deg, rgba(123, 44, 191, 0.1) 0%, rgba(67, 97, 238, 0.05) 100%);
+      border-color: rgba(123, 44, 191, 0.2);
+    }
+  }
+
+  &.blue {
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.05) 0%, rgba(147, 51, 234, 0.05) 100%);
+    border: 1px solid rgba(59, 130, 246, 0.15);
+
+    .dark & {
+      background: linear-gradient(135deg, rgba(67, 97, 238, 0.1) 0%, rgba(123, 44, 191, 0.05) 100%);
+      border-color: rgba(67, 97, 238, 0.2);
+    }
+  }
+
+  &.green {
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.05) 0%, rgba(52, 211, 153, 0.05) 100%);
+    border: 1px solid rgba(16, 185, 129, 0.15);
+
+    .dark & {
+      background: linear-gradient(135deg, rgba(0, 255, 157, 0.1) 0%, rgba(16, 185, 129, 0.05) 100%);
+      border-color: rgba(0, 255, 157, 0.2);
+    }
+  }
+
+  &.orange {
+    background: linear-gradient(135deg, rgba(249, 115, 22, 0.05) 0%, rgba(251, 191, 36, 0.05) 100%);
+    border: 1px solid rgba(249, 115, 22, 0.15);
+
+    .dark & {
+      background: linear-gradient(135deg, rgba(249, 115, 22, 0.1) 0%, rgba(251, 191, 36, 0.05) 100%);
+      border-color: rgba(249, 115, 22, 0.2);
+    }
+  }
+
+  &.gray {
+    background: linear-gradient(135deg, rgba(107, 114, 128, 0.05) 0%, rgba(156, 163, 175, 0.05) 100%);
+    border: 1px solid rgba(107, 114, 128, 0.15);
+
+    .dark & {
+      background: linear-gradient(135deg, rgba(156, 163, 175, 0.1) 0%, rgba(209, 213, 219, 0.05) 100%);
+      border-color: rgba(156, 163, 175, 0.2);
+    }
+  }
+}
+
+.statsCardContent {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.statsCardHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+}
+
+.statsValue {
+  margin-top: 0.5rem;
+}
+
+/* Dashboard Card Skeleton */
+.dashboardCard {
+  position: relative;
+  padding: 1.5rem;
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  background: linear-gradient(135deg, rgba(147, 51, 234, 0.03) 0%, rgba(59, 130, 246, 0.03) 100%);
+  border: 1px solid rgba(147, 51, 234, 0.15);
+
+  .dark & {
+    background: linear-gradient(135deg, rgba(123, 44, 191, 0.1) 0%, rgba(67, 97, 238, 0.05) 100%);
+    border-color: rgba(123, 44, 191, 0.2);
+  }
+}
+
+.dashboardCardContent {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.cardTitle {
+  margin-bottom: 0.5rem;
+}
+
+.cardSubtitle {
+  margin-top: -0.5rem;
+}
+
+/* Table Skeleton */
+.tableCard {
+  border-radius: var(--radius-xl);
+  background: var(--card);
+  border: 1px solid var(--border);
+  overflow: hidden;
+}
+
+.tableHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid var(--border);
+  background: var(--muted);
+}
+
+.tableHeaderActions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.tableHeaderCell {
+  padding: 0.875rem 1rem;
+  text-align: start;
+  background: var(--muted);
+  border-bottom: 1px solid var(--border);
+}
+
+.tableRow {
+  &:not(:last-child) .tableCell,
+  &:not(:last-child) .actionsCell {
+    border-bottom: 1px solid var(--border);
+  }
+}
+
+.tableCell {
+  padding: 0.875rem 1rem;
+  vertical-align: middle;
+}
+
+.actionsCell {
+  padding: 0.875rem 1rem;
+  text-align: end;
+  width: 100px;
+}
+
+.checkboxCell {
+  width: 2.5rem;
+  padding: 0.875rem 0.5rem 0.875rem 1rem !important;
+  vertical-align: middle;
+}
+
+.titleCell {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.actionButtons {
+  display: flex;
+  gap: 0.375rem;
+  justify-content: flex-end;
+}
+
+/* Activity Item Skeleton */
+.activityItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem;
+  background: var(--background);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-lg);
+
+  .dark & {
+    background: rgba(0, 0, 0, 0.4);
+    border-color: rgba(123, 44, 191, 0.1);
+  }
+}
+
+.activityContent {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex: 1;
+}
+
+.activityList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+/* Page Header Skeleton */
+.pageHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+}
+
+.pageHeaderContent {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.pageHeaderActions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.subtitle {
+  margin-top: 0.25rem;
+}
+
+/* Stats Grid Skeleton */
+.statsGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+
+  @media (max-width: 1200px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  @media (max-width: 640px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Chart Skeleton */
+.chartSkeleton {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 1.5rem;
+  background: var(--background);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-light);
+
+  .dark & {
+    background: rgba(0, 0, 0, 0.2);
+    border-color: rgba(123, 44, 191, 0.1);
+  }
+}
+
+.chartBars {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.75rem;
+  width: 100%;
+  height: 100%;
+}
+
+.chartBar {
+  flex: 1;
+  background: linear-gradient(
+    90deg,
+    var(--skeleton-base) 0%,
+    var(--skeleton-base) 40%,
+    var(--skeleton-shine) 50%,
+    var(--skeleton-base) 60%,
+    var(--skeleton-base) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite ease-in-out;
+  border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+  
+  --skeleton-base: rgba(147, 51, 234, 0.15);
+  --skeleton-shine: rgba(147, 51, 234, 0.25);
+
+  .dark & {
+    --skeleton-base: rgba(123, 44, 191, 0.2);
+    --skeleton-shine: rgba(123, 44, 191, 0.35);
+  }
+}
+
+/* Progress Bar Skeleton */
+.progressBarWrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.progressBarHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.progressList {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* Form Field Skeleton */
+.formField {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.formLabel {
+  margin-bottom: 0.25rem;
+}
+
+.formGrid {
+  display: grid;
+  gap: 1rem;
+
+  &.cols1 {
+    grid-template-columns: 1fr;
+  }
+
+  &.cols2 {
+    grid-template-columns: repeat(2, 1fr);
+
+    @media (max-width: 768px) {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  &.cols3 {
+    grid-template-columns: repeat(3, 1fr);
+
+    @media (max-width: 1024px) {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    @media (max-width: 640px) {
+      grid-template-columns: 1fr;
+    }
+  }
+}
+
+/* Quick Actions Skeleton */
+.quickActions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.quickActionItem {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  background: var(--background);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-lg);
+
+  .dark & {
+    background: rgba(0, 0, 0, 0.4);
+    border-color: rgba(123, 44, 191, 0.1);
+  }
+}
+
+/* Content Card Skeleton */
+.contentCard {
+  display: flex;
+  flex-direction: column;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+}
+
+.contentCardImage {
+  border-radius: 0;
+}
+
+.contentCardBody {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 1rem;
+}
+
+.contentCardFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1rem;
+  border-top: 1px solid var(--border);
+}
+
+.contentGrid {
+  display: grid;
+  gap: 1.5rem;
+
+  &.gridCols2 {
+    grid-template-columns: repeat(2, 1fr);
+
+    @media (max-width: 768px) {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  &.gridCols3 {
+    grid-template-columns: repeat(3, 1fr);
+
+    @media (max-width: 1024px) {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    @media (max-width: 640px) {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  &.gridCols4 {
+    grid-template-columns: repeat(4, 1fr);
+
+    @media (max-width: 1200px) {
+      grid-template-columns: repeat(3, 1fr);
+    }
+
+    @media (max-width: 1024px) {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    @media (max-width: 640px) {
+      grid-template-columns: 1fr;
+    }
+  }
+}
+
+/* Nav Item Skeleton */
+.navItem {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius-md);
+}
+
+/* Detail Page Layout */
+.detailPage {
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  gap: 1.5rem;
+
+  @media (max-width: 1024px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.detailMain {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.detailSidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.sidebarContent {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* Dashboard Page Layout */
+.dashboardPage {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.mainGrid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 1.5rem;
+
+  @media (max-width: 1024px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.leftColumn,
+.rightColumn {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* Entities Page Layout */
+.entitiesPage {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* Entity Detail Layout */
+.entityDetail {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.entityDetailHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 0;
+  border-bottom: 1px solid var(--border);
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.entityDetailHeaderLeft {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.entityDetailHeaderInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.entityDetailHeaderActions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.entityDetailTabs {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.entityDetailContent {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.entityDetailGrid {
+  display: grid;
+  grid-template-columns: 1fr 350px;
+  gap: 1.5rem;
+
+  @media (max-width: 1200px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.entityDetailMain {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.entityDetailSidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* Settings Page Layout */
+.settingsPage {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.settingsGrid {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  gap: 1.5rem;
+
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.settingsSidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.settingsContent {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* Admin Page Layout */
+.adminPage {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.adminToolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 0;
+
+  @media (max-width: 640px) {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+
+.adminToolbarRight {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.adminTableLoading {
+  min-height: 400px;
+}
+
+/* Settings Form Skeleton */
+.settingsFormSkeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  padding: 1rem 0;
+}
+
+.settingsFormActions {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border-light);
+}

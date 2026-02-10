@@ -1,4 +1,5 @@
 import { SettingsContent } from './components';
+import { PageHeader } from '../components';
 import { getTranslations } from '@/i18n/server';
 import styles from './page.module.css';
 
@@ -18,11 +19,14 @@ export default async function SettingsPage() {
 
   // Account-level settings tabs (related to the account, not a specific site)
   const accountTabs = [
+    { id: 'profile', label: t('settings.profile'), iconName: 'User', description: t('settings.descriptions.profile') },
     { id: 'users', label: t('settings.users'), iconName: 'UserPlus', description: t('settings.descriptions.users') },
     { id: 'roles', label: t('settings.roles'), iconName: 'Shield', description: t('settings.descriptions.roles') },
     { id: 'permissions', label: t('settings.permissions'), iconName: 'Key', description: t('settings.descriptions.permissions') },
     { id: 'subscription', label: t('settings.subscription'), iconName: 'CreditCard', description: t('settings.descriptions.subscription') },
-    { id: 'account', label: t('settings.account'), iconName: 'User', description: t('settings.descriptions.account') },
+    { id: 'credits', label: t('settings.credits.title'), iconName: 'Coins', description: t('settings.descriptions.credits') },
+    { id: 'addons', label: t('settings.addons'), iconName: 'Puzzle', description: t('settings.descriptions.addons') },
+    { id: 'account', label: t('settings.account'), iconName: 'Building2', description: t('settings.descriptions.account') },
   ];
 
   // Main category tabs for switching between website and account settings
@@ -85,14 +89,19 @@ export default async function SettingsPage() {
       ],
     },
     subscription: {
-      plan: 'pro',
-      planLabel: t('user.plans.pro'),
-      price: 49,
-      status: 'active',
+      plan: 'free',
+      planLabel: t('user.plans.free'),
+      price: 0,
+      currency: 'USD',
+      interval: 'MONTHLY',
+      status: 'ACTIVE',
       statusLabel: t('settings.subscriptionSection.statuses.active'),
-      tokensUsed: 350000,
-      tokensLimit: 500000,
-      nextBillingDate: '2024-12-15', // ISO format for locale-aware formatting
+      aiCreditsUsed: 0,
+      aiCreditsLimit: 0,
+      nextBillingDate: null,
+      cancelAtPeriodEnd: false,
+      features: [],
+      limitations: [],
     },
   };
 
@@ -378,13 +387,11 @@ export default async function SettingsPage() {
   };
 
   return (
-    <div className={styles.container}>
-      <div className={styles.pageHeader}>
-        <div className={styles.headerContent}>
-          <h1 className={styles.pageTitle}>{t('settings.title')}</h1>
-          <p className={styles.pageSubtitle}>{t('settings.subtitle')}</p>
-        </div>
-      </div>
+    <>
+      <PageHeader
+        title={t('settings.title')}
+        subtitle={t('settings.subtitle')}
+      />
 
       <SettingsContent 
         translations={translations}
@@ -393,6 +400,6 @@ export default async function SettingsPage() {
         mainTabs={mainTabs}
         initialData={initialData}
       />
-    </div>
+    </>
   );
 }

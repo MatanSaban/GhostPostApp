@@ -1,0 +1,487 @@
+/* Sitemaps Page Styles */
+
+.spinning {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Stats Grid */
+.statsGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+
+  @media (max-width: 768px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  @media (max-width: 480px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.statCard {
+  padding: 1.25rem;
+  border-radius: var(--radius-lg);
+  background: var(--card);
+  border: 1px solid var(--border);
+  text-align: center;
+}
+
+.statValue {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--foreground);
+}
+
+.statLabel {
+  font-size: 0.8125rem;
+  color: var(--muted-foreground);
+  margin-top: 0.25rem;
+}
+
+/* Error Banner */
+.errorBanner {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem 1.25rem;
+  border-radius: var(--radius-lg);
+  background: var(--color-error-bg);
+  border: 1px solid var(--color-error-border);
+  color: var(--color-error);
+}
+
+/* Sitemaps List */
+.sitemapsList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.sitemapGroup {
+  display: flex;
+  flex-direction: column;
+}
+
+.sitemapCard {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 1.25rem;
+  border-radius: var(--radius-lg);
+  background: var(--card);
+  border: 1px solid var(--border);
+  text-decoration: none;
+  color: inherit;
+  transition: all 0.2s ease;
+
+  &:hover {
+    border-color: var(--border-hover);
+    box-shadow: var(--shadow-sm);
+
+    .chevron {
+      transform: translateX(4px);
+    }
+  }
+}
+
+.childCard {
+  margin-inline-start: 2.5rem;
+  border-start-start-radius: 0;
+  border-color: var(--border);
+  background: var(--muted);
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset-inline-start: -1.5rem;
+    top: 50%;
+    width: 1rem;
+    height: 1px;
+    background: var(--border);
+  }
+}
+
+.childSitemaps {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding-inline-start: 1.5rem;
+  margin-top: 0.25rem;
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset-inline-start: 2rem;
+    top: 0;
+    bottom: 1.5rem;
+    width: 1px;
+    background: var(--border);
+  }
+}
+
+.sitemapIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-md);
+  background: var(--muted);
+  color: var(--muted-foreground);
+  flex-shrink: 0;
+}
+
+.sitemapInfo {
+  flex: 1;
+  min-width: 0;
+}
+
+.sitemapUrl {
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: var(--foreground);
+  word-break: break-all;
+}
+
+.sitemapMeta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.375rem;
+}
+
+.metaItem {
+  font-size: 0.8125rem;
+  color: var(--muted-foreground);
+}
+
+.sitemapActions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+.externalLink {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-sm);
+  color: var(--muted-foreground);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: var(--muted);
+    color: var(--foreground);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+.resyncIconButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-sm);
+  color: var(--muted-foreground);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover:not(:disabled) {
+    background: var(--color-primary-bg);
+    color: var(--color-primary);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+.chevron {
+  color: var(--muted-foreground);
+  transition: transform 0.2s ease;
+}
+
+/* Badges */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.125rem 0.5rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.badgeIndex {
+  background: var(--color-primary-bg);
+  color: var(--color-primary);
+}
+
+.statusBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.125rem 0.5rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.statussuccess {
+  background: var(--color-success-bg);
+  color: var(--color-success);
+}
+
+.statuswarning {
+  background: var(--color-warning-bg);
+  color: var(--color-warning);
+}
+
+.statuserror {
+  background: var(--color-error-bg);
+  color: var(--color-error);
+}
+
+.statusinfo {
+  background: var(--color-info-bg);
+  color: var(--color-info);
+}
+
+/* Single Sitemap Page Styles */
+.singleContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.backLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+  text-decoration: none;
+  transition: color 0.2s ease;
+
+  &:hover {
+    color: var(--foreground);
+  }
+}
+
+.sitemapHeader {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1.5rem;
+  border-radius: var(--radius-xl);
+  background: var(--card);
+  border: 1px solid var(--border);
+}
+
+.sitemapHeaderTop {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+
+  @media (max-width: 640px) {
+    flex-direction: column;
+  }
+}
+
+.sitemapHeaderInfo {
+  flex: 1;
+}
+
+.sitemapTitle {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--foreground);
+  word-break: break-all;
+}
+
+.sitemapHeaderMeta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 0.75rem;
+}
+
+.metaGroup {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+}
+
+.sitemapHeaderActions {
+  display: flex;
+  gap: 0.75rem;
+}
+
+/* Scan Info Card */
+.scanInfoCard {
+  padding: 1.25rem;
+  border-radius: var(--radius-lg);
+  background: var(--muted);
+  border: 1px solid var(--border);
+}
+
+.scanInfoTitle {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--foreground);
+  margin-bottom: 0.75rem;
+}
+
+.scanInfoGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+
+  @media (max-width: 640px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.scanInfoItem {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.scanInfoLabel {
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.scanInfoValue {
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: var(--foreground);
+}
+
+/* URL Preview */
+.urlPreview {
+  border-radius: var(--radius-xl);
+  background: var(--card);
+  border: 1px solid var(--border);
+  overflow: hidden;
+}
+
+.urlPreviewHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid var(--border);
+  background: var(--muted);
+}
+
+.urlPreviewTitle {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--foreground);
+}
+
+.urlPreviewCount {
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+}
+
+.urlList {
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.urlItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1.5rem;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.875rem;
+  
+  &:last-child {
+    border-bottom: none;
+  }
+
+  &:hover {
+    background: var(--muted);
+  }
+}
+
+.urlItemUrl {
+  color: var(--foreground);
+  word-break: break-all;
+}
+
+.urlItemDate {
+  color: var(--muted-foreground);
+  white-space: nowrap;
+  margin-inline-start: 1rem;
+}
+
+/* Content Preview (XML) */
+.contentPreview {
+  padding: 1rem 1.5rem;
+  max-height: 300px;
+  overflow: auto;
+  background: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-break: break-all;
+  color: var(--muted-foreground);
+}
+
+/* Resync Button */
+.resyncButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1.25rem;
+  border-radius: var(--radius-md);
+  background: var(--color-primary);
+  color: white;
+  font-size: 0.875rem;
+  font-weight: 500;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover:not(:disabled) {
+    background: var(--color-primary-hover);
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}

@@ -7,10 +7,20 @@ import { getCurrentAccountMember } from '@/lib/auth-permissions';
  */
 export async function GET() {
   try {
-    const { authorized, member, error } = await getCurrentAccountMember();
+    const { authorized, member, error, isSuperAdmin } = await getCurrentAccountMember();
 
     if (!authorized) {
       return NextResponse.json({ error }, { status: 401 });
+    }
+
+    // SuperAdmin has all permissions
+    if (isSuperAdmin) {
+      return NextResponse.json({
+        role: { id: 'superadmin', name: 'SuperAdmin', permissions: ['*'] },
+        isOwner: true,
+        isSuperAdmin: true,
+        permissions: ['*'],
+      });
     }
 
     // Check if user is owner (either by role name or isOwner flag)
@@ -23,6 +33,7 @@ export async function GET() {
         permissions: member.role.permissions || [],
       } : null,
       isOwner,
+      isSuperAdmin: false,
       permissions: isOwner ? ['*'] : (member.role?.permissions || []),
     });
   } catch (error) {

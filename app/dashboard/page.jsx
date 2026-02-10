@@ -59,7 +59,7 @@ export default async function DashboardPage() {
   ];
 
   return (
-    <div className={styles.container}>
+    <>
       {/* Header */}
       <div className={styles.pageHeader}>
         <div>
@@ -181,6 +181,6 @@ export default async function DashboardPage() {
           </DashboardCard>
         </div>
       </div>
-    </div>
+    </>
   );
 }

@@ -316,12 +316,14 @@ const interviewQuestions = [
       max: 10,
       step: 1,
       defaultFromArticles: true, // Calculate default from fetched articles
-      defaultValue: 2, // Fallback default
+      defaultValue: 4, // Default to 4 (middle of recommended 3-5 range)
       showValue: true,
       unit: 'per1000Words',
+      recommendedMin: 3,
+      recommendedMax: 5,
       marks: [
         { value: 0, labelKey: 'common.numbers.zero' },
-        { value: 2, labelKey: 'common.numbers.two' },
+        { value: 3, labelKey: 'common.numbers.three' },
         { value: 5, labelKey: 'common.numbers.five' },
         { value: 10, labelKey: 'common.numbers.ten' },
       ],
@@ -331,7 +333,7 @@ const interviewQuestions = [
       min: 0,
       max: 10,
     },
-    aiPromptHint: 'Ask how many internal links per 1000 words. The default is calculated from their existing posts. Explain SEO best practices: 2-4 internal links per 1000 words is optimal for SEO and user experience.',
+    aiPromptHint: 'Ask how many internal links per 1000 words. The default is calculated from their existing posts. Explain SEO best practices: 3-5 internal links per 1000 words is optimal for SEO and user experience.',
     allowedActions: ['ANALYZE_INTERNAL_LINKS'],
     autoActions: null,
     saveToField: 'internalLinksPer1000Words',

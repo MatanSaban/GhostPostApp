@@ -23,6 +23,7 @@ import {
 } from 'lucide-react';
 import { useLocale } from '@/app/context/locale-context';
 import { useUser } from '@/app/context/user-context';
+import { AdminPageSkeleton, TableSkeleton } from '@/app/dashboard/components';
 import styles from '../admin.module.css';
 
 export default function SubscriptionsPage() {
@@ -185,11 +186,7 @@ export default function SubscriptionsPage() {
   };
 
   if (isUserLoading) {
-    return (
-      <div className={styles.loadingState}>
-        <div className={styles.spinner} />
-      </div>
-    );
+    return <AdminPageSkeleton statsCount={4} columns={7} />;
   }
 
   if (!isSuperAdmin) {
@@ -256,9 +253,7 @@ export default function SubscriptionsPage() {
       {/* Table */}
       <div className={styles.tableContainer}>
         {isLoading ? (
-          <div className={styles.loadingState}>
-            <div className={styles.spinner} />
-          </div>
+          <TableSkeleton rows={8} columns={7} hasActions />
         ) : paginatedSubscriptions.length === 0 ? (
           <div className={styles.emptyState}>
             <CreditCard className={styles.emptyIcon} />

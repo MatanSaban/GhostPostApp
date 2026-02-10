@@ -20,6 +20,7 @@ import {
 import { useLocale } from '@/app/context/locale-context';
 import { useUser } from '@/app/context/user-context';
 import { AdminModal, ConfirmDialog, FormInput, FormCheckbox, FormSelect, FormActions, PrimaryButton, SecondaryButton } from '../components/AdminModal';
+import { AdminPageSkeleton, TableSkeleton } from '@/app/dashboard/components';
 import styles from '../admin.module.css';
 import modalStyles from '../components/AdminModal.module.css';
 
@@ -291,11 +292,7 @@ export default function PlatformUsersPage() {
   };
 
   if (isUserLoading) {
-    return (
-      <div className={styles.loadingState}>
-        <div className={styles.spinner} />
-      </div>
-    );
+    return <AdminPageSkeleton statsCount={3} columns={5} />;
   }
 
   if (!isSuperAdmin) {
@@ -362,9 +359,7 @@ export default function PlatformUsersPage() {
       {/* Table */}
       <div className={styles.tableContainer}>
         {isLoading ? (
-          <div className={styles.loadingState}>
-            <div className={styles.spinner} />
-          </div>
+          <TableSkeleton rows={8} columns={5} hasActions />
         ) : paginatedUsers.length === 0 ? (
           <div className={styles.emptyState}>
             <Users className={styles.emptyIcon} />

@@ -1,6 +1,10 @@
 import { NextResponse } from 'next/server';
+import { cookies } from 'next/headers';
 import prisma from '@/lib/prisma';
 import { generateTextResponse } from '@/lib/ai/gemini';
+import { trackAIUsage } from '@/lib/ai/credits-service';
+
+const SESSION_COOKIE = 'user_session';
 
 /**
  * Detect platform from HTML content using multiple methods
@@ -159,15 +163,42 @@ If you cannot determine the platform with high confidence, return "custom".`;
  */
 export async function POST(request) {
   try {
+    // Check authentication
+    const cookieStore = await cookies();
+    const userId = cookieStore.get(SESSION_COOKIE)?.value;
+
+    if (!userId) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const { siteId } = await request.json();
 
     if (!siteId) {
       return NextResponse.json({ error: 'Site ID is required' }, { status: 400 });
     }
 
-    // Get the site
-    const site = await prisma.site.findUnique({
-      where: { id: siteId },
+    // Get user's accounts
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        accountMemberships: {
+          select: { accountId: true },
+        },
+      },
+    });
+
+    if (!user) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+    }
+
+    const accountIds = user.accountMemberships.map(m => m.accountId);
+
+    // Get the site and verify access
+    const site = await prisma.site.findFirst({
+      where: { 
+        id: siteId,
+        accountId: { in: accountIds },
+      },
     });
 
     if (!site) {
@@ -182,6 +213,7 @@ export async function POST(request) {
     let platform = null;
     let detected = false;
     let confidence = 0;
+    let usedAI = false;
 
     // First, try WordPress REST API directly (fastest for WP)
     try {
@@ -221,6 +253,7 @@ export async function POST(request) {
           } else {
             // Fall back to AI detection
             const aiPlatform = await detectPlatformWithAI(html, siteUrl);
+            usedAI = true;
             if (aiPlatform && aiPlatform !== 'custom') {
               platform = aiPlatform;
               detected = true;
@@ -244,6 +277,18 @@ export async function POST(request) {
       where: { id: siteId },
       data: { platform },
     });
+
+    // Track AI usage if AI detection was used
+    if (usedAI) {
+      await trackAIUsage({
+        accountId: site.accountId,
+        userId,
+        siteId: site.id,
+        operation: 'DETECT_PLATFORM',
+        description: `AI platform detection for ${site.url}`,
+        metadata: { platform, confidence },
+      });
+    }
 
     return NextResponse.json({ 
       platform, 

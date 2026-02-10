@@ -38,6 +38,10 @@ export async function GET(request) {
       const features = translation?.features || plan.features || [];
       const limitations = translation?.limitations || plan.limitations || [];
 
+      // Localized period string
+      const periodMap = { he: '/לחודש', fr: '/mois', en: '/month' };
+      const period = periodMap[lang] || periodMap.en;
+
       return {
         id: plan.id,
         slug: plan.slug,
@@ -46,7 +50,7 @@ export async function GET(request) {
         monthlyPrice: plan.price,
         yearlyPrice: plan.yearlyPrice ?? plan.price * 10,
         currency: plan.currency,
-        period: lang === 'he' ? '/לחודש' : '/month',
+        period,
         features,      // Dynamic features list [{key, label}]
         limitations,   // Dynamic limitations list [{key, label, value?, type?}]
         popular: isPopular,

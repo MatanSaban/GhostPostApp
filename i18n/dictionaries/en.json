@@ -81,12 +81,55 @@
     "collapse": "Collapse",
     "saving": "Saving...",
     "save": "Save",
+    "saveChanges": "Save Changes",
     "saved": "Saved",
     "copied": "Copied!",
     "retry": "Retry",
     "title": "Title",
     "goBack": "Go Back",
-    "characters": "characters"
+    "characters": "characters",
+    "dismiss": "Dismiss",
+    "openInNewTab": "Open in New Tab",
+    "refresh": "Refresh",
+    "linksPerThousand": "links / 1000 words",
+    "seconds": "seconds"
+  },
+  "backgroundTasks": {
+    "entityPopulation": {
+      "title": "Populating Entities",
+      "starting": "Starting entity population...",
+      "populating": "Fetching entities from sitemap...",
+      "deepCrawling": "Deep crawling pages for metadata...",
+      "completed": "Entity population complete!",
+      "completedWithCount": "Complete! {crawled} pages crawled, {enriched} enriched",
+      "failed": "Entity population failed",
+      "crawlFailed": "Deep crawl failed"
+    },
+    "entityPopulate": {
+      "title": "Syncing WordPress Content",
+      "starting": "Starting WordPress sync...",
+      "syncing": "Syncing content from WordPress...",
+      "completed": "WordPress sync complete!",
+      "completedWithCount": "Sync complete! {count} items synced",
+      "failed": "WordPress sync failed"
+    },
+    "entityCrawl": {
+      "title": "Crawling Website",
+      "starting": "Starting website crawl...",
+      "populating": "Fetching content from website...",
+      "foundItems": "Found {count} items. Deep crawling pages...",
+      "completed": "Website crawl complete!",
+      "completedWithCount": "Crawl complete! {total} items, {enriched} enriched",
+      "failed": "Website crawl failed",
+      "crawlFailed": "Deep crawl failed"
+    },
+    "deepCrawl": {
+      "title": "Deep Crawling",
+      "starting": "Deep crawling pages...",
+      "completed": "Deep crawl complete!",
+      "completedWithCount": "Complete! Crawled {crawled} pages, enriched {enriched}",
+      "failed": "Deep crawl failed"
+    }
   },
   "media": {
     "title": "Media Library",
@@ -95,6 +138,7 @@
     "upload": "Upload",
     "noMedia": "No media items found",
     "selectSite": "Please select a site to view media",
+    "requiresWordPress": "Media library is only available for WordPress sites with a connected plugin",
     "details": "Details",
     "altText": "Alt Text",
     "mediaTitle": "Title",
@@ -249,6 +293,7 @@
       "services": "Services",
       "products": "Products",
       "media": "Media",
+      "sitemaps": "Sitemaps",
       "other": "Other"
     },
     "admin": {
@@ -257,6 +302,7 @@
       "users": "Platform Users",
       "subscriptions": "Subscriptions",
       "plans": "Plans Settings",
+      "addons": "Add-Ons",
       "interviewQuestions": "Interview Questions",
       "translations": "Translations",
       "interviewFlow": "Interview Flow",
@@ -637,15 +683,100 @@
   },
   "competitorAnalysis": {
     "title": "Competitor Analysis",
-    "subtitle": "Analyze and track your competitors' SEO strategies",
+    "subtitle": "Analyze your competitors' content and find opportunities to outrank them",
     "selectSite": "Please select a site to analyze competitors",
     "addCompetitor": "Add Competitor",
     "addFirstCompetitor": "Add Your First Competitor",
     "trackedCompetitors": "Tracked Competitors",
     "sharedKeywords": "Shared Keywords",
-    "contentGaps": "Content Gaps",
-    "noCompetitors": "No Competitors Added",
-    "noCompetitorsDescription": "Start tracking your competitors to discover keyword opportunities and content gaps."
+    "contentGaps": "Content Gaps Found",
+    "noCompetitors": "No Competitors Yet",
+    "noCompetitorsDescription": "Add competitor URLs to analyze their content and discover opportunities to create better content.",
+    "enterUrl": "Enter competitor URL",
+    "urlPlaceholder": "https://competitor.com/page",
+    "addUrl": "Add URL",
+    "cancel": "Cancel",
+    "remove": "Remove",
+    "rescan": "Re-Scan",
+    "scanning": "Scanning...",
+    "lastScanned": "Last scanned",
+    "neverScanned": "Never scanned",
+    "scanError": "Scan failed",
+    "pending": "Pending scan",
+    "limitReached": "Competitor limit reached",
+    "limitReachedDescription": "Upgrade your plan to track more competitors",
+    "remaining": "{count} remaining",
+    "selected": "{count} selected",
+    "selectedOfTotal": "{selected} selected (slots available: {available})",
+    "headToHead": "Head-to-Head Comparison",
+    "headToHeadDescription": "Compare your page metrics against the competitor",
+    "yourPage": "Your Page",
+    "competitorPage": "Competitor",
+    "wordCount": "Word Count",
+    "headerStructure": "Header Structure",
+    "h1Count": "H1 Tags",
+    "h2Count": "H2 Tags",
+    "h3Count": "H3 Tags",
+    "images": "Images",
+    "videos": "Videos",
+    "speed": "Speed (TTFB)",
+    "ms": "ms",
+    "words": "words",
+    "selectPageToCompare": "Select one of your pages to compare",
+    "compare": "Compare",
+    "contentGapAnalysis": "Content Gap Analysis",
+    "contentGapDescription": "Topics your competitor covers that you should add",
+    "noGapsFound": "No significant gaps found",
+    "gapImportance": {
+      "critical": "Critical",
+      "important": "Important",
+      "niceToHave": "Nice to Have"
+    },
+    "skyscraper": "Steal Strategy & Rewrite",
+    "skyscraperDescription": "Generate an improved outline based on this competitor's structure",
+    "generateOutline": "Generate Outline",
+    "generatingOutline": "Generating...",
+    "scanCost": "Scan Cost: {credits} credits",
+    "analysisCost": "Analysis Cost: {credits} credits",
+    "winner": "Better",
+    "loser": "Needs Work",
+    "tie": "Tied",
+    "actions": "Actions",
+    "viewDetails": "View Details",
+    "advantages": "Your Advantages",
+    "recommendations": "Recommendations",
+    "overallAssessment": "Overall Assessment",
+    "difficultyToOutrank": "Difficulty to Outrank",
+    "easy": "Easy",
+    "moderate": "Moderate",
+    "hard": "Hard",
+    "findWithAI": "Find with AI",
+    "findWithAIDescription": "Analyzing your website content to discover competitors...",
+    "discoveringCompetitors": "Discovering competitors...",
+    "discoverCompetitors": "Discover Competitors",
+    "noKeywordsForDiscovery": "Could not find any keywords to search for competitors",
+    "discoveredCompetitors": "Discovered Competitors",
+    "discoveredDescription": "Select competitors to add to your tracking list",
+    "foundInKeywords": "Found in {count} keywords",
+    "addSelected": "Add Selected",
+    "competitorScore": "Score",
+    "avgRank": "Avg. Rank",
+    "mainTopic": "Main Topic",
+    "keywordsSearched": "Keywords Searched",
+    "listView": "List View",
+    "tableView": "Table View",
+    "competitor": "Competitor",
+    "status": "Status",
+    "discoverConfirmDescription": "Our AI will analyze your website content, identify your main topic, and search Google to find your top competitors.",
+    "creditsUsed": "Credits Used",
+    "estimatedTime": "Estimated Time",
+    "whatYouGet": "What You'll Get",
+    "whatYouGetDescription": "Top 10 competitors ranked by relevance",
+    "howItWorks": "How it works",
+    "step1": "AI analyzes your website content and SEO data",
+    "step2": "Identifies your main topic and extracts relevant keywords",
+    "step3": "Searches Google and finds your top competitors",
+    "startDiscovery": "Start Discovery"
   },
   "siteAudit": {
     "title": "Site Health Report",
@@ -708,6 +839,59 @@
       "empty": "No other content found",
       "emptyDescription": "Sync your website to import other content"
     },
+    "sitemaps": {
+      "title": "Sitemaps",
+      "subtitle": "XML sitemaps discovered on your website",
+      "empty": {
+        "title": "No sitemaps found",
+        "description": "Scan your website to discover sitemaps",
+        "scanNow": "Scan Website"
+      },
+      "noSite": "No Site Selected",
+      "selectSiteFirst": "Please select a website to view sitemaps",
+      "backToList": "Back to Sitemaps",
+      "notFound": "Sitemap Not Found",
+      "resync": "Resync",
+      "resyncing": "Resyncing...",
+      "resyncAll": "Resync All",
+      "resyncAllProgress": "Resyncing all sitemaps...",
+      "lastScanInfo": "Last Scan Information",
+      "scanDate": "Scan Date",
+      "neverScanned": "Never scanned",
+      "scannedBy": "Scanned By",
+      "system": "System (Auto)",
+      "urlsFound": "URLs Found",
+      "resyncComplete": "Resync Complete",
+      "urlsScanned": "URLs Scanned",
+      "newEntities": "New Entities",
+      "updatedEntities": "Updated Entities",
+      "urlsInSitemap": "URLs in Sitemap",
+      "showingUrls": "Showing {count} of {total} URLs",
+      "rawContent": "Raw Sitemap Content",
+      "childSitemaps": "child sitemaps",
+      "stats": {
+        "total": "Total Sitemaps",
+        "indexes": "Sitemap Indexes",
+        "totalUrls": "Total URLs",
+        "lastScanned": "Last Scanned"
+      },
+      "status": {
+        "pending": "Pending",
+        "scanning": "Scanning",
+        "completed": "Completed",
+        "error": "Error"
+      },
+      "type": {
+        "index": "Sitemap Index",
+        "standard": "Standard Sitemap",
+        "news": "News Sitemap",
+        "image": "Image Sitemap",
+        "video": "Video Sitemap"
+      },
+      "parentIndex": "Parent: {name}",
+      "childCount": "{count} child sitemaps",
+      "urls": "{count} URLs"
+    },
     "crawl": {
       "title": "Crawl Website",
       "description": "Crawl your website to import content including titles, meta descriptions, and SEO data.",
@@ -732,9 +916,15 @@
       "fetchingEntities": "Fetching {type}...",
       "fetchingMenus": "Fetching menus...",
       "completed": "Sync completed successfully!",
+      "error": "Sync Error",
       "failed": "Sync failed. Please try again.",
-      "cancelled": "Sync was cancelled.",
+      "cancelled": "Cancelled",
+      "cancelledMessage": "Sync was cancelled. You can resume at any time.",
+      "resume": "Resume Sync",
       "lastSync": "Last synced",
+      "created": "Created",
+      "updated": "Updated",
+      "total": "Total",
       "deepCrawl": "Deep Crawl",
       "deepCrawling": "Deep crawling pages...",
       "deepCrawlCompleted": "Deep crawl completed! Enriched {count} entities."
@@ -763,7 +953,84 @@
     "syncFailed": "Sync failed",
     "syncSuccess": "Website synced successfully",
     "noSiteSelected": "No Site Selected",
+    "noSearchResults": "No results match your search criteria. Try a different search term.",
     "selectSiteFirst": "Please select a site from the dropdown to manage entities",
+    "removeFromPlatformTooltip": "Remove from platform",
+    "deleteFromWebsiteTooltip": "Delete from website",
+    "refreshDataTooltip": "Refresh data",
+    "h1IssueTooltip": "H1 Issue: Page is missing a valid H1 heading",
+    "removeFailed": "Failed to remove item",
+    "deleteFailed": "Failed to delete item",
+    "removeItemConfirm": "Are you sure you want to remove \"{title}\" from the platform? This will NOT affect the client's website.",
+    "deleteItemConfirm": "Are you sure you want to delete \"{title}\"? This will move the item to trash on the client's website.",
+    "bulk": {
+      "selected": "{count} selected",
+      "clearSelection": "Clear selection",
+      "selectAll": "Select all",
+      "deselectAll": "Deselect all",
+      "select": "Select",
+      "deselect": "Deselect",
+      "removeFromPlatform": "Remove from Platform",
+      "deleteFromWebsite": "Delete from Website",
+      "removeConfirm": "Are you sure you want to remove {count} items from the platform? This will NOT affect the client's website.",
+      "deleteConfirm": "Are you sure you want to delete {count} items? This will move the items to trash on the client's website.",
+      "removedCount": "Removed {success} of {total} items",
+      "deletedCount": "Deleted {success} of {total} items",
+      "removeFailed": "Failed to remove items",
+      "deleteFailed": "Failed to delete items"
+    },
+    "onboarding": {
+      "connect": {
+        "title": "Connect Your Website",
+        "description": "To import content from your WordPress site, install the Ghost Post plugin. It takes just a minute!",
+        "downloadPlugin": "Download Plugin",
+        "viewInstructions": "View Instructions",
+        "step1": "Download the plugin zip file",
+        "step2": "Upload and activate it in WordPress",
+        "step3": "The connection will be established automatically"
+      },
+      "connectNonWP": {
+        "title": "Scan Your Website",
+        "description": "We'll scan your website to discover content types and help you import your content.",
+        "scanWebsite": "Scan Website",
+        "step1": "Click the scan button to analyze your website",
+        "step2": "We'll detect available content types",
+        "step3": "Choose what to import to Ghost Post"
+      },
+      "sync": {
+        "title": "Ready to Import!",
+        "description": "Your website is connected. Click the button below to import your {entityName}.",
+        "syncNow": "Import Now"
+      },
+      "empty": {
+        "title": "No {entityName} Found",
+        "description": "We synced with your website but didn't find any {entityName}. If you've added content recently, try syncing again.",
+        "syncAgain": "Sync Again"
+      },
+      "success": {
+        "title": "Import Complete!",
+        "description": "Your {entityName} have been imported successfully."
+      }
+    },
+    "setup": {
+      "title": "Integration Setup",
+      "site": "Site",
+      "connected": "Connected",
+      "detectHint": "Detect your website platform to enable the best integration options.",
+      "detecting": "Detecting...",
+      "detectPlatform": "Detect Platform",
+      "nonWordPressTitle": "Non-WordPress Site Detected",
+      "nonWordPressDesc": "We'll use sitemap crawling to import your content. Some advanced features may be limited."
+    },
+    "enabledTypes": {
+      "title": "Enabled Content Types",
+      "syncAll": "Sync All"
+    },
+    "platforms": {
+      "other": "Other"
+    },
+    "items": "items",
+    "core": "Core",
     "integration": {
       "title": "Connect Your Website",
       "description": "Connect your website to import and manage its content entities"
@@ -774,13 +1041,29 @@
       "failed": "Could not detect platform. Using custom integration."
     },
     "discovery": {
+      "title": "Discovered Content Types",
+      "selectTypes": "Select the content types you want to import and manage:",
+      "sitemapNotFound": "Sitemap Not Found",
+      "sitemapNotFoundDesc": "We couldn't find a sitemap on your website. You can provide a custom sitemap URL or crawl your website to discover pages.",
+      "customSitemapLabel": "Custom Sitemap URL",
+      "tryCustom": "Try This URL",
+      "discoverByCrawling": "Crawl Website Instead",
+      "crawling": "Crawling website for pages...",
+      "discovering": "Discovering content types...",
+      "saving": "Saving...",
+      "saveAndPopulate": "Save & Import",
       "scanning": "Scanning website for content types...",
       "failed": "Could not discover content types. Please try again.",
       "found": "Found {count} content types on your website",
       "noTypes": "No content types discovered",
       "noTypesDescription": "Click the button below to scan your website for content types",
       "scan": "Scan Website",
-      "rescan": "Rescan"
+      "rescan": "Rescan",
+      "manualSitemapLabel": "Sitemap URL",
+      "scanSitemap": "Scan",
+      "crawlWebsite": "Crawl Website Instead",
+      "crawlDescription": "We'll browse your website and discover pages automatically (may take a few minutes)",
+      "crawlFailed": "Could not crawl website. Please try again or provide a sitemap URL."
     },
     "types": {
       "select": "Select Entity Types",
@@ -789,6 +1072,10 @@
       "saveAndPopulate": "Save & Populate Entities",
       "enabled": "Enabled Entity Types",
       "configured": "Configured Content Types",
+      "configuredCount": "{count} content types configured for sync",
+      "selectedCount": "{count} content types selected",
+      "selectedLabel": "Selected content types:",
+      "foundItems": "Found {count} content items from sitemap",
       "pages": "Pages",
       "posts": "Posts",
       "projects": "Projects",
@@ -1012,6 +1299,12 @@
     "team": "Team",
     "users": "Users",
     "subscription": "Subscription",
+    "credits": {
+      "title": "Credits",
+      "credits": "credits"
+    },
+    "addons": "Add-ons",
+    "profile": "Profile",
     "account": "Account",
     "billing": "Billing",
     "api": "API",
@@ -1031,7 +1324,10 @@
       "team": "Manage team members and permissions",
       "users": "Invite and manage users in your account",
       "subscription": "View and manage your subscription plan",
-      "account": "Update your personal account information",
+      "credits": "Manage your AI credits and usage",
+      "addons": "Browse and manage additional features",
+      "profile": "Update your personal profile and preferences",
+      "account": "Manage your company account settings",
       "roles": "Create and manage roles for your account members",
       "permissions": "Assign permissions to each role in your account"
     },
@@ -1348,6 +1644,7 @@
     "subscriptionSection": {
       "plan": "Plan",
       "tokenUsage": "Token Usage",
+      "aiCreditsUsage": "AI Credits Usage",
       "nextBillingDate": "Next billing date:",
       "billingActions": "Billing Actions",
       "upgradePlan": "Upgrade Plan",
@@ -1356,6 +1653,36 @@
       "perMonth": "per month",
       "perYear": "per year",
       "cancelsAtPeriodEnd": "Cancels at period end",
+      "usageLimits": "Usage & Limits",
+      "planFeatures": "Plan Features",
+      "unlimited": "Unlimited",
+      "limitations": {
+        "maxSites": "Websites",
+        "websites": "Websites",
+        "maxMembers": "Team Members",
+        "users": "Users",
+        "aiCredits": "AI Credits",
+        "maxPages": "Pages",
+        "maxPosts": "Blog Posts",
+        "storage": "Storage",
+        "siteAudits": "Site Audits"
+      },
+      "features": {
+        "aiContentGeneration": "AI Content Generation",
+        "multipleWebsites": "Multiple Websites",
+        "teamMembers": "Team Members",
+        "prioritySupport": "Priority Support",
+        "advancedAnalytics": "Advanced Analytics",
+        "customBranding": "Custom Branding",
+        "apiAccess": "API Access",
+        "seoOptimization": "SEO Optimization",
+        "scheduledPublishing": "Scheduled Publishing",
+        "contentCalendar": "Content Calendar",
+        "bulkActions": "Bulk Actions",
+        "exportData": "Export Data",
+        "whiteLabel": "White Label",
+        "dedicatedSupport": "Dedicated Support"
+      },
       "statuses": {
         "active": "Active",
         "cancelled": "Cancelled",
@@ -1363,6 +1690,80 @@
         "expired": "Expired",
         "trialing": "Trialing",
         "past_due": "Past Due"
+      }
+    },
+    "creditsSection": {
+      "title": "AI Credits",
+      "available": "Available",
+      "used": "Used",
+      "usage": "Usage",
+      "actions": "Actions",
+      "description": "AI credits are used for generating content, analyzing data, and other AI-powered features. Credits reset at the beginning of each billing period.",
+      "usageLog": "Usage Log",
+      "noLogs": "No usage history yet",
+      "errorLoadingLogs": "Failed to load usage logs",
+      "unknownOperation": "Unknown operation",
+      "logColumns": {
+        "date": "Date",
+        "action": "Action",
+        "website": "Website",
+        "user": "User",
+        "credits": "Credits",
+        "balance": "Balance"
+      },
+      "operations": {
+        "CRAWL_WEBSITE": "Website Crawl",
+        "GENERATE_KEYWORDS": "Keyword Generation",
+        "FIND_COMPETITORS": "Find Competitors",
+        "ANALYZE_WRITING_STYLE": "Writing Style Analysis",
+        "FETCH_ARTICLES": "Fetch Articles",
+        "DETECT_PLATFORM": "Platform Detection",
+        "COMPLETE_INTERVIEW": "Interview Summary",
+        "INTERVIEW_CHAT": "Interview Chat",
+        "GENERIC": "AI Operation",
+        "IMAGE_ALT_OPTIMIZATION": "Image Optimization",
+        "ENTITY_REFRESH": "Content Refresh"
+      },
+      "descriptions": {
+        "crawledWebsite": "Crawled: {url}",
+        "generatedKeywords": "Generated {count} keywords for {url}",
+        "foundCompetitors": "Found {count} competitors for {keywords} keywords",
+        "analyzedWritingStyle": "Analyzed writing style for {url}",
+        "fetchedArticles": "Fetched articles from {url}",
+        "detectedPlatform": "Detected {platform} on {url}",
+        "completedInterview": "Interview completed for {url}",
+        "extractedFocusKeyword": "Extracted focus keyword from {url}",
+        "optimizedImageAlt": "Optimized image alt for {url}",
+        "entityEnrichment": "Content enrichment for {url}",
+        "websiteAnalysis": "Analyzed {url}",
+        "discoveredEntityTypes": "Discovered content types for {url}"
+      }
+    },
+    "addonsSection": {
+      "title": "Available Add-ons",
+      "description": "Enhance your Ghost Post experience with additional features and capabilities.",
+      "installed": "Installed",
+      "install": "Install",
+      "purchased": "Purchased",
+      "buy": "Buy",
+      "subscribe": "Subscribe",
+      "oneTime": "one-time",
+      "oneTimeBadge": "ONE-TIME",
+      "credits": "AI Credits",
+      "noAddons": "No add-ons available at the moment.",
+      "items": {
+        "advancedAnalytics": {
+          "name": "Advanced Analytics",
+          "description": "Deep insights into your content performance with detailed reports and visualizations."
+        },
+        "aiImages": {
+          "name": "AI Image Generation",
+          "description": "Generate stunning images for your content using advanced AI models."
+        },
+        "multiLanguage": {
+          "name": "Multi-Language Support",
+          "description": "Automatically translate and localize your content to multiple languages."
+        }
       }
     },
     "roles": "Roles",
@@ -1579,10 +1980,13 @@
     "profile": "Profile",
     "myProfile": "My Profile",
     "credits": "Credits",
-    "aiCredits": "Credits",
+    "aiCredits": "AI Credits",
+    "currentPlan": "Current Plan",
     "plan": "Plan",
     "upgrade": "Upgrade",
     "manageAccount": "Manage Account",
+    "companyAccount": "Company Account",
+    "subscription": "Subscription",
     "myAccount": "My Account",
     "subscriptions": "Subscriptions",
     "myCredits": "My Credits",
@@ -1632,9 +2036,13 @@
     },
     "password": {
       "title": "Password",
+      "description": "Change your password to keep your account secure",
       "current": "Current Password",
+      "currentPlaceholder": "Enter your current password",
       "new": "New Password",
+      "newPlaceholder": "Enter a new password",
       "confirm": "Confirm New Password",
+      "confirmPlaceholder": "Confirm your new password",
       "requirements": "Password requirements:",
       "minLength": "At least 8 characters",
       "change": "Change Password",
@@ -1666,12 +2074,69 @@
       "enable": "Enable 2FA"
     }
   },
+  "account": {
+    "title": "Account Settings",
+    "subtitle": "Manage your organization's account information and preferences",
+    "saveSuccess": "Account settings saved successfully",
+    "saveError": "Failed to save account settings",
+    "noAccountSelected": "No Account Selected",
+    "selectAccountMessage": "Please select an account to manage its settings",
+    "invalidImageType": "Please upload an image file",
+    "imageTooLarge": "Image must be less than 5MB",
+    "logoUpdated": "Logo updated successfully",
+    "logoUploadError": "Failed to upload logo",
+    "logo": {
+      "title": "Organization Logo",
+      "change": "Change Logo",
+      "hint": "Upload your organization's logo. Recommended size: 200x200px. Supported formats: JPG, PNG, GIF."
+    },
+    "general": {
+      "title": "General Information"
+    },
+    "emails": {
+      "title": "Contact Emails"
+    },
+    "regional": {
+      "title": "Regional Settings"
+    },
+    "fields": {
+      "name": "Organization Name",
+      "namePlaceholder": "Enter organization name",
+      "slug": "Account URL Slug",
+      "slugHint": "This cannot be changed after creation",
+      "website": "Website",
+      "industry": "Industry",
+      "selectIndustry": "Select an industry",
+      "timezone": "Timezone",
+      "defaultLanguage": "Default Language",
+      "generalEmail": "General Contact Email",
+      "generalEmailHint": "Used for general communications and notifications",
+      "billingEmail": "Billing Email",
+      "billingEmailHint": "Used for invoices and billing notifications"
+    },
+    "industries": {
+      "technology": "Technology",
+      "ecommerce": "E-Commerce",
+      "healthcare": "Healthcare",
+      "finance": "Finance & Banking",
+      "education": "Education",
+      "media": "Media & Entertainment",
+      "realEstate": "Real Estate",
+      "travel": "Travel & Hospitality",
+      "food": "Food & Beverage",
+      "other": "Other"
+    },
+    "dangerZone": "Danger Zone",
+    "deleteAccount": "Delete Account",
+    "deleteAccountDesc": "Permanently delete your organization account and all associated data"
+  },
   "sites": {
     "selectSite": "Select a site",
     "activeSite": "Active Site",
     "addSite": "Add new site",
     "noSites": "No sites added yet",
     "manageSites": "Manage Sites",
+    "openWebsite": "Open website",
     "status": {
       "connected": "Plugin connected",
       "disconnected": "Plugin disconnected",
@@ -1691,7 +2156,15 @@
       "nameLabel": "Website Name",
       "namePlaceholder": "My Website",
       "create": "Add Website",
-      "creating": "Adding..."
+      "creating": "Adding...",
+      "aiSuggest": "Suggest with AI",
+      "nonWordPressWarning": "Ghost Post currently supports WordPress websites only. You can still add this site, but content syncing features won't be available."
+    },
+    "edit": {
+      "title": "Edit Website",
+      "nameLabel": "Website Name",
+      "namePlaceholder": "Enter website name",
+      "urlLabel": "Website URL"
     }
   },
   "chat": {
@@ -1922,6 +2395,15 @@
     "creatingStrategy": "Creating your personalized SEO strategy...",
     "inputPlaceholder": "Type your answer...",
     "seoScore": "SEO Score",
+    "welcome": {
+      "title": "Welcome to the Site Interview",
+      "description": "We'll ask you a few questions to better understand your website and business. This will help us provide personalized recommendations.",
+      "duration": "5-10 minutes",
+      "questions": "{count} questions",
+      "estimatedCredits": "~42 AI credits",
+      "creditsNote": "💡 Note: The amount may be higher if you use \"Retry\" on AI actions like keyword generation or competitor search.",
+      "startButton": "Start Interview"
+    },
     "placeholders": {
       "enterKeyword": "Enter a keyword and press Enter",
       "enterCompetitorUrl": "Add competitor URL (e.g., https://competitor.com)"
@@ -1940,6 +2422,8 @@
       "findingCompetitors": "Searching Google for competitors based on your keywords...",
       "foundCompetitors": "Found {count} competitors based on your keywords. Select the relevant ones:",
       "noCompetitorsFound": "No competitors found. Add your own or skip this step.",
+      "ranksFor": "Ranks for",
+      "foundInKeywords": "Found in {count} keywords",
       "analyzingStyle": "Analyzing your content style from your articles...",
       "recommendedStyle": "Based on your content, we recommend: {style}",
       "detectingPlatform": "Detecting your website platform...",
@@ -2298,7 +2782,10 @@
         "keywordsFromCrawl": "These keywords were suggested based on your website content",
         "competitorsFromKeywords": "These competitors were found using Google Search based on your keywords and target location",
         "writingStyleAnalyzed": "We analyzed your existing content and suggest: {style}",
-        "internalLinksRecommendation": "Based on your existing posts, we recommend {count} internal links per 1000 words. SEO best practice is 2-4 links per 1000 words.",
+        "internalLinksRecommendation": "Based on your existing posts, we recommend {count} internal links per 1000 words.",
+        "internalLinksSeoTip": "According to SEO best practices, the optimal amount is 3-5 internal links per 1000 words. Internal links help Google understand your site structure, improve user navigation, and distribute Page Authority across your site.",
+        "internalLinksRecommendedRange": "Recommended range:",
+        "internalLinksDefault": "3-5",
         "selectFavoriteArticles": "Select up to 3 articles that best represent your content style",
         "targetLocationDefault": "We suggest {location} based on your website language",
         "pressEnterToAdd": "Press Enter to add"
@@ -2702,6 +3189,61 @@
         "title": "Plan Features",
         "add": "Add Feature",
         "remove": "Remove"
+      }
+    },
+    "addons": {
+      "title": "Add-Ons Management",
+      "subtitle": "Manage add-ons that users can purchase for their accounts",
+      "addAddOn": "Add Add-On",
+      "searchPlaceholder": "Search add-ons...",
+      "allTypes": "All Types",
+      "columns": {
+        "name": "Name",
+        "description": "Description",
+        "type": "Type",
+        "price": "Price",
+        "quantity": "Quantity",
+        "purchases": "Purchases",
+        "status": "Status",
+        "actions": "Actions"
+      },
+      "types": {
+        "seats": "Team Members",
+        "sites": "Additional Websites",
+        "ai_credits": "AI Credits Pack",
+        "storage": "Storage",
+        "keywords": "Keywords Tracking",
+        "content": "Content Items"
+      },
+      "billingType": "Billing Type",
+      "billingTypes": {
+        "recurring": "Recurring (Monthly)",
+        "oneTime": "One-Time Purchase"
+      },
+      "statuses": {
+        "active": "Active",
+        "inactive": "Inactive"
+      },
+      "actions": {
+        "edit": "Edit Add-On",
+        "archive": "Archive",
+        "delete": "Delete",
+        "translate": "Translate"
+      },
+      "translations": {
+        "selectLanguage": "Select Language",
+        "original": "Original",
+        "save": "Save Translation",
+        "saved": "Translation saved successfully",
+        "deleteTranslation": "Delete Translation",
+        "confirmDelete": "Are you sure you want to delete this translation?"
+      },
+      "noAddOns": "No add-ons configured",
+      "quantityHint": "Leave empty for add-ons that provide +1 of a resource (like additional seats or sites)",
+      "stats": {
+        "total": "Total Add-Ons",
+        "active": "Active Add-Ons",
+        "purchases": "Active Purchases"
       }
     },
     "interviewQuestions": {

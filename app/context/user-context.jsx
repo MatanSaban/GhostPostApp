@@ -1,23 +1,45 @@
 'use client';
 
-import { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { registerAutoLogoutHandler, setupGlobalFetchInterceptor } from '@/lib/fetch-interceptor';
 
 const UserContext = createContext(undefined);
 
+// Custom event name for credits updates
+export const CREDITS_UPDATED_EVENT = 'ghostpost:credits-updated';
+
+/**
+ * Emit a credits updated event to notify all components
+ * Call this after any API operation that charges credits
+ * @param {number} newCreditsUsed - Optional: pass the new credits used value
+ */
+export function emitCreditsUpdated(newCreditsUsed = null) {
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent(CREDITS_UPDATED_EVENT, { 
+      detail: { creditsUsed: newCreditsUsed } 
+    }));
+  }
+}
+
 export function UserProvider({ children }) {
   const [user, setUser] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isVerified, setIsVerified] = useState(false); // Track if we've verified with server
+  const isVerifiedRef = useRef(false); // Ref to avoid stale closure
   const router = useRouter();
+
+  // Keep ref in sync with state
+  useEffect(() => {
+    isVerifiedRef.current = isVerified;
+  }, [isVerified]);
 
   // Handle automatic logout when token is invalid
   const handleAutoLogout = useCallback(async () => {
     console.log('Auto logout triggered');
 
-    // Prevent multiple logout calls
-    if (!user && !localStorage.getItem('user')) {
+    // Prevent multiple logout calls - use localStorage check only to avoid dependency on user
+    if (!localStorage.getItem('user')) {
       console.log('Already logged out, skipping');
       return;
     }
@@ -32,18 +54,25 @@ export function UserProvider({ children }) {
       localStorage.removeItem('user');
       setUser(null);
       setIsVerified(false);
+      isVerifiedRef.current = false;
       // Only redirect if not already on auth page
       if (!window.location.pathname.startsWith('/auth')) {
         router.push('/auth/login');
       }
     }
-  }, [router, user]);
+  }, [router]);
 
-  // Setup global fetch interceptor FIRST, before any fetch calls
+  // Keep handleAutoLogout ref updated for use in effect
+  const handleAutoLogoutRef = useRef(handleAutoLogout);
+  useEffect(() => {
+    handleAutoLogoutRef.current = handleAutoLogout;
+  }, [handleAutoLogout]);
+
+  // Setup global fetch interceptor FIRST, before any fetch calls - runs only once
   useEffect(() => {
     console.log('Setting up fetch interceptor');
     setupGlobalFetchInterceptor();
-    registerAutoLogoutHandler(handleAutoLogout);
+    registerAutoLogoutHandler(() => handleAutoLogoutRef.current());
 
     // Initialize user from localStorage immediately (for faster UX)
     let initialUser = null;
@@ -60,9 +89,6 @@ export function UserProvider({ children }) {
 
     // Fetch user after interceptor is ready (verify with server)
     async function fetchUser() {
-      // Small delay to ensure cookie is set after redirect
-      await new Promise(resolve => setTimeout(resolve, 100));
-
       try {
         console.log('Fetching user from API...');
         const response = await fetch('/api/user/me');
@@ -78,9 +104,9 @@ export function UserProvider({ children }) {
           // Only trigger logout if we don't have a localStorage user
           // or if we previously had a verified user
           console.log('Got 401/403 from API');
-          if (!initialUser || isVerified) {
+          if (!initialUser || isVerifiedRef.current) {
             console.log('Triggering logout');
-            await handleAutoLogout();
+            await handleAutoLogoutRef.current();
           } else {
             console.log('Keeping localStorage user, may be stale cookie');
           }
@@ -105,12 +131,10 @@ export function UserProvider({ children }) {
     }
 
     fetchUser();
-  }, [handleAutoLogout, isVerified]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-  fetchUser();
-}, [handleAutoLogout]);
-
-// Update user in both state and localStorage
+  // Update user in both state and localStorage
 const updateUser = useCallback((userData) => {
   if (userData) {
     localStorage.setItem('user', JSON.stringify(userData));
@@ -127,6 +151,50 @@ const clearUser = useCallback(() => {
   setUser(null);
 }, []);
 
+// Refresh only the credits from the server
+const refreshCredits = useCallback(async () => {
+  try {
+    const response = await fetch('/api/user/me');
+    if (response.ok) {
+      const data = await response.json();
+      if (data.user?.aiCreditsUsed !== undefined) {
+        setUser(prev => {
+          if (!prev) return prev;
+          const updated = { ...prev, aiCreditsUsed: data.user.aiCreditsUsed };
+          localStorage.setItem('user', JSON.stringify(updated));
+          return updated;
+        });
+      }
+    }
+  } catch (error) {
+    console.error('Error refreshing credits:', error);
+  }
+}, []);
+
+// Listen for credits update events
+useEffect(() => {
+  const handleCreditsUpdated = (event) => {
+    const { creditsUsed } = event.detail || {};
+    if (creditsUsed !== null && creditsUsed !== undefined) {
+      // If we have the new value directly, update immediately
+      setUser(prev => {
+        if (!prev) return prev;
+        const updated = { ...prev, aiCreditsUsed: creditsUsed };
+        localStorage.setItem('user', JSON.stringify(updated));
+        return updated;
+      });
+    } else {
+      // Otherwise, fetch from server
+      refreshCredits();
+    }
+  };
+
+  window.addEventListener(CREDITS_UPDATED_EVENT, handleCreditsUpdated);
+  return () => {
+    window.removeEventListener(CREDITS_UPDATED_EVENT, handleCreditsUpdated);
+  };
+}, [refreshCredits]);
+
 // Check if user is super admin
 const isSuperAdmin = user?.isSuperAdmin === true;
 
@@ -138,6 +206,7 @@ return (
       isSuperAdmin,
       updateUser,
       clearUser,
+      refreshCredits,
       handleAutoLogout,
     }}
   >

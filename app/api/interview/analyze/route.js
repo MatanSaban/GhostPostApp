@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import prisma from '@/lib/prisma';
 import { generateStructuredResponse } from '@/lib/ai/gemini';
+import { trackAIUsage } from '@/lib/ai/credits-service';
 import { z } from 'zod';
 
 const SESSION_COOKIE = 'user_session';
@@ -29,6 +30,25 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    // Get user's account for credit tracking (only if logged in)
+    let accountId = null;
+    if (userId) {
+      const user = await prisma.user.findUnique({
+        where: { id: userId },
+        select: {
+          id: true,
+          lastSelectedAccountId: true,
+          accountMemberships: {
+            select: { accountId: true },
+            take: 1,
+          },
+        },
+      });
+      if (user) {
+        accountId = user.lastSelectedAccountId || user.accountMemberships?.[0]?.accountId;
+      }
+    }
+
     const { url } = await request.json();
 
     if (!url) {
@@ -41,9 +61,27 @@ export async function POST(request) {
     // Run analysis
     const analysis = await analyzeWebsite(normalizedUrl);
 
+    // Track AI usage if user is logged in with an account
+    let creditsUsed = 0;
+    if (accountId && userId) {
+      const trackResult = await trackAIUsage({
+        accountId,
+        userId,
+        operation: 'CRAWL_WEBSITE',
+        description: `Website analysis for ${normalizedUrl}`,
+        metadata: { url: normalizedUrl },
+      });
+      
+      if (trackResult.success) {
+        creditsUsed = trackResult.totalUsed;
+      }
+    }
+
     return NextResponse.json({
       success: true,
       analysis,
+      // Include updated credits for frontend to update UI
+      creditsUpdated: creditsUsed > 0 ? { used: creditsUsed } : null,
     });
 
   } catch (error) {

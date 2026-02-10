@@ -1,55 +1,5 @@
 /* Keyword Strategy Page Styles */
 
-.container {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-}
-
-.pageHeader {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 0.5rem;
-
-  @media (max-width: 640px) {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 1rem;
-  }
-}
-
-.headerContent {
-  flex: 1;
-}
-
-.pageTitle {
-  font-size: 1.875rem;
-  font-weight: 600;
-  color: var(--foreground);
-}
-
-.pageSubtitle {
-  font-size: 0.9375rem;
-  color: var(--muted-foreground);
-  margin-top: 0.25rem;
-}
-
-/* Stats Grid */
-.statsGrid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 1rem;
-
-  @media (max-width: 1200px) {
-    grid-template-columns: repeat(2, 1fr);
-  }
-
-  @media (max-width: 640px) {
-    grid-template-columns: 1fr;
-  }
-}
-
 /* Card Base */
 .card {
   position: relative;

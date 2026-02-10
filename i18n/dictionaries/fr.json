@@ -502,6 +502,86 @@
     "getStarted": "Commencer",
     "startFreeTrial": "Essai gratuit",
     "contactUs": "Contactez-nous",
-    "readMore": "Lire la suite"
+    "readMore": "Lire la suite",
+    "saving": "Enregistrement...",
+    "save": "Enregistrer",
+    "saveChanges": "Enregistrer les modifications",
+    "loading": "Chargement...",
+    "comingSoon": "Bientôt disponible"
+  },
+  "profile": {
+    "title": "Mon profil",
+    "subtitle": "Gérez vos informations personnelles et paramètres de sécurité",
+    "tabs": {
+      "personal": "Infos personnelles",
+      "security": "Sécurité",
+      "connections": "Comptes liés"
+    },
+    "saveSuccess": "Profil enregistré avec succès",
+    "saveError": "Échec de l'enregistrement du profil",
+    "verified": "Vérifié",
+    "personalInfo": {
+      "title": "Informations personnelles",
+      "description": "Mettez à jour vos coordonnées personnelles",
+      "firstName": "Prénom",
+      "firstNamePlaceholder": "Entrez votre prénom",
+      "lastName": "Nom de famille",
+      "lastNamePlaceholder": "Entrez votre nom de famille",
+      "email": "Adresse e-mail",
+      "emailHint": "Contactez le support pour modifier votre adresse e-mail",
+      "phone": "Numéro de téléphone",
+      "phonePlaceholder": "+33 6 00 00 00 00"
+    },
+    "image": {
+      "hint": "Cliquez pour télécharger une nouvelle photo de profil",
+      "formats": "JPG, PNG ou GIF. Max 5 Mo.",
+      "invalidType": "Veuillez télécharger un fichier image",
+      "tooLarge": "L'image doit faire moins de 5 Mo",
+      "uploadSuccess": "Photo de profil mise à jour",
+      "uploadError": "Échec du téléchargement de l'image"
+    },
+    "security": {
+      "title": "Sécurité",
+      "description": "Gérez votre mot de passe et vos comptes connectés"
+    },
+    "password": {
+      "title": "Mot de passe",
+      "description": "Changez votre mot de passe pour sécuriser votre compte",
+      "current": "Mot de passe actuel",
+      "currentPlaceholder": "Entrez votre mot de passe actuel",
+      "new": "Nouveau mot de passe",
+      "newPlaceholder": "Entrez un nouveau mot de passe",
+      "confirm": "Confirmer le nouveau mot de passe",
+      "confirmPlaceholder": "Confirmez votre nouveau mot de passe",
+      "requirements": "Exigences du mot de passe :",
+      "minLength": "Au moins 8 caractères",
+      "change": "Changer le mot de passe",
+      "allFieldsRequired": "Veuillez remplir tous les champs",
+      "mismatch": "Les nouveaux mots de passe ne correspondent pas",
+      "tooShort": "Le mot de passe doit contenir au moins 8 caractères",
+      "changeSuccess": "Mot de passe modifié avec succès",
+      "changeError": "Échec du changement de mot de passe"
+    },
+    "connectedAccounts": {
+      "title": "Comptes connectés",
+      "description": "Gérez vos comptes sociaux connectés pour une connexion plus facile",
+      "connected": "Connecté",
+      "connect": "Connecter",
+      "disconnect": "Déconnecter",
+      "google": "Google"
+    },
+    "google": {
+      "disconnectConfirm": "Êtes-vous sûr de vouloir déconnecter votre compte Google ?",
+      "disconnectSuccess": "Compte Google déconnecté",
+      "disconnectError": "Échec de la déconnexion du compte Google"
+    },
+    "twoFactor": {
+      "title": "Authentification à deux facteurs",
+      "description": "Ajoutez une couche de sécurité supplémentaire à votre compte",
+      "status": "Statut",
+      "disabled": "Non activé",
+      "enabled": "Activé",
+      "enable": "Activer 2FA"
+    }
   }
 }

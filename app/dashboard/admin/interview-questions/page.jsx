@@ -21,6 +21,7 @@ import {
 import { useLocale } from '@/app/context/locale-context';
 import { useUser } from '@/app/context/user-context';
 import { AdminModal, ConfirmDialog, FormInput, FormTextarea, FormSelect, FormCheckbox, FormActions, PrimaryButton, SecondaryButton } from '../components/AdminModal';
+import { AdminPageSkeleton, TableSkeleton } from '@/app/dashboard/components';
 import styles from '../admin.module.css';
 
 export default function InterviewQuestionsPage() {
@@ -250,11 +251,7 @@ export default function InterviewQuestionsPage() {
   };
 
   if (isUserLoading) {
-    return (
-      <div className={styles.loadingState}>
-        <div className={styles.spinner} />
-      </div>
-    );
+    return <AdminPageSkeleton statsCount={3} columns={6} />;
   }
 
   if (!isSuperAdmin) {
@@ -335,9 +332,7 @@ export default function InterviewQuestionsPage() {
       {/* Table */}
       <div className={styles.tableContainer}>
         {isLoading ? (
-          <div className={styles.loadingState}>
-            <div className={styles.spinner} />
-          </div>
+          <TableSkeleton rows={8} columns={6} hasActions />
         ) : filteredQuestions.length === 0 ? (
           <div className={styles.emptyState}>
             <MessageSquareMore className={styles.emptyIcon} />

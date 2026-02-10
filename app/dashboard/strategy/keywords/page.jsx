@@ -3,7 +3,7 @@ import {
   TrendingDown,
   Minus
 } from 'lucide-react';
-import { StatsCard, PrimaryActionButton } from '../../components';
+import { PageHeader, StatsGrid, PrimaryActionButton } from '../../components';
 import { getTranslations } from '@/i18n/server';
 import styles from './page.module.css';
 
@@ -51,34 +51,17 @@ export default async function KeywordStrategyPage() {
   };
 
   return (
-    <div className={styles.container}>
-      {/* Header */}
-      <div className={styles.pageHeader}>
-        <div className={styles.headerContent}>
-          <h1 className={styles.pageTitle}>{t('keywordStrategy.title')}</h1>
-          <p className={styles.pageSubtitle}>
-            {t('keywordStrategy.subtitle')}
-          </p>
-        </div>
+    <>
+      <PageHeader
+        title={t('keywordStrategy.title')}
+        subtitle={t('keywordStrategy.subtitle')}
+      >
         <PrimaryActionButton iconName="Sparkles">
           {t('keywordStrategy.aiResearch')}
         </PrimaryActionButton>
-      </div>
+      </PageHeader>
 
-      {/* Stats */}
-      <div className={styles.statsGrid}>
-        {statsData.map((stat, index) => (
-          <StatsCard
-            key={index}
-            iconName={stat.iconName}
-            value={stat.value}
-            label={stat.label}
-            trend={stat.trend}
-            trendValue={stat.trendValue}
-            color={stat.color}
-          />
-        ))}
-      </div>
+      <StatsGrid stats={statsData} />
 
       {/* Opportunities */}
       <div className={styles.card}>
@@ -153,6 +136,6 @@ export default async function KeywordStrategyPage() {
           })}
         </div>
       </div>
-    </div>
+    </>
   );
 }

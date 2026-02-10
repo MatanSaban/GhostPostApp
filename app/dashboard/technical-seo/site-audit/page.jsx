@@ -16,15 +16,24 @@ import {
 } from 'lucide-react';
 import { useLocale } from '@/app/context/locale-context';
 import { useSite } from '@/app/context/site-context';
+import { PageHeaderSkeleton, StatsGridSkeleton } from '@/app/dashboard/components';
 import styles from './site-audit.module.css';
 
 export default function SiteAuditPage() {
   const { t } = useLocale();
-  const { selectedSite } = useSite();
+  const { selectedSite, isLoading: isSiteLoading } = useSite();
   const [isScanning, setIsScanning] = useState(false);
   const [lastScan, setLastScan] = useState(null);
 
   if (!selectedSite) {
+    if (isSiteLoading) {
+      return (
+        <div className={styles.container}>
+          <PageHeaderSkeleton hasActions />
+          <StatsGridSkeleton count={4} />
+        </div>
+      );
+    }
     return (
       <div className={styles.container}>
         <div className={styles.emptyState}>

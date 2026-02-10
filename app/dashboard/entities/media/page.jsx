@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { useRouter } from 'next/navigation';
 import { 
   Search, 
   Upload, 
@@ -16,17 +17,21 @@ import {
   Trash2,
   Save,
   X,
+  AlertCircle,
 } from 'lucide-react';
 import { useSite } from '@/app/context/site-context';
 import { useLocale } from '@/app/context/locale-context';
+import { ContentGridSkeleton, PageHeaderSkeleton } from '@/app/dashboard/components';
 import styles from './media.module.css';
 
 /**
  * Media Library Page
  * Full-page media library for viewing and managing site media
+ * Only available for WordPress sites with connected plugin
  */
 export default function MediaPage() {
-  const { selectedSite } = useSite();
+  const router = useRouter();
+  const { selectedSite, isLoading: isSiteLoading } = useSite();
   const { t, isRtl } = useLocale();
   const fileInputRef = useRef(null);
   
@@ -244,12 +249,42 @@ export default function MediaPage() {
     }
   };
   
+  // Check if media library is accessible (WordPress + connected plugin only)
+  const isMediaAccessible = selectedSite?.platform === 'wordpress' && selectedSite?.connectionStatus === 'CONNECTED';
+  
+  // Redirect if site is not eligible for media library
+  useEffect(() => {
+    if (!isSiteLoading && selectedSite && !isMediaAccessible) {
+      router.push('/dashboard/entities');
+    }
+  }, [isSiteLoading, selectedSite, isMediaAccessible, router]);
+  
   if (!selectedSite) {
+    if (isSiteLoading) {
+      return (
+        <div className={styles.container}>
+          <PageHeaderSkeleton />
+          <ContentGridSkeleton count={12} columns={4} />
+        </div>
+      );
+    }
     return (
       <div className={styles.container}>
         <div className={styles.emptyState}>
           <ImageIcon className={styles.emptyIcon} />
           <p>{t('media.selectSite')}</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show message for non-WordPress or non-connected sites
+  if (!isMediaAccessible) {
+    return (
+      <div className={styles.container}>
+        <div className={styles.emptyState}>
+          <AlertCircle className={styles.emptyIcon} />
+          <p>{t('media.requiresWordPress')}</p>
         </div>
       </div>
     );
@@ -305,10 +340,7 @@ export default function MediaPage() {
       <div className={styles.content}>
         <div className={styles.mediaGrid}>
           {isLoading ? (
-            <div className={styles.loadingState}>
-              <Loader2 className={styles.spinIcon} />
-              <p>{t('common.loading')}</p>
-            </div>
+            <ContentGridSkeleton count={12} columns={4} />
           ) : media.length === 0 ? (
             <div className={styles.emptyState}>
               <ImageIcon className={styles.emptyIcon} />

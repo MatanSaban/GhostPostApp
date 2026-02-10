@@ -29,6 +29,7 @@ import {
   PrimaryButton,
   SecondaryButton,
 } from '../components/AdminModal';
+import { AdminPageSkeleton, TableSkeleton } from '@/app/dashboard/components';
 import styles from '../admin.module.css';
 import modalStyles from '../components/AdminModal.module.css';
 
@@ -269,11 +270,7 @@ export default function PlatformAccountsPage() {
   };
 
   if (isUserLoading) {
-    return (
-      <div className={styles.loadingState}>
-        <div className={styles.spinner} />
-      </div>
-    );
+    return <AdminPageSkeleton statsCount={3} columns={5} />;
   }
 
   if (!isSuperAdmin) {
@@ -340,9 +337,7 @@ export default function PlatformAccountsPage() {
       {/* Table */}
       <div className={styles.tableContainer}>
         {isLoading ? (
-          <div className={styles.loadingState}>
-            <div className={styles.spinner} />
-          </div>
+          <TableSkeleton rows={8} columns={5} hasActions />
         ) : paginatedAccounts.length === 0 ? (
           <div className={styles.emptyState}>
             <Building2 className={styles.emptyIcon} />

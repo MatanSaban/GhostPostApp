@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect, useMemo } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import Image from 'next/image';
 import { 
   Settings, 
   Sparkles, 
@@ -36,11 +37,21 @@ import {
   RefreshCw,
   Ban,
   Building2,
+  Coins,
+  Package,
+  Mail,
+  Phone,
+  Camera,
+  AlertCircle,
+  Eye,
+  EyeOff,
+  Unlink,
 } from 'lucide-react';
 import { useSite } from '@/app/context/site-context';
 import { useLocale } from '@/app/context/locale-context';
 import { useUser } from '@/app/context/user-context';
 import { usePermissions } from '@/app/hooks/usePermissions';
+import { SettingsFormSkeleton, TableSkeleton, FormSkeleton } from '@/app/dashboard/components';
 import WordPressPluginSection from './WordPressPluginSection';
 import styles from '../page.module.css';
 
@@ -59,17 +70,19 @@ const iconMap = {
   Key,
   Globe,
   Building2,
+  Coins,
+  Puzzle,
 };
 
 // Account-level tab IDs that require special permissions
-const ACCOUNT_TAB_IDS = ['users', 'roles', 'permissions', 'subscription', 'account'];
+const ACCOUNT_TAB_IDS = ['users', 'roles', 'permissions', 'subscription', 'credits', 'addons', 'account', 'profile'];
 
 export default function SettingsContent({ translations, websiteTabs, accountTabs, mainTabs, initialData }) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { direction, locale, t } = useLocale();
   const { selectedSite } = useSite();
-  const { user } = useUser();
+  const { user, isLoading: userLoading } = useUser();
   
   // Get user permissions
   const { filterTabs, canEditTab, isLoading: permissionsLoading, isOwner, checkAccess } = usePermissions();
@@ -199,24 +212,38 @@ export default function SettingsContent({ translations, websiteTabs, accountTabs
     );
     const planLabel = planTranslation?.name || plan.name || t('user.plans.free');
     
+    // Get AI credits limit from plan limitations
+    const limitations = plan.limitations || [];
+    const aiCreditsLimitation = limitations.find?.(l => l.key === 'aiCredits');
+    const aiCreditsLimit = aiCreditsLimitation?.value || 0;
+    
+    // Get current AI credits used from user context
+    const aiCreditsUsed = user?.aiCreditsUsed || 0;
+    
+    // Get usage stats from user context
+    const usageStats = user?.usageStats || { sitesCount: 0, membersCount: 0, siteAuditsCount: 0 };
+    
     return {
       plan: plan.slug || 'free',
       planLabel: planLabel,
       price: plan.price || 0,
       yearlyPrice: plan.yearlyPrice || null,
       currency: plan.currency || 'USD',
-      interval: plan.interval || 'MONTHLY',
+      interval: userSub.billingInterval || plan.interval || 'MONTHLY',
       status: userSub.status || 'ACTIVE',
       statusLabel: statusLabel,
       currentPeriodStart: userSub.currentPeriodStart,
       currentPeriodEnd: userSub.currentPeriodEnd,
       nextBillingDate: userSub.currentPeriodEnd, // Next billing is when current period ends
       cancelAtPeriodEnd: userSub.cancelAtPeriodEnd || false,
-      // Token usage - placeholder values for now (can be enhanced with actual usage tracking)
-      tokensUsed: 0,
-      tokensLimit: 500000, // Default estimate
+      // AI Credits - real data from account (used/limit)
+      aiCreditsUsed: aiCreditsUsed,
+      aiCreditsLimit: aiCreditsLimit,
+      // Usage stats for limitations
+      usageStats: usageStats,
       features: planTranslation?.features || plan.features || [],
-      limitations: planTranslation?.limitations || plan.limitations || [],
+      limitations: limitations,
+      translatedLimitations: planTranslation?.limitations || [],
     };
   }, [user, locale, t, initialData.subscription]);
 
@@ -227,15 +254,21 @@ export default function SettingsContent({ translations, websiteTabs, accountTabs
       if (activeButton && tabsListRef.current) {
         const containerRect = tabsListRef.current.getBoundingClientRect();
         const buttonRect = activeButton.getBoundingClientRect();
+        // Calculate offset based on direction - use start position for RTL/LTR compatibility
+        const isRtl = direction === 'rtl';
+        const offset = isRtl 
+          ? containerRect.right - buttonRect.right
+          : buttonRect.left - containerRect.left;
         setIndicatorStyle({
-          left: buttonRect.left - containerRect.left,
+          insetInlineStart: offset,
           width: buttonRect.width,
           top: buttonRect.top - containerRect.top,
         });
       }
     };
 
-    // Immediate update
+    // Small delay for initial render to ensure layout is calculated
+    const timeoutId = setTimeout(updateIndicator, 50);
     updateIndicator();
     
     // Also update on any resize
@@ -256,6 +289,7 @@ export default function SettingsContent({ translations, websiteTabs, accountTabs
     }
     
     return () => {
+      clearTimeout(timeoutId);
       window.removeEventListener('resize', updateIndicator);
       if (observer) {
         observer.disconnect();
@@ -272,17 +306,25 @@ export default function SettingsContent({ translations, websiteTabs, accountTabs
       if (activeButton && mainTabsListRef.current) {
         const containerRect = mainTabsListRef.current.getBoundingClientRect();
         const buttonRect = activeButton.getBoundingClientRect();
+        // Calculate offset based on direction - use start position for RTL/LTR compatibility
+        const isRtl = direction === 'rtl';
+        const offset = isRtl 
+          ? containerRect.right - buttonRect.right
+          : buttonRect.left - containerRect.left;
         setMainIndicatorStyle({
-          left: buttonRect.left - containerRect.left,
+          insetInlineStart: offset,
           width: buttonRect.width,
         });
       }
     };
 
+    // Small delay for initial render to ensure layout is calculated
+    const timeoutId = setTimeout(updateMainIndicator, 50);
     updateMainIndicator();
     window.addEventListener('resize', updateMainIndicator);
     
     return () => {
+      clearTimeout(timeoutId);
       window.removeEventListener('resize', updateMainIndicator);
     };
   }, [activeMainCategory, direction, locale, canAccessAccountSettings]);
@@ -310,7 +352,13 @@ export default function SettingsContent({ translations, websiteTabs, accountTabs
       case 'permissions':
         return <PermissionsSettings translations={translations} canEdit={canEdit} />;
       case 'subscription':
-        return <SubscriptionSettings subscription={subscription} translations={translations} canEdit={canEdit} />;
+        return <SubscriptionSettings subscription={subscription} translations={translations} canEdit={canEdit} isLoading={userLoading} />;
+      case 'credits':
+        return <CreditsSettings subscription={subscription} translations={translations} canEdit={canEdit} isLoading={userLoading} />;
+      case 'addons':
+        return <AddonsSettings translations={translations} canEdit={canEdit} />;
+      case 'profile':
+        return <ProfileSettings translations={translations} />;
       case 'account':
         return <AccountSettings translations={translations} canEdit={canEdit} />;
       default:
@@ -333,7 +381,7 @@ export default function SettingsContent({ translations, websiteTabs, accountTabs
             <div 
               className={styles.mainTabIndicator} 
               style={{
-                left: mainIndicatorStyle.left,
+                insetInlineStart: mainIndicatorStyle.insetInlineStart,
                 width: mainIndicatorStyle.width,
               }}
             />
@@ -363,7 +411,7 @@ export default function SettingsContent({ translations, websiteTabs, accountTabs
           <div 
             className={styles.tabIndicator} 
             style={{
-              left: indicatorStyle.left,
+              insetInlineStart: indicatorStyle.insetInlineStart,
               width: indicatorStyle.width,
               top: indicatorStyle.top,
             }}
@@ -509,12 +557,7 @@ function GeneralSettings({ general, setGeneral, translations, canEdit = true }) 
   };
 
   if (isLoading) {
-    return (
-      <div className={styles.loadingState}>
-        <Loader2 className={styles.loadingSpinner} />
-        <span>{t.loading || 'Loading...'}</span>
-      </div>
-    );
+    return <SettingsFormSkeleton fields={6} />;
   }
 
   if (!selectedSite) {
@@ -1439,12 +1482,7 @@ function UsersSettings({ translations, canEdit = true }) {
   };
 
   if (isLoading) {
-    return (
-      <div className={styles.loadingContainer}>
-        <Loader2 className={styles.spinner} size={24} />
-        <span>{t.loading || 'Loading...'}</span>
-      </div>
-    );
+    return <TableSkeleton rows={4} columns={4} hasActions />;
   }
 
   return (
@@ -1756,11 +1794,11 @@ function TeamSettings({ team, translations, canEdit = true }) {
 }
 
 // Subscription Settings Component
-function SubscriptionSettings({ subscription, translations, canEdit = true }) {
+function SubscriptionSettings({ subscription, translations, canEdit = true, isLoading = false }) {
   const t = translations;
-  const { locale, t: translate } = useLocale();
-  const usagePercentage = subscription.tokensLimit > 0 
-    ? (subscription.tokensUsed / subscription.tokensLimit) * 100 
+  const { locale, t: translate, direction } = useLocale();
+  const usagePercentage = subscription.aiCreditsLimit > 0 
+    ? (subscription.aiCreditsUsed / subscription.aiCreditsLimit) * 100 
     : 0;
 
   // Format date according to current locale
@@ -1784,6 +1822,17 @@ function SubscriptionSettings({ subscription, translations, canEdit = true }) {
     }).format(price);
   };
 
+  // Format number with K/M suffix
+  const formatNumber = (num) => {
+    if (num >= 1000000) {
+      return `${(num / 1000000).toFixed(1)}M`;
+    }
+    if (num >= 1000) {
+      return `${(num / 1000).toFixed(0)}K`;
+    }
+    return num.toString();
+  };
+
   // Get period label based on interval
   const getPeriodLabel = () => {
     if (subscription.interval === 'YEARLY') {
@@ -1792,14 +1841,79 @@ function SubscriptionSettings({ subscription, translations, canEdit = true }) {
     return t.subscriptionPerMonth || '/month';
   };
 
+  // Get plan display name with correct word order for RTL
+  const getPlanDisplayName = () => {
+    const planWord = t.subscriptionPlan || translate('settings.subscriptionSection.plan') || 'Plan';
+    const planName = subscription.planLabel;
+    // For RTL languages, show "Plan Name" instead of "Name Plan"
+    if (direction === 'rtl') {
+      return `${planWord} ${planName}`;
+    }
+    return `${planName} ${planWord}`;
+  };
+
+  // Get translated label for a limitation
+  const getLimitationLabel = (limitation) => {
+    // First check translated limitations
+    const translatedLimitation = subscription.translatedLimitations?.find(
+      tl => tl.key === limitation.key
+    );
+    if (translatedLimitation?.label) {
+      return translatedLimitation.label;
+    }
+    // Fallback to translation key or the limitation label
+    return translate(`settings.subscriptionSection.limitations.${limitation.key}`) || limitation.label || limitation.key;
+  };
+
+  // Get current usage for a limitation key
+  const getCurrentUsage = (key) => {
+    const usageStats = subscription.usageStats || {};
+    switch (key) {
+      case 'maxSites':
+      case 'websites':
+        return usageStats.sitesCount || 0;
+      case 'maxMembers':
+      case 'users':
+        return usageStats.membersCount || 0;
+      case 'siteAudits':
+        return usageStats.siteAuditsCount || 0;
+      case 'aiCredits':
+        // AI credits usage is tracked directly as used amount
+        return subscription.aiCreditsUsed || 0;
+      default:
+        return 0;
+    }
+  };
+
+  // Check if a limitation should show progress bar (has a numeric limit)
+  const shouldShowProgressBar = (limitation) => {
+    return limitation.value && typeof limitation.value === 'number' && limitation.value > 0;
+  };
+
+  // Show loading state
+  if (isLoading) {
+    return (
+      <div className={styles.loadingContainer}>
+        <div className={styles.loadingSpinner}></div>
+        <p>{translate('common.loading') || 'Loading...'}</p>
+      </div>
+    );
+  }
+
+  // Get features array
+  const features = subscription.features || [];
+  // Get limitations array
+  const limitations = subscription.limitations || [];
+
   return (
     <>
+      {/* Plan Header Card */}
       <div className={styles.subscriptionCard}>
         <div className={styles.subscriptionHeader}>
           <div className={styles.planInfo}>
             <div className={styles.planName}>
-              <Crown size={20} style={{ display: 'inline', marginRight: '0.5rem' }} />
-              {subscription.planLabel} {t.subscriptionPlan}
+              <Crown size={20} style={{ display: 'inline', marginInlineEnd: '0.5rem' }} />
+              {getPlanDisplayName()}
             </div>
             <div className={`${styles.planStatus} ${subscription.status !== 'ACTIVE' ? styles.statusWarning : ''}`}>
               {subscription.status === 'ACTIVE' ? <Check size={14} /> : <AlertTriangle size={14} />}
@@ -1815,26 +1929,86 @@ function SubscriptionSettings({ subscription, translations, canEdit = true }) {
           </div>
         </div>
 
-        <div className={styles.usageBar}>
-          <div className={styles.usageHeader}>
-            <span className={styles.usageLabel}>{t.subscriptionTokenUsage}</span>
-            <span className={styles.usageValue}>
-              {(subscription.tokensUsed / 1000).toFixed(0)}K / {(subscription.tokensLimit / 1000).toFixed(0)}K
-            </span>
-          </div>
-          <div className={styles.usageTrack}>
-            <div 
-              className={styles.usageFill} 
-              style={{ width: `${Math.min(usagePercentage, 100)}%` }}
-            ></div>
-          </div>
-        </div>
-
-        <p style={{ fontSize: '0.875rem', color: 'var(--muted-foreground)' }}>
-          {t.subscriptionNextBillingDate} <strong>{formatDate(subscription.nextBillingDate)}</strong>
-        </p>
+        {subscription.nextBillingDate && (
+          <p style={{ fontSize: '0.875rem', color: 'var(--muted-foreground)', marginTop: '1rem' }}>
+            {t.subscriptionNextBillingDate} <strong>{formatDate(subscription.nextBillingDate)}</strong>
+          </p>
+        )}
       </div>
 
+      {/* Usage & Limitations Section */}
+      {limitations.length > 0 && (
+        <div className={styles.subsection}>
+          <h3 className={styles.subsectionTitle}>
+            <Zap className={styles.subsectionIcon} />
+            {translate('settings.subscriptionSection.usageLimits') || 'Usage & Limits'}
+          </h3>
+          <div className={styles.limitationsList}>
+            {limitations.map((limitation, index) => {
+              const currentUsage = getCurrentUsage(limitation.key);
+              const limit = limitation.value || 0;
+              const isUnlimited = limit === -1 || limitation.type === 'unlimited';
+              const translatedLabel = getLimitationLabel(limitation);
+              
+              // For AI credits, show used/limit
+              const isAiCredits = limitation.key === 'aiCredits';
+              const used = isAiCredits ? subscription.aiCreditsUsed : 0;
+              const usagePercent = limit > 0 
+                ? (isAiCredits ? (used / limit) * 100 : (currentUsage / limit) * 100)
+                : 0;
+              
+              return (
+                <div key={limitation.key || index} className={styles.limitationCard}>
+                  <div className={styles.limitationHeader}>
+                    <span className={styles.limitationLabel}>{translatedLabel}</span>
+                    <span className={styles.limitationValue}>
+                      {isUnlimited ? (
+                        translate('settings.subscriptionSection.unlimited') || 'Unlimited'
+                      ) : shouldShowProgressBar(limitation) ? (
+                        isAiCredits 
+                          ? `${formatNumber(used)} / ${formatNumber(limit)}`
+                          : `${formatNumber(currentUsage)} / ${formatNumber(limit)}`
+                      ) : (
+                        formatNumber(limit)
+                      )}
+                    </span>
+                  </div>
+                  {shouldShowProgressBar(limitation) && !isUnlimited && (
+                    <div className={styles.usageTrack}>
+                      <div 
+                        className={`${styles.usageFill} ${!isAiCredits && usagePercent >= 90 ? styles.usageWarning : ''} ${!isAiCredits && usagePercent >= 100 ? styles.usageDanger : ''} ${isAiCredits && usagePercent <= 10 ? styles.usageWarning : ''} ${isAiCredits && usagePercent <= 0 ? styles.usageDanger : ''}`}
+                        style={{ width: `${Math.min(usagePercent, 100)}%` }}
+                      ></div>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Features Section */}
+      {features.length > 0 && (
+        <div className={styles.subsection}>
+          <h3 className={styles.subsectionTitle}>
+            <Sparkles className={styles.subsectionIcon} />
+            {translate('settings.subscriptionSection.planFeatures') || 'Plan Features'}
+          </h3>
+          <div className={styles.featuresGrid}>
+            {features.map((feature, index) => (
+              <div key={feature.key || index} className={styles.featureItem}>
+                <Check size={16} className={styles.featureIcon} />
+                <span className={styles.featureLabel}>
+                  {feature.label || translate(`settings.subscriptionSection.features.${feature.key}`) || feature.key}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Billing Actions */}
       <div className={styles.subsection}>
         <h3 className={styles.subsectionTitle}>
           <CreditCard className={styles.subsectionIcon} />
@@ -1842,11 +2016,11 @@ function SubscriptionSettings({ subscription, translations, canEdit = true }) {
         </h3>
         <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
           <button className={styles.editButton}>
-            <Crown size={14} style={{ marginRight: '0.25rem' }} />
+            <Crown size={14} style={{ marginInlineEnd: '0.25rem' }} />
             {t.subscriptionUpgradePlan}
           </button>
           <button className={styles.editButton}>
-            <CreditCard size={14} style={{ marginRight: '0.25rem' }} />
+            <CreditCard size={14} style={{ marginInlineEnd: '0.25rem' }} />
             {t.subscriptionUpdatePaymentMethod}
           </button>
           <button className={styles.editButton}>
@@ -1858,21 +2032,1253 @@ function SubscriptionSettings({ subscription, translations, canEdit = true }) {
   );
 }
 
-// Account Settings Component
-function AccountSettings({ translations, canEdit = true }) {
+// Credits Settings Component
+function CreditsSettings({ subscription, translations, canEdit = true, isLoading = false }) {
   const t = translations;
-  const router = useRouter();
-  const { locale } = useLocale();
-  const { user } = useUser();
-  const accountSection = t?.accountSection || {};
+  const { locale, t: translate, direction } = useLocale();
+  const [usageLogs, setUsageLogs] = useState([]);
+  const [logsLoading, setLogsLoading] = useState(true);
+  const [logsError, setLogsError] = useState(null);
+  const [showMore, setShowMore] = useState(false);
   
-  const [account, setAccount] = useState({
-    name: user?.firstName && user?.lastName ? `${user.firstName} ${user.lastName}` : '',
-    email: user?.email || '',
+  const usagePercentage = subscription.aiCreditsLimit > 0 
+    ? (subscription.aiCreditsUsed / subscription.aiCreditsLimit) * 100 
+    : 0;
+
+  // Fetch usage logs on mount
+  useEffect(() => {
+    async function fetchUsageLogs() {
+      try {
+        setLogsLoading(true);
+        const res = await fetch('/api/credits/logs?limit=50');
+        if (!res.ok) throw new Error('Failed to fetch logs');
+        const data = await res.json();
+        setUsageLogs(data.logs || []);
+      } catch (err) {
+        console.error('Error fetching usage logs:', err);
+        setLogsError(err.message);
+      } finally {
+        setLogsLoading(false);
+      }
+    }
+    fetchUsageLogs();
+  }, []);
+
+  // Format AI credits number with K/M suffix
+  const formatCredits = (credits) => {
+    if (credits >= 1000000) {
+      return `${(credits / 1000000).toFixed(1)}M`;
+    }
+    if (credits >= 1000) {
+      return `${(credits / 1000).toFixed(0)}K`;
+    }
+    return credits.toString();
+  };
+
+  // Format date for display
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    return new Intl.DateTimeFormat(locale === 'he' ? 'he-IL' : 'en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    }).format(date);
+  };
+
+  // Get operation name in current language
+  const getOperationName = (log) => {
+    const operationKey = log.source;
+    
+    // First, try to get from translations dictionary
+    const translatedName = translate(`settings.creditsSection.operations.${operationKey}`);
+    if (translatedName && !translatedName.includes('settings.creditsSection.operations.')) {
+      return translatedName;
+    }
+    
+    // Fallback to metadata
+    const metadata = log.metadata || {};
+    if (locale === 'he' && metadata.operationNameHe) {
+      return metadata.operationNameHe;
+    }
+    return metadata.operationName || log.source || translate('settings.creditsSection.unknownOperation') || 'Unknown operation';
+  };
+
+  // Map source (operation) to description key for backward compatibility with older logs
+  const SOURCE_TO_DESCRIPTION_KEY = {
+    'CRAWL_WEBSITE': 'crawledWebsite',
+    'GENERATE_KEYWORDS': 'generatedKeywords',
+    'FIND_COMPETITORS': 'foundCompetitors',
+    'ANALYZE_WRITING_STYLE': 'analyzedWritingStyle',
+    'FETCH_ARTICLES': 'fetchedArticles',
+    'DETECT_PLATFORM': 'detectedPlatform',
+    'COMPLETE_INTERVIEW': 'completedInterview',
+    'IMAGE_ALT_OPTIMIZATION': 'optimizedImageAlt',
+    'ENTITY_REFRESH': 'extractedFocusKeyword',
+    'GENERIC': 'entityEnrichment',
+  };
+
+  // Helper to decode URL-encoded strings (especially Hebrew URLs)
+  const decodeUrl = (url) => {
+    if (!url) return url;
+    try {
+      return decodeURIComponent(url);
+    } catch {
+      return url;
+    }
+  };
+
+  // Get description in current language
+  const getDescription = (log) => {
+    const metadata = log.metadata || {};
+    // Try metadata.descriptionKey first, then infer from source for older logs
+    const descriptionKey = metadata.descriptionKey || SOURCE_TO_DESCRIPTION_KEY[log.source];
+    const params = metadata.descriptionParams || {};
+    
+    // If we have a description key, try to translate it
+    if (descriptionKey) {
+      let translated = translate(`settings.creditsSection.descriptions.${descriptionKey}`);
+      if (translated && !translated.includes('settings.creditsSection.descriptions.')) {
+        // Replace placeholders like {count}, {url}, etc.
+        // For older logs without descriptionParams, try to extract from metadata
+        const effectiveParams = Object.keys(params).length > 0 ? params : {
+          count: metadata.competitorsFound || metadata.totalKeywords || metadata.keywordsCount || metadata.keywordCount || '',
+          keywords: metadata.keywordsSearched?.length || '',
+          url: decodeUrl(metadata.url || metadata.websiteUrl) || '',
+          platform: metadata.detectedPlatform || metadata.platform || '',
+          filename: metadata.suggestedFilename || '',
+        };
+        
+        Object.keys(effectiveParams).forEach(key => {
+          if (effectiveParams[key] !== undefined && effectiveParams[key] !== '') {
+            // Decode URL values
+            let value = effectiveParams[key];
+            if (key === 'url' && typeof value === 'string') {
+              value = decodeUrl(value);
+            }
+            translated = translated.replace(new RegExp(`\\{${key}\\}`, 'g'), value);
+          }
+        });
+        
+        // Clean up any remaining placeholders
+        translated = translated.replace(/\{[^}]+\}/g, '');
+        
+        return translated.trim();
+      }
+    }
+    
+    // Fallback to original description, but decode any URLs in it
+    if (log.description) {
+      // Try to decode any URL-encoded parts
+      return decodeUrl(log.description);
+    }
+    
+    return null;
+  };
+
+  // Render description with proper URL direction (LTR for URLs)
+  const renderDescription = (log) => {
+    const description = getDescription(log);
+    if (!description) return null;
+    
+    // URL regex pattern
+    const urlPattern = /(https?:\/\/[^\s]+|www\.[^\s]+|[a-zA-Z0-9][-a-zA-Z0-9]*\.[a-zA-Z]{2,}(?:\/[^\s]*)?)/g;
+    
+    // Check if description contains URLs
+    if (urlPattern.test(description)) {
+      // Reset regex lastIndex
+      urlPattern.lastIndex = 0;
+      
+      // Split description into parts, keeping URLs separate
+      const parts = [];
+      let lastIndex = 0;
+      let match;
+      
+      while ((match = urlPattern.exec(description)) !== null) {
+        // Add text before URL
+        if (match.index > lastIndex) {
+          parts.push({ type: 'text', content: description.slice(lastIndex, match.index) });
+        }
+        // Add URL with LTR direction
+        parts.push({ type: 'url', content: match[0] });
+        lastIndex = match.index + match[0].length;
+      }
+      
+      // Add remaining text after last URL
+      if (lastIndex < description.length) {
+        parts.push({ type: 'text', content: description.slice(lastIndex) });
+      }
+      
+      return (
+        <>
+          {parts.map((part, index) => 
+            part.type === 'url' ? (
+              <span key={index} dir="ltr" style={{ unicodeBidi: 'embed' }}>{part.content}</span>
+            ) : (
+              <span key={index}>{part.content}</span>
+            )
+          )}
+        </>
+      );
+    }
+    
+    return description;
+  };
+
+  // Show loading state
+  if (isLoading) {
+    return (
+      <div className={styles.loadingContainer}>
+        <div className={styles.loadingSpinner}></div>
+        <p>{translate('common.loading') || 'Loading...'}</p>
+      </div>
+    );
+  }
+
+  // Display logs (limited or all based on showMore)
+  const displayedLogs = showMore ? usageLogs : usageLogs.slice(0, 10);
+
+  return (
+    <>
+      <div className={styles.subscriptionCard}>
+        <div className={styles.subscriptionHeader}>
+          <div className={styles.planInfo}>
+            <div className={styles.planName}>
+              <Coins size={20} style={{ display: 'inline', marginInlineEnd: '0.5rem' }} />
+              {translate('settings.creditsSection.title') || 'AI Credits'}
+            </div>
+            <div className={styles.planStatus}>
+              <Check size={14} />
+              {translate('settings.creditsSection.used') || 'Used'}
+            </div>
+          </div>
+          <div className={styles.planPrice}>
+            <div className={styles.priceAmount}>{formatCredits(subscription.aiCreditsUsed)}</div>
+            <div className={styles.pricePeriod}>/ {formatCredits(subscription.aiCreditsLimit)}</div>
+          </div>
+        </div>
+
+        {subscription.aiCreditsLimit > 0 && (
+          <div className={styles.usageBar}>
+            <div className={styles.usageHeader}>
+              <span className={styles.usageLabel}>{translate('settings.creditsSection.usage') || 'Usage'}</span>
+              <span className={styles.usageValue}>
+                {usagePercentage.toFixed(1)}%
+              </span>
+            </div>
+            <div className={styles.usageTrack}>
+              <div 
+                className={styles.usageFill} 
+                style={{ width: `${Math.min(usagePercentage, 100)}%` }}
+              ></div>
+            </div>
+          </div>
+        )}
+
+        <p style={{ fontSize: '0.875rem', color: 'var(--muted-foreground)', marginTop: '1rem' }}>
+          {translate('settings.creditsSection.description') || 'AI credits are used for generating content, analyzing data, and other AI-powered features. Credits reset at the beginning of each billing period.'}
+        </p>
+      </div>
+
+      <div className={styles.subsection}>
+        <h3 className={styles.subsectionTitle}>
+          <Coins className={styles.subsectionIcon} />
+          {translate('settings.creditsSection.actions') || 'Actions'}
+        </h3>
+        <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+          <button className={styles.editButton}>
+            <Plus size={14} style={{ marginInlineEnd: '0.25rem' }} />
+            {translate('user.addCredits') || 'Add Credits'}
+          </button>
+          <button className={styles.editButton}>
+            <Crown size={14} style={{ marginInlineEnd: '0.25rem' }} />
+            {translate('user.upgradePlan') || 'Upgrade Plan'}
+          </button>
+        </div>
+      </div>
+
+      {/* Usage Log Section */}
+      <div className={styles.subsection}>
+        <h3 className={styles.subsectionTitle}>
+          <Clock className={styles.subsectionIcon} />
+          {translate('settings.creditsSection.usageLog') || 'Usage Log'}
+        </h3>
+        
+        {logsLoading ? (
+          <div className={`${styles.loadingContainer} ${styles.usageLogLoading}`}>
+            <Loader2 size={24} className={styles.loadingSpinner} />
+            <p>{translate('common.loading') || 'Loading...'}</p>
+          </div>
+        ) : logsError ? (
+          <div className={styles.usageLogError}>
+            {translate('settings.creditsSection.errorLoadingLogs') || 'Failed to load usage logs'}
+          </div>
+        ) : usageLogs.length === 0 ? (
+          <div className={styles.usageLogEmpty}>
+            {translate('settings.creditsSection.noLogs') || 'No usage history yet'}
+          </div>
+        ) : (
+          <>
+            <div className={styles.creditsLogTable}>
+              <table className={styles.usageLogTable}>
+                <thead>
+                  <tr className={`${styles.usageLogHeaderRow} ${direction === 'rtl' ? styles.textRight : styles.textLeft}`}>
+                    <th className={styles.usageLogHeaderCell}>
+                      {translate('settings.creditsSection.logColumns.date') || 'Date'}
+                    </th>
+                    <th className={styles.usageLogHeaderCell}>
+                      {translate('settings.creditsSection.logColumns.action') || 'Action'}
+                    </th>
+                    <th className={styles.usageLogHeaderCell}>
+                      {translate('settings.creditsSection.logColumns.website') || 'Website'}
+                    </th>
+                    <th className={styles.usageLogHeaderCell}>
+                      {translate('settings.creditsSection.logColumns.user') || 'User'}
+                    </th>
+                    <th className={styles.usageLogHeaderCellCenter}>
+                      {translate('settings.creditsSection.logColumns.credits') || 'Credits'}
+                    </th>
+                    <th className={styles.usageLogHeaderCellCenter}>
+                      {translate('settings.creditsSection.logColumns.balance') || 'Balance'}
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {displayedLogs.map((log) => (
+                    <tr key={log.id} className={styles.usageLogRow}>
+                      <td className={styles.usageLogCellMuted}>
+                        {formatDate(log.createdAt)}
+                      </td>
+                      <td className={styles.usageLogCell}>
+                        <div className={styles.usageLogAction}>{getOperationName(log)}</div>
+                        {getDescription(log) && (
+                          <div className={styles.usageLogActionDescription}>
+                            {renderDescription(log)}
+                          </div>
+                        )}
+                      </td>
+                      <td className={styles.usageLogCell}>
+                        {log.siteName ? (
+                          log.siteUrl ? (
+                            <a 
+                              href={log.siteUrl.startsWith('http') ? log.siteUrl : `https://${log.siteUrl}`} 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              className={styles.usageLogSiteLink}
+                            >
+                              {log.siteName}
+                            </a>
+                          ) : (
+                            <span>{log.siteName}</span>
+                          )
+                        ) : (
+                          <span className={styles.usageLogEmptyCell}>—</span>
+                        )}
+                      </td>
+                      <td className={styles.usageLogCell}>
+                        {log.userName || <span className={styles.usageLogEmptyCell}>—</span>}
+                      </td>
+                      <td className={styles.usageLogCellCenter}>
+                        <span className={log.type === 'CREDIT' ? styles.usageLogCreditsCredit : styles.usageLogCreditsDebit}>
+                          {log.type === 'CREDIT' ? '+' : ''}{log.amount}
+                        </span>
+                      </td>
+                      <td className={styles.usageLogCellCenterMuted}>
+                        {(subscription.aiCreditsLimit - log.balance).toLocaleString()}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            
+            {usageLogs.length > 10 && (
+              <div className={styles.usageLogShowMoreContainer}>
+                <button 
+                  onClick={() => setShowMore(!showMore)}
+                  className={`${styles.editButton} ${styles.usageLogShowMoreButton}`}
+                >
+                  {showMore 
+                    ? (translate('common.showLess') || 'Show Less') 
+                    : (translate('common.showMore') || `Show More (${usageLogs.length - 10} more)`)}
+                </button>
+              </div>
+            )}
+          </>
+        )}
+      </div>
+    </>
+  );
+}
+
+// Add-ons Settings Component
+function AddonsSettings({ translations, canEdit = true }) {
+  const { t: translate, direction, locale } = useLocale();
+  const { user } = useUser();
+  const [addons, setAddons] = useState([]);
+  const [purchasedAddons, setPurchasedAddons] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Type icons mapping
+  const typeIcons = {
+    SEATS: '👥',
+    SITES: '🌐',
+    AI_CREDITS: '✨',
+    STORAGE: '💾',
+    KEYWORDS: '🔑',
+    CONTENT: '📝',
+  };
+
+  // Fetch addons from API
+  useEffect(() => {
+    async function fetchAddons() {
+      try {
+        setIsLoading(true);
+        // Fetch available addons
+        const lang = locale?.toUpperCase() || 'EN';
+        const response = await fetch(`/api/public/addons?lang=${lang}`);
+        if (response.ok) {
+          const data = await response.json();
+          setAddons(data.addOns || []);
+        }
+
+        // Fetch user's purchased addons if logged in and has subscription
+        if (user?.subscription?.id) {
+          const purchasesResponse = await fetch('/api/user/addon-purchases');
+          if (purchasesResponse.ok) {
+            const purchasesData = await purchasesResponse.json();
+            setPurchasedAddons(purchasesData.purchases || []);
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching addons:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
+    fetchAddons();
+  }, [locale, user?.subscription?.id]);
+
+  // Check if addon is purchased
+  const isAddonPurchased = (addonId) => {
+    return purchasedAddons.some(p => p.addOnId === addonId && p.status === 'ACTIVE');
+  };
+
+  // Format price with billing type
+  const formatPrice = (addon) => {
+    const price = new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: addon.currency || 'USD',
+      minimumFractionDigits: 0,
+    }).format(addon.price);
+
+    if (addon.billingType === 'ONE_TIME') {
+      return { price, period: translate('settings.addonsSection.oneTime') || 'one-time' };
+    }
+    return { price, period: translate('settings.subscriptionSection.perMonth') || 'month' };
+  };
+
+  // Get addon description with quantity info
+  const getAddonDescription = (addon) => {
+    let desc = addon.description || '';
+    if (addon.quantity && addon.type === 'AI_CREDITS') {
+      desc = `${addon.quantity.toLocaleString()} ${translate('settings.addonsSection.credits') || 'AI Credits'}${desc ? ' - ' + desc : ''}`;
+    }
+    return desc;
+  };
+
+  return (
+    <>
+      <div className={styles.subsection}>
+        <h3 className={styles.subsectionTitle}>
+          <Package className={styles.subsectionIcon} />
+          {translate('settings.addonsSection.title') || 'Available Add-ons'}
+        </h3>
+        <p style={{ color: 'var(--muted-foreground)', marginBottom: '1.5rem' }}>
+          {translate('settings.addonsSection.description') || 'Enhance your Ghost Post experience with additional features and capabilities.'}
+        </p>
+        
+        {isLoading ? (
+          <div style={{ display: 'flex', justifyContent: 'center', padding: '2rem' }}>
+            <Loader2 className="animate-spin" size={24} style={{ color: 'var(--muted-foreground)' }} />
+          </div>
+        ) : addons.length === 0 ? (
+          <div style={{ 
+            textAlign: 'center', 
+            padding: '2rem', 
+            color: 'var(--muted-foreground)',
+            background: 'var(--muted)',
+            borderRadius: 'var(--radius-lg)',
+          }}>
+            <Package size={32} style={{ marginBottom: '0.5rem', opacity: 0.5 }} />
+            <p>{translate('settings.addonsSection.noAddons') || 'No add-ons available at the moment.'}</p>
+          </div>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            {addons.map((addon) => {
+              const { price, period } = formatPrice(addon);
+              const isPurchased = isAddonPurchased(addon.id);
+              
+              return (
+                <div 
+                  key={addon.id} 
+                  className={styles.subscriptionCard}
+                  style={{ padding: '1.25rem' }}
+                >
+                  <div className={styles.subscriptionHeader}>
+                    <div className={styles.planInfo}>
+                      <div className={styles.planName} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <span style={{ fontSize: '1.5rem' }}>{typeIcons[addon.type] || '📦'}</span>
+                        {addon.name}
+                        {addon.billingType === 'ONE_TIME' && (
+                          <span className={styles.oneTimeBadge}>
+                            {translate('settings.addonsSection.oneTimeBadge') || 'ONE-TIME'}
+                          </span>
+                        )}
+                      </div>
+                      <p style={{ fontSize: '0.875rem', color: 'var(--muted-foreground)', marginTop: '0.25rem' }}>
+                        {getAddonDescription(addon)}
+                      </p>
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '0.5rem' }}>
+                      <div className={styles.planPrice}>
+                        <div className={styles.priceAmount}>{price}</div>
+                        {addon.billingType !== 'ONE_TIME' && (
+                          <div className={styles.pricePeriod}>/{period}</div>
+                        )}
+                      </div>
+                      {isPurchased ? (
+                        <button className={styles.editButton} style={{ background: 'var(--muted)', color: 'var(--muted-foreground)' }}>
+                          <Check size={14} style={{ marginInlineEnd: '0.25rem' }} />
+                          {translate('settings.addonsSection.purchased') || 'Purchased'}
+                        </button>
+                      ) : (
+                        <button className={styles.editButton} disabled={!canEdit}>
+                          <Plus size={14} style={{ marginInlineEnd: '0.25rem' }} />
+                          {addon.billingType === 'ONE_TIME' 
+                            ? (translate('settings.addonsSection.buy') || 'Buy')
+                            : (translate('settings.addonsSection.subscribe') || 'Subscribe')
+                          }
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+    </>
+  );
+}
+
+// Google icon component
+function GoogleIcon({ size = 20 }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+      <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+      <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+      <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+    </svg>
+  );
+}
+
+// Profile Tab configuration
+const PROFILE_TABS = [
+  { id: 'personal', icon: User, labelKey: 'profile.tabs.personal' },
+  { id: 'security', icon: Key, labelKey: 'profile.tabs.security' },
+  { id: 'connections', icon: Link, labelKey: 'profile.tabs.connections' },
+];
+
+// Profile Settings Component - Full profile management
+function ProfileSettings({ translations }) {
+  const { t: translate } = useLocale();
+  const { user: contextUser, updateUser } = useUser();
+
+  // Tab state
+  const [activeProfileTab, setActiveProfileTab] = useState('personal');
+
+  // Profile state
+  const [profile, setProfile] = useState({
+    firstName: '',
+    lastName: '',
+    email: '',
+    phoneNumber: '',
+    image: null,
+    emailVerified: null,
+    phoneVerified: null,
+    primaryAuthMethod: 'EMAIL',
+  });
+  const [authProviders, setAuthProviders] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveMessage, setSaveMessage] = useState({ type: '', text: '' });
+
+  // Password change state
+  const [passwordData, setPasswordData] = useState({
     currentPassword: '',
     newPassword: '',
     confirmPassword: '',
   });
+  const [showPasswords, setShowPasswords] = useState({
+    current: false,
+    new: false,
+    confirm: false,
+  });
+  const [isChangingPassword, setIsChangingPassword] = useState(false);
+  const [passwordMessage, setPasswordMessage] = useState({ type: '', text: '' });
+
+  // Image upload state
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
+
+  // Fetch user profile on mount
+  useEffect(() => {
+    fetchProfile();
+  }, []);
+
+  const fetchProfile = async () => {
+    try {
+      setIsLoading(true);
+      const response = await fetch('/api/user/profile');
+      if (response.ok) {
+        const data = await response.json();
+        setProfile({
+          firstName: data.user.firstName || '',
+          lastName: data.user.lastName || '',
+          email: data.user.email || '',
+          phoneNumber: data.user.phoneNumber || '',
+          image: data.user.image || null,
+          emailVerified: data.user.emailVerified,
+          phoneVerified: data.user.phoneVerified,
+          primaryAuthMethod: data.user.primaryAuthMethod || 'EMAIL',
+        });
+        setAuthProviders(data.authProviders || []);
+      }
+    } catch (error) {
+      console.error('Error fetching profile:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleProfileChange = (field, value) => {
+    setProfile(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleSaveProfile = async () => {
+    try {
+      setIsSaving(true);
+      setSaveMessage({ type: '', text: '' });
+
+      const response = await fetch('/api/user/profile', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          firstName: profile.firstName,
+          lastName: profile.lastName,
+          phoneNumber: profile.phoneNumber,
+        }),
+      });
+
+      if (response.ok) {
+        setSaveMessage({ type: 'success', text: translate('profile.saveSuccess') });
+        // Update context user
+        updateUser({
+          ...contextUser,
+          firstName: profile.firstName,
+          lastName: profile.lastName,
+        });
+      } else {
+        const error = await response.json();
+        setSaveMessage({ type: 'error', text: error.error || translate('profile.saveError') });
+      }
+    } catch (error) {
+      setSaveMessage({ type: 'error', text: translate('profile.saveError') });
+    } finally {
+      setIsSaving(false);
+      setTimeout(() => setSaveMessage({ type: '', text: '' }), 5000);
+    }
+  };
+
+  const handlePasswordChange = async () => {
+    // Validation
+    if (!passwordData.currentPassword || !passwordData.newPassword || !passwordData.confirmPassword) {
+      setPasswordMessage({ type: 'error', text: translate('profile.password.allFieldsRequired') });
+      return;
+    }
+
+    if (passwordData.newPassword !== passwordData.confirmPassword) {
+      setPasswordMessage({ type: 'error', text: translate('profile.password.mismatch') });
+      return;
+    }
+
+    if (passwordData.newPassword.length < 8) {
+      setPasswordMessage({ type: 'error', text: translate('profile.password.tooShort') });
+      return;
+    }
+
+    try {
+      setIsChangingPassword(true);
+      setPasswordMessage({ type: '', text: '' });
+
+      const response = await fetch('/api/user/password', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          currentPassword: passwordData.currentPassword,
+          newPassword: passwordData.newPassword,
+        }),
+      });
+
+      if (response.ok) {
+        setPasswordMessage({ type: 'success', text: translate('profile.password.changeSuccess') });
+        setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
+      } else {
+        const error = await response.json();
+        setPasswordMessage({ type: 'error', text: error.error || translate('profile.password.changeError') });
+      }
+    } catch (error) {
+      setPasswordMessage({ type: 'error', text: translate('profile.password.changeError') });
+    } finally {
+      setIsChangingPassword(false);
+      setTimeout(() => setPasswordMessage({ type: '', text: '' }), 5000);
+    }
+  };
+
+  const handleImageUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      setSaveMessage({ type: 'error', text: translate('profile.image.invalidType') });
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      setSaveMessage({ type: 'error', text: translate('profile.image.tooLarge') });
+      return;
+    }
+
+    try {
+      setIsUploadingImage(true);
+      const formData = new FormData();
+      formData.append('image', file);
+
+      const response = await fetch('/api/user/profile/image', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setProfile(prev => ({ ...prev, image: data.imageUrl }));
+        updateUser({ ...contextUser, image: data.imageUrl });
+        setSaveMessage({ type: 'success', text: translate('profile.image.uploadSuccess') });
+      } else {
+        const error = await response.json();
+        setSaveMessage({ type: 'error', text: error.error || translate('profile.image.uploadError') });
+      }
+    } catch (error) {
+      setSaveMessage({ type: 'error', text: translate('profile.image.uploadError') });
+    } finally {
+      setIsUploadingImage(false);
+      setTimeout(() => setSaveMessage({ type: '', text: '' }), 5000);
+    }
+  };
+
+  const handleConnectGoogle = () => {
+    // Redirect to Google OAuth
+    window.location.href = '/api/auth/google?action=link';
+  };
+
+  const handleDisconnectGoogle = async () => {
+    if (!confirm(translate('profile.google.disconnectConfirm'))) return;
+
+    try {
+      const response = await fetch('/api/user/auth-providers/google', {
+        method: 'DELETE',
+      });
+
+      if (response.ok) {
+        setAuthProviders(prev => prev.filter(p => p.provider !== 'GOOGLE'));
+        setSaveMessage({ type: 'success', text: translate('profile.google.disconnectSuccess') });
+      } else {
+        const error = await response.json();
+        setSaveMessage({ type: 'error', text: error.error || translate('profile.google.disconnectError') });
+      }
+    } catch (error) {
+      setSaveMessage({ type: 'error', text: translate('profile.google.disconnectError') });
+    }
+    setTimeout(() => setSaveMessage({ type: '', text: '' }), 5000);
+  };
+
+  const isGoogleConnected = authProviders.some(p => p.provider === 'GOOGLE');
+  const googleProvider = authProviders.find(p => p.provider === 'GOOGLE');
+  const hasPassword = profile.primaryAuthMethod === 'EMAIL';
+
+  // Get initials for avatar fallback
+  const getInitials = () => {
+    if (profile.firstName && profile.lastName) {
+      return `${profile.firstName.charAt(0)}${profile.lastName.charAt(0)}`.toUpperCase();
+    }
+    if (profile.firstName) {
+      return profile.firstName.substring(0, 2).toUpperCase();
+    }
+    if (profile.email) {
+      return profile.email.substring(0, 2).toUpperCase();
+    }
+    return '??';
+  };
+
+  if (isLoading) {
+    return (
+      <div className={styles.loadingContainer}>
+        <div className={styles.loadingSpinner}></div>
+        <p>{translate('common.loading')}</p>
+      </div>
+    );
+  }
+
+  return (
+    <>
+      {/* Profile Tabs Navigation */}
+      <div className={styles.profileTabsWrapper}>
+        <div className={styles.profileTabs}>
+          {PROFILE_TABS.map(tab => {
+            const Icon = tab.icon;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setActiveProfileTab(tab.id)}
+                className={`${styles.profileTab} ${activeProfileTab === tab.id ? styles.profileTabActive : ''}`}
+              >
+                <Icon size={18} />
+                <span>{translate(tab.labelKey)}</span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Tab Content */}
+      <div className={styles.profileTabContent}>
+        {/* Personal Info Tab */}
+        {activeProfileTab === 'personal' && (
+          <div className={styles.profileCard}>
+            <div className={styles.profileCardHeader}>
+              <div className={styles.profileCardIconWrapper}>
+                <User size={24} />
+              </div>
+              <div className={styles.profileCardHeaderContent}>
+                <h2 className={styles.profileCardTitle}>{translate('profile.personalInfo.title')}</h2>
+                <p className={styles.profileCardDescription}>{translate('profile.personalInfo.description')}</p>
+              </div>
+            </div>
+
+            <div className={styles.profileCardContent}>
+              {/* Avatar Section */}
+              <div className={styles.profileAvatarSection}>
+                <div className={styles.profileAvatarWrapper}>
+                  {profile.image ? (
+                    <Image
+                      src={profile.image}
+                      alt={`${profile.firstName} ${profile.lastName}`}
+                      width={100}
+                      height={100}
+                      className={styles.profileAvatarImage}
+                    />
+                  ) : (
+                    <div className={styles.profileAvatarFallback}>
+                      {getInitials()}
+                    </div>
+                  )}
+                  <label className={styles.profileAvatarUpload}>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleImageUpload}
+                      disabled={isUploadingImage}
+                      className={styles.profileHiddenInput}
+                    />
+                    <Camera size={16} />
+                  </label>
+                </div>
+                <div className={styles.profileAvatarInfo}>
+                  <p className={styles.profileAvatarHint}>{translate('profile.image.hint')}</p>
+                  <p className={styles.profileAvatarFormats}>{translate('profile.image.formats')}</p>
+                </div>
+              </div>
+
+              {/* Form Fields */}
+              <div className={styles.profileFormGrid}>
+                <div className={styles.profileFormGroup}>
+                  <label className={styles.profileLabel}>
+                    <User size={16} />
+                    {translate('profile.personalInfo.firstName')}
+                  </label>
+                  <input
+                    type="text"
+                    value={profile.firstName}
+                    onChange={(e) => handleProfileChange('firstName', e.target.value)}
+                    placeholder={translate('profile.personalInfo.firstNamePlaceholder')}
+                    className={styles.profileInput}
+                  />
+                </div>
+
+                <div className={styles.profileFormGroup}>
+                  <label className={styles.profileLabel}>
+                    <User size={16} />
+                    {translate('profile.personalInfo.lastName')}
+                  </label>
+                  <input
+                    type="text"
+                    value={profile.lastName}
+                    onChange={(e) => handleProfileChange('lastName', e.target.value)}
+                    placeholder={translate('profile.personalInfo.lastNamePlaceholder')}
+                    className={styles.profileInput}
+                  />
+                </div>
+
+                <div className={styles.profileFormGroup}>
+                  <label className={styles.profileLabel}>
+                    <Mail size={16} />
+                    {translate('profile.personalInfo.email')}
+                  </label>
+                  <div className={styles.profileInputWithBadge}>
+                    <input
+                      type="email"
+                      value={profile.email}
+                      disabled
+                      className={`${styles.profileInput} ${styles.disabled}`}
+                    />
+                    {profile.emailVerified && (
+                      <span className={styles.profileVerifiedBadge}>
+                        <Check size={12} />
+                        {translate('profile.verified')}
+                      </span>
+                    )}
+                  </div>
+                  <span className={styles.profileInputHint}>{translate('profile.personalInfo.emailHint')}</span>
+                </div>
+
+                <div className={styles.profileFormGroup}>
+                  <label className={styles.profileLabel}>
+                    <Phone size={16} />
+                    {translate('profile.personalInfo.phone')}
+                  </label>
+                  <input
+                    type="tel"
+                    value={profile.phoneNumber}
+                    onChange={(e) => handleProfileChange('phoneNumber', e.target.value)}
+                    placeholder={translate('profile.personalInfo.phonePlaceholder')}
+                    className={styles.profileInput}
+                  />
+                </div>
+              </div>
+
+              {/* Save Message */}
+              {saveMessage.text && (
+                <div className={`${styles.profileMessage} ${styles[saveMessage.type]}`}>
+                  {saveMessage.type === 'success' ? <Check size={16} /> : <AlertCircle size={16} />}
+                  {saveMessage.text}
+                </div>
+              )}
+
+              {/* Save Button */}
+              <div className={styles.profileCardActions}>
+                <button
+                  onClick={handleSaveProfile}
+                  disabled={isSaving}
+                  className={styles.profileSaveButton}
+                >
+                  {isSaving ? translate('common.saving') : translate('common.save')}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Security Tab */}
+        {activeProfileTab === 'security' && (
+          <div className={styles.profileCard}>
+            <div className={styles.profileCardHeader}>
+              <div className={styles.profileCardIconWrapper}>
+                <Shield size={24} />
+              </div>
+              <div className={styles.profileCardHeaderContent}>
+                <h2 className={styles.profileCardTitle}>{translate('profile.security.title')}</h2>
+                <p className={styles.profileCardDescription}>{translate('profile.security.description')}</p>
+              </div>
+            </div>
+
+            <div className={styles.profileCardContent}>
+              {/* Password Change Section */}
+              {hasPassword && (
+                <div className={styles.profileSection}>
+                  <h3 className={styles.profileSectionTitle}>{translate('profile.password.title')}</h3>
+                  <p className={styles.profileSectionDescription}>{translate('profile.password.description')}</p>
+
+                  <div className={styles.profilePasswordForm}>
+                    <div className={styles.profileFormGroup}>
+                      <label className={styles.profileLabel}>
+                        <Lock size={16} />
+                        {translate('profile.password.current')}
+                      </label>
+                      <div className={styles.profilePasswordInput}>
+                        <input
+                          type={showPasswords.current ? 'text' : 'password'}
+                          value={passwordData.currentPassword}
+                          onChange={(e) => setPasswordData(prev => ({ ...prev, currentPassword: e.target.value }))}
+                          placeholder={translate('profile.password.currentPlaceholder')}
+                          className={styles.profileInput}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowPasswords(prev => ({ ...prev, current: !prev.current }))}
+                          className={styles.profilePasswordToggle}
+                        >
+                          {showPasswords.current ? <EyeOff size={18} /> : <Eye size={18} />}
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className={styles.profileFormGroup}>
+                      <label className={styles.profileLabel}>
+                        <Lock size={16} />
+                        {translate('profile.password.new')}
+                      </label>
+                      <div className={styles.profilePasswordInput}>
+                        <input
+                          type={showPasswords.new ? 'text' : 'password'}
+                          value={passwordData.newPassword}
+                          onChange={(e) => setPasswordData(prev => ({ ...prev, newPassword: e.target.value }))}
+                          placeholder={translate('profile.password.newPlaceholder')}
+                          className={styles.profileInput}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowPasswords(prev => ({ ...prev, new: !prev.new }))}
+                          className={styles.profilePasswordToggle}
+                        >
+                          {showPasswords.new ? <EyeOff size={18} /> : <Eye size={18} />}
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className={styles.profileFormGroup}>
+                      <label className={styles.profileLabel}>
+                        <Lock size={16} />
+                        {translate('profile.password.confirm')}
+                      </label>
+                      <div className={styles.profilePasswordInput}>
+                        <input
+                          type={showPasswords.confirm ? 'text' : 'password'}
+                          value={passwordData.confirmPassword}
+                          onChange={(e) => setPasswordData(prev => ({ ...prev, confirmPassword: e.target.value }))}
+                          placeholder={translate('profile.password.confirmPlaceholder')}
+                          className={styles.profileInput}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowPasswords(prev => ({ ...prev, confirm: !prev.confirm }))}
+                          className={styles.profilePasswordToggle}
+                        >
+                          {showPasswords.confirm ? <EyeOff size={18} /> : <Eye size={18} />}
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Password Requirements */}
+                    <div className={styles.profilePasswordRequirements}>
+                      <p className={styles.profileRequirementsTitle}>{translate('profile.password.requirements')}</p>
+                      <ul className={styles.profileRequirementsList}>
+                        <li>{translate('profile.password.minLength')}</li>
+                      </ul>
+                    </div>
+
+                    {/* Password Message */}
+                    {passwordMessage.text && (
+                      <div className={`${styles.profileMessage} ${styles[passwordMessage.type]}`}>
+                        {passwordMessage.type === 'success' ? <Check size={16} /> : <AlertCircle size={16} />}
+                        {passwordMessage.text}
+                      </div>
+                    )}
+
+                    <button
+                      onClick={handlePasswordChange}
+                      disabled={isChangingPassword}
+                      className={styles.profileChangePasswordButton}
+                    >
+                      {isChangingPassword ? translate('common.saving') : translate('profile.password.change')}
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Two-Factor Authentication Section */}
+              <div className={styles.profileSection}>
+                <h3 className={styles.profileSectionTitle}>{translate('profile.twoFactor.title')}</h3>
+                <p className={styles.profileSectionDescription}>{translate('profile.twoFactor.description')}</p>
+                
+                <div className={styles.profileTwoFactorStatus}>
+                  <div className={styles.profileTwoFactorIcon}>
+                    <Shield size={24} />
+                  </div>
+                  <div className={styles.profileTwoFactorInfo}>
+                    <span className={styles.profileTwoFactorLabel}>{translate('profile.twoFactor.status')}</span>
+                    <span className={styles.profileTwoFactorValue}>{translate('profile.twoFactor.disabled')}</span>
+                  </div>
+                  <button className={styles.profileEnableTwoFactorButton} disabled>
+                    {translate('profile.twoFactor.enable')}
+                  </button>
+                </div>
+                <p className={styles.profileComingSoon}>{translate('common.comingSoon')}</p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Connections Tab */}
+        {activeProfileTab === 'connections' && (
+          <div className={styles.profileCard}>
+            <div className={styles.profileCardHeader}>
+              <div className={styles.profileCardIconWrapper}>
+                <Link size={24} />
+              </div>
+              <div className={styles.profileCardHeaderContent}>
+                <h2 className={styles.profileCardTitle}>{translate('profile.connectedAccounts.title')}</h2>
+                <p className={styles.profileCardDescription}>{translate('profile.connectedAccounts.description')}</p>
+              </div>
+            </div>
+
+            <div className={styles.profileCardContent}>
+              <div className={styles.profileProvidersList}>
+                {/* Google */}
+                <div className={`${styles.profileProviderItem} ${isGoogleConnected ? styles.connected : ''}`}>
+                  <div className={styles.profileProviderInfo}>
+                    <div className={styles.profileProviderIcon}>
+                      <GoogleIcon size={24} />
+                    </div>
+                    <div className={styles.profileProviderDetails}>
+                      <span className={styles.profileProviderName}>{translate('profile.connectedAccounts.google')}</span>
+                      {isGoogleConnected && googleProvider?.providerAccountId && (
+                        <span className={styles.profileProviderEmail}>{googleProvider.providerAccountId}</span>
+                      )}
+                    </div>
+                  </div>
+                  <div className={styles.profileProviderActions}>
+                    {isGoogleConnected ? (
+                      <>
+                        <span className={styles.profileConnectedBadge}>
+                          <Check size={14} />
+                          {translate('profile.connectedAccounts.connected')}
+                        </span>
+                        <button
+                          onClick={handleDisconnectGoogle}
+                          className={styles.profileDisconnectButton}
+                        >
+                          <Unlink size={16} />
+                          {translate('profile.connectedAccounts.disconnect')}
+                        </button>
+                      </>
+                    ) : (
+                      <button
+                        onClick={handleConnectGoogle}
+                        className={styles.profileConnectButton}
+                      >
+                        <Link size={16} />
+                        {translate('profile.connectedAccounts.connect')}
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Save Message for connections */}
+              {saveMessage.text && (
+                <div className={`${styles.profileMessage} ${styles[saveMessage.type]}`}>
+                  {saveMessage.type === 'success' ? <Check size={16} /> : <AlertCircle size={16} />}
+                  {saveMessage.text}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+    </>
+  );
+}
+
+// Timezone options
+const TIMEZONES = [
+  { value: 'UTC', label: 'UTC' },
+  { value: 'America/New_York', label: 'Eastern Time (US)' },
+  { value: 'America/Chicago', label: 'Central Time (US)' },
+  { value: 'America/Denver', label: 'Mountain Time (US)' },
+  { value: 'America/Los_Angeles', label: 'Pacific Time (US)' },
+  { value: 'Europe/London', label: 'London (GMT)' },
+  { value: 'Europe/Paris', label: 'Paris (CET)' },
+  { value: 'Europe/Berlin', label: 'Berlin (CET)' },
+  { value: 'Asia/Jerusalem', label: 'Jerusalem (IST)' },
+  { value: 'Asia/Tokyo', label: 'Tokyo (JST)' },
+  { value: 'Asia/Shanghai', label: 'Shanghai (CST)' },
+  { value: 'Australia/Sydney', label: 'Sydney (AEST)' },
+];
+
+// Language options
+const ACCOUNT_LANGUAGES = [
+  { value: 'EN', label: 'English' },
+  { value: 'HE', label: 'עברית (Hebrew)' },
+  { value: 'FR', label: 'Français (French)' },
+  { value: 'ES', label: 'Español (Spanish)' },
+  { value: 'DE', label: 'Deutsch (German)' },
+];
+
+// Industry options
+const INDUSTRIES = [
+  { value: 'technology', labelKey: 'technology' },
+  { value: 'ecommerce', labelKey: 'ecommerce' },
+  { value: 'healthcare', labelKey: 'healthcare' },
+  { value: 'finance', labelKey: 'finance' },
+  { value: 'education', labelKey: 'education' },
+  { value: 'media', labelKey: 'media' },
+  { value: 'real_estate', labelKey: 'realEstate' },
+  { value: 'travel', labelKey: 'travel' },
+  { value: 'food', labelKey: 'food' },
+  { value: 'other', labelKey: 'other' },
+];
+
+// Account Settings Component - Organization Account Settings
+function AccountSettings({ translations, canEdit = true }) {
+  const { t } = useLocale();
+  const router = useRouter();
+  const { locale } = useLocale();
+  const accountSection = translations?.accountSection || {};
+  
+  // Account state
+  const [accountId, setAccountId] = useState(null);
+  const [account, setAccount] = useState({
+    name: '',
+    slug: '',
+    logo: null,
+    website: '',
+    industry: '',
+    timezone: 'UTC',
+    defaultLanguage: 'EN',
+    billingEmail: '',
+    generalEmail: '',
+  });
+  
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+  const [isUploadingLogo, setIsUploadingLogo] = useState(false);
+  const [saveMessage, setSaveMessage] = useState({ type: '', text: '' });
   
   // Delete account state
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -1884,8 +3290,120 @@ function AccountSettings({ translations, canEdit = true }) {
   const requiredConfirmText = locale === 'he' ? 'מחיקת חשבון' : 'DELETE ACCOUNT';
   const canDelete = deleteConfirmText === requiredConfirmText;
 
+  // Fetch current account on mount
+  useEffect(() => {
+    fetchCurrentAccount();
+  }, []);
+
+  const fetchCurrentAccount = async () => {
+    try {
+      setIsLoading(true);
+      const response = await fetch('/api/account/current');
+      if (response.ok) {
+        const data = await response.json();
+        if (data.account) {
+          setAccountId(data.account.id);
+          setAccount({
+            name: data.account.name || '',
+            slug: data.account.slug || '',
+            logo: data.account.logo || null,
+            website: data.account.website || '',
+            industry: data.account.industry || '',
+            timezone: data.account.timezone || 'UTC',
+            defaultLanguage: data.account.defaultLanguage || 'EN',
+            billingEmail: data.account.billingEmail || '',
+            generalEmail: data.account.generalEmail || '',
+          });
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching account:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const updateField = (field, value) => {
     setAccount(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleSave = async () => {
+    if (!accountId) return;
+    
+    try {
+      setIsSaving(true);
+      setSaveMessage({ type: '', text: '' });
+
+      const response = await fetch(`/api/account/${accountId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: account.name,
+          website: account.website,
+          industry: account.industry,
+          timezone: account.timezone,
+          defaultLanguage: account.defaultLanguage,
+          billingEmail: account.billingEmail,
+          generalEmail: account.generalEmail,
+        }),
+      });
+
+      if (response.ok) {
+        setSaveMessage({ type: 'success', text: t('account.saveSuccess') });
+      } else {
+        const error = await response.json();
+        setSaveMessage({ type: 'error', text: error.error || t('account.saveError') });
+      }
+    } catch (error) {
+      setSaveMessage({ type: 'error', text: t('account.saveError') });
+    } finally {
+      setIsSaving(false);
+      setTimeout(() => setSaveMessage({ type: '', text: '' }), 5000);
+    }
+  };
+
+  const handleLogoUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file || !accountId) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      setSaveMessage({ type: 'error', text: t('account.invalidImageType') });
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      setSaveMessage({ type: 'error', text: t('account.imageTooLarge') });
+      return;
+    }
+
+    try {
+      setIsUploadingLogo(true);
+
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('accountId', accountId);
+
+      const response = await fetch('/api/account/upload-logo', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setAccount(prev => ({ ...prev, logo: data.logoUrl }));
+        setSaveMessage({ type: 'success', text: t('account.logoUpdated') });
+      } else {
+        const error = await response.json();
+        setSaveMessage({ type: 'error', text: error.error || t('account.logoUploadError') });
+      }
+    } catch (error) {
+      setSaveMessage({ type: 'error', text: t('account.logoUploadError') });
+    } finally {
+      setIsUploadingLogo(false);
+      setTimeout(() => setSaveMessage({ type: '', text: '' }), 5000);
+    }
   };
   
   const handleDeleteAccount = async () => {
@@ -1914,79 +3432,203 @@ function AccountSettings({ translations, canEdit = true }) {
     }
   };
 
+  if (isLoading) {
+    return <SettingsFormSkeleton />;
+  }
+
   return (
     <>
-      <div className={styles.formGrid}>
-        <div className={styles.formGroup}>
-          <label className={styles.formLabel}>{accountSection.fullName || t.accountFullName}</label>
-          <input 
-            type="text" 
-            className={styles.formInput}
-            value={account.name}
-            onChange={(e) => updateField('name', e.target.value)}
-          />
+      {/* Save Message */}
+      {saveMessage.text && (
+        <div className={`${styles.saveMessage} ${styles[saveMessage.type]}`}>
+          {saveMessage.type === 'success' ? <Check size={16} /> : <AlertTriangle size={16} />}
+          <span>{saveMessage.text}</span>
         </div>
-        <div className={styles.formGroup}>
-          <label className={styles.formLabel}>{accountSection.emailAddress || t.accountEmailAddress}</label>
-          <input 
-            type="email" 
-            className={styles.formInput}
-            value={account.email}
-            onChange={(e) => updateField('email', e.target.value)}
-          />
-        </div>
-      </div>
+      )}
 
+      {/* Organization Logo */}
       <div className={styles.subsection}>
         <h3 className={styles.subsectionTitle}>
-          <Shield className={styles.subsectionIcon} />
-          {accountSection.changePassword || t.accountChangePassword}
+          <Building2 className={styles.subsectionIcon} />
+          {t('account.logo.title')}
         </h3>
-        <div className={styles.formGrid}>
-          <div className={`${styles.formGroup} ${styles.fullWidth}`}>
-            <label className={styles.formLabel}>{accountSection.currentPassword || t.accountCurrentPassword}</label>
-            <input 
-              type="password" 
-              className={styles.formInput}
-              value={account.currentPassword}
-              onChange={(e) => updateField('currentPassword', e.target.value)}
-              placeholder={accountSection.currentPasswordPlaceholder || t.accountCurrentPasswordPlaceholder}
-            />
+        <div className={styles.logoSection}>
+          <div className={styles.logoPreview}>
+            {account.logo ? (
+              <img
+                src={account.logo}
+                alt={account.name || 'Organization logo'}
+                className={styles.logoImage}
+              />
+            ) : (
+              <div className={styles.logoPlaceholder}>
+                <Building2 size={32} />
+              </div>
+            )}
           </div>
-          <div className={styles.formGroup}>
-            <label className={styles.formLabel}>{accountSection.newPassword || t.accountNewPassword}</label>
-            <input 
-              type="password" 
-              className={styles.formInput}
-              value={account.newPassword}
-              onChange={(e) => updateField('newPassword', e.target.value)}
-              placeholder={accountSection.newPasswordPlaceholder || t.accountNewPasswordPlaceholder}
-            />
-          </div>
-          <div className={styles.formGroup}>
-            <label className={styles.formLabel}>{accountSection.confirmNewPassword || t.accountConfirmNewPassword}</label>
-            <input 
-              type="password" 
-              className={styles.formInput}
-              value={account.confirmPassword}
-              onChange={(e) => updateField('confirmPassword', e.target.value)}
-              placeholder={accountSection.confirmPasswordPlaceholder || t.accountConfirmPasswordPlaceholder}
-            />
+          <div className={styles.logoActions}>
+            <label className={styles.editButton}>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleLogoUpload}
+                disabled={isUploadingLogo || !canEdit}
+                style={{ display: 'none' }}
+              />
+              {isUploadingLogo ? (
+                <>
+                  <Loader2 size={14} className={styles.spinningIcon} />
+                  {t('common.loading')}
+                </>
+              ) : (
+                t('account.logo.change')
+              )}
+            </label>
+            <p className={styles.logoHint}>{t('account.logo.hint')}</p>
           </div>
         </div>
       </div>
 
+      {/* General Information */}
+      <div className={styles.subsection}>
+        <h3 className={styles.subsectionTitle}>
+          <Settings className={styles.subsectionIcon} />
+          {t('account.general.title')}
+        </h3>
+        <div className={styles.formGrid}>
+          <div className={styles.formGroup}>
+            <label className={styles.formLabel}>{t('account.fields.name')}</label>
+            <input 
+              type="text" 
+              className={styles.formInput}
+              value={account.name}
+              onChange={(e) => updateField('name', e.target.value)}
+              placeholder={t('account.fields.namePlaceholder')}
+              disabled={!canEdit}
+            />
+          </div>
+          <div className={styles.formGroup}>
+            <label className={styles.formLabel}>{t('account.fields.slug')}</label>
+            <input 
+              type="text" 
+              className={`${styles.formInput} ${styles.disabled}`}
+              value={account.slug}
+              disabled
+            />
+            <span className={styles.inputHint}>{t('account.fields.slugHint')}</span>
+          </div>
+          <div className={styles.formGroup}>
+            <label className={styles.formLabel}>{t('account.fields.website')}</label>
+            <input 
+              type="url" 
+              className={styles.formInput}
+              value={account.website}
+              onChange={(e) => updateField('website', e.target.value)}
+              placeholder="https://example.com"
+              disabled={!canEdit}
+            />
+          </div>
+          <div className={styles.formGroup}>
+            <label className={styles.formLabel}>{t('account.fields.industry')}</label>
+            <select 
+              className={styles.formSelect}
+              value={account.industry}
+              onChange={(e) => updateField('industry', e.target.value)}
+              disabled={!canEdit}
+            >
+              <option value="">{t('account.fields.selectIndustry')}</option>
+              {INDUSTRIES.map(ind => (
+                <option key={ind.value} value={ind.value}>
+                  {t(`account.industries.${ind.labelKey}`)}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+      </div>
+
+      {/* Contact Emails */}
+      <div className={styles.subsection}>
+        <h3 className={styles.subsectionTitle}>
+          <Send className={styles.subsectionIcon} />
+          {t('account.emails.title')}
+        </h3>
+        <div className={styles.formGrid}>
+          <div className={styles.formGroup}>
+            <label className={styles.formLabel}>{t('account.fields.generalEmail')}</label>
+            <input 
+              type="email" 
+              className={styles.formInput}
+              value={account.generalEmail}
+              onChange={(e) => updateField('generalEmail', e.target.value)}
+              placeholder="contact@company.com"
+              disabled={!canEdit}
+            />
+            <span className={styles.inputHint}>{t('account.fields.generalEmailHint')}</span>
+          </div>
+          <div className={styles.formGroup}>
+            <label className={styles.formLabel}>{t('account.fields.billingEmail')}</label>
+            <input 
+              type="email" 
+              className={styles.formInput}
+              value={account.billingEmail}
+              onChange={(e) => updateField('billingEmail', e.target.value)}
+              placeholder="billing@company.com"
+              disabled={!canEdit}
+            />
+            <span className={styles.inputHint}>{t('account.fields.billingEmailHint')}</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Regional Settings */}
+      <div className={styles.subsection}>
+        <h3 className={styles.subsectionTitle}>
+          <Globe className={styles.subsectionIcon} />
+          {t('account.regional.title')}
+        </h3>
+        <div className={styles.formGrid}>
+          <div className={styles.formGroup}>
+            <label className={styles.formLabel}>{t('account.fields.timezone')}</label>
+            <select 
+              className={styles.formSelect}
+              value={account.timezone}
+              onChange={(e) => updateField('timezone', e.target.value)}
+              disabled={!canEdit}
+            >
+              {TIMEZONES.map(tz => (
+                <option key={tz.value} value={tz.value}>{tz.label}</option>
+              ))}
+            </select>
+          </div>
+          <div className={styles.formGroup}>
+            <label className={styles.formLabel}>{t('account.fields.defaultLanguage')}</label>
+            <select 
+              className={styles.formSelect}
+              value={account.defaultLanguage}
+              onChange={(e) => updateField('defaultLanguage', e.target.value)}
+              disabled={!canEdit}
+            >
+              {ACCOUNT_LANGUAGES.map(lang => (
+                <option key={lang.value} value={lang.value}>{lang.label}</option>
+              ))}
+            </select>
+          </div>
+        </div>
+      </div>
+
+      {/* Danger Zone */}
       <div className={styles.subsection}>
         <h3 className={styles.subsectionTitle}>
           <AlertTriangle className={styles.subsectionIcon} />
-          {accountSection.dangerZone || t.accountDangerZone}
+          {accountSection.dangerZone || t('account.dangerZone')}
         </h3>
         <div className={styles.warningBox}>
           <div className={styles.warningContent}>
             <AlertTriangle className={styles.warningIcon} />
             <div className={styles.warningInfo}>
-              <span className={styles.warningLabel}>{accountSection.deleteAccount || t.accountDeleteAccount}</span>
-              <span className={styles.warningDescription}>{accountSection.deleteAccountDesc || t.accountDeleteAccountDesc}</span>
+              <span className={styles.warningLabel}>{accountSection.deleteAccount || t('account.deleteAccount')}</span>
+              <span className={styles.warningDescription}>{accountSection.deleteAccountDesc || t('account.deleteAccountDesc')}</span>
             </div>
           </div>
           <button 
@@ -1994,13 +3636,26 @@ function AccountSettings({ translations, canEdit = true }) {
             style={{ background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444' }}
             onClick={() => setShowDeleteModal(true)}
           >
-            {accountSection.deleteAccount || t.accountDeleteAccount}
+            {accountSection.deleteAccount || t('account.deleteAccount')}
           </button>
         </div>
       </div>
 
       <div className={styles.saveButtonWrapper}>
-        <button className={styles.saveButton}>{t.saveChanges}</button>
+        <button 
+          className={styles.saveButton} 
+          onClick={handleSave}
+          disabled={isSaving || !canEdit}
+        >
+          {isSaving ? (
+            <>
+              <Loader2 size={16} className={styles.spinningIcon} />
+              {t('common.saving')}
+            </>
+          ) : (
+            t('common.saveChanges')
+          )}
+        </button>
       </div>
       
       {/* Delete Account Modal */}
@@ -2234,11 +3889,7 @@ function RolesSettings({ translations, canEdit = true }) {
   };
 
   if (isLoading) {
-    return (
-      <div className={styles.loadingState}>
-        <Loader2 className={styles.spinner} />
-      </div>
-    );
+    return <TableSkeleton rows={3} columns={3} hasActions />;
   }
 
   return (
@@ -2732,11 +4383,7 @@ function PermissionsSettings({ translations, canEdit = true }) {
   const settingsModules = modules.filter(m => m.id.startsWith('settings_'));
 
   if (isLoading) {
-    return (
-      <div className={styles.loadingState}>
-        <Loader2 className={styles.spinner} />
-      </div>
-    );
+    return <FormSkeleton fields={4} columns={1} />;
   }
 
   return (

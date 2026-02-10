@@ -1,12 +1,13 @@
 'use client';
 
 import { useState, useRef, useEffect, forwardRef, useImperativeHandle } from 'react';
-import { X, Send, CheckCircle2, Loader2, ChevronDown, Edit2, Check, RotateCcw } from 'lucide-react';
+import { createPortal } from 'react-dom';
+import { X, Send, CheckCircle2, Loader2, ChevronDown, Edit2, Check, RotateCcw, ExternalLink } from 'lucide-react';
 import Image from 'next/image';
 import { useLocale } from '@/app/context/locale-context';
 import styles from './interview-wizard.module.css';
 
-export const InterviewWizard = forwardRef(function InterviewWizard({ onClose, onComplete }, ref) {
+export const InterviewWizard = forwardRef(function InterviewWizard({ onClose, onComplete, site }, ref) {
   const { t, dictionary, isLoading: isDictionaryLoading } = useLocale();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -62,19 +63,44 @@ export const InterviewWizard = forwardRef(function InterviewWizard({ onClose, on
   const inputRef = useRef(null);
   const messageIdCounter = useRef(0);
 
+  // Debug: Log component mount and state
+  console.log('[InterviewWizard] Rendering - loading:', loading, 'isDictionaryLoading:', isDictionaryLoading, 'error:', error);
+
+  // Lock body scroll when wizard is open
+  useEffect(() => {
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    
+    return () => {
+      document.body.style.overflow = originalOverflow;
+    };
+  }, []);
+
   // Fetch interview data on mount
   useEffect(() => {
+    console.log('[InterviewWizard] useEffect - calling fetchInterview');
     fetchInterview();
   }, []);
 
   // Check if dictionary is ready (loaded and not empty)
   const isDictionaryReady = !isDictionaryLoading && dictionary && Object.keys(dictionary).length > 0;
 
-  // Initialize messages when dictionary is loaded
+  // Initialize messages when dictionary is loaded AND interview has started
   useEffect(() => {
-    if (isDictionaryReady && questionsData?.length > 0 && messages.length === 0) {
+    console.log('[InterviewWizard] Message init check:', { 
+      isDictionaryReady, 
+      questionsDataLength: questionsData?.length,
+      messagesLength: messages.length,
+      hasStarted
+    });
+    if (hasStarted && isDictionaryReady && questionsData?.length > 0 && messages.length === 0) {
       const firstQuestion = questionsData[0];
       const questionText = t(firstQuestion.translationKey);
+      console.log('[InterviewWizard] Creating first message:', { 
+        translationKey: firstQuestion.translationKey,
+        questionText,
+        questionType: firstQuestion.questionType
+      });
       const messageId = messageIdCounter.current++;
       setMessages([{
         id: `msg-${messageId}`,
@@ -86,20 +112,36 @@ export const InterviewWizard = forwardRef(function InterviewWizard({ onClose, on
         timestamp: new Date()
       }]);
     }
-  }, [isDictionaryReady, questionsData, messages.length, t]);
+  }, [isDictionaryReady, questionsData, messages.length, t, hasStarted]);
+
+  // Handle starting the interview
+  const handleStartInterview = () => {
+    console.log('[InterviewWizard] Starting interview');
+    setHasStarted(true);
+  };
 
   const fetchInterview = async () => {
+    console.log('[InterviewWizard] fetchInterview started, site:', site?.url);
     try {
       setLoading(true);
-      const res = await fetch('/api/interview');
+      // Include siteId in the request if a site is provided
+      const url = site?.id ? `/api/interview?siteId=${site.id}` : '/api/interview';
+      const res = await fetch(url);
+      console.log('[InterviewWizard] API response status:', res.status);
       if (!res.ok) {
         if (res.status === 401) {
+          console.log('[InterviewWizard] 401 Unauthorized - setting error');
           setError('Please log in to continue');
           return;
         }
         throw new Error('Failed to fetch interview');
       }
       const data = await res.json();
+      console.log('[InterviewWizard] API data:', { 
+        questionsCount: data.questions?.length,
+        interview: data.interview?.id,
+        firstQuestion: data.questions?.[0]?.translationKey
+      });
       
       setQuestions(data.questions || []);
       setQuestionsData(data.questions || []);
@@ -304,9 +346,21 @@ export const InterviewWizard = forwardRef(function InterviewWizard({ onClose, on
     // Only for the websitePlatform question
     if (currentQuestion.saveToField !== 'websitePlatform') return;
     
+    // First priority: Check if site already has platform saved (from entities page or previous detection)
+    if (site?.platform) {
+      setDetectedPlatform({ platform: site.platform, confidence: 1.0 });
+      return;
+    }
+    
     // Check if we already have platform data in externalData
     if (externalData?.platformData?.platform) {
       setDetectedPlatform(externalData.platformData);
+      return;
+    }
+    
+    // Check if platform was detected during crawl
+    if (externalData?.crawledData?.platform) {
+      setDetectedPlatform({ platform: externalData.crawledData.platform, confidence: 0.9 });
       return;
     }
     
@@ -339,18 +393,21 @@ export const InterviewWizard = forwardRef(function InterviewWizard({ onClose, on
     };
     
     detectPlatform();
-  }, [currentQuestionIndex, questionsData]);
+  }, [currentQuestionIndex, questionsData, site?.platform]);
 
-  // Trigger article fetching for DYNAMIC questions with crawledArticles source
+  // Trigger article fetching for DYNAMIC questions with articles source
   useEffect(() => {
     if (!questionsData || currentQuestionIndex === undefined) return;
     
     const currentQuestion = questionsData[currentQuestionIndex];
     if (!currentQuestion) return;
     
-    // Only for DYNAMIC questions with crawledArticles source
+    // Only for DYNAMIC questions with articles source (crawledArticles or fetchedArticles)
     const config = currentQuestion.inputConfig || {};
-    if (currentQuestion.questionType !== 'DYNAMIC' || config.optionsSource !== 'crawledArticles') return;
+    const isArticlesQuestion = currentQuestion.questionType === 'DYNAMIC' && 
+      (config.optionsSource === 'crawledArticles' || config.optionsSource === 'fetchedArticles');
+    
+    if (!isArticlesQuestion) return;
     
     // Check if we already have articles in externalData
     if (externalData?.articles && externalData.articles.length > 0) {
@@ -467,6 +524,10 @@ export const InterviewWizard = forwardRef(function InterviewWizard({ onClose, on
     const config = currentQuestion.inputConfig || {};
     if (config.suggestionsSource !== 'findCompetitors') return;
     
+    console.log('[findCompetitors] Competitor question detected, checking keywords...');
+    console.log('[findCompetitors] Current responses:', Object.keys(responses));
+    console.log('[findCompetitors] responses.keywords:', responses.keywords);
+    
     // Get selected keywords from responses
     const selectedKeywords = responses.keywords || [];
     if (selectedKeywords.length === 0) {
@@ -474,12 +535,26 @@ export const InterviewWizard = forwardRef(function InterviewWizard({ onClose, on
       return;
     }
     
-    // Check if we already have competitor suggestions in externalData
-    // Only check once per question visit using the ref
+    // Check if we already have competitor suggestions (in local state OR externalData)
+    // This prevents re-fetching after user submits their selection
+    if (competitorSuggestions.length > 0) {
+      console.log('[findCompetitors] Already have competitors in local state:', competitorSuggestions.length);
+      return;
+    }
+    
     const cachedCompetitors = externalData?.competitorSuggestions || [];
     if (cachedCompetitors.length > 0) {
       console.log('[findCompetitors] Using cached competitors from externalData:', cachedCompetitors.length);
       setCompetitorSuggestions(cachedCompetitors);
+      
+      // Auto-select competitors marked with autoSelected: true
+      const autoSelectedUrls = cachedCompetitors
+        .filter(c => c.autoSelected)
+        .map(c => c.url);
+      if (autoSelectedUrls.length > 0) {
+        console.log('[findCompetitors] Auto-selecting', autoSelectedUrls.length, 'competitors');
+        setSelectedCompetitors(autoSelectedUrls);
+      }
       return;
     }
     
@@ -502,12 +577,25 @@ export const InterviewWizard = forwardRef(function InterviewWizard({ onClose, on
           keywords: selectedKeywords,
         });
         
+        console.log('[findCompetitors] Action result:', result);
+        
         if (result.success) {
           const competitors = result.externalData?.competitorSuggestions || [];
           console.log('[findCompetitors] Got competitors from action:', competitors.length);
           if (competitors.length > 0) {
             setCompetitorSuggestions(competitors);
+            
+            // Auto-select competitors marked with autoSelected: true
+            const autoSelectedUrls = competitors
+              .filter(c => c.autoSelected)
+              .map(c => c.url);
+            if (autoSelectedUrls.length > 0) {
+              console.log('[findCompetitors] Auto-selecting', autoSelectedUrls.length, 'competitors');
+              setSelectedCompetitors(autoSelectedUrls);
+            }
           }
+        } else {
+          console.error('[findCompetitors] Action failed:', result.error);
         }
       } catch (err) {
         console.error('Error finding competitors:', err);
@@ -518,7 +606,7 @@ export const InterviewWizard = forwardRef(function InterviewWizard({ onClose, on
     };
     
     findCompetitors();
-  }, [currentQuestionIndex, questionsData]);
+  }, [currentQuestionIndex, questionsData, responses.keywords]);
 
   // Set internal links default from article analysis
   useEffect(() => {
@@ -610,6 +698,12 @@ export const InterviewWizard = forwardRef(function InterviewWizard({ onClose, on
       const data = await res.json();
       setValidationError(null);
       setUrlSuggestion(null);
+      
+      // Update local responses state with server data to keep in sync
+      // This ensures that subsequent questions can access the saved values (e.g., keywords for competitors)
+      if (data.interview?.responses) {
+        setResponses(data.interview.responses);
+      }
       
       // Return the updated interview data
       return { 
@@ -859,21 +953,10 @@ export const InterviewWizard = forwardRef(function InterviewWizard({ onClose, on
       }
     }
 
-    // For INPUT type with URL, show processing message
+    // For INPUT type with URL, we'll show processing message after user message
     const isUrlInput = currentQuestion.inputConfig?.inputType === 'url';
-    if (isUrlInput) {
-      // Add processing message
-      const processingMsgId = messageIdCounter.current++;
-      setMessages(prev => [...prev, {
-        id: `msg-${processingMsgId}`,
-        type: 'agent',
-        content: t('interviewWizard.messages.analyzing') || 'Analyzing your website...',
-        isProcessing: true,
-        timestamp: new Date()
-      }]);
-    }
 
-    // Add user message (except for EDITABLE_DATA)
+    // Add user message first (except for EDITABLE_DATA)
     if (currentQuestion.questionType !== 'EDITABLE_DATA') {
       const userMessageId = messageIdCounter.current++;
       // Format array values as comma-separated string for display
@@ -890,6 +973,18 @@ export const InterviewWizard = forwardRef(function InterviewWizard({ onClose, on
         timestamp: new Date()
       };
       setMessages(prev => [...prev, userMessage]);
+    }
+
+    // For URL input, add processing message after user message
+    if (isUrlInput) {
+      const processingMsgId = messageIdCounter.current++;
+      setMessages(prev => [...prev, {
+        id: `msg-${processingMsgId}`,
+        type: 'agent',
+        content: t('interviewWizard.messages.analyzing') || 'Analyzing your website...',
+        isProcessing: true,
+        timestamp: new Date()
+      }]);
     }
 
     // Save response locally
@@ -1004,7 +1099,32 @@ export const InterviewWizard = forwardRef(function InterviewWizard({ onClose, on
     }
   };
 
-  // Retry a user message - remove all messages after it and resend the same message
+  // Auto-submit websiteUrl question when site is provided
+  const autoSubmittedRef = useRef(false);
+  useEffect(() => {
+    // Only auto-submit once
+    if (autoSubmittedRef.current) return;
+    
+    // Check conditions: site URL available, questions loaded, first question is websiteUrl, messages initialized
+    if (!site?.url) return;
+    if (!questionsData?.length) return;
+    if (messages.length === 0) return;
+    if (currentQuestionIndex !== 0) return;
+    
+    const firstQuestion = questionsData[0];
+    if (firstQuestion?.translationKey !== 'registration.interview.questions.websiteUrl') return;
+    
+    console.log('[InterviewWizard] Auto-submitting websiteUrl with site URL:', site.url);
+    autoSubmittedRef.current = true;
+    
+    // Use setTimeout to let the UI render the question first, then auto-submit
+    setTimeout(() => {
+      handleSubmit(site.url);
+    }, 500);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [site?.url, questionsData, messages.length, currentQuestionIndex]);
+
+  // Retry a user message - revert to that question and resend the same message
   const handleRetryMessage = async (messageId) => {
     const messageIndex = messages.findIndex(m => m.id === messageId);
     if (messageIndex === -1) return;
@@ -1015,8 +1135,10 @@ export const InterviewWizard = forwardRef(function InterviewWizard({ onClose, on
     // Find the question index for this message
     // Look at the agent message before this one to determine the question
     let questionIdx = 0;
+    let questionId = null;
     for (let i = messageIndex - 1; i >= 0; i--) {
       if (messages[i].type === 'agent' && messages[i].questionId) {
+        questionId = messages[i].questionId;
         const qIdx = questions.findIndex(q => q.id === messages[i].questionId);
         if (qIdx !== -1) {
           questionIdx = qIdx;
@@ -1025,11 +1147,45 @@ export const InterviewWizard = forwardRef(function InterviewWizard({ onClose, on
       }
     }
 
+    // Call API to revert interview to this question
+    try {
+      const res = await fetch('/api/interview', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ questionIndex: questionIdx, questionId }),
+      });
+      
+      if (!res.ok) {
+        const error = await res.json();
+        console.error('Error reverting interview:', error);
+        return;
+      }
+      
+      const data = await res.json();
+      
+      // Update local state with server response
+      if (data.interview?.responses) {
+        setResponses(data.interview.responses);
+      }
+      if (data.interview?.externalData) {
+        setExternalData(data.interview.externalData);
+      }
+    } catch (err) {
+      console.error('Error reverting interview:', err);
+      return;
+    }
+
     // Remove all messages from this one onwards (including the user message)
     setMessages(prev => prev.slice(0, messageIndex));
     setCurrentQuestionIndex(questionIdx);
     setIsTyping(false);
     setIsProcessing(false);
+    
+    // Clear related state
+    setCompetitorSuggestions([]);
+    setSelectedCompetitors([]);
+    setAiSuggestions(null);
+    setSelectedKeywords([]);
 
     // Re-add the agent question message
     const question = questions[questionIdx];
@@ -1076,12 +1232,14 @@ export const InterviewWizard = forwardRef(function InterviewWizard({ onClose, on
       return;
     }
 
-    const originalMessage = messages[messageIndex];
+    const editedContent = editContent.trim();
 
     // Find the question index for this message
     let questionIdx = 0;
+    let questionId = null;
     for (let i = messageIndex - 1; i >= 0; i--) {
       if (messages[i].type === 'agent' && messages[i].questionId) {
+        questionId = messages[i].questionId;
         const qIdx = questions.findIndex(q => q.id === messages[i].questionId);
         if (qIdx !== -1) {
           questionIdx = qIdx;
@@ -1090,10 +1248,46 @@ export const InterviewWizard = forwardRef(function InterviewWizard({ onClose, on
       }
     }
 
+    // Call API to revert interview to this question
+    try {
+      const res = await fetch('/api/interview', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ questionIndex: questionIdx, questionId }),
+      });
+      
+      if (!res.ok) {
+        const error = await res.json();
+        console.error('Error reverting interview:', error);
+        return;
+      }
+      
+      const data = await res.json();
+      
+      // Update local state with server response
+      if (data.interview?.responses) {
+        setResponses(data.interview.responses);
+      }
+      if (data.interview?.externalData) {
+        setExternalData(data.interview.externalData);
+      }
+    } catch (err) {
+      console.error('Error reverting interview:', err);
+      return;
+    }
+
     // Remove all messages from this one onwards
     setMessages(prev => prev.slice(0, messageIndex));
     setCurrentQuestionIndex(questionIdx);
     setEditingMessageId(null);
+    setIsTyping(false);
+    setIsProcessing(false);
+
+    // Clear related state
+    setCompetitorSuggestions([]);
+    setSelectedCompetitors([]);
+    setAiSuggestions(null);
+    setSelectedKeywords([]);
 
     // Re-add the agent question message
     const question = questions[questionIdx];
@@ -1116,7 +1310,7 @@ export const InterviewWizard = forwardRef(function InterviewWizard({ onClose, on
     
     // Small delay to ensure state is updated
     setTimeout(() => {
-      handleSubmit(editContent.trim());
+      handleSubmit(editedContent);
     }, 100);
   };
 
@@ -1153,22 +1347,36 @@ export const InterviewWizard = forwardRef(function InterviewWizard({ onClose, on
     // Get detected value from crawl data
     const detectedValue = config.defaultFromCrawl ? externalData?.crawledData?.[config.defaultFromCrawl] : null;
     
-    // Helper to get language label from code
+    // Determine which detection message to show based on what was detected
+    const isPlatformDetection = config.defaultFromCrawl === 'platform';
+    const isLanguageDetection = config.defaultFromCrawl === 'language';
+    
+    // Helper to get option label from value
     const getOptionLabel = (value) => {
       const option = config.options?.find(opt => opt.value === value);
       return option ? t(option.labelKey) : value;
+    };
+    
+    // Get the appropriate detection message
+    const getDetectionMessage = () => {
+      if (!detectedValue) return null;
+      
+      if (isPlatformDetection) {
+        return t('interviewWizard.messages.detectedPlatform', { platform: getOptionLabel(detectedValue) });
+      }
+      if (isLanguageDetection) {
+        return t('interviewWizard.messages.languageDetected', { language: getOptionLabel(detectedValue) });
+      }
+      // Generic detected message
+      return `${t('common.detected') || 'Detected'}: ${getOptionLabel(detectedValue)}`;
     };
     
     return (
       <div className={styles.inlineSelectionContent}>
         {detectedValue && (
           <div className={styles.detectedValueBanner}>
-            <span className={styles.detectedIcon}>🔍</span>
-            <span>
-              {t('interviewWizard.messages.languageDetected', { 
-                language: getOptionLabel(detectedValue)
-              }) || `Detected: ${getOptionLabel(detectedValue)}`}
-            </span>
+            <span className={styles.detectedIcon}>{isPlatformDetection ? '🔧' : '🔍'}</span>
+            <span>{getDetectionMessage()}</span>
           </div>
         )}
         
@@ -1248,6 +1456,13 @@ export const InterviewWizard = forwardRef(function InterviewWizard({ onClose, on
   // Render different input types based on question type
   const renderQuestionInput = () => {
     const currentQuestion = questions[currentQuestionIndex];
+    console.log('[InterviewWizard] renderQuestionInput:', { 
+      currentQuestionIndex, 
+      currentQuestion: currentQuestion?.translationKey,
+      questionType: currentQuestion?.questionType,
+      isComplete,
+      questionsLength: questions.length
+    });
     if (!currentQuestion || isComplete) return null;
 
     const config = currentQuestion.inputConfig || {};
@@ -1388,14 +1603,26 @@ export const InterviewWizard = forwardRef(function InterviewWizard({ onClose, on
                   <div className={styles.competitorCardsGrid}>
                     {competitorSuggestions.map((competitor, i) => {
                       const url = typeof competitor === 'string' ? competitor : competitor.url;
-                      const name = competitor.name || url;
-                      const description = competitor.description || '';
+                      const name = competitor.name || competitor.domain || url;
+                      const domain = competitor.domain || '';
+                      const keywordCount = competitor.keywordCount || 0;
+                      const keywords = competitor.keywords || [];
                       const isSelected = selectedCompetitors.includes(url);
+                      const isAutoSelected = competitor.autoSelected;
+                      
+                      // Build description showing which keywords this competitor ranks for
+                      let description = '';
+                      if (keywordCount > 0) {
+                        const keywordNames = keywords.map(k => k.keyword).slice(0, 3).join(', ');
+                        description = keywordCount > 1 
+                          ? `${t('interviewWizard.messages.ranksFor') || 'Ranks for'}: ${keywordNames}${keywords.length > 3 ? '...' : ''}`
+                          : `${t('interviewWizard.messages.ranksFor') || 'Ranks for'}: ${keywordNames}`;
+                      }
                       
                       return (
                         <button
                           key={i}
-                          className={`${styles.competitorCard} ${isSelected ? styles.selected : ''}`}
+                          className={`${styles.competitorCard} ${isSelected ? styles.selected : ''} ${isAutoSelected && !isSelected ? styles.recommended : ''}`}
                           onClick={() => {
                             if (isSelected) {
                               setSelectedCompetitors(prev => prev.filter(c => c !== url));
@@ -1406,7 +1633,24 @@ export const InterviewWizard = forwardRef(function InterviewWizard({ onClose, on
                           disabled={!isSelected && selectedCompetitors.length >= maxCompetitors}
                         >
                           <div className={styles.competitorInfo}>
-                            <span className={styles.competitorName}>{name}</span>
+                            <span className={styles.competitorName}>
+                              {domain || name}
+                              <a
+                                href={url}
+                                target="_blank"
+                                rel="nofollow noopener noreferrer"
+                                className={styles.competitorExternalLink}
+                                onClick={(e) => e.stopPropagation()}
+                                title={t('interviewWizard.messages.visitWebsite') || 'Visit website'}
+                              >
+                                <ExternalLink size={14} />
+                              </a>
+                            </span>
+                            {keywordCount > 1 && (
+                              <span className={styles.competitorScore}>
+                                {t('interviewWizard.messages.foundInKeywords', { count: keywordCount }) || `Found in ${keywordCount} keywords`}
+                              </span>
+                            )}
                             {description && <span className={styles.competitorDescription}>{description}</span>}
                             <span className={styles.competitorUrl}>{url}</span>
                           </div>
@@ -1910,18 +2154,29 @@ export const InterviewWizard = forwardRef(function InterviewWizard({ onClose, on
 
       case 'SLIDER':
         const sliderValue = responses[currentQuestion?.id] ?? internalLinksDefault ?? config.defaultValue ?? config.min;
-        const isInternalLinksQuestion = currentQuestion.saveToField === 'internalLinksCount';
+        const isInternalLinksQuestion = currentQuestion.saveToField === 'internalLinksPer1000Words' || currentQuestion.saveToField === 'internalLinksCount';
+        const recommendedMin = config.recommendedMin ?? 3;
+        const recommendedMax = config.recommendedMax ?? 5;
         
         return (
           <div className={styles.sliderContainer}>
-            {isInternalLinksQuestion && internalLinksDefault && (
-              <div className={styles.sliderHint}>
-                <span className={styles.hintIcon}>💡</span>
-                <span>
-                  {t('registration.interview.hints.internalLinksRecommendation', { count: internalLinksDefault })
-                    || `Based on your posts, we recommend ${internalLinksDefault} internal links per 1000 words. SEO best practice: 2-4 links per 1000 words.`}
-                </span>
-              </div>
+            {isInternalLinksQuestion && (
+              <>
+                <div className={styles.sliderRecommendedRange}>
+                  <span className={styles.rangeLabel}>{t('registration.interview.hints.internalLinksRecommendedRange')}</span>
+                  <span className={styles.rangeValue}>{recommendedMin}-{recommendedMax}</span>
+                  <span className={styles.rangeLabel}>{t('common.linksPerThousand') || 'links / 1000 words'}</span>
+                </div>
+                <div className={styles.sliderHint}>
+                  <span className={styles.hintIcon}>💡</span>
+                  <span>
+                    {internalLinksDefault 
+                      ? t('registration.interview.hints.internalLinksRecommendation', { count: internalLinksDefault })
+                      : t('registration.interview.hints.internalLinksSeoTip')
+                    }
+                  </span>
+                </div>
+              </>
             )}
             <input
               type="range"
@@ -2083,6 +2338,18 @@ export const InterviewWizard = forwardRef(function InterviewWizard({ onClose, on
                           <p className={styles.articleExcerpt}>{article.excerpt}</p>
                         )}
                       </div>
+                      {article.url && (
+                        <a
+                          href={article.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className={styles.articleLink}
+                          onClick={(e) => e.stopPropagation()}
+                          title={t('common.openInNewTab')}
+                        >
+                          <ExternalLink size={14} />
+                        </a>
+                      )}
                       {selectedDynamicOptions.includes(article.url) && (
                         <div className={styles.selectedBadge}>
                           <Check size={14} />
@@ -2216,7 +2483,70 @@ export const InterviewWizard = forwardRef(function InterviewWizard({ onClose, on
     );
   }
 
-  return (
+  // Welcome screen - show before interview starts
+  if (!hasStarted) {
+    return createPortal(
+      <div className={`${styles.overlay} ${isClosing ? styles.overlayClosing : ''}`}>
+        <div className={`${styles.wizardContainer} ${isClosing ? styles.wizardClosing : ''}`}>
+          {/* Ambient Glow */}
+          <div className={styles.ambientGlow}></div>
+          
+          {/* Main Container */}
+          <div className={styles.mainContainer}>
+            
+            {/* Header */}
+            <div className={styles.header}>
+              <div className={styles.headerContent}>
+                <div className={styles.headerIcon}>
+                  <Image src="/ghostpost_logo.png" alt="Ghost" width={20} height={20} className={styles.logo} />
+                </div>
+                <div className={styles.headerText}>
+                  <h2 className={styles.headerTitle}>{t('interviewWizard.title')}</h2>
+                </div>
+              </div>
+              <button onClick={handleClose} className={styles.closeButton}>
+                <X size={16} />
+              </button>
+            </div>
+
+            {/* Welcome Content */}
+            <div className={styles.welcomeScreen}>
+              <div className={styles.welcomeIcon}>
+                <Image src="/ghostpost_logo.png" alt="Ghost" width={80} height={80} className={styles.welcomeLogo} />
+              </div>
+              <h3 className={styles.welcomeTitle}>{t('interviewWizard.welcome.title')}</h3>
+              <p className={styles.welcomeDescription}>
+                {t('interviewWizard.welcome.description')}
+              </p>
+              <div className={styles.welcomeInfo}>
+                <div className={styles.welcomeInfoItem}>
+                  <span className={styles.welcomeInfoIcon}>⏱️</span>
+                  <span>{t('interviewWizard.welcome.duration')}</span>
+                </div>
+                <div className={styles.welcomeInfoItem}>
+                  <span className={styles.welcomeInfoIcon}>❓</span>
+                  <span>{t('interviewWizard.welcome.questions', { count: questions.length })}</span>
+                </div>
+                <div className={styles.welcomeInfoItem}>
+                  <span className={styles.welcomeInfoIcon}>🪙</span>
+                  <span>{t('interviewWizard.welcome.estimatedCredits')}</span>
+                </div>
+              </div>
+              <p className={styles.welcomeCreditsNote}>
+                {t('interviewWizard.welcome.creditsNote')}
+              </p>
+              <button className={styles.welcomeStartButton} onClick={handleStartInterview}>
+                {t('interviewWizard.welcome.startButton')}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>,
+      document.body
+    );
+  }
+
+  return createPortal(
     <div className={`${styles.overlay} ${isClosing ? styles.overlayClosing : ''}`}>
       <div className={`${styles.wizardContainer} ${isClosing ? styles.wizardClosing : ''}`}>
         {/* Ambient Glow */}
@@ -2527,6 +2857,7 @@ export const InterviewWizard = forwardRef(function InterviewWizard({ onClose, on
           </div>
         )}
       </div>
-    </div>
+    </div>,
+    document.body
   );
 });

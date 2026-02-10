@@ -36,11 +36,12 @@ export async function GET() {
               select: {
                 id: true,
                 name: true,
-                aiCreditsBalance: true,
+                aiCreditsUsedTotal: true,
                 subscription: {
                   select: {
                     id: true,
                     status: true,
+                    billingInterval: true,
                     currentPeriodStart: true,
                     currentPeriodEnd: true,
                     cancelAtPeriodEnd: true,
@@ -93,6 +94,46 @@ export async function GET() {
     const currentAccount = currentMembership?.account || null;
     const subscription = currentAccount?.subscription || null;
 
+    // Get usage stats for the current account
+    let usageStats = {
+      sitesCount: 0,
+      membersCount: 0,
+      siteAuditsCount: 0,
+    };
+
+    if (currentAccount) {
+      // Count sites for this account
+      const sitesCount = await prisma.site.count({
+        where: { accountId: currentAccount.id },
+      });
+
+      // Count active members for this account
+      const membersCount = await prisma.accountMember.count({
+        where: { 
+          accountId: currentAccount.id,
+          status: 'ACTIVE',
+        },
+      });
+
+      // Count site audits for this account (this month)
+      const startOfMonth = new Date();
+      startOfMonth.setDate(1);
+      startOfMonth.setHours(0, 0, 0, 0);
+      
+      const siteAuditsCount = await prisma.siteAudit.count({
+        where: { 
+          site: { accountId: currentAccount.id },
+          createdAt: { gte: startOfMonth },
+        },
+      });
+
+      usageStats = {
+        sitesCount,
+        membersCount,
+        siteAuditsCount,
+      };
+    }
+
     // Build response with account and subscription data
     const response = {
       user: {
@@ -107,14 +148,17 @@ export async function GET() {
         // Account data
         accountId: currentAccount?.id || null,
         accountName: currentAccount?.name || null,
-        aiCreditsBalance: currentAccount?.aiCreditsBalance || 0,
+        aiCreditsUsed: currentAccount?.aiCreditsUsedTotal || 0,
         role: currentMembership?.role || null,
         isOwner: currentMembership?.isOwner || false,
+        // Usage stats
+        usageStats: usageStats,
         // Subscription data
         subscription: subscription
           ? {
               id: subscription.id,
               status: subscription.status,
+              billingInterval: subscription.billingInterval,
               currentPeriodStart: subscription.currentPeriodStart,
               currentPeriodEnd: subscription.currentPeriodEnd,
               cancelAtPeriodEnd: subscription.cancelAtPeriodEnd,

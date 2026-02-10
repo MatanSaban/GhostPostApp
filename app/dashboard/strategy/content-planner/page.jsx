@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { StatsCard, PrimaryActionButton } from '../../components';
+import { PageHeader, StatsGrid, PrimaryActionButton } from '../../components';
 import { ContentPlannerView } from './components';
 import { getTranslations } from '@/i18n/server';
 import styles from './page.module.css';
@@ -68,44 +68,25 @@ export default async function ContentPlannerPage() {
   };
 
   return (
-    <div className={styles.container}>
-      {/* Header */}
-      <div className={styles.pageHeader}>
-        <div className={styles.headerContent}>
-          <h1 className={styles.pageTitle}>{t('contentPlanner.title')}</h1>
-          <p className={styles.pageSubtitle}>
-            {t('contentPlanner.subtitle')}
-          </p>
-        </div>
-        <div className={styles.headerActions}>
-          <Link href="/dashboard/content-planner/ai-content-wizard">
-            <PrimaryActionButton iconName="Sparkles">
-              {t('contentPlanner.aiWizard')}
-            </PrimaryActionButton>
-          </Link>
-        </div>
-      </div>
+    <>
+      <PageHeader
+        title={t('contentPlanner.title')}
+        subtitle={t('contentPlanner.subtitle')}
+      >
+        <Link href="/dashboard/content-planner/ai-content-wizard">
+          <PrimaryActionButton iconName="Sparkles">
+            {t('contentPlanner.aiWizard')}
+          </PrimaryActionButton>
+        </Link>
+      </PageHeader>
 
-      {/* Stats */}
-      <div className={styles.statsGrid}>
-        {statsData.map((stat, index) => (
-          <StatsCard
-            key={index}
-            iconName={stat.iconName}
-            value={stat.value}
-            label={stat.label}
-            trend={stat.trend}
-            trendValue={stat.trendValue}
-            color={stat.color}
-          />
-        ))}
-      </div>
+      <StatsGrid stats={statsData} />
 
       {/* Calendar/List View */}
       <ContentPlannerView 
         translations={viewTranslations} 
         contentItems={contentItems}
       />
-    </div>
+    </>
   );
 }

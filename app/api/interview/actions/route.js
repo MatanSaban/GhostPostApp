@@ -5,7 +5,7 @@ import { executeAction } from '@/lib/bot-actions/executor';
 
 const SESSION_COOKIE = 'user_session';
 
-// Get authenticated user
+// Get authenticated user with account info
 async function getAuthenticatedUser() {
   try {
     const cookieStore = await cookies();
@@ -17,7 +17,20 @@ async function getAuthenticatedUser() {
 
     const user = await prisma.user.findUnique({
       where: { id: userId },
-      select: { id: true, email: true, firstName: true, lastName: true },
+      select: { 
+        id: true, 
+        email: true, 
+        firstName: true, 
+        lastName: true,
+        lastSelectedAccountId: true,
+        accountMemberships: {
+          select: {
+            accountId: true,
+            role: { select: { key: true } },
+          },
+          take: 1, // Get primary account
+        },
+      },
     });
 
     return user;
@@ -75,15 +88,25 @@ export async function POST(request) {
       }
     }
 
-    // Create context for execution
+    // Get accountId from user's membership or selected account
+    const accountId = user.lastSelectedAccountId || 
+                      user.accountMemberships?.[0]?.accountId || 
+                      null;
+
+    console.log('[Interview Actions] User:', user.id, 'AccountId:', accountId, 'Memberships:', user.accountMemberships?.length || 0);
+
+    // Create context for execution (with account and site info for credits tracking)
     const context = {
       userId: user.id,
       userEmail: user.email,
-      userName: user.name,
+      userName: `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.email,
+      accountId, // For credits tracking
+      siteId: interview.siteId || null, // May be null during onboarding
       interviewId: interview.id,
       interview, // Pass full interview object for efficiency
       responses: interview.responses || {},
       externalData: interview.externalData || {},
+      prisma, // Pass prisma client for database operations
     };
 
     // Execute the action

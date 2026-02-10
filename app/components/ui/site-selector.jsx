@@ -1,10 +1,26 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { ChevronRight, Search, Check, Plus, X, Loader2, AlertCircle, Globe, Plug, PlugZap } from 'lucide-react';
+import { ChevronRight, Search, Check, Plus, X, Loader2, AlertCircle, Globe, Plug, PlugZap, Pencil, Sparkles, ExternalLink } from 'lucide-react';
 import { useLocale } from '@/app/context/locale-context';
 import { useSite } from '@/app/context/site-context';
 import styles from './site-selector.module.css';
+
+// Platform display labels
+const PLATFORM_LABELS = {
+  wordpress: 'WordPress',
+  shopify: 'Shopify',
+  wix: 'Wix',
+  squarespace: 'Squarespace',
+  webflow: 'Webflow',
+  drupal: 'Drupal',
+  joomla: 'Joomla',
+  custom: 'Custom Code',
+};
+
+function getPlatformLabel(platform) {
+  return PLATFORM_LABELS[platform] || platform;
+}
 
 export function SiteSelector({ onSiteChange }) {
   const { t } = useLocale();
@@ -12,15 +28,22 @@ export function SiteSelector({ onSiteChange }) {
   const [isOpen, setIsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [showAddModal, setShowAddModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editingSite, setEditingSite] = useState(null);
+  const [editName, setEditName] = useState('');
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [updateError, setUpdateError] = useState(null);
   const [newSiteUrl, setNewSiteUrl] = useState('');
   const [newSiteName, setNewSiteName] = useState('');
   const [isValidating, setIsValidating] = useState(false);
   const [validationResult, setValidationResult] = useState(null);
   const [isCreating, setIsCreating] = useState(false);
   const [createError, setCreateError] = useState(null);
+  const [isSuggestingName, setIsSuggestingName] = useState(false);
   const dropdownRef = useRef(null);
   const searchInputRef = useRef(null);
   const urlInputRef = useRef(null);
+  const editInputRef = useRef(null);
 
   const filteredSites = sites.filter(site =>
     site.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -172,6 +195,109 @@ export function SiteSelector({ onSiteChange }) {
     }
   };
 
+  // AI name suggestion
+  const suggestNameWithAI = async () => {
+    if (!validationResult?.valid || !newSiteUrl.trim()) return;
+
+    setIsSuggestingName(true);
+
+    try {
+      const response = await fetch('/api/sites/suggest-name', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          url: newSiteUrl.trim(),
+          pageTitle: validationResult.siteName || null,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to suggest name');
+      }
+
+      const data = await response.json();
+      if (data.suggestedName) {
+        setNewSiteName(data.suggestedName);
+      }
+    } catch (error) {
+      console.error('AI name suggestion failed:', error);
+    } finally {
+      setIsSuggestingName(false);
+    }
+  };
+
+  // Edit site functions
+  const openEditModal = (site, e) => {
+    e.stopPropagation();
+    setIsOpen(false);
+    setEditingSite(site);
+    setEditName(site.name);
+    setUpdateError(null);
+    setShowEditModal(true);
+  };
+
+  const closeEditModal = () => {
+    setShowEditModal(false);
+    setEditingSite(null);
+    setEditName('');
+    setUpdateError(null);
+  };
+
+  const handleUpdateSite = async () => {
+    if (!editingSite || !editName.trim()) return;
+
+    setIsUpdating(true);
+    setUpdateError(null);
+
+    try {
+      const response = await fetch('/api/sites', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          siteId: editingSite.id,
+          name: editName.trim(),
+        }),
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || 'Failed to update site');
+      }
+
+      const data = await response.json();
+      
+      // Update sites list
+      setSites(prevSites => 
+        prevSites.map(s => s.id === data.site.id ? data.site : s)
+      );
+      
+      // Update selected site if it's the one we edited
+      if (selectedSite?.id === data.site.id) {
+        setSelectedSite(data.site);
+      }
+      
+      closeEditModal();
+    } catch (error) {
+      setUpdateError(error.message);
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
+  const handleEditKeyDown = (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      handleUpdateSite();
+    }
+  };
+
+  useEffect(() => {
+    if (showEditModal && editInputRef.current) {
+      editInputRef.current.focus();
+      editInputRef.current.select();
+    }
+  }, [showEditModal]);
+
   // Show loading state or placeholder when no sites
   if (isLoading) {
     return (
@@ -252,8 +378,8 @@ export function SiteSelector({ onSiteChange }) {
                     <Check size={18} />
                     <span>{t('sites.add.validUrl')}</span>
                     {validationResult.platform && (
-                      <span className={styles.platformBadge}>
-                        {validationResult.platform === 'wordpress' ? 'WordPress' : validationResult.platform}
+                      <span className={`${styles.platformBadge} ${validationResult.platform !== 'wordpress' ? styles.platformBadgeWarning : ''}`}>
+                        {getPlatformLabel(validationResult.platform)}
                       </span>
                     )}
                   </>
@@ -266,17 +392,41 @@ export function SiteSelector({ onSiteChange }) {
               </div>
             )}
 
+            {/* Non-WordPress warning */}
+            {validationResult?.valid && validationResult.platform && validationResult.platform !== 'wordpress' && (
+              <div className={styles.platformWarning}>
+                <AlertCircle size={16} />
+                <span>{t('sites.add.nonWordPressWarning')}</span>
+              </div>
+            )}
+
             {/* Step 2: Name Input (only after valid URL) */}
             {validationResult?.valid && (
               <div className={styles.formGroup}>
                 <label className={styles.formLabel}>{t('sites.add.nameLabel')}</label>
-                <input
-                  type="text"
-                  value={newSiteName}
-                  onChange={(e) => setNewSiteName(e.target.value)}
-                  placeholder={t('sites.add.namePlaceholder')}
-                  className={styles.nameInput}
-                />
+                <div className={styles.nameInputWrapper}>
+                  <input
+                    type="text"
+                    value={newSiteName}
+                    onChange={(e) => setNewSiteName(e.target.value)}
+                    placeholder={t('sites.add.namePlaceholder')}
+                    className={styles.nameInput}
+                  />
+                  <button
+                    type="button"
+                    className={styles.aiSuggestButton}
+                    onClick={suggestNameWithAI}
+                    disabled={isSuggestingName}
+                    title={t('sites.add.aiSuggest')}
+                  >
+                    {isSuggestingName ? (
+                      <Loader2 className={styles.spinningIcon} size={16} />
+                    ) : (
+                      <Sparkles size={16} />
+                    )}
+                    <span>{t('sites.add.aiSuggest')}</span>
+                  </button>
+                </div>
               </div>
             )}
 
@@ -364,37 +514,55 @@ export function SiteSelector({ onSiteChange }) {
             <div className={styles.sitesList}>
               {filteredSites.length > 0 ? (
                 filteredSites.map((site) => (
-                  <button
+                  <div
                     key={site.id}
                     className={`${styles.siteItem} ${site.id === selectedSite?.id ? styles.siteItemSelected : ''}`}
-                    onClick={() => handleSelect(site)}
                   >
-                    <div className={styles.siteInfo}>
-                      <div className={styles.siteNameRow}>
-                        <span className={styles.siteName}>{site.name}</span>
-                        {site.platform === 'wordpress' && (
-                          <span 
-                            className={`${styles.connectionDot} ${
-                              site.connectionStatus === 'CONNECTED' ? styles.connected : 
-                              site.connectionStatus === 'DISCONNECTED' ? styles.disconnected : 
-                              site.connectionStatus === 'ERROR' ? styles.error : 
-                              styles.pending
-                            }`}
-                            title={
-                              site.connectionStatus === 'CONNECTED' ? t('sites.status.connected') :
-                              site.connectionStatus === 'DISCONNECTED' ? t('sites.status.disconnected') :
-                              site.connectionStatus === 'ERROR' ? t('sites.status.error') :
-                              t('sites.status.pending')
-                            }
-                          />
-                        )}
+                    <button
+                      className={styles.siteItemContent}
+                      onClick={() => handleSelect(site)}
+                    >
+                      <div className={styles.siteInfo}>
+                        <div className={styles.siteNameRow}>
+                          <span className={styles.siteName}>{site.name}</span>
+                          {site.platform === 'wordpress' && (
+                            <span 
+                              className={`${styles.connectionDot} ${
+                                site.connectionStatus === 'CONNECTED' ? styles.connected : 
+                                site.connectionStatus === 'DISCONNECTED' ? styles.disconnected : 
+                                site.connectionStatus === 'ERROR' ? styles.error : 
+                                styles.pending
+                              }`}
+                              title={
+                                site.connectionStatus === 'CONNECTED' ? t('sites.status.connected') :
+                                site.connectionStatus === 'DISCONNECTED' ? t('sites.status.disconnected') :
+                                site.connectionStatus === 'ERROR' ? t('sites.status.error') :
+                                t('sites.status.pending')
+                              }
+                            />
+                          )}
+                        </div>
+                        <span className={styles.siteUrl}>{site.url}</span>
                       </div>
-                      <span className={styles.siteUrl}>{site.url}</span>
-                    </div>
-                    {site.id === selectedSite?.id && (
-                      <Check className={styles.checkIcon} size={16} />
-                    )}
-                  </button>
+                    </button>
+                    <a
+                      href={site.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className={styles.openSiteLink}
+                      onClick={(e) => e.stopPropagation()}
+                      title={t('sites.openWebsite')}
+                    >
+                      <ExternalLink size={14} />
+                    </a>
+                    <button
+                      className={styles.editSiteButton}
+                      onClick={(e) => openEditModal(site, e)}
+                      title={t('common.edit')}
+                    >
+                      <Pencil size={14} />
+                    </button>
+                  </div>
                 ))
               ) : (
                 <div className={styles.noResults}>
@@ -413,6 +581,75 @@ export function SiteSelector({ onSiteChange }) {
       </div>
       
       {showAddModal && renderAddModal()}
+      {showEditModal && renderEditModal()}
     </>
   );
+
+  function renderEditModal() {
+    return (
+      <div className={styles.modalOverlay} onClick={closeEditModal}>
+        <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
+          <div className={styles.modalHeader}>
+            <h3 className={styles.modalTitle}>{t('sites.edit.title')}</h3>
+            <button className={styles.modalClose} onClick={closeEditModal}>
+              <X size={20} />
+            </button>
+          </div>
+
+          <div className={styles.modalBody}>
+            <div className={styles.formGroup}>
+              <label className={styles.formLabel}>{t('sites.edit.nameLabel')}</label>
+              <input
+                ref={editInputRef}
+                type="text"
+                value={editName}
+                onChange={(e) => setEditName(e.target.value)}
+                onKeyDown={handleEditKeyDown}
+                placeholder={t('sites.edit.namePlaceholder')}
+                className={styles.nameInput}
+                disabled={isUpdating}
+              />
+            </div>
+
+            {editingSite && (
+              <div className={styles.formGroup}>
+                <label className={styles.formLabel}>{t('sites.edit.urlLabel')}</label>
+                <div className={styles.urlDisplay}>{editingSite.url}</div>
+              </div>
+            )}
+
+            {updateError && (
+              <div className={styles.errorMessage}>
+                <AlertCircle size={16} />
+                <span>{updateError}</span>
+              </div>
+            )}
+          </div>
+
+          <div className={styles.modalFooter}>
+            <button className={styles.cancelButton} onClick={closeEditModal}>
+              {t('common.cancel')}
+            </button>
+            <button
+              className={styles.createButton}
+              onClick={handleUpdateSite}
+              disabled={!editName.trim() || isUpdating}
+            >
+              {isUpdating ? (
+                <>
+                  <Loader2 className={styles.spinningIcon} size={16} />
+                  {t('common.saving')}
+                </>
+              ) : (
+                <>
+                  <Check size={16} />
+                  {t('common.save')}
+                </>
+              )}
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 }

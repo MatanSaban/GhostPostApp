@@ -2,7 +2,7 @@ import {
   ExternalLink
 } from 'lucide-react';
 import { getTranslations } from '@/i18n/server';
-import { StatsCard, StatusBadge, PrimaryActionButton } from '../components';
+import { PageHeader, StatsGrid, StatusBadge, PrimaryActionButton } from '../components';
 import styles from './page.module.css';
 
 export default async function LinkBuildingPage() {
@@ -30,34 +30,17 @@ export default async function LinkBuildingPage() {
   ];
   
   return (
-    <div className={styles.container}>
-      {/* Header */}
-      <div className={styles.pageHeader}>
-        <div className={styles.headerContent}>
-          <h1 className={styles.pageTitle}>{t('linkBuilding.title')}</h1>
-          <p className={styles.pageSubtitle}>
-            {t('linkBuilding.subtitle')}
-          </p>
-        </div>
+    <>
+      <PageHeader
+        title={t('linkBuilding.title')}
+        subtitle={t('linkBuilding.subtitle')}
+      >
         <PrimaryActionButton iconName="RefreshCw">
           {t('linkBuilding.findOpportunities')}
         </PrimaryActionButton>
-      </div>
+      </PageHeader>
 
-      {/* Stats */}
-      <div className={styles.statsGrid}>
-        {statsData.map((stat, index) => (
-          <StatsCard
-            key={index}
-            iconName={stat.iconName}
-            value={stat.value}
-            label={stat.label}
-            trend={stat.trend}
-            trendValue={stat.trendValue}
-            color={stat.color}
-          />
-        ))}
-      </div>
+      <StatsGrid stats={statsData} />
 
       {/* Main Grid */}
       <div className={styles.mainGrid}>
@@ -121,6 +104,6 @@ export default async function LinkBuildingPage() {
           </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }

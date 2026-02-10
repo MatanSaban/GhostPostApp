@@ -4,7 +4,7 @@ import { useState, useEffect, use, useRef } from 'react';
 import { FileText, Newspaper, FolderKanban, Briefcase, Package, MoreHorizontal, Database } from 'lucide-react';
 import { useLocale } from '@/app/context/locale-context';
 import { useSite } from '@/app/context/site-context';
-import { StatsCard } from '@/app/dashboard/components';
+import { StatsCard, StatsGridSkeleton, TableSkeleton, PageHeaderSkeleton } from '@/app/dashboard/components';
 import { EntitiesTable } from '../components';
 import styles from '../entities.module.css';
 
@@ -26,6 +26,7 @@ export default function EntityTypePage({ params }) {
   const [entities, setEntities] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSyncing, setIsSyncing] = useState(false);
+  const [isDownloadingPlugin, setIsDownloadingPlugin] = useState(false);
   const [lastSyncDate, setLastSyncDate] = useState(null);
   const [notFound, setNotFound] = useState(false);
   const [stats, setStats] = useState({
@@ -113,25 +114,27 @@ export default function EntityTypePage({ params }) {
   };
 
   const handleSync = async () => {
-    if (!selectedSite?.id) return;
+    if (!selectedSite?.id || !entityType?.id) return;
     
     // Create abort controller for this sync
     syncAbortControllerRef.current = new AbortController();
     
     setIsSyncing(true);
     try {
-      // Use plugin sync if connected, otherwise use scan endpoint
-      const isPluginConnected = selectedSite?.connectionStatus === 'CONNECTED' && selectedSite?.siteKey;
-      
-      const endpoint = isPluginConnected ? '/api/entities/sync' : '/api/entities/scan';
-      const body = isPluginConnected 
-        ? { siteId: selectedSite.id, type }
-        : { siteId: selectedSite.id, phase: 'populate' };
-      
-      const response = await fetch(endpoint, {
+      // Use deep crawl to sync entities (creates from sitemap + enriches in one pass)
+      const response = await fetch('/api/entities/scan', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body),
+        body: JSON.stringify({ 
+          siteId: selectedSite.id, 
+          phase: 'crawl',
+          entityTypeId: entityType.id, // Only sync this specific entity type
+          options: {
+            forceRescan: true,
+            createFromSitemap: true,
+            batchSize: 50,
+          },
+        }),
         signal: syncAbortControllerRef.current.signal,
       });
       
@@ -153,11 +156,74 @@ export default function EntityTypePage({ params }) {
     }
   };
 
+  // Deep crawl a single entity to refresh its data
+  const handleRefreshEntity = async (entityId) => {
+    if (!selectedSite?.id) return false;
+    
+    try {
+      const response = await fetch('/api/entities/refresh', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          siteId: selectedSite.id,
+          entityId,
+        }),
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        // Update the entity in local state
+        if (data.entity) {
+          setEntities(prev => prev.map(e => 
+            e.id === entityId ? { ...e, ...data.entity } : e
+          ));
+        }
+        return true;
+      } else {
+        const errorData = await response.json();
+        console.error('Refresh failed:', errorData.error);
+        return false;
+      }
+    } catch (error) {
+      console.error('Failed to refresh entity:', error);
+      return false;
+    }
+  };
+
   const handleStopSync = () => {
     if (syncAbortControllerRef.current) {
       syncAbortControllerRef.current.abort();
       syncAbortControllerRef.current = null;
       setIsSyncing(false);
+    }
+  };
+
+  // Download WordPress plugin
+  const handleDownloadPlugin = async () => {
+    if (!selectedSite?.id) return;
+
+    setIsDownloadingPlugin(true);
+    try {
+      const response = await fetch(`/api/sites/${selectedSite.id}/download-plugin`);
+      
+      if (!response.ok) {
+        throw new Error('Failed to download plugin');
+      }
+
+      // Get the blob and create download link
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `ghost-post-${selectedSite.id}.zip`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (error) {
+      console.error('Failed to download plugin:', error);
+    } finally {
+      setIsDownloadingPlugin(false);
     }
   };
 
@@ -208,10 +274,9 @@ export default function EntityTypePage({ params }) {
   if (isLoading && !entityType) {
     return (
       <div className={styles.container}>
-        <div className={styles.loadingContainer}>
-          <div className={styles.loadingSpinner}></div>
-          <span className={styles.loadingText}>{t('common.loading')}</span>
-        </div>
+        <PageHeaderSkeleton />
+        <StatsGridSkeleton count={5} />
+        <TableSkeleton rows={8} columns={4} hasCheckbox />
       </div>
     );
   }
@@ -267,14 +332,23 @@ export default function EntityTypePage({ params }) {
         entityTypeName={entityType?.name}
         onSync={handleSync}
         onStopSync={handleStopSync}
+        onRefreshEntity={handleRefreshEntity}
+        onDownloadPlugin={handleDownloadPlugin}
         onEntityRemoved={(entityId) => {
           setEntities(prev => prev.filter(e => e.id !== entityId));
           setStats(prev => ({ ...prev, total: prev.total - 1 }));
         }}
+        onEntitiesRemoved={(entityIds) => {
+          setEntities(prev => prev.filter(e => !entityIds.includes(e.id)));
+          setStats(prev => ({ ...prev, total: prev.total - entityIds.length }));
+        }}
         isLoading={isLoading}
         isSyncing={isSyncing}
+        isDownloadingPlugin={isDownloadingPlugin}
         lastSyncDate={lastSyncDate}
+        hasSyncedBefore={!!lastSyncDate}
         isPluginConnected={selectedSite?.connectionStatus === 'CONNECTED' && !!selectedSite?.siteKey}
+        site={selectedSite}
       />
     </div>
   );

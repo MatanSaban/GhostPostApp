@@ -12,7 +12,7 @@ import {
 
 const SESSION_COOKIE = 'user_session';
 
-// Get authenticated user
+// Get authenticated user with account info
 async function getAuthenticatedUser() {
   try {
     const cookieStore = await cookies();
@@ -24,7 +24,20 @@ async function getAuthenticatedUser() {
 
     const user = await prisma.user.findUnique({
       where: { id: userId },
-      select: { id: true, email: true, firstName: true, lastName: true },
+      select: { 
+        id: true, 
+        email: true, 
+        firstName: true, 
+        lastName: true,
+        lastSelectedAccountId: true,
+        accountMemberships: {
+          select: {
+            accountId: true,
+            role: { select: { key: true } },
+          },
+          take: 1, // Get primary account
+        },
+      },
     });
 
     return user;
@@ -42,11 +55,25 @@ export async function GET(request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Find existing interview for this user
+    // Check if a siteId was provided (for site-specific interviews)
+    const { searchParams } = new URL(request.url);
+    const siteId = searchParams.get('siteId');
+    
+    // If siteId provided, get the site info
+    let site = null;
+    if (siteId) {
+      site = await prisma.site.findUnique({
+        where: { id: siteId },
+        select: { id: true, url: true, name: true, platform: true }
+      });
+    }
+
+    // Find existing interview for this user (and optionally for this site)
     let interview = await prisma.userInterview.findFirst({
       where: { 
         userId: user.id,
         status: { in: ['NOT_STARTED', 'IN_PROGRESS'] },
+        ...(siteId ? { siteId } : {}),
       },
       include: {
         messages: {
@@ -62,9 +89,10 @@ export async function GET(request) {
         data: {
           userId: user.id,
           status: 'NOT_STARTED',
-          responses: {},
+          responses: site ? { websiteUrl: site.url } : {},
           externalData: {},
           aiContext: {},
+          ...(siteId ? { siteId } : {}),
         },
         include: {
           messages: true,
@@ -263,10 +291,19 @@ export async function POST(request) {
     // Execute auto-actions for this question if any
     if (question.autoActions && question.autoActions.length > 0) {
       try {
+        // Get accountId from user's membership or selected account
+        const accountId = user.lastSelectedAccountId || 
+                          user.accountMemberships?.[0]?.accountId || 
+                          null;
+        
         await executeAutoActions(question, {
           interview,
           responses: updatedResponses,
           user,
+          userId: user.id,
+          accountId, // For credits tracking
+          siteId: interview.siteId || null,
+          prisma, // Pass prisma client for database operations
         });
       } catch (actionError) {
         console.error('Auto-action error:', actionError);
@@ -298,9 +335,19 @@ export async function POST(request) {
 
     // If interview is complete, run completion logic
     if (!nextQuestionResult) {
+      // Get accountId from user's membership or selected account
+      const accountIdForCompletion = user.lastSelectedAccountId || 
+                        user.accountMemberships?.[0]?.accountId || 
+                        null;
+      
       await completeInterview(interview.id, {
         responses: updatedResponses,
         user,
+        userId: user.id,
+        accountId: accountIdForCompletion, // For credits tracking
+        siteId: interview.siteId || null,
+        prisma, // Pass prisma client for database operations
+        interview, // Pass interview object
       });
     }
 
@@ -370,6 +417,138 @@ export async function DELETE(request) {
     console.error('Error abandoning interview:', error);
     return NextResponse.json(
       { error: 'Failed to abandon interview' },
+      { status: 500 }
+    );
+  }
+}
+
+// PUT - Revert interview to a specific question (for edit/retry functionality)
+export async function PUT(request) {
+  try {
+    const user = await getAuthenticatedUser();
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const { questionIndex, questionId } = await request.json();
+
+    if (questionIndex === undefined && !questionId) {
+      return NextResponse.json(
+        { error: 'Either questionIndex or questionId is required' },
+        { status: 400 }
+      );
+    }
+
+    // Find the user's active interview
+    const interview = await prisma.userInterview.findFirst({
+      where: { 
+        userId: user.id,
+        status: { in: ['NOT_STARTED', 'IN_PROGRESS'] },
+      },
+    });
+
+    if (!interview) {
+      return NextResponse.json(
+        { error: 'No active interview found' },
+        { status: 404 }
+      );
+    }
+
+    // Get all questions to validate and find the correct index
+    const questions = await prisma.interviewQuestion.findMany({
+      where: { isActive: true },
+      orderBy: { order: 'asc' },
+    });
+
+    // Determine the target question index
+    let targetIndex = questionIndex;
+    if (questionId) {
+      targetIndex = questions.findIndex(q => q.id === questionId);
+      if (targetIndex === -1) {
+        return NextResponse.json(
+          { error: 'Question not found' },
+          { status: 404 }
+        );
+      }
+    }
+
+    if (targetIndex < 0 || targetIndex >= questions.length) {
+      return NextResponse.json(
+        { error: 'Invalid question index' },
+        { status: 400 }
+      );
+    }
+
+    // Get the list of questions that will be cleared
+    const questionsToKeep = questions.slice(0, targetIndex);
+    const questionsToClear = questions.slice(targetIndex);
+    
+    // Build new responses - keep only responses for questions before the target
+    const newResponses = {};
+    const currentResponses = interview.responses || {};
+    
+    for (const q of questionsToKeep) {
+      // Keep response by question ID
+      if (currentResponses[q.id] !== undefined) {
+        newResponses[q.id] = currentResponses[q.id];
+      }
+      // Keep response by saveToField
+      if (q.saveToField && currentResponses[q.saveToField] !== undefined) {
+        newResponses[q.saveToField] = currentResponses[q.saveToField];
+      }
+    }
+
+    // Determine which externalData fields to clear based on questions being reverted
+    const externalData = { ...interview.externalData } || {};
+    const fieldsToCheck = questionsToClear.map(q => q.saveToField).filter(Boolean);
+    
+    // Clear specific external data based on which questions are being reverted
+    for (const field of fieldsToCheck) {
+      // Clear related external data
+      if (field === 'keywords') {
+        delete externalData.keywordSuggestions;
+        delete externalData.competitorSuggestions;
+        delete externalData.competitorSearchedAt;
+      }
+      if (field === 'competitors') {
+        delete externalData.competitorSuggestions;
+        delete externalData.competitorSearchedAt;
+      }
+      if (field === 'websiteUrl') {
+        // If reverting to URL, clear everything
+        Object.keys(externalData).forEach(key => {
+          if (key !== 'crawledData') delete externalData[key];
+        });
+      }
+    }
+
+    // Update the interview
+    const updatedInterview = await prisma.userInterview.update({
+      where: { id: interview.id },
+      data: {
+        currentStep: targetIndex,
+        responses: newResponses,
+        externalData: externalData,
+        status: 'IN_PROGRESS',
+      },
+    });
+
+    console.log(`[Interview] Reverted interview ${interview.id} to question ${targetIndex} for user ${user.id}`);
+
+    return NextResponse.json({ 
+      success: true, 
+      interview: {
+        id: updatedInterview.id,
+        currentQuestionIndex: targetIndex,
+        responses: newResponses,
+        externalData: externalData,
+      },
+      message: `Reverted to question ${targetIndex + 1}` 
+    });
+  } catch (error) {
+    console.error('Error reverting interview:', error);
+    return NextResponse.json(
+      { error: 'Failed to revert interview' },
       { status: 500 }
     );
   }
