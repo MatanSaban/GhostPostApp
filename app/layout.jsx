@@ -5,6 +5,7 @@ import { LocaleProvider } from '@/app/context/locale-context';
 import { UserProvider } from '@/app/context/user-context';
 import { SiteProvider } from '@/app/context/site-context';
 import { BackgroundTasksProvider } from '@/app/context/background-tasks-context';
+import { LimitGuardProvider } from '@/app/context/limit-guard-context';
 import { SiteLocaleSync } from '@/app/components/SiteLocaleSync';
 import { BackgroundTasksNotification } from '@/app/components/ui/background-tasks-notification';
 import { locales, defaultLocale, getDirection } from '@/i18n/config';
@@ -43,6 +44,7 @@ export default async function RootLayout({ children }) {
         <LocaleProvider>
           <ThemeProvider>
             <UserProvider>
+              <LimitGuardProvider>
               <SiteProvider>
                 <BackgroundTasksProvider>
                   <SiteLocaleSync />
@@ -50,6 +52,7 @@ export default async function RootLayout({ children }) {
                   <BackgroundTasksNotification />
                 </BackgroundTasksProvider>
               </SiteProvider>
+              </LimitGuardProvider>
             </UserProvider>
           </ThemeProvider>
         </LocaleProvider>

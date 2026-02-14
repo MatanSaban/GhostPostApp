@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import { useRouter } from 'next/navigation';
 import {
   Search,
@@ -392,7 +393,7 @@ export default function SubscriptionsPage() {
       </div>
 
       {/* View Subscription Modal */}
-      {viewModal.open && viewModal.subscription && (
+      {viewModal.open && viewModal.subscription && createPortal(
         <div className={styles.modalOverlay} onClick={() => setViewModal({ open: false, subscription: null })}>
           <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
             <div className={styles.modalHeader}>
@@ -475,11 +476,12 @@ export default function SubscriptionsPage() {
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* Edit Subscription Modal */}
-      {editModal.open && editModal.subscription && (
+      {editModal.open && editModal.subscription && createPortal(
         <div className={styles.modalOverlay} onClick={() => setEditModal({ open: false, subscription: null, selectedPlanId: '' })}>
           <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
             <div className={styles.modalHeader}>
@@ -528,11 +530,12 @@ export default function SubscriptionsPage() {
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* Confirm Action Modal */}
-      {confirmModal.open && confirmModal.subscription && (
+      {confirmModal.open && confirmModal.subscription && createPortal(
         <div className={styles.modalOverlay} onClick={() => setConfirmModal({ open: false, subscription: null, action: null })}>
           <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
             <div className={styles.modalHeader}>
@@ -598,7 +601,8 @@ export default function SubscriptionsPage() {
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

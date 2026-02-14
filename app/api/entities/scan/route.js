@@ -3,6 +3,7 @@ import { cookies } from 'next/headers';
 import prisma from '@/lib/prisma';
 import { generateStructuredResponse } from '@/lib/ai/gemini';
 import { trackAIUsage } from '@/lib/ai/credits-service';
+import { enforceCredits } from '@/lib/account-limits';
 import { getSiteInfo as getPluginSiteInfo } from '@/lib/wp-api-client';
 import { z } from 'zod';
 
@@ -2667,6 +2668,12 @@ export async function POST(request) {
 
     if (!site) {
       return NextResponse.json({ error: 'Site not found' }, { status: 404 });
+    }
+
+    // ── Enforce AI credit limit ──────────────────────────────
+    const creditCheck = await enforceCredits(site.accountId, 1); // GENERIC = 1 credit minimum
+    if (!creditCheck.allowed) {
+      return NextResponse.json(creditCheck, { status: 402 });
     }
 
     // Handle discover-crawl phase (crawl without sitemap)

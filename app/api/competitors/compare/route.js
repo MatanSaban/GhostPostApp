@@ -4,6 +4,7 @@ import prisma from '@/lib/prisma';
 import { scrapeCompetitorPage, comparePages } from '@/lib/competitor-scraper';
 import { identifyContentGaps, generateSkyscraperOutline } from '@/lib/ai/competitor-analysis';
 import { trackAIUsage } from '@/lib/ai/credits-service';
+import { enforceCredits } from '@/lib/account-limits';
 
 const SESSION_COOKIE = 'user_session';
 
@@ -77,6 +78,13 @@ export async function POST(request) {
         { error: 'Site not found' },
         { status: 404 }
       );
+    }
+
+    // ── Enforce AI credit limit ──────────────────────────────
+    const requiredCredits = generateOutline ? 50 : 25; // GAP_ANALYSIS(25) + optional SKYSCRAPER_OUTLINE(25)
+    const creditCheck = await enforceCredits(site.accountId, requiredCredits);
+    if (!creditCheck.allowed) {
+      return NextResponse.json(creditCheck, { status: 402 });
     }
 
     // Get the competitor

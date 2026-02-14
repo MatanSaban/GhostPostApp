@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 import { useLocale } from '@/app/context/locale-context';
 import styles from './AdminModal.module.css';
@@ -31,7 +32,7 @@ export function AdminModal({ isOpen, onClose, title, children, size = 'medium' }
     if (e.target === e.currentTarget) onClose();
   };
 
-  return (
+  return createPortal(
     <div className={styles.overlay} onClick={handleOverlayClick}>
       <div className={`${styles.modal} ${styles[size]}`} ref={modalRef}>
         <div className={styles.header}>
@@ -44,7 +45,8 @@ export function AdminModal({ isOpen, onClose, title, children, size = 'medium' }
           {children}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
 
@@ -57,7 +59,7 @@ export function ConfirmDialog({ isOpen, onClose, onConfirm, title, message, conf
     if (e.target === e.currentTarget) onClose();
   };
 
-  return (
+  return createPortal(
     <div className={styles.overlay} onClick={handleOverlayClick}>
       <div className={`${styles.modal} ${styles.small}`}>
         <div className={styles.header}>
@@ -86,7 +88,8 @@ export function ConfirmDialog({ isOpen, onClose, onConfirm, title, message, conf
           </div>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
 

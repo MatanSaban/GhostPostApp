@@ -1,10 +1,11 @@
 'use client';
 
+import { createPortal } from 'react-dom';
 import { Smartphone, Mail, X } from 'lucide-react';
 import styles from '../auth.module.css';
 
 export function OtpMethodModal({ translations, onSelect, onClose }) {
-  return (
+  return createPortal(
     <div className={styles.modalOverlay}>
       <div className={styles.otpMethodModal}>
         <button className={styles.modalCloseBtn} onClick={onClose}>
@@ -35,6 +36,7 @@ export function OtpMethodModal({ translations, onSelect, onClose }) {
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

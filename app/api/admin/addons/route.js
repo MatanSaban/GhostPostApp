@@ -98,7 +98,7 @@ export async function POST(request) {
     }
 
     // Validate type
-    const validTypes = ['SEATS', 'SITES', 'AI_CREDITS', 'STORAGE', 'KEYWORDS', 'CONTENT'];
+    const validTypes = ['SEATS', 'SITES', 'AI_CREDITS', 'STORAGE', 'KEYWORDS', 'CONTENT', 'SITE_AUDITS'];
     if (!validTypes.includes(type)) {
       return NextResponse.json(
         { error: `Invalid type. Must be one of: ${validTypes.join(', ')}` },

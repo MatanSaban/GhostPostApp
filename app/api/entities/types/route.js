@@ -84,6 +84,9 @@ export async function GET(request) {
         slug: true,
         apiEndpoint: true,
         sitemaps: true,
+        _count: {
+          select: { entities: true },
+        },
       },
     });
 

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect, forwardRef, useImperativeHandle, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import { 
   X, 
   Send, 
@@ -686,7 +687,7 @@ export const InterviewWizardAI = forwardRef(function InterviewWizardAI({ onClose
     );
   }
 
-  return (
+  return createPortal(
     <div className={`${styles.overlay} ${isClosing ? styles.closing : ''}`}>
       <div className={styles.wizard}>
         {/* Header */}
@@ -808,6 +809,7 @@ export const InterviewWizardAI = forwardRef(function InterviewWizardAI({ onClose
           </div>
         )}
       </div>
-    </div>
+    </div>,
+    document.body
   );
 });

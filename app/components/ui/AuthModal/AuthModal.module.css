@@ -1,7 +1,10 @@
 .overlay {
   position: fixed;
-  inset: 0;
-  z-index: 100;
+  top: 0;
+  left: 0;
+  width: 100dvw;
+  height: 100dvh;
+  z-index: 10000;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -10,7 +13,10 @@
 
 .backdrop {
   position: absolute;
-  inset: 0;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
   background: rgba(0, 0, 0, 0.7);
   backdrop-filter: blur(4px);
 }

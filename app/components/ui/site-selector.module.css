@@ -36,6 +36,13 @@
   box-shadow: 0 0 0 3px rgba(123, 44, 191, 0.1);
 }
 
+.selectedNameWrapper {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
 .selectedName {
   overflow: hidden;
   text-overflow: ellipsis;
@@ -139,18 +146,17 @@
   width: 100%;
   display: flex;
   align-items: center;
-  justify-content: space-between;
   padding: 0.5rem;
   border-radius: var(--radius-md);
   text-align: left;
   transition: all var(--transition-fast);
-  gap: 0.5rem;
+  gap: 0;
 
   &:hover {
     background: var(--muted);
 
-    .editSiteButton,
-    .openSiteLink {
+    .siteItemActions {
+      width: 64px;
       opacity: 1;
     }
   }
@@ -166,6 +172,18 @@
   text-align: left;
   transition: all var(--transition-fast);
   min-width: 0;
+  overflow: hidden;
+}
+
+.siteItemActions {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  width: 0;
+  opacity: 0;
+  overflow: hidden;
+  flex-shrink: 0;
+  transition: width 0.25s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.2s ease;
 }
 
 .editSiteButton {
@@ -177,8 +195,7 @@
   height: 28px;
   border-radius: var(--radius-sm);
   color: var(--muted-foreground);
-  opacity: 0;
-  transition: all var(--transition-fast);
+  transition: background var(--transition-fast), color var(--transition-fast);
 
   &:hover {
     background: rgba(123, 44, 191, 0.1);
@@ -195,8 +212,7 @@
   height: 28px;
   border-radius: var(--radius-sm);
   color: var(--muted-foreground);
-  opacity: 0;
-  transition: all var(--transition-fast);
+  transition: background var(--transition-fast), color var(--transition-fast);
 
   &:hover {
     background: rgba(123, 44, 191, 0.1);
@@ -327,9 +343,13 @@
   text-align: right;
 }
 
+:global(html[dir="rtl"]) .siteItemContent {
+  text-align: right;
+}
+
 :global(html[dir="rtl"]) .siteInfo {
   text-align: right;
-  align-items: flex-end;
+  align-items: flex-start;
 }
 
 :global(html[dir="rtl"]) .searchIcon {
@@ -350,13 +370,16 @@
 /* Add Site Modal */
 .modalOverlay {
   position: fixed;
-  inset: 0;
+  top: 0;
+  left: 0;
+  width: 100dvw;
+  height: 100dvh;
   background: rgba(0, 0, 0, 0.6);
   backdrop-filter: blur(4px);
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 100;
+  z-index: 10000;
   animation: fadeIn 0.2s ease-out;
 }
 

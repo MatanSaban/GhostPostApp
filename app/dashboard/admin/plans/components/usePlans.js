@@ -47,6 +47,7 @@ export function usePlans(isSuperAdmin, t) {
     { key: 'aiCredits', label: t('admin.plans.form.aiCredits'), defaultValue: '0', type: 'number' },
     { key: 'maxKeywords', label: t('admin.plans.form.maxKeywords'), defaultValue: '100', type: 'number' },
     { key: 'maxContent', label: t('admin.plans.form.maxContent'), defaultValue: '50', type: 'number' },
+    { key: 'siteAudits', label: t('admin.plans.form.siteAudits'), defaultValue: '5', type: 'number' },
     { key: 'maxAddOnSeats', label: t('admin.plans.form.maxAddOnSeats'), defaultValue: '', type: 'number' },
     { key: 'maxAddOnSites', label: t('admin.plans.form.maxAddOnSites'), defaultValue: '', type: 'number' },
   ];

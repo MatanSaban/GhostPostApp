@@ -1,5 +1,6 @@
 'use client';
 
+import { createPortal } from 'react-dom';
 import { 
   Image as ImageIcon, 
   X, 
@@ -41,7 +42,7 @@ export default function AiOptimizationModal({
   
   if (!showModal) return null;
   
-  return (
+  return createPortal(
     <div className={styles.modalOverlay} onClick={() => !aiOptimizing && onClose()}>
       <div className={`${styles.modal} ${styles.modalLarge}`} onClick={(e) => e.stopPropagation()}>
         <div className={styles.modalHeader}>
@@ -242,6 +243,7 @@ export default function AiOptimizationModal({
           )}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

@@ -1,0 +1,312 @@
+/* ── LimitReachedModal ──────────────────────────────────────────── */
+
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100dvw;
+  height: 100dvh;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  animation: fadeIn 0.2s ease;
+}
+
+.modal {
+  position: relative;
+  width: 100%;
+  max-width: 460px;
+  margin: 1rem;
+  background: var(--card, #fff);
+  border: 1px solid var(--border, #e5e7eb);
+  border-radius: var(--radius-xl, 16px);
+  box-shadow: var(--shadow-xl, 0 25px 50px rgba(0, 0, 0, 0.25));
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  animation: slideIn 0.3s ease;
+  text-align: center;
+}
+
+/* ── Close ────────────────────────────────────────────────────── */
+
+.closeBtn {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  width: 2rem;
+  height: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: var(--radius-md, 8px);
+  background: none;
+  color: var(--muted-foreground, #9ca3af);
+  cursor: pointer;
+  transition: color 0.15s, background 0.15s;
+
+  &:hover {
+    color: var(--foreground, #111);
+    background: var(--muted, rgba(0, 0, 0, 0.05));
+  }
+}
+
+[dir="rtl"] .closeBtn {
+  right: auto;
+  left: 0.75rem;
+}
+
+/* ── Icon wrapper ─────────────────────────────────────────────── */
+
+.iconWrapper {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.iconAlert {
+  color: #f59e0b;
+}
+
+.iconLock {
+  color: #6b7280;
+}
+
+/* ── Text ─────────────────────────────────────────────────────── */
+
+.title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--foreground, #111);
+  margin: 0;
+}
+
+.body {
+  font-size: 0.875rem;
+  color: var(--muted-foreground, #6b7280);
+  line-height: 1.6;
+  margin: 0;
+  max-width: 380px;
+}
+
+/* ── Usage bar ─────────────────────────────────────────────────── */
+
+.usageBar {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.usageBarTrack {
+  width: 100%;
+  height: 6px;
+  background: var(--muted, #e5e7eb);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.usageBarFill {
+  height: 100%;
+  background: linear-gradient(90deg, #7b2cbf, #ef4444);
+  border-radius: 3px;
+  transition: width 0.4s ease;
+}
+
+.usageLabel {
+  font-size: 0.75rem;
+  color: var(--muted-foreground, #9ca3af);
+  text-align: center;
+}
+
+/* ── Actions container ─────────────────────────────────────────── */
+
+.actions {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+}
+
+/* ── Add-on card ──────────────────────────────────────────────── */
+
+.addonCard {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.875rem 1rem;
+  background: var(--muted, rgba(123, 44, 191, 0.04));
+  border: 1px solid var(--border, #e5e7eb);
+  border-radius: var(--radius-md, 8px);
+  text-align: start;
+}
+
+.addonInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.addonName {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--foreground, #111);
+}
+
+.addonDesc {
+  font-size: 0.75rem;
+  color: var(--muted-foreground, #9ca3af);
+}
+
+.addonPricing {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+}
+
+[dir="rtl"] .addonPricing {
+  align-items: flex-start;
+}
+
+.addonQty {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #7b2cbf;
+}
+
+.addonPrice {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--foreground, #111);
+}
+
+/* ── Buttons ──────────────────────────────────────────────────── */
+
+.primaryBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 12px 20px;
+  background: var(--gradient-primary, linear-gradient(135deg, #7b2cbf, #9d4edd));
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-md, 8px);
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: opacity 0.2s, box-shadow 0.2s;
+
+  &:hover:not(:disabled) {
+    opacity: 0.9;
+    box-shadow: 0 4px 14px rgba(123, 44, 191, 0.3);
+  }
+
+  &:disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
+  }
+}
+
+.secondaryBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  padding: 10px 16px;
+  background: none;
+  color: var(--muted-foreground, #6b7280);
+  border: 1px solid var(--border, #e5e7eb);
+  border-radius: var(--radius-md, 8px);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s;
+
+  &:hover {
+    color: var(--foreground, #111);
+    border-color: rgba(123, 44, 191, 0.3);
+    background: var(--muted, rgba(123, 44, 191, 0.04));
+  }
+}
+
+/* ── Result banners ───────────────────────────────────────────── */
+
+.resultBanner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0.625rem 0.875rem;
+  border-radius: var(--radius-md, 8px);
+  font-size: 0.8125rem;
+  font-weight: 500;
+}
+
+.resultSuccess {
+  background: rgba(34, 197, 94, 0.1);
+  color: #15803d;
+}
+
+.resultError {
+  background: rgba(239, 68, 68, 0.1);
+  color: #dc2626;
+}
+
+/* ── Loading ──────────────────────────────────────────────────── */
+
+.loadingRow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 0.5rem 0;
+  color: var(--muted-foreground, #9ca3af);
+  font-size: 0.8125rem;
+}
+
+.spinning {
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ── Animations ───────────────────────────────────────────────── */
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* ── Responsive ───────────────────────────────────────────────── */
+
+@media (max-width: 480px) {
+  .modal {
+    padding: 1.5rem 1.25rem;
+  }
+}

@@ -1,5 +1,6 @@
 'use client';
 
+import { createPortal } from 'react-dom';
 import { 
   Image as ImageIcon, 
   X, 
@@ -39,7 +40,7 @@ export default function WebpConversionModal({
   
   if (!showModal) return null;
   
-  return (
+  return createPortal(
     <div className={styles.modalOverlay} onClick={() => !converting && onClose()}>
       <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
         <div className={styles.modalHeader}>
@@ -213,6 +214,7 @@ export default function WebpConversionModal({
           )}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

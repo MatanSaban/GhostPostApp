@@ -4,6 +4,7 @@ import { useState, useEffect, use, useRef } from 'react';
 import { FileText, Newspaper, FolderKanban, Briefcase, Package, MoreHorizontal, Database } from 'lucide-react';
 import { useLocale } from '@/app/context/locale-context';
 import { useSite } from '@/app/context/site-context';
+import { handleLimitError } from '@/app/context/limit-guard-context';
 import { StatsCard, StatsGridSkeleton, TableSkeleton, PageHeaderSkeleton } from '@/app/dashboard/components';
 import { EntitiesTable } from '../components';
 import styles from '../entities.module.css';
@@ -142,6 +143,10 @@ export default function EntityTypePage({ params }) {
         await fetchEntities();
       } else {
         const errorData = await response.json();
+        if (handleLimitError(errorData)) {
+          setIsSyncing(false);
+          return;
+        }
         console.error('Sync failed:', errorData.error);
       }
     } catch (error) {
@@ -181,6 +186,7 @@ export default function EntityTypePage({ params }) {
         return true;
       } else {
         const errorData = await response.json();
+        if (handleLimitError(errorData)) return false;
         console.error('Refresh failed:', errorData.error);
         return false;
       }

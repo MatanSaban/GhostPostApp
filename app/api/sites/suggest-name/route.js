@@ -3,6 +3,7 @@ import { cookies } from 'next/headers';
 import prisma from '@/lib/prisma';
 import { generateTextResponse } from '@/lib/ai/gemini';
 import { trackAIUsage } from '@/lib/ai/credits-service';
+import { enforceCredits } from '@/lib/account-limits';
 
 const SESSION_COOKIE = 'user_session';
 
@@ -53,6 +54,15 @@ export async function POST(request) {
       );
     }
 
+    // ── Enforce AI credit limit ──────────────────────────────
+    const accountId = user.lastSelectedAccountId || user.accountMemberships?.[0]?.accountId;
+    if (accountId) {
+      const creditCheck = await enforceCredits(accountId, 1); // GENERIC = 1 credit
+      if (!creditCheck.allowed) {
+        return NextResponse.json(creditCheck, { status: 402 });
+      }
+    }
+
     // Extract domain from URL
     let domain = '';
     try {
@@ -91,7 +101,6 @@ Respond with ONLY the suggested name, nothing else.`;
     const cleanName = suggestedName.trim().replace(/^["']|["']$/g, '');
 
     // Track AI credits usage
-    const accountId = user.lastSelectedAccountId || user.accountMemberships?.[0]?.accountId;
     if (accountId) {
       await trackAIUsage({
         accountId,

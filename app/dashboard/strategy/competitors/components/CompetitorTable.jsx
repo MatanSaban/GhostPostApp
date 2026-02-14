@@ -9,7 +9,6 @@ import {
   RefreshCw,
   Trash2,
 } from 'lucide-react';
-import { useLocale } from '@/app/context/locale-context';
 import { Skeleton } from '@/app/dashboard/components';
 import styles from '../competitors.module.css';
 
@@ -26,12 +25,14 @@ function formatTimeAgo(dateString) {
   return `${diffDays}d`;
 }
 
-function ScanStatusBadge({ competitor, isScanning, t }) {
+function ScanStatusBadge({ competitor, isScanning, translations }) {
+  const t = translations;
+  
   if (isScanning) {
     return (
       <span className={`${styles.statusBadge} ${styles.scanning}`}>
         <Loader2 className={styles.spinIcon} size={12} />
-        {t('competitorAnalysis.scanning')}
+        {t.scanning}
       </span>
     );
   }
@@ -40,39 +41,41 @@ function ScanStatusBadge({ competitor, isScanning, t }) {
       return (
         <span className={`${styles.statusBadge} ${styles.completed}`}>
           <CheckCircle size={12} />
-          {t('competitorAnalysis.lastScanned')} {formatTimeAgo(competitor.lastScannedAt)}
+          {t.lastScanned} {formatTimeAgo(competitor.lastScannedAt)}
         </span>
       );
     case 'ERROR':
       return (
         <span className={`${styles.statusBadge} ${styles.error}`}>
           <AlertCircle size={12} />
-          {t('competitorAnalysis.scanError')}
+          {t.scanError}
         </span>
       );
     default:
       return (
         <span className={`${styles.statusBadge} ${styles.pending}`}>
           <Clock size={12} />
-          {t('competitorAnalysis.pending')}
+          {t.pending}
         </span>
       );
   }
 }
 
-export function CompetitorTableSkeleton({ t }) {
+export function CompetitorTableSkeleton({ translations }) {
+  const t = translations;
+  
   return (
     <div className={styles.competitorTableWrapper}>
       <table className={styles.competitorTable}>
         <thead>
           <tr>
-            <th>{t('competitorAnalysis.competitor')}</th>
-            <th>{t('competitorAnalysis.status')}</th>
-            <th>{t('competitorAnalysis.wordCount')}</th>
+            <th>{t.competitor}</th>
+            <th>{t.status}</th>
+            <th>{t.wordCount}</th>
             <th>H1/H2/H3</th>
-            <th>{t('competitorAnalysis.images')}</th>
-            <th>{t('competitorAnalysis.speed')}</th>
-            <th>{t('competitorAnalysis.actions')}</th>
+            <th>{t.images}</th>
+            <th>{t.speed}</th>
+            <th>{t.actions}</th>
           </tr>
         </thead>
         <tbody>
@@ -106,21 +109,21 @@ export function CompetitorTableSkeleton({ t }) {
   );
 }
 
-export function CompetitorTable({ competitors, selectedCompetitor, scanningIds, onSelect, onScan, onRemove }) {
-  const { t } = useLocale();
+export function CompetitorTable({ competitors, selectedCompetitor, scanningIds, onSelect, onScan, onRemove, translations }) {
+  const t = translations;
 
   return (
     <div className={styles.competitorTableWrapper}>
       <table className={styles.competitorTable}>
         <thead>
           <tr>
-            <th>{t('competitorAnalysis.competitor')}</th>
-            <th>{t('competitorAnalysis.status')}</th>
-            <th>{t('competitorAnalysis.wordCount')}</th>
+            <th>{t.competitor}</th>
+            <th>{t.status}</th>
+            <th>{t.wordCount}</th>
             <th>H1/H2/H3</th>
-            <th>{t('competitorAnalysis.images')}</th>
-            <th>{t('competitorAnalysis.speed')}</th>
-            <th>{t('competitorAnalysis.actions')}</th>
+            <th>{t.images}</th>
+            <th>{t.speed}</th>
+            <th>{t.actions}</th>
           </tr>
         </thead>
         <tbody>
@@ -155,7 +158,7 @@ export function CompetitorTable({ competitors, selectedCompetitor, scanningIds, 
                   </div>
                 </div>
               </td>
-              <td><ScanStatusBadge competitor={competitor} isScanning={scanningIds.has(competitor.id)} t={t} /></td>
+              <td><ScanStatusBadge competitor={competitor} isScanning={scanningIds.has(competitor.id)} translations={t} /></td>
               <td>{competitor.wordCount?.toLocaleString() || '-'}</td>
               <td>
                 {competitor.scanStatus === 'COMPLETED'
@@ -170,14 +173,14 @@ export function CompetitorTable({ competitors, selectedCompetitor, scanningIds, 
                     className={styles.tableActionButton}
                     onClick={(e) => { e.stopPropagation(); onScan(competitor.id); }}
                     disabled={scanningIds.has(competitor.id)}
-                    title={t('competitorAnalysis.rescan')}
+                    title={t.rescan}
                   >
                     <RefreshCw size={14} />
                   </button>
                   <button
                     className={`${styles.tableActionButton} ${styles.danger}`}
                     onClick={(e) => { e.stopPropagation(); onRemove(competitor.id); }}
-                    title={t('competitorAnalysis.remove')}
+                    title={t.remove}
                   >
                     <Trash2 size={14} />
                   </button>

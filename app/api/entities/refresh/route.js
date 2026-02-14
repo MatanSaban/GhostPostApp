@@ -3,6 +3,7 @@ import { cookies } from 'next/headers';
 import prisma from '@/lib/prisma';
 import { generateTextResponse } from '@/lib/ai/gemini';
 import { trackAIUsage } from '@/lib/ai/credits-service';
+import { enforceCredits } from '@/lib/account-limits';
 
 // Force dynamic - never cache
 export const dynamic = 'force-dynamic';
@@ -367,6 +368,12 @@ export async function POST(request) {
 
     if (!site) {
       return NextResponse.json({ error: 'Site not found' }, { status: 404 });
+    }
+
+    // ── Enforce AI credit limit ──────────────────────────────
+    const creditCheck = await enforceCredits(site.accountId, 1); // ENTITY_REFRESH = 1 credit
+    if (!creditCheck.allowed) {
+      return NextResponse.json(creditCheck, { status: 402 });
     }
 
     // Get the entity

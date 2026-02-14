@@ -47,6 +47,7 @@ const addOnTypes = [
   { value: 'STORAGE', label: 'Storage' },
   { value: 'KEYWORDS', label: 'Keywords Tracking' },
   { value: 'CONTENT', label: 'Content Items' },
+  { value: 'SITE_AUDITS', label: 'Site Audits' },
 ];
 
 // Billing types

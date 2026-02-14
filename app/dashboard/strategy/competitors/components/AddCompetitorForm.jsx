@@ -1,19 +1,18 @@
 'use client';
 
 import { Loader2 } from 'lucide-react';
-import { useLocale } from '@/app/context/locale-context';
 import styles from '../competitors.module.css';
 
-export function AddCompetitorForm({ newUrl, setNewUrl, addingUrl, error, limit, competitorCount, onSubmit, onClose }) {
-  const { t } = useLocale();
+export function AddCompetitorForm({ translations, newUrl, setNewUrl, addingUrl, error, limit, competitorCount, onSubmit, onClose }) {
+  const t = translations;
 
   return (
     <div className={styles.addFormCard}>
       <form onSubmit={onSubmit} className={styles.addForm}>
         <div className={styles.addFormHeader}>
-          <h3>{t('competitorAnalysis.enterUrl')}</h3>
+          <h3>{t.enterUrl}</h3>
           <span className={styles.remaining}>
-            {t('competitorAnalysis.remaining').replace('{count}', String(limit - competitorCount))}
+            {t.remaining?.replace('{count}', String(limit - competitorCount)) || `${limit - competitorCount} remaining`}
           </span>
         </div>
         <div className={styles.addFormInput}>
@@ -21,7 +20,7 @@ export function AddCompetitorForm({ newUrl, setNewUrl, addingUrl, error, limit, 
             type="url"
             value={newUrl}
             onChange={(e) => setNewUrl(e.target.value)}
-            placeholder={t('competitorAnalysis.urlPlaceholder')}
+            placeholder={t.urlPlaceholder}
             className={styles.urlInput}
             required
             autoFocus
@@ -34,7 +33,7 @@ export function AddCompetitorForm({ newUrl, setNewUrl, addingUrl, error, limit, 
             {addingUrl ? (
               <Loader2 className={styles.spinIcon} size={16} />
             ) : (
-              t('competitorAnalysis.addUrl')
+              t.addUrl || t.add
             )}
           </button>
           <button
@@ -42,7 +41,7 @@ export function AddCompetitorForm({ newUrl, setNewUrl, addingUrl, error, limit, 
             className={styles.cancelButton}
             onClick={onClose}
           >
-            {t('competitorAnalysis.cancel')}
+            {t.cancel}
           </button>
         </div>
         {error && <p className={styles.errorText}>{error}</p>}

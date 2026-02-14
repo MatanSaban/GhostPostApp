@@ -674,6 +674,111 @@
   min-height: 400px;
 }
 
+/* My Websites Page Skeleton */
+.myWebsitesPage {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.myWebsitesToolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.myWebsitesTable {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+.myWebsitesTableHead {
+  display: grid;
+  grid-template-columns: 1.5fr 1.2fr 0.8fr 0.8fr 0.8fr 0.6fr;
+  gap: 1rem;
+  padding: 0.75rem 1rem;
+  background: var(--muted);
+  border-bottom: 1px solid var(--border);
+}
+
+.myWebsitesTableRow {
+  display: grid;
+  grid-template-columns: 1.5fr 1.2fr 0.8fr 0.8fr 0.8fr 0.6fr;
+  gap: 1rem;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.myWebsitesTableRow:last-child {
+  border-bottom: none;
+}
+
+.myWebsitesTableCell {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.myWebsitesTableActions {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.myWebsitesCards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 1rem;
+}
+
+.myWebsitesCard {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.myWebsitesCardHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.myWebsitesCardTitle {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex: 1;
+}
+
+.myWebsitesCardBody {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.myWebsitesCardMeta {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.myWebsitesCardFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--border-light);
+}
+
 /* Settings Form Skeleton */
 .settingsFormSkeleton {
   display: flex;

@@ -195,6 +195,50 @@ useEffect(() => {
   };
 }, [refreshCredits]);
 
+// Background polling for cross-user credit sync (every 30s when tab is visible)
+useEffect(() => {
+  if (!user) return;
+
+  const POLL_INTERVAL = 30_000; // 30 seconds
+  let timerId = null;
+
+  const pollCredits = async () => {
+    // Skip if tab is hidden
+    if (document.visibilityState !== 'visible') return;
+    try {
+      const res = await fetch('/api/credits/balance');
+      if (res.ok) {
+        const { used } = await res.json();
+        if (used !== undefined) {
+          setUser(prev => {
+            if (!prev || prev.aiCreditsUsed === used) return prev;
+            const updated = { ...prev, aiCreditsUsed: used };
+            localStorage.setItem('user', JSON.stringify(updated));
+            return updated;
+          });
+        }
+      }
+    } catch {
+      // Silently ignore — next poll will retry
+    }
+  };
+
+  timerId = setInterval(pollCredits, POLL_INTERVAL);
+
+  // Also poll when tab becomes visible after being hidden
+  const handleVisibility = () => {
+    if (document.visibilityState === 'visible') {
+      pollCredits();
+    }
+  };
+  document.addEventListener('visibilitychange', handleVisibility);
+
+  return () => {
+    clearInterval(timerId);
+    document.removeEventListener('visibilitychange', handleVisibility);
+  };
+}, [user?.accountId]); // Re-setup if account changes
+
 // Check if user is super admin
 const isSuperAdmin = user?.isSuperAdmin === true;
 

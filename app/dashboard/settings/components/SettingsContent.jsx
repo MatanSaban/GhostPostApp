@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect, useMemo } from 'react';
+import { createPortal } from 'react-dom';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 import { 
@@ -46,6 +47,9 @@ import {
   Eye,
   EyeOff,
   Unlink,
+  Minus,
+  ShoppingCart,
+  ExternalLink,
 } from 'lucide-react';
 import { useSite } from '@/app/context/site-context';
 import { useLocale } from '@/app/context/locale-context';
@@ -1172,49 +1176,553 @@ function SEOSettings({ seo, setSeo, translations, canEdit = true }) {
 // Integrations Settings Component
 function IntegrationsSettings({ translations, canEdit = true }) {
   const t = translations;
-  
-  const integrations = [
-    { id: 'google-analytics', name: 'Google Analytics', connected: true, icon: '📊' },
-    { id: 'google-search-console', name: 'Google Search Console', connected: true, icon: '🔍' },
-    { id: 'wordpress', name: 'WordPress', connected: true, icon: '📝' },
-    { id: 'semrush', name: 'SEMrush', connected: false, icon: '📈' },
-    { id: 'ahrefs', name: 'Ahrefs', connected: false, icon: '🔗' },
-  ];
+  const int = t.integrationsSection || {};
+  const { selectedSite } = useSite();
+  const { locale } = useLocale();
+  const searchParams = useSearchParams();
+
+  const [loading, setLoading] = useState(true);
+  const [integration, setIntegration] = useState(null);
+  const [connected, setConnected] = useState(false);
+  const [siteUrl, setSiteUrl] = useState('');
+  const [connecting, setConnecting] = useState(false);
+  const [disconnecting, setDisconnecting] = useState(false);
+
+  // GA property picker
+  const [gaProperties, setGaProperties] = useState([]);
+  const [gaLoading, setGaLoading] = useState(false);
+  const [gaPickerOpen, setGaPickerOpen] = useState(false);
+  const [gaSaving, setGaSaving] = useState(false);
+
+  // GSC site picker
+  const [gscSites, setGscSites] = useState([]);
+  const [gscLoading, setGscLoading] = useState(false);
+  const [gscPickerOpen, setGscPickerOpen] = useState(false);
+  const [gscSaving, setGscSaving] = useState(false);
+
+  // Status messages
+  const [successMsg, setSuccessMsg] = useState('');
+  const [errorMsg, setErrorMsg] = useState('');
+  const [needsScopes, setNeedsScopes] = useState(false);
+  const [needsGAScope, setNeedsGAScope] = useState(false);
+  const [needsGSCScope, setNeedsGSCScope] = useState(false);
+
+  // Auto-reconnect: when redirected from dashboard with reconnect=google
+  const reconnectTriggered = useRef(false);
+  useEffect(() => {
+    if (searchParams.get('reconnect') === 'google' && !reconnectTriggered.current && selectedSite?.id) {
+      reconnectTriggered.current = true;
+      // Clean URL param immediately
+      const url = new URL(window.location.href);
+      url.searchParams.delete('reconnect');
+      window.history.replaceState({}, '', url.toString());
+      // Trigger the Google OAuth flow
+      handleConnect();
+    }
+  }, [searchParams, selectedSite?.id]);
+
+  // Check for callback params
+  useEffect(() => {
+    if (searchParams.get('integrationSuccess') === 'true') {
+      setSuccessMsg(int.connectSuccess || 'Google account connected successfully!');
+      // Clean URL params
+      const url = new URL(window.location.href);
+      url.searchParams.delete('integrationSuccess');
+      window.history.replaceState({}, '', url.toString());
+    }
+    if (searchParams.get('integrationError')) {
+      setErrorMsg(int.connectError || 'Failed to connect Google account.');
+      const url = new URL(window.location.href);
+      url.searchParams.delete('integrationError');
+      window.history.replaceState({}, '', url.toString());
+    }
+  }, [searchParams, int]);
+
+  // Fetch integration status
+  const fetchStatus = async () => {
+    if (!selectedSite?.id) return;
+    setLoading(true);
+    try {
+      const res = await fetch(`/api/settings/integrations/google?siteId=${selectedSite.id}`);
+      if (res.ok) {
+        const data = await res.json();
+        setConnected(data.connected);
+        setIntegration(data.integration);
+        setSiteUrl(data.siteUrl || '');
+        setNeedsScopes(data.needsScopes || false);
+        setNeedsGAScope(data.needsGAScope || false);
+        setNeedsGSCScope(data.needsGSCScope || false);
+      }
+    } catch (err) {
+      console.error('Failed to fetch integration status:', err);
+    }
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    fetchStatus();
+  }, [selectedSite?.id]);
+
+  // Connect Google account
+  const handleConnect = async () => {
+    if (!selectedSite?.id) return;
+    setConnecting(true);
+    setErrorMsg('');
+    try {
+      const res = await fetch('/api/settings/integrations/google', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'connect', siteId: selectedSite.id }),
+      });
+      const data = await res.json();
+      if (data.authUrl) {
+        window.location.href = data.authUrl;
+      }
+    } catch {
+      setErrorMsg(int.connectError || 'Failed to start connection.');
+      setConnecting(false);
+    }
+  };
+
+  // Disconnect Google account
+  const handleDisconnect = async () => {
+    if (!selectedSite?.id) return;
+    setDisconnecting(true);
+    try {
+      await fetch('/api/settings/integrations/google', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'disconnect', siteId: selectedSite.id }),
+      });
+      setConnected(false);
+      setIntegration(null);
+      setGaProperties([]);
+      setGscSites([]);
+      setSuccessMsg(int.disconnected || 'Google account disconnected.');
+    } catch {
+      setErrorMsg('Failed to disconnect.');
+    }
+    setDisconnecting(false);
+  };
+
+  // Load GA properties
+  const loadGAProperties = async () => {
+    setGaLoading(true);
+    setGaPickerOpen(true);
+    try {
+      const res = await fetch('/api/settings/integrations/google', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'list-properties', siteId: selectedSite.id }),
+      });
+      const data = await res.json();
+      if (data.needsScopes) {
+        // Scopes insufficient — redirect to grant GA/GSC permissions
+        setGaPickerOpen(false);
+        handleConnect();
+        return;
+      }
+      setGaProperties(data.properties || []);
+    } catch {
+      setErrorMsg('Failed to load GA properties.');
+    }
+    setGaLoading(false);
+  };
+
+  // Save GA property selection
+  const saveGAProperty = async (propertyId, propertyName) => {
+    setGaSaving(true);
+    try {
+      await fetch('/api/settings/integrations/google', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'save-ga', siteId: selectedSite.id, propertyId, propertyName }),
+      });
+      setIntegration(prev => ({ ...prev, gaConnected: true, gaPropertyId: propertyId, gaPropertyName: propertyName }));
+      setGaPickerOpen(false);
+      setSuccessMsg(int.gaPropertySaved || 'Google Analytics property saved.');
+    } catch {
+      setErrorMsg('Failed to save GA property.');
+    }
+    setGaSaving(false);
+  };
+
+  // Load GSC sites
+  const loadGSCSites = async () => {
+    setGscLoading(true);
+    setGscPickerOpen(true);
+    try {
+      const res = await fetch('/api/settings/integrations/google', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'list-sites', siteId: selectedSite.id }),
+      });
+      const data = await res.json();
+      if (data.needsScopes) {
+        setGscPickerOpen(false);
+        handleConnect();
+        return;
+      }
+      setGscSites(data.sites || []);
+    } catch {
+      setErrorMsg('Failed to load Search Console sites.');
+    }
+    setGscLoading(false);
+  };
+
+  // Save GSC site selection
+  const saveGSCSite = async (gscSiteUrl) => {
+    setGscSaving(true);
+    try {
+      await fetch('/api/settings/integrations/google', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'save-gsc', siteId: selectedSite.id, gscSiteUrl }),
+      });
+      setIntegration(prev => ({ ...prev, gscConnected: true, gscSiteUrl }));
+      setGscPickerOpen(false);
+      setSuccessMsg(int.gscSiteSaved || 'Search Console site saved.');
+    } catch {
+      setErrorMsg('Failed to save GSC site.');
+    }
+    setGscSaving(false);
+  };
+
+  // Auto-dismiss messages
+  useEffect(() => {
+    if (successMsg) {
+      const timer = setTimeout(() => setSuccessMsg(''), 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [successMsg]);
+
+  useEffect(() => {
+    if (errorMsg) {
+      const timer = setTimeout(() => setErrorMsg(''), 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [errorMsg]);
+
+  if (!selectedSite) {
+    return (
+      <div className={styles.emptyState}>
+        <AlertCircle size={32} />
+        <p>{t.selectSiteFirst || 'Please select a site first.'}</p>
+      </div>
+    );
+  }
+
+  if (loading) {
+    return <SettingsFormSkeleton />;
+  }
 
   return (
     <>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-        {integrations.map((integration) => (
-          <div key={integration.id} className={styles.toggleRow}>
-            <div className={styles.toggleInfo}>
-              <span style={{ fontSize: '1.5rem' }}>{integration.icon}</span>
-              <div className={styles.toggleContent}>
-                <span className={styles.toggleLabel}>{integration.name}</span>
-                <span className={styles.toggleDescription}>
-                  {integration.connected ? t.integrationsConnectedSyncing : t.integrationsNotConnected}
-                </span>
+      {/* Status Messages */}
+      {successMsg && (
+        <div className={styles.successBanner}>
+          <Check size={16} />
+          <span>{successMsg}</span>
+          <button onClick={() => setSuccessMsg('')} className={styles.bannerClose}><X size={14} /></button>
+        </div>
+      )}
+      {errorMsg && (
+        <div className={styles.errorBanner}>
+          <AlertCircle size={16} />
+          <span>{errorMsg}</span>
+          <button onClick={() => setErrorMsg('')} className={styles.bannerClose}><X size={14} /></button>
+        </div>
+      )}
+
+      {/* Google Account Connection */}
+      <div className={styles.settingsSection}>
+        <div className={styles.integrationTitleRow}>
+          <svg className={styles.integrationIcon} width="20" height="20" viewBox="0 0 24 24" fill="none">
+            <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 01-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/>
+            <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+            <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+            <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+          </svg>
+          <h3 className={styles.sectionTitle}>{int.googleAccount || 'Google Account'}</h3>
+        </div>
+        <p className={styles.sectionDescription}>
+          {int.googleAccountDesc || 'Connect your Google account to enable Analytics and Search Console integrations.'}
+        </p>
+
+        {!connected ? (
+          <button
+            className={styles.connectGoogleBtn}
+            onClick={handleConnect}
+            disabled={connecting}
+          >
+            {connecting ? (
+              <Loader2 size={18} className={styles.spinning} />
+            ) : (
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 01-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/>
+                <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+                <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+                <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+              </svg>
+            )}
+            <span>{connecting ? (int.connecting || 'Connecting...') : (int.connectGoogle || 'Connect with Google')}</span>
+          </button>
+        ) : (
+          <div className={styles.connectedAccount}>
+            <div className={styles.connectedInfo}>
+              <div className={styles.connectedBadge}>
+                <Check size={14} />
+                <span>{int.connected || 'Connected'}</span>
               </div>
+              {integration?.googleEmail && (
+                <span className={styles.connectedEmail}>{integration.googleEmail}</span>
+              )}
             </div>
-            <button 
-              className={styles.editButton}
-              style={{ 
-                background: integration.connected ? 'rgba(16, 185, 129, 0.1)' : 'rgba(123, 44, 191, 0.1)',
-                color: integration.connected ? '#10b981' : 'var(--primary)'
-              }}
+            <button
+              className={styles.disconnectBtn}
+              onClick={handleDisconnect}
+              disabled={disconnecting}
             >
-              {integration.connected ? t.integrationsConfigure : t.integrationsConnect}
+              {disconnecting ? <Loader2 size={14} className={styles.spinning} /> : <Unlink size={14} />}
+              <span>{int.disconnect || 'Disconnect'}</span>
             </button>
           </div>
-        ))}
+        )}
+
+        {/* Needs additional scopes banner */}
+        {connected && needsGAScope && needsGSCScope && (
+          <div className={styles.scopesBanner}>
+            <div className={styles.scopesBannerText}>
+              <AlertCircle size={16} />
+              <span>{int.needsScopesDesc || 'Your Google account needs additional permissions for Analytics and Search Console.'}</span>
+            </div>
+            <button
+              className={styles.grantScopesBtn}
+              onClick={handleConnect}
+              disabled={connecting}
+            >
+              {connecting ? <Loader2 size={14} className={styles.spinning} /> : <ExternalLink size={14} />}
+              <span>{int.grantPermissions || 'Grant Permissions'}</span>
+            </button>
+          </div>
+        )}
       </div>
 
-      <button className={styles.addButton} style={{ marginTop: '1.5rem' }}>
-        <Plus size={16} />
-        {t.integrationsAddIntegration}
-      </button>
+      {/* Google Analytics Section */}
+      <div className={styles.settingsSection}>
+        <div className={styles.integrationHeader}>
+          <div className={styles.integrationTitleRow}>
+            <svg className={styles.integrationIcon} width="20" height="20" viewBox="0 0 24 24" fill="none">
+              <path d="M22 12c0 5.523-4.477 10-10 10S2 17.523 2 12" stroke="#E37400" strokeWidth="3" strokeLinecap="round"/>
+              <path d="M12 2C6.477 2 2 6.477 2 12" stroke="#F9AB00" strokeWidth="3" strokeLinecap="round"/>
+              <path d="M22 12c0-5.523-4.477-10-10-10" stroke="#E37400" strokeWidth="3" strokeLinecap="round"/>
+              <rect x="9" y="14" width="3" height="6" rx="1.5" fill="#F9AB00"/>
+              <rect x="14" y="8" width="3" height="12" rx="1.5" fill="#E37400"/>
+              <rect x="4" y="18" width="3" height="2" rx="1" fill="#F9AB00"/>
+            </svg>
+            <h3 className={styles.sectionTitle}>{int.gaTitle || 'Google Analytics'}</h3>
+          </div>
+          {connected && integration?.gaConnected && (
+            <span className={styles.connectedBadgeSmall}>
+              <Check size={12} />
+              {int.active || 'Active'}
+            </span>
+          )}
+        </div>
 
-      <div className={styles.saveButtonWrapper}>
-        <button className={styles.saveButton}>{t.saveChanges}</button>
+        {!connected ? (
+          <p className={styles.integrationDisabled}>
+            {int.connectFirstGA || 'Connect your Google account first to configure Analytics.'}
+          </p>
+        ) : integration?.gaConnected ? (
+          <div className={styles.integrationConnected}>
+            <div className={styles.integrationDetail}>
+              <span className={styles.detailLabel}>{int.property || 'Property'}:</span>
+              <span className={styles.detailValue}>{integration.gaPropertyName || integration.gaPropertyId}</span>
+            </div>
+            <button className={styles.editButton} onClick={loadGAProperties}>
+              {int.changeProperty || 'Change Property'}
+            </button>
+          </div>
+        ) : needsGAScope ? (
+          <div className={styles.scopesBanner}>
+            <div className={styles.scopesBannerText}>
+              <AlertCircle size={16} />
+              <span>{int.gaNeedsScopesDesc || 'Grant Analytics permissions to select a property.'}</span>
+            </div>
+            <button className={styles.grantScopesBtn} onClick={handleConnect} disabled={connecting}>
+              {connecting ? <Loader2 size={14} className={styles.spinning} /> : <ExternalLink size={14} />}
+              <span>{int.grantPermissions || 'Grant Permissions'}</span>
+            </button>
+          </div>
+        ) : (
+          <button className={styles.editButton} onClick={loadGAProperties} disabled={gaLoading}>
+            {gaLoading ? <Loader2 size={14} className={styles.spinning} /> : null}
+            {int.selectProperty || 'Select Property'}
+          </button>
+        )}
+
+        {/* GA Property Picker */}
+        {gaPickerOpen && (
+          <div className={styles.pickerDropdown}>
+            <div className={styles.pickerHeader}>
+              <span>{int.selectGAProperty || 'Select GA4 Property'}</span>
+              <button onClick={() => setGaPickerOpen(false)}><X size={14} /></button>
+            </div>
+            {gaLoading ? (
+              <div className={styles.pickerLoading}>
+                <Loader2 size={20} className={styles.spinning} />
+              </div>
+            ) : gaProperties.length === 0 ? (
+              <div className={styles.pickerEmpty}>
+                {int.noProperties || 'No GA4 properties found for this Google account.'}
+              </div>
+            ) : (
+              <div className={styles.pickerList}>
+                {gaProperties.map((prop) => (
+                  <button
+                    key={prop.id}
+                    className={`${styles.pickerItem} ${integration?.gaPropertyId === prop.id ? styles.pickerItemActive : ''}`}
+                    onClick={() => saveGAProperty(prop.id, prop.name)}
+                    disabled={gaSaving}
+                  >
+                    <div>
+                      <div className={styles.pickerItemName}>{prop.name}</div>
+                      <div className={styles.pickerItemMeta}>{prop.account} · {prop.id}</div>
+                    </div>
+                    {integration?.gaPropertyId === prop.id && <Check size={14} />}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Google Search Console Section */}
+      <div className={styles.settingsSection}>
+        <div className={styles.integrationHeader}>
+          <div className={styles.integrationTitleRow}>
+            <svg className={styles.integrationIcon} width="20" height="20" viewBox="0 0 24 24" fill="none">
+              <path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0016 9.5 6.5 6.5 0 109.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5z" fill="#4285F4"/>
+              <circle cx="9.5" cy="9.5" r="4" stroke="#4285F4" strokeWidth="1" fill="none"/>
+              <path d="M7 12l2 2 4-5" stroke="#34A853" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+            <h3 className={styles.sectionTitle}>{int.gscTitle || 'Google Search Console'}</h3>
+          </div>
+          {connected && integration?.gscConnected && (
+            <span className={styles.connectedBadgeSmall}>
+              <Check size={12} />
+              {int.active || 'Active'}
+            </span>
+          )}
+        </div>
+
+        {!connected ? (
+          <p className={styles.integrationDisabled}>
+            {int.connectFirstGSC || 'Connect your Google account first to configure Search Console.'}
+          </p>
+        ) : integration?.gscConnected ? (
+          <div className={styles.integrationConnected}>
+            <div className={styles.integrationDetail}>
+              <span className={styles.detailLabel}>{int.siteUrl || 'Site URL'}:</span>
+              <span className={styles.detailValue}>{integration.gscSiteUrl}</span>
+            </div>
+            <button className={styles.editButton} onClick={loadGSCSites}>
+              {int.changeSite || 'Change Site'}
+            </button>
+          </div>
+        ) : needsGSCScope ? (
+          <div className={styles.scopesBanner}>
+            <div className={styles.scopesBannerText}>
+              <AlertCircle size={16} />
+              <span>{int.gscNeedsScopesDesc || 'Grant Search Console permissions to select a site.'}</span>
+            </div>
+            <button className={styles.grantScopesBtn} onClick={handleConnect} disabled={connecting}>
+              {connecting ? <Loader2 size={14} className={styles.spinning} /> : <ExternalLink size={14} />}
+              <span>{int.grantPermissions || 'Grant Permissions'}</span>
+            </button>
+          </div>
+        ) : (
+          <button className={styles.editButton} onClick={loadGSCSites} disabled={gscLoading}>
+            {gscLoading ? <Loader2 size={14} className={styles.spinning} /> : null}
+            {int.selectSite || 'Select Site'}
+          </button>
+        )}
+
+        {/* GSC Site Picker */}
+        {gscPickerOpen && (
+          <div className={styles.pickerDropdown}>
+            <div className={styles.pickerHeader}>
+              <span>{int.selectGSCSite || 'Select Search Console Site'}</span>
+              <button onClick={() => setGscPickerOpen(false)}><X size={14} /></button>
+            </div>
+            {gscLoading ? (
+              <div className={styles.pickerLoading}>
+                <Loader2 size={20} className={styles.spinning} />
+              </div>
+            ) : gscSites.length === 0 ? (
+              <div className={styles.pickerEmpty}>
+                {int.noSites || 'No Search Console sites found for this Google account.'}
+              </div>
+            ) : (
+              <div className={styles.pickerList}>
+                {gscSites.map((site) => {
+                  const cleanUrl = site.siteUrl.replace(/^sc-domain:/, '').replace(/^https?:\/\//, '');
+                  const isOwner = site.permissionLevel === 'siteOwner';
+                  const permLabel = site.permissionLevel === 'siteOwner' ? (int.owner || 'Owner')
+                    : site.permissionLevel === 'siteFullUser' ? (int.fullAccess || 'Full Access')
+                    : site.permissionLevel === 'siteRestrictedUser' ? (int.restricted || 'Restricted')
+                    : (int.unverified || 'Unverified');
+                  return (
+                    <button
+                      key={site.siteUrl}
+                      className={`${styles.pickerItem} ${integration?.gscSiteUrl === site.siteUrl ? styles.pickerItemActive : ''}`}
+                      onClick={() => saveGSCSite(site.siteUrl)}
+                      disabled={gscSaving}
+                    >
+                      <div>
+                        <div className={styles.pickerItemName}>
+                          <Globe size={14} style={{ opacity: 0.5, flexShrink: 0 }} />
+                          {cleanUrl}
+                        </div>
+                        <div className={styles.pickerItemMeta}>
+                          <span className={`${styles.permBadge} ${isOwner ? styles.permOwner : styles.permOther}`}>
+                            {permLabel}
+                          </span>
+                          {site.siteUrl.startsWith('sc-domain:') && (
+                            <span className={styles.domainTag}>{int.domainProperty || 'Domain Property'}</span>
+                          )}
+                        </div>
+                      </div>
+                      {integration?.gscSiteUrl === site.siteUrl && <Check size={14} />}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* WordPress Integration (static) */}
+      <div className={styles.settingsSection}>
+        <div className={styles.integrationHeader}>
+          <div className={styles.integrationTitleRow}>
+            <svg className={styles.integrationIcon} width="20" height="20" viewBox="0 0 24 24" fill="none">
+              <circle cx="12" cy="12" r="10" fill="#21759B"/>
+              <path d="M3.01 12c0 3.59 2.09 6.7 5.12 8.17L3.86 8.41A9.95 9.95 0 003.01 12zm15.06-1.23c0-1.12-.4-1.89-.75-2.49-.46-.75-.9-1.38-.9-2.13 0-.84.63-1.61 1.52-1.61h.11a9.96 9.96 0 00-15.08 1.1h.73c1.18 0 3.01-.14 3.01-.14.61-.04.68.86.07.93 0 0-.61.07-1.29.11l4.11 12.23 2.47-7.4-1.76-4.83c-.61-.04-1.18-.11-1.18-.11-.61-.03-.54-.97.07-.93 0 0 1.87.14 2.97.14 1.18 0 3.01-.14 3.01-.14.61-.04.68.86.07.93 0 0-.61.07-1.29.11l4.08 12.13.46-1.52c.51-1.3.75-2.25.75-3.15zm-6.87 1.44L8.13 20.63c1.2.35 2.47.55 3.79.55 1.56 0 3.06-.27 4.45-.76a.87.87 0 01-.07-.12L11.2 12.21z" fill="white"/>
+            </svg>
+            <h3 className={styles.sectionTitle}>{int.wordpress || 'WordPress'}</h3>
+          </div>
+          <span className={styles.connectedBadgeSmall}>
+            <Check size={12} />
+            {int.viaPlugin || 'Via Plugin'}
+          </span>
+        </div>
+        <p className={styles.integrationDisabled}>
+          {int.wpManaged || 'Managed through the Ghost Post WordPress plugin. Configure in the Connection tab.'}
+        </p>
       </div>
     </>
   );
@@ -1680,7 +2188,7 @@ function UsersSettings({ translations, canEdit = true }) {
       </div>
 
       {/* Confirm Remove Modal */}
-      {showConfirmRemove && (
+      {showConfirmRemove && createPortal(
         <div className={styles.modalOverlay} onClick={() => setShowConfirmRemove(null)}>
           <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
             <h3>{us.confirmRemove?.title || 'Remove User'}</h3>
@@ -1704,11 +2212,12 @@ function UsersSettings({ translations, canEdit = true }) {
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* Change Role Modal */}
-      {showChangeRole && (
+      {showChangeRole && createPortal(
         <div className={styles.modalOverlay} onClick={() => setShowChangeRole(null)}>
           <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
             <h3>{us.changeRoleModal?.title || 'Change Role'}</h3>
@@ -1743,7 +2252,8 @@ function UsersSettings({ translations, canEdit = true }) {
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </>
   );
@@ -2008,6 +2518,9 @@ function SubscriptionSettings({ subscription, translations, canEdit = true, isLo
         </div>
       )}
 
+      {/* Purchased Add-ons Section */}
+      <SubscriptionPurchasedAddons translate={translate} locale={locale} />
+
       {/* Billing Actions */}
       <div className={styles.subsection}>
         <h3 className={styles.subsectionTitle}>
@@ -2029,6 +2542,73 @@ function SubscriptionSettings({ subscription, translations, canEdit = true, isLo
         </div>
       </div>
     </>
+  );
+}
+
+// Purchased add-ons sub-component for Subscription tab
+function SubscriptionPurchasedAddons({ translate, locale }) {
+  const { user } = useUser();
+  const [purchasedAddons, setPurchasedAddons] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchPurchases() {
+      if (!user?.subscription?.id) { setIsLoading(false); return; }
+      try {
+        const res = await fetch('/api/user/addon-purchases');
+        if (res.ok) {
+          const data = await res.json();
+          setPurchasedAddons(data.purchases || []);
+        }
+      } catch (e) { console.error(e); }
+      finally { setIsLoading(false); }
+    }
+    fetchPurchases();
+  }, [user?.subscription?.id]);
+
+  const formatDate = (dateString) => {
+    if (!dateString) return '';
+    return new Date(dateString).toLocaleDateString(locale === 'he' ? 'he-IL' : 'en-US', {
+      year: 'numeric', month: 'short', day: 'numeric',
+    });
+  };
+
+  if (isLoading || purchasedAddons.length === 0) return null;
+
+  // Group purchases by addon
+  const grouped = {};
+  purchasedAddons.forEach(p => {
+    if (!grouped[p.addOnId]) grouped[p.addOnId] = { addon: p.addOn, purchases: [] };
+    grouped[p.addOnId].purchases.push(p);
+  });
+
+  return (
+    <div className={styles.subsection}>
+      <h3 className={styles.subsectionTitle}>
+        <Package className={styles.subsectionIcon} />
+        {translate('settings.subscriptionSection.purchasedAddons') || 'Purchased Add-ons'}
+      </h3>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+        {Object.values(grouped).map(({ addon, purchases }) => (
+          <div key={addon?.id || purchases[0]?.id} className={styles.addonPurchaseHistoryCard}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <span style={{ fontSize: '1.25rem' }}>
+                  {addon?.type === 'SEATS' ? '👥' : addon?.type === 'SITES' ? '🌐' : addon?.type === 'AI_CREDITS' ? '✨' : '📦'}
+                </span>
+                <span style={{ fontWeight: 600 }}>{addon?.name || 'Add-on'}</span>
+                <span className={styles.addonPurchaseCountBadge}>
+                  ×{purchases.reduce((sum, p) => sum + (p.quantity || 1), 0)}
+                </span>
+              </div>
+              <span style={{ fontSize: '0.8125rem', color: 'var(--muted-foreground)' }}>
+                {translate('settings.addonsSection.purchased') || 'Purchased'}: {formatDate(purchases[purchases.length - 1]?.purchasedAt)}
+              </span>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
   );
 }
 
@@ -2298,6 +2878,9 @@ function CreditsSettings({ subscription, translations, canEdit = true, isLoading
         </div>
       </div>
 
+      {/* Purchased AI Credits Add-ons */}
+      <CreditsPurchasedAddons translate={translate} locale={locale} />
+
       {/* Usage Log Section */}
       <div className={styles.subsection}>
         <h3 className={styles.subsectionTitle}>
@@ -2412,6 +2995,80 @@ function CreditsSettings({ subscription, translations, canEdit = true, isLoading
   );
 }
 
+// Purchased AI Credits sub-component for Credits tab
+function CreditsPurchasedAddons({ translate, locale }) {
+  const { user } = useUser();
+  const [purchasedAddons, setPurchasedAddons] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchPurchases() {
+      if (!user?.subscription?.id) { setIsLoading(false); return; }
+      try {
+        const res = await fetch('/api/user/addon-purchases');
+        if (res.ok) {
+          const data = await res.json();
+          // Filter only AI credits purchases
+          const aiCreditsPurchases = (data.purchases || []).filter(p => p.addOn?.type === 'AI_CREDITS');
+          setPurchasedAddons(aiCreditsPurchases);
+        }
+      } catch (e) { console.error(e); }
+      finally { setIsLoading(false); }
+    }
+    fetchPurchases();
+  }, [user?.subscription?.id]);
+
+  const formatDate = (dateString) => {
+    if (!dateString) return '';
+    return new Date(dateString).toLocaleDateString(locale === 'he' ? 'he-IL' : 'en-US', {
+      year: 'numeric', month: 'short', day: 'numeric',
+    });
+  };
+
+  const formatCredits = (credits) => {
+    if (credits >= 1000000) return `${(credits / 1000000).toFixed(1)}M`;
+    if (credits >= 1000) return `${(credits / 1000).toFixed(0)}K`;
+    return credits.toString();
+  };
+
+  if (isLoading || purchasedAddons.length === 0) return null;
+
+  return (
+    <div className={styles.subsection}>
+      <h3 className={styles.subsectionTitle}>
+        <ShoppingCart className={styles.subsectionIcon} />
+        {translate('settings.creditsSection.purchasedPacks') || 'Purchased Credit Packs'}
+      </h3>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+        {purchasedAddons.map((purchase) => (
+          <div key={purchase.id} className={styles.addonPurchaseHistoryCard}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <span style={{ fontSize: '1.25rem' }}>✨</span>
+                <span style={{ fontWeight: 600 }}>{purchase.addOn?.name || 'AI Credits'}</span>
+                {purchase.addOn?.quantity && (
+                  <span className={styles.addonPurchaseCountBadge}>
+                    +{formatCredits(purchase.addOn.quantity * (purchase.quantity || 1))}
+                  </span>
+                )}
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                <span className={`${styles.addonStatusBadge} ${purchase.status === 'ACTIVE' ? styles.addonStatusActive : styles.addonStatusInactive}`}>
+                  {purchase.status === 'ACTIVE' ? <Check size={10} /> : null}
+                  {purchase.status}
+                </span>
+                <span style={{ fontSize: '0.8125rem', color: 'var(--muted-foreground)' }}>
+                  {formatDate(purchase.purchasedAt)}
+                </span>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 // Add-ons Settings Component
 function AddonsSettings({ translations, canEdit = true }) {
   const { t: translate, direction, locale } = useLocale();
@@ -2419,6 +3076,9 @@ function AddonsSettings({ translations, canEdit = true }) {
   const [addons, setAddons] = useState([]);
   const [purchasedAddons, setPurchasedAddons] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [quantities, setQuantities] = useState({});
+  const [purchasing, setPurchasing] = useState({});
+  const [purchaseMessages, setPurchaseMessages] = useState({});
 
   // Type icons mapping
   const typeIcons = {
@@ -2461,18 +3121,64 @@ function AddonsSettings({ translations, canEdit = true }) {
     fetchAddons();
   }, [locale, user?.subscription?.id]);
 
-  // Check if addon is purchased
-  const isAddonPurchased = (addonId) => {
-    return purchasedAddons.some(p => p.addOnId === addonId && p.status === 'ACTIVE');
+  // Get purchase count for an addon
+  const getAddonPurchaseCount = (addonId) => {
+    return purchasedAddons.filter(p => p.addOnId === addonId && p.status === 'ACTIVE').length;
+  };
+
+  // Get purchase history for an addon (all statuses)
+  const getAddonPurchases = (addonId) => {
+    return purchasedAddons.filter(p => p.addOnId === addonId);
+  };
+
+  // Get quantity for an addon
+  const getQuantity = (addonId) => quantities[addonId] || 1;
+
+  // Set quantity for an addon
+  const setQuantity = (addonId, qty) => {
+    setQuantities(prev => ({ ...prev, [addonId]: Math.max(1, qty) }));
+  };
+
+  // Handle purchase
+  const handlePurchase = async (addon) => {
+    const qty = getQuantity(addon.id);
+    setPurchasing(prev => ({ ...prev, [addon.id]: true }));
+    setPurchaseMessages(prev => ({ ...prev, [addon.id]: null }));
+    try {
+      const res = await fetch('/api/subscription/addons/purchase', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ addOnId: addon.id, quantity: qty }),
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setPurchaseMessages(prev => ({ ...prev, [addon.id]: { type: 'success', text: data.message } }));
+        // Reset quantity
+        setQuantity(addon.id, 1);
+        // Refresh purchases
+        const purchasesResponse = await fetch('/api/user/addon-purchases');
+        if (purchasesResponse.ok) {
+          const purchasesData = await purchasesResponse.json();
+          setPurchasedAddons(purchasesData.purchases || []);
+        }
+      } else {
+        setPurchaseMessages(prev => ({ ...prev, [addon.id]: { type: 'error', text: data.error || 'Purchase failed' } }));
+      }
+    } catch (error) {
+      setPurchaseMessages(prev => ({ ...prev, [addon.id]: { type: 'error', text: 'Purchase failed' } }));
+    } finally {
+      setPurchasing(prev => ({ ...prev, [addon.id]: false }));
+    }
   };
 
   // Format price with billing type
-  const formatPrice = (addon) => {
+  const formatPrice = (addon, qty = 1) => {
+    const totalPrice = addon.price * qty;
     const price = new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: addon.currency || 'USD',
       minimumFractionDigits: 0,
-    }).format(addon.price);
+    }).format(totalPrice);
 
     if (addon.billingType === 'ONE_TIME') {
       return { price, period: translate('settings.addonsSection.oneTime') || 'one-time' };
@@ -2487,6 +3193,17 @@ function AddonsSettings({ translations, canEdit = true }) {
       desc = `${addon.quantity.toLocaleString()} ${translate('settings.addonsSection.credits') || 'AI Credits'}${desc ? ' - ' + desc : ''}`;
     }
     return desc;
+  };
+
+  // Format date
+  const formatDate = (dateString) => {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    return date.toLocaleDateString(locale === 'he' ? 'he-IL' : 'en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+    });
   };
 
   return (
@@ -2518,8 +3235,11 @@ function AddonsSettings({ translations, canEdit = true }) {
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
             {addons.map((addon) => {
-              const { price, period } = formatPrice(addon);
-              const isPurchased = isAddonPurchased(addon.id);
+              const qty = getQuantity(addon.id);
+              const { price, period } = formatPrice(addon, qty);
+              const purchaseCount = getAddonPurchaseCount(addon.id);
+              const isPurchased = purchaseCount > 0;
+              const msg = purchaseMessages[addon.id];
               
               return (
                 <div 
@@ -2541,6 +3261,15 @@ function AddonsSettings({ translations, canEdit = true }) {
                       <p style={{ fontSize: '0.875rem', color: 'var(--muted-foreground)', marginTop: '0.25rem' }}>
                         {getAddonDescription(addon)}
                       </p>
+                      {isPurchased && (
+                        <div className={styles.addonPurchasedBadge}>
+                          <Check size={12} />
+                          {purchaseCount === 1 
+                            ? (translate('settings.addonsSection.alreadyPurchased') || 'You have already purchased this add-on')
+                            : (translate('settings.addonsSection.alreadyPurchasedCount') || 'You have purchased this add-on {count} times').replace('{count}', purchaseCount)
+                          }
+                        </div>
+                      )}
                     </div>
                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '0.5rem' }}>
                       <div className={styles.planPrice}>
@@ -2549,19 +3278,48 @@ function AddonsSettings({ translations, canEdit = true }) {
                           <div className={styles.pricePeriod}>/{period}</div>
                         )}
                       </div>
-                      {isPurchased ? (
-                        <button className={styles.editButton} style={{ background: 'var(--muted)', color: 'var(--muted-foreground)' }}>
-                          <Check size={14} style={{ marginInlineEnd: '0.25rem' }} />
-                          {translate('settings.addonsSection.purchased') || 'Purchased'}
-                        </button>
-                      ) : (
-                        <button className={styles.editButton} disabled={!canEdit}>
-                          <Plus size={14} style={{ marginInlineEnd: '0.25rem' }} />
+                      {/* Quantity counter */}
+                      <div className={styles.addonQuantityRow}>
+                        <div className={styles.addonQuantityCounter}>
+                          <button 
+                            className={styles.addonQuantityBtn}
+                            onClick={() => setQuantity(addon.id, qty - 1)}
+                            disabled={qty <= 1 || purchasing[addon.id]}
+                            aria-label="Decrease quantity"
+                          >
+                            <Minus size={14} />
+                          </button>
+                          <span className={styles.addonQuantityValue}>{qty}</span>
+                          <button 
+                            className={styles.addonQuantityBtn}
+                            onClick={() => setQuantity(addon.id, qty + 1)}
+                            disabled={purchasing[addon.id]}
+                            aria-label="Increase quantity"
+                          >
+                            <Plus size={14} />
+                          </button>
+                        </div>
+                        <button 
+                          className={styles.editButton} 
+                          disabled={!canEdit || purchasing[addon.id]}
+                          onClick={() => handlePurchase(addon)}
+                        >
+                          {purchasing[addon.id] ? (
+                            <Loader2 size={14} className="animate-spin" style={{ marginInlineEnd: '0.25rem' }} />
+                          ) : (
+                            <ShoppingCart size={14} style={{ marginInlineEnd: '0.25rem' }} />
+                          )}
                           {addon.billingType === 'ONE_TIME' 
                             ? (translate('settings.addonsSection.buy') || 'Buy')
                             : (translate('settings.addonsSection.subscribe') || 'Subscribe')
                           }
                         </button>
+                      </div>
+                      {msg && (
+                        <div className={msg.type === 'success' ? styles.addonMsgSuccess : styles.addonMsgError}>
+                          {msg.type === 'success' ? <Check size={12} /> : <AlertCircle size={12} />}
+                          {msg.text}
+                        </div>
                       )}
                     </div>
                   </div>
@@ -3659,7 +4417,7 @@ function AccountSettings({ translations, canEdit = true }) {
       </div>
       
       {/* Delete Account Modal */}
-      {showDeleteModal && (
+      {showDeleteModal && createPortal(
         <div className={styles.modalOverlay} onClick={() => !isDeleting && setShowDeleteModal(false)}>
           <div className={styles.deleteAccountModal} onClick={(e) => e.stopPropagation()}>
             <div className={styles.deleteAccountHeader}>
@@ -3730,7 +4488,8 @@ function AccountSettings({ translations, canEdit = true }) {
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </>
   );
@@ -3968,7 +4727,7 @@ function RolesSettings({ translations, canEdit = true }) {
       </div>
 
       {/* Add/Edit Role Modal */}
-      {modalOpen && (
+      {modalOpen && createPortal(
         <div className={styles.modalOverlay} onClick={() => setModalOpen(false)}>
           <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
             <div className={styles.modalHeader}>
@@ -4032,11 +4791,12 @@ function RolesSettings({ translations, canEdit = true }) {
               </div>
             </form>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* Delete Confirmation Modal */}
-      {deleteConfirm && (
+      {deleteConfirm && createPortal(
         <div className={styles.modalOverlay} onClick={() => setDeleteConfirm(null)}>
           <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
             <div className={styles.modalHeader}>
@@ -4061,7 +4821,8 @@ function RolesSettings({ translations, canEdit = true }) {
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </>
   );

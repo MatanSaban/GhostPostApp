@@ -820,12 +820,15 @@
 /* Discovery Modal */
 .modalOverlay {
   position: fixed;
-  inset: 0;
+  top: 0;
+  left: 0;
+  width: 100dvw;
+  height: 100dvh;
   background: rgba(0, 0, 0, 0.5);
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 100;
+  z-index: 10000;
   backdrop-filter: blur(4px);
 }
 

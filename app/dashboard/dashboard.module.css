@@ -278,12 +278,14 @@
 
 .navGroupItemsOpen {
   grid-template-rows: 1fr;
+  margin-top: 5px;
 }
 
 .navGroupItemsInner {
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  gap: 5px;
 }
 
 .navSubItem {

@@ -54,6 +54,7 @@ export const InterviewWizard = forwardRef(function InterviewWizard({ onClose, on
   const autoActionInProgress = useRef(false); // Use ref to avoid stale closure issues
   // Edit modal state for EDITABLE_DATA
   const [showEditModal, setShowEditModal] = useState(false);
+  const [editableDataConfirmed, setEditableDataConfirmed] = useState(false);
   // Searchable select filter state
   const [searchFilter, setSearchFilter] = useState('');
   // Edit message state
@@ -288,11 +289,16 @@ export const InterviewWizard = forwardRef(function InterviewWizard({ onClose, on
     
     // Handle Keywords generation
     if (source === 'generateKeywords') {
+      // Filter out keywords with dynamic placeholders like [עיר], [שם], etc.
+      const filterPlaceholders = (keywords) => 
+        keywords.filter(k => !/\[.*?\]/.test(typeof k === 'string' ? k : k.keyword));
+      
       // Check if we already have keywords in externalData
       if (externalData?.keywordSuggestions && externalData.keywordSuggestions.length > 0) {
-        setAiSuggestions(externalData.keywordSuggestions);
+        const filtered = filterPlaceholders(externalData.keywordSuggestions);
+        setAiSuggestions(filtered);
         // Pre-select primary keywords
-        const preSelected = externalData.keywordSuggestions
+        const preSelected = filtered
           .filter(k => k.type === 'primary')
           .slice(0, 10)
           .map(k => k.keyword);
@@ -314,7 +320,8 @@ export const InterviewWizard = forwardRef(function InterviewWizard({ onClose, on
           });
           
           if (result.success) {
-            const keywords = result.externalData?.keywordSuggestions || result.result?.keywords || [];
+            const rawKeywords = result.externalData?.keywordSuggestions || result.result?.keywords || [];
+            const keywords = filterPlaceholders(rawKeywords);
             if (keywords.length > 0) {
               setAiSuggestions(keywords);
               // Pre-select primary keywords
@@ -550,7 +557,9 @@ export const InterviewWizard = forwardRef(function InterviewWizard({ onClose, on
       // Auto-select competitors marked with autoSelected: true
       const autoSelectedUrls = cachedCompetitors
         .filter(c => c.autoSelected)
-        .map(c => c.url);
+        .map(c => {
+          try { const parsed = new URL(c.url); return `${parsed.protocol}//${parsed.host}`; } catch { return c.url; }
+        });
       if (autoSelectedUrls.length > 0) {
         console.log('[findCompetitors] Auto-selecting', autoSelectedUrls.length, 'competitors');
         setSelectedCompetitors(autoSelectedUrls);
@@ -588,7 +597,9 @@ export const InterviewWizard = forwardRef(function InterviewWizard({ onClose, on
             // Auto-select competitors marked with autoSelected: true
             const autoSelectedUrls = competitors
               .filter(c => c.autoSelected)
-              .map(c => c.url);
+              .map(c => {
+                try { const parsed = new URL(c.url); return `${parsed.protocol}//${parsed.host}`; } catch { return c.url; }
+              });
             if (autoSelectedUrls.length > 0) {
               console.log('[findCompetitors] Auto-selecting', autoSelectedUrls.length, 'competitors');
               setSelectedCompetitors(autoSelectedUrls);
@@ -677,7 +688,7 @@ export const InterviewWizard = forwardRef(function InterviewWizard({ onClose, on
       const res = await fetch('/api/interview', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ questionId, response }),
+        body: JSON.stringify({ questionId, response, interviewId }),
       });
       
       if (!res.ok) {
@@ -724,7 +735,8 @@ export const InterviewWizard = forwardRef(function InterviewWizard({ onClose, on
   // Refresh interview data to get latest externalData
   const refreshInterviewData = async () => {
     try {
-      const res = await fetch('/api/interview');
+      const url = site?.id ? `/api/interview?siteId=${site.id}` : '/api/interview';
+      const res = await fetch(url);
       if (res.ok) {
         const data = await res.json();
         console.log('[refreshInterviewData] Full response:', data);
@@ -766,6 +778,7 @@ export const InterviewWizard = forwardRef(function InterviewWizard({ onClose, on
         body: JSON.stringify({ 
           actionName, 
           parameters: params,
+          interviewId,
         }),
       });
       
@@ -897,14 +910,16 @@ export const InterviewWizard = forwardRef(function InterviewWizard({ onClose, on
       selectedKeywords: selectedSuggestions,
     };
     
+    // Immediately hide the keyword selection UI
+    const keywordsToSave = [...selectedSuggestions];
+    setAiSuggestions(null);
+    setSelectedSuggestions([]);
+    setAiSuggestionsPhase('input');
+    
     // Submit the combined response
     const result = await submitResponse(currentQuestion.id, finalResponse);
     
     if (result.success) {
-      // Reset AI suggestions state
-      setAiSuggestions(null);
-      setSelectedSuggestions([]);
-      setAiSuggestionsPhase('input');
       moveToNextQuestion();
     }
   };
@@ -939,6 +954,14 @@ export const InterviewWizard = forwardRef(function InterviewWizard({ onClose, on
 
     const submittedValue = value ?? inputValue;
     
+    // Immediately clear keyword/competitor selection UI on submit
+    if (currentQuestion.questionType === 'AI_SUGGESTION') {
+      setAiSuggestions(null);
+      setSelectedSuggestions([]);
+      setCompetitorSuggestions([]);
+      setSelectedCompetitors([]);
+    }
+    
     // For GREETING type, just move to next question
     if (currentQuestion.questionType === 'GREETING') {
       moveToNextQuestion();
@@ -961,6 +984,16 @@ export const InterviewWizard = forwardRef(function InterviewWizard({ onClose, on
       const userMessageId = messageIdCounter.current++;
       // Format array values as comma-separated string for display
       let displayContent = submittedValue;
+      
+      // For selection-based questions, show the translated label instead of raw value
+      const config = currentQuestion.inputConfig || {};
+      if (config.options && typeof submittedValue === 'string') {
+        const matchedOption = config.options.find(opt => opt.value === submittedValue);
+        if (matchedOption?.labelKey) {
+          displayContent = t(matchedOption.labelKey) || submittedValue;
+        }
+      }
+      
       if (Array.isArray(submittedValue)) {
         displayContent = submittedValue.join(', ');
       } else if (typeof submittedValue !== 'string') {
@@ -1024,6 +1057,7 @@ export const InterviewWizard = forwardRef(function InterviewWizard({ onClose, on
     // Reset dynamic options state when moving to next question
     setDynamicOptions([]);
     setSelectedDynamicOptions([]);
+    setEditableDataConfirmed(false);
     
     setTimeout(async () => {
       const nextIndex = currentQuestionIndex + 1;
@@ -1152,7 +1186,7 @@ export const InterviewWizard = forwardRef(function InterviewWizard({ onClose, on
       const res = await fetch('/api/interview', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ questionIndex: questionIdx, questionId }),
+        body: JSON.stringify({ questionIndex: questionIdx, questionId, interviewId }),
       });
       
       if (!res.ok) {
@@ -1253,7 +1287,7 @@ export const InterviewWizard = forwardRef(function InterviewWizard({ onClose, on
       const res = await fetch('/api/interview', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ questionIndex: questionIdx, questionId }),
+        body: JSON.stringify({ questionIndex: questionIdx, questionId, interviewId }),
       });
       
       if (!res.ok) {
@@ -1602,7 +1636,13 @@ export const InterviewWizard = forwardRef(function InterviewWizard({ onClose, on
                 <>
                   <div className={styles.competitorCardsGrid}>
                     {competitorSuggestions.map((competitor, i) => {
-                      const url = typeof competitor === 'string' ? competitor : competitor.url;
+                      const rawUrl = typeof competitor === 'string' ? competitor : competitor.url;
+                      // Normalize to homepage URL only (no deep links)
+                      let url = rawUrl;
+                      try {
+                        const parsed = new URL(rawUrl);
+                        url = `${parsed.protocol}//${parsed.host}`;
+                      } catch { /* keep rawUrl if parsing fails */ }
                       const name = competitor.name || competitor.domain || url;
                       const domain = competitor.domain || '';
                       const keywordCount = competitor.keywordCount || 0;
@@ -1949,7 +1989,7 @@ export const InterviewWizard = forwardRef(function InterviewWizard({ onClose, on
               </div>
             )}
             
-            {aiRecommendation && aiConfidence > 0.3 && (
+            {!isLoadingAiRecommendation && aiRecommendation && aiConfidence > 0.3 && (
               <div className={styles.aiRecommendationBanner}>
                 <span className={styles.aiRecommendationIcon}>✨</span>
                 <span>
@@ -1962,6 +2002,7 @@ export const InterviewWizard = forwardRef(function InterviewWizard({ onClose, on
               </div>
             )}
             
+            {!isLoadingAiRecommendation && (
             <div className={styles.cardsGrid}>
               {config.options?.map((opt, i) => {
                 const isRecommended = opt.value === aiValue;
@@ -1978,6 +2019,7 @@ export const InterviewWizard = forwardRef(function InterviewWizard({ onClose, on
                 );
               })}
             </div>
+            )}
           </div>
         );
 
@@ -2155,29 +2197,61 @@ export const InterviewWizard = forwardRef(function InterviewWizard({ onClose, on
       case 'SLIDER':
         const sliderValue = responses[currentQuestion?.id] ?? internalLinksDefault ?? config.defaultValue ?? config.min;
         const isInternalLinksQuestion = currentQuestion.saveToField === 'internalLinksPer1000Words' || currentQuestion.saveToField === 'internalLinksCount';
+        
+        if (isInternalLinksQuestion) {
+          // Range buttons mode for internal links
+          const internalLinksRanges = [
+            { label: '0', value: '0' },
+            { label: '1-2', value: '1-2' },
+            { label: '2-3', value: '2-3', recommended: true },
+            { label: '3-4', value: '3-4' },
+            { label: '4-5', value: '4-5' },
+          ];
+          const selectedRange = responses[currentQuestion?.id] || null;
+          
+          return (
+            <div className={styles.sliderContainer}>
+              <div className={styles.sliderHint}>
+                <span className={styles.hintIcon}>💡</span>
+                <span>
+                  {t('registration.interview.hints.internalLinksExplanation') || 'The recommendation is 2-3 internal links per 1000 words in an article. Internal links help search engines understand your site structure and improve user navigation.'}
+                </span>
+              </div>
+              <div className={styles.rangeButtonsGrid}>
+                {internalLinksRanges.map((range, i) => (
+                  <button
+                    key={i}
+                    className={`${styles.rangeButton} ${selectedRange === range.value ? styles.selected : ''} ${range.recommended ? styles.recommended : ''}`}
+                    onClick={() => {
+                      setResponses(prev => ({
+                        ...prev,
+                        [currentQuestion.id]: range.value,
+                      }));
+                    }}
+                  >
+                    <span className={styles.rangeButtonLabel}>{range.label}</span>
+                    {range.recommended && <span className={styles.recommendedBadge}>✨</span>}
+                  </button>
+                ))}
+              </div>
+              {selectedRange && (
+                <button 
+                  onClick={() => handleSubmit(selectedRange)}
+                  className={styles.confirmButton}
+                >
+                  {t('common.confirm')}
+                </button>
+              )}
+            </div>
+          );
+        }
+        
+        // Default slider mode for other SLIDER questions
         const recommendedMin = config.recommendedMin ?? 3;
         const recommendedMax = config.recommendedMax ?? 5;
         
         return (
           <div className={styles.sliderContainer}>
-            {isInternalLinksQuestion && (
-              <>
-                <div className={styles.sliderRecommendedRange}>
-                  <span className={styles.rangeLabel}>{t('registration.interview.hints.internalLinksRecommendedRange')}</span>
-                  <span className={styles.rangeValue}>{recommendedMin}-{recommendedMax}</span>
-                  <span className={styles.rangeLabel}>{t('common.linksPerThousand') || 'links / 1000 words'}</span>
-                </div>
-                <div className={styles.sliderHint}>
-                  <span className={styles.hintIcon}>💡</span>
-                  <span>
-                    {internalLinksDefault 
-                      ? t('registration.interview.hints.internalLinksRecommendation', { count: internalLinksDefault })
-                      : t('registration.interview.hints.internalLinksSeoTip')
-                    }
-                  </span>
-                </div>
-              </>
-            )}
             <input
               type="range"
               min={config.min}
@@ -2248,6 +2322,7 @@ export const InterviewWizard = forwardRef(function InterviewWizard({ onClose, on
         };
         
         // Compact inline data card display
+        if (editableDataConfirmed) return null;
         return (
           <div className={styles.inlineEditableData}>
             <div className={styles.inlineDataCard}>
@@ -2265,7 +2340,7 @@ export const InterviewWizard = forwardRef(function InterviewWizard({ onClose, on
             
             <div className={styles.inlineDataActions}>
               <button 
-                onClick={() => handleSubmit(getCurrentValues())}
+                onClick={() => { setEditableDataConfirmed(true); handleSubmit(getCurrentValues()); }}
                 className={styles.primaryButton}
                 disabled={isTyping || isProcessing}
               >
@@ -2456,7 +2531,7 @@ export const InterviewWizard = forwardRef(function InterviewWizard({ onClose, on
 
   // Show loading while fetching data OR while dictionary is not ready
   if (loading || !isDictionaryReady) {
-    return (
+    return createPortal(
       <div className={styles.overlay}>
         <div className={styles.wizardContainer}>
           <div className={styles.loadingContainer}>
@@ -2464,12 +2539,13 @@ export const InterviewWizard = forwardRef(function InterviewWizard({ onClose, on
             <p>{isDictionaryReady ? t('common.loading') : 'Loading...'}</p>
           </div>
         </div>
-      </div>
+      </div>,
+      document.body
     );
   }
 
   if (error) {
-    return (
+    return createPortal(
       <div className={styles.overlay}>
         <div className={styles.wizardContainer}>
           <div className={styles.errorContainer}>
@@ -2479,7 +2555,8 @@ export const InterviewWizard = forwardRef(function InterviewWizard({ onClose, on
             </button>
           </div>
         </div>
-      </div>
+      </div>,
+      document.body
     );
   }
 

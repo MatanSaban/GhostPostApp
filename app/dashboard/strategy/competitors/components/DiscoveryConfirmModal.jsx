@@ -1,5 +1,6 @@
 'use client';
 
+import { createPortal } from 'react-dom';
 import { Sparkles, Zap, Clock, TrendingUp } from 'lucide-react';
 import { useLocale } from '@/app/context/locale-context';
 import styles from '../competitors.module.css';
@@ -7,7 +8,7 @@ import styles from '../competitors.module.css';
 export function DiscoveryConfirmModal({ onClose, onConfirm }) {
   const { t } = useLocale();
 
-  return (
+  return createPortal(
     <div className={styles.modalOverlay} onClick={onClose}>
       <div className={styles.confirmModal} onClick={(e) => e.stopPropagation()}>
         <div className={styles.confirmHeader}>
@@ -74,6 +75,7 @@ export function DiscoveryConfirmModal({ onClose, onConfirm }) {
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

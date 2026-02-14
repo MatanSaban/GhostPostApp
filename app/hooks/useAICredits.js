@@ -3,6 +3,7 @@
 import { useCallback } from 'react';
 import { useUser } from '@/app/context/user-context';
 import { emitCreditsUpdated } from '@/app/context/user-context';
+import { handleLimitError } from '@/app/context/limit-guard-context';
 
 /**
  * Hook for making API calls that may consume AI credits
@@ -33,6 +34,11 @@ export function useAICredits() {
     });
 
     const data = await response.json();
+
+    // Auto-detect limit / insufficient-credits errors from API
+    if (!response.ok && handleLimitError(data)) {
+      return { ok: false, status: response.status, data, limitError: true };
+    }
 
     // Check if the response includes updated credits info
     if (data.creditsUpdated && data.creditsUpdated.used !== undefined) {

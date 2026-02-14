@@ -22,6 +22,8 @@ import {
   Settings,
   Database,
   FileEdit,
+  MousePointer,
+  Eye,
 } from 'lucide-react';
 import styles from './shared.module.css';
 
@@ -47,6 +49,8 @@ const iconMap = {
   TrendingDown,
   Database,
   FileEdit,
+  MousePointer,
+  Eye,
 };
 
 export function StatsCard({ 

@@ -3,6 +3,7 @@ import { cookies } from 'next/headers';
 import prisma from '@/lib/prisma';
 import { generateTextResponse } from '@/lib/ai/gemini';
 import { trackAIUsage } from '@/lib/ai/credits-service';
+import { enforceCredits } from '@/lib/account-limits';
 
 const SESSION_COOKIE = 'user_session';
 
@@ -207,6 +208,12 @@ export async function POST(request) {
 
     if (!site.url) {
       return NextResponse.json({ error: 'Site URL is not configured' }, { status: 400 });
+    }
+
+    // ── Enforce AI credit limit ──────────────────────────────
+    const creditCheck = await enforceCredits(site.accountId, 2); // DETECT_PLATFORM = 2 credits
+    if (!creditCheck.allowed) {
+      return NextResponse.json(creditCheck, { status: 402 });
     }
 
     const siteUrl = site.url.replace(/\/$/, ''); // Remove trailing slash

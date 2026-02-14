@@ -62,8 +62,11 @@
 /* Overlay */
 .overlay {
   position: fixed;
-  inset: 0;
-  z-index: 99999;
+  top: 0;
+  left: 0;
+  width: 100dvw;
+  height: 100dvh;
+  z-index: 10000;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1997,6 +2000,54 @@
   }
 }
 
+/* Range Buttons Grid for internal links */
+.rangeButtonsGrid {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: center;
+  width: 100%;
+  max-width: 420px;
+}
+
+.rangeButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 12px 20px;
+  border-radius: 12px;
+  border: 2px solid var(--border-subtle);
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 70px;
+
+  &:hover {
+    border-color: #667eea;
+    background: rgba(102, 126, 234, 0.1);
+  }
+
+  &.selected {
+    border-color: #667eea;
+    background: rgba(102, 126, 234, 0.2);
+    color: #667eea;
+    font-weight: 600;
+  }
+
+  &.recommended {
+    border-color: rgba(102, 126, 234, 0.4);
+    background: rgba(102, 126, 234, 0.08);
+  }
+}
+
+.rangeButtonLabel {
+  font-size: 15px;
+}
+
 /* Manual Keyword Input */
 .manualKeywordInput {
   display: flex;
@@ -2086,13 +2137,16 @@
 /* Edit Modal */
 .editModalOverlay {
   position: fixed;
-  inset: 0;
+  top: 0;
+  left: 0;
+  width: 100dvw;
+  height: 100dvh;
   background: rgba(0, 0, 0, 0.7);
   backdrop-filter: blur(4px);
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1100;
+  z-index: 10001;
   animation: fadeIn 0.2s ease;
 }
 

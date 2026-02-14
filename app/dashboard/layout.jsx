@@ -27,6 +27,8 @@ import {
   Lightbulb,
   Globe,
   Package,
+  Monitor,
+  Bell,
 } from 'lucide-react';
 import { GhostChatPopup } from '@/app/components/ui/ghost-chat-popup';
 import { SiteSelector } from '@/app/components/ui/site-selector';
@@ -397,7 +399,27 @@ export default function DashboardLayout({ children, title = 'Dashboard', breadcr
             </div>
           </div>
 
-          {/* Settings - Below Tools */}
+          {/* My Websites - Visible to users with SITES_VIEW permission */}
+          {canViewPath('/dashboard/my-websites') && (
+            <Link
+              href="/dashboard/my-websites"
+              className={`${styles.navItem} ${pathname === '/dashboard/my-websites' ? styles.active : ''}`}
+            >
+              <Monitor className={styles.navIcon} />
+              <span className={styles.navLabel}>{t('nav.myWebsites')}</span>
+            </Link>
+          )}
+
+          {/* Notification Center */}
+          <Link
+            href="/dashboard/notifications"
+            className={`${styles.navItem} ${pathname === '/dashboard/notifications' ? styles.active : ''}`}
+          >
+            <Bell className={styles.navIcon} />
+            <span className={styles.navLabel}>{t('notificationCenter.navTitle')}</span>
+          </Link>
+
+          {/* Settings - Below My Websites */}
           <Link
             href="/dashboard/settings"
             className={`${styles.navItem} ${pathname === '/dashboard/settings' ? styles.active : ''}`}

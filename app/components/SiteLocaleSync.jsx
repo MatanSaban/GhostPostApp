@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useRouter } from 'next/navigation';
 import { useSite } from '@/app/context/site-context';
 import { useLocale } from '@/app/context/locale-context';
@@ -105,12 +106,13 @@ export function SiteLocaleSync() {
     });
   }, [selectedSite?.id, selectedSite?.name, setLocale, router]);
 
-  return (
+  return createPortal(
     <div className={`${styles.overlay} ${isLoading ? styles.visible : ''}`}>
       <div className={styles.spinner} />
       <p className={styles.text}>
         {loadingMessage} <span className={styles.siteName}>{targetSiteName}</span>
       </p>
-    </div>
+    </div>,
+    document.body
   );
 }

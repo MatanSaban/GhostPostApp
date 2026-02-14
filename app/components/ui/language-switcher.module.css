@@ -30,6 +30,11 @@
 
 .buttonCompact {
   padding: 0.5rem;
+  aspect-ratio: 1/1;
+  width: 40px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .icon {

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect, useCallback, forwardRef, useImperativeHandle } from 'react';
+import { createPortal } from 'react-dom';
 import { 
   Send, X, Plus, Paperclip, Mic, Image as ImageIcon, 
   Check, Search, Trash2, Edit2, Sparkles, Zap, 
@@ -264,7 +265,7 @@ export const GhostChatPopup = forwardRef(function GhostChatPopup({ isOpen, onClo
 
   if (!isOpen && !isClosing) return null;
 
-  return (
+  return createPortal(
     <>
       {/* Backdrop */}
       <div 
@@ -621,6 +622,7 @@ export const GhostChatPopup = forwardRef(function GhostChatPopup({ isOpen, onClo
           </div>
         </div>
       </div>
-    </>
+    </>,
+    document.body
   );
 });

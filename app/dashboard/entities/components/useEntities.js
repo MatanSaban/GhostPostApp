@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useSite } from '@/app/context/site-context';
 import { useBackgroundTasks } from '@/app/context/background-tasks-context';
 import { useLocale } from '@/app/context/locale-context';
+import { handleLimitError } from '@/app/context/limit-guard-context';
 
 export function useEntities() {
   const router = useRouter();
@@ -132,6 +133,11 @@ export function useEntities() {
       });
       const data = await response.json();
 
+      if (!response.ok && handleLimitError(data)) {
+        setIsDetecting(false);
+        return;
+      }
+
       if (data.platform) {
         setPlatform(data.platform);
         setDetectionResult({ success: true, platform: data.platform });
@@ -201,6 +207,11 @@ export function useEntities() {
         }),
       });
       const data = await response.json();
+
+      if (!response.ok && handleLimitError(data)) {
+        setIsCrawling(false);
+        return;
+      }
 
       if (data.success && data.postTypes) {
         setDiscoveredTypes(data.postTypes);
@@ -396,6 +407,11 @@ export function useEntities() {
       });
       const crawlData = await crawlResponse.json();
 
+      if (!crawlResponse.ok && handleLimitError(crawlData)) {
+        updateTask(taskId, { status: 'error', message: crawlData.error || 'Credit limit reached' });
+        return;
+      }
+
       if (crawlData.success) {
         updateTask(taskId, { status: 'completed', progress: 100, message: 'Complete!' });
         setPopulatedInfo({
@@ -468,6 +484,11 @@ export function useEntities() {
       });
       const populateData = await populateResponse.json();
 
+      if (!populateResponse.ok && handleLimitError(populateData)) {
+        updateTask(taskId, { status: 'error', message: populateData.error || 'Credit limit reached' });
+        return;
+      }
+
       if (!populateData.success) {
         updateTask(taskId, { status: 'error', message: populateData.error || 'Failed' });
         return;
@@ -482,6 +503,11 @@ export function useEntities() {
         body: JSON.stringify({ siteId, phase: 'crawl', options: { batchSize: 100, forceRescan: true } }),
       });
       const crawlData = await crawlResponse.json();
+
+      if (!crawlResponse.ok && handleLimitError(crawlData)) {
+        updateTask(taskId, { status: 'error', message: crawlData.error || 'Credit limit reached' });
+        return;
+      }
 
       if (crawlData.success) {
         setPopulatedInfo({

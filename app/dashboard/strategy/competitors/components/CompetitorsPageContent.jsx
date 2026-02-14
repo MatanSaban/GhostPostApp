@@ -1,13 +1,12 @@
 'use client';
 
-import { Loader2, Sparkles } from 'lucide-react';
-import { useLocale } from '@/app/context/locale-context';
 import {
   PageHeader,
   StatsGrid,
   EmptyState,
   PrimaryActionButton,
   Skeleton,
+  AIDiscoverButton,
 } from '../../../components';
 import { useCompetitors } from './useCompetitors';
 import { CompetitorCard, CompetitorCardSkeleton } from './CompetitorCard';
@@ -19,8 +18,8 @@ import { DiscoveryModal } from './DiscoveryModal';
 import { ComparisonPanel } from './ComparisonPanel';
 import styles from '../competitors.module.css';
 
-export function CompetitorsPageContent() {
-  const { t } = useLocale();
+export function CompetitorsPageContent({ translations }) {
+  const t = translations;
   const {
     // Site
     selectedSite,
@@ -69,11 +68,12 @@ export function CompetitorsPageContent() {
     handleViewModeChange,
   } = useCompetitors();
 
-  // Translate stats labels
-  const translatedStats = statsData.map(stat => ({
-    ...stat,
-    label: t(stat.label),
-  }));
+  // Build stats with pre-translated labels
+  const translatedStats = [
+    { iconName: 'Users', value: String(competitors.length), label: t.trackedCompetitors, color: 'purple' },
+    { iconName: 'Target', value: '0', label: t.sharedKeywords, color: 'blue' },
+    { iconName: 'BarChart2', value: String(competitors.reduce((sum, c) => sum + (c.contentGaps?.length || 0), 0)), label: t.contentGaps, color: 'orange' },
+  ];
 
   // Loading skeleton while site context loads
   if (!selectedSite) {
@@ -95,7 +95,7 @@ export function CompetitorsPageContent() {
             <Skeleton width="36px" height="36px" borderRadius="md" />
             <Skeleton width="36px" height="36px" borderRadius="md" />
           </div>
-          <CompetitorTableSkeleton t={t} />
+          <CompetitorTableSkeleton translations={t} />
         </div>
       );
     }
@@ -103,10 +103,10 @@ export function CompetitorsPageContent() {
     return (
       <>
         <PageHeader
-          title={t('competitorAnalysis.title')}
-          subtitle={t('competitorAnalysis.subtitle')}
+          title={t.title}
+          subtitle={t.subtitle}
         />
-        <EmptyState iconName="Users" title={t('competitorAnalysis.selectSite')} />
+        <EmptyState iconName="Users" title={t.selectSite} />
       </>
     );
   }
@@ -114,28 +114,21 @@ export function CompetitorsPageContent() {
   return (
     <>
       <PageHeader
-        title={t('competitorAnalysis.title')}
-        subtitle={t('competitorAnalysis.subtitle')}
+        title={t.title}
+        subtitle={t.subtitle}
       >
         <div className={styles.headerActions}>
-          <button
-            className={styles.aiDiscoverButton}
+          <AIDiscoverButton
+            isDiscovering={discovering}
             onClick={() => setShowDiscoveryConfirm(true)}
-            disabled={discovering}
-          >
-            {discovering ? (
-              <Loader2 className={styles.spinIcon} size={16} />
-            ) : (
-              <Sparkles size={16} />
-            )}
-            {t('competitorAnalysis.findWithAI')}
-          </button>
+            label={t.findWithAI}
+          />
           <PrimaryActionButton
             iconName="Plus"
             onClick={() => setShowAddForm(true)}
             disabled={competitors.length >= limit}
           >
-            {t('competitorAnalysis.addCompetitor')}
+            {t.addCompetitor}
           </PrimaryActionButton>
         </div>
       </PageHeader>
@@ -145,6 +138,7 @@ export function CompetitorsPageContent() {
       {/* Modals */}
       {showDiscoveryConfirm && (
         <DiscoveryConfirmModal
+          translations={t}
           onClose={() => setShowDiscoveryConfirm(false)}
           onConfirm={() => {
             setShowDiscoveryConfirm(false);
@@ -156,6 +150,7 @@ export function CompetitorsPageContent() {
 
       {showDiscoveryModal && (
         <DiscoveryModal
+          translations={t}
           discovering={discovering}
           discoveredCompetitors={discoveredCompetitors}
           selectedDiscovered={selectedDiscovered}
@@ -170,6 +165,7 @@ export function CompetitorsPageContent() {
       {/* Add Competitor Form */}
       {showAddForm && (
         <AddCompetitorForm
+          translations={t}
           newUrl={newUrl}
           setNewUrl={setNewUrl}
           addingUrl={addingUrl}
@@ -192,21 +188,25 @@ export function CompetitorsPageContent() {
             <Skeleton width="36px" height="36px" borderRadius="md" />
             <Skeleton width="36px" height="36px" borderRadius="md" />
           </div>
-          <CompetitorTableSkeleton t={t} />
+          <CompetitorTableSkeleton translations={t} />
         </div>
       ) : competitors.length === 0 ? (
         <EmptyState
           iconName="Users"
-          title={t('competitorAnalysis.noCompetitors')}
-          description={t('competitorAnalysis.noCompetitorsDescription')}
+          title={t.noCompetitors}
+          description={t.noCompetitorsDescription}
         >
           <PrimaryActionButton iconName="Plus" onClick={() => setShowAddForm(true)}>
-            {t('competitorAnalysis.addFirstCompetitor')}
+            {t.addFirstCompetitor}
           </PrimaryActionButton>
         </EmptyState>
       ) : (
         <>
-          <ViewToggle viewMode={viewMode} onChange={handleViewModeChange} />
+          <ViewToggle 
+            viewMode={viewMode} 
+            onChange={handleViewModeChange}
+            translations={t}
+          />
 
           {viewMode === 'list' && (
             <div className={styles.competitorList}>
@@ -219,6 +219,7 @@ export function CompetitorsPageContent() {
                   onSelect={setSelectedCompetitor}
                   onScan={handleScanCompetitor}
                   onRemove={handleRemoveCompetitor}
+                  translations={t}
                 />
               ))}
             </div>
@@ -232,6 +233,7 @@ export function CompetitorsPageContent() {
               onSelect={setSelectedCompetitor}
               onScan={handleScanCompetitor}
               onRemove={handleRemoveCompetitor}
+              translations={t}
             />
           )}
         </>
@@ -245,6 +247,7 @@ export function CompetitorsPageContent() {
         userPageUrl={userPageUrl}
         setUserPageUrl={setUserPageUrl}
         onCompare={handleCompare}
+        translations={t}
       />
     </>
   );

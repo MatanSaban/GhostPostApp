@@ -6,12 +6,9 @@ import {
   CheckCircle, 
   AlertCircle, 
   Clock, 
-  RefreshCw, 
-  Trash2, 
   ChevronRight 
 } from 'lucide-react';
-import { useLocale } from '@/app/context/locale-context';
-import { Skeleton } from '@/app/dashboard/components';
+import { Skeleton, ScanButton, DeleteButton } from '@/app/dashboard/components';
 import styles from '../competitors.module.css';
 
 function formatTimeAgo(dateString) {
@@ -27,12 +24,14 @@ function formatTimeAgo(dateString) {
   return `${diffDays}d`;
 }
 
-function ScanStatusBadge({ competitor, isScanning, t }) {
+function ScanStatusBadge({ competitor, isScanning, translations }) {
+  const t = translations;
+  
   if (isScanning) {
     return (
       <span className={`${styles.statusBadge} ${styles.scanning}`}>
         <Loader2 className={styles.spinIcon} size={12} />
-        {t('competitorAnalysis.scanning')}
+        {t.scanning}
       </span>
     );
   }
@@ -42,21 +41,21 @@ function ScanStatusBadge({ competitor, isScanning, t }) {
       return (
         <span className={`${styles.statusBadge} ${styles.completed}`}>
           <CheckCircle size={12} />
-          {t('competitorAnalysis.lastScanned')} {formatTimeAgo(competitor.lastScannedAt)}
+          {t.lastScanned} {formatTimeAgo(competitor.lastScannedAt)}
         </span>
       );
     case 'ERROR':
       return (
         <span className={`${styles.statusBadge} ${styles.error}`}>
           <AlertCircle size={12} />
-          {t('competitorAnalysis.scanError')}
+          {t.scanError}
         </span>
       );
     default:
       return (
         <span className={`${styles.statusBadge} ${styles.pending}`}>
           <Clock size={12} />
-          {t('competitorAnalysis.pending')}
+          {t.pending}
         </span>
       );
   }
@@ -91,8 +90,8 @@ export function CompetitorCardSkeleton() {
   );
 }
 
-export function CompetitorCard({ competitor, isSelected, isScanning, onSelect, onScan, onRemove }) {
-  const { t } = useLocale();
+export function CompetitorCard({ competitor, isSelected, isScanning, onSelect, onScan, onRemove, translations }) {
+  const t = translations;
 
   return (
     <div
@@ -126,14 +125,14 @@ export function CompetitorCard({ competitor, isSelected, isScanning, onSelect, o
             </a>
           </div>
         </div>
-        <ScanStatusBadge competitor={competitor} isScanning={isScanning} t={t} />
+        <ScanStatusBadge competitor={competitor} isScanning={isScanning} translations={t} />
       </div>
 
       {competitor.scanStatus === 'COMPLETED' && competitor.wordCount && (
         <div className={styles.metricsRow}>
           <div className={styles.metric}>
             <span className={styles.metricValue}>{competitor.wordCount?.toLocaleString()}</span>
-            <span className={styles.metricLabel}>{t('competitorAnalysis.words')}</span>
+            <span className={styles.metricLabel}>{t.words}</span>
           </div>
           <div className={styles.metric}>
             <span className={styles.metricValue}>
@@ -143,31 +142,27 @@ export function CompetitorCard({ competitor, isSelected, isScanning, onSelect, o
           </div>
           <div className={styles.metric}>
             <span className={styles.metricValue}>{competitor.imageCount || 0}</span>
-            <span className={styles.metricLabel}>{t('competitorAnalysis.images')}</span>
+            <span className={styles.metricLabel}>{t.images}</span>
           </div>
           <div className={styles.metric}>
             <span className={styles.metricValue}>{competitor.ttfb || '-'}</span>
-            <span className={styles.metricLabel}>{t('competitorAnalysis.ms')}</span>
+            <span className={styles.metricLabel}>{t.ms}</span>
           </div>
         </div>
       )}
 
       <div className={styles.competitorActions}>
-        <button
-          className={styles.actionButton}
-          onClick={(e) => { e.stopPropagation(); onScan(competitor.id); }}
-          disabled={isScanning}
-        >
-          <RefreshCw size={14} />
-          {t('competitorAnalysis.rescan')}
-        </button>
-        <button
-          className={`${styles.actionButton} ${styles.danger}`}
-          onClick={(e) => { e.stopPropagation(); onRemove(competitor.id); }}
-        >
-          <Trash2 size={14} />
-          {t('competitorAnalysis.remove')}
-        </button>
+        <ScanButton
+          id={competitor.id}
+          isScanning={isScanning}
+          onScan={onScan}
+          label={t.rescan}
+        />
+        <DeleteButton
+          id={competitor.id}
+          onDelete={onRemove}
+          label={t.remove}
+        />
         <ChevronRight size={16} className={styles.chevron} />
       </div>
     </div>

@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Image from '@tiptap/extension-image';
@@ -121,7 +122,7 @@ function LinkDialog({ isOpen, onClose, onSubmit, initialUrl = '' }) {
     onClose();
   };
 
-  return (
+  return createPortal(
     <div className={styles.dialogOverlay} onClick={onClose}>
       <div className={styles.dialog} onClick={(e) => e.stopPropagation()}>
         <h3 className={styles.dialogTitle}>{t('editor.insertLink')}</h3>
@@ -144,7 +145,8 @@ function LinkDialog({ isOpen, onClose, onSubmit, initialUrl = '' }) {
           </div>
         </form>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
 

@@ -539,4 +539,81 @@ export function AdminTableSkeleton({ rows = 8, columns = 5 }) {
   );
 }
 
+/**
+ * Skeleton for My Websites page
+ * Shows toolbar skeleton + table rows skeleton (default) or card grid skeleton
+ */
+export function MyWebsitesPageSkeleton() {
+  return (
+    <div className={styles.myWebsitesPage}>
+      <PageHeaderSkeleton hasSubtitle />
+      {/* Toolbar skeleton */}
+      <div className={styles.myWebsitesToolbar}>
+        <Skeleton width="280px" height="2.25rem" borderRadius="md" />
+        <Skeleton width="5rem" height="2.25rem" borderRadius="md" />
+      </div>
+      {/* Table skeleton */}
+      <div className={styles.myWebsitesTable}>
+        <div className={styles.myWebsitesTableHead}>
+          {Array.from({ length: 6 }).map((_, i) => (
+            <Skeleton key={i} width={`${40 + Math.random() * 40}%`} height="0.75rem" />
+          ))}
+        </div>
+        {Array.from({ length: 5 }).map((_, i) => (
+          <div key={i} className={styles.myWebsitesTableRow}>
+            <div className={styles.myWebsitesTableCell}>
+              <Skeleton width="1rem" height="1rem" borderRadius="full" />
+              <Skeleton width="60%" height="0.875rem" />
+            </div>
+            <Skeleton width="55%" height="0.875rem" />
+            <Skeleton width="45%" height="0.875rem" />
+            <Skeleton width="5rem" height="1.5rem" borderRadius="full" />
+            <Skeleton width="50%" height="0.875rem" />
+            <div className={styles.myWebsitesTableActions}>
+              <Skeleton width="1.75rem" height="1.75rem" borderRadius="md" />
+              <Skeleton width="1.75rem" height="1.75rem" borderRadius="md" />
+              <Skeleton width="1.75rem" height="1.75rem" borderRadius="md" />
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Skeleton for My Websites card grid view
+ */
+export function MyWebsitesCardsSkeleton({ count = 6 }) {
+  return (
+    <div className={styles.myWebsitesCards}>
+      {Array.from({ length: count }).map((_, i) => (
+        <div key={i} className={styles.myWebsitesCard}>
+          <div className={styles.myWebsitesCardHeader}>
+            <div className={styles.myWebsitesCardTitle}>
+              <Skeleton width="1.25rem" height="1.25rem" borderRadius="full" />
+              <Skeleton width="60%" height="1rem" />
+            </div>
+            <Skeleton width="5rem" height="1.5rem" borderRadius="full" />
+          </div>
+          <div className={styles.myWebsitesCardBody}>
+            <Skeleton width="80%" height="0.8125rem" />
+            <div className={styles.myWebsitesCardMeta}>
+              <Skeleton width="4rem" height="0.75rem" />
+              <Skeleton width="5rem" height="0.75rem" />
+            </div>
+          </div>
+          <div className={styles.myWebsitesCardFooter}>
+            <Skeleton width="5rem" height="2rem" borderRadius="md" />
+            <div className={styles.myWebsitesTableActions}>
+              <Skeleton width="1.75rem" height="1.75rem" borderRadius="md" />
+              <Skeleton width="1.75rem" height="1.75rem" borderRadius="md" />
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export default Skeleton;

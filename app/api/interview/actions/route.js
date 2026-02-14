@@ -48,7 +48,7 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { actionName, parameters, questionId } = await request.json();
+    const { actionName, parameters, questionId, interviewId } = await request.json();
 
     if (!actionName) {
       return NextResponse.json(
@@ -57,11 +57,12 @@ export async function POST(request) {
       );
     }
 
-    // Find the user's active interview
+    // Find the user's active interview - prefer specific interviewId if provided
     const interview = await prisma.userInterview.findFirst({
       where: { 
         userId: user.id,
         status: { in: ['NOT_STARTED', 'IN_PROGRESS'] },
+        ...(interviewId ? { id: interviewId } : {}),
       },
     });
 

@@ -26,6 +26,7 @@ async function getAuthenticatedUser() {
         email: true, 
         firstName: true, 
         lastName: true,
+        isSuperAdmin: true,
         lastSelectedAccountId: true,
         accountMemberships: {
           select: {
@@ -50,6 +51,21 @@ export async function GET() {
     const user = await getAuthenticatedUser();
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    // SuperAdmin: return ALL sites across all accounts
+    if (user.isSuperAdmin) {
+      const sites = await prisma.site.findMany({
+        where: { isActive: true },
+        include: { account: { select: { id: true, name: true } } },
+        orderBy: { createdAt: 'desc' },
+      });
+
+      // Try to find a last selected site from any membership
+      const currentMembership = user.accountMemberships[0];
+      const lastSelectedSiteId = currentMembership?.lastSelectedSiteId || null;
+
+      return NextResponse.json({ sites, lastSelectedSiteId });
     }
 
     // Get all account IDs the user has access to
@@ -173,16 +189,19 @@ export async function PATCH(request) {
       );
     }
 
-    // Get all account IDs the user has access to
-    const accountIds = user.accountMemberships.map(m => m.accountId);
-
-    // Check if site belongs to one of user's accounts
-    const site = await prisma.site.findFirst({
-      where: {
-        id: siteId,
-        accountId: { in: accountIds },
-      },
-    });
+    // SuperAdmin can update any site; regular users only their own accounts' sites
+    let site;
+    if (user.isSuperAdmin) {
+      site = await prisma.site.findUnique({ where: { id: siteId } });
+    } else {
+      const accountIds = user.accountMemberships.map(m => m.accountId);
+      site = await prisma.site.findFirst({
+        where: {
+          id: siteId,
+          accountId: { in: accountIds },
+        },
+      });
+    }
 
     if (!site) {
       return NextResponse.json(

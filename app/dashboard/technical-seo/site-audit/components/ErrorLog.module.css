@@ -1,0 +1,127 @@
+/* ErrorLog / CodeBlock Styles */
+
+.container {
+  border: 1px solid var(--border, #2a2a4a);
+  border-radius: var(--radius-md, 8px);
+  overflow: hidden;
+  margin-top: 8px;
+}
+
+.title {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--muted-foreground);
+  padding: 8px 12px;
+  background: rgba(0, 0, 0, 0.04);
+  border-bottom: 1px solid var(--border, #2a2a4a);
+}
+
+.logBody {
+  font-family: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, monospace;
+  font-size: 0.75rem;
+  line-height: 1.6;
+  max-height: 300px;
+  overflow-y: auto;
+  background: rgba(0, 0, 0, 0.02);
+}
+
+.logEntry {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 4px 12px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+  transition: background 0.1s;
+
+  &:hover {
+    background: rgba(239, 68, 68, 0.03);
+  }
+
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+.lineNumber {
+  flex-shrink: 0;
+  width: 24px;
+  text-align: end;
+  color: var(--muted-foreground);
+  opacity: 0.5;
+  font-size: 0.6875rem;
+  padding-top: 1px;
+  user-select: none;
+}
+
+.logText {
+  flex: 1;
+  margin: 0;
+  white-space: pre-wrap;
+  word-break: break-all;
+  color: #ef4444;
+  font-family: inherit;
+  font-size: inherit;
+}
+
+.copyBtn {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 4px;
+  border: none;
+  background: transparent;
+  color: var(--muted-foreground);
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.15s, background 0.15s;
+}
+
+.logEntry:hover .copyBtn {
+  opacity: 1;
+}
+
+.copyBtn:hover {
+  background: rgba(0, 0, 0, 0.08);
+  color: var(--foreground);
+}
+
+.expandBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  width: 100%;
+  padding: 6px;
+  border: none;
+  border-top: 1px solid var(--border, #2a2a4a);
+  background: rgba(0, 0, 0, 0.02);
+  color: var(--muted-foreground);
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.expandBtn:hover {
+  background: rgba(0, 0, 0, 0.06);
+  color: var(--foreground);
+}
+
+/* Dark mode adjustments */
+@media (prefers-color-scheme: dark) {
+  .logBody {
+    background: rgba(255, 255, 255, 0.02);
+  }
+
+  .logEntry:hover {
+    background: rgba(239, 68, 68, 0.06);
+  }
+
+  .title {
+    background: rgba(255, 255, 255, 0.04);
+  }
+}

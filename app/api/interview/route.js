@@ -161,7 +161,7 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { questionId, response, skipValidation } = await request.json();
+    const { questionId, response, skipValidation, interviewId } = await request.json();
 
     if (!questionId) {
       return NextResponse.json(
@@ -170,11 +170,12 @@ export async function POST(request) {
       );
     }
 
-    // Find the user's active interview
+    // Find the user's active interview - prefer specific interviewId if provided
     const interview = await prisma.userInterview.findFirst({
       where: { 
         userId: user.id,
         status: { in: ['NOT_STARTED', 'IN_PROGRESS'] },
+        ...(interviewId ? { id: interviewId } : {}),
       },
     });
 
@@ -287,6 +288,83 @@ export async function POST(request) {
       where: { id: interview.id },
       data: updateData,
     });
+
+    // Save keywords/competitors to their models immediately if site exists
+    if (interview.siteId) {
+      // Save keywords to Keyword model when keywords question is answered
+      if (question.saveToField === 'keywords') {
+        try {
+          const keywordsData = Array.isArray(response) ? response : (response?.selectedKeywords || []);
+          if (keywordsData.length > 0) {
+            const existingKeywords = await prisma.keyword.findMany({
+              where: { siteId: interview.siteId },
+              select: { keyword: true },
+            });
+            const existingSet = new Set(existingKeywords.map(k => k.keyword.toLowerCase().trim()));
+            
+            const newKeywords = keywordsData
+              .filter(kw => typeof kw === 'string' && kw.trim() && !existingSet.has(kw.toLowerCase().trim()))
+              .map(kw => ({
+                siteId: interview.siteId,
+                keyword: kw.trim(),
+                status: 'TRACKING',
+                tags: ['interview'],
+              }));
+            
+            if (newKeywords.length > 0) {
+              await prisma.keyword.createMany({ data: newKeywords });
+              console.log(`[Interview] Saved ${newKeywords.length} keywords to Keyword model`);
+            }
+          }
+        } catch (kwErr) {
+          console.error('[Interview] Error saving keywords:', kwErr);
+        }
+      }
+      
+      // Save competitors to Competitor model when competitors question is answered
+      if (question.saveToField === 'competitors') {
+        try {
+          const competitorUrls = Array.isArray(response) ? response : [];
+          for (const url of competitorUrls) {
+            try {
+              const parsedUrl = new URL(url.startsWith('http') ? url : `https://${url}`);
+              const domain = parsedUrl.hostname.replace(/^www\./, '');
+              
+              const existing = await prisma.competitor.findFirst({
+                where: {
+                  siteId: interview.siteId,
+                  OR: [{ url: parsedUrl.href }, { domain }],
+                },
+              });
+              
+              if (!existing) {
+                await prisma.competitor.create({
+                  data: {
+                    siteId: interview.siteId,
+                    url: parsedUrl.href,
+                    domain,
+                    name: domain,
+                    favicon: `https://www.google.com/s2/favicons?domain=${domain}&sz=64`,
+                    source: 'AI',
+                    scanStatus: 'PENDING',
+                  },
+                });
+              } else if (!existing.isActive) {
+                await prisma.competitor.update({
+                  where: { id: existing.id },
+                  data: { isActive: true },
+                });
+              }
+            } catch (urlErr) {
+              // Invalid URL, skip
+            }
+          }
+          console.log(`[Interview] Saved ${competitorUrls.length} competitors to Competitor model`);
+        } catch (compErr) {
+          console.error('[Interview] Error saving competitors:', compErr);
+        }
+      }
+    }
 
     // Execute auto-actions for this question if any
     if (question.autoActions && question.autoActions.length > 0) {
@@ -430,7 +508,7 @@ export async function PUT(request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { questionIndex, questionId } = await request.json();
+    const { questionIndex, questionId, interviewId } = await request.json();
 
     if (questionIndex === undefined && !questionId) {
       return NextResponse.json(
@@ -439,11 +517,12 @@ export async function PUT(request) {
       );
     }
 
-    // Find the user's active interview
+    // Find the user's active interview - prefer specific interviewId if provided
     const interview = await prisma.userInterview.findFirst({
       where: { 
         userId: user.id,
         status: { in: ['NOT_STARTED', 'IN_PROGRESS'] },
+        ...(interviewId ? { id: interviewId } : {}),
       },
     });
 

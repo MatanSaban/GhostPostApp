@@ -1,0 +1,145 @@
+/* ── SmartActionButton ─────────────────────────────────────────── */
+
+.smartButton {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  border: none;
+  border-radius: var(--radius-md, 8px);
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: opacity 0.2s, box-shadow 0.2s, background 0.2s;
+  white-space: nowrap;
+  overflow: hidden; /* for micro bar */
+
+  &:disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
+  }
+}
+
+/* ── Variants ──────────────────────────────────────────────────── */
+
+.primary {
+  background: var(--gradient-primary, linear-gradient(135deg, #7b2cbf, #9d4edd));
+  color: #fff;
+
+  &:hover:not(:disabled) {
+    opacity: 0.9;
+    box-shadow: 0 4px 14px rgba(123, 44, 191, 0.3);
+  }
+}
+
+.secondary {
+  background: var(--muted, rgba(123, 44, 191, 0.05));
+  color: var(--foreground);
+  border: 1px solid var(--border);
+
+  &:hover:not(:disabled) {
+    background: var(--muted-foreground-hover, rgba(123, 44, 191, 0.1));
+    border-color: rgba(123, 44, 191, 0.3);
+  }
+}
+
+.ghost {
+  background: transparent;
+  color: var(--foreground);
+  padding: 8px 12px;
+
+  &:hover:not(:disabled) {
+    background: var(--muted, rgba(123, 44, 191, 0.05));
+  }
+}
+
+/* ── Warning state (>80% used) ──────────────────────────────── */
+
+.warning {
+  /* Subtle amber tint on primary */
+}
+
+.warning.primary {
+  background: linear-gradient(135deg, #b45309, #d97706);
+}
+
+/* ── Limit reached ─────────────────────────────────────────── */
+
+.limitReached {
+  opacity: 0.85;
+}
+
+.limitReached.primary {
+  background: linear-gradient(135deg, #6b7280, #9ca3af);
+}
+
+/* ── Icon ──────────────────────────────────────────────────── */
+
+.icon {
+  flex-shrink: 0;
+}
+
+.spinning {
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ── Label ──────────────────────────────────────────────────── */
+
+.label {
+  flex: 0 0 auto;
+}
+
+/* ── Usage badge ─────────────────────────────────────────────── */
+
+.usageBadge {
+  display: inline-flex;
+  align-items: center;
+  padding: 1px 7px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.2);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  line-height: 1.4;
+}
+
+.usageBadgeWarning {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+.usageBadgeLimited {
+  background: rgba(239, 68, 68, 0.25);
+  color: #fecaca;
+}
+
+/* ── Micro progress bar ──────────────────────────────────────── */
+
+.microBar {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: rgba(0, 0, 0, 0.12);
+}
+
+.microBarFill {
+  display: block;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.5);
+  transition: width 0.4s ease;
+  border-radius: 0 2px 2px 0;
+}
+
+.microBarFillWarning {
+  background: #fbbf24;
+}
+
+.microBarFillLimited {
+  background: #ef4444;
+}

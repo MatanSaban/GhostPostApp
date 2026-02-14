@@ -20,11 +20,29 @@ export async function PATCH(request) {
       return NextResponse.json({ error: 'siteId is required' }, { status: 400 });
     }
 
-    // Get user with their last selected account
+    // Get user with their last selected account and superadmin status
     const user = await prisma.user.findUnique({
       where: { id: userId },
-      select: { lastSelectedAccountId: true },
+      select: { lastSelectedAccountId: true, isSuperAdmin: true },
     });
+
+    // SuperAdmin can select any site without account membership check
+    if (user?.isSuperAdmin) {
+      const site = await prisma.site.findUnique({ where: { id: siteId } });
+      if (!site) {
+        return NextResponse.json({ error: 'Site not found' }, { status: 404 });
+      }
+
+      // Try to update membership if exists, otherwise just succeed
+      if (user.lastSelectedAccountId) {
+        await prisma.accountMember.updateMany({
+          where: { userId, accountId: user.lastSelectedAccountId },
+          data: { lastSelectedSiteId: siteId },
+        }).catch(() => {});
+      }
+
+      return NextResponse.json({ success: true });
+    }
 
     if (!user?.lastSelectedAccountId) {
       return NextResponse.json({ error: 'No account selected' }, { status: 400 });

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useRouter } from 'next/navigation';
 import { useAuthModal } from '../../../context/auth-modal-context';
 import styles from './AuthModal.module.css';
@@ -39,7 +40,7 @@ export function AuthModal() {
 
   if (!isOpen) return null;
 
-  return (
+  return createPortal(
     <div className={styles.overlay}>
       {/* Backdrop */}
       <div className={styles.backdrop} onClick={close} />
@@ -202,6 +203,7 @@ export function AuthModal() {
           </div>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

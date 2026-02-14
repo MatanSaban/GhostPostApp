@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect, useMemo } from 'react';
+import { useState, useRef, useEffect, useMemo, useCallback } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
@@ -18,6 +18,9 @@ import {
   Plus,
   Crown,
   UserCircle,
+  Activity,
+  Mail,
+  MailOpen,
 } from 'lucide-react';
 import { ThemeToggle } from '@/app/components/ui/theme-toggle';
 import { LanguageSwitcher } from '@/app/components/ui/language-switcher';
@@ -56,49 +59,35 @@ function getUserDisplayName(firstName, lastName, email) {
   return email || 'User';
 }
 
-// Sample notifications data
-const defaultNotifications = [
-  {
-    id: 1,
-    type: 'content',
-    icon: FileText,
-    titleKey: 'notifications.items.newBlogPost.title',
-    messageKey: 'notifications.items.newBlogPost.message',
-    timeKey: 'notifications.time.fiveMinAgo',
-    read: false,
-    link: '/dashboard/content-planner',
-  },
-  {
-    id: 2,
-    type: 'ai',
-    icon: Sparkles,
-    titleKey: 'notifications.items.aiInsight.title',
-    messageKey: 'notifications.items.aiInsight.message',
-    timeKey: 'notifications.time.oneHourAgo',
-    read: false,
-    link: '/dashboard/strategy/keywords',
-  },
-  {
-    id: 3,
-    type: 'alert',
-    icon: AlertCircle,
-    titleKey: 'notifications.items.interviewIncomplete.title',
-    messageKey: 'notifications.items.interviewIncomplete.message',
-    timeKey: 'notifications.time.twoHoursAgo',
-    read: false,
-    link: '/dashboard/site-interview',
-  },
-  {
-    id: 4,
-    type: 'success',
-    icon: TrendingUp,
-    titleKey: 'notifications.items.trafficMilestone.title',
-    messageKey: 'notifications.items.trafficMilestone.message',
-    timeKey: 'notifications.time.oneDayAgo',
-    read: true,
-    link: '/dashboard',
-  },
-];
+// Notification type → icon mapping
+const NOTIFICATION_ICONS = {
+  audit_complete: Activity,
+  audit_failed: AlertCircle,
+  content: FileText,
+  ai: Sparkles,
+  alert: AlertCircle,
+  success: TrendingUp,
+};
+
+// Relative time helper
+function timeAgo(dateStr, t) {
+  const now = Date.now();
+  const then = new Date(dateStr).getTime();
+  const diffMs = now - then;
+  const diffSec = Math.floor(diffMs / 1000);
+  const diffMin = Math.floor(diffSec / 60);
+  const diffHr = Math.floor(diffMin / 60);
+  const diffDay = Math.floor(diffHr / 24);
+
+  if (diffSec < 60) return t('notifications.time.justNow');
+  if (diffMin < 60) return t('notifications.time.minutesAgo', { count: diffMin });
+  if (diffHr < 24) return t('notifications.time.hoursAgo', { count: diffHr });
+  if (diffDay < 7) return t('notifications.time.daysAgo', { count: diffDay });
+  return new Date(dateStr).toLocaleDateString();
+}
+
+// Polling interval for notifications (30s)
+const NOTIFICATION_POLL_INTERVAL = 30_000;
 
 // Mapping of path segments to translation keys
 const segmentTranslationKeys = {
@@ -119,6 +108,8 @@ const segmentTranslationKeys = {
   'technical-seo': 'nav.tools.title',
   'competitors': 'nav.strategy.competitorAnalysis',
   'webp-converter': 'nav.tools.webpConverter',
+  // Notification Center
+  'notifications': 'notificationCenter.navTitle',
   // User pages
   'profile': 'user.myProfile',
   // Entities pages
@@ -150,7 +141,8 @@ export function DashboardHeader() {
   const { isOwner, canAccessTab } = usePermissions();
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
-  const [notifications, setNotifications] = useState(defaultNotifications);
+  const [notifications, setNotifications] = useState([]);
+  const [unreadCount, setUnreadCount] = useState(0);
   const [entityTypes, setEntityTypes] = useState([]);
   const [entityTitle, setEntityTitle] = useState(null);
   const [entityId, setEntityId] = useState(null);
@@ -203,7 +195,25 @@ export function DashboardHeader() {
     };
   }, [contextUser, locale]);
 
-  const unreadCount = notifications.filter(n => !n.read).length;
+  // ─── Fetch notifications from API ─────────────────────────
+  const fetchNotifications = useCallback(async () => {
+    try {
+      const res = await fetch('/api/notifications?limit=20');
+      if (!res.ok) return;
+      const data = await res.json();
+      setNotifications(data.notifications || []);
+      setUnreadCount(data.unreadCount || 0);
+    } catch {
+      // silent
+    }
+  }, []);
+
+  // Fetch on mount + poll every 30s
+  useEffect(() => {
+    fetchNotifications();
+    const interval = setInterval(fetchNotifications, NOTIFICATION_POLL_INTERVAL);
+    return () => clearInterval(interval);
+  }, [fetchNotifications]);
 
   // Check if user can access account/subscription features
   // Owner OR has access to account + subscription settings tab
@@ -281,20 +291,61 @@ export function DashboardHeader() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const handleNotificationClick = (notification) => {
-    setNotifications(prev => 
-      prev.map(n => n.id === notification.id ? { ...n, read: true } : n)
-    );
+  const handleNotificationClick = async (notification) => {
+    if (!notification.read) {
+      // Optimistic update
+      setNotifications(prev =>
+        prev.map(n => n.id === notification.id ? { ...n, read: true } : n)
+      );
+      setUnreadCount(prev => Math.max(0, prev - 1));
+      // Persist
+      fetch('/api/notifications', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: notification.id }),
+      }).catch(() => {});
+    }
     setIsNotificationsOpen(false);
   };
 
-  const markAllAsRead = () => {
+  const markAllAsRead = async () => {
     setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+    setUnreadCount(0);
+    fetch('/api/notifications', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ all: true }),
+    }).catch(() => {});
   };
 
-  const clearNotification = (e, id) => {
+  const toggleReadStatus = async (e, notification) => {
     e.stopPropagation();
+    e.preventDefault();
+    const newRead = !notification.read;
+    // Optimistic update
+    setNotifications(prev =>
+      prev.map(n => n.id === notification.id ? { ...n, read: newRead } : n)
+    );
+    setUnreadCount(prev => newRead ? Math.max(0, prev - 1) : prev + 1);
+    // Persist
+    fetch('/api/notifications', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: notification.id, read: newRead }),
+    }).catch(() => {});
+  };
+
+  const clearNotification = async (e, id) => {
+    e.stopPropagation();
+    e.preventDefault();
+    const wasUnread = notifications.find(n => n.id === id && !n.read);
     setNotifications(prev => prev.filter(n => n.id !== id));
+    if (wasUnread) setUnreadCount(prev => Math.max(0, prev - 1));
+    fetch('/api/notifications', {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id }),
+    }).catch(() => {});
   };
 
   // Get breadcrumb items from current path
@@ -403,28 +454,43 @@ export function DashboardHeader() {
                   </div>
                 ) : (
                   notifications.map((notification) => {
-                    const Icon = notification.icon;
+                    const Icon = NOTIFICATION_ICONS[notification.type] || Bell;
+                    const titleText = notification.title?.startsWith('notifications.')
+                      ? t(notification.title, notification.data || {})
+                      : notification.title;
+                    const messageText = notification.message?.startsWith('notifications.')
+                      ? t(notification.message, notification.data || {})
+                      : notification.message;
                     return (
                       <Link
                         key={notification.id}
-                        href={notification.link}
+                        href={notification.link || '/dashboard'}
                         className={`${styles.notificationItem} ${!notification.read ? styles.unread : ''}`}
                         onClick={() => handleNotificationClick(notification)}
                       >
-                        <div className={`${styles.notificationIcon} ${styles[notification.type]}`}>
+                        <div className={`${styles.notificationIcon} ${styles[notification.type] || ''}`}>
                           <Icon size={16} />
                         </div>
                         <div className={styles.notificationContent}>
-                          <div className={styles.notificationTitle}>{t(notification.titleKey)}</div>
-                          <p className={styles.notificationMessage}>{t(notification.messageKey)}</p>
-                          <span className={styles.notificationTime}>{t(notification.timeKey)}</span>
+                          <div className={styles.notificationTitle}>{titleText}</div>
+                          <p className={styles.notificationMessage}>{messageText}</p>
+                          <span className={styles.notificationTime}>{timeAgo(notification.createdAt, t)}</span>
                         </div>
-                        <button 
-                          className={styles.notificationClose}
-                          onClick={(e) => clearNotification(e, notification.id)}
-                        >
-                          <X size={14} />
-                        </button>
+                        <div className={styles.notificationItemActions}>
+                          <button
+                            className={styles.notificationAction}
+                            onClick={(e) => toggleReadStatus(e, notification)}
+                            title={notification.read ? t('notifications.markUnread') : t('notifications.markRead')}
+                          >
+                            {notification.read ? <Mail size={14} /> : <MailOpen size={14} />}
+                          </button>
+                          <button 
+                            className={styles.notificationClose}
+                            onClick={(e) => clearNotification(e, notification.id)}
+                          >
+                            <X size={14} />
+                          </button>
+                        </div>
                       </Link>
                     );
                   })

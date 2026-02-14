@@ -3,6 +3,7 @@ import { cookies } from 'next/headers';
 import prisma from '@/lib/prisma';
 import { generateStructuredResponse } from '@/lib/ai/gemini';
 import { trackAIUsage } from '@/lib/ai/credits-service';
+import { enforceCredits } from '@/lib/account-limits';
 import { z } from 'zod';
 
 const SESSION_COOKIE = 'user_session';
@@ -53,6 +54,14 @@ export async function POST(request) {
 
     if (!url) {
       return NextResponse.json({ error: 'URL is required' }, { status: 400 });
+    }
+
+    // ── Enforce AI credit limit ──────────────────────────────
+    if (accountId) {
+      const creditCheck = await enforceCredits(accountId, 5); // CRAWL_WEBSITE = 5 credits
+      if (!creditCheck.allowed) {
+        return NextResponse.json(creditCheck, { status: 402 });
+      }
     }
 
     // Normalize URL

@@ -541,6 +541,7 @@ enum AddOnType {
   STORAGE         // Additional storage
   KEYWORDS        // Additional keywords tracking
   CONTENT         // Additional content items
+  SITE_AUDITS     // Additional site audits
 }
 
 enum AddOnBillingType {
@@ -664,8 +665,43 @@ model Site {
   menus           SiteMenu[]
   sitemaps        SiteSitemap[]
   competitors     Competitor[]
+  googleIntegration GoogleIntegration?
 
   @@index([siteKey])
+}
+
+// ==========================================
+// GOOGLE INTEGRATIONS
+// ==========================================
+
+model GoogleIntegration {
+  id              String   @id @default(auto()) @map("_id") @db.ObjectId
+  siteId          String   @unique @db.ObjectId
+  connectedBy     String   @db.ObjectId          // userId who connected
+
+  // OAuth tokens (encrypted at rest in production)
+  accessToken     String
+  refreshToken    String?
+  tokenExpiresAt  DateTime?
+
+  // Google Analytics
+  gaConnected     Boolean  @default(false)
+  gaPropertyId    String?                         // e.g. "properties/123456789"
+  gaPropertyName  String?                         // e.g. "My Website - GA4"
+
+  // Google Search Console
+  gscConnected    Boolean  @default(false)
+  gscSiteUrl      String?                         // e.g. "https://example.com/"
+
+  // Metadata
+  googleEmail     String?                         // Google account email used
+  scopes          String[]                        // Granted scopes
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  site            Site     @relation(fields: [siteId], references: [id], onDelete: Cascade)
+
+  @@map("google_integrations")
 }
 
 // ==========================================
@@ -1035,25 +1071,64 @@ enum RedirectionType {
 }
 
 model SiteAudit {
-  id          String       @id @default(auto()) @map("_id") @db.ObjectId
-  siteId      String       @db.ObjectId
-  status      AuditStatus  @default(PENDING)
-  score       Int?
-  issues      AuditIssue[]
-  startedAt   DateTime?
-  completedAt DateTime?
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
+  id                    String            @id @default(auto()) @map("_id") @db.ObjectId
+  siteId                String            @db.ObjectId
+  status                AuditStatus       @default(PENDING)
+  score                 Int?
+  deviceType            String?           // "desktop" | "mobile" — separates audits by device
+  issues                AuditIssue[]
+  categoryScores        Json?             // { technical: 80, performance: 75, visual: 90 }
+  pagesScanned          Int?
+  pagesFound            Int?
+  discoveryMethod       String?           // "plugin" | "wp-api" | "sitemap" | "crawl"
+  pageResults           AuditPageResult[]
+  screenshots           Json?             // { desktop: cloudinaryUrl, mobile: cloudinaryUrl }
+  summary               String?           // AI-generated audit summary (default language)
+  summaryTranslations   Json?             // { "en": "...", "he": "..." }
+  issueTranslations     Json?             // { "<locale>": { "<msgHash>": { message, suggestion } } }
+  progress              Json?             // { currentStep, totalSteps, label, percentage }
+  startedAt             DateTime?
+  completedAt           DateTime?
+  createdAt             DateTime          @default(now())
+  updatedAt             DateTime          @updatedAt
 
   site Site @relation(fields: [siteId], references: [id], onDelete: Cascade)
+
+  @@index([siteId, createdAt(sort: Desc)])
 }
 
 type AuditIssue {
-  type       String
-  severity   String
-  message    String
-  url        String?
-  suggestion String?
+  type            String    // "technical" | "performance" | "visual"
+  severity        String    // "error" | "warning" | "info" | "passed"
+  message         String    // translation key or raw text (for AI-generated)
+  url             String?   // page URL this issue applies to
+  suggestion      String?   // translation key or raw text
+  source          String?   // "html" | "playwright" | "psi" | "ai-vision" | "system"
+  details         String?   // concrete metric value (e.g. "4.2s", "312KB", "5 images")
+  detailedSources Json?     // Array of concrete source items: scripts[], images[], errors[]
+  device          String?   // "desktop" | "mobile" | "both" — which device the issue was found on
+  boundingBox     Json?     // { x, y, width, height } — AI Vision region marker
+}
+
+type AuditPageResult {
+  url                String
+  statusCode         Int?
+  title              String?
+  metaDescription    String?
+  ttfb               Int?
+  performanceScore   Int?
+  lcp                Float?
+  cls                Float?
+  inp                Float?
+  jsErrors           String[]
+  brokenResources    String[]
+  issueCount         Int?
+  screenshotDesktop  String?   // Cloudinary URL — desktop screenshot (or legacy base64)
+  screenshotMobile   String?   // Cloudinary URL — mobile screenshot (or legacy base64)
+  screenshotsDesktop String[]  // Cloudinary URLs — viewport-height segment captures
+  screenshotsMobile  String[]  // Cloudinary URLs — viewport-height segment captures
+  filmstripDesktop   Json?     // [{ stage, url }] — Cloudinary URLs (or legacy [{ stage, base64 }])
+  filmstripMobile    Json?     // [{ stage, url }] — Cloudinary URLs (or legacy [{ stage, base64 }])
 }
 
 enum AuditStatus {
@@ -1332,4 +1407,25 @@ model I18nTranslation {
   @@index([keyId])
   @@index([keyId, languageId, isLatest])
   @@map("i18n_translations")
+}
+
+// ==========================================
+// NOTIFICATIONS
+// ==========================================
+
+model Notification {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId      String   @db.ObjectId
+  accountId   String   @db.ObjectId
+  type        String   // "audit_complete" | "audit_failed" | ...
+  title       String   // translation key, e.g. "notifications.auditComplete.title"
+  message     String   // translation key, e.g. "notifications.auditComplete.message"
+  link        String?  // e.g. "/dashboard/technical-seo/site-audit"
+  data        Json?    // extra payload: { siteId, siteName, score, deviceType, auditId }
+  read        Boolean  @default(false)
+  createdAt   DateTime @default(now())
+
+  @@index([userId, read, createdAt(sort: Desc)])
+  @@index([accountId, createdAt(sort: Desc)])
+  @@map("notifications")
 }

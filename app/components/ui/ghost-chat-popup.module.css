@@ -1,10 +1,13 @@
 /* Backdrop */
 .backdrop {
   position: fixed;
-  inset: 0;
+  top: 0;
+  left: 0;
+  width: 100dvw;
+  height: 100dvh;
   background: rgba(0, 0, 0, 0.6);
   backdrop-filter: blur(4px);
-  z-index: 100;
+  z-index: 10000;
   animation: fadeIn 0.2s ease-out;
 }
 
@@ -17,7 +20,7 @@
   display: flex;
   background: #1a1f37;
   box-shadow: -10px 0 50px rgba(0, 0, 0, 0.5);
-  z-index: 101;
+  z-index: 10001;
   border-radius: 1rem 0 0 1rem;
   overflow: hidden;
   animation: slideInRight 0.3s ease-out;

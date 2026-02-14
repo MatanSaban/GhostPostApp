@@ -1,5 +1,6 @@
 'use client';
 
+import { createPortal } from 'react-dom';
 import { Sparkles, X, Loader2, AlertCircle, Check, ExternalLink } from 'lucide-react';
 import { useLocale } from '@/app/context/locale-context';
 import styles from '../competitors.module.css';
@@ -16,7 +17,7 @@ export function DiscoveryModal({
 }) {
   const { t } = useLocale();
 
-  return (
+  return createPortal(
     <div className={styles.modalOverlay} onClick={() => !discovering && onClose()}>
       <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
         <div className={styles.modalHeader}>
@@ -138,6 +139,7 @@ export function DiscoveryModal({
           </div>
         )}
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
