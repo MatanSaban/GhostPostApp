@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, useLayoutEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { 
-  Activity, BarChart2, Search, Settings,
+  Activity, BarChart2, Search, Settings, ExternalLink,
 } from 'lucide-react';
 import { useSite } from '@/app/context/site-context';
 import { StatsCard, DashboardCard, ActivityItem, QuickActions, ProgressBar, KpiSlider } from '../components';
@@ -851,6 +851,20 @@ export default function DashboardContent({ translations }) {
     return `${d}/${m}`;
   }
 
+  // Build an absolute external URL (never relative to the platform)
+  const toExternalUrl = (raw) => {
+    if (!raw) return '#';
+    // Already absolute
+    if (/^https?:\/\//i.test(raw)) return raw;
+    // Build base from site URL, ensure it has a protocol
+    let base = (selectedSite?.url || '').replace(/\/+$/, '');
+    if (base && !/^https?:\/\//i.test(base)) base = `https://${base}`;
+    // Path-only: prepend the site domain
+    if (raw.startsWith('/')) return base ? `${base}${raw}` : raw;
+    // Domain without protocol
+    return `https://${raw}`;
+  };
+
   // Top pages table
   const renderTopPages = () => {
     const activePages = pagesData ?? data?.topPages;
@@ -874,7 +888,10 @@ export default function DashboardContent({ translations }) {
           return (
             <div key={i} className={styles.topPagesRow}>
               <span className={styles.topPagesColPage} title={row.page}>
-                {display}
+                <a href={toExternalUrl(row.page)} target="_blank" rel="noopener noreferrer" className={styles.pageLink}>
+                  {display}
+                  <ExternalLink size={12} className={styles.pageLinkIcon} />
+                </a>
               </span>
               <span className={styles.topPagesColNum}>{fmtNum(row.clicks)} <ChangeBadge value={row.clicksChange} tooltip={changeTip(row.clicksChange, { value: fmtNum(row.clicks), metric: t.clicks, period: pagesPeriod })} /></span>
               <span className={styles.topPagesColNum}>{fmtNum(row.impressions)} <ChangeBadge value={row.impressionsChange} tooltip={changeTip(row.impressionsChange, { value: fmtNum(row.impressions), metric: t.impressions, period: pagesPeriod })} /></span>
@@ -970,7 +987,10 @@ export default function DashboardContent({ translations }) {
                               {row.keyword}
                             </span>
                           )}
-                          <span className={styles.aiEnginePagePath} title={row.page}>{displayPath}</span>
+                          <a href={toExternalUrl(row.page)} target="_blank" rel="noopener noreferrer" className={styles.aiEnginePageLink}>
+                            <span className={styles.aiEnginePagePath} title={row.page}>{displayPath}</span>
+                            <ExternalLink size={10} className={styles.pageLinkIcon} />
+                          </a>
                         </div>
                         <span className={styles.aiEnginePageSessions}>{fmtNum(row.sessions)}</span>
                       </div>
