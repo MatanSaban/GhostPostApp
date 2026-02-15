@@ -17,29 +17,35 @@ import { addAiCredits } from '@/lib/account-utils';
 
 export async function POST(request) {
   try {
-    const { authorized, member, error: authError } = await getCurrentAccountMember();
-    if (!authorized || !member?.accountId) {
+    const { authorized, member, error: authError, isSuperAdmin } = await getCurrentAccountMember();
+    if (!authorized) {
       return NextResponse.json({ error: authError || 'Unauthorized' }, { status: 401 });
     }
 
     const { addOnId, accountId } = await request.json();
     const targetAccountId = accountId || member.accountId;
 
-    // Security: ensure user is operating on their own account
-    if (targetAccountId !== member.accountId) {
+    if (!targetAccountId) {
+      return NextResponse.json({ error: 'Account ID is required' }, { status: 400 });
+    }
+
+    // Security: ensure user is operating on their own account (superAdmins can act on any)
+    if (!isSuperAdmin && targetAccountId !== member.accountId) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
-    // ── Permission check ─────────────────────────────────────
-    const hasBillingPermission =
-      member.isOwner ||
-      (member.role?.permissions || []).includes('ACCOUNT_BILLING_MANAGE');
+    // ── Permission check (superAdmins bypass) ────────────────
+    if (!isSuperAdmin) {
+      const hasBillingPermission =
+        member.isOwner ||
+        (member.role?.permissions || []).includes('ACCOUNT_BILLING_MANAGE');
 
-    if (!hasBillingPermission) {
-      return NextResponse.json(
-        { error: 'You do not have permission to manage billing' },
-        { status: 403 }
-      );
+      if (!hasBillingPermission) {
+        return NextResponse.json(
+          { error: 'You do not have permission to manage billing' },
+          { status: 403 }
+        );
+      }
     }
 
     // ── Validate add-on exists ────────────────────────────────

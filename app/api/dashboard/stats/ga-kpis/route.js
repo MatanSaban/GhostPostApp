@@ -37,6 +37,8 @@ export async function GET(request) {
     const siteId = searchParams.get('siteId');
     const startDate = searchParams.get('startDate');
     const endDate = searchParams.get('endDate');
+    const compareStartDate = searchParams.get('compareStartDate');
+    const compareEndDate = searchParams.get('compareEndDate');
 
     if (!siteId) {
       return NextResponse.json({ error: 'siteId required' }, { status: 400 });
@@ -86,7 +88,8 @@ export async function GET(request) {
     }
 
     const range = (startDate && endDate) ? { startDate, endDate } : 30;
-    const ga = await fetchGAReport(accessToken, integration.gaPropertyId, range).catch(err => {
+    const compareRange = (compareStartDate && compareEndDate) ? { startDate: compareStartDate, endDate: compareEndDate } : null;
+    const ga = await fetchGAReport(accessToken, integration.gaPropertyId, range, compareRange).catch(err => {
       console.error('[GA KPIs] fetchGAReport error:', err.message);
       return null;
     });

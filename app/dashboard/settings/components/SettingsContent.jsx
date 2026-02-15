@@ -1512,13 +1512,10 @@ function IntegrationsSettings({ translations, canEdit = true }) {
       <div className={styles.settingsSection}>
         <div className={styles.integrationHeader}>
           <div className={styles.integrationTitleRow}>
-            <svg className={styles.integrationIcon} width="20" height="20" viewBox="0 0 24 24" fill="none">
-              <path d="M22 12c0 5.523-4.477 10-10 10S2 17.523 2 12" stroke="#E37400" strokeWidth="3" strokeLinecap="round"/>
-              <path d="M12 2C6.477 2 2 6.477 2 12" stroke="#F9AB00" strokeWidth="3" strokeLinecap="round"/>
-              <path d="M22 12c0-5.523-4.477-10-10-10" stroke="#E37400" strokeWidth="3" strokeLinecap="round"/>
-              <rect x="9" y="14" width="3" height="6" rx="1.5" fill="#F9AB00"/>
-              <rect x="14" y="8" width="3" height="12" rx="1.5" fill="#E37400"/>
-              <rect x="4" y="18" width="3" height="2" rx="1" fill="#F9AB00"/>
+            <svg className={styles.integrationIcon} width="20" height="20" viewBox="0 0 192 192" fill="none">
+              <path fill="#F9AB00" d="M130,29v132c0,14.77,10.19,23,21,23c10,0,21-7,21-23V30c0-13.54-10-22-21-22S130,17.33,130,29z"/>
+              <path fill="#E37400" d="M75,96v65c0,14.77,10.19,23,21,23c10,0,21-7,21-23V97c0-13.54-10-22-21-22S75,84.33,75,96z"/>
+              <circle fill="#E37400" cx="41" cy="163" r="21"/>
             </svg>
             <h3 className={styles.sectionTitle}>{int.gaTitle || 'Google Analytics'}</h3>
           </div>
@@ -1604,9 +1601,11 @@ function IntegrationsSettings({ translations, canEdit = true }) {
         <div className={styles.integrationHeader}>
           <div className={styles.integrationTitleRow}>
             <svg className={styles.integrationIcon} width="20" height="20" viewBox="0 0 24 24" fill="none">
-              <path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0016 9.5 6.5 6.5 0 109.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5z" fill="#4285F4"/>
-              <circle cx="9.5" cy="9.5" r="4" stroke="#4285F4" strokeWidth="1" fill="none"/>
-              <path d="M7 12l2 2 4-5" stroke="#34A853" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+              <rect x="15" y="1.5" width="7" height="19" rx="3.5" fill="#4285F4"/>
+              <rect x="8.5" y="5" width="7" height="15" rx="3.5" fill="#34A853"/>
+              <circle cx="9" cy="17" r="2.5" fill="#EA4335"/>
+              <circle cx="5.5" cy="15.5" r="4.5" fill="#FBBC04"/>
+              <line x1="2.5" y1="19" x2="0.5" y2="22.5" stroke="#FBBC04" strokeWidth="2.5" strokeLinecap="round"/>
             </svg>
             <h3 className={styles.sectionTitle}>{int.gscTitle || 'Google Search Console'}</h3>
           </div>

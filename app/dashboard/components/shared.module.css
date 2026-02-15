@@ -6,12 +6,13 @@
   padding: 1.5rem;
   border-radius: var(--radius-xl);
   box-shadow: var(--shadow-md);
-  overflow: hidden;
   transition: all var(--transition-fast);
+  overflow-y: visible;
 
   &:hover {
     transform: translateY(-2px);
     box-shadow: var(--shadow-lg);
+    z-index: 10;
   }
 
   /* Light mode gradients */
@@ -237,6 +238,62 @@
   }
 }
 
+.statsTrendWrap {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.125rem;
+}
+
+.statsCardBadge {
+  position: absolute;
+  bottom: 1.5rem;
+  inset-inline-end: 1.5rem;
+  z-index: 2;
+  opacity: 0.6;
+  transition: opacity 0.15s;
+  line-height: 0;
+  cursor: help;
+
+  & svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  &::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    top: calc(100% + 6px);
+    inset-inline-end: 0;
+    background: var(--popover, #1f2937);
+    color: var(--popover-foreground, #f9fafb);
+    font-size: 0.6875rem;
+    font-weight: 400;
+    line-height: 1.4;
+    padding: 0.4rem 0.6rem;
+    border-radius: 6px;
+    white-space: nowrap;
+    width: max-content;
+    max-width: 200px;
+    text-align: center;
+    pointer-events: none;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.15s, visibility 0.15s;
+    z-index: 9999;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.18);
+  }
+
+  &:hover::after {
+    opacity: 1;
+    visibility: visible;
+  }
+}
+
+.statsCard:hover .statsCardBadge {
+  opacity: 1;
+}
+
 .statsTrend {
   display: flex;
   align-items: center;
@@ -254,6 +311,10 @@
 
   &.negative {
     color: #f97316;
+  }
+
+  &.neutral {
+    color: var(--muted-foreground);
   }
 }
 
@@ -274,13 +335,60 @@
   color: var(--muted-foreground);
 }
 
+.statsTrendLabel {
+  font-size: 0.625rem;
+  color: var(--muted-foreground);
+  opacity: 0.65;
+  line-height: 1.2;
+  text-align: end;
+  max-width: 7rem;
+}
+
+/* ── Custom Tooltip (data-tooltip on hover) ────────────────── */
+.hasTooltip {
+  position: relative;
+  cursor: help;
+}
+
+.hasTooltip::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: calc(100% + 6px);
+  inset-inline-end: 0;
+  background: var(--popover, #1f2937);
+  color: var(--popover-foreground, #f9fafb);
+  font-size: 0.6875rem;
+  font-weight: 400;
+  line-height: 1.4;
+  padding: 0.4rem 0.6rem;
+  border-radius: 6px;
+  white-space: normal;
+  width: max-content;
+  max-width: 240px;
+  text-align: center;
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.15s, visibility 0.15s;
+  z-index: 9999;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.18);
+}
+
+.hasTooltip:hover {
+  z-index: 10;
+}
+
+.hasTooltip:hover::after {
+  opacity: 1;
+  visibility: visible;
+}
+
 /* Dashboard Card */
 .dashboardCard {
   position: relative;
   padding: 1.5rem;
   border-radius: var(--radius-xl);
   box-shadow: var(--shadow-md);
-  overflow: hidden;
 
   /* Light mode */
   background: linear-gradient(135deg, rgba(147, 51, 234, 0.03) 0%, rgba(59, 130, 246, 0.03) 100%);

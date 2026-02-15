@@ -6,7 +6,7 @@ import {
   Activity, BarChart2, Search, Settings,
 } from 'lucide-react';
 import { useSite } from '@/app/context/site-context';
-import { StatsCard, DashboardCard, ActivityItem, QuickActions, ProgressBar } from '../components';
+import { StatsCard, DashboardCard, ActivityItem, QuickActions, ProgressBar, KpiSlider } from '../components';
 import { ArrowIcon } from '@/app/components/ui/arrow-icon';
 import styles from '../page.module.css';
 
@@ -50,12 +50,37 @@ export default function DashboardContent({ translations }) {
     }
   };
 
+  /**
+   * Compute the previous comparison period for a given date range.
+   * - Presets: same duration immediately before (e.g. 7d → previous 7 days)
+   * - Custom: same dates one year ago
+   */
+  const getPreviousPeriod = (startStr, endStr, preset) => {
+    const s = new Date(startStr + 'T00:00:00');
+    const e = new Date(endStr + 'T00:00:00');
+    if (preset === 'custom') {
+      // Same dates one year ago
+      const ps = new Date(s);
+      ps.setFullYear(ps.getFullYear() - 1);
+      const pe = new Date(e);
+      pe.setFullYear(pe.getFullYear() - 1);
+      return { start: fmtDate(ps), end: fmtDate(pe) };
+    }
+    // Same duration right before the current period
+    const diffMs = e.getTime() - s.getTime();
+    const pe = new Date(s);
+    pe.setDate(pe.getDate() - 1);
+    const ps = new Date(pe.getTime() - diffMs);
+    return { start: fmtDate(ps), end: fmtDate(pe) };
+  };
+
   const [chartPreset, setChartPreset] = useState('7d');
   const defaultRange = getDateRange('7d');
   const [chartStartDate, setChartStartDate] = useState(defaultRange.start);
   const [chartEndDate, setChartEndDate] = useState(defaultRange.end);
   const [chartLoading, setChartLoading] = useState(false);
   const [chartData, setChartData] = useState(null); // null = use data.trafficChart
+  const [chartComparison, setChartComparison] = useState(null); // { visitors, visitorsChange, ... }
 
   // GA KPIs date range
   const [gaPreset, setGaPreset] = useState('30d');
@@ -89,6 +114,17 @@ export default function DashboardContent({ translations }) {
   const [pagesLoading, setPagesLoading] = useState(false);
   const [pagesData, setPagesData] = useState(null);
 
+  // AI Traffic date range
+  const [aiPreset, setAiPreset] = useState('30d');
+  const aiDefault = getDateRange('30d');
+  const [aiStartDate, setAiStartDate] = useState(aiDefault.start);
+  const [aiEndDate, setAiEndDate] = useState(aiDefault.end);
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiData, setAiData] = useState(null);
+  // const [aiKeywords, setAiKeywords] = useState([]);
+  // const [inferredQueries, setInferredQueries] = useState([]);
+  // const [inferredLoading, setInferredLoading] = useState(false);
+
   useEffect(() => {
     if (!selectedSite?.id) {
       setLoading(false);
@@ -120,12 +156,14 @@ export default function DashboardContent({ translations }) {
     if (!selectedSite?.id || !data?.gaConnected) return;
     setChartLoading(true);
     try {
+      const prev = getPreviousPeriod(chartStartDate, chartEndDate, chartPreset);
       const res = await fetch(
-        `/api/dashboard/stats/traffic-chart?siteId=${selectedSite.id}&startDate=${chartStartDate}&endDate=${chartEndDate}`
+        `/api/dashboard/stats/traffic-chart?siteId=${selectedSite.id}&startDate=${chartStartDate}&endDate=${chartEndDate}&compareStartDate=${prev.start}&compareEndDate=${prev.end}`
       );
       if (!res.ok) throw new Error('Failed to fetch chart');
       const json = await res.json();
       setChartData(json.trafficChart || []);
+      setChartComparison(json.comparison || null);
     } catch (err) {
       console.error('Traffic chart fetch error:', err);
     } finally {
@@ -169,8 +207,9 @@ export default function DashboardContent({ translations }) {
     if (!selectedSite?.id || !data?.gaConnected) return;
     setGaLoading(true);
     try {
+      const prev = getPreviousPeriod(gaStartDate, gaEndDate, gaPreset);
       const res = await fetch(
-        `/api/dashboard/stats/ga-kpis?siteId=${selectedSite.id}&startDate=${gaStartDate}&endDate=${gaEndDate}`
+        `/api/dashboard/stats/ga-kpis?siteId=${selectedSite.id}&startDate=${gaStartDate}&endDate=${gaEndDate}&compareStartDate=${prev.start}&compareEndDate=${prev.end}`
       );
       if (!res.ok) throw new Error('Failed to fetch GA KPIs');
       const json = await res.json();
@@ -193,8 +232,9 @@ export default function DashboardContent({ translations }) {
     if (!selectedSite?.id || !data?.gscConnected) return;
     setGscLoading(true);
     try {
+      const prev = getPreviousPeriod(gscStartDate, gscEndDate, gscPreset);
       const res = await fetch(
-        `/api/dashboard/stats/gsc?siteId=${selectedSite.id}&section=kpis&startDate=${gscStartDate}&endDate=${gscEndDate}`
+        `/api/dashboard/stats/gsc?siteId=${selectedSite.id}&section=kpis&startDate=${gscStartDate}&endDate=${gscEndDate}&compareStartDate=${prev.start}&compareEndDate=${prev.end}`
       );
       if (!res.ok) throw new Error('Failed to fetch GSC KPIs');
       const json = await res.json();
@@ -217,8 +257,9 @@ export default function DashboardContent({ translations }) {
     if (!selectedSite?.id || !data?.gscConnected) return;
     setKeywordsLoading(true);
     try {
+      const prev = getPreviousPeriod(keywordsStartDate, keywordsEndDate, keywordsPreset);
       const res = await fetch(
-        `/api/dashboard/stats/gsc?siteId=${selectedSite.id}&section=topKeywords&startDate=${keywordsStartDate}&endDate=${keywordsEndDate}`
+        `/api/dashboard/stats/gsc?siteId=${selectedSite.id}&section=topKeywords&startDate=${keywordsStartDate}&endDate=${keywordsEndDate}&compareStartDate=${prev.start}&compareEndDate=${prev.end}`
       );
       if (!res.ok) throw new Error('Failed to fetch keywords');
       const json = await res.json();
@@ -241,8 +282,9 @@ export default function DashboardContent({ translations }) {
     if (!selectedSite?.id || !data?.gscConnected) return;
     setPagesLoading(true);
     try {
+      const prev = getPreviousPeriod(pagesStartDate, pagesEndDate, pagesPreset);
       const res = await fetch(
-        `/api/dashboard/stats/gsc?siteId=${selectedSite.id}&section=topPages&startDate=${pagesStartDate}&endDate=${pagesEndDate}`
+        `/api/dashboard/stats/gsc?siteId=${selectedSite.id}&section=topPages&startDate=${pagesStartDate}&endDate=${pagesEndDate}&compareStartDate=${prev.start}&compareEndDate=${prev.end}`
       );
       if (!res.ok) throw new Error('Failed to fetch top pages');
       const json = await res.json();
@@ -259,6 +301,58 @@ export default function DashboardContent({ translations }) {
       fetchTopPages();
     }
   }, [pagesStartDate, pagesEndDate, data?.gscConnected, selectedSite?.id]);
+
+  // ─── AI Traffic fetch ───
+  const fetchAiTraffic = async () => {
+    if (!selectedSite?.id || !data?.gaConnected) return;
+    setAiLoading(true);
+    try {
+      const prev = getPreviousPeriod(aiStartDate, aiEndDate, aiPreset);
+      const res = await fetch(
+        `/api/dashboard/stats/ai-traffic?siteId=${selectedSite.id}&startDate=${aiStartDate}&endDate=${aiEndDate}&compareStartDate=${prev.start}&compareEndDate=${prev.end}`
+      );
+      const json = await res.json();
+      setAiData(json.aiTraffic || null);
+      // setAiKeywords(json.aiKeywords || []);
+
+      // // Trigger inferred queries if we have landing pages
+      // if (json.aiTraffic?.topLandingPages?.length) {
+      //   fetchInferredQueries(json.aiTraffic.topLandingPages);
+      // } else {
+      //   setInferredQueries([]);
+      // }
+    } catch (err) {
+      console.error('AI traffic fetch error:', err);
+    } finally {
+      setAiLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (data?.gaConnected && selectedSite?.id) {
+      fetchAiTraffic();
+    }
+  }, [aiStartDate, aiEndDate, data?.gaConnected, selectedSite?.id]);
+
+  // // ─── Inferred AI Queries fetch ───
+  // const fetchInferredQueries = async (topLandingPages) => {
+  //   if (!selectedSite?.id || !topLandingPages?.length) return;
+  //   setInferredLoading(true);
+  //   try {
+  //     const res = await fetch('/api/dashboard/stats/ai-inferred-queries', {
+  //       method: 'POST',
+  //       headers: { 'Content-Type': 'application/json' },
+  //       body: JSON.stringify({ siteId: selectedSite.id, topLandingPages }),
+  //     });
+  //     const json = await res.json();
+  //     setInferredQueries(json.inferredQueries || []);
+  //   } catch (err) {
+  //     console.error('Inferred queries fetch error:', err);
+  //     setInferredQueries([]);
+  //   } finally {
+  //     setInferredLoading(false);
+  //   }
+  // };
 
   // ─── Reusable DateRangeSelect component ───
   const DateRangeSelect = ({ preset, onPresetChange, startDate, endDate, onStartChange, onEndChange, loading }) => (
@@ -301,6 +395,53 @@ export default function DashboardContent({ translations }) {
     </div>
   );
 
+  // Build a user-facing label describing the comparison period
+  // Template interpolation: tpl('hello {name}', { name: 'world' }) → 'hello world'
+  const tpl = (template, vars) => {
+    if (!template) return '';
+    return template.replace(/\{(\w+)\}/g, (_, key) => vars[key] ?? '');
+  };
+
+  // Get just the period name (without 'vs' prefix) for tooltip sentences
+  const getPeriodName = (startStr, endStr, preset) => {
+    const names = {
+      today: t.vsPrevDay?.replace(/^(vs |מול )/, '') || 'the previous day',
+      yesterday: t.vsPrevDay?.replace(/^(vs |מול )/, '') || 'the previous day',
+      '7d': t.vsPrev7?.replace(/^(vs |מול )/, '') || 'the previous 7 days',
+      '30d': t.vsPrev30?.replace(/^(vs |מול )/, '') || 'the previous 30 days',
+      '90d': t.vsPrev90?.replace(/^(vs |מול )/, '') || 'the previous 90 days',
+      '180d': t.vsPrev180?.replace(/^(vs |מול )/, '') || 'the previous 180 days',
+      '365d': t.vsPrev365?.replace(/^(vs |מול )/, '') || 'the previous year',
+    };
+    if (preset !== 'custom') return names[preset] || '';
+    const s = new Date(startStr + 'T00:00:00');
+    const e = new Date(endStr + 'T00:00:00');
+    s.setFullYear(s.getFullYear() - 1);
+    e.setFullYear(e.getFullYear() - 1);
+    const fmt = (d) => d.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+    return `${fmt(s)} – ${fmt(e)}`;
+  };
+
+  const getComparisonLabel = (startStr, endStr, preset) => {
+    const presetLabels = {
+      today: t.vsPrevDay || 'vs previous day',
+      yesterday: t.vsPrevDay || 'vs previous day',
+      '7d': t.vsPrev7 || 'vs previous 7 days',
+      '30d': t.vsPrev30 || 'vs previous 30 days',
+      '90d': t.vsPrev90 || 'vs previous 90 days',
+      '180d': t.vsPrev180 || 'vs previous 180 days',
+      '365d': t.vsPrev365 || 'vs previous year',
+    };
+    if (preset !== 'custom') return presetLabels[preset] || '';
+    // Custom → "vs <start> – <end> (prev year)"
+    const s = new Date(startStr + 'T00:00:00');
+    const e = new Date(endStr + 'T00:00:00');
+    s.setFullYear(s.getFullYear() - 1);
+    e.setFullYear(e.getFullYear() - 1);
+    const fmt = (d) => d.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+    return `${t.vsPrefix || 'vs'} ${fmt(s)} – ${fmt(e)}`;
+  };
+
   // Format number with locale separator
   const fmtNum = (n) => {
     if (n == null) return '—';
@@ -309,21 +450,104 @@ export default function DashboardContent({ translations }) {
 
   const trendOf = (change) => {
     if (change == null) return { trend: null, trendValue: null };
-    const sign = change >= 0 ? '+' : '';
+    if (change === 0) return { trend: 'neutral', trendValue: '0%' };
+    const sign = change > 0 ? '+' : '';
     return {
-      trend: change >= 0 ? 'up' : 'down',
+      trend: change > 0 ? 'up' : 'down',
       trendValue: `${sign}${change}%`,
     };
   };
 
+  // Inline change badge for tables
+  const ChangeBadge = ({ value, tooltip }) => {
+    if (value == null) return null;
+    const isZero = value === 0;
+    const isUp = value > 0;
+    const badgeClass = isZero ? styles.changeBadgeNeutral : isUp ? styles.changeBadgeUp : styles.changeBadgeDown;
+    return (
+      <span
+        className={`${styles.changeBadge} ${badgeClass} ${tooltip ? styles.hasTooltip : ''}`}
+        data-tooltip={tooltip || undefined}
+      >
+        {isZero ? '0% —' : <>{isUp ? '↑' : '↓'}{Math.abs(value)}%</>}
+      </span>
+    );
+  };
+
+  // Active comparison data (from chart refetch or initial load)
+  const activeComparison = chartComparison ?? data?.trafficComparison;
+  const chartPeriod = getPeriodName(chartStartDate, chartEndDate, chartPreset);
+
   // GA KPI cards — use section-specific data if available
   const activeGa = gaData ?? data?.ga;
+  const gaCompareLabel = getComparisonLabel(gaStartDate, gaEndDate, gaPreset);
+  const gaPeriod = getPeriodName(gaStartDate, gaEndDate, gaPreset);
+  const cardTip = (label, change, period) => {
+    if (change == null) return undefined;
+    if (change === 0) return tpl(t.tipCardNoChange || '{label} — no change compared to {period}', { label, period });
+    const tmpl = change > 0
+      ? (t.tipCardUp || '{label} is up {percent}% compared to {period}')
+      : (t.tipCardDown || '{label} is down {percent}% compared to {period}');
+    return tpl(tmpl, { label, percent: Math.abs(change), period });
+  };
+
+  // Inline change tooltip helper (for ChangeBadge in tables/chart)
+  const changeTip = (change, { value, metric, period } = {}) => {
+    if (change == null) return undefined;
+    if (change === 0) return tpl(t.tipNoChange || '{value} {metric} — no change from {period}', { value, metric, period });
+    const tmpl = change > 0
+      ? (t.tipMoreFromPrev || '{value} {metric} — {percent}% more than {period}')
+      : (t.tipLessFromPrev || '{value} {metric} — {percent}% less than {period}');
+    return tpl(tmpl, { value, metric, percent: Math.abs(change), period });
+  };
+
+  const positionTip = (change, period) => {
+    if (change == null) return undefined;
+    if (change === 0) return tpl(t.tipPositionNoChange || 'Position unchanged from {period}', { period });
+    const tmpl = change > 0
+      ? (t.tipPositionUp || 'Position improved by {percent}% {period}')
+      : (t.tipPositionDown || 'Position dropped by {percent}% {period}');
+    return tpl(tmpl, { percent: Math.abs(change), period });
+  };
+
+  // Google Analytics SVG Icon (official)
+  const GAIcon = () => (
+    <svg width="24" height="24" viewBox="0 0 192 192" fill="none">
+      <path fill="#F9AB00" d="M130,29v132c0,14.77,10.19,23,21,23c10,0,21-7,21-23V30c0-13.54-10-22-21-22S130,17.33,130,29z"/>
+      <path fill="#E37400" d="M75,96v65c0,14.77,10.19,23,21,23c10,0,21-7,21-23V97c0-13.54-10-22-21-22S75,84.33,75,96z"/>
+      <circle fill="#E37400" cx="41" cy="163" r="21"/>
+    </svg>
+  );
+
+  // Google Search Console SVG Icon (official)
+  const GSCIcon = () => (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+      <rect x="15" y="1.5" width="7" height="19" rx="3.5" fill="#4285F4"/>
+      <rect x="8.5" y="5" width="7" height="15" rx="3.5" fill="#34A853"/>
+      <circle cx="9" cy="17" r="2.5" fill="#EA4335"/>
+      <circle cx="5.5" cy="15.5" r="4.5" fill="#FBBC04"/>
+      <line x1="2.5" y1="19" x2="0.5" y2="22.5" stroke="#FBBC04" strokeWidth="2.5" strokeLinecap="round"/>
+    </svg>
+  );
+
+  // AI Traffic SVG Icon (sparkle/robot)
+  const AIIcon = () => (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+      <path d="M12 2L14.09 8.26L20 9.27L15.55 13.97L16.91 20L12 16.9L7.09 20L8.45 13.97L4 9.27L9.91 8.26L12 2Z" fill="#8b5cf6" fillOpacity="0.85"/>
+      <path d="M12 2L14.09 8.26L20 9.27L15.55 13.97L16.91 20L12 16.9L7.09 20L8.45 13.97L4 9.27L9.91 8.26L12 2Z" stroke="#8b5cf6" strokeWidth="0.5"/>
+    </svg>
+  );
+
   const gaCards = activeGa ? [
     {
       iconName: 'Users',
       value: fmtNum(activeGa.visitors),
       label: t.organicVisitors,
       ...trendOf(activeGa.visitorsChange),
+      trendLabel: gaCompareLabel,
+      trendTooltip: cardTip(t.organicVisitors, activeGa.visitorsChange, gaPeriod),
+      badge: <GAIcon />,
+      badgeTooltip: t.dataFromGA,
       color: 'purple',
     },
     {
@@ -331,6 +555,10 @@ export default function DashboardContent({ translations }) {
       value: fmtNum(activeGa.pageViews),
       label: t.totalPageViews,
       ...trendOf(activeGa.pageViewsChange),
+      trendLabel: gaCompareLabel,
+      trendTooltip: cardTip(t.totalPageViews, activeGa.pageViewsChange, gaPeriod),
+      badge: <GAIcon />,
+      badgeTooltip: t.dataFromGA,
       color: 'blue',
     },
     {
@@ -338,6 +566,10 @@ export default function DashboardContent({ translations }) {
       value: activeGa.avgSessionDuration || '—',
       label: t.avgSessionDuration,
       ...trendOf(activeGa.avgSessionDurationChange),
+      trendLabel: gaCompareLabel,
+      trendTooltip: cardTip(t.avgSessionDuration, activeGa.avgSessionDurationChange, gaPeriod),
+      badge: <GAIcon />,
+      badgeTooltip: t.dataFromGA,
       color: 'orange',
     },
     {
@@ -345,18 +577,28 @@ export default function DashboardContent({ translations }) {
       value: fmtNum(activeGa.sessions),
       label: t.sessions,
       ...trendOf(activeGa.sessionsChange),
+      trendLabel: gaCompareLabel,
+      trendTooltip: cardTip(t.sessions, activeGa.sessionsChange, gaPeriod),
+      badge: <GAIcon />,
+      badgeTooltip: t.dataFromGA,
       color: 'green',
     },
   ] : null;
 
   // GSC KPI cards — use section-specific data if available
   const activeGsc = gscData ?? data?.gsc;
+  const gscCompareLabel = getComparisonLabel(gscStartDate, gscEndDate, gscPreset);
+  const gscPeriod = getPeriodName(gscStartDate, gscEndDate, gscPreset);
   const gscCards = activeGsc ? [
     {
       iconName: 'MousePointer',
       value: fmtNum(activeGsc.clicks),
       label: t.totalClicks,
       ...trendOf(activeGsc.clicksChange),
+      trendLabel: gscCompareLabel,
+      trendTooltip: cardTip(t.totalClicks, activeGsc.clicksChange, gscPeriod),
+      badge: <GSCIcon />,
+      badgeTooltip: t.dataFromGSC,
       color: 'purple',
     },
     {
@@ -364,6 +606,10 @@ export default function DashboardContent({ translations }) {
       value: fmtNum(activeGsc.impressions),
       label: t.totalImpressions,
       ...trendOf(activeGsc.impressionsChange),
+      trendLabel: gscCompareLabel,
+      trendTooltip: cardTip(t.totalImpressions, activeGsc.impressionsChange, gscPeriod),
+      badge: <GSCIcon />,
+      badgeTooltip: t.dataFromGSC,
       color: 'blue',
     },
     {
@@ -371,6 +617,10 @@ export default function DashboardContent({ translations }) {
       value: `${activeGsc.ctr}%`,
       label: t.avgCtr,
       ...trendOf(activeGsc.ctrChange),
+      trendLabel: gscCompareLabel,
+      trendTooltip: cardTip(t.avgCtr, activeGsc.ctrChange, gscPeriod),
+      badge: <GSCIcon />,
+      badgeTooltip: t.dataFromGSC,
       color: 'orange',
     },
     {
@@ -378,6 +628,10 @@ export default function DashboardContent({ translations }) {
       value: activeGsc.position,
       label: t.avgPosition,
       ...trendOf(activeGsc.positionChange),
+      trendLabel: gscCompareLabel,
+      trendTooltip: cardTip(t.avgPosition, activeGsc.positionChange, gscPeriod),
+      badge: <GSCIcon />,
+      badgeTooltip: t.dataFromGSC,
       color: 'green',
     },
   ] : null;
@@ -496,11 +750,11 @@ export default function DashboardContent({ translations }) {
       <div className={styles.fancyChartWrap} ref={wrapRef}>
         {/* Legend */}
         <div className={styles.chartLegend}>
-          <span className={styles.chartLegendItem}>
+          <span className={`${styles.chartLegendItem} ${styles.hasTooltip}`} data-tooltip={t.tipVisitorsLegend || 'Unique users who visited your site via organic search. One person visiting 5 pages counts as 1 visitor.'}>
             <span className={styles.chartLegendDot} style={{ background: '#8b5cf6' }} />
             {t.visitors || 'Visitors'}
           </span>
-          <span className={styles.chartLegendItem}>
+          <span className={`${styles.chartLegendItem} ${styles.hasTooltip}`} data-tooltip={t.tipPageViewsLegend || 'Every single page load across your site. One person visiting 5 pages counts as 5 page views.'}>
             <span className={styles.chartLegendDot} style={{ background: '#06b6d4' }} />
             {t.pageViews || 'Page Views'}
           </span>
@@ -601,6 +855,7 @@ export default function DashboardContent({ translations }) {
   const renderTopPages = () => {
     const activePages = pagesData ?? data?.topPages;
     if (!activePages?.length) return null;
+    const pagesPeriod = getPeriodName(pagesStartDate, pagesEndDate, pagesPreset);
     return (
       <div className={styles.topPagesTable}>
         <div className={styles.topPagesHeader}>
@@ -621,8 +876,8 @@ export default function DashboardContent({ translations }) {
               <span className={styles.topPagesColPage} title={row.page}>
                 {display}
               </span>
-              <span className={styles.topPagesColNum}>{fmtNum(row.clicks)}</span>
-              <span className={styles.topPagesColNum}>{fmtNum(row.impressions)}</span>
+              <span className={styles.topPagesColNum}>{fmtNum(row.clicks)} <ChangeBadge value={row.clicksChange} tooltip={changeTip(row.clicksChange, { value: fmtNum(row.clicks), metric: t.clicks, period: pagesPeriod })} /></span>
+              <span className={styles.topPagesColNum}>{fmtNum(row.impressions)} <ChangeBadge value={row.impressionsChange} tooltip={changeTip(row.impressionsChange, { value: fmtNum(row.impressions), metric: t.impressions, period: pagesPeriod })} /></span>
               <span className={styles.topPagesColNum}>{row.ctr}%</span>
               <span className={styles.topPagesColNum}>{row.position}</span>
             </div>
@@ -631,6 +886,204 @@ export default function DashboardContent({ translations }) {
       </div>
     );
   };
+
+  // ─── AI Traffic: Engine Breakdown ───
+  const AI_COLORS = ['#8b5cf6', '#06b6d4', '#f59e0b', '#ef4444', '#10b981', '#6366f1'];
+
+  const renderDonutChart = (engines) => {
+    if (!engines?.length) return null;
+    const total = engines.reduce((s, e) => s + e.sessions, 0);
+    if (!total) return null;
+
+    const R = 60, cx = 80, cy = 80, stroke = 18;
+    const circumference = 2 * Math.PI * R;
+    let offset = 0;
+
+    return (
+      <svg viewBox="0 0 160 160" className={styles.aiDonutSvg}>
+        {engines.map((eng, i) => {
+          const frac = eng.sessions / total;
+          const dash = frac * circumference;
+          const gap = circumference - dash;
+          const curOffset = offset;
+          offset += dash;
+          return (
+            <circle
+              key={eng.name}
+              cx={cx} cy={cy} r={R}
+              fill="none"
+              stroke={AI_COLORS[i % AI_COLORS.length]}
+              strokeWidth={stroke}
+              strokeDasharray={`${dash} ${gap}`}
+              strokeDashoffset={-curOffset}
+              className={styles.aiDonutSegment}
+            />
+          );
+        })}
+      </svg>
+    );
+  };
+
+  const renderEngineBreakdown = (engines, enginePages) => {
+    if (!engines?.length) return <p className={styles.noDataMsg}>{t.aiNoTraffic || 'No AI-referred traffic detected.'}</p>;
+
+    return (
+      <div className={styles.aiEngineBreakdown}>
+        <div className={styles.aiDonutWrap}>
+          {renderDonutChart(engines)}
+          <div className={styles.aiDonutLegend}>
+            {engines.map((eng, i) => (
+              <div key={eng.name} className={styles.aiDonutLegendItem}>
+                <span className={styles.aiDonutLegendDot} style={{ background: AI_COLORS[i % AI_COLORS.length] }} />
+                <span className={styles.aiDonutLegendLabel}>{eng.name}</span>
+                <span className={styles.aiDonutLegendValue}>{fmtNum(eng.sessions)}</span>
+                <span className={styles.aiDonutLegendPct}>{eng.share}%</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Per-engine top pages with extracted keywords */}
+        <div className={styles.aiEnginePagesList}>
+          {engines.map((eng, i) => {
+            const pages = enginePages?.[eng.name] || [];
+            if (!pages.length) return null;
+            return (
+              <div key={eng.name} className={styles.aiEngineGroup}>
+                <div className={styles.aiEngineGroupHeader}>
+                  <span className={styles.aiDonutLegendDot} style={{ background: AI_COLORS[i % AI_COLORS.length] }} />
+                  <span className={styles.aiEngineGroupName}>{eng.name}</span>
+                  <span className={styles.aiEngineGroupCount}>{fmtNum(eng.sessions)} {t.aiSessions || 'Sessions'}</span>
+                </div>
+                <div className={styles.aiEngineGroupPages}>
+                  {pages.map((row, j) => {
+                    let displayPath = row.page;
+                    try {
+                      displayPath = decodeURIComponent(row.page);
+                      if (displayPath === '/') displayPath = '/ (Homepage)';
+                    } catch { /* keep raw */ }
+                    return (
+                      <div key={j} className={styles.aiEnginePageRow}>
+                        <div className={styles.aiEnginePageInfo}>
+                          {row.keyword && (
+                            <span className={styles.aiEngineKeyword} title={row.keyword}>
+                              {row.keyword}
+                            </span>
+                          )}
+                          <span className={styles.aiEnginePagePath} title={row.page}>{displayPath}</span>
+                        </div>
+                        <span className={styles.aiEnginePageSessions}>{fmtNum(row.sessions)}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    );
+  };
+
+  // ── AI Keywords – disabled for now ──
+  // const renderAiKeywords = (queries) => {
+  //   if (!queries?.length) return <p className={styles.noDataMsg}>{t.aiNoKeywordsData || 'No AI-related keywords found for this period.'}</p>;
+  //   return (
+  //     <div className={styles.aiOverviewTable}>
+  //       <div className={styles.aiOverviewHeader}>
+  //         <span className={styles.aiOverviewColQuery}>{t.aiQuery || 'Query'}</span>
+  //         <span className={styles.aiOverviewColClicks}>{t.clicks || 'Clicks'}</span>
+  //         <span className={styles.aiOverviewColImpr}>{t.impressions || 'Impr.'}</span>
+  //         <span className={styles.aiOverviewColCtr}>{t.ctr || 'CTR'}</span>
+  //       </div>
+  //       {queries.map((row, i) => {
+  //         let displayPage = row.page;
+  //         try {
+  //           displayPage = decodeURIComponent(new URL(row.page).pathname);
+  //           if (displayPage === '/') displayPage = '/ (Homepage)';
+  //         } catch {
+  //           try { displayPage = decodeURIComponent(row.page); } catch { /* keep */ }
+  //         }
+  //         return (
+  //           <div key={i} className={styles.aiOverviewRow}>
+  //             <div className={styles.aiOverviewColQuery}>
+  //               <span className={styles.aiOverviewQueryText} title={row.query}>{row.query}</span>
+  //               <span className={styles.aiOverviewPagePath} title={row.page}>{displayPage}</span>
+  //             </div>
+  //             <span className={styles.aiOverviewColClicks}>{fmtNum(row.clicks)}</span>
+  //             <span className={styles.aiOverviewColImpr}>{fmtNum(row.impressions)}</span>
+  //             <span className={styles.aiOverviewColCtr}>{row.ctr}%</span>
+  //           </div>
+  //         );
+  //       })}
+  //     </div>
+  //   );
+  // };
+  // ── end AI Keywords ──
+
+  // // ─── Inferred AI Queries renderer ───
+  // const PROMPT_LABELS = {
+  //   direct:     { label: t.inferredDirect || 'Direct Question', icon: '?' },
+  //   comparison: { label: t.inferredComparison || 'Comparison', icon: '⇄' },
+  //   discovery:  { label: t.inferredDiscovery || 'Broad Discovery', icon: '◎' },
+  // };
+  //
+  // const renderInferredQueries = () => {
+  //   if (inferredLoading) {
+  //     return (
+  //       <div className={styles.chartPlaceholder}>
+  //         <Activity size={32} className={`${styles.chartPlaceholderIcon} ${styles.spinning}`} />
+  //         <p>{t.inferredLoading || 'Analyzing AI traffic patterns...'}</p>
+  //       </div>
+  //     );
+  //   }
+  //   if (!inferredQueries?.length) {
+  //     return <p className={styles.noDataMsg}>{t.inferredNoData || 'No inferred queries available.'}</p>;
+  //   }
+  //
+  //   return (
+  //     <div className={styles.inferredQueriesList}>
+  //       {inferredQueries.map((item, i) => {
+  //         let displayPath = item.page;
+  //         try { displayPath = decodeURIComponent(item.page); } catch { /* keep */ }
+  //         if (displayPath === '/') displayPath = '/ (Homepage)';
+  //         return (
+  //           <div key={i} className={styles.inferredPageBlock}>
+  //             <div className={styles.inferredPageHeader}>
+  //               <span className={styles.inferredPagePath} title={item.page}>
+  //                 {item.title || displayPath}
+  //               </span>
+  //               <span className={styles.inferredPageSessions}>
+  //                 {fmtNum(item.sessions)} {t.aiSessions || 'sessions'}
+  //               </span>
+  //             </div>
+  //             {item.prompts ? (
+  //               <div className={styles.inferredPrompts}>
+  //                 {Object.entries(PROMPT_LABELS).map(([key, { label, icon }]) => (
+  //                   <div key={key} className={styles.inferredPromptRow}>
+  //                     <span className={styles.inferredPromptIcon}>{icon}</span>
+  //                     <div className={styles.inferredPromptContent}>
+  //                       <span className={styles.inferredPromptType}>{label}</span>
+  //                       <span className={styles.inferredPromptText}>
+  //                         {item.prompts[key]}
+  //                       </span>
+  //                     </div>
+  //                   </div>
+  //                 ))}
+  //               </div>
+  //             ) : (
+  //               <p className={styles.inferredNoPrompts}>{t.inferredPending || 'Generating…'}</p>
+  //             )}
+  //           </div>
+  //         );
+  //       })}
+  //       <div className={styles.inferredDisclaimer}>
+  //         <span className={styles.inferredDisclaimerIcon}>ⓘ</span>
+  //         {t.inferredDisclaimer || 'These queries are AI-inferred estimates, not actual user prompts.'}
+  //       </div>
+  //     </div>
+  //   );
+  // };
 
   // ─── Top Keywords Section ───
   const [keywordSort, setKeywordSort] = useState('clicks');
@@ -649,6 +1102,7 @@ export default function DashboardContent({ translations }) {
   const renderTopKeywords = () => {
     const keywords = getSortedKeywords();
     if (!keywords.length) return null;
+    const kwPeriod = getPeriodName(keywordsStartDate, keywordsEndDate, keywordsPreset);
 
     return (
       <div className={styles.topKeywordsSection}>
@@ -689,15 +1143,18 @@ export default function DashboardContent({ translations }) {
               </span>
               <span className={`${styles.topKeywordsColNum} ${keywordSort === 'clicks' ? styles.topKeywordsHighlight : ''}`}>
                 {fmtNum(row.clicks)}
+                <ChangeBadge value={row.clicksChange} tooltip={changeTip(row.clicksChange, { value: fmtNum(row.clicks), metric: t.clicks, period: kwPeriod })} />
               </span>
               <span className={`${styles.topKeywordsColNum} ${keywordSort === 'impressions' ? styles.topKeywordsHighlight : ''}`}>
                 {fmtNum(row.impressions)}
+                <ChangeBadge value={row.impressionsChange} tooltip={changeTip(row.impressionsChange, { value: fmtNum(row.impressions), metric: t.impressions, period: kwPeriod })} />
               </span>
               <span className={`${styles.topKeywordsColNum} ${keywordSort === 'ctr' ? styles.topKeywordsHighlight : ''}`}>
                 {row.ctr}%
               </span>
               <span className={`${styles.topKeywordsColNum} ${keywordSort === 'position' ? styles.topKeywordsHighlight : ''}`}>
                 {row.position}
+                <ChangeBadge value={row.positionChange} tooltip={positionTip(row.positionChange, kwPeriod)} />
               </span>
             </div>
           ))}
@@ -726,23 +1183,6 @@ export default function DashboardContent({ translations }) {
     </div>
   );
 
-  // Google Analytics SVG Icon
-  const GAIcon = () => (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-      <rect x="4" y="14" width="4" height="6" rx="1" fill="#F9AB00"/>
-      <rect x="10" y="8" width="4" height="12" rx="1" fill="#E37400"/>
-      <rect x="16" y="4" width="4" height="16" rx="1" fill="#E37400"/>
-    </svg>
-  );
-
-  // Google Search Console SVG Icon
-  const GSCIcon = () => (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-      <path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0016 9.5 6.5 6.5 0 109.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5z" fill="#4285F4"/>
-      <path d="M7 12l2 2 4-5" stroke="#34A853" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-    </svg>
-  );
-
   // Quick actions
   const quickActionsData = [
     { label: t.contentPlanner, href: '/dashboard/strategy/content-planner', iconName: 'FileText' },
@@ -751,33 +1191,25 @@ export default function DashboardContent({ translations }) {
   ];
 
   // Loading skeleton
-  if (loading) {
-    return (
-      <>
-        <div className={styles.pageHeader}>
-          <div>
-            <h1 className={styles.pageTitle}>{t.commandCenter}</h1>
-            <p className={styles.pageSubtitle}>{t.subtitle}</p>
-          </div>
+  const SectionSkeleton = ({ height = 200, count = 1 }) => (
+    <>
+      {Array.from({ length: count }, (_, i) => (
+        <div key={i} className={styles.cardSkeleton} style={{ height }}>
+          <div className={styles.skeletonShimmer} />
         </div>
-        <div className={styles.kpiGrid}>
-          {[1, 2, 3, 4].map(i => (
-            <div key={i} className={styles.kpiSkeleton}>
-              <div className={styles.skeletonShimmer} />
-            </div>
-          ))}
+      ))}
+    </>
+  );
+
+  const KpiSkeleton = ({ count = 3 }) => (
+    <div className={styles.kpiSkeletonRow}>
+      {Array.from({ length: count }, (_, i) => (
+        <div key={i} className={styles.kpiSkeleton}>
+          <div className={styles.skeletonShimmer} />
         </div>
-        <div className={styles.mainGrid}>
-          <div className={styles.leftColumn}>
-            <div className={styles.cardSkeleton}><div className={styles.skeletonShimmer} /></div>
-          </div>
-          <div className={styles.rightColumn}>
-            <div className={styles.cardSkeleton}><div className={styles.skeletonShimmer} /></div>
-          </div>
-        </div>
-      </>
-    );
-  }
+      ))}
+    </div>
+  );
 
   return (
     <>
@@ -791,33 +1223,50 @@ export default function DashboardContent({ translations }) {
 
       {/* Main Content Grid */}
       <div className={styles.mainGrid}>
-        {/* Left Column */}
-        <div className={styles.leftColumn}>
-          {/* Google Analytics KPIs */}
-          {data?.gaConnected && gaCards ? (
+        {/* Start Column */}
+        <div className={styles.startColumn}>
+          {/* GA4 + GSC KPIs — unified slider */}
+          {loading ? (
+            <KpiSkeleton count={3} />
+          ) : (data?.gaConnected || data?.gscConnected) && (gaCards || gscCards) ? (
             <>
               <div className={styles.dashboardSectionHeader}>
-                <GAIcon />
-                <h2 className={styles.dashboardSectionTitle}>{t.gaTitle}</h2>
-                <div className={styles.dashboardSectionRight}>
-                  <DateRangeSelect
-                    preset={gaPreset}
-                    onPresetChange={makePresetHandler(setGaPreset, setGaStartDate, setGaEndDate)}
-                    startDate={gaStartDate}
-                    endDate={gaEndDate}
-                    onStartChange={setGaStartDate}
-                    onEndChange={setGaEndDate}
-                    loading={gaLoading}
-                  />
-                </div>
+                {data?.gaConnected && (
+                  <div className={styles.kpiDateGroup}>
+                    <GAIcon />
+                    <DateRangeSelect
+                      preset={gaPreset}
+                      onPresetChange={makePresetHandler(setGaPreset, setGaStartDate, setGaEndDate)}
+                      startDate={gaStartDate}
+                      endDate={gaEndDate}
+                      onStartChange={setGaStartDate}
+                      onEndChange={setGaEndDate}
+                      loading={gaLoading}
+                    />
+                  </div>
+                )}
+                {data?.gscConnected && (
+                  <div className={styles.kpiDateGroup}>
+                    <GSCIcon />
+                    <DateRangeSelect
+                      preset={gscPreset}
+                      onPresetChange={makePresetHandler(setGscPreset, setGscStartDate, setGscEndDate)}
+                      startDate={gscStartDate}
+                      endDate={gscEndDate}
+                      onStartChange={setGscStartDate}
+                      onEndChange={setGscEndDate}
+                      loading={gscLoading}
+                    />
+                  </div>
+                )}
               </div>
-              <div className={`${styles.kpiGrid} ${gaLoading ? styles.sectionLoading : ''}`}>
-                {gaCards.map((kpi, index) => (
+              <KpiSlider>
+                {[...(gaCards || []), ...(gscCards || [])].map((kpi, index) => (
                   <StatsCard key={index} {...kpi} />
                 ))}
-              </div>
+              </KpiSlider>
             </>
-          ) : (
+          ) : !data?.gaConnected ? (
             <IntegrationCTA
               type="ga"
               icon={BarChart2}
@@ -825,44 +1274,12 @@ export default function DashboardContent({ translations }) {
               title={t.gaTitle}
               description={t.gaCtaDesc}
             />
-          )}
-
-          {/* Google Search Console KPIs */}
-          {data?.gscConnected && gscCards ? (
-            <>
-              <div className={styles.dashboardSectionHeader}>
-                <GSCIcon />
-                <h2 className={styles.dashboardSectionTitle}>{t.gscTitle}</h2>
-                <div className={styles.dashboardSectionRight}>
-                  <DateRangeSelect
-                    preset={gscPreset}
-                    onPresetChange={makePresetHandler(setGscPreset, setGscStartDate, setGscEndDate)}
-                    startDate={gscStartDate}
-                    endDate={gscEndDate}
-                    onStartChange={setGscStartDate}
-                    onEndChange={setGscEndDate}
-                    loading={gscLoading}
-                  />
-                </div>
-              </div>
-              <div className={`${styles.kpiGrid} ${gscLoading ? styles.sectionLoading : ''}`}>
-                {gscCards.map((kpi, index) => (
-                  <StatsCard key={index} {...kpi} />
-                ))}
-              </div>
-            </>
-          ) : !data?.gaConnected ? null : (
-            <IntegrationCTA
-              type="gsc"
-              icon={Search}
-              svgIcon={<GSCIcon />}
-              title={t.gscTitle}
-              description={t.gscCtaDesc}
-            />
-          )}
+          ) : null}
 
           {/* Traffic Overview Chart */}
-          {data?.gaConnected ? (
+          {loading ? (
+            <SectionSkeleton height={300} />
+          ) : data?.gaConnected ? (
             <DashboardCard
               title={t.trafficOverview}
               headerRight={
@@ -878,6 +1295,26 @@ export default function DashboardContent({ translations }) {
               }
             >
               <div className={styles.chartContainer}>
+                {/* Comparison summary KPIs above chart */}
+                {activeComparison && !chartLoading && activeChartData?.length > 0 && (
+                  <div className={styles.chartComparisonRow}>
+                    <div className={styles.chartComparisonItem}>
+                      <span className={styles.chartComparisonLabel}>{t.visitors || 'Visitors'}</span>
+                      <span className={styles.chartComparisonValue}>{fmtNum(activeComparison.visitors)}</span>
+                      <ChangeBadge value={activeComparison.visitorsChange} tooltip={changeTip(activeComparison.visitorsChange, { value: fmtNum(activeComparison.visitors), metric: t.visitors || 'Visitors', period: chartPeriod })} />
+                    </div>
+                    <div className={styles.chartComparisonItem}>
+                      <span className={styles.chartComparisonLabel}>{t.pageViews || 'Page Views'}</span>
+                      <span className={styles.chartComparisonValue}>{fmtNum(activeComparison.pageViews)}</span>
+                      <ChangeBadge value={activeComparison.pageViewsChange} tooltip={changeTip(activeComparison.pageViewsChange, { value: fmtNum(activeComparison.pageViews), metric: t.pageViews || 'Page Views', period: chartPeriod })} />
+                    </div>
+                    <div className={styles.chartComparisonItem}>
+                      <span className={styles.chartComparisonLabel}>{t.sessions || 'Sessions'}</span>
+                      <span className={styles.chartComparisonValue}>{fmtNum(activeComparison.sessions)}</span>
+                      <ChangeBadge value={activeComparison.sessionsChange} tooltip={changeTip(activeComparison.sessionsChange, { value: fmtNum(activeComparison.sessions), metric: t.sessions || 'Sessions', period: chartPeriod })} />
+                    </div>
+                  </div>
+                )}
                 {data?.tokenError ? (
                   <div className={styles.chartPlaceholder}>
                     <Activity size={48} className={styles.chartPlaceholderIcon} />
@@ -904,7 +1341,9 @@ export default function DashboardContent({ translations }) {
           ) : null}
 
           {/* Top Keywords from GSC */}
-          {data?.gscConnected && (data?.topQueries?.length > 0 || keywordsData !== null) ? (
+          {loading ? (
+            <SectionSkeleton height={250} />
+          ) : data?.gscConnected && (data?.topQueries?.length > 0 || keywordsData !== null) ? (
             <DashboardCard
               title={t.topKeywords || 'Top Keywords'}
               headerRight={
@@ -934,7 +1373,9 @@ export default function DashboardContent({ translations }) {
           ) : null}
 
           {/* Top Pages from GSC */}
-          {data?.gscConnected && (data?.topPages?.length > 0 || pagesData !== null) ? (
+          {loading ? (
+            <SectionSkeleton height={250} />
+          ) : data?.gscConnected && (data?.topPages?.length > 0 || pagesData !== null) ? (
             <DashboardCard
               title={t.topPages}
               headerRight={
@@ -964,8 +1405,87 @@ export default function DashboardContent({ translations }) {
           ) : null}
         </div>
 
-        {/* Right Column */}
-        <div className={styles.rightColumn}>
+        {/* End Column */}
+        <div className={styles.endColumn}>
+          {/* AI Traffic Overview */}
+          {loading ? (
+            <>
+              <SectionSkeleton height={80} />
+              <SectionSkeleton height={200} />
+            </>
+          ) : data?.gaConnected ? (
+            <>
+              <div className={styles.dashboardSectionHeader}>
+                <AIIcon />
+                <h2 className={styles.dashboardSectionTitle}>{t.aiTrafficTitle || 'AI Traffic Overview'}</h2>
+                <div className={styles.dashboardSectionRight}>
+                  <DateRangeSelect
+                    preset={aiPreset}
+                    onPresetChange={makePresetHandler(setAiPreset, setAiStartDate, setAiEndDate)}
+                    startDate={aiStartDate}
+                    endDate={aiEndDate}
+                    onStartChange={setAiStartDate}
+                    onEndChange={setAiEndDate}
+                    loading={aiLoading}
+                  />
+                </div>
+              </div>
+
+              {aiLoading ? (
+                <div className={styles.kpiGrid}>
+                  {[1, 2].map(i => (
+                    <div key={i} className={styles.kpiSkeleton}><div className={styles.skeletonShimmer} /></div>
+                  ))}
+                </div>
+              ) : aiData ? (
+                <>
+                  {/* Row 1: Summary Cards */}
+                  <div className={styles.aiKpiRow}>
+                    <div className={`${styles.aiKpiCard} ${styles.hasTooltip}`} data-tooltip={t.tipAiSessions || 'Total sessions from AI engines like ChatGPT, Perplexity, Gemini, Claude, or Copilot.'}>
+                      <div className={styles.aiKpiValue}>{fmtNum(aiData.totalAiSessions)}</div>
+                      <div className={styles.aiKpiLabel}>{t.aiTotalSessions || 'AI Sessions'}</div>
+                      {aiData.totalAiSessionsChange != null && (
+                        <ChangeBadge value={aiData.totalAiSessionsChange} />
+                      )}
+                    </div>
+                    <div className={`${styles.aiKpiCard} ${styles.hasTooltip}`} data-tooltip={t.tipAiShare || 'Percentage of your total site traffic from AI sources.'}>
+                      <div className={styles.aiKpiValue}>{aiData.aiShare}%</div>
+                      <div className={styles.aiKpiLabel}>{t.aiTrafficShare || 'AI Traffic Share'}</div>
+                      {aiData.aiShareChange != null && (
+                        <span className={`${styles.changeBadge} ${aiData.aiShareChange === 0 ? styles.changeBadgeNeutral : aiData.aiShareChange > 0 ? styles.changeBadgeUp : styles.changeBadgeDown}`}>
+                          {aiData.aiShareChange === 0 ? '0% —' : <>{aiData.aiShareChange >= 0 ? '↑' : '↓'}{Math.abs(aiData.aiShareChange)}pp</>}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Row 2: Engine breakdown with per-engine pages */}
+                  <DashboardCard title={t.aiEngineBreakdown || 'Traffic by AI Engine'}>
+                    {renderEngineBreakdown(aiData.engines, aiData.enginePages)}
+                  </DashboardCard>
+
+                  {/* Row 3: AI Keywords — disabled for now
+                  {(aiKeywords.length > 0 || data?.gscConnected) && (
+                    <DashboardCard title={t.aiKeywordsTitle || 'AI Traffic — Keywords'}>
+                      {renderAiKeywords(aiKeywords)}
+                    </DashboardCard>
+                  )}
+                  */}
+
+                  {/* Row 3: Inferred AI Queries
+                  <DashboardCard title={t.inferredQueriesTitle || 'Inferred AI Queries'}>
+                    {renderInferredQueries()}
+                  </DashboardCard>
+                  */}
+                </>
+              ) : (
+                <div className={styles.chartPlaceholder}>
+                  <p>{t.aiNoTraffic || 'No AI-referred traffic detected for this period.'}</p>
+                </div>
+              )}
+            </>
+          ) : null}
+
           {/* AI Agent Activity */}
           <DashboardCard title={t.aiAgentActivity}>
             <div className={styles.activityList}>

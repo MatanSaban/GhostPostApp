@@ -1,5 +1,6 @@
 export { StatsCard } from './StatsCard';
 export { DashboardCard } from './DashboardCard';
+export { KpiSlider } from './KpiSlider';
 export { StatusBadge } from './StatusBadge';
 export { ActivityItem } from './ActivityItem';
 export { PrimaryActionButton } from './PrimaryActionButton';

@@ -40,6 +40,8 @@ export async function GET(request) {
     const siteId = searchParams.get('siteId');
     const startDate = searchParams.get('startDate');
     const endDate = searchParams.get('endDate');
+    const compareStartDate = searchParams.get('compareStartDate');
+    const compareEndDate = searchParams.get('compareEndDate');
     const section = searchParams.get('section'); // 'kpis', 'topPages', 'topKeywords'
 
     if (!siteId) {
@@ -90,24 +92,25 @@ export async function GET(request) {
     }
 
     const range = (startDate && endDate) ? { startDate, endDate } : 30;
+    const compareRange = (compareStartDate && compareEndDate) ? { startDate: compareStartDate, endDate: compareEndDate } : null;
     const result = {};
 
     if (!section || section === 'kpis') {
-      result.gsc = await fetchGSCReport(accessToken, integration.gscSiteUrl, range).catch(err => {
+      result.gsc = await fetchGSCReport(accessToken, integration.gscSiteUrl, range, compareRange).catch(err => {
         console.error('[GSC] fetchGSCReport error:', err.message);
         return null;
       });
     }
 
     if (!section || section === 'topPages') {
-      result.topPages = await fetchGSCTopPages(accessToken, integration.gscSiteUrl, range).catch(err => {
+      result.topPages = await fetchGSCTopPages(accessToken, integration.gscSiteUrl, range, compareRange).catch(err => {
         console.error('[GSC] fetchGSCTopPages error:', err.message);
         return [];
       });
     }
 
     if (!section || section === 'topKeywords') {
-      result.topQueries = await fetchGSCTopQueries(accessToken, integration.gscSiteUrl, range).catch(err => {
+      result.topQueries = await fetchGSCTopQueries(accessToken, integration.gscSiteUrl, range, compareRange).catch(err => {
         console.error('[GSC] fetchGSCTopQueries error:', err.message);
         return [];
       });

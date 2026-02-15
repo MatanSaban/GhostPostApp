@@ -78,7 +78,7 @@ const adminMenuItemsConfig = [
   { icon: Globe, labelKey: 'nav.admin.website', path: '/dashboard/admin/website' },
 ];
 
-export default function DashboardLayout({ children, title = 'Dashboard', breadcrumb = 'Dashboard' }) {
+export default function DashboardLayout({ children }) {
   const pathname = usePathname();
   const router = useRouter();
   const { t, isRtl } = useLocale();

@@ -130,6 +130,10 @@ export function AddSiteModal({ isOpen, onClose, onSiteAdded, autoSelect = false,
 
       if (!response.ok) {
         const data = await response.json();
+        if (handleLimitError(data)) {
+          onClose();
+          return;
+        }
         throw new Error(data.error || 'Failed to create site');
       }
 

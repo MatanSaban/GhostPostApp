@@ -14,13 +14,13 @@ export default function DashboardLoading() {
       <StatsGridSkeleton count={4} />
 
       <div className={styles.mainGrid}>
-        <div className={styles.leftColumn}>
+        <div className={styles.startColumn}>
           <DashboardCardSkeleton hasTitle>
             <Skeleton width="100%" height="220px" borderRadius="lg" />
           </DashboardCardSkeleton>
         </div>
 
-        <div className={styles.rightColumn}>
+        <div className={styles.endColumn}>
           <DashboardCardSkeleton hasTitle>
             <Skeleton width="100%" height="220px" borderRadius="lg" />
           </DashboardCardSkeleton>

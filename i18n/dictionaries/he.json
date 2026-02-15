@@ -258,7 +258,7 @@
     "passwordUpdated": "הסיסמה עודכנה בהצלחה"
   },
   "nav": {
-    "dashboard": "לוח בקרה",
+    "dashboard": "לוח הבקרה",
     "siteInterview": "פרופיל אתר",
     "strategy": {
       "title": "אסטרטגיה",
@@ -310,7 +310,7 @@
     }
   },
   "dashboard": {
-    "title": "לוח בקרה",
+    "title": "לוח הבקרה",
     "commandCenter": "מרכז פיקוד",
     "subtitle": "סקירת לוח הבקרה מונעת ה-AI שלך",
     "welcome": "ברוך שובך",
@@ -369,7 +369,68 @@
     "topKeywords": "מילות מפתח מובילות",
     "sortBy": "מיין לפי",
     "tokenError": "החיבור לגוגל פג. אנא חבר מחדש את החשבון שלך.",
-    "reconnectGoogle": "חבר מחדש את גוגל"
+    "reconnectGoogle": "חבר מחדש את גוגל",
+    "dateRange": {
+      "today": "היום",
+      "yesterday": "אתמול",
+      "last7": "7 ימים אחרונים",
+      "last30": "חודש אחרון",
+      "last90": "3 חודשים אחרונים",
+      "last180": "6 חודשים אחרונים",
+      "last365": "שנה אחרונה",
+      "custom": "מותאם אישית"
+    },
+    "comparison": {
+      "vs": "מול",
+      "vsPrevDay": "מול היום הקודם",
+      "vsPrev7": "מול 7 הימים הקודמים",
+      "vsPrev30": "מול 30 הימים הקודמים",
+      "vsPrev90": "מול 90 הימים הקודמים",
+      "vsPrev180": "מול 180 הימים הקודמים",
+      "vsPrev365": "מול השנה הקודמת"
+    },
+    "tooltips": {
+      "visitorsLegend": "משתמשים ייחודיים שהגיעו לאתר דרך חיפוש אורגני. אדם אחד שצופה ב-5 דפים נספר כמבקר 1.",
+      "pageViewsLegend": "כל טעינת דף באתר שלך. אדם אחד שצופה ב-5 דפים נספר כ-5 צפיות דף.",
+      "moreFromPrev": "{value} {metric} — {percent}% יותר מ-{period}",
+      "lessFromPrev": "{value} {metric} — {percent}% פחות מ-{period}",
+      "cardUp": "{label} עלה ב-{percent}% בהשוואה ל-{period}",
+      "cardDown": "{label} ירד ב-{percent}% בהשוואה ל-{period}",
+      "cardNoChange": "{label} — ללא שינוי בהשוואה ל-{period}",
+      "noChange": "{value} {metric} — ללא שינוי מ-{period}",
+      "positionUp": "המיקום השתפר ב-{percent}% {period}",
+      "positionDown": "המיקום ירד ב-{percent}% {period}",
+      "positionNoChange": "המיקום לא השתנה מ-{period}",
+      "dataFromGA": "נתונים מ-Google Analytics",
+      "dataFromGSC": "נתונים מ-Google Search Console"
+    },
+    "aiTraffic": {
+      "title": "סקירת תנועת AI",
+      "totalAiSessions": "סשנים מ-AI",
+      "aiTrafficShare": "נתח תנועת AI",
+      "engineBreakdown": "תנועה לפי מנוע AI",
+      "topAiLandingPages": "דפי נחיתה מובילים מ-AI",
+      "topPages": "דפים מובילים",
+      "query": "שאילתה",
+      "page": "דף",
+      "sessions": "סשנים",
+      "noAiTraffic": "לא זוהתה תנועה מ-AI בתקופה זו.",
+      "tipAiSessions": "סה״כ הסשנים שבהם מבקרים הגיעו ממנועי AI כמו ChatGPT, Perplexity, Gemini, Claude או Copilot.",
+      "tipAiShare": "אחוז מסה״כ התנועה באתר שלך שמגיע ממקורות AI.",
+      "aiKeywordsTitle": "תנועת AI — מילות מפתח",
+      "noAiKeywordsData": "לא נמצאו מילות מפתח הקשורות ל-AI בתקופה זו.",
+      "tipAiKeywords": "מילות מפתח שמביאות תנועה לעמודים שמנועי AI מקשרים אליהם. נתונים משולבים מ-Google Analytics ו-Search Console.",
+      "inferredQueriesTitle": "שאילתות AI משוערות",
+      "inferredDirect": "שאלה ישירה",
+      "inferredComparison": "השוואה",
+      "inferredDiscovery": "גילוי רחב",
+      "inferredLoading": "מנתח דפוסי תנועת AI...",
+      "inferredNoData": "אין שאילתות משוערות זמינות.",
+      "inferredPending": "מייצר…",
+      "inferredDisclaimer": "שאילתות אלו הן הערכות משוערות של AI, לא שאילתות משתמשים בפועל."
+    },
+    "noDataForRange": "אין נתונים זמינים לטווח תאריכים זה.",
+    "loadingChart": "טוען נתוני תרשים..."
   },
   "siteInterview": {
     "title": "ראיון אתר",
@@ -977,7 +1038,7 @@
     "purchasing": "מעבד רכישה...",
     "purchaseSuccess": "התוסף נרכש בהצלחה! המגבלות שלך עודכנו.",
     "manageBilling": "ניהול תוספים וחיוב",
-    "manageAddons": "עיון בתוספים",
+    "manageAddons": "עיון בתוספות",
     "upgradeSubscription": "שדרוג מנוי",
     "requestUpgrade": "בקש שדרוג מהמנהל",
     "requestSent": "הבקשה נשלחה! מנהל החשבון קיבל הודעה.",

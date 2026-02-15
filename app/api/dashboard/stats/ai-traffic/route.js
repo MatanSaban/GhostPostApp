@@ -3,7 +3,8 @@ import { cookies } from 'next/headers';
 import prisma from '@/lib/prisma';
 import {
   refreshAccessToken,
-  fetchGADailyTraffic,
+  fetchAITrafficStats,
+  // fetchGSCQueriesForAIPages,
 } from '@/lib/google-integration';
 
 const SESSION_COOKIE = 'user_session';
@@ -23,8 +24,8 @@ async function getAuthenticatedUser() {
 }
 
 /**
- * GET /api/dashboard/stats/traffic-chart?siteId=xxx&startDate=YYYY-MM-DD&endDate=YYYY-MM-DD
- * Returns GA4 daily traffic data for a custom date range
+ * GET /api/dashboard/stats/ai-traffic?siteId=xxx&startDate=YYYY-MM-DD&endDate=YYYY-MM-DD
+ * Returns AI-referred traffic: sessions, share, engines breakdown, top landing pages
  */
 export async function GET(request) {
   try {
@@ -59,7 +60,7 @@ export async function GET(request) {
 
     const integration = site.googleIntegration;
     if (!integration || !integration.gaConnected || !integration.gaPropertyId) {
-      return NextResponse.json({ trafficChart: [] });
+      return NextResponse.json({ aiTraffic: null });
     }
 
     // Refresh token if needed
@@ -82,28 +83,34 @@ export async function GET(request) {
           },
         });
       } catch (err) {
-        console.error('[Traffic Chart] Token refresh failed:', err);
-        return NextResponse.json({ trafficChart: [], tokenError: true });
+        console.error('[AI Traffic] Token refresh failed:', err);
+        return NextResponse.json({ aiTraffic: null, tokenError: true });
       }
     }
 
-    const compareRange = (compareStartDate && compareEndDate) ? { startDate: compareStartDate, endDate: compareEndDate } : null;
-    const result = await fetchGADailyTraffic(
-      accessToken,
-      integration.gaPropertyId,
-      { startDate, endDate },
-      compareRange
-    ).catch(err => {
-      console.error('[Traffic Chart] fetchGADailyTraffic error:', err.message);
-      return { rows: [], comparison: null };
+    const range = (startDate && endDate) ? { startDate, endDate } : 30;
+    const compareRange = (compareStartDate && compareEndDate)
+      ? { startDate: compareStartDate, endDate: compareEndDate }
+      : null;
+
+    const aiTraffic = await fetchAITrafficStats(accessToken, integration.gaPropertyId, range, compareRange).catch(err => {
+      console.error('[AI Traffic] fetchAITrafficStats error:', err.message);
+      return null;
     });
 
-    return NextResponse.json({
-      trafficChart: Array.isArray(result?.rows ?? result) ? (result.rows ?? result) : [],
-      comparison: result?.comparison || null,
-    });
+    // AI Keywords — disabled for now
+    // let aiKeywords = [];
+    // if (integration.gscConnected && integration.gscSiteUrl && aiTraffic?.topLandingPages?.length) {
+    //   const aiPagePaths = aiTraffic.topLandingPages.map(p => p.page);
+    //   aiKeywords = await fetchGSCQueriesForAIPages(accessToken, integration.gscSiteUrl, range, aiPagePaths).catch(err => {
+    //     console.error('[AI Traffic] GSC queries for AI pages error:', err.message);
+    //     return [];
+    //   });
+    // }
+
+    return NextResponse.json({ aiTraffic });
   } catch (error) {
-    console.error('[Traffic Chart] Error:', error);
+    console.error('[AI Traffic] Error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

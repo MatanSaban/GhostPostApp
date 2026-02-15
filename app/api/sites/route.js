@@ -6,6 +6,7 @@ import {
   generateSiteSecret, 
   DEFAULT_SITE_PERMISSIONS 
 } from '@/lib/site-keys';
+import { enforceResourceLimit } from '@/lib/account-limits';
 
 const SESSION_COOKIE = 'user_session';
 
@@ -127,11 +128,17 @@ export async function POST(request) {
     }
 
     // Verify user has access to this account
-    if (!user.accountMemberships.some(m => m.accountId === targetAccountId)) {
+    if (!user.isSuperAdmin && !user.accountMemberships.some(m => m.accountId === targetAccountId)) {
       return NextResponse.json(
         { error: 'Unauthorized to create site in this account' },
         { status: 403 }
       );
+    }
+
+    // Check plan limit for sites
+    const limitCheck = await enforceResourceLimit(targetAccountId, 'maxSites');
+    if (!limitCheck.allowed) {
+      return NextResponse.json(limitCheck, { status: 403 });
     }
 
     // Generate site connection keys

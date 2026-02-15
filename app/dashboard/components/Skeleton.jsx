@@ -409,7 +409,7 @@ export function DashboardPageSkeleton() {
       <PageHeaderSkeleton />
       <StatsGridSkeleton count={4} />
       <div className={styles.mainGrid}>
-        <div className={styles.leftColumn}>
+        <div className={styles.startColumn}>
           <DashboardCardSkeleton hasTitle>
             <ChartSkeleton />
           </DashboardCardSkeleton>
@@ -417,7 +417,7 @@ export function DashboardPageSkeleton() {
             <ProgressListSkeleton count={4} />
           </DashboardCardSkeleton>
         </div>
-        <div className={styles.rightColumn}>
+        <div className={styles.endColumn}>
           <DashboardCardSkeleton hasTitle>
             <ActivityListSkeleton count={4} />
           </DashboardCardSkeleton>
