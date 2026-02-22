@@ -9,14 +9,14 @@
 }
 
 .adminTitle {
-  font-size: 1.75rem;
+  font-size: 1.6875rem;
   font-weight: 600;
   color: var(--foreground);
   margin-bottom: 0.5rem;
 }
 
 .adminSubtitle {
-  font-size: 1.02rem;
+  font-size: 0.9575rem;
   color: var(--muted-foreground);
 }
 
@@ -101,6 +101,19 @@
     background: var(--muted-foreground);
     border-color: var(--muted-foreground);
     color: var(--background);
+  }
+}
+
+.filterButtonActive {
+  background: var(--gradient-primary);
+  border-color: var(--primary);
+  color: white;
+  box-shadow: var(--shadow-purple);
+
+  &:hover {
+    background: var(--gradient-primary);
+    border-color: var(--primary);
+    color: white;
   }
 }
 
@@ -206,7 +219,7 @@
 }
 
 .statValue {
-  font-size: 1.75rem;
+  font-size: 1.6875rem;
   font-weight: 600;
   color: var(--foreground);
 }
@@ -245,7 +258,7 @@
 }
 
 .tableHeader th {
-  padding: 0.875rem 1rem;
+  padding: 0.8125rem 1rem;
   font-size: 0.8125rem;
   font-weight: 600;
   text-transform: uppercase;
@@ -399,7 +412,7 @@
 }
 
 .emptyTitle {
-  font-size: 1.25rem;
+  font-size: 1.1875rem;
   font-weight: 600;
   color: var(--foreground);
   margin-bottom: 0.5rem;
@@ -616,7 +629,7 @@
 }
 
 .modalTitle {
-  font-size: 1.125rem;
+  font-size: 1.0625rem;
   font-weight: 600;
   color: var(--foreground);
 }
@@ -692,7 +705,7 @@
 
 .formSelect {
   width: 100%;
-  padding: 0.625rem 0.875rem;
+  padding: 0.625rem 0.8125rem;
   font-size: 0.9375rem;
   color: var(--foreground);
   background: var(--background);
@@ -800,7 +813,7 @@
 }
 
 .formSectionTitle {
-  font-size: 1rem;
+  font-size: 0.9375rem;
   font-weight: 600;
   color: var(--foreground);
   margin: 0;
@@ -881,7 +894,7 @@
 }
 
 .limitationKey {
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   font-family: monospace;
   padding: 0.25rem 0.5rem;
   background: var(--background);
@@ -894,7 +907,7 @@
 .limitationKeyInput {
   width: 100px;
   padding: 0.5rem 0.75rem;
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   font-family: monospace;
   background: var(--background);
   border: 1px solid var(--border);
@@ -956,7 +969,7 @@
 
   &::placeholder {
     color: var(--muted-foreground);
-    font-size: 0.75rem;
+    font-size: 0.8125rem;
   }
 }
 
@@ -1045,7 +1058,7 @@
 
 .skeletonStatLabel {
   width: 80px;
-  height: 0.875rem;
+  height: 0.8125rem;
   margin-bottom: 0.5rem;
 }
 
@@ -1074,7 +1087,7 @@
 
 .skeletonHeaderCell {
   width: 100%;
-  height: 0.875rem;
+  height: 0.8125rem;
 }
 
 .skeletonMoveButtons {
@@ -1089,7 +1102,7 @@
 
 .skeletonKeyName {
   width: 200px;
-  height: 0.875rem;
+  height: 0.8125rem;
 }
 
 .skeletonKeySubtext {
@@ -1105,7 +1118,7 @@
 
 .skeletonTypeLabel {
   width: 80px;
-  height: 0.875rem;
+  height: 0.8125rem;
 }
 
 .skeletonBadge {

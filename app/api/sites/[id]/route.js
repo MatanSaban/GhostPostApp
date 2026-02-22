@@ -42,7 +42,7 @@ async function getAuthenticatedUser() {
   }
 }
 
-// DELETE - Remove a site (soft delete by setting isActive to false)
+// DELETE - Permanently remove a site and all related data
 export async function DELETE(request, { params }) {
   try {
     const user = await getAuthenticatedUser();
@@ -96,13 +96,59 @@ export async function DELETE(request, { params }) {
       }
     }
 
-    // Soft delete - set isActive to false
-    await prisma.site.update({
-      where: { id },
-      data: { isActive: false },
+    // Clean up references that don't have onDelete: Cascade in the schema
+    // (these are plain siteId fields without a Prisma relation to Site)
+
+    // 1. Clean UserInterview records linked to this site
+    const userInterviews = await prisma.userInterview.findMany({
+      where: { siteId: id },
+      select: { id: true },
+    });
+    if (userInterviews.length > 0) {
+      const interviewIds = userInterviews.map(i => i.id);
+      // Delete interview messages first
+      await prisma.interviewMessage.deleteMany({
+        where: { interviewId: { in: interviewIds } },
+      });
+      // Delete the user interviews
+      await prisma.userInterview.deleteMany({
+        where: { siteId: id },
+      });
+    }
+
+    // 2. Null out siteId in AiCreditsLog (keep historical records)
+    await prisma.aiCreditsLog.updateMany({
+      where: { siteId: id },
+      data: { siteId: null },
     });
 
-    return NextResponse.json({ success: true, message: 'Site removed successfully' });
+    // 3. Clear lastSelectedSiteId from AccountMember records
+    await prisma.accountMember.updateMany({
+      where: { lastSelectedSiteId: id },
+      data: { lastSelectedSiteId: null },
+    });
+
+    // 4. Delete SiteSitemaps manually (self-referencing parent-child breaks cascade)
+    //    First null out parent references, then delete all
+    await prisma.siteSitemap.updateMany({
+      where: { siteId: id, parentId: { not: null } },
+      data: { parentId: null },
+    });
+    await prisma.siteSitemap.deleteMany({
+      where: { siteId: id },
+    });
+
+    // 5. Hard delete the site — Prisma onDelete: Cascade handles:
+    //    Interview, GoogleIntegration, Competitor, UserSitePreference,
+    //    SiteEntityType, SiteEntity, SiteMenu,
+    //    Keyword, Content, Redirection, SiteAudit
+    await prisma.site.delete({
+      where: { id },
+    });
+
+    console.log(`Site ${id} (${site.url}) permanently deleted by user ${user.id}`);
+
+    return NextResponse.json({ success: true, message: 'Site permanently deleted' });
   } catch (error) {
     console.error('Failed to delete site:', error);
     return NextResponse.json(

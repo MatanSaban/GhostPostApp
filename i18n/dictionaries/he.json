@@ -284,6 +284,7 @@
     },
     "settings": "הגדרות",
     "myWebsites": "האתרים שלי",
+    "backlinks": "קישורים נכנסים",
     "entities": {
       "title": "נכסי האתר",
       "pages": "דפים",
@@ -302,10 +303,12 @@
       "subscriptions": "מנויים",
       "plans": "הגדרות תוכניות",
       "addons": "תוספות",
+      "coupons": "קופונים",
       "interviewQuestions": "שאלות ראיון",
       "translations": "תרגומים",
       "interviewFlow": "מסלול ראיון",
       "botActions": "פעולות בוט",
+      "backlinks": "קישורים נכנסים",
       "website": "תוכן אתר"
     }
   },
@@ -354,7 +357,7 @@
     "gscTitle": "Google Search Console",
     "last30days": "30 יום אחרונים",
     "connectIntegration": "חבר",
-    "gaCtaDesc": "חבר את Google Analytics כדי לראות נתוני תנועה, מבקרים וצפיות דף.",
+    "gaCtaDesc": "חבר את Google Analytics כדי לראות נתוני תנועה, מבקרים, צפיות דף ותובנות AI.",
     "gscCtaDesc": "חבר את Search Console כדי לראות קליקים, חשיפות וביצועי חיפוש.",
     "noTrafficData": "אין נתוני תנועה זמינים עדיין.",
     "topPages": "דפים מובילים",
@@ -888,11 +891,14 @@
     "title": "מחקר מילות מפתח",
     "subtitle": "עקוב אחר דירוגים וגלה הזדמנויות מילות מפתח חדשות",
     "addKeyword": "הוסף מילת מפתח",
+    "enterKeyword": "הזן מילת מפתח...",
+    "duplicateKeyword": "מילת מפתח כבר קיימת",
+    "addError": "שגיאה בהוספת מילת מפתח",
     "importKeywords": "ייבוא מילות מפתח",
     "aiResearch": "מחקר מילות מפתח AI",
     "opportunities": "הזדמנויות מילות מפתח",
     "opportunitiesSubtitle": "מילות מפתח שנמצאו על ידי AI למיקוד",
-    "currentRankings": "דירוגים נוכחיים",
+    "currentRankings": "מילות מפתח",
     "rankingsSubtitle": "מיקומי מילות המפתח שלך במעקב",
     "targetKeyword": "מקד מילת מפתח",
     "keyword": "מילת מפתח",
@@ -901,12 +907,35 @@
     "position": "מיקום",
     "traffic": "תנועה",
     "trend": "מגמה",
+    "difficulty": "קושי",
+    "status": "סטטוס",
     "easy": "קל",
     "medium": "בינוני",
     "hard": "קשה",
     "trackedKeywords": "מילות מפתח במעקב",
+    "tracking": "מעקב",
+    "targeting": "מיקוד",
     "topRankings": "דירוגים בטופ 10",
     "monthlyVolume": "נפח חודשי",
+    "keywordsFound": "מילות מפתח",
+    "noKeywords": "לא נמצאו מילות מפתח עדיין.",
+    "noKeywordsHint": "הפעל את ראיון האתר כדי לגלות מילות מפתח אוטומטית, או הוסף אותן ידנית למעלה.",
+    "startInterview": "התחל ראיון",
+    "noSiteSelected": "בחר אתר כדי לצפות במילות מפתח",
+    "fromInterview": "ראיון",
+    "filter": {
+      "all": "הכל",
+      "tracking": "מעקב",
+      "targeting": "מיקוד",
+      "ranking": "מדורגים",
+      "archived": "בארכיון"
+    },
+    "statusLabels": {
+      "tracking": "מעקב",
+      "targeting": "מיקוד",
+      "ranking": "מדורג",
+      "archived": "בארכיון"
+    },
     "columns": {
       "keyword": "מילת מפתח",
       "volume": "נפח",
@@ -922,7 +951,7 @@
       "monthlyVolume": "נפח חודשי",
       "newOpportunities": "הזדמנויות חדשות"
     },
-    "difficulty": {
+    "difficultyLevels": {
       "easy": "קל",
       "medium": "בינוני",
       "hard": "קשה"
@@ -1747,6 +1776,141 @@
       "added": "האתר נוסף בהצלחה",
       "renameFailed": "שינוי שם האתר נכשל",
       "removeFailed": "הסרת האתר נכשלה"
+    }
+  },
+  "backlinks": {
+    "title": "שוק קישורים נכנסים",
+    "subtitle": "עיין ורכוש קישורים נכנסים איכותיים לאתרים שלך",
+    "searchPlaceholder": "חפש קישורים לפי דומיין, נושא...",
+    "filters": {
+      "all": "הכל",
+      "available": "זמינים",
+      "purchased": "נרכשו",
+      "myListings": "הרישומים שלי"
+    },
+    "sort": {
+      "newest": "חדש ביותר",
+      "priceAsc": "מחיר: מהנמוך לגבוה",
+      "priceDesc": "מחיר: מהגבוה לנמוך",
+      "daHighest": "DA: הגבוה ביותר",
+      "drHighest": "DR: הגבוה ביותר"
+    },
+    "card": {
+      "domain": "דומיין",
+      "da": "DA",
+      "dr": "DR",
+      "traffic": "תנועה",
+      "category": "קטגוריה",
+      "language": "שפה",
+      "price": "מחיר",
+      "aiCreditsPrice": "קרדיטי AI",
+      "linkType": "סוג קישור",
+      "dofollow": "Dofollow",
+      "nofollow": "Nofollow",
+      "publishedBy": "פורסם על ידי",
+      "platform": "פלטפורמה",
+      "user": "משתמש",
+      "purchase": "רכישה",
+      "useAllocation": "שימוש בהקצאת תוכנית",
+      "buyWithCredits": "רכישה בקרדיטי AI",
+      "buyDirect": "רכישה ישירה",
+      "viewDetails": "הצג פרטים",
+      "outOfStock": "אזל",
+      "purchased": "נרכש"
+    },
+    "details": {
+      "title": "פרטי קישור",
+      "description": "תיאור",
+      "requirements": "דרישות תוכן",
+      "turnaround": "זמן ביצוע",
+      "days": "ימים",
+      "sampleUrl": "כתובת לדוגמה",
+      "metrics": "מדדי דומיין",
+      "purchaseOptions": "אפשרויות רכישה"
+    },
+    "purchase": {
+      "title": "רכישת קישור",
+      "planAllocation": "הקצאת תוכנית",
+      "planAllocationDesc": "השתמש במכסת הקישורים החודשית שלך ({used}/{total} נוצלו)",
+      "planAllocationFull": "ההקצאה החודשית נוצלה במלואה",
+      "directPurchase": "רכישה ישירה",
+      "directPurchaseDesc": "שלם {price} {currency}",
+      "aiCredits": "קרדיטי AI",
+      "aiCreditsDesc": "שלם {credits} קרדיטי AI (יתרה: {balance})",
+      "aiCreditsInsufficient": "אין מספיק קרדיטי AI",
+      "confirm": "אשר רכישה",
+      "cancel": "ביטול",
+      "processing": "מעבד...",
+      "success": "הקישור נרכש בהצלחה!",
+      "failed": "הרכישה נכשלה. נסה שוב.",
+      "selectSite": "בחר אתר יעד",
+      "targetUrl": "כתובת יעד",
+      "anchorText": "טקסט עוגן",
+      "anchorPlaceholder": "הזן טקסט עוגן מועדף",
+      "paymentMethod": "אמצעי תשלום"
+    },
+    "myListings": {
+      "title": "רישומי הקישורים שלי",
+      "subtitle": "מכור קישורים מהאתרים המחוברים שלך",
+      "createListing": "צור רישום",
+      "editListing": "ערוך רישום",
+      "deleteListing": "מחק רישום",
+      "noListings": "עדיין לא רשמת קישורים למכירה",
+      "status": {
+        "active": "פעיל",
+        "paused": "מושהה",
+        "sold": "נמכר",
+        "draft": "טיוטה"
+      }
+    },
+    "stats": {
+      "totalAvailable": "קישורים זמינים",
+      "planQuota": "מכסת תוכנית",
+      "purchased": "נרכשו",
+      "spent": "סה״כ הוצאה"
+    },
+    "empty": {
+      "title": "אין קישורים זמינים",
+      "description": "בדוק שוב מאוחר יותר להזדמנויות קישורים חדשות"
+    },
+    "toast": {
+      "purchaseSuccess": "הקישור נרכש בהצלחה",
+      "purchaseFailed": "רכישת הקישור נכשלה",
+      "listingCreated": "רישום הקישור נוצר בהצלחה",
+      "listingUpdated": "רישום הקישור עודכן",
+      "listingDeleted": "רישום הקישור נמחק",
+      "createFailed": "יצירת הרישום נכשלה. נסה שוב."
+    },
+    "createListing": {
+      "button": "הוסף את האתר שלי",
+      "title": "רשום את האתר שלך",
+      "selectSite": "בחר אתר",
+      "chooseSite": "בחר אתר לרישום...",
+      "alreadyListed": "כבר רשום",
+      "alreadyListedHint": "לאתר זה כבר יש רישום פעיל.",
+      "domain": "דומיין",
+      "listingTitle": "כותרת הרישום",
+      "titlePlaceholder": "לדוגמה: פוסט אורח בבלוג הטכנולוגי שלי",
+      "description": "תיאור",
+      "descriptionPlaceholder": "תאר את האתר שלך ואת סוגי הקישורים שאתה מציע...",
+      "category": "קטגוריה",
+      "categoryPlaceholder": "לדוגמה: טכנולוגיה, פיננסים",
+      "language": "שפה",
+      "linkType": "סוג קישור",
+      "turnaround": "זמן ביצוע (ימים)",
+      "price": "מחיר",
+      "currency": "מטבע",
+      "aiCredits": "קרדיטי AI",
+      "maxSlots": "מכסה מקסימלית",
+      "unlimited": "ללא הגבלה",
+      "submit": "צור רישום",
+      "pricingMethod": "שיטת תמחור",
+      "sellForMoney": "למכור בכסף",
+      "sellForCredits": "למכור בקרדיטים של AI",
+      "monthlyTraffic": "תנועה חודשית",
+      "monthlyVisitors": "מבקרים חודשיים",
+      "metricsSource": "נתונים מ",
+      "metricsUnavailable": "לא ניתן לשלוף מדדי דומיין. הגדר מפתחות API של SEMrush / Ahrefs."
     }
   },
   "settings": {
@@ -2952,6 +3116,7 @@
       "recommendedStyle": "מומלץ: {style}",
       "detectingPlatform": "מזהה את הפלטפורמה של האתר שלך...",
       "detectedPlatform": "זוהה: {platform}",
+      "confirmPlatform": "אישור {platform}",
       "generatingKeywords": "מייצר הצעות למילות מפתח...",
       "noKeywordSuggestions": "אין הצעות למילות מפתח זמינות. אנא נסה שוב.",
       "fetchingArticles": "מביא מאמרים מהאתר שלך...",
@@ -2965,9 +3130,21 @@
       "foundInKeywords": "נמצא ב-{count} מילות מפתח",
       "platformFromCrawl": "זיהינו שהאתר שלך בנוי על {platform}. האם זה נכון?",
       "languageDetected": "זיהינו שהתוכן שלך הוא ב{language}.",
+      "detectedCountry": "על סמך שפת האתר, אנו מציעים: {country}",
       "internalLinksDefault": "על בסיס המאמרים שלך, אנו ממליצים על {count} קישורים פנימיים לכל 1000 מילים.",
       "analyzingInternalLinks": "מנתח קישורים פנימיים במאמרים שלך...",
-      "fetchingBlogPosts": "מביא את המאמרים האחרונים מהבלוג שלך..."
+      "fetchingBlogPosts": "מביא את המאמרים האחרונים מהבלוג שלך...",
+      "skipped": "דלג"
+    },
+    "blogDiscovery": {
+      "hasBlog": "לא הצלחנו למצוא מאמרים באתר שלך. יש לך עמוד בלוג?",
+      "yes": "כן, יש לי בלוג",
+      "no": "לא, דלג על שלב זה",
+      "enterUrl": "הכנס את כתובת עמוד הבלוג שלך:",
+      "placeholder": "https://example.com/blog",
+      "fetching": "מביא מאמרים מהבלוג שלך...",
+      "noArticlesFromUrl": "לא נמצאו מאמרים בכתובת זו. אנא בדוק את הכתובת ונסה שוב.",
+      "fetchError": "שגיאה בשליפת מאמרים. אנא נסה שוב."
     },
     "questions": {
       "welcome": "👋 שלום! אני סוכן ה-AI Ghost שלך. אעזור לך ליצור פרופיל SEO מקיף לאתר שלך.",
@@ -3038,6 +3215,29 @@
     },
     "hints": {
       "pressEnterToAdd": "לחץ Enter להוספה"
+    },
+    "googleIntegration": {
+      "title": "חיבור Google Analytics ו-Search Console",
+      "description": "קבל תובנות מעמיקות יותר על ביצועי האתר שלך עם נתוני Google Analytics ו-Search Console.",
+      "benefit1": "מעקב אחר תנועה אמיתית והתנהגות משתמשים",
+      "benefit2": "ניטור דירוגים בחיפוש וחשיפות",
+      "benefit3": "המלצות SEO מבוססות AI",
+      "connectButton": "חבר חשבון Google",
+      "connecting": "מתחבר... השלם את ההתחברות בחלון הקופץ.",
+      "connected": "חשבון Google חובר בהצלחה!",
+      "connectedMessage": "\u2713 חשבון Google חובר",
+      "error": "החיבור נכשל. ניתן לנסות שוב או לדלג על שלב זה.",
+      "skipText": "דלג — אגדיר זאת מאוחר יותר בהגדרות"
+    },
+    "wordpressPlugin": {
+      "title": "התקנת תוסף Ghost Post לוורדפרס",
+      "description": "התקן את התוסף שלנו לוורדפרס כדי לאפשר פרסום אוטומטי של מאמרים ישירות לאתר שלך.",
+      "benefit1": "פרסום אוטומטי של מאמרים לוורדפרס",
+      "benefit2": "אופטימיזציית SEO מובנית",
+      "benefit3": "ניהול תוכן ישירות מ-Ghost Post",
+      "downloadButton": "הורד תוסף",
+      "noSiteKey": "התוסף יהיה זמין לאחר השלמת ההגדרה.",
+      "skipText": "דלג — אתקין מאוחר יותר"
     },
     "proactive": {
       "gettingStarted": "מתחילים",
@@ -3245,7 +3445,9 @@
         "writingStyle": "איזה סגנון כתיבה מתאים למותג שלך?",
         "websitePlatform": "על איזו פלטפורמה האתר שלך בנוי?",
         "internalLinksCount": "כמה קישורים פנימיים לכל 1000 מילים?",
-        "favoriteArticles": "בחר עד 3 מאמרים שמייצגים את סגנון התוכן המועדף עליך"
+        "favoriteArticles": "בחר עד 3 מאמרים שמייצגים את סגנון התוכן המועדף עליך",
+        "googleIntegration": "האם תרצה לחבר את Google Analytics ו-Search Console?",
+        "wordpressPlugin": "זיהינו שהאתר שלך בנוי על וורדפרס! האם תרצה להתקין את התוסף שלנו?"
       },
       "writingStyles": {
         "professional": "מקצועי",
@@ -3304,6 +3506,7 @@
       },
       "hints": {
         "languageDetected": "זיהינו את שפת האתר שלך כ-{language}",
+        "detectedCountry": "על סמך שפת האתר, אנו מציעים: {country}",
         "platformDetected": "זיהינו את הפלטפורמה שלך כ-{platform}",
         "keywordsFromCrawl": "מילות מפתח אלו הוצעו על בסיס תוכן האתר שלך",
         "competitorsFromKeywords": "מתחרים אלו נמצאו על בסיס מילות המפתח שבחרת",
@@ -3330,6 +3533,7 @@
       "japanese": "יפנית"
     },
     "countries": {
+      "worldwide": "כל העולם",
       "israel": "ישראל",
       "unitedStates": "ארצות הברית",
       "unitedKingdom": "בריטניה",
@@ -3345,6 +3549,33 @@
       "india": "הודו",
       "japan": "יפן",
       "southKorea": "דרום קוריאה",
+      "china": "סין",
+      "russia": "רוסיה",
+      "uae": "איחוד האמירויות",
+      "saudiArabia": "ערב הסעודית",
+      "southAfrica": "דרום אפריקה",
+      "poland": "פולין",
+      "sweden": "שוודיה",
+      "norway": "נורבגיה",
+      "denmark": "דנמרק",
+      "finland": "פינלנד",
+      "austria": "אוסטריה",
+      "switzerland": "שוויץ",
+      "belgium": "בלגיה",
+      "portugal": "פורטוגל",
+      "greece": "יוון",
+      "turkey": "טורקיה",
+      "thailand": "תאילנד",
+      "singapore": "סינגפור",
+      "malaysia": "מלזיה",
+      "indonesia": "אינדונזיה",
+      "philippines": "פיליפינים",
+      "vietnam": "וייטנאם",
+      "argentina": "ארגנטינה",
+      "chile": "צ'ילה",
+      "colombia": "קולומביה",
+      "newZealand": "ניו זילנד",
+      "ireland": "אירלנד",
       "global": "גלובלי (ללא מיקוד גאוגרפי)"
     },
     "plans": {
@@ -3408,13 +3639,40 @@
       "cvvPlaceholder": "123",
       "cardholderName": "שם בעל הכרטיס",
       "cardholderNamePlaceholder": "ישראל ישראלי",
+      "citizenId": "תעודת זהות",
+      "citizenIdPlaceholder": "הכנס מספר ת.ז.",
+      "billingEmail": "אימייל לחיוב",
+      "billingEmailPlaceholder": "אימייל לקבלת חשבונית",
+      "phone": "טלפון",
+      "phonePlaceholder": "050-0000000",
+      "expMonth": "חודש",
+      "expYear": "שנה",
+      "numberOfPayments": "מספר תשלומים",
+      "singlePayment": "תשלום אחד",
+      "payments": "תשלומים",
       "payNow": "שלם עכשיו",
       "processing": "מעבד...",
-      "securePayment": "התשלום שלך מאובטח ומוצפן",
+      "securePayment": "תשלום מאובטח מעובד על ידי CardCom",
+      "initializing": "מאתחל תשלום מאובטח...",
+      "confirmFailed": "אישור התשלום נכשל",
+      "paymentFailed": "התשלום נכשל",
+      "paymentError": "שגיאת תשלום",
+      "iframeError": "מערכת התשלום לא מוכנה. אנא רענן את הדף.",
       "orderSummary": "סיכום הזמנה",
       "plan": "תוכנית",
       "billingCycle": "חודשי",
-      "total": "סה״כ"
+      "total": "סה״כ",
+      "coupon": {
+        "label": "קוד קופון",
+        "placeholder": "הזן קוד קופון",
+        "apply": "החל",
+        "remove": "הסר",
+        "invalid": "קוד קופון לא תקין או שפג תוקפו",
+        "error": "שגיאה באימות הקופון",
+        "discount": "הנחת קופון",
+        "bonuses": "הטבות קופון",
+        "durationNote": "מוחל ל-{months} חודשים"
+      }
     },
     "success": {
       "successTitle": "התשלום הצליח!",
@@ -3773,6 +4031,72 @@
         "purchases": "רכישות פעילות"
       }
     },
+    "coupons": {
+      "title": "ניהול קופונים",
+      "subtitle": "יצירה וניהול קופונים להנחות ושדרוגי מגבלות",
+      "addCoupon": "הוסף קופון",
+      "searchPlaceholder": "חיפוש קופונים...",
+      "noCoupons": "לא נמצאו קופונים",
+      "noExpiry": "ללא תפוגה",
+      "columns": {
+        "code": "קוד",
+        "discount": "הנחה",
+        "benefits": "הטבות",
+        "usage": "שימוש",
+        "validity": "תוקף",
+        "status": "סטטוס",
+        "actions": "פעולות"
+      },
+      "statuses": {
+        "active": "פעיל",
+        "inactive": "לא פעיל"
+      },
+      "actions": {
+        "edit": "עריכת קופון",
+        "delete": "מחק קופון",
+        "translate": "תרגום"
+      },
+      "translations": {
+        "selectLanguage": "בחר שפה",
+        "original": "מקורי",
+        "save": "שמור תרגום",
+        "saved": "התרגום נשמר בהצלחה",
+        "deleteTranslation": "מחק תרגום",
+        "confirmDelete": "האם אתה בטוח שברצונך למחוק תרגום זה?"
+      },
+      "stats": {
+        "total": "סה\"כ קופונים",
+        "active": "קופונים פעילים",
+        "totalRedemptions": "סה\"כ מימושים",
+        "activeRedemptions": "מימושים פעילים"
+      },
+      "form": {
+        "code": "קוד קופון",
+        "description": "תיאור",
+        "descriptionPlaceholder": "הערה פנימית על הקופון...",
+        "discountType": "סוג הנחה",
+        "percentage": "אחוז",
+        "fixedAmount": "סכום קבוע",
+        "discountValue": "ערך הנחה",
+        "maxRedemptions": "מקסימום מימושים",
+        "maxPerAccount": "מקסימום לחשבון",
+        "durationMonths": "משך (בחודשים)",
+        "lifetime": "לכל החיים",
+        "validFrom": "תקף מ-",
+        "validUntil": "תקף עד",
+        "applicablePlans": "תוכניות רלוונטיות",
+        "allPlans": "כל התוכניות",
+        "allPlansHint": "מתאים לכל התוכניות",
+        "limitationOverrides": "דריסות מגבלות",
+        "limitationOverridesHint": "הגדר מגבלות נדיבות יותר עבור מימשי הקופון",
+        "selectLimit": "בחר מגבלה",
+        "overrideValue": "ערך חדש",
+        "extraFeatures": "תכונות נוספות",
+        "extraFeaturesHint": "הפעל תכונות נוספות עבור מימשי הקופון",
+        "featureKeyPlaceholder": "מפתח תכונה",
+        "isActive": "פעיל"
+      }
+    },
     "interviewQuestions": {
       "title": "שאלות ראיון",
       "subtitle": "ניהול שאלות ראיון הרשמה",
@@ -3927,7 +4251,8 @@
       "canceledOn": "בוטל ב-{date}",
       "processing": "מעבד...",
       "yes": "כן",
-      "no": "לא"
+      "no": "לא",
+      "add": "הוסף"
     },
     "stats": {
       "totalPlans": "סה״כ תוכניות",
@@ -3944,7 +4269,12 @@
       "totalAccounts": "סה״כ חשבונות",
       "activeAccounts": "פעילים",
       "totalUsers": "סה״כ משתמשים",
-      "activeUsers": "פעילים"
+      "activeUsers": "פעילים",
+      "totalListings": "סה״כ רישומים",
+      "activeListings": "רישומים פעילים",
+      "totalPurchases": "סה״כ רכישות",
+      "pendingPurchases": "ממתינים",
+      "totalRevenue": "סה״כ הכנסות"
     },
     "translations": {
       "title": "תרגומים",
@@ -4257,6 +4587,105 @@
         "success": "הצלחה",
         "error": "שגיאה"
       }
+    },
+    "backlinks": {
+      "title": "ניהול קישורים נכנסים",
+      "subtitle": "ניהול כל הרישומים והרכישות של קישורים נכנסים בפלטפורמה",
+      "addListing": "הוסף רישום",
+      "editListing": "ערוך רישום",
+      "deleteListing": "מחק רישום",
+      "deleteTitle": "מחיקת רישום",
+      "deleteMessage": "האם אתה בטוח שברצונך למחוק רישום זה? פעולה זו לא ניתנת לביטול.",
+      "searchPlaceholder": "חיפוש לפי דומיין, כותרת...",
+      "tabs": {
+        "listings": "רישומים",
+        "purchases": "רכישות"
+      },
+      "filters": {
+        "all": "הכל",
+        "active": "פעיל",
+        "paused": "מושהה",
+        "draft": "טיוטה",
+        "archived": "בארכיון",
+        "soldOut": "אזל"
+      },
+      "purchaseFilters": {
+        "all": "הכל",
+        "pending": "ממתין",
+        "approved": "אושר",
+        "published": "פורסם",
+        "rejected": "נדחה",
+        "refunded": "הוחזר",
+        "canceled": "בוטל"
+      },
+      "columns": {
+        "domain": "דומיין",
+        "title": "כותרת",
+        "publisher": "מפרסם",
+        "linkType": "סוג קישור",
+        "da": "DA",
+        "dr": "DR",
+        "traffic": "תנועה",
+        "price": "מחיר",
+        "credits": "קרדיטים",
+        "slots": "מקומות",
+        "status": "סטטוס",
+        "actions": "פעולות",
+        "buyer": "קונה",
+        "targetUrl": "כתובת יעד",
+        "anchorText": "טקסט עוגן",
+        "payment": "תשלום",
+        "purchaseDate": "תאריך",
+        "purchaseStatus": "סטטוס"
+      },
+      "fields": {
+        "domain": "דומיין",
+        "domainPlaceholder": "example.com",
+        "title": "כותרת",
+        "titlePlaceholder": "פוסט אורח בבלוג טכנולוגיה",
+        "description": "תיאור",
+        "descriptionPlaceholder": "פרטים על הזדמנות הקישור...",
+        "category": "קטגוריה",
+        "categoryPlaceholder": "טכנולוגיה",
+        "language": "שפה",
+        "linkType": "סוג קישור",
+        "dofollow": "Dofollow",
+        "nofollow": "Nofollow",
+        "domainAuthority": "סמכות דומיין (DA)",
+        "domainRating": "דירוג דומיין (DR)",
+        "monthlyTraffic": "תנועה חודשית",
+        "price": "מחיר (USD)",
+        "aiCreditsPrice": "מחיר קרדיטי AI",
+        "maxSlots": "מקומות מקסימום",
+        "maxSlotsHelp": "השאר ריק ללא הגבלה",
+        "turnaroundDays": "זמן מסירה (ימים)",
+        "sampleUrl": "כתובת לדוגמה",
+        "contentRequirements": "דרישות תוכן",
+        "publisherType": "סוג מפרסם",
+        "platform": "פלטפורמה",
+        "user": "משתמש",
+        "status": "סטטוס",
+        "isActive": "פעיל"
+      },
+      "purchaseActions": {
+        "approve": "אשר",
+        "reject": "דחה",
+        "markPublished": "סמן כפורסם",
+        "refund": "החזר כספי"
+      },
+      "purchaseStatusUpdate": "עדכון סטטוס",
+      "publishedUrl": "כתובת פרסום",
+      "publishedUrlPlaceholder": "https://example.com/article-with-backlink",
+      "rejectReason": "סיבת דחייה",
+      "rejectReasonPlaceholder": "סיבה לדחיית רכישה זו...",
+      "noListings": "לא נמצאו רישומי קישורים",
+      "createFirst": "צור את הרישום הראשון שלך כדי להפעיל את השוק",
+      "noPurchases": "לא נמצאו רכישות",
+      "saveSuccess": "הרישום נשמר בהצלחה",
+      "deleteSuccess": "הרישום נמחק בהצלחה",
+      "statusUpdateSuccess": "סטטוס הרכישה עודכן בהצלחה",
+      "sold": "נמכרו",
+      "unlimited": "ללא הגבלה"
     }
   },
   "acceptInvite": {
@@ -4320,5 +4749,89 @@
       "allRead": "הכל נקרא!",
       "allReadMessage": "אין לך התראות שלא נקראו."
     }
+  },
+  "payment": {
+    "success": "התשלום בוצע בהצלחה!",
+    "confirmFailed": "אישור התשלום נכשל",
+    "failed": "התשלום נכשל",
+    "error": "שגיאת תשלום",
+    "iframeError": "מערכת התשלום לא מוכנה. אנא רענן את הדף.",
+    "successTitle": "התשלום הצליח!",
+    "initializing": "מאתחל תשלום מאובטח...",
+    "cardholderName": "שם בעל הכרטיס",
+    "cardholderNamePlaceholder": "שם מלא כפי שמופיע על הכרטיס",
+    "citizenId": "תעודת זהות",
+    "citizenIdPlaceholder": "הכנס מספר ת.ז.",
+    "billingEmail": "אימייל לחיוב",
+    "emailPlaceholder": "email@example.com",
+    "phone": "טלפון",
+    "phonePlaceholder": "050-0000000",
+    "cardNumber": "מספר כרטיס",
+    "expMonth": "חודש",
+    "expYear": "שנה",
+    "numberOfPayments": "מספר תשלומים",
+    "singlePayment": "תשלום אחד",
+    "payments": "תשלומים",
+    "securePayment": "תשלום מאובטח מעובד על ידי CardCom",
+    "processing": "מעבד...",
+    "payNow": "שלם עכשיו",
+    "confirmFree": "אשר",
+    "total": "סה״כ",
+    "coupon": {
+      "label": "קוד קופון",
+      "placeholder": "הכנס קוד קופון",
+      "apply": "החל",
+      "remove": "הסר",
+      "invalid": "קוד קופון לא תקין או פג תוקף",
+      "error": "שגיאה באימות הקופון",
+      "discount": "הנחת קופון",
+      "bonuses": "בונוסים",
+      "durationNote": "מוחל ל-{months} חודשים"
+    }
+  },
+  "proration": {
+    "newPlan": "תוכנית",
+    "currentPlan": "תוכנית נוכחית",
+    "monthlyPrice": "מחיר חודשי",
+    "remainingDays": "ימים שנותרו החודש",
+    "payToday": "תשלום היום",
+    "unusedCredit": "זיכוי עבור ימים שלא נוצלו",
+    "newPlanCharge": "תוכנית חדשה ימים שנותרו",
+    "daysLeft": "ימים נותרו",
+    "daysInMonth": "ימים בחודש",
+    "nextBillingNote": "חיוב הבא ב-",
+    "mo": "חו׳"
+  },
+  "upgradePlanModal": {
+    "title": "שדרג את התוכנית שלך",
+    "subtitle": "בחר את התוכנית המתאימה ביותר לצרכים שלך",
+    "popular": "פופולרי",
+    "currentPlan": "תוכנית נוכחית",
+    "selectPlan": "בחר תוכנית",
+    "moreFeatures": "עוד",
+    "manageSubscription": "ניהול מנוי",
+    "noPlans": "אין תוכניות זמינות",
+    "upgradedTo": "שודרג ל",
+    "downgradedTo": "שונמך ל"
+  },
+  "downgrade": {
+    "title": "שנמוך תוכנית",
+    "forfeitedAmount": "סכום שלא יוחזר (ללא החזר)",
+    "warningText": "בשנמוך התוכנית, תאבד את הזיכוי על הימים שלא נוצלו בתוכנית הנוכחית. סכום זה אינו ניתן להחזר.",
+    "agreeText": "אני מבין/ה שלא אקבל החזר עבור החלק שלא נוצל בתוכנית הנוכחית.",
+    "confirm": "אשר שנמוך"
+  },
+  "addCreditsModal": {
+    "title": "הוספת קרדיטים",
+    "subtitle": "רכוש קרדיטי AI נוספים לחשבונך",
+    "currentBalance": "יתרה נוכחית",
+    "credits": "קרדיטים",
+    "oneTime": "חד פעמי",
+    "recurring": "מתחדש",
+    "buy": "רכוש",
+    "purchaseSuccess": "הקרדיטים נוספו בהצלחה!",
+    "purchaseFailed": "הרכישה נכשלה",
+    "manageCredits": "ניהול קרדיטים",
+    "noAddons": "אין חבילות קרדיטים זמינות"
   }
 }

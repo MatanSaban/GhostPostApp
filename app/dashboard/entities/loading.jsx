@@ -20,7 +20,7 @@ export default function Loading() {
           <Skeleton width="24px" height="24px" borderRadius="md" />
           <div style={{ flex: 1 }}>
             <Skeleton width="180px" height="1.125rem" borderRadius="md" />
-            <Skeleton width="280px" height="0.875rem" borderRadius="md" />
+            <Skeleton width="280px" height="0.8125rem" borderRadius="md" />
           </div>
         </div>
         <div className={styles.siteInfo}>
@@ -40,7 +40,7 @@ export default function Loading() {
           <Skeleton width="24px" height="24px" borderRadius="md" />
           <div style={{ flex: 1 }}>
             <Skeleton width="160px" height="1.125rem" borderRadius="md" />
-            <Skeleton width="260px" height="0.875rem" borderRadius="md" />
+            <Skeleton width="260px" height="0.8125rem" borderRadius="md" />
           </div>
         </div>
         <Skeleton width="100%" height="4rem" borderRadius="lg" />
@@ -53,7 +53,7 @@ export default function Loading() {
           {[1, 2, 3].map((i) => (
             <div key={i} className={styles.enabledTypeItem} style={{ pointerEvents: 'none' }}>
               <Skeleton width="20px" height="20px" borderRadius="md" />
-              <Skeleton width="100px" height="0.875rem" borderRadius="md" />
+              <Skeleton width="100px" height="0.8125rem" borderRadius="md" />
             </div>
           ))}
         </div>

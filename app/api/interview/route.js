@@ -81,7 +81,47 @@ export async function GET(request) {
           take: 50, // Limit to last 50 messages
         },
       },
+      orderBy: { updatedAt: 'desc' }, // Prefer most recently updated
     });
+
+    // If siteId was provided but no interview found for that site,
+    // also check for orphan interviews (siteId: null) with matching URL
+    if (!interview && siteId && site) {
+      const orphanInterview = await prisma.userInterview.findFirst({
+        where: {
+          userId: user.id,
+          status: { in: ['NOT_STARTED', 'IN_PROGRESS'] },
+          siteId: null,
+        },
+        include: {
+          messages: {
+            orderBy: { createdAt: 'asc' },
+            take: 50,
+          },
+        },
+        orderBy: { updatedAt: 'desc' },
+      });
+      
+      // Only reuse orphan if it's for the same URL
+      if (orphanInterview) {
+        const orphanUrl = (orphanInterview.responses?.websiteUrl || '').replace(/^https?:\/\//, '').replace(/\/$/, '');
+        const siteUrl = (site.url || '').replace(/^https?:\/\//, '').replace(/\/$/, '');
+        if (orphanUrl === siteUrl) {
+          // Link the orphan interview to this site
+          interview = await prisma.userInterview.update({
+            where: { id: orphanInterview.id },
+            data: { siteId },
+            include: {
+              messages: {
+                orderBy: { createdAt: 'asc' },
+                take: 50,
+              },
+            },
+          });
+          console.log(`[Interview] Linked orphan interview ${interview.id} to site ${siteId}`);
+        }
+      }
+    }
 
     // If no interview exists, create one
     if (!interview) {
@@ -107,12 +147,43 @@ export async function GET(request) {
     });
 
     // Determine current question based on responses
-    const currentQuestionIndex = interview.currentStep || 0;
+    // Cap to valid range in case questions were deactivated since the step was stored
+    const rawStep = interview.currentStep || 0;
+    let currentQuestionIndex = Math.min(rawStep, questions.length - 1);
+    
+    // Skip questions whose showCondition is not met (e.g., WordPress plugin for non-WP sites)
+    const responses = interview.responses || {};
+    while (currentQuestionIndex < questions.length) {
+      const q = questions[currentQuestionIndex];
+      if (q && q.showCondition) {
+        try {
+          const condition = typeof q.showCondition === 'string' ? JSON.parse(q.showCondition) : q.showCondition;
+          const fieldValue = responses[condition.field];
+          let passes = true;
+          switch (condition.operator) {
+            case 'equals': passes = fieldValue === condition.value; break;
+            case 'notEquals': passes = fieldValue !== condition.value; break;
+            default: passes = true;
+          }
+          if (!passes) {
+            currentQuestionIndex++;
+            continue;
+          }
+        } catch (e) {
+          // If condition evaluation fails, show the question
+        }
+      }
+      break;
+    }
+    if (currentQuestionIndex >= questions.length) {
+      currentQuestionIndex = questions.length - 1;
+    }
     const currentQuestion = questions[currentQuestionIndex] || null;
 
     return NextResponse.json({
       interview: {
         id: interview.id,
+        siteId: interview.siteId || null,
         status: interview.status,
         currentQuestionIndex,
         responses: interview.responses,
@@ -126,6 +197,7 @@ export async function GET(request) {
         validation: q.validation,
         dependsOn: q.dependsOn,
         showCondition: q.showCondition,
+        saveToField: q.saveToField,
       })),
       currentQuestion: currentQuestion ? {
         id: currentQuestion.id,
@@ -264,11 +336,40 @@ export async function POST(request) {
       },
     });
 
-    // Build the update data
+    // Find the index of the current question so we can advance currentStep
+    const allQuestionsForStep = await prisma.interviewQuestion.findMany({
+      where: { isActive: true },
+      orderBy: { order: 'asc' },
+    });
+    const currentQuestionIdx = allQuestionsForStep.findIndex(q => q.id === question.id);
+    
+    // Calculate next step, skipping questions whose showCondition is not met
+    let nextStep = currentQuestionIdx >= 0 ? currentQuestionIdx + 1 : undefined;
+    if (nextStep !== undefined && !resetExternalData) {
+      while (nextStep < allQuestionsForStep.length) {
+        const nextQ = allQuestionsForStep[nextStep];
+        if (nextQ && nextQ.showCondition) {
+          try {
+            const cond = typeof nextQ.showCondition === 'string' ? JSON.parse(nextQ.showCondition) : nextQ.showCondition;
+            const fv = updatedResponses[cond.field];
+            let passes = true;
+            switch (cond.operator) {
+              case 'equals': passes = fv === cond.value; break;
+              case 'notEquals': passes = fv !== cond.value; break;
+              default: passes = true;
+            }
+            if (!passes) { nextStep++; continue; }
+          } catch (e) { /* show question if condition is invalid */ }
+        }
+        break;
+      }
+    }
+    
+    // Build the update data - advance currentStep past the answered question
     let updateData = {
       status: 'IN_PROGRESS',
       responses: updatedResponses,
-      currentStep: resetExternalData ? 0 : undefined, // Reset to first question
+      currentStep: resetExternalData ? 0 : nextStep,
     };
     
     // Reset external data if URL changed
@@ -295,6 +396,7 @@ export async function POST(request) {
       if (question.saveToField === 'keywords') {
         try {
           const keywordsData = Array.isArray(response) ? response : (response?.selectedKeywords || []);
+          console.log(`[Interview] Saving keywords immediately - siteId: ${interview.siteId}, count: ${keywordsData.length}, data:`, JSON.stringify(keywordsData).slice(0, 200));
           if (keywordsData.length > 0) {
             const existingKeywords = await prisma.keyword.findMany({
               where: { siteId: interview.siteId },
@@ -382,6 +484,7 @@ export async function POST(request) {
           accountId, // For credits tracking
           siteId: interview.siteId || null,
           prisma, // Pass prisma client for database operations
+          trigger: 'submit', // Only run 'submit' auto-actions; skip 'display'-only ones
         });
       } catch (actionError) {
         console.error('Auto-action error:', actionError);
@@ -392,13 +495,9 @@ export async function POST(request) {
     // Get next question using flow engine
     const nextQuestionResult = await getNextQuestion(interview.id);
     
-    // Find the index of the next question (0-based)
-    const allQuestions = await prisma.interviewQuestion.findMany({
-      where: { isActive: true },
-      orderBy: { order: 'asc' },
-    });
+    // Find the index of the next question (0-based) - reuse allQuestionsForStep from earlier
     const nextQuestionIndex = nextQuestionResult 
-      ? allQuestions.findIndex(q => q.id === nextQuestionResult.id)
+      ? allQuestionsForStep.findIndex(q => q.id === nextQuestionResult.id)
       : interview.currentStep;
     
     // Update interview with new question index or complete status
@@ -425,7 +524,7 @@ export async function POST(request) {
         accountId: accountIdForCompletion, // For credits tracking
         siteId: interview.siteId || null,
         prisma, // Pass prisma client for database operations
-        interview, // Pass interview object
+        interview: { ...interview, responses: updatedResponses }, // Pass interview with LATEST responses
       });
     }
 

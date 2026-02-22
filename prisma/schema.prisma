@@ -368,6 +368,9 @@ model TempRegistration {
   // Step 5: Selected plan
   selectedPlanId  String?           @db.ObjectId
   
+  // Step 5b: Coupon code (optional)
+  couponCode      String?
+  
   // Tracking
   currentStep     TempRegStep       @default(FORM)
   expiresAt       DateTime          // Auto-delete after X days
@@ -556,6 +559,102 @@ enum AddOnPurchaseStatus {
   DEPLETED        // For one-time add-ons that are used up
 }
 
+// ==========================================
+// COUPONS SYSTEM
+// ==========================================
+
+model Coupon {
+  id              String        @id @default(auto()) @map("_id") @db.ObjectId
+  code            String        @unique               // Unique coupon code (e.g. "LAUNCH50")
+  description     String?                             // Internal description for admin
+  
+  // Discount settings
+  discountType    DiscountType  @default(PERCENTAGE)  // Percentage or fixed amount
+  discountValue   Float         @default(0)           // Discount value (e.g. 50 for 50% or 50 for $50)
+  
+  // Limitation overrides – JSON array of {key, value} that OVERRIDE plan limitations
+  // e.g. [{"key":"aiCredits","value":50000},{"key":"maxSites","value":10}]
+  // These provide more generous limits than the plan's base limits
+  limitationOverrides Json?     @default("[]")
+  
+  // Extra features – JSON array of feature keys granted by this coupon
+  // e.g. ["prioritySupport","advancedAnalytics"]
+  extraFeatures   Json?         @default("[]")
+  
+  // Usage constraints
+  maxRedemptions  Int?                                // Max total uses (null = unlimited)
+  maxPerAccount   Int           @default(1)           // Max uses per account
+  
+  // Validity
+  validFrom       DateTime      @default(now())
+  validUntil      DateTime?                           // null = no expiry
+  
+  // Applicable plans (empty = all plans)
+  applicablePlanIds String[]    @db.ObjectId
+  
+  // Duration of benefits (in billing cycles, null = lifetime of subscription)
+  durationMonths  Int?                                // How many months the coupon benefits last
+  
+  isActive        Boolean       @default(true)
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  
+  redemptions     CouponRedemption[]
+  translations    CouponTranslation[]
+}
+
+model CouponTranslation {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  couponId    String   @db.ObjectId
+  language    Language
+  description String?  // Translated description (user-facing coupon text)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  coupon      Coupon   @relation(fields: [couponId], references: [id], onDelete: Cascade)
+
+  @@unique([couponId, language])
+}
+
+model CouponRedemption {
+  id              String        @id @default(auto()) @map("_id") @db.ObjectId
+  couponId        String        @db.ObjectId
+  accountId       String        @db.ObjectId
+  subscriptionId  String?       @db.ObjectId
+  
+  // Snapshot of what was applied
+  discountType    DiscountType
+  discountValue   Float
+  limitationOverrides Json?     // Snapshot of overrides at time of redemption
+  extraFeatures   Json?         // Snapshot of extra features at time of redemption
+  
+  // Duration tracking
+  durationMonths  Int?                                // Inherited from coupon
+  activatedAt     DateTime      @default(now())
+  expiresAt       DateTime?                           // When coupon benefits expire
+  
+  status          CouponRedemptionStatus @default(ACTIVE)
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  
+  coupon          Coupon        @relation(fields: [couponId], references: [id], onDelete: Cascade)
+  
+  @@index([couponId])
+  @@index([accountId])
+  @@index([subscriptionId])
+}
+
+enum DiscountType {
+  PERCENTAGE      // e.g. 50% off
+  FIXED_AMOUNT    // e.g. $50 off
+}
+
+enum CouponRedemptionStatus {
+  ACTIVE
+  EXPIRED
+  REVOKED
+}
+
 model Payment {
   id              String        @id @default(auto()) @map("_id") @db.ObjectId
   accountId       String        @db.ObjectId
@@ -624,6 +723,19 @@ model Site {
   platform        String?  // wordpress, custom, shopify, etc.
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
+
+  // Interview-derived data
+  contentLanguage      String?              // "en", "he", "es", etc.
+  businessName         String?
+  businessPhone        String?
+  businessEmail        String?
+  businessAbout        String?              // Description / about text
+  businessCategory     String?
+  businessAddress      String?
+  targetLocations      String[]             @default([])  // ["IL", "US", "worldwide"]
+  writingStyle         String?              // "professional", "casual", "technical", etc.
+  internalLinksPer1000 Int?                 // Internal links per 1000 words preference
+  seoStrategy          Json?                // AI-generated SEO strategy from interview
 
   // WordPress Plugin Connection
   siteKey              String?                    // Public identifier: "gp_site_abc123"
@@ -1156,6 +1268,8 @@ enum InterviewQuestionType {
   SLIDER            // Numeric range slider
   AI_SUGGESTION     // AI generates options based on context
   AUTO_ACTION       // Automatically runs an action and advances (no user input)
+  GOOGLE_INTEGRATION // Google OAuth integration step (GA4 + GSC)
+  WORDPRESS_PLUGIN   // Offer WordPress plugin installation (conditional on platform)
 }
 
 // User Interview Session status
@@ -1407,6 +1521,130 @@ model I18nTranslation {
   @@index([keyId])
   @@index([keyId, languageId, isLatest])
   @@map("i18n_translations")
+}
+
+// ==========================================
+// BACKLINKS MARKETPLACE
+// ==========================================
+
+// A backlink listing published by the platform or a user
+model BacklinkListing {
+  id              String              @id @default(auto()) @map("_id") @db.ObjectId
+
+  // Publisher info – either the platform or a user's site
+  publisherType   BacklinkPublisher   @default(PLATFORM) // PLATFORM or USER
+  publisherAccountId String?          @db.ObjectId        // Account that owns the site (null for platform listings)
+  publisherSiteId    String?          @db.ObjectId        // The connected site offering the backlink (null for platform listings)
+
+  // Domain & SEO metrics
+  domain          String                                  // e.g. "example.com"
+  domainAuthority Int?                                    // Moz DA (0-100)
+  domainRating    Int?                                    // Ahrefs DR (0-100)
+  monthlyTraffic  Int?                                    // Estimated monthly organic traffic
+
+  // Listing details
+  title           String                                  // Short title for the listing
+  description     String?                                 // Detailed description
+  category        String?                                 // Niche / category (e.g. "Technology", "Health")
+  language        String?              @default("en")     // Primary site language
+  linkType        BacklinkLinkType     @default(DOFOLLOW) // Dofollow / Nofollow
+  turnaroundDays  Int?                 @default(7)        // Expected turnaround in days
+  sampleUrl       String?                                 // Example article URL on the publishing site
+  contentRequirements String?                             // Publisher's content guidelines
+
+  // Pricing
+  price           Float?                                  // Direct purchase price (null = not available)
+  currency        String               @default("USD")
+  aiCreditsPrice  Int?                                    // AI credits price (null = not available)
+
+  // Inventory
+  maxSlots        Int?                                    // Max backlinks to sell (null = unlimited)
+  soldCount       Int                  @default(0)
+
+  // Status
+  status          BacklinkListingStatus @default(ACTIVE)
+  isActive        Boolean              @default(true)
+  createdAt       DateTime             @default(now())
+  updatedAt       DateTime             @updatedAt
+
+  // Relations
+  purchases       BacklinkPurchase[]
+
+  @@index([publisherAccountId])
+  @@index([publisherSiteId])
+  @@index([status, isActive])
+  @@index([category])
+  @@index([domain])
+}
+
+// A purchase / order of a backlink
+model BacklinkPurchase {
+  id              String                @id @default(auto()) @map("_id") @db.ObjectId
+
+  // Who bought it
+  buyerAccountId  String                @db.ObjectId
+  buyerSiteId     String                @db.ObjectId  // The site the backlink points to
+  listingId       String                @db.ObjectId
+
+  // Purchase details
+  paymentMethod   BacklinkPaymentMethod               // PLAN_ALLOCATION, DIRECT, AI_CREDITS
+  amountPaid      Float?                              // Money paid (for DIRECT)
+  currency        String                @default("USD")
+  creditsPaid     Int?                                // AI credits paid (for AI_CREDITS)
+
+  // Link details provided by buyer
+  targetUrl       String                              // URL on buyer's site to link to
+  anchorText      String?                             // Preferred anchor text
+
+  // Fulfillment
+  status          BacklinkPurchaseStatus @default(PENDING)
+  publishedUrl    String?                             // URL where the backlink was placed
+  publishedAt     DateTime?
+  rejectedReason  String?
+
+  createdAt       DateTime              @default(now())
+  updatedAt       DateTime              @updatedAt
+
+  // Relations
+  listing         BacklinkListing       @relation(fields: [listingId], references: [id])
+
+  @@index([buyerAccountId])
+  @@index([buyerSiteId])
+  @@index([listingId])
+  @@index([status])
+}
+
+enum BacklinkPublisher {
+  PLATFORM    // Listed by the platform itself
+  USER        // Listed by a user selling from their connected site
+}
+
+enum BacklinkLinkType {
+  DOFOLLOW
+  NOFOLLOW
+}
+
+enum BacklinkListingStatus {
+  ACTIVE
+  PAUSED
+  SOLD_OUT
+  DRAFT
+  ARCHIVED
+}
+
+enum BacklinkPaymentMethod {
+  PLAN_ALLOCATION   // Uses monthly backlink quota from plan
+  DIRECT            // Direct monetary payment
+  AI_CREDITS        // Paid with AI credits
+}
+
+enum BacklinkPurchaseStatus {
+  PENDING           // Awaiting publisher action
+  APPROVED          // Publisher approved, pending placement
+  PUBLISHED         // Backlink is live
+  REJECTED          // Publisher rejected the order
+  REFUNDED          // Purchase was refunded
+  CANCELED          // Buyer canceled
 }
 
 // ==========================================

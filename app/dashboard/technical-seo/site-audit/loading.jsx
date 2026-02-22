@@ -15,7 +15,7 @@ export default function Loading() {
               <Skeleton width="40px" height="40px" borderRadius="md" />
               <div style={{ flex: 1 }}>
                 <Skeleton width="100px" height="1rem" borderRadius="md" />
-                <Skeleton width="60px" height="0.875rem" borderRadius="md" />
+                <Skeleton width="60px" height="0.8125rem" borderRadius="md" />
               </div>
             </div>
             <Skeleton width="100%" height="2rem" borderRadius="md" />

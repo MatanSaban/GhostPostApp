@@ -38,8 +38,8 @@
   transition: all 0.2s;
 
   svg {
-    width: 0.875rem;
-    height: 0.875rem;
+    width: 0.8125rem;
+    height: 0.8125rem;
   }
 
   &:hover {
@@ -155,19 +155,19 @@
     }
 
     h1 {
-      font-size: 2rem;
+      font-size: 1.9375rem;
     }
 
     h2 {
-      font-size: 1.5rem;
+      font-size: 1.4375rem;
     }
 
     h3 {
-      font-size: 1.25rem;
+      font-size: 1.1875rem;
     }
 
     h4 {
-      font-size: 1.125rem;
+      font-size: 1.0625rem;
     }
 
     p {
@@ -349,7 +349,7 @@
 }
 
 .dialogTitle {
-  font-size: 1.125rem;
+  font-size: 1.0625rem;
   font-weight: 600;
   color: var(--foreground);
   margin: 0 0 1rem 0;
@@ -357,7 +357,7 @@
 
 .dialogInput {
   width: 100%;
-  padding: 0.625rem 0.875rem;
+  padding: 0.625rem 0.8125rem;
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
   font-size: 0.9375rem;
@@ -428,8 +428,8 @@
     height: 1.75rem;
 
     svg {
-      width: 0.875rem;
-      height: 0.875rem;
+      width: 0.8125rem;
+      height: 0.8125rem;
     }
   }
 

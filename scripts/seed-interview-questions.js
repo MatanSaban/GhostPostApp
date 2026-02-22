@@ -4,7 +4,7 @@
  * This script creates the initial interview questions for the GhostPost platform.
  * Run with: node scripts/seed-interview-questions.js
  * 
- * NEW FLOW (11 questions):
+ * NEW FLOW (12 questions):
  * 1. Website URL - crawl on submit
  * 2. Content Language - auto-detected from crawl
  * 3. Business Confirmation - editable crawled data
@@ -16,6 +16,7 @@
  * 9. Website Platform - crawl/AI detection with user confirmation
  * 10. Internal Links - per 1000 words, default from posts analysis
  * 11. Favorite Articles - select 3 from 10 fetched
+ * 12. Google Integration - connect GA4 + GSC (optional)
  * 
  * Note: Greeting is NOT a question - it shows before the interview starts
  */
@@ -306,7 +307,25 @@ const interviewQuestions = [
     saveToField: 'websitePlatform',
     isActive: true,
   },
-  // Q10: Internal Links per 1000 words (default from posts analysis)
+  // Q10: WordPress Plugin (conditional - only for WordPress sites)
+  {
+    order: 10,
+    translationKey: 'registration.interview.questions.wordpressPlugin',
+    questionType: 'WORDPRESS_PLUGIN',
+    inputConfig: {
+      showBenefits: true,
+    },
+    validation: {
+      required: false,
+    },
+    aiPromptHint: 'If the website runs on WordPress, offer to install the Ghost Post WordPress plugin. This enables direct article publishing and management.',
+    allowedActions: [],
+    autoActions: null,
+    saveToField: 'wordpressPlugin',
+    showCondition: { field: 'websitePlatform', operator: 'equals', value: 'wordpress' },
+    isActive: true,
+  },
+  // Q10-old: Internal Links per 1000 words (default from posts analysis) - DEACTIVATED
   {
     order: 10,
     translationKey: 'registration.interview.questions.internalLinksCount',
@@ -337,7 +356,7 @@ const interviewQuestions = [
     allowedActions: ['ANALYZE_INTERNAL_LINKS'],
     autoActions: null,
     saveToField: 'internalLinksPer1000Words',
-    isActive: true,
+    isActive: false,
   },
   // Q11: Favorite Articles (select 3 from 10 fetched)
   {
@@ -359,6 +378,24 @@ const interviewQuestions = [
     allowedActions: [],
     autoActions: null,
     saveToField: 'favoriteArticles',
+    isActive: true,
+  },
+  // Q12: Google Integration (GSC + GA4) - optional
+  {
+    order: 12,
+    translationKey: 'registration.interview.questions.googleIntegration',
+    questionType: 'GOOGLE_INTEGRATION',
+    inputConfig: {
+      services: ['ga4', 'gsc'],
+      showBenefits: true,
+    },
+    validation: {
+      required: false,
+    },
+    aiPromptHint: 'Offer the user to connect Google Analytics and Search Console for better insights. This is optional and can be done later in settings.',
+    allowedActions: [],
+    autoActions: null,
+    saveToField: 'googleIntegration',
     isActive: true,
   },
 ];
@@ -560,6 +597,26 @@ const botActions = [
         success: { type: 'boolean' },
         averageLinksPer1000Words: { type: 'number' },
         recommendation: { type: 'number' },
+      },
+    },
+  },
+  {
+    name: 'COMPLETE_INTERVIEW',
+    description: 'Complete the interview, generate SEO strategy, create site account, and save keywords/competitors',
+    handler: 'completeInterview',
+    parameters: {
+      type: 'object',
+      properties: {
+        interviewId: { type: 'string', description: 'The interview ID to complete' },
+        createAccount: { type: 'boolean', description: 'Whether to create a site account (default true)' },
+      },
+    },
+    returns: {
+      type: 'object',
+      properties: {
+        success: { type: 'boolean' },
+        siteId: { type: 'string' },
+        seoStrategy: { type: 'object' },
       },
     },
   },

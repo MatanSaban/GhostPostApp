@@ -101,7 +101,7 @@
 
 .title {
   font-family: 'Polin', 'Poppins', sans-serif;
-  font-size: 1.6875rem;
+  font-size: 1.625rem;
   font-weight: 600;
   color: #111827;
   margin-bottom: 0.5rem;
@@ -306,7 +306,7 @@
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  padding: 0.875rem 1.5rem;
+  padding: 0.8125rem 1.5rem;
   margin-top: 0.5rem;
   border: none;
   border-radius: 0.5rem;

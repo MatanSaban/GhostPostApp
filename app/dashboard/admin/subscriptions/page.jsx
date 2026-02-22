@@ -574,7 +574,7 @@ export default function SubscriptionsPage() {
                       ? t('admin.subscriptions.cancelWarning')
                       : t('admin.subscriptions.reactivateInfo')}
                   </p>
-                  <p style={{ color: 'var(--muted-foreground)', fontSize: '0.875rem' }}>
+                  <p style={{ color: 'var(--muted-foreground)', fontSize: '0.8125rem' }}>
                     {t('admin.subscriptions.accountLabel')}: {confirmModal.subscription.account.name}
                   </p>
                 </div>

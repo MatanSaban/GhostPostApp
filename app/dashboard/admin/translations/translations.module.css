@@ -365,7 +365,7 @@
 
 .popupTitle {
   margin: 0;
-  font-size: 1.125rem;
+  font-size: 1.0625rem;
   font-weight: 600;
   color: var(--foreground);
 }
@@ -514,7 +514,7 @@
 }
 
 .emptyTitle {
-  font-size: 1.125rem;
+  font-size: 1.0625rem;
   font-weight: 600;
   color: var(--foreground);
   margin-bottom: 0.5rem;

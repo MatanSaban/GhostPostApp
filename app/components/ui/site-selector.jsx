@@ -24,6 +24,17 @@ function getPlatformLabel(platform) {
   return PLATFORM_LABELS[platform] || platform;
 }
 
+/**
+ * Get the full URL with protocol for linking, and a clean display domain
+ */
+function formatSiteUrl(url) {
+  if (!url) return { display: '', href: '' };
+  const href = url.startsWith('http://') || url.startsWith('https://') ? url : `https://${url}`;
+  const display = url.replace(/^https?:\/\//, '').replace(/\/$/, '');
+  const isHttps = href.startsWith('https://');
+  return { display, href, isHttps };
+}
+
 export function SiteSelector({ onSiteChange }) {
   const { t } = useLocale();
   const { sites, selectedSite, setSelectedSite, setSites, isLoading } = useSite();
@@ -284,12 +295,12 @@ export function SiteSelector({ onSiteChange }) {
                             />
                           )}
                         </div>
-                        <span className={styles.siteUrl}>{site.url}</span>
+                        <span className={styles.siteUrl}>{formatSiteUrl(site.url).display}</span>
                       </div>
                     </button>
                     <div className={styles.siteItemActions}>
                       <a
-                        href={site.url}
+                        href={formatSiteUrl(site.url).href}
                         target="_blank"
                         rel="noopener noreferrer"
                         className={styles.openSiteLink}
@@ -364,7 +375,12 @@ export function SiteSelector({ onSiteChange }) {
             {editingSite && (
               <div className={styles.formGroup}>
                 <label className={styles.formLabel}>{t('sites.edit.urlLabel')}</label>
-                <div className={styles.urlDisplay}>{editingSite.url}</div>
+                <div className={styles.urlDisplay}>
+                  <span className={`${styles.protocolBadge} ${formatSiteUrl(editingSite.url).isHttps ? styles.protocolHttps : styles.protocolHttp}`}>
+                    {formatSiteUrl(editingSite.url).isHttps ? 'HTTPS' : 'HTTP'}
+                  </span>
+                  {formatSiteUrl(editingSite.url).display}
+                </div>
               </div>
             )}
 

@@ -62,14 +62,14 @@
 }
 
 .title {
-  font-size: 1.15rem;
+  font-size: 1.0875rem;
   font-weight: 600;
   color: var(--text-primary);
   margin: 0;
 }
 
 .description {
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   color: var(--text-secondary);
   line-height: 1.5;
   margin: 0;
@@ -91,7 +91,7 @@
   display: flex;
   align-items: flex-start;
   gap: 10px;
-  font-size: 0.85rem;
+  font-size: 0.7875rem;
   color: var(--text-primary);
   line-height: 1.4;
 }
@@ -103,7 +103,7 @@
   border-radius: 50%;
   background: var(--primary);
   color: white;
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   font-weight: 600;
   display: flex;
   align-items: center;
@@ -120,7 +120,7 @@
   border-radius: 10px;
   background: var(--primary);
   color: white;
-  font-size: 0.9rem;
+  font-size: 0.8375rem;
   font-weight: 600;
   cursor: pointer;
   transition: opacity 0.15s;
@@ -141,7 +141,7 @@
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  font-size: 0.8rem;
+  font-size: 0.7375rem;
   color: var(--text-secondary);
   text-decoration: none;
 }

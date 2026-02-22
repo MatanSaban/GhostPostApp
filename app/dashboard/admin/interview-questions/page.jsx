@@ -300,7 +300,7 @@ export default function InterviewQuestionsPage() {
             onChange={(e) => setSelectedCategory(e.target.value)}
             style={{
               padding: '0.625rem 1rem',
-              fontSize: '0.875rem',
+              fontSize: '0.8125rem',
               background: 'var(--input)',
               border: '1px solid var(--border)',
               borderRadius: 'var(--radius-lg)',

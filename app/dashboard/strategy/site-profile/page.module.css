@@ -49,7 +49,7 @@
 
 .progressTitle {
   font-family: 'Poppins', sans-serif;
-  font-size: 1.25rem;
+  font-size: 1.1875rem;
   font-weight: 600;
   color: #111827;
   margin-bottom: 0.25rem;
@@ -328,7 +328,7 @@
 
 .questionText {
   font-family: 'Poppins', sans-serif;
-  font-size: 1.25rem;
+  font-size: 1.1875rem;
   font-weight: 600;
   color: #111827;
   margin-bottom: 1.5rem;
@@ -511,7 +511,7 @@
 
 .sectionTitle {
   font-family: 'Poppins', sans-serif;
-  font-size: 1.25rem;
+  font-size: 1.1875rem;
   font-weight: 600;
   color: #111827;
 }
@@ -640,7 +640,7 @@
 
 .insightsTitle {
   font-family: 'Poppins', sans-serif;
-  font-size: 1.125rem;
+  font-size: 1.0625rem;
   font-weight: 600;
   color: #111827;
 }

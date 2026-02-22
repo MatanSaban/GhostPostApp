@@ -8,7 +8,7 @@
 }
 
 .title {
-  font-size: 1.75rem;
+  font-size: 1.6875rem;
   font-weight: 700;
   color: var(--foreground);
   margin: 0 0 0.5rem;
@@ -181,7 +181,7 @@
 }
 
 .featureTitle {
-  font-size: 1.125rem;
+  font-size: 1.0625rem;
   font-weight: 600;
   color: var(--foreground);
   margin: 0;

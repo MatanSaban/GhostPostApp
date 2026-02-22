@@ -83,7 +83,7 @@
 }
 
 .title {
-  font-size: 1.5rem;
+  font-size: 1.4375rem;
   font-weight: 600;
   color: var(--foreground);
   margin: 0;
@@ -266,7 +266,7 @@
 /* Inputs */
 .textInput {
   width: 100%;
-  padding: 0.625rem 0.875rem;
+  padding: 0.625rem 0.8125rem;
   border-radius: var(--radius-md);
   border: 1px solid var(--border);
   background: var(--background);
@@ -372,7 +372,7 @@
 }
 
 .acfGroupTitle {
-  font-size: 1.02rem;
+  font-size: 0.9575rem;
   font-weight: 600;
   color: var(--foreground);
   margin-bottom: 1rem;
@@ -872,7 +872,7 @@
 }
 
 .seoPreviewTitle {
-  font-size: 1.125rem;
+  font-size: 1.0625rem;
   color: #1a0dab;
   margin-bottom: 0.25rem;
   

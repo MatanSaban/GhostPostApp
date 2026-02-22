@@ -64,7 +64,7 @@ export default function QuestionEditModal({
                 color: activeTab === tab.key ? 'white' : 'var(--foreground)',
                 borderRadius: '6px',
                 cursor: 'pointer',
-                fontSize: '0.875rem',
+                fontSize: '0.8125rem',
                 fontWeight: 500,
               }}
             >
@@ -106,7 +106,7 @@ export default function QuestionEditModal({
         {/* Input Config Tab */}
         {activeTab === 'input' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-            <h4 style={{ margin: 0, fontSize: '0.875rem', color: 'var(--muted-foreground)' }}>
+            <h4 style={{ margin: 0, fontSize: '0.8125rem', color: 'var(--muted-foreground)' }}>
               {t('admin.interviewFlow.inputConfig.title')} - {getTypeLabel(t, formData.questionType)}
             </h4>
             <InputConfigForm
@@ -178,7 +178,7 @@ export default function QuestionEditModal({
               placeholder={t('admin.interviewFlow.fields.aiPromptHintHelp')}
             />
             <div>
-              <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500, fontSize: '0.875rem' }}>
+              <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500, fontSize: '0.8125rem' }}>
                 {t('admin.interviewFlow.aiConfig.allowedActions')}
               </label>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
@@ -194,7 +194,7 @@ export default function QuestionEditModal({
                       color: formData.allowedActions.includes(action.name) ? 'white' : 'var(--foreground)',
                       borderRadius: '6px',
                       cursor: 'pointer',
-                      fontSize: '0.875rem',
+                      fontSize: '0.8125rem',
                     }}
                   >
                     <input
@@ -221,13 +221,13 @@ export default function QuestionEditModal({
                 ))}
               </div>
               {botActions.length === 0 && (
-                <p style={{ color: 'var(--muted-foreground)', fontSize: '0.875rem', marginTop: '8px' }}>
+                <p style={{ color: 'var(--muted-foreground)', fontSize: '0.8125rem', marginTop: '8px' }}>
                   {t('admin.interviewFlow.aiConfig.noActionsAvailable')}
                 </p>
               )}
             </div>
             <div>
-              <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500, fontSize: '0.875rem' }}>
+              <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500, fontSize: '0.8125rem' }}>
                 {t('admin.interviewFlow.aiConfig.autoActions')} ({t('admin.interviewFlow.aiConfig.autoActionsHelp')})
               </label>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
@@ -243,7 +243,7 @@ export default function QuestionEditModal({
                       color: formData.autoActions.includes(action.name) ? 'var(--warning-foreground)' : 'var(--foreground)',
                       borderRadius: '6px',
                       cursor: 'pointer',
-                      fontSize: '0.875rem',
+                      fontSize: '0.8125rem',
                     }}
                   >
                     <input

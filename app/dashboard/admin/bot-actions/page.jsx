@@ -410,7 +410,7 @@ export default function BotActionsPage() {
                       WebkitLineClamp: 2,
                       WebkitBoxOrient: 'vertical',
                       overflow: 'hidden',
-                      fontSize: '0.875rem',
+                      fontSize: '0.8125rem',
                       color: 'var(--muted-foreground)',
                     }}>
                       {action.description || '-'}
@@ -499,7 +499,7 @@ export default function BotActionsPage() {
                   color: activeTab === tab.key ? 'white' : 'var(--foreground)',
                   borderRadius: '6px',
                   cursor: 'pointer',
-                  fontSize: '0.875rem',
+                  fontSize: '0.8125rem',
                   fontWeight: 500,
                 }}
               >
@@ -544,7 +544,7 @@ export default function BotActionsPage() {
           {activeTab === 'schema' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
               <div>
-                <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500, fontSize: '0.875rem' }}>
+                <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500, fontSize: '0.8125rem' }}>
                   {t('admin.botActions.fields.parametersSchema')}
                 </label>
                 <textarea
@@ -555,7 +555,7 @@ export default function BotActionsPage() {
                     width: '100%',
                     padding: '0.75rem',
                     fontFamily: 'monospace',
-                    fontSize: '0.875rem',
+                    fontSize: '0.8125rem',
                     background: 'var(--muted)',
                     border: '1px solid var(--border)',
                     borderRadius: '8px',
@@ -565,7 +565,7 @@ export default function BotActionsPage() {
                 />
               </div>
               <div>
-                <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500, fontSize: '0.875rem' }}>
+                <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500, fontSize: '0.8125rem' }}>
                   {t('admin.botActions.fields.returnsSchema')}
                 </label>
                 <textarea
@@ -576,7 +576,7 @@ export default function BotActionsPage() {
                     width: '100%',
                     padding: '0.75rem',
                     fontFamily: 'monospace',
-                    fontSize: '0.875rem',
+                    fontSize: '0.8125rem',
                     background: 'var(--muted)',
                     border: '1px solid var(--border)',
                     borderRadius: '8px',
@@ -592,7 +592,7 @@ export default function BotActionsPage() {
           {activeTab === 'example' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
               <div>
-                <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500, fontSize: '0.875rem' }}>
+                <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500, fontSize: '0.8125rem' }}>
                   {t('admin.botActions.fields.exampleParameters')}
                 </label>
                 <textarea
@@ -604,7 +604,7 @@ export default function BotActionsPage() {
                     width: '100%',
                     padding: '0.75rem',
                     fontFamily: 'monospace',
-                    fontSize: '0.875rem',
+                    fontSize: '0.8125rem',
                     background: 'var(--muted)',
                     border: '1px solid var(--border)',
                     borderRadius: '8px',
@@ -647,7 +647,7 @@ export default function BotActionsPage() {
       >
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
           <div>
-            <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500, fontSize: '0.875rem' }}>
+            <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500, fontSize: '0.8125rem' }}>
               {t('admin.botActions.test.parameters')}
             </label>
             <textarea
@@ -658,7 +658,7 @@ export default function BotActionsPage() {
                 width: '100%',
                 padding: '0.75rem',
                 fontFamily: 'monospace',
-                fontSize: '0.875rem',
+                fontSize: '0.8125rem',
                 background: 'var(--muted)',
                 border: '1px solid var(--border)',
                 borderRadius: '8px',
@@ -684,7 +684,7 @@ export default function BotActionsPage() {
               borderRadius: '8px',
               cursor: isTesting ? 'not-allowed' : 'pointer',
               fontWeight: 600,
-              fontSize: '0.875rem',
+              fontSize: '0.8125rem',
               opacity: isTesting ? 0.7 : 1,
             }}
           >

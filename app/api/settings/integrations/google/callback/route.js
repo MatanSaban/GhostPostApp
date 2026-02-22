@@ -108,9 +108,42 @@ export async function GET(request) {
     });
 
     console.log('[Google Integration Callback] Integration saved for site:', siteId);
+
+    // If this came from the interview popup flow, return a self-closing page
+    if (state.fromInterview) {
+      const html = `<!DOCTYPE html><html><head><title>Connected</title></head><body>
+        <script>
+          if (window.opener) {
+            window.opener.postMessage({ type: 'google-integration-success', siteId: '${siteId}' }, '*');
+          }
+          window.close();
+        </script>
+        <p>Google account connected! You can close this window.</p>
+      </body></html>`;
+      return new Response(html, { headers: { 'Content-Type': 'text/html' } });
+    }
+
     return NextResponse.redirect(`${settingsUrl}&integrationSuccess=true`);
   } catch (err) {
     console.error('[Google Integration Callback] Error:', err);
+
+    // If from interview popup, return error page that closes itself
+    try {
+      const stateData = parseIntegrationState(new URL(request.url).searchParams.get('state'));
+      if (stateData?.fromInterview) {
+        const html = `<!DOCTYPE html><html><head><title>Error</title></head><body>
+          <script>
+            if (window.opener) {
+              window.opener.postMessage({ type: 'google-integration-error' }, '*');
+            }
+            window.close();
+          </script>
+          <p>Connection failed. You can close this window and try again.</p>
+        </body></html>`;
+        return new Response(html, { headers: { 'Content-Type': 'text/html' } });
+      }
+    } catch { /* fall through to normal redirect */ }
+
     return NextResponse.redirect(`${settingsUrl}&integrationError=server_error`);
   }
 }

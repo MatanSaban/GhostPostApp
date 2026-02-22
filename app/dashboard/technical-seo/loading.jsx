@@ -17,8 +17,8 @@ export default function TechnicalSeoLoading() {
               <Skeleton width="60%" height="1.25rem" borderRadius="md" />
             </div>
             <div style={{ marginTop: '0.5rem' }}>
-              <Skeleton width="100%" height="0.875rem" borderRadius="md" />
-              <Skeleton width="75%" height="0.875rem" borderRadius="md" />
+              <Skeleton width="100%" height="0.8125rem" borderRadius="md" />
+              <Skeleton width="75%" height="0.8125rem" borderRadius="md" />
             </div>
             <div style={{ marginTop: 'auto', paddingTop: '1.25rem' }}>
               <Skeleton width="8rem" height="2.25rem" borderRadius="md" />

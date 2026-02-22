@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import prisma from '@/lib/prisma';
+import { getNextFirstOfMonth } from '@/lib/proration';
 
 const TEMP_REG_COOKIE = 'temp_reg_id';
 const SESSION_COOKIE = 'user_session';
@@ -235,16 +236,55 @@ export async function POST(request) {
         });
 
         if (plan) {
-          await tx.subscription.create({
+          const subscription = await tx.subscription.create({
             data: {
               accountId: account.id,
               planId: plan.id,
               status: 'ACTIVE',
               billingInterval: 'MONTHLY', // Default to monthly
               currentPeriodStart: new Date(),
-              currentPeriodEnd: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days
+              currentPeriodEnd: getNextFirstOfMonth(new Date()), // Align to 1st of next month
             },
           });
+          
+          // 6b. Apply coupon if one was provided
+          if (tempReg.couponCode) {
+            const coupon = await tx.coupon.findUnique({
+              where: { code: tempReg.couponCode },
+              include: { _count: { select: { redemptions: true } } },
+            });
+
+            if (coupon && coupon.isActive) {
+              const now = new Date();
+              const isValid = (!coupon.validFrom || now >= coupon.validFrom)
+                && (!coupon.validUntil || now <= coupon.validUntil)
+                && (!coupon.maxRedemptions || coupon._count.redemptions < coupon.maxRedemptions)
+                && (!coupon.applicablePlanIds?.length || coupon.applicablePlanIds.includes(plan.id));
+
+              if (isValid) {
+                const expiresAt = coupon.durationMonths
+                  ? new Date(Date.now() + coupon.durationMonths * 30 * 24 * 60 * 60 * 1000)
+                  : null;
+
+                await tx.couponRedemption.create({
+                  data: {
+                    couponId: coupon.id,
+                    accountId: account.id,
+                    subscriptionId: subscription.id,
+                    discountType: coupon.discountType,
+                    discountValue: coupon.discountValue,
+                    limitationOverrides: coupon.limitationOverrides || [],
+                    extraFeatures: coupon.extraFeatures || [],
+                    durationMonths: coupon.durationMonths,
+                    expiresAt,
+                    status: 'ACTIVE',
+                  },
+                });
+
+                console.log('[Finalize] Applied coupon:', { code: coupon.code, accountId: account.id });
+              }
+            }
+          }
           
           // Get AI credits from plan limitations
           const { getLimitFromPlan } = await import('@/lib/account-utils');

@@ -100,7 +100,7 @@ export function TableRowSkeleton({ columns = 4, hasCheckbox = false, hasActions 
               <Skeleton width="55%" height="0.6875rem" />
             </div>
           ) : (
-            <Skeleton width={getColumnWidth(i)} height="0.875rem" />
+            <Skeleton width={getColumnWidth(i)} height="0.8125rem" />
           )}
         </td>
       ))}
@@ -148,7 +148,7 @@ export function TableSkeleton({
             )}
             {Array.from({ length: columns }).map((_, i) => (
               <th key={i} className={styles.tableHeaderCell}>
-                <Skeleton width={`${40 + Math.random() * 40}%`} height="0.875rem" />
+                <Skeleton width={`${40 + Math.random() * 40}%`} height="0.8125rem" />
               </th>
             ))}
           </tr>
@@ -178,7 +178,7 @@ export function ActivityItemSkeleton() {
         <Skeleton width="0.5rem" height="0.5rem" borderRadius="full" />
         <Skeleton width="70%" height="1rem" />
       </div>
-      <Skeleton width="4rem" height="0.875rem" />
+      <Skeleton width="4rem" height="0.8125rem" />
     </div>
   );
 }
@@ -254,8 +254,8 @@ export function ProgressBarSkeleton() {
   return (
     <div className={styles.progressBarWrapper}>
       <div className={styles.progressBarHeader}>
-        <Skeleton width="40%" height="0.875rem" />
-        <Skeleton width="3rem" height="0.875rem" />
+        <Skeleton width="40%" height="0.8125rem" />
+        <Skeleton width="3rem" height="0.8125rem" />
       </div>
       <Skeleton width="100%" height="0.5rem" borderRadius="full" />
     </div>
@@ -281,7 +281,7 @@ export function ProgressListSkeleton({ count = 3 }) {
 export function FormFieldSkeleton({ hasLabel = true }) {
   return (
     <div className={styles.formField}>
-      {hasLabel && <Skeleton width="30%" height="0.875rem" className={styles.formLabel} />}
+      {hasLabel && <Skeleton width="30%" height="0.8125rem" className={styles.formLabel} />}
       <Skeleton width="100%" height="2.5rem" borderRadius="md" />
     </div>
   );
@@ -323,7 +323,7 @@ export function QuickActionsSkeleton({ count = 3 }) {
       {Array.from({ length: count }).map((_, i) => (
         <div key={i} className={styles.quickActionItem}>
           <Skeleton width="2.5rem" height="2.5rem" borderRadius="lg" />
-          <Skeleton width="60%" height="0.875rem" />
+          <Skeleton width="60%" height="0.8125rem" />
         </div>
       ))}
     </div>
@@ -339,12 +339,12 @@ export function ContentCardSkeleton() {
       <Skeleton width="100%" height="10rem" borderRadius="lg" className={styles.contentCardImage} />
       <div className={styles.contentCardBody}>
         <Skeleton width="80%" height="1.125rem" />
-        <Skeleton width="100%" height="0.875rem" />
-        <Skeleton width="60%" height="0.875rem" />
+        <Skeleton width="100%" height="0.8125rem" />
+        <Skeleton width="60%" height="0.8125rem" />
       </div>
       <div className={styles.contentCardFooter}>
         <Skeleton width="4rem" height="1.5rem" borderRadius="full" />
-        <Skeleton width="5rem" height="0.875rem" />
+        <Skeleton width="5rem" height="0.8125rem" />
       </div>
     </div>
   );
@@ -370,7 +370,7 @@ export function NavItemSkeleton() {
   return (
     <div className={styles.navItem}>
       <Skeleton width="1.25rem" height="1.25rem" borderRadius="sm" />
-      <Skeleton width="70%" height="0.875rem" />
+      <Skeleton width="70%" height="0.8125rem" />
     </div>
   );
 }
@@ -392,7 +392,7 @@ export function DetailPageSkeleton() {
           <div className={styles.sidebarContent}>
             <Skeleton width="100%" height="10rem" borderRadius="lg" />
             <Skeleton width="80%" height="1rem" />
-            <Skeleton width="60%" height="0.875rem" />
+            <Skeleton width="60%" height="0.8125rem" />
           </div>
         </DashboardCardSkeleton>
       </div>
@@ -563,12 +563,12 @@ export function MyWebsitesPageSkeleton() {
           <div key={i} className={styles.myWebsitesTableRow}>
             <div className={styles.myWebsitesTableCell}>
               <Skeleton width="1rem" height="1rem" borderRadius="full" />
-              <Skeleton width="60%" height="0.875rem" />
+              <Skeleton width="60%" height="0.8125rem" />
             </div>
-            <Skeleton width="55%" height="0.875rem" />
-            <Skeleton width="45%" height="0.875rem" />
+            <Skeleton width="55%" height="0.8125rem" />
+            <Skeleton width="45%" height="0.8125rem" />
             <Skeleton width="5rem" height="1.5rem" borderRadius="full" />
-            <Skeleton width="50%" height="0.875rem" />
+            <Skeleton width="50%" height="0.8125rem" />
             <div className={styles.myWebsitesTableActions}>
               <Skeleton width="1.75rem" height="1.75rem" borderRadius="md" />
               <Skeleton width="1.75rem" height="1.75rem" borderRadius="md" />

@@ -270,7 +270,7 @@ export function MyWebsitesContent() {
                     <td>
                       <div className={styles.siteName}>
                         <Skeleton width="1rem" height="1rem" borderRadius="full" />
-                        <Skeleton width="60%" height="0.875rem" />
+                        <Skeleton width="60%" height="0.8125rem" />
                       </div>
                     </td>
                     <td><Skeleton width="70%" height="0.8125rem" /></td>

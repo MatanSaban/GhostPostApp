@@ -166,7 +166,7 @@
 }
 
 .tableHeaderCell {
-  padding: 0.875rem 1rem;
+  padding: 0.8125rem 1rem;
   text-align: start;
   background: var(--muted);
   border-bottom: 1px solid var(--border);
@@ -180,19 +180,19 @@
 }
 
 .tableCell {
-  padding: 0.875rem 1rem;
+  padding: 0.8125rem 1rem;
   vertical-align: middle;
 }
 
 .actionsCell {
-  padding: 0.875rem 1rem;
+  padding: 0.8125rem 1rem;
   text-align: end;
   width: 100px;
 }
 
 .checkboxCell {
   width: 2.5rem;
-  padding: 0.875rem 0.5rem 0.875rem 1rem !important;
+  padding: 0.8125rem 0.5rem 0.8125rem 1rem !important;
   vertical-align: middle;
 }
 

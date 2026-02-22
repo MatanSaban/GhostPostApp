@@ -58,6 +58,9 @@
 
 .notificationButton {
   position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
   padding: 0.5rem;
   aspect-ratio: 1/1;
   width: 40px;
@@ -89,7 +92,7 @@
   background: var(--primary);
   border-radius: 50%;
   border: 2px solid var(--background);
-  font-size: 0.625rem;
+  font-size: 0.5625rem;
   font-weight: 400;
   color: white;
   display: flex;
@@ -190,7 +193,7 @@
   display: flex;
   align-items: flex-start;
   gap: 0.75rem;
-  padding: 0.875rem 1rem;
+  padding: 0.8125rem 1rem;
   text-decoration: none;
   transition: background var(--transition-fast);
   position: relative;
@@ -299,7 +302,7 @@
 }
 
 .notificationTime {
-  font-size: 0.6875rem;
+  font-size: 0.625rem;
   color: var(--muted-foreground);
   opacity: 0.7;
   margin-top: 0.25rem;
@@ -556,13 +559,13 @@
 }
 
 .creditsLabel {
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   font-weight: 500;
   color: white;
 }
 
 .creditsValue {
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   font-weight: 600;
   color: white;
 }
@@ -575,13 +578,13 @@
   background: var(--gradient-primary);
   border-radius: var(--radius-md);
   color: white;
-  font-size: 0.6875rem;
+  font-size: 0.625rem;
   font-weight: 600;
   text-transform: uppercase;
 }
 
 .currentPlanLabel {
-  font-size: 0.6875rem;
+  font-size: 0.625rem;
   color: var(--muted-foreground);
   font-weight: 500;
 }

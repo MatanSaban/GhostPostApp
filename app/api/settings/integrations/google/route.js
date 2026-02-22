@@ -240,6 +240,7 @@ export async function POST(request) {
           siteId,
           locale,
           loginHint: existingInteg?.googleEmail || undefined,
+          fromInterview: body.fromInterview || false,
         });
         return NextResponse.json({ authUrl });
       }

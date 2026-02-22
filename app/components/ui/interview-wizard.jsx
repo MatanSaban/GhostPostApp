@@ -41,6 +41,10 @@ export const InterviewWizard = forwardRef(function InterviewWizard({ onClose, on
   const [dynamicOptions, setDynamicOptions] = useState([]);
   const [isLoadingDynamicOptions, setIsLoadingDynamicOptions] = useState(false);
   const [selectedDynamicOptions, setSelectedDynamicOptions] = useState([]);
+  // Blog discovery fallback state
+  const [blogDiscoveryPhase, setBlogDiscoveryPhase] = useState('initial'); // 'initial' | 'askHasBlog' | 'enterUrl' | 'fetching' | 'done'
+  const [manualBlogUrl, setManualBlogUrl] = useState('');
+  const [blogFetchError, setBlogFetchError] = useState(null);
   // Competitor suggestions state
   const [competitorSuggestions, setCompetitorSuggestions] = useState([]);
   const [isLoadingCompetitors, setIsLoadingCompetitors] = useState(false);
@@ -60,6 +64,9 @@ export const InterviewWizard = forwardRef(function InterviewWizard({ onClose, on
   // Edit message state
   const [editingMessageId, setEditingMessageId] = useState(null);
   const [editContent, setEditContent] = useState('');
+  // Google Integration state
+  const [interviewSiteId, setInterviewSiteId] = useState(null);
+  const [googleIntegrationStatus, setGoogleIntegrationStatus] = useState('idle'); // 'idle' | 'connecting' | 'connected' | 'error'
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
   const messageIdCounter = useRef(0);
@@ -147,6 +154,7 @@ export const InterviewWizard = forwardRef(function InterviewWizard({ onClose, on
       setQuestions(data.questions || []);
       setQuestionsData(data.questions || []);
       setInterviewId(data.interview?.id);
+      setInterviewSiteId(data.interview?.siteId || site?.id || null);
       setResponses(data.interview?.responses || {});
       setExternalData(data.interview?.externalData || {});
       setCurrentQuestionIndex(data.interview?.currentQuestionIndex || 0);
@@ -216,7 +224,24 @@ export const InterviewWizard = forwardRef(function InterviewWizard({ onClose, on
     // Handle defaultFromCrawl for SELECTION questions
     if (currentQuestion.questionType === 'SELECTION' && config.defaultFromCrawl) {
       const crawledData = externalData?.crawledData || {};
-      const defaultValue = crawledData[config.defaultFromCrawl];
+      let defaultValue = crawledData[config.defaultFromCrawl];
+      
+      // For detectedCountry: also derive from user's contentLanguage response
+      // (more reliable since the user may have changed the language in Q2)
+      if (config.defaultFromCrawl === 'detectedCountry' && !defaultValue) {
+        const contentLang = responses?.contentLanguage || crawledData.language;
+        if (contentLang) {
+          const langToCountry = {
+            he: 'IL', ar: 'AE', ja: 'JP', ko: 'KR', zh: 'CN', ru: 'RU',
+            pt: 'BR', de: 'DE', fr: 'FR', es: 'ES', it: 'IT', nl: 'NL',
+            pl: 'PL', sv: 'SE', no: 'NO', da: 'DK', fi: 'FI', el: 'GR',
+            tr: 'TR', th: 'TH', vi: 'VN', id: 'ID', ms: 'MY', hi: 'IN',
+            en: 'worldwide',
+          };
+          defaultValue = langToCountry[contentLang] || 'worldwide';
+          console.log('[Default from Language] Derived country from contentLanguage:', contentLang, '->', defaultValue);
+        }
+      }
       
       if (defaultValue && !inputValue) {
         console.log('[Default from Crawl] Setting', config.defaultFromCrawl, 'to:', defaultValue);
@@ -344,6 +369,8 @@ export const InterviewWizard = forwardRef(function InterviewWizard({ onClose, on
   }, [currentQuestionIndex, questionsData]);
 
   // Trigger platform detection for websitePlatform question
+  const platformAutoSubmitted = useRef(false);
+  const [pendingPlatformSubmit, setPendingPlatformSubmit] = useState(null);
   useEffect(() => {
     if (!questionsData || currentQuestionIndex === undefined) return;
     
@@ -353,21 +380,33 @@ export const InterviewWizard = forwardRef(function InterviewWizard({ onClose, on
     // Only for the websitePlatform question
     if (currentQuestion.saveToField !== 'websitePlatform') return;
     
+    // Helper: set detected platform and schedule auto-submit via state
+    const setAndScheduleSubmit = (platformData) => {
+      setDetectedPlatform(platformData);
+      if (!platformAutoSubmitted.current && platformData.confidence >= 0.5) {
+        platformAutoSubmitted.current = true;
+        // Use state to trigger submit in a separate effect (avoids stale handleSubmit closure)
+        setTimeout(() => {
+          setPendingPlatformSubmit(platformData.platform);
+        }, 2000);
+      }
+    };
+    
     // First priority: Check if site already has platform saved (from entities page or previous detection)
     if (site?.platform) {
-      setDetectedPlatform({ platform: site.platform, confidence: 1.0 });
+      setAndScheduleSubmit({ platform: site.platform, confidence: 1.0 });
       return;
     }
     
     // Check if we already have platform data in externalData
     if (externalData?.platformData?.platform) {
-      setDetectedPlatform(externalData.platformData);
+      setAndScheduleSubmit(externalData.platformData);
       return;
     }
     
     // Check if platform was detected during crawl
     if (externalData?.crawledData?.platform) {
-      setDetectedPlatform({ platform: externalData.crawledData.platform, confidence: 0.9 });
+      setAndScheduleSubmit({ platform: externalData.crawledData.platform, confidence: 0.9 });
       return;
     }
     
@@ -389,7 +428,7 @@ export const InterviewWizard = forwardRef(function InterviewWizard({ onClose, on
         if (result.success) {
           const platformData = result.externalData?.platformData || result.result;
           if (platformData?.platform) {
-            setDetectedPlatform(platformData);
+            setAndScheduleSubmit(platformData);
           }
         }
       } catch (err) {
@@ -401,6 +440,14 @@ export const InterviewWizard = forwardRef(function InterviewWizard({ onClose, on
     
     detectPlatform();
   }, [currentQuestionIndex, questionsData, site?.platform]);
+
+  // Execute pending platform auto-submit (separate effect ensures fresh handleSubmit reference)
+  useEffect(() => {
+    if (pendingPlatformSubmit && !isProcessing && !isTyping) {
+      setPendingPlatformSubmit(null);
+      handleSubmit(pendingPlatformSubmit);
+    }
+  }, [pendingPlatformSubmit, isProcessing, isTyping]);
 
   // Trigger article fetching for DYNAMIC questions with articles source
   useEffect(() => {
@@ -520,6 +567,9 @@ export const InterviewWizard = forwardRef(function InterviewWizard({ onClose, on
   const competitorSearchInProgress = useRef(false);
   
   useEffect(() => {
+    // Early exit if a competitor search was already completed or is in progress
+    if (competitorSearchInProgress.current) return;
+    
     if (!questionsData || currentQuestionIndex === undefined) return;
     
     const currentQuestion = questionsData[currentQuestionIndex];
@@ -612,7 +662,9 @@ export const InterviewWizard = forwardRef(function InterviewWizard({ onClose, on
         console.error('Error finding competitors:', err);
       } finally {
         setIsLoadingCompetitors(false);
-        competitorSearchInProgress.current = false;
+        // NOTE: Do NOT reset competitorSearchInProgress.current here.
+        // Keep it true so the effect doesn't re-trigger when responses update.
+        // It gets reset in moveToNextQuestion when advancing past this question.
       }
     };
     
@@ -745,6 +797,11 @@ export const InterviewWizard = forwardRef(function InterviewWizard({ onClose, on
         
         setExternalData(data.interview?.externalData || {});
         
+        // Update siteId if it became available (e.g., after crawl)
+        if (data.interview?.siteId && !interviewSiteId) {
+          setInterviewSiteId(data.interview.siteId);
+        }
+        
         // Update editable data from crawled data
         if (data.interview?.externalData?.crawledData) {
           const crawled = data.interview.externalData.crawledData;
@@ -801,6 +858,36 @@ export const InterviewWizard = forwardRef(function InterviewWizard({ onClose, on
       return { success: false, error: err.message };
     } finally {
       setIsLoadingAiSuggestions(false);
+    }
+  };
+
+  // Handle manual blog URL fetch (when automatic discovery fails)
+  const handleBlogUrlFetch = async (url) => {
+    setBlogDiscoveryPhase('fetching');
+    setBlogFetchError(null);
+    
+    try {
+      const res = await fetch('/api/interview/fetch-blog-articles', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ blogUrl: url, interviewId }),
+      });
+      
+      const data = await res.json();
+      
+      if (data.success && data.articles && data.articles.length > 0) {
+        setDynamicOptions(data.articles);
+        setBlogDiscoveryPhase('done');
+        // Refresh external data
+        await refreshInterviewData();
+      } else {
+        setBlogFetchError(t('interviewWizard.blogDiscovery.noArticlesFromUrl'));
+        setBlogDiscoveryPhase('enterUrl');
+      }
+    } catch (err) {
+      console.error('Error fetching blog articles:', err);
+      setBlogFetchError(t('interviewWizard.blogDiscovery.fetchError'));
+      setBlogDiscoveryPhase('enterUrl');
     }
   };
 
@@ -954,12 +1041,16 @@ export const InterviewWizard = forwardRef(function InterviewWizard({ onClose, on
 
     const submittedValue = value ?? inputValue;
     
-    // Immediately clear keyword/competitor selection UI on submit
+    // Immediately clear keyword selection UI on submit
+    // NOTE: Do NOT clear competitorSuggestions here — it causes the competitor useEffect
+    // to re-trigger a search (the guard checks competitorSuggestions.length > 0).
+    // Competitors are cleared in moveToNextQuestion instead.
     if (currentQuestion.questionType === 'AI_SUGGESTION') {
       setAiSuggestions(null);
       setSelectedSuggestions([]);
-      setCompetitorSuggestions([]);
       setSelectedCompetitors([]);
+      // Mark search as "done" so the useEffect won't re-fire
+      competitorSearchInProgress.current = true;
     }
     
     // For GREETING type, just move to next question
@@ -994,11 +1085,35 @@ export const InterviewWizard = forwardRef(function InterviewWizard({ onClose, on
         }
       }
       
+      // For Google Integration, show a friendly message
+      if (currentQuestion.questionType === 'GOOGLE_INTEGRATION') {
+        if (submittedValue === 'connected') {
+          displayContent = t('interviewWizard.googleIntegration.connectedMessage') || '✓ Google account connected';
+        } else {
+          displayContent = t('interviewWizard.messages.skipped') || 'Skipped';
+        }
+      }
+      
       if (Array.isArray(submittedValue)) {
-        displayContent = submittedValue.join(', ');
+        // Decode percent-encoded URLs (e.g., Hebrew characters) for readable display
+        // Show each item on its own line in the chat bubble
+        displayContent = submittedValue.map(item => {
+          try { return decodeURI(item); } catch { return item; }
+        }).join('\n');
+      } else if (typeof submittedValue === 'string' && submittedValue.includes('%')) {
+        try { displayContent = decodeURI(submittedValue); } catch { /* keep original */ }
       } else if (typeof submittedValue !== 'string') {
         displayContent = String(submittedValue);
       }
+
+      // If value is empty (user skipped), show a translated "Skipped" text
+      const isEmpty = !displayContent || 
+        (Array.isArray(submittedValue) && submittedValue.length === 0) ||
+        (typeof displayContent === 'string' && !displayContent.trim());
+      if (isEmpty) {
+        displayContent = t('interviewWizard.messages.skipped') || 'Skipped';
+      }
+
       const userMessage = {
         id: `msg-${userMessageId}`,
         type: 'user',
@@ -1058,14 +1173,57 @@ export const InterviewWizard = forwardRef(function InterviewWizard({ onClose, on
     setDynamicOptions([]);
     setSelectedDynamicOptions([]);
     setEditableDataConfirmed(false);
+    setGoogleIntegrationStatus('idle');
     
     setTimeout(async () => {
-      const nextIndex = currentQuestionIndex + 1;
+      // Clear competitor UI state inside setTimeout, AFTER the index advances.
+      // NOTE: Do NOT reset competitorSearchInProgress.current here — keeping it true
+      // prevents the competitor useEffect from re-triggering a search when we move
+      // past the competitor question. It stays true until a new interview starts.
+      setCompetitorSuggestions([]);
+      
+      // Find next question that passes showCondition
+      let nextIndex = currentQuestionIndex + 1;
+      while (nextIndex < questions.length) {
+        const candidate = questions[nextIndex];
+        if (candidate.showCondition) {
+          try {
+            const condition = typeof candidate.showCondition === 'string'
+              ? JSON.parse(candidate.showCondition)
+              : candidate.showCondition;
+            const fieldValue = responses[condition.field];
+            let passes = true;
+            switch (condition.operator) {
+              case 'equals': passes = fieldValue === condition.value; break;
+              case 'notEquals': passes = fieldValue !== condition.value; break;
+              case 'contains': passes = Array.isArray(fieldValue) ? fieldValue.includes(condition.value) : String(fieldValue || '').includes(condition.value); break;
+              case 'in': passes = Array.isArray(condition.value) ? condition.value.includes(fieldValue) : false; break;
+              default: passes = true;
+            }
+            if (!passes) {
+              console.log('[InterviewWizard] Skipping question (showCondition not met):', candidate.translationKey);
+              nextIndex++;
+              continue;
+            }
+          } catch (e) {
+            console.error('[InterviewWizard] Error evaluating showCondition:', e);
+          }
+        }
+        break; // Found a valid question
+      }
       
       if (nextIndex < questions.length) {
         const nextQuestion = questions[nextIndex];
         const questionText = t(nextQuestion.translationKey);
         
+        // For AUTO_ACTION, skip adding a chat message — just advance the index
+        // The AUTO_ACTION useEffect will handle running the action and showing progress
+        if (nextQuestion.questionType === 'AUTO_ACTION') {
+          setCurrentQuestionIndex(nextIndex);
+          setIsTyping(false);
+          return;
+        }
+
         // For EDITABLE_DATA, refresh data first to ensure we have crawled data
         if (nextQuestion.questionType === 'EDITABLE_DATA') {
           const freshData = await refreshInterviewData();
@@ -1379,7 +1537,23 @@ export const InterviewWizard = forwardRef(function InterviewWizard({ onClose, on
     if (!config) return null;
     
     // Get detected value from crawl data
-    const detectedValue = config.defaultFromCrawl ? externalData?.crawledData?.[config.defaultFromCrawl] : null;
+    let detectedValue = config.defaultFromCrawl ? externalData?.crawledData?.[config.defaultFromCrawl] : null;
+    
+    // For detectedCountry: derive from user's contentLanguage or crawl language
+    const isCountryDetection = config.defaultFromCrawl === 'detectedCountry';
+    if (isCountryDetection && !detectedValue) {
+      const contentLang = responses?.contentLanguage || externalData?.crawledData?.language;
+      if (contentLang) {
+        const langToCountry = {
+          he: 'IL', ar: 'AE', ja: 'JP', ko: 'KR', zh: 'CN', ru: 'RU',
+          pt: 'BR', de: 'DE', fr: 'FR', es: 'ES', it: 'IT', nl: 'NL',
+          pl: 'PL', sv: 'SE', no: 'NO', da: 'DK', fi: 'FI', el: 'GR',
+          tr: 'TR', th: 'TH', vi: 'VN', id: 'ID', ms: 'MY', hi: 'IN',
+          en: 'worldwide',
+        };
+        detectedValue = langToCountry[contentLang] || 'worldwide';
+      }
+    }
     
     // Determine which detection message to show based on what was detected
     const isPlatformDetection = config.defaultFromCrawl === 'platform';
@@ -1401,6 +1575,9 @@ export const InterviewWizard = forwardRef(function InterviewWizard({ onClose, on
       if (isLanguageDetection) {
         return t('interviewWizard.messages.languageDetected', { language: getOptionLabel(detectedValue) });
       }
+      if (isCountryDetection) {
+        return t('interviewWizard.messages.detectedCountry', { country: getOptionLabel(detectedValue) });
+      }
       // Generic detected message
       return `${t('common.detected') || 'Detected'}: ${getOptionLabel(detectedValue)}`;
     };
@@ -1409,7 +1586,7 @@ export const InterviewWizard = forwardRef(function InterviewWizard({ onClose, on
       <div className={styles.inlineSelectionContent}>
         {detectedValue && (
           <div className={styles.detectedValueBanner}>
-            <span className={styles.detectedIcon}>{isPlatformDetection ? '🔧' : '🔍'}</span>
+            <span className={styles.detectedIcon}>{isPlatformDetection ? '🔧' : isCountryDetection ? '🌍' : '🔍'}</span>
             <span>{getDetectionMessage()}</span>
           </div>
         )}
@@ -1515,15 +1692,8 @@ export const InterviewWizard = forwardRef(function InterviewWizard({ onClose, on
         );
 
       case 'AUTO_ACTION':
-        // Auto-action question that shows progress while running action
-        return (
-          <div className={styles.autoActionContainer}>
-            <div className={styles.aiLoadingBanner}>
-              <Loader2 size={20} className={styles.spinIcon} />
-              <span>{t('interviewWizard.messages.fetchingBlogPosts') || 'Fetching your blog posts...'}</span>
-            </div>
-          </div>
-        );
+        // Auto-action runs via useEffect and advances automatically — no input UI needed
+        return null;
 
       case 'INPUT_WITH_AI':
         // Two-phase input: first textarea, then AI suggestions
@@ -1925,7 +2095,7 @@ export const InterviewWizard = forwardRef(function InterviewWizard({ onClose, on
                 </>
               )}
               
-              {!isLoadingAiSuggestions && (!aiSuggestions || aiSuggestions.length === 0) && (
+              {!isLoadingAiSuggestions && !isProcessing && !isTyping && (!aiSuggestions || aiSuggestions.length === 0) && (
                 <div className={styles.manualKeywordInput}>
                   <p className={styles.noSuggestionsText}>{t('interviewWizard.messages.noKeywordSuggestions') || 'No keyword suggestions available. Enter your own keywords below.'}</p>
                   <div className={styles.keywordInputWrapper}>
@@ -2045,7 +2215,7 @@ export const InterviewWizard = forwardRef(function InterviewWizard({ onClose, on
             
             {isPlatformQuestion && platformValue && platformConfidence > 0.5 && (
               <div className={styles.aiRecommendationBanner}>
-                <span className={styles.aiRecommendationIcon}>🔍</span>
+                <span className={styles.aiRecommendationIcon}>✨</span>
                 <span>
                   {t('interviewWizard.messages.detectedPlatform', { 
                     platform: t(`registration.interview.platforms.${platformValue}`) || platformValue 
@@ -2054,6 +2224,20 @@ export const InterviewWizard = forwardRef(function InterviewWizard({ onClose, on
                 <span className={styles.confidenceBadge}>
                   {Math.round(platformConfidence * 100)}% {t('common.confident') || 'confident'}
                 </span>
+              </div>
+            )}
+
+            {isPlatformQuestion && platformValue && platformConfidence > 0.5 && (
+              <div className={styles.detectedPlatformConfirm}>
+                <button
+                  onClick={() => handleOptionSelect(platformValue)}
+                  className={styles.primaryButton}
+                  disabled={isProcessing}
+                >
+                  <Check size={16} />
+                  {t('interviewWizard.messages.confirmPlatform', { platform: t(`registration.interview.platforms.${platformValue}`) || platformValue })
+                    || `Confirm ${t(`registration.interview.platforms.${platformValue}`) || platformValue}`}
+                </button>
               </div>
             )}
             
@@ -2154,7 +2338,7 @@ export const InterviewWizard = forwardRef(function InterviewWizard({ onClose, on
                       className={`${styles.optionCard} ${isDetected ? styles.recommended : ''}`}
                       onClick={() => handleOptionSelect(opt.value)}
                     >
-                      {isDetected && <span className={styles.recommendedBadge}>🔍</span>}
+                      {isDetected && <span className={styles.recommendedBadge}>✨</span>}
                       <span>{t(opt.labelKey)}</span>
                     </button>
                   );
@@ -2282,7 +2466,12 @@ export const InterviewWizard = forwardRef(function InterviewWizard({ onClose, on
         // Map field keys to sourceData properties (handles naming differences)
         const getFieldValue = (fieldKey) => {
           // First check editableData (user edits take priority)
-          if (editableData[fieldKey] !== undefined && editableData[fieldKey] !== '') {
+          // For businessName: never allow empty — fall through to sourceData
+          // For all other fields: if user explicitly set a value (even empty), use it
+          if (fieldKey !== 'businessName' && editableData[fieldKey] !== undefined) {
+            return editableData[fieldKey];
+          }
+          if (fieldKey === 'businessName' && editableData[fieldKey]) {
             return editableData[fieldKey];
           }
           // Fall back to sourceData with proper mapping
@@ -2454,18 +2643,301 @@ export const InterviewWizard = forwardRef(function InterviewWizard({ onClose, on
             )}
             
             {!isLoadingDynamicOptions && dynamicOptions.length === 0 && (
-              <div className={styles.noSuggestions}>
-                <p>{t('interviewWizard.messages.noArticlesFound')}</p>
-                <button 
-                  onClick={() => handleSubmit([])}
-                  className={styles.skipLink}
-                >
-                  {t('common.skip')}
-                </button>
+              <div className={styles.blogDiscoveryContainer}>
+                {/* Phase: Ask if user has a blog */}
+                {(blogDiscoveryPhase === 'initial' || blogDiscoveryPhase === 'askHasBlog') && (
+                  <div className={styles.blogDiscoveryAsk}>
+                    <p className={styles.blogDiscoveryText}>
+                      {t('interviewWizard.blogDiscovery.hasBlog')}
+                    </p>
+                    <div className={styles.blogDiscoveryButtons}>
+                      <button
+                        onClick={() => setBlogDiscoveryPhase('enterUrl')}
+                        className={styles.blogDiscoveryYes}
+                      >
+                        {t('interviewWizard.blogDiscovery.yes')}
+                      </button>
+                      <button
+                        onClick={() => handleSubmit([])}
+                        className={styles.blogDiscoveryNo}
+                      >
+                        {t('interviewWizard.blogDiscovery.no')}
+                      </button>
+                    </div>
+                  </div>
+                )}
+                
+                {/* Phase: Enter blog URL */}
+                {blogDiscoveryPhase === 'enterUrl' && (
+                  <div className={styles.blogDiscoveryUrl}>
+                    <p className={styles.blogDiscoveryText}>
+                      {t('interviewWizard.blogDiscovery.enterUrl')}
+                    </p>
+                    <div className={styles.blogUrlInputWrapper}>
+                      <input
+                        type="url"
+                        value={manualBlogUrl}
+                        onChange={(e) => setManualBlogUrl(e.target.value)}
+                        placeholder={t('interviewWizard.blogDiscovery.placeholder')}
+                        className={styles.blogUrlInput}
+                        dir="ltr"
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' && manualBlogUrl.trim()) {
+                            handleBlogUrlFetch(manualBlogUrl.trim());
+                          }
+                        }}
+                      />
+                      <button
+                        onClick={() => handleBlogUrlFetch(manualBlogUrl.trim())}
+                        disabled={!manualBlogUrl.trim()}
+                        className={styles.blogUrlSubmit}
+                      >
+                        <Send size={18} />
+                      </button>
+                    </div>
+                    {blogFetchError && (
+                      <p className={styles.blogFetchError}>{blogFetchError}</p>
+                    )}
+                    <button
+                      onClick={() => handleSubmit([])}
+                      className={styles.skipLink}
+                    >
+                      {t('common.skip')}
+                    </button>
+                  </div>
+                )}
+                
+                {/* Phase: Fetching articles from manual URL */}
+                {blogDiscoveryPhase === 'fetching' && (
+                  <div className={styles.aiLoadingBanner}>
+                    <Loader2 size={16} className={styles.spinIcon} />
+                    <span>{t('interviewWizard.blogDiscovery.fetching')}</span>
+                  </div>
+                )}
               </div>
             )}
           </div>
         );
+
+      case 'WORDPRESS_PLUGIN': {
+        const pluginSiteKey = site?.siteKey;
+        const pluginDownloadUrl = pluginSiteKey 
+          ? `/api/plugin/download?site_key=${pluginSiteKey}`
+          : null;
+        
+        const handleDownloadPlugin = () => {
+          if (pluginDownloadUrl) {
+            window.open(pluginDownloadUrl, '_blank');
+          }
+        };
+        
+        return (
+          <div className={styles.integrationContainer}>
+            <div className={styles.integrationCard}>
+              <div className={styles.integrationIcon}>
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z" fill="#21759b"/>
+                  <path d="M3.01 12c0 4.97 4.02 8.99 8.99 8.99s8.99-4.02 8.99-8.99S16.97 3.01 12 3.01 3.01 7.03 3.01 12zM12 4.52c2.05 0 3.93.75 5.37 2l-1.73 4.95L11 5.07c.32-.04.66-.06 1-.06.35 0 .68.02 1 .06L10.63 6.5l-1.73-4.95-.02.01C7.43 2.81 5.32 4.18 4.16 6.14l2.22 6.15-3.36-4.41C3.02 8.54 3 8.77 3 9c0 1.7.56 3.27 1.51 4.54L7.67 19c-2.87-1.62-4.82-4.69-4.82-8.24 0-1.28.26-2.5.72-3.62l2.81 7.81-3.37-2.95z" fill="#21759b" opacity="0.3"/>
+                </svg>
+              </div>
+              <div className={styles.integrationInfo}>
+                <h4 className={styles.integrationTitle}>
+                  {t('interviewWizard.wordpressPlugin.title') || 'Install Ghost Post WordPress Plugin'}
+                </h4>
+                <p className={styles.integrationDesc}>
+                  {t('interviewWizard.wordpressPlugin.description') || 'Install our WordPress plugin to enable automatic article publishing directly to your website.'}
+                </p>
+                <ul className={styles.integrationBenefits}>
+                  <li>{t('interviewWizard.wordpressPlugin.benefit1') || 'Automatic article publishing to WordPress'}</li>
+                  <li>{t('interviewWizard.wordpressPlugin.benefit2') || 'SEO optimization built-in'}</li>
+                  <li>{t('interviewWizard.wordpressPlugin.benefit3') || 'Manage content directly from Ghost Post'}</li>
+                </ul>
+              </div>
+            </div>
+            
+            <div className={styles.integrationActions}>
+              {pluginDownloadUrl ? (
+                <button
+                  onClick={handleDownloadPlugin}
+                  className={styles.wordpressPluginButton}
+                  disabled={isProcessing}
+                >
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                    <polyline points="7 10 12 15 17 10"/>
+                    <line x1="12" y1="15" x2="12" y2="3"/>
+                  </svg>
+                  {t('interviewWizard.wordpressPlugin.downloadButton') || 'Download Plugin'}
+                </button>
+              ) : (
+                <p className={styles.integrationDesc}>
+                  {t('interviewWizard.wordpressPlugin.noSiteKey') || 'Plugin will be available after setup is complete.'}
+                </p>
+              )}
+              
+              <button
+                onClick={() => handleSubmit('skipped')}
+                className={styles.skipLink}
+                disabled={isProcessing}
+              >
+                {t('interviewWizard.wordpressPlugin.skipText') || "Skip — I'll install it later"}
+              </button>
+            </div>
+          </div>
+        );
+      }
+
+      case 'GOOGLE_INTEGRATION': {
+        const siteIdForGoogle = interviewSiteId || site?.id;
+        
+        const handleConnectGoogle = async () => {
+          if (!siteIdForGoogle) {
+            console.error('[GoogleIntegration] No siteId available');
+            return;
+          }
+          
+          setGoogleIntegrationStatus('connecting');
+          
+          try {
+            const res = await fetch('/api/settings/integrations/google', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                action: 'connect',
+                siteId: siteIdForGoogle,
+                fromInterview: true,
+              }),
+            });
+            
+            const data = await res.json();
+            
+            if (data.authUrl) {
+              // Open OAuth in popup
+              const popup = window.open(
+                data.authUrl,
+                'google-oauth',
+                'width=500,height=650,scrollbars=yes,resizable=yes'
+              );
+              
+              // Listen for postMessage from popup
+              const messageHandler = (event) => {
+                if (event.data?.type === 'google-integration-success') {
+                  setGoogleIntegrationStatus('connected');
+                  window.removeEventListener('message', messageHandler);
+                  // Auto-submit after a short delay to show success
+                  setTimeout(() => {
+                    handleSubmit('connected');
+                  }, 1500);
+                } else if (event.data?.type === 'google-integration-error') {
+                  setGoogleIntegrationStatus('error');
+                  window.removeEventListener('message', messageHandler);
+                }
+              };
+              window.addEventListener('message', messageHandler);
+              
+              // Also check if popup was closed manually
+              const checkClosed = setInterval(() => {
+                if (popup?.closed) {
+                  clearInterval(checkClosed);
+                  // User closed popup without completing - reset to idle so skip button works
+                  // Note: if success message was received, the interval was already cleared by messageHandler
+                  setGoogleIntegrationStatus('idle');
+                  window.removeEventListener('message', messageHandler);
+                }
+              }, 1000);
+            }
+          } catch (err) {
+            console.error('[GoogleIntegration] Error:', err);
+            setGoogleIntegrationStatus('error');
+          }
+        };
+        
+        return (
+          <div className={styles.integrationContainer}>
+            <div className={styles.integrationCard}>
+              <div className={styles.integrationIcon}>
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                  <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/>
+                  <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+                  <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+                  <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+                </svg>
+              </div>
+              <div className={styles.integrationInfo}>
+                <h4 className={styles.integrationTitle}>
+                  {t('interviewWizard.googleIntegration.title') || 'Connect Google Analytics & Search Console'}
+                </h4>
+                <p className={styles.integrationDesc}>
+                  {t('interviewWizard.googleIntegration.description') || 'Get deeper insights into your website performance with Google Analytics and Search Console data.'}
+                </p>
+                <ul className={styles.integrationBenefits}>
+                  <li>{t('interviewWizard.googleIntegration.benefit1') || 'Track real traffic and user behavior'}</li>
+                  <li>{t('interviewWizard.googleIntegration.benefit2') || 'Monitor search rankings and impressions'}</li>
+                  <li>{t('interviewWizard.googleIntegration.benefit3') || 'Get AI-powered SEO recommendations'}</li>
+                </ul>
+              </div>
+            </div>
+            
+            <div className={styles.integrationActions}>
+              {googleIntegrationStatus === 'idle' && (
+                <button
+                  onClick={handleConnectGoogle}
+                  className={styles.googleConnectButton}
+                  disabled={!siteIdForGoogle || isProcessing}
+                >
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                    <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/>
+                    <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+                    <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+                    <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+                  </svg>
+                  {t('interviewWizard.googleIntegration.connectButton') || 'Connect Google Account'}
+                </button>
+              )}
+              
+              {googleIntegrationStatus === 'connecting' && (
+                <div className={styles.integrationConnecting}>
+                  <Loader2 size={16} className={styles.spinIcon} />
+                  <span>{t('interviewWizard.googleIntegration.connecting') || 'Connecting... Complete the sign-in in the popup window.'}</span>
+                </div>
+              )}
+              
+              {googleIntegrationStatus === 'connected' && (
+                <div className={styles.integrationSuccess}>
+                  <CheckCircle2 size={18} />
+                  <span>{t('interviewWizard.googleIntegration.connected') || 'Google account connected successfully!'}</span>
+                </div>
+              )}
+              
+              {googleIntegrationStatus === 'error' && (
+                <>
+                  <p className={styles.integrationError}>
+                    {t('interviewWizard.googleIntegration.error') || 'Connection failed. You can try again or skip this step.'}
+                  </p>
+                  <button
+                    onClick={() => {
+                      setGoogleIntegrationStatus('idle');
+                    }}
+                    className={styles.secondaryButton}
+                  >
+                    {t('common.retry') || 'Try Again'}
+                  </button>
+                </>
+              )}
+              
+              {googleIntegrationStatus !== 'connected' && (
+                <button
+                  onClick={() => handleSubmit('skipped')}
+                  className={styles.skipLink}
+                  disabled={isProcessing || googleIntegrationStatus === 'connecting'}
+                >
+                  {t('interviewWizard.googleIntegration.skipText') || 'Skip — I\'ll set this up later in Settings'}
+                </button>
+              )}
+            </div>
+          </div>
+        );
+      }
 
       case 'INPUT':
       default:
@@ -2740,51 +3212,63 @@ export const InterviewWizard = forwardRef(function InterviewWizard({ onClose, on
                         <p className={styles.messageText}>{message.content}</p>
                         
                         {/* Data Card for EDITABLE_DATA messages */}
-                        {message.dataCard && (
+                        {message.dataCard && (() => {
+                          // Use live editableData state so edits are reflected immediately
+                          const dc = {
+                            businessName: editableData.businessName || message.dataCard.businessName,
+                            description: editableData.about !== undefined ? editableData.about : message.dataCard.description,
+                            email: editableData.email !== undefined ? editableData.email : message.dataCard.email,
+                            phone: editableData.phone !== undefined ? editableData.phone : message.dataCard.phone,
+                            category: editableData.category !== undefined ? editableData.category : message.dataCard.category,
+                            address: editableData.address !== undefined ? editableData.address : message.dataCard.address,
+                            seoScore: message.dataCard.seoScore,
+                          };
+                          return (
                           <div className={styles.messageDataCard}>
-                            {message.dataCard.businessName && (
+                            {dc.businessName && (
                               <div className={styles.dataCardItem}>
                                 <span className={styles.dataCardLabel}>{t('registration.interview.fields.businessName')}</span>
-                                <span className={styles.dataCardValue}>{message.dataCard.businessName}</span>
+                                <span className={styles.dataCardValue}>{dc.businessName}</span>
                               </div>
                             )}
-                            {message.dataCard.description && (
+                            {dc.description && (
                               <div className={styles.dataCardItem}>
                                 <span className={styles.dataCardLabel}>{t('registration.interview.fields.about')}</span>
-                                <span className={styles.dataCardValue}>{message.dataCard.description}</span>
+                                <span className={styles.dataCardValue}>{dc.description}</span>
                               </div>
                             )}
-                            {message.dataCard.email && (
+                            {dc.email && (
                               <div className={styles.dataCardItem}>
                                 <span className={styles.dataCardLabel}>{t('registration.interview.fields.email')}</span>
-                                <span className={styles.dataCardValue}>{message.dataCard.email}</span>
+                                <span className={styles.dataCardValue}>{dc.email}</span>
                               </div>
                             )}
-                            {message.dataCard.phone && (
+                            {dc.phone && (
                               <div className={styles.dataCardItem}>
                                 <span className={styles.dataCardLabel}>{t('registration.interview.fields.phone')}</span>
-                                <span className={styles.dataCardValue}>{message.dataCard.phone}</span>
+                                <span className={styles.dataCardValue}>{dc.phone}</span>
                               </div>
                             )}
-                            {message.dataCard.category && (
+                            {dc.category && (
                               <div className={styles.dataCardItem}>
                                 <span className={styles.dataCardLabel}>{t('registration.interview.fields.category')}</span>
-                                <span className={styles.dataCardValue}>{message.dataCard.category}</span>
+                                <span className={styles.dataCardValue}>{dc.category}</span>
                               </div>
                             )}
-                            {message.dataCard.seoScore !== undefined && (
+                            {dc.seoScore !== undefined && (
                               <div className={styles.dataCardItem}>
                                 <span className={styles.dataCardLabel}>{t('interviewWizard.seoScore') || 'SEO Score'}</span>
                                 <span className={`${styles.dataCardValue} ${
-                                  message.dataCard.seoScore >= 70 ? styles.seoGood : 
-                                  message.dataCard.seoScore >= 40 ? styles.seoWarning : styles.seoBad
+                                  dc.seoScore >= 70 ? styles.seoGood : 
+                                  dc.seoScore >= 40 ? styles.seoWarning : styles.seoBad
                                 }`}>
-                                  {message.dataCard.seoScore}/100
+                                  {dc.seoScore}/100
                                 </span>
                               </div>
                             )}
                           </div>
-                        )}
+                          );
+                        })()}
                         
                         {/* Inline Searchable Selection for SELECTION questions */}
                         {message.type === 'agent' && 

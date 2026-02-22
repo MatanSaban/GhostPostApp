@@ -109,7 +109,7 @@
   align-items: center;
   justify-content: center;
   color: white;
-  font-size: 1.5rem;
+  font-size: 1.4375rem;
   font-weight: 600;
 }
 
@@ -121,13 +121,13 @@
 }
 
 .logoText {
-  font-size: 1.5rem;
+  font-size: 1.4375rem;
   font-weight: 600;
   color: var(--foreground);
 }
 
 .authTitle {
-  font-size: 1.75rem;
+  font-size: 1.6875rem;
   font-weight: 600;
   color: var(--foreground);
   margin-bottom: 0.5rem;
@@ -211,7 +211,7 @@
 
 .formInput {
   width: 100%;
-  padding: 0.875rem 1rem;
+  padding: 0.8125rem 1rem;
   font-size: 0.9375rem;
   color: var(--foreground);
   background: var(--input-background);
@@ -317,8 +317,8 @@
 .submitButton {
   position: relative;
   width: 100%;
-  padding: 0.875rem 1.5rem;
-  font-size: 1.02rem;
+  padding: 0.8125rem 1.5rem;
+  font-size: 0.9575rem;
   font-weight: 600;
   color: white;
   background: var(--gradient-primary);
@@ -474,14 +474,14 @@
 }
 
 .thankYouTitle {
-  font-size: 1.75rem;
+  font-size: 1.6875rem;
   font-weight: 600;
   color: var(--foreground);
   margin-bottom: 0.75rem;
 }
 
 .thankYouText {
-  font-size: 1.02rem;
+  font-size: 0.9575rem;
   color: var(--muted-foreground);
   margin-bottom: 2rem;
   line-height: 1.6;
@@ -492,7 +492,7 @@
   align-items: center;
   gap: 0.5rem;
   padding: 1rem 2rem;
-  font-size: 1.02rem;
+  font-size: 0.9575rem;
   font-weight: 600;
   color: white;
   background: var(--gradient-primary);
@@ -725,7 +725,7 @@
 }
 
 .otpMethodTitle {
-  font-size: 1.25rem;
+  font-size: 1.1875rem;
   font-weight: 600;
   text-align: center;
   margin-bottom: 1.5rem;
@@ -794,7 +794,7 @@
 }
 
 .otpTitle {
-  font-size: 1.25rem;
+  font-size: 1.1875rem;
   font-weight: 600;
   color: var(--foreground);
   margin-bottom: 0.5rem;
@@ -817,7 +817,7 @@
   width: 56px;
   height: 56px;
   text-align: center;
-  font-size: 1.5rem;
+  font-size: 1.4375rem;
   font-weight: 600;
   background: var(--input-background);
   border: 2px solid var(--input-border);
@@ -907,7 +907,7 @@
 }
 
 .otpResultTitle {
-  font-size: 1.5rem;
+  font-size: 1.4375rem;
   font-weight: 600;
   color: var(--foreground);
   margin-bottom: 0.5rem;
@@ -931,7 +931,7 @@
 }
 
 .interviewTitle {
-  font-size: 1.25rem;
+  font-size: 1.1875rem;
   font-weight: 600;
   color: var(--foreground);
   margin-bottom: 0.25rem;
@@ -1222,7 +1222,7 @@
 }
 
 .planSelectionTitle {
-  font-size: 1.5rem;
+  font-size: 1.4375rem;
   font-weight: 600;
   color: var(--foreground);
   margin-bottom: 0.5rem;
@@ -1285,7 +1285,7 @@
   padding: 0.25rem 0.75rem;
   background: var(--gradient-primary);
   border-radius: var(--radius-full);
-  font-size: 0.7rem;
+  font-size: 0.6875rem;
   font-weight: 600;
   color: white;
   white-space: nowrap;
@@ -1296,7 +1296,7 @@
 }
 
 .planName {
-  font-size: 1.125rem;
+  font-size: 1.0625rem;
   font-weight: 600;
   color: var(--foreground);
   margin-bottom: 0.25rem;
@@ -1312,7 +1312,7 @@
 }
 
 .planPrice {
-  font-size: 2rem;
+  font-size: 1.9375rem;
   font-weight: 800;
   color: var(--foreground);
 }
@@ -1332,7 +1332,7 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0.35rem 0;
-  font-size: 0.8rem;
+  font-size: 0.7375rem;
   color: var(--foreground);
 }
 
@@ -1382,7 +1382,7 @@
 }
 
 .paymentTitle {
-  font-size: 1.5rem;
+  font-size: 1.4375rem;
   font-weight: 600;
   color: var(--foreground);
   margin-bottom: 0.25rem;
@@ -1418,7 +1418,7 @@
 }
 
 .orderSummaryTitle {
-  font-size: 1.02rem;
+  font-size: 0.9575rem;
   font-weight: 600;
   color: var(--foreground);
   margin-bottom: 1rem;
@@ -1447,7 +1447,7 @@
 .orderRow.orderTotal {
   padding-top: 0.75rem;
   border-top: 1px solid var(--border);
-  font-size: 1.02rem;
+  font-size: 0.9575rem;
   font-weight: 600;
 }
 
@@ -1476,6 +1476,98 @@
 
 .cardInput {
   padding-left: 2.75rem !important;
+}
+
+/* CardCom iframe wrappers — border/focus handled inside the iframe CSS */
+.iframeWrapper {
+  border-radius: 0.5rem;
+  overflow: hidden;
+}
+
+.cardInputWrapper {
+  position: relative;
+}
+
+.cardInputIcon {
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 1;
+  pointer-events: none;
+  color: var(--muted-foreground, #9ca3af);
+  opacity: 0.6;
+}
+
+.iframeWrapper.iframeInvalid {
+  box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.3);
+}
+
+.cardIframeField {
+  width: 100%;
+  height: 42px;
+  border: none;
+  display: block;
+}
+
+.cvvIframeField {
+  width: 100%;
+  height: 42px;
+  border: none;
+  display: block;
+}
+
+.formSelect {
+  display: block;
+  width: 100%;
+  padding: 0.6rem 0.75rem;
+  font-size: 0.875rem;
+  border: 1px solid var(--border, #d1d5db);
+  border-radius: 0.5rem;
+  background: var(--input, white);
+  color: var(--foreground);
+  outline: none;
+  cursor: pointer;
+}
+
+.formSelect:focus {
+  border-color: var(--primary, #7b2cbf);
+  box-shadow: 0 0 0 2px rgba(123, 44, 191, 0.15);
+}
+
+/* Payment initializing state */
+.paymentInitializing {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 2rem;
+  color: var(--muted-foreground);
+  font-size: 0.875rem;
+}
+
+.paymentInitError {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: 0.5rem;
+  color: #ef4444;
+  font-size: 0.9375rem;
+}
+
+.paymentErrorMsg {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: 0.5rem;
+  color: #ef4444;
+  font-size: 0.9375rem;
 }
 
 .securePaymentNote {
@@ -1566,14 +1658,14 @@
 }
 
 .successTitle {
-  font-size: 1.75rem;
+  font-size: 1.6875rem;
   font-weight: 600;
   color: var(--foreground);
   margin-bottom: 0.5rem;
 }
 
 .successMessage {
-  font-size: 0.9rem;
+  font-size: 0.8375rem;
   color: var(--muted-foreground);
   margin-bottom: 2rem;
   max-width: 350px;
@@ -1604,13 +1696,13 @@
 }
 
 .successPlanName {
-  font-size: 1.25rem;
+  font-size: 1.1875rem;
   font-weight: 600;
   color: var(--foreground);
 }
 
 .successPlanPrice {
-  font-size: 0.9rem;
+  font-size: 0.8375rem;
   color: var(--primary);
   font-weight: 600;
 }
@@ -1670,7 +1762,7 @@
 }
 
 .slugPrefix {
-  padding: 0.875rem 0 0.875rem 1rem;
+  padding: 0.8125rem 0 0.8125rem 1rem;
   font-size: 0.9375rem;
   color: var(--muted-foreground);
   white-space: nowrap;
@@ -1679,7 +1771,7 @@
 
 .slugInput {
   flex: 1;
-  padding: 0.875rem 0.5rem;
+  padding: 0.8125rem 0.5rem;
   font-size: 0.9375rem;
   color: var(--foreground);
   background: transparent;
@@ -1704,7 +1796,7 @@
 .slugCheck,
 .slugX {
   padding-right: 1rem;
-  font-size: 1.02rem;
+  font-size: 0.9575rem;
 }
 
 .slugCheck {
@@ -1907,7 +1999,7 @@
   padding: 2rem 0;
 
   h2 {
-    font-size: 1.5rem;
+    font-size: 1.4375rem;
     font-weight: 600;
     color: var(--foreground);
     margin: 0;
@@ -1984,7 +2076,7 @@
 }
 
 .formSectionTitle {
-  font-size: 1.125rem;
+  font-size: 1.0625rem;
   font-weight: 600;
   color: var(--foreground);
   margin: 1.5rem 0 0.25rem;
@@ -2008,7 +2100,7 @@
 
 .forgotPasswordLink {
   display: inline-block;
-  font-size: 0.813rem;
+  font-size: 0.7505rem;
   color: var(--primary);
   text-decoration: none;
   margin-top: 0.5rem;
@@ -2023,8 +2115,8 @@
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  padding: 0.875rem 1.5rem;
-  font-size: 1.02rem;
+  padding: 0.8125rem 1.5rem;
+  font-size: 0.9575rem;
   font-weight: 600;
   color: white;
   background: var(--gradient-primary);
@@ -2048,7 +2140,7 @@
 }
 
 .authTitle {
-  font-size: 1.5rem;
+  font-size: 1.4375rem;
   font-weight: 700;
   color: var(--foreground);
   text-align: center;
@@ -2056,7 +2148,7 @@
 }
 
 .authSubtitle {
-  font-size: 0.938rem;
+  font-size: 0.8755rem;
   color: var(--muted-foreground);
   text-align: center;
   margin: 0.25rem 0 0;
@@ -2086,7 +2178,7 @@
 
   input {
     width: 100%;
-    padding: 0.875rem 1rem 0.875rem 2.75rem;
+    padding: 0.8125rem 1rem 0.8125rem 2.75rem;
     font-size: 0.9375rem;
     color: var(--foreground);
     background: var(--input-background);
@@ -2116,21 +2208,21 @@
     }
 
     [dir="rtl"] & {
-      padding: 0.875rem 2.75rem 0.875rem 1rem;
+      padding: 0.8125rem 2.75rem 0.8125rem 1rem;
     }
   }
 }
 
 .inputIcon {
   position: absolute;
-  left: 0.875rem;
+  left: 0.8125rem;
   color: var(--muted-foreground);
   pointer-events: none;
   z-index: 1;
 
   [dir="rtl"] & {
     left: auto;
-    right: 0.875rem;
+    right: 0.8125rem;
   }
 }
 
@@ -2191,7 +2283,7 @@
 }
 
 .analysisTitle {
-  font-size: 1rem;
+  font-size: 0.9375rem;
   font-weight: 600;
   margin: 0 0 0.25rem;
   color: var(--foreground);
@@ -2227,7 +2319,7 @@
   max-height: 200px;
   overflow-y: auto;
   font-family: 'SF Mono', 'Consolas', monospace;
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   padding: 0.5rem;
   background: var(--muted);
   border-radius: var(--radius-md);
@@ -2299,7 +2391,7 @@
   gap: 0.5rem;
   padding: 0.625rem 1.25rem;
   border-radius: var(--radius-lg);
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   font-weight: 500;
   transition: all var(--transition-fast);
   cursor: pointer;
@@ -2362,11 +2454,11 @@
   .confirmButton {
     margin-top: 1rem;
     width: 100%;
-    padding: 0.875rem 1.5rem;
+    padding: 0.8125rem 1.5rem;
     justify-content: center;
     background: var(--gradient-primary);
     color: white;
-    font-size: 1rem;
+    font-size: 0.9375rem;
     font-weight: 600;
     border-radius: var(--radius-lg);
     box-shadow: var(--shadow-md);
@@ -2484,7 +2576,7 @@
 }
 
 .competitorRanking {
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   color: var(--muted-foreground);
 }
 
@@ -2515,7 +2607,7 @@
 
 .competitorManualLabel {
   width: 100%;
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   color: var(--muted-foreground);
   margin-bottom: 0.25rem;
 }
@@ -2562,7 +2654,7 @@
 .competitorUrlInput {
   flex: 1;
   padding: 0.5rem 0.75rem;
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   background: var(--input-background);
   border: 1px solid var(--input-border);
   border-radius: var(--radius-md);
@@ -2583,7 +2675,7 @@
   display: flex;
   align-items: center;
   gap: 0.375rem;
-  padding: 0.5rem 0.875rem;
+  padding: 0.5rem 0.8125rem;
   background: var(--gradient-primary);
   border: none;
   border-radius: var(--radius-md);
@@ -2645,7 +2737,7 @@
 
 .competitorCount {
   margin-top: 0.75rem;
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   color: var(--muted-foreground);
   text-align: center;
 }

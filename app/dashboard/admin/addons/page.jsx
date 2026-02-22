@@ -795,7 +795,7 @@ export default function AddOnsSettingsPage() {
               padding: '1rem', 
               borderRadius: '0.5rem', 
               marginBottom: '1rem',
-              fontSize: '0.875rem',
+              fontSize: '0.8125rem',
             }}>
               <strong>{t('admin.addons.translations.original') || 'Original'} (EN):</strong>
               <div style={{ marginTop: '0.5rem' }}>

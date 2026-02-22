@@ -24,7 +24,7 @@
 }
 
 .pageTitle {
-  font-size: 1.875rem;
+  font-size: 1.8125rem;
   font-weight: 600;
   color: var(--foreground);
 }
@@ -65,7 +65,7 @@
 }
 
 .cardTitle {
-  font-size: 1.25rem;
+  font-size: 1.1875rem;
   font-weight: 600;
   color: var(--foreground);
   margin-bottom: 1.5rem;
@@ -253,7 +253,7 @@
 
   @media (max-width: 1024px) {
     &::before {
-      font-size: 0.625rem;
+      font-size: 0.5625rem;
       color: var(--muted-foreground);
       text-transform: uppercase;
       margin-bottom: 0.25rem;
@@ -286,7 +286,7 @@
     justify-content: space-between;
 
     &::before {
-      font-size: 0.625rem;
+      font-size: 0.5625rem;
       color: var(--muted-foreground);
       text-transform: uppercase;
     }

@@ -92,7 +92,7 @@
 }
 
 .headerTitle {
-  font-size: 1.02rem;
+  font-size: 0.9575rem;
   font-weight: 600;
   color: var(--foreground);
   margin: 0;
@@ -350,7 +350,7 @@
   justify-content: center;
   gap: 0.5rem;
   width: 100%;
-  padding: 0.875rem 1.5rem;
+  padding: 0.8125rem 1.5rem;
   font-size: 0.9375rem;
   font-weight: 600;
   background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
@@ -398,7 +398,7 @@
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  padding: 0.875rem 1.5rem;
+  padding: 0.8125rem 1.5rem;
   font-size: 0.9375rem;
   font-weight: 600;
   border: none;
@@ -438,7 +438,7 @@
 
 .selectionOption {
   width: 100%;
-  padding: 0.875rem 1rem;
+  padding: 0.8125rem 1rem;
   font-size: 0.9375rem;
   text-align: left;
   background: var(--muted);
@@ -501,7 +501,7 @@
 
 .sliderValue {
   text-align: center;
-  font-size: 2rem;
+  font-size: 1.9375rem;
   font-weight: 600;
   color: var(--primary);
 }
@@ -680,7 +680,7 @@
 }
 
 .completeContainer h3 {
-  font-size: 1.5rem;
+  font-size: 1.4375rem;
   font-weight: 600;
   color: var(--foreground);
   margin: 0 0 0.5rem 0;

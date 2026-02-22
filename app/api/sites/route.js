@@ -145,10 +145,16 @@ export async function POST(request) {
     const siteKey = generateSiteKey();
     const siteSecret = generateSiteSecret();
 
+    // Ensure URL has protocol
+    let siteUrl = url;
+    if (siteUrl && !siteUrl.startsWith('http://') && !siteUrl.startsWith('https://')) {
+      siteUrl = `https://${siteUrl}`;
+    }
+
     const site = await prisma.site.create({
       data: {
         name,
-        url,
+        url: siteUrl,
         platform: body.platform || null,
         accountId: targetAccountId,
         siteKey,

@@ -58,7 +58,7 @@
 }
 
 .title {
-  font-size: 1.25rem;
+  font-size: 1.1875rem;
   font-weight: 600;
   color: var(--foreground);
   margin: 0;
@@ -101,13 +101,13 @@
   border-radius: 50%;
   background: var(--primary);
   color: white;
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   font-weight: 600;
   flex-shrink: 0;
 }
 
 .stepText {
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   color: var(--foreground);
 }
 

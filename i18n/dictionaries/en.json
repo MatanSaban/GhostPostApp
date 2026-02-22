@@ -284,6 +284,7 @@
     },
     "settings": "Settings",
     "myWebsites": "My Websites",
+    "backlinks": "Backlinks",
     "entities": {
       "title": "Site Assets",
       "pages": "Pages",
@@ -302,10 +303,12 @@
       "subscriptions": "Subscriptions",
       "plans": "Plans Settings",
       "addons": "Add-Ons",
+      "coupons": "Coupons",
       "interviewQuestions": "Interview Questions",
       "translations": "Translations",
       "interviewFlow": "Interview Flow",
       "botActions": "Bot Actions",
+      "backlinks": "Backlinks",
       "website": "Website Content"
     }
   },
@@ -888,11 +891,14 @@
     "title": "Keyword Research",
     "subtitle": "Track rankings and discover new keyword opportunities",
     "addKeyword": "Add Keyword",
+    "enterKeyword": "Enter a keyword...",
+    "duplicateKeyword": "Keyword already exists",
+    "addError": "Failed to add keyword",
     "importKeywords": "Import Keywords",
     "aiResearch": "AI Keyword Research",
     "opportunities": "Keyword Opportunities",
     "opportunitiesSubtitle": "AI-discovered keywords to target",
-    "currentRankings": "Current Rankings",
+    "currentRankings": "Keywords",
     "rankingsSubtitle": "Your tracked keyword positions",
     "targetKeyword": "Target Keyword",
     "keyword": "Keyword",
@@ -901,12 +907,35 @@
     "position": "Position",
     "traffic": "Traffic",
     "trend": "Trend",
+    "difficulty": "Difficulty",
+    "status": "Status",
     "easy": "Easy",
     "medium": "Medium",
     "hard": "Hard",
     "trackedKeywords": "Tracked Keywords",
+    "tracking": "Tracking",
+    "targeting": "Targeting",
     "topRankings": "Top 10 Rankings",
     "monthlyVolume": "Monthly Volume",
+    "keywordsFound": "keywords",
+    "noKeywords": "No keywords found yet.",
+    "noKeywordsHint": "Run the site interview to discover keywords automatically, or add them manually above.",
+    "startInterview": "Start Interview",
+    "noSiteSelected": "Select a site to view keywords",
+    "fromInterview": "Interview",
+    "filter": {
+      "all": "All",
+      "tracking": "Tracking",
+      "targeting": "Targeting",
+      "ranking": "Ranking",
+      "archived": "Archived"
+    },
+    "statusLabels": {
+      "tracking": "Tracking",
+      "targeting": "Targeting",
+      "ranking": "Ranking",
+      "archived": "Archived"
+    },
     "columns": {
       "keyword": "Keyword",
       "volume": "Volume",
@@ -922,7 +951,7 @@
       "monthlyVolume": "Monthly Volume",
       "newOpportunities": "New Opportunities"
     },
-    "difficulty": {
+    "difficultyLevels": {
       "easy": "Easy",
       "medium": "Medium",
       "hard": "Hard"
@@ -1747,6 +1776,141 @@
       "added": "Website added successfully",
       "renameFailed": "Failed to rename website",
       "removeFailed": "Failed to remove website"
+    }
+  },
+  "backlinks": {
+    "title": "Backlinks Marketplace",
+    "subtitle": "Browse and purchase quality backlinks for your websites",
+    "searchPlaceholder": "Search backlinks by domain, topic...",
+    "filters": {
+      "all": "All",
+      "available": "Available",
+      "purchased": "Purchased",
+      "myListings": "My Listings"
+    },
+    "sort": {
+      "newest": "Newest",
+      "priceAsc": "Price: Low to High",
+      "priceDesc": "Price: High to Low",
+      "daHighest": "DA: Highest First",
+      "drHighest": "DR: Highest First"
+    },
+    "card": {
+      "domain": "Domain",
+      "da": "DA",
+      "dr": "DR",
+      "traffic": "Traffic",
+      "category": "Category",
+      "language": "Language",
+      "price": "Price",
+      "aiCreditsPrice": "AI Credits",
+      "linkType": "Link Type",
+      "dofollow": "Dofollow",
+      "nofollow": "Nofollow",
+      "publishedBy": "Published by",
+      "platform": "Platform",
+      "user": "User",
+      "purchase": "Purchase",
+      "useAllocation": "Use Plan Allocation",
+      "buyWithCredits": "Buy with AI Credits",
+      "buyDirect": "Buy Direct",
+      "viewDetails": "View Details",
+      "outOfStock": "Out of Stock",
+      "purchased": "Purchased"
+    },
+    "details": {
+      "title": "Backlink Details",
+      "description": "Description",
+      "requirements": "Content Requirements",
+      "turnaround": "Turnaround Time",
+      "days": "days",
+      "sampleUrl": "Sample URL",
+      "metrics": "Domain Metrics",
+      "purchaseOptions": "Purchase Options"
+    },
+    "purchase": {
+      "title": "Purchase Backlink",
+      "planAllocation": "Plan Allocation",
+      "planAllocationDesc": "Use your monthly backlink quota ({used}/{total} used)",
+      "planAllocationFull": "Monthly allocation fully used",
+      "directPurchase": "Direct Purchase",
+      "directPurchaseDesc": "Pay {price} {currency}",
+      "aiCredits": "AI Credits",
+      "aiCreditsDesc": "Pay {credits} AI credits (Balance: {balance})",
+      "aiCreditsInsufficient": "Insufficient AI credits",
+      "confirm": "Confirm Purchase",
+      "cancel": "Cancel",
+      "processing": "Processing...",
+      "success": "Backlink purchased successfully!",
+      "failed": "Purchase failed. Please try again.",
+      "selectSite": "Select target website",
+      "targetUrl": "Target URL",
+      "anchorText": "Anchor Text",
+      "anchorPlaceholder": "Enter preferred anchor text",
+      "paymentMethod": "Payment Method"
+    },
+    "myListings": {
+      "title": "My Backlink Listings",
+      "subtitle": "Sell backlinks from your connected websites",
+      "createListing": "Create Listing",
+      "editListing": "Edit Listing",
+      "deleteListing": "Delete Listing",
+      "noListings": "You haven't listed any backlinks yet",
+      "status": {
+        "active": "Active",
+        "paused": "Paused",
+        "sold": "Sold",
+        "draft": "Draft"
+      }
+    },
+    "stats": {
+      "totalAvailable": "Available Backlinks",
+      "planQuota": "Plan Quota",
+      "purchased": "Purchased",
+      "spent": "Total Spent"
+    },
+    "empty": {
+      "title": "No backlinks available",
+      "description": "Check back later for new backlink opportunities"
+    },
+    "toast": {
+      "purchaseSuccess": "Backlink purchased successfully",
+      "purchaseFailed": "Failed to purchase backlink",
+      "listingCreated": "Backlink listing created successfully",
+      "listingUpdated": "Backlink listing updated",
+      "listingDeleted": "Backlink listing deleted",
+      "createFailed": "Failed to create listing. Please try again."
+    },
+    "createListing": {
+      "button": "List My Website",
+      "title": "List Your Website",
+      "selectSite": "Select Website",
+      "chooseSite": "Choose a website to list...",
+      "alreadyListed": "Already Listed",
+      "alreadyListedHint": "This website already has an active listing.",
+      "domain": "Domain",
+      "listingTitle": "Listing Title",
+      "titlePlaceholder": "e.g. Guest post on my tech blog",
+      "description": "Description",
+      "descriptionPlaceholder": "Describe your website and the type of backlinks you offer...",
+      "category": "Category",
+      "categoryPlaceholder": "e.g. Technology, Finance",
+      "language": "Language",
+      "linkType": "Link Type",
+      "turnaround": "Turnaround (days)",
+      "price": "Price",
+      "currency": "Currency",
+      "aiCredits": "AI Credits",
+      "maxSlots": "Max Slots",
+      "unlimited": "Unlimited",
+      "submit": "Create Listing",
+      "pricingMethod": "Pricing Method",
+      "sellForMoney": "Sell for Money",
+      "sellForCredits": "Sell for AI Credits",
+      "monthlyTraffic": "Monthly Traffic",
+      "monthlyVisitors": "Monthly visitors",
+      "metricsSource": "Data from",
+      "metricsUnavailable": "Domain metrics could not be fetched. Configure SEMrush / Ahrefs API keys."
     }
   },
   "settings": {
@@ -2952,6 +3116,7 @@
       "recommendedStyle": "Based on your content, we recommend: {style}",
       "detectingPlatform": "Detecting your website platform...",
       "detectedPlatform": "Detected: {platform}",
+      "confirmPlatform": "Confirm {platform}",
       "platformFromCrawl": "We detected your platform as {platform}",
       "platformFromAI": "Our AI identified your platform as {platform}",
       "generatingKeywords": "Generating keyword suggestions from your website...",
@@ -2961,13 +3126,48 @@
       "noArticlesFound": "No articles found on your website. You can skip this step.",
       "untitledArticle": "Untitled Article",
       "languageDetected": "We detected your website language as {language}",
+      "detectedCountry": "Based on your language, we suggest: {country}",
       "internalLinksDefault": "Based on your existing posts, we suggest {count} internal links per 1000 words",
       "internalLinksSEO": "SEO best practice: 2-4 internal links per 1000 words helps with rankings and user navigation",
       "selectKeywordsFirst": "Please select keywords first to find competitors",
-      "manuallyAdded": "Manually added"
+      "manuallyAdded": "Manually added",
+      "skipped": "Skipped"
+    },
+    "blogDiscovery": {
+      "hasBlog": "We couldn't find blog articles on your website. Do you have a blog page?",
+      "yes": "Yes, I have a blog",
+      "no": "No, skip this step",
+      "enterUrl": "Enter the URL of your blog page:",
+      "placeholder": "https://example.com/blog",
+      "fetching": "Fetching articles from your blog...",
+      "noArticlesFromUrl": "No articles found at this URL. Please check the URL and try again.",
+      "fetchError": "Failed to fetch articles. Please try again."
     },
     "hints": {
       "pressEnterToAdd": "Press Enter to add"
+    },
+    "googleIntegration": {
+      "title": "Connect Google Analytics & Search Console",
+      "description": "Get deeper insights into your website performance with Google Analytics and Search Console data.",
+      "benefit1": "Track real traffic and user behavior",
+      "benefit2": "Monitor search rankings and impressions",
+      "benefit3": "Get AI-powered SEO recommendations",
+      "connectButton": "Connect Google Account",
+      "connecting": "Connecting... Complete the sign-in in the popup window.",
+      "connected": "Google account connected successfully!",
+      "connectedMessage": "\u2713 Google account connected",
+      "error": "Connection failed. You can try again or skip this step.",
+      "skipText": "Skip \u2014 I'll set this up later in Settings"
+    },
+    "wordpressPlugin": {
+      "title": "Install Ghost Post WordPress Plugin",
+      "description": "Install our WordPress plugin to enable automatic article publishing directly to your website.",
+      "benefit1": "Automatic article publishing to WordPress",
+      "benefit2": "Built-in SEO optimization",
+      "benefit3": "Manage content directly from Ghost Post",
+      "downloadButton": "Download Plugin",
+      "noSiteKey": "Plugin will be available after setup is complete.",
+      "skipText": "Skip \u2014 I'll install it later"
     },
     "questions": {
       "welcome": "👋 Hi! I'm your Ghost AI Agent. I'll help you create a comprehensive SEO profile for your website.",
@@ -3242,7 +3442,9 @@
         "writingStyle": "What writing style best fits your brand?",
         "websitePlatform": "What platform is your website built on?",
         "internalLinksCount": "How many internal links per 1000 words?",
-        "favoriteArticles": "Select up to 3 articles that represent your preferred content style"
+        "favoriteArticles": "Select up to 3 articles that represent your preferred content style",
+        "googleIntegration": "Would you like to connect Google Analytics and Search Console?",
+        "wordpressPlugin": "We detected your website runs on WordPress! Would you like to install our plugin?"
       },
       "writingStyles": {
         "professional": "Professional",
@@ -3302,6 +3504,7 @@
       },
       "hints": {
         "languageDetected": "We detected your website language as {language}",
+        "detectedCountry": "Based on your language, we suggest: {country}",
         "platformDetected": "We detected your platform as {platform}",
         "keywordsFromCrawl": "These keywords were suggested based on your website content",
         "competitorsFromKeywords": "These competitors were found using Google Search based on your keywords and target location",
@@ -3330,6 +3533,7 @@
       "japanese": "Japanese"
     },
     "countries": {
+      "worldwide": "Worldwide",
       "israel": "Israel",
       "unitedStates": "United States",
       "unitedKingdom": "United Kingdom",
@@ -3345,6 +3549,33 @@
       "india": "India",
       "japan": "Japan",
       "southKorea": "South Korea",
+      "china": "China",
+      "russia": "Russia",
+      "uae": "United Arab Emirates",
+      "saudiArabia": "Saudi Arabia",
+      "southAfrica": "South Africa",
+      "poland": "Poland",
+      "sweden": "Sweden",
+      "norway": "Norway",
+      "denmark": "Denmark",
+      "finland": "Finland",
+      "austria": "Austria",
+      "switzerland": "Switzerland",
+      "belgium": "Belgium",
+      "portugal": "Portugal",
+      "greece": "Greece",
+      "turkey": "Turkey",
+      "thailand": "Thailand",
+      "singapore": "Singapore",
+      "malaysia": "Malaysia",
+      "indonesia": "Indonesia",
+      "philippines": "Philippines",
+      "vietnam": "Vietnam",
+      "argentina": "Argentina",
+      "chile": "Chile",
+      "colombia": "Colombia",
+      "newZealand": "New Zealand",
+      "ireland": "Ireland",
       "global": "Global (No Geographic Focus)"
     },
     "plans": {
@@ -3408,13 +3639,40 @@
       "cvvPlaceholder": "123",
       "cardholderName": "Cardholder Name",
       "cardholderNamePlaceholder": "John Doe",
+      "citizenId": "ID Number",
+      "citizenIdPlaceholder": "Enter ID number",
+      "billingEmail": "Billing Email",
+      "billingEmailPlaceholder": "Email for invoices",
+      "phone": "Phone",
+      "phonePlaceholder": "050-0000000",
+      "expMonth": "Month",
+      "expYear": "Year",
+      "numberOfPayments": "Number of Payments",
+      "singlePayment": "Single Payment",
+      "payments": "Payments",
       "payNow": "Pay Now",
       "processing": "Processing...",
-      "securePayment": "Your payment is secure and encrypted",
+      "securePayment": "Secure payment processed by CardCom",
+      "initializing": "Setting up secure payment...",
+      "confirmFailed": "Payment confirmation failed",
+      "paymentFailed": "Payment failed",
+      "paymentError": "Payment error",
+      "iframeError": "Payment system not ready. Please refresh.",
       "orderSummary": "Order Summary",
       "plan": "Plan",
       "billingCycle": "Monthly",
-      "total": "Total"
+      "total": "Total",
+      "coupon": {
+        "label": "Coupon Code",
+        "placeholder": "Enter coupon code",
+        "apply": "Apply",
+        "remove": "Remove",
+        "invalid": "Invalid or expired coupon code",
+        "error": "Failed to validate coupon",
+        "discount": "Coupon Discount",
+        "bonuses": "Coupon Bonuses",
+        "durationNote": "Applied for {months} months"
+      }
     },
     "success": {
       "successTitle": "Payment Successful!",
@@ -3773,6 +4031,72 @@
         "purchases": "Active Purchases"
       }
     },
+    "coupons": {
+      "title": "Coupons Management",
+      "subtitle": "Create and manage coupon codes for discounts and benefits",
+      "addCoupon": "Add Coupon",
+      "searchPlaceholder": "Search coupons...",
+      "noCoupons": "No coupons configured",
+      "noExpiry": "No expiry",
+      "columns": {
+        "code": "Code",
+        "discount": "Discount",
+        "benefits": "Benefits",
+        "usage": "Usage",
+        "validity": "Validity",
+        "status": "Status",
+        "actions": "Actions"
+      },
+      "statuses": {
+        "active": "Active",
+        "inactive": "Inactive"
+      },
+      "actions": {
+        "edit": "Edit Coupon",
+        "delete": "Delete Coupon",
+        "translate": "Translate"
+      },
+      "translations": {
+        "selectLanguage": "Select Language",
+        "original": "Original",
+        "save": "Save Translation",
+        "saved": "Translation saved successfully",
+        "deleteTranslation": "Delete Translation",
+        "confirmDelete": "Are you sure you want to delete this translation?"
+      },
+      "stats": {
+        "total": "Total Coupons",
+        "active": "Active Coupons",
+        "totalRedemptions": "Total Redemptions",
+        "activeRedemptions": "Active Redemptions"
+      },
+      "form": {
+        "code": "Coupon Code",
+        "description": "Description (internal)",
+        "descriptionPlaceholder": "Internal note about this coupon...",
+        "discountType": "Discount Type",
+        "percentage": "Percentage",
+        "fixedAmount": "Fixed Amount",
+        "discountValue": "Discount Value",
+        "maxRedemptions": "Max Uses",
+        "maxPerAccount": "Max per Account",
+        "durationMonths": "Duration (months)",
+        "lifetime": "Lifetime",
+        "validFrom": "Valid From",
+        "validUntil": "Valid Until",
+        "applicablePlans": "Applicable Plans",
+        "allPlans": "No plans selected",
+        "allPlansHint": "Leave empty to apply to all plans",
+        "limitationOverrides": "Limitation Overrides",
+        "limitationOverridesHint": "Override plan limits with more generous values",
+        "selectLimit": "Select limit...",
+        "overrideValue": "New value",
+        "extraFeatures": "Extra Features",
+        "extraFeaturesHint": "Grant additional feature keys to accounts using this coupon",
+        "featureKeyPlaceholder": "e.g. prioritySupport",
+        "isActive": "Coupon is active"
+      }
+    },
     "interviewQuestions": {
       "title": "Interview Questions",
       "subtitle": "Manage registration interview questions",
@@ -3926,7 +4250,8 @@
       "canceledOn": "Canceled {date}",
       "processing": "Processing...",
       "yes": "Yes",
-      "no": "No"
+      "no": "No",
+      "add": "Add"
     },
     "stats": {
       "totalPlans": "Total Plans",
@@ -3945,7 +4270,12 @@
       "totalAccounts": "Total Accounts",
       "activeAccounts": "Active",
       "totalUsers": "Total Users",
-      "activeUsers": "Active"
+      "activeUsers": "Active",
+      "totalListings": "Total Listings",
+      "activeListings": "Active Listings",
+      "totalPurchases": "Total Purchases",
+      "pendingPurchases": "Pending",
+      "totalRevenue": "Total Revenue"
     },
     "translations": {
       "title": "Translations",
@@ -4258,6 +4588,105 @@
         "success": "Success",
         "error": "Error"
       }
+    },
+    "backlinks": {
+      "title": "Backlinks Management",
+      "subtitle": "Manage all backlink listings and purchases across the platform",
+      "addListing": "Add Listing",
+      "editListing": "Edit Listing",
+      "deleteListing": "Delete Listing",
+      "deleteTitle": "Delete Listing",
+      "deleteMessage": "Are you sure you want to delete this listing? This action cannot be undone.",
+      "searchPlaceholder": "Search listings by domain, title...",
+      "tabs": {
+        "listings": "Listings",
+        "purchases": "Purchases"
+      },
+      "filters": {
+        "all": "All",
+        "active": "Active",
+        "paused": "Paused",
+        "draft": "Draft",
+        "archived": "Archived",
+        "soldOut": "Sold Out"
+      },
+      "purchaseFilters": {
+        "all": "All",
+        "pending": "Pending",
+        "approved": "Approved",
+        "published": "Published",
+        "rejected": "Rejected",
+        "refunded": "Refunded",
+        "canceled": "Canceled"
+      },
+      "columns": {
+        "domain": "Domain",
+        "title": "Title",
+        "publisher": "Publisher",
+        "linkType": "Link Type",
+        "da": "DA",
+        "dr": "DR",
+        "traffic": "Traffic",
+        "price": "Price",
+        "credits": "Credits",
+        "slots": "Slots",
+        "status": "Status",
+        "actions": "Actions",
+        "buyer": "Buyer",
+        "targetUrl": "Target URL",
+        "anchorText": "Anchor Text",
+        "payment": "Payment",
+        "purchaseDate": "Date",
+        "purchaseStatus": "Status"
+      },
+      "fields": {
+        "domain": "Domain",
+        "domainPlaceholder": "example.com",
+        "title": "Title",
+        "titlePlaceholder": "Guest Post on Tech Blog",
+        "description": "Description",
+        "descriptionPlaceholder": "Details about the backlink opportunity...",
+        "category": "Category",
+        "categoryPlaceholder": "Technology",
+        "language": "Language",
+        "linkType": "Link Type",
+        "dofollow": "Dofollow",
+        "nofollow": "Nofollow",
+        "domainAuthority": "Domain Authority (DA)",
+        "domainRating": "Domain Rating (DR)",
+        "monthlyTraffic": "Monthly Traffic",
+        "price": "Price (USD)",
+        "aiCreditsPrice": "AI Credits Price",
+        "maxSlots": "Max Slots",
+        "maxSlotsHelp": "Leave empty for unlimited",
+        "turnaroundDays": "Turnaround (days)",
+        "sampleUrl": "Sample URL",
+        "contentRequirements": "Content Requirements",
+        "publisherType": "Publisher Type",
+        "platform": "Platform",
+        "user": "User",
+        "status": "Status",
+        "isActive": "Active"
+      },
+      "purchaseActions": {
+        "approve": "Approve",
+        "reject": "Reject",
+        "markPublished": "Mark Published",
+        "refund": "Refund"
+      },
+      "purchaseStatusUpdate": "Update Status",
+      "publishedUrl": "Published URL",
+      "publishedUrlPlaceholder": "https://example.com/article-with-backlink",
+      "rejectReason": "Rejection Reason",
+      "rejectReasonPlaceholder": "Reason for rejecting this purchase...",
+      "noListings": "No backlink listings found",
+      "createFirst": "Create your first backlink listing to start the marketplace",
+      "noPurchases": "No purchases found",
+      "saveSuccess": "Listing saved successfully",
+      "deleteSuccess": "Listing deleted successfully",
+      "statusUpdateSuccess": "Purchase status updated successfully",
+      "sold": "sold",
+      "unlimited": "Unlimited"
     }
   },
   "acceptInvite": {
@@ -4321,5 +4750,89 @@
       "allRead": "All caught up!",
       "allReadMessage": "You have no unread notifications."
     }
+  },
+  "payment": {
+    "success": "Payment successful!",
+    "confirmFailed": "Payment confirmation failed",
+    "failed": "Payment failed",
+    "error": "Payment error",
+    "iframeError": "Payment system not ready. Please refresh.",
+    "successTitle": "Payment Successful!",
+    "initializing": "Setting up secure payment...",
+    "cardholderName": "Cardholder Name",
+    "cardholderNamePlaceholder": "Full name as on card",
+    "citizenId": "ID Number",
+    "citizenIdPlaceholder": "Enter ID number",
+    "billingEmail": "Billing Email",
+    "emailPlaceholder": "email@example.com",
+    "phone": "Phone",
+    "phonePlaceholder": "050-0000000",
+    "cardNumber": "Card Number",
+    "expMonth": "Month",
+    "expYear": "Year",
+    "numberOfPayments": "Number of Payments",
+    "singlePayment": "Single Payment",
+    "payments": "Payments",
+    "securePayment": "Secure payment processed by CardCom",
+    "processing": "Processing...",
+    "payNow": "Pay Now",
+    "confirmFree": "Confirm",
+    "total": "Total",
+    "coupon": {
+      "label": "Coupon Code",
+      "placeholder": "Enter coupon code",
+      "apply": "Apply",
+      "remove": "Remove",
+      "invalid": "Invalid or expired coupon code",
+      "error": "Failed to validate coupon",
+      "discount": "Coupon Discount",
+      "bonuses": "Bonuses",
+      "durationNote": "Applied for {months} months"
+    }
+  },
+  "proration": {
+    "newPlan": "Plan",
+    "currentPlan": "Current plan",
+    "monthlyPrice": "Monthly price",
+    "remainingDays": "Remaining days this month",
+    "payToday": "Pay today",
+    "unusedCredit": "Credit for unused days",
+    "newPlanCharge": "New plan remaining days",
+    "daysLeft": "days left",
+    "daysInMonth": "days in month",
+    "nextBillingNote": "Next billing on",
+    "mo": "mo"
+  },
+  "upgradePlanModal": {
+    "title": "Upgrade Your Plan",
+    "subtitle": "Choose the plan that best fits your needs",
+    "popular": "Popular",
+    "currentPlan": "Current Plan",
+    "selectPlan": "Select Plan",
+    "moreFeatures": "more",
+    "manageSubscription": "Manage Subscription",
+    "noPlans": "No plans available",
+    "upgradedTo": "Upgraded to",
+    "downgradedTo": "Downgraded to"
+  },
+  "downgrade": {
+    "title": "Downgrade Plan",
+    "forfeitedAmount": "Amount forfeited (no refund)",
+    "warningText": "By downgrading, you will lose the unused credit from your current plan. This amount cannot be refunded.",
+    "agreeText": "I understand that I will not receive a refund for the unused portion of my current plan.",
+    "confirm": "Confirm Downgrade"
+  },
+  "addCreditsModal": {
+    "title": "Add AI Credits",
+    "subtitle": "Purchase additional AI credits for your account",
+    "currentBalance": "Current Balance",
+    "credits": "credits",
+    "oneTime": "One-time",
+    "recurring": "Recurring",
+    "buy": "Buy",
+    "purchaseSuccess": "Credits added successfully!",
+    "purchaseFailed": "Purchase failed",
+    "manageCredits": "Manage Credits",
+    "noAddons": "No credit packs available"
   }
 }

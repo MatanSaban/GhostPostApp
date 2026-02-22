@@ -138,7 +138,7 @@ export default async function SiteAuditPage() {
         <div className={styles.sectionHeader}>
           <div>
             <h3 className={styles.sectionTitle}>{t('siteAudit.performanceTrend')}</h3>
-            <p style={{ fontSize: '0.875rem', color: 'var(--muted-foreground)', marginTop: '0.25rem' }}>
+            <p style={{ fontSize: '0.8125rem', color: 'var(--muted-foreground)', marginTop: '0.25rem' }}>
               {t('siteAudit.lastWeeks')}
             </p>
           </div>

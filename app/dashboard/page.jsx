@@ -73,6 +73,8 @@ export default async function DashboardPage() {
     dateLast180: t('dashboard.dateRange.last180'),
     dateLast365: t('dashboard.dateRange.last365'),
     dateCustom: t('dashboard.dateRange.custom'),
+    dateFrom: t('common.from'),
+    dateTo: t('common.to'),
     noDataForRange: t('dashboard.noDataForRange'),
     loadingChart: t('dashboard.loadingChart'),
 

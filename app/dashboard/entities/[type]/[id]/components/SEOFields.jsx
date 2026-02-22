@@ -116,7 +116,7 @@ export function SEOFields({ seoData, onChange, siteUrl, slug, entityType, entity
                 {t('entities.edit.seo.plugin')}:
               </span>
               <span style={{ 
-                fontSize: '0.875rem', 
+                fontSize: '0.8125rem', 
                 fontWeight: 500,
                 color: 'var(--foreground)',
                 textTransform: 'capitalize',

@@ -47,8 +47,8 @@
 }
 
 .chevron {
-  width: 0.875rem;
-  height: 0.875rem;
+  width: 0.8125rem;
+  height: 0.8125rem;
   transition: transform var(--transition-fast);
 }
 

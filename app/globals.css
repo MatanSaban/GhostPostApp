@@ -12,6 +12,7 @@ body {
   max-width: 100vw;
   overflow-x: hidden;
   font-family: var(--font-primary) !important;
+  font-size: 0.9375rem;
   background-color: var(--background);
   color: var(--foreground);
   transition: background-color var(--transition-normal), color var(--transition-normal);
@@ -40,31 +41,31 @@ select {
 
 /* Typography */
 h1 {
-  font-size: 2rem;
+  font-size: 1.9375rem;
   font-weight: 600;
   line-height: 1.2;
 }
 
 h2 {
-  font-size: 1.5rem;
+  font-size: 1.4375rem;
   font-weight: 600;
   line-height: 1.3;
 }
 
 h3 {
-  font-size: 1.25rem;
+  font-size: 1.1875rem;
   font-weight: 600;
   line-height: 1.4;
 }
 
 h4 {
-  font-size: 1.02rem;
+  font-size: 0.9575rem;
   font-weight: 600;
   line-height: 1.5;
 }
 
 p {
-  font-size: 1.02rem;
+  font-size: 0.9575rem;
   line-height: 1.6;
 }
 

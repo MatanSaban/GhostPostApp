@@ -16,7 +16,7 @@
   background: var(--primary);
   color: white;
   border-radius: var(--radius-md);
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   font-weight: 500;
   text-decoration: none;
   transition: all var(--transition-fast);
@@ -36,7 +36,7 @@
   background: var(--card);
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   font-weight: 500;
   color: var(--foreground);
   cursor: pointer;
@@ -100,7 +100,7 @@
 
 .localeTab {
   padding: 0.5rem 1rem;
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   font-weight: 500;
   color: var(--muted-foreground);
   background: transparent;
@@ -131,7 +131,7 @@
 
 .nsSelect {
   padding: 0.5rem 0.75rem;
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   background: var(--input);
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
@@ -169,7 +169,7 @@
 .searchInput {
   width: 100%;
   padding: 0.5rem 0.75rem 0.5rem 2.25rem;
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   background: var(--input);
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
@@ -191,7 +191,7 @@
   display: flex;
   gap: 1.5rem;
   padding: 0.75rem 1rem;
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   color: var(--muted-foreground);
   margin-bottom: 1rem;
 }
@@ -227,7 +227,7 @@
   justify-content: space-between;
   padding: 1rem 1.25rem;
   margin: 0;
-  font-size: 1rem;
+  font-size: 0.9375rem;
   font-weight: 600;
   color: var(--foreground);
   background: var(--muted);
@@ -249,7 +249,7 @@
   th {
     text-align: start;
     padding: 0.75rem 1rem;
-    font-size: 0.75rem;
+    font-size: 0.8125rem;
     font-weight: 600;
     color: var(--muted-foreground);
     text-transform: uppercase;
@@ -319,7 +319,7 @@
 }
 
 .emptyValue {
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   color: var(--muted-foreground);
   font-style: italic;
 }
@@ -381,7 +381,7 @@
 }
 
 .editLocaleInfo {
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   color: var(--muted-foreground);
   padding: 0.75rem 1rem;
   background: var(--muted);

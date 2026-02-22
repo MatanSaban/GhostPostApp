@@ -34,7 +34,7 @@
 }
 
 .title {
-  font-size: 1.125rem;
+  font-size: 1.0625rem;
   font-weight: 600;
   color: var(--foreground);
   margin: 0;
@@ -579,8 +579,8 @@
   transition: all 0.15s;
   
   svg {
-    width: 0.875rem;
-    height: 0.875rem;
+    width: 0.8125rem;
+    height: 0.8125rem;
   }
   
   &:hover {

@@ -65,19 +65,19 @@
   align-items: center;
   justify-content: center;
   color: white;
-  font-size: 2rem;
+  font-size: 1.9375rem;
   font-weight: 600;
   box-shadow: var(--shadow-purple);
 }
 
 .logoText {
-  font-size: 2.5rem;
+  font-size: 2.4375rem;
   font-weight: 600;
   color: var(--foreground);
 }
 
 .tagline {
-  font-size: 1.25rem;
+  font-size: 1.1875rem;
   color: var(--muted-foreground);
   margin-bottom: 3rem;
   line-height: 1.6;
@@ -100,7 +100,7 @@
   align-items: center;
   gap: 0.5rem;
   padding: 1rem 2.5rem;
-  font-size: 1.02rem;
+  font-size: 0.9575rem;
   font-weight: 600;
   color: white;
   background: var(--gradient-primary);
@@ -119,8 +119,8 @@
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.875rem 2rem;
-  font-size: 1.02rem;
+  padding: 0.8125rem 2rem;
+  font-size: 0.9575rem;
   font-weight: 500;
   color: var(--foreground);
   background: transparent;

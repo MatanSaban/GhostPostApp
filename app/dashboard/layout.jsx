@@ -29,6 +29,8 @@ import {
   Package,
   Monitor,
   Bell,
+  Link2,
+  Ticket,
 } from 'lucide-react';
 import { GhostChatPopup } from '@/app/components/ui/ghost-chat-popup';
 import { SiteSelector } from '@/app/components/ui/site-selector';
@@ -72,9 +74,11 @@ const adminMenuItemsConfig = [
   { icon: CreditCard, labelKey: 'nav.admin.subscriptions', path: '/dashboard/admin/subscriptions' },
   { icon: FileStack, labelKey: 'nav.admin.plans', path: '/dashboard/admin/plans' },
   { icon: Package, labelKey: 'nav.admin.addons', path: '/dashboard/admin/addons' },
+  { icon: Ticket, labelKey: 'nav.admin.coupons', path: '/dashboard/admin/coupons' },
   { icon: Bot, labelKey: 'nav.admin.interviewFlow', path: '/dashboard/admin/interview-flow' },
   { icon: Zap, labelKey: 'nav.admin.botActions', path: '/dashboard/admin/bot-actions' },
   { icon: Languages, labelKey: 'nav.admin.translations', path: '/dashboard/admin/translations' },
+  { icon: Link2, labelKey: 'nav.admin.backlinks', path: '/dashboard/admin/backlinks' },
   { icon: Globe, labelKey: 'nav.admin.website', path: '/dashboard/admin/website' },
 ];
 
@@ -407,6 +411,17 @@ export default function DashboardLayout({ children }) {
             >
               <Monitor className={styles.navIcon} />
               <span className={styles.navLabel}>{t('nav.myWebsites')}</span>
+            </Link>
+          )}
+
+          {/* Backlinks Marketplace */}
+          {canViewPath('/dashboard/backlinks') && (
+            <Link
+              href="/dashboard/backlinks"
+              className={`${styles.navItem} ${pathname === '/dashboard/backlinks' || pathname.startsWith('/dashboard/backlinks/') ? styles.active : ''}`}
+            >
+              <Link2 className={styles.navIcon} />
+              <span className={styles.navLabel}>{t('nav.backlinks')}</span>
             </Link>
           )}
 

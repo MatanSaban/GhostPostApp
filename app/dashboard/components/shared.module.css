@@ -267,7 +267,7 @@
     inset-inline-end: 0;
     background: var(--popover, #1f2937);
     color: var(--popover-foreground, #f9fafb);
-    font-size: 0.6875rem;
+    font-size: 0.625rem;
     font-weight: 400;
     line-height: 1.4;
     padding: 0.4rem 0.6rem;
@@ -324,7 +324,7 @@
 }
 
 .statsValue {
-  font-size: 1.875rem;
+  font-size: 1.8125rem;
   font-weight: 600;
   color: var(--foreground);
   margin-bottom: 0.25rem;
@@ -336,7 +336,7 @@
 }
 
 .statsTrendLabel {
-  font-size: 0.625rem;
+  font-size: 0.5625rem;
   color: var(--muted-foreground);
   opacity: 0.65;
   line-height: 1.2;
@@ -357,7 +357,7 @@
   inset-inline-end: 0;
   background: var(--popover, #1f2937);
   color: var(--popover-foreground, #f9fafb);
-  font-size: 0.6875rem;
+  font-size: 0.625rem;
   font-weight: 400;
   line-height: 1.4;
   padding: 0.4rem 0.6rem;
@@ -429,7 +429,7 @@
 }
 
 .dashboardCardTitle {
-  font-size: 1.25rem;
+  font-size: 1.1875rem;
   font-weight: 600;
   color: var(--foreground);
   margin-bottom: 0;
@@ -866,7 +866,7 @@
 }
 
 .emptyStateTitle {
-  font-size: 1.25rem;
+  font-size: 1.1875rem;
   font-weight: 600;
   color: var(--foreground);
   margin-bottom: 0.5rem;
@@ -905,7 +905,7 @@
 }
 
 .pageTitle {
-  font-size: 1.875rem;
+  font-size: 1.8125rem;
   font-weight: 600;
   color: var(--foreground);
 }
@@ -1108,7 +1108,7 @@
 }
 
 .tableHeaderCell {
-  padding: 0.875rem 1rem;
+  padding: 0.8125rem 1rem;
   font-size: 0.8125rem;
   font-weight: 600;
   text-transform: uppercase;

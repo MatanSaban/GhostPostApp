@@ -32,7 +32,7 @@
 .scoreCircle.bad { border-color: var(--destructive, #ef4444); background: rgba(239, 68, 68, 0.08); }
 
 .scoreValue {
-  font-size: 2.25rem;
+  font-size: 2.1875rem;
   font-weight: 700;
   line-height: 1;
 }
@@ -42,7 +42,7 @@
 .scoreCircle.bad .scoreValue { color: var(--destructive, #ef4444); }
 
 .scoreLabel {
-  font-size: 0.7rem;
+  font-size: 0.6875rem;
   color: var(--muted-foreground);
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -74,13 +74,13 @@
 .statInfo svg { color: var(--info, #3b82f6); }
 
 .statValue {
-  font-size: 1.5rem;
+  font-size: 1.4375rem;
   font-weight: 700;
   color: var(--foreground);
 }
 
 .statLabel {
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   color: var(--muted-foreground);
 }
 
@@ -97,7 +97,7 @@
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
-  font-size: 0.8rem;
+  font-size: 0.7375rem;
   color: var(--muted-foreground);
 }
 
@@ -105,7 +105,7 @@
   display: inline-flex;
   align-items: center;
   padding: 2px 8px;
-  font-size: 0.7rem;
+  font-size: 0.6875rem;
   font-weight: 500;
   border-radius: 999px;
   background: var(--accent, #2a2a4a);
@@ -145,14 +145,14 @@
 .categoryFill.bad { background: var(--destructive, #ef4444); }
 
 .categoryName {
-  font-size: 0.8rem;
+  font-size: 0.7375rem;
   color: var(--muted-foreground);
   min-width: 100px;
   text-align: end;
 }
 
 .categoryValue {
-  font-size: 0.85rem;
+  font-size: 0.7875rem;
   font-weight: 600;
   min-width: 32px;
   text-align: center;
@@ -174,7 +174,7 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  font-size: 1rem;
+  font-size: 0.9375rem;
   font-weight: 600;
   color: var(--foreground);
   margin: 0;
@@ -197,7 +197,7 @@
   display: flex;
   align-items: center;
   gap: 0.35rem;
-  font-size: 0.8rem;
+  font-size: 0.7375rem;
   color: var(--muted-foreground);
 }
 
@@ -269,7 +269,7 @@
   padding: 1.5rem;
   justify-content: center;
   color: var(--muted-foreground);
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
 }
 
 .spinning {
@@ -282,7 +282,7 @@
 }
 
 .summaryContent {
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   line-height: 1.7;
   color: var(--foreground);
 }

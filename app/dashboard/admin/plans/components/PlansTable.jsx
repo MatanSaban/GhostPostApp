@@ -100,7 +100,7 @@ export default function PlansTable({
                   border: 'none',
                   color: 'var(--primary)',
                   cursor: 'pointer',
-                  fontSize: '0.875rem',
+                  fontSize: '0.8125rem',
                 }}
               >
                 {plan.features.filter(f => f.included).length} {t('admin.common.features')}

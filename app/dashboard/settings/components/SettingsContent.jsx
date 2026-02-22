@@ -57,6 +57,8 @@ import { useUser } from '@/app/context/user-context';
 import { usePermissions } from '@/app/hooks/usePermissions';
 import { SettingsFormSkeleton, TableSkeleton, FormSkeleton } from '@/app/dashboard/components';
 import WordPressPluginSection from './WordPressPluginSection';
+import UpgradePlanModal from '@/app/components/ui/UpgradePlanModal';
+import AddCreditsModal from '@/app/components/ui/AddCreditsModal';
 import styles from '../page.module.css';
 
 const iconMap = {
@@ -632,16 +634,6 @@ function GeneralSettings({ general, setGeneral, translations, canEdit = true }) 
           <span className={styles.fieldHint}>{t.timezoneHint || 'Your timezone for this website (default from account settings)'}</span>
         </div>
       </div>
-
-      {general.platform === 'wordpress' && (
-        <div className={styles.subsection}>
-          <h3 className={styles.subsectionTitle}>
-            <Puzzle className={styles.subsectionIcon} />
-            {t.wordpressTitle}
-          </h3>
-          <WordPressPluginSection translations={t} />
-        </div>
-      )}
 
       <div className={styles.subsection}>
         <div className={styles.warningBox}>
@@ -1704,7 +1696,7 @@ function IntegrationsSettings({ translations, canEdit = true }) {
         )}
       </div>
 
-      {/* WordPress Integration (static) */}
+      {/* WordPress Plugin Integration */}
       <div className={styles.settingsSection}>
         <div className={styles.integrationHeader}>
           <div className={styles.integrationTitleRow}>
@@ -1712,16 +1704,10 @@ function IntegrationsSettings({ translations, canEdit = true }) {
               <circle cx="12" cy="12" r="10" fill="#21759B"/>
               <path d="M3.01 12c0 3.59 2.09 6.7 5.12 8.17L3.86 8.41A9.95 9.95 0 003.01 12zm15.06-1.23c0-1.12-.4-1.89-.75-2.49-.46-.75-.9-1.38-.9-2.13 0-.84.63-1.61 1.52-1.61h.11a9.96 9.96 0 00-15.08 1.1h.73c1.18 0 3.01-.14 3.01-.14.61-.04.68.86.07.93 0 0-.61.07-1.29.11l4.11 12.23 2.47-7.4-1.76-4.83c-.61-.04-1.18-.11-1.18-.11-.61-.03-.54-.97.07-.93 0 0 1.87.14 2.97.14 1.18 0 3.01-.14 3.01-.14.61-.04.68.86.07.93 0 0-.61.07-1.29.11l4.08 12.13.46-1.52c.51-1.3.75-2.25.75-3.15zm-6.87 1.44L8.13 20.63c1.2.35 2.47.55 3.79.55 1.56 0 3.06-.27 4.45-.76a.87.87 0 01-.07-.12L11.2 12.21z" fill="white"/>
             </svg>
-            <h3 className={styles.sectionTitle}>{int.wordpress || 'WordPress'}</h3>
+            <h3 className={styles.sectionTitle}>{t.wordpressTitle || int.wordpress || 'WordPress'}</h3>
           </div>
-          <span className={styles.connectedBadgeSmall}>
-            <Check size={12} />
-            {int.viaPlugin || 'Via Plugin'}
-          </span>
         </div>
-        <p className={styles.integrationDisabled}>
-          {int.wpManaged || 'Managed through the Ghost Post WordPress plugin. Configure in the Connection tab.'}
-        </p>
+        <WordPressPluginSection translations={t} />
       </div>
     </>
   );
@@ -2306,6 +2292,7 @@ function TeamSettings({ team, translations, canEdit = true }) {
 function SubscriptionSettings({ subscription, translations, canEdit = true, isLoading = false }) {
   const t = translations;
   const { locale, t: translate, direction } = useLocale();
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const usagePercentage = subscription.aiCreditsLimit > 0 
     ? (subscription.aiCreditsUsed / subscription.aiCreditsLimit) * 100 
     : 0;
@@ -2439,7 +2426,7 @@ function SubscriptionSettings({ subscription, translations, canEdit = true, isLo
         </div>
 
         {subscription.nextBillingDate && (
-          <p style={{ fontSize: '0.875rem', color: 'var(--muted-foreground)', marginTop: '1rem' }}>
+          <p style={{ fontSize: '0.8125rem', color: 'var(--muted-foreground)', marginTop: '1rem' }}>
             {t.subscriptionNextBillingDate} <strong>{formatDate(subscription.nextBillingDate)}</strong>
           </p>
         )}
@@ -2527,7 +2514,7 @@ function SubscriptionSettings({ subscription, translations, canEdit = true, isLo
           {t.subscriptionBillingActions}
         </h3>
         <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
-          <button className={styles.editButton}>
+          <button className={styles.editButton} onClick={() => setShowUpgradeModal(true)}>
             <Crown size={14} style={{ marginInlineEnd: '0.25rem' }} />
             {t.subscriptionUpgradePlan}
           </button>
@@ -2540,6 +2527,8 @@ function SubscriptionSettings({ subscription, translations, canEdit = true, isLo
           </button>
         </div>
       </div>
+
+      <UpgradePlanModal isOpen={showUpgradeModal} onClose={() => setShowUpgradeModal(false)} />
     </>
   );
 }
@@ -2619,6 +2608,8 @@ function CreditsSettings({ subscription, translations, canEdit = true, isLoading
   const [logsLoading, setLogsLoading] = useState(true);
   const [logsError, setLogsError] = useState(null);
   const [showMore, setShowMore] = useState(false);
+  const [showCreditsModal, setShowCreditsModal] = useState(false);
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   
   const usagePercentage = subscription.aiCreditsLimit > 0 
     ? (subscription.aiCreditsUsed / subscription.aiCreditsLimit) * 100 
@@ -2855,7 +2846,7 @@ function CreditsSettings({ subscription, translations, canEdit = true, isLoading
           </div>
         )}
 
-        <p style={{ fontSize: '0.875rem', color: 'var(--muted-foreground)', marginTop: '1rem' }}>
+        <p style={{ fontSize: '0.8125rem', color: 'var(--muted-foreground)', marginTop: '1rem' }}>
           {translate('settings.creditsSection.description') || 'AI credits are used for generating content, analyzing data, and other AI-powered features. Credits reset at the beginning of each billing period.'}
         </p>
       </div>
@@ -2866,11 +2857,11 @@ function CreditsSettings({ subscription, translations, canEdit = true, isLoading
           {translate('settings.creditsSection.actions') || 'Actions'}
         </h3>
         <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
-          <button className={styles.editButton}>
+          <button className={styles.editButton} onClick={() => setShowCreditsModal(true)}>
             <Plus size={14} style={{ marginInlineEnd: '0.25rem' }} />
             {translate('user.addCredits') || 'Add Credits'}
           </button>
-          <button className={styles.editButton}>
+          <button className={styles.editButton} onClick={() => setShowUpgradeModal(true)}>
             <Crown size={14} style={{ marginInlineEnd: '0.25rem' }} />
             {translate('user.upgradePlan') || 'Upgrade Plan'}
           </button>
@@ -2990,6 +2981,9 @@ function CreditsSettings({ subscription, translations, canEdit = true, isLoading
           </>
         )}
       </div>
+
+      <AddCreditsModal isOpen={showCreditsModal} onClose={() => setShowCreditsModal(false)} />
+      <UpgradePlanModal isOpen={showUpgradeModal} onClose={() => setShowUpgradeModal(false)} />
     </>
   );
 }
@@ -3257,7 +3251,7 @@ function AddonsSettings({ translations, canEdit = true }) {
                           </span>
                         )}
                       </div>
-                      <p style={{ fontSize: '0.875rem', color: 'var(--muted-foreground)', marginTop: '0.25rem' }}>
+                      <p style={{ fontSize: '0.8125rem', color: 'var(--muted-foreground)', marginTop: '0.25rem' }}>
                         {getAddonDescription(addon)}
                       </p>
                       {isPurchased && (

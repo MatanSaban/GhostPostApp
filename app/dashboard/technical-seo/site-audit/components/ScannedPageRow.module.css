@@ -40,7 +40,7 @@
 }
 
 .pageTitle {
-  font-size: 0.6875rem;
+  font-size: 0.625rem;
   color: var(--muted-foreground);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -71,7 +71,7 @@
 }
 
 .metricMono {
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   font-family: ui-monospace, SFMono-Regular, monospace;
   color: var(--muted-foreground);
   text-align: center;
@@ -160,7 +160,7 @@
   align-items: center;
   gap: 6px;
   padding: 6px 16px 4px;
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   color: #22c55e;
   border-top: 1px dashed rgba(34, 197, 94, 0.2);
 }

@@ -24,6 +24,8 @@ import {
 } from 'lucide-react';
 import { ThemeToggle } from '@/app/components/ui/theme-toggle';
 import { LanguageSwitcher } from '@/app/components/ui/language-switcher';
+import UpgradePlanModal from '@/app/components/ui/UpgradePlanModal';
+import AddCreditsModal from '@/app/components/ui/AddCreditsModal';
 import { useLocale } from '@/app/context/locale-context';
 import { useUser } from '@/app/context/user-context';
 import { useSite } from '@/app/context/site-context';
@@ -96,6 +98,7 @@ const segmentTranslationKeys = {
   'content-planner': 'nav.strategy.contentPlanner',
   'ai-content-wizard': 'nav.strategy.aiWizard',
   'automations': 'nav.automations',
+  'backlinks': 'nav.backlinks',
   'link-building': 'nav.linkBuilding',
   'redirections': 'nav.tools.redirections',
   'seo-frontend': 'nav.seoFrontend',
@@ -141,6 +144,8 @@ export function DashboardHeader() {
   const { isOwner, canAccessTab } = usePermissions();
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const [showCreditsModal, setShowCreditsModal] = useState(false);
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [entityTypes, setEntityTypes] = useState([]);
@@ -400,6 +405,7 @@ export function DashboardHeader() {
   const breadcrumbs = getBreadcrumbs();
 
   return (
+    <>
     <header className={styles.header}>
       <div className={styles.breadcrumbs}>
         {breadcrumbs.map((crumb, index) => (
@@ -627,22 +633,20 @@ export function DashboardHeader() {
               {/* Action Buttons - Only show if user can access billing */}
               {canAccessBilling && (
                 <div className={styles.userMenuActions}>
-                  <Link 
-                    href="/dashboard/credits/add" 
+                  <button 
                     className={styles.addCreditsButton}
-                    onClick={() => setIsUserMenuOpen(false)}
+                    onClick={() => { setIsUserMenuOpen(false); setShowCreditsModal(true); }}
                   >
                     <Plus size={16} />
                     <span>{t('user.addCredits')}</span>
-                  </Link>
-                  <Link 
-                    href="/dashboard/upgrade" 
+                  </button>
+                  <button 
                     className={styles.upgradePlanButton}
-                    onClick={() => setIsUserMenuOpen(false)}
+                    onClick={() => { setIsUserMenuOpen(false); setShowUpgradeModal(true); }}
                   >
                     <Crown size={16} />
                     <span>{t('user.upgradePlan')}</span>
-                  </Link>
+                  </button>
                 </div>
               )}
 
@@ -661,5 +665,9 @@ export function DashboardHeader() {
         </div>
       </div>
     </header>
+
+    <UpgradePlanModal isOpen={showUpgradeModal} onClose={() => setShowUpgradeModal(false)} />
+    <AddCreditsModal isOpen={showCreditsModal} onClose={() => setShowCreditsModal(false)} />
+  </>
   );
 }

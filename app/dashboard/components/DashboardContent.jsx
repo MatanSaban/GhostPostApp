@@ -374,22 +374,28 @@ export default function DashboardContent({ translations }) {
       </select>
       {preset === 'custom' && (
         <>
-          <input
-            type="date"
-            className={styles.chartDateInput}
-            value={startDate}
-            onChange={(e) => onStartChange(e.target.value)}
-            max={endDate}
-          />
+          <label className={styles.chartDateLabel}>
+            <span className={styles.chartDateLabelText}>{t.dateFrom || 'From'}</span>
+            <input
+              type="date"
+              className={styles.chartDateInput}
+              value={startDate}
+              onChange={(e) => onStartChange(e.target.value)}
+              max={endDate}
+            />
+          </label>
           <span className={styles.chartDateSeparator}>—</span>
-          <input
-            type="date"
-            className={styles.chartDateInput}
-            value={endDate}
-            onChange={(e) => onEndChange(e.target.value)}
-            min={startDate}
-            max={fmtDate(new Date())}
-          />
+          <label className={styles.chartDateLabel}>
+            <span className={styles.chartDateLabelText}>{t.dateTo || 'To'}</span>
+            <input
+              type="date"
+              className={styles.chartDateInput}
+              value={endDate}
+              onChange={(e) => onEndChange(e.target.value)}
+              min={startDate}
+              max={fmtDate(new Date())}
+            />
+          </label>
         </>
       )}
     </div>
@@ -865,45 +871,6 @@ export default function DashboardContent({ translations }) {
     return `https://${raw}`;
   };
 
-  // Top pages table
-  const renderTopPages = () => {
-    const activePages = pagesData ?? data?.topPages;
-    if (!activePages?.length) return null;
-    const pagesPeriod = getPeriodName(pagesStartDate, pagesEndDate, pagesPreset);
-    return (
-      <div className={styles.topPagesTable}>
-        <div className={styles.topPagesHeader}>
-          <span className={styles.topPagesColPage}>{t.page}</span>
-          <span className={styles.topPagesColNum}>{t.clicks}</span>
-          <span className={styles.topPagesColNum}>{t.impressions}</span>
-          <span className={styles.topPagesColNum}>{t.ctr}</span>
-          <span className={styles.topPagesColNum}>{t.position}</span>
-        </div>
-        {activePages.slice(0, 5).map((row, i) => {
-          let display = row.page;
-          try {
-            const u = new URL(row.page);
-            display = u.hostname + (u.pathname === '/' ? '' : decodeURIComponent(u.pathname));
-          } catch { /* keep raw */ }
-          return (
-            <div key={i} className={styles.topPagesRow}>
-              <span className={styles.topPagesColPage} title={row.page}>
-                <a href={toExternalUrl(row.page)} target="_blank" rel="noopener noreferrer" className={styles.pageLink}>
-                  {display}
-                  <ExternalLink size={12} className={styles.pageLinkIcon} />
-                </a>
-              </span>
-              <span className={styles.topPagesColNum}>{fmtNum(row.clicks)} <ChangeBadge value={row.clicksChange} tooltip={changeTip(row.clicksChange, { value: fmtNum(row.clicks), metric: t.clicks, period: pagesPeriod })} /></span>
-              <span className={styles.topPagesColNum}>{fmtNum(row.impressions)} <ChangeBadge value={row.impressionsChange} tooltip={changeTip(row.impressionsChange, { value: fmtNum(row.impressions), metric: t.impressions, period: pagesPeriod })} /></span>
-              <span className={styles.topPagesColNum}>{row.ctr}%</span>
-              <span className={styles.topPagesColNum}>{row.position}</span>
-            </div>
-          );
-        })}
-      </div>
-    );
-  };
-
   // ─── AI Traffic: Engine Breakdown ───
   const AI_COLORS = ['#8b5cf6', '#06b6d4', '#f59e0b', '#ef4444', '#10b981', '#6366f1'];
 
@@ -1106,6 +1073,7 @@ export default function DashboardContent({ translations }) {
   // };
 
   // ─── Top Keywords Section ───
+  // ─── Unified GSC Table (keywords + pages) ───
   const [keywordSort, setKeywordSort] = useState('clicks');
 
   const getSortedKeywords = () => {
@@ -1119,62 +1087,87 @@ export default function DashboardContent({ translations }) {
     return sorted.slice(0, 10);
   };
 
-  const renderTopKeywords = () => {
-    const keywords = getSortedKeywords();
-    if (!keywords.length) return null;
-    const kwPeriod = getPeriodName(keywordsStartDate, keywordsEndDate, keywordsPreset);
+  const GSCTable = ({ rows, variant, period, sortField, onSortChange }) => {
+    if (!rows?.length) return null;
+    const isPages = variant === 'pages';
+    const isKeywords = variant === 'keywords';
+
+    const formatLabel = (row) => {
+      if (isPages) {
+        let display = row.page;
+        try {
+          const u = new URL(row.page);
+          display = u.hostname + (u.pathname === '/' ? '' : decodeURIComponent(u.pathname));
+        } catch { /* keep raw */ }
+        return (
+          <span className={styles.gscColLabel} title={row.page}>
+            <a href={toExternalUrl(row.page)} target="_blank" rel="noopener noreferrer" className={styles.pageLink}>
+              {display}
+              <ExternalLink size={12} className={styles.pageLinkIcon} />
+            </a>
+          </span>
+        );
+      }
+      return (
+        <span className={styles.gscColLabel} title={row.query}>
+          {row.query}
+        </span>
+      );
+    };
 
     return (
-      <div className={styles.topKeywordsSection}>
-        {/* Header with sort selector */}
-        <div className={styles.topKeywordsHeader}>
-          <div className={styles.topKeywordsSortWrap}>
-            <label className={styles.topKeywordsSortLabel}>{t.sortBy || 'Sort by'}:</label>
-            <select
-              className={styles.topKeywordsSelect}
-              value={keywordSort}
-              onChange={(e) => setKeywordSort(e.target.value)}
-            >
-              <option value="clicks">{t.clicks}</option>
-              <option value="impressions">{t.impressions}</option>
-              <option value="ctr">{t.ctr}</option>
-              <option value="position">{t.position}</option>
-            </select>
+      <div className={styles.gscTableSection}>
+        {/* Sort selector for keywords */}
+        {isKeywords && onSortChange && (
+          <div className={styles.gscSortHeader}>
+            <div className={styles.gscSortWrap}>
+              <label className={styles.gscSortLabel}>{t.sortBy || 'Sort by'}:</label>
+              <select
+                className={styles.gscSortSelect}
+                value={sortField}
+                onChange={(e) => onSortChange(e.target.value)}
+              >
+                <option value="clicks">{t.clicks}</option>
+                <option value="impressions">{t.impressions}</option>
+                <option value="ctr">{t.ctr}</option>
+                <option value="position">{t.position}</option>
+              </select>
+            </div>
           </div>
-        </div>
+        )}
 
-        {/* Keywords table */}
-        <div className={styles.topKeywordsTable}>
-          <div className={styles.topKeywordsTableHeader}>
-            <span className={styles.topKeywordsColRank}>#</span>
-            <span className={styles.topKeywordsColQuery}>{t.keyword || 'Keyword'}</span>
-            <span className={styles.topKeywordsColNum}>{t.clicks}</span>
-            <span className={styles.topKeywordsColNum}>{t.impressions}</span>
-            <span className={styles.topKeywordsColNum}>{t.ctr}</span>
-            <span className={styles.topKeywordsColNum}>{t.position}</span>
+        <div className={`${styles.gscTable} ${isKeywords ? styles.gscTableWithRank : ''}`}>
+          <div className={styles.gscTableHeader}>
+            {isKeywords && <span className={styles.gscColRank}>#</span>}
+            <span className={styles.gscColLabel}>{isPages ? t.page : (t.keyword || 'Keyword')}</span>
+            <span className={styles.gscColNum}>{t.clicks}</span>
+            <span className={styles.gscColNum}>{t.impressions}</span>
+            <span className={styles.gscColNum}>{t.ctr}</span>
+            <span className={styles.gscColNum}>{t.position}</span>
           </div>
-          {keywords.map((row, i) => (
-            <div key={i} className={styles.topKeywordsRow}>
-              <span className={styles.topKeywordsColRank}>
-                <span className={styles.topKeywordsRankBadge}>{i + 1}</span>
-              </span>
-              <span className={styles.topKeywordsColQuery} title={row.query}>
-                {row.query}
-              </span>
-              <span className={`${styles.topKeywordsColNum} ${keywordSort === 'clicks' ? styles.topKeywordsHighlight : ''}`}>
+          {rows.map((row, i) => (
+            <div key={i} className={styles.gscTableRow}>
+              {isKeywords && (
+                <span className={styles.gscColRank}>
+                  <span className={styles.gscRankBadge}>{i + 1}</span>
+                </span>
+              )}
+              {formatLabel(row)}
+              <span className={`${styles.gscColNum} ${sortField === 'clicks' ? styles.gscHighlight : ''}`}>
                 {fmtNum(row.clicks)}
-                <ChangeBadge value={row.clicksChange} tooltip={changeTip(row.clicksChange, { value: fmtNum(row.clicks), metric: t.clicks, period: kwPeriod })} />
+                <ChangeBadge value={row.clicksChange} tooltip={changeTip(row.clicksChange, { value: fmtNum(row.clicks), metric: t.clicks, period })} />
               </span>
-              <span className={`${styles.topKeywordsColNum} ${keywordSort === 'impressions' ? styles.topKeywordsHighlight : ''}`}>
+              <span className={`${styles.gscColNum} ${sortField === 'impressions' ? styles.gscHighlight : ''}`}>
                 {fmtNum(row.impressions)}
-                <ChangeBadge value={row.impressionsChange} tooltip={changeTip(row.impressionsChange, { value: fmtNum(row.impressions), metric: t.impressions, period: kwPeriod })} />
+                <ChangeBadge value={row.impressionsChange} tooltip={changeTip(row.impressionsChange, { value: fmtNum(row.impressions), metric: t.impressions, period })} />
               </span>
-              <span className={`${styles.topKeywordsColNum} ${keywordSort === 'ctr' ? styles.topKeywordsHighlight : ''}`}>
+              <span className={`${styles.gscColNum} ${sortField === 'ctr' ? styles.gscHighlight : ''}`}>
                 {row.ctr}%
+                <ChangeBadge value={row.ctrChange} tooltip={changeTip(row.ctrChange, { value: `${row.ctr}%`, metric: t.ctr, period })} />
               </span>
-              <span className={`${styles.topKeywordsColNum} ${keywordSort === 'position' ? styles.topKeywordsHighlight : ''}`}>
+              <span className={`${styles.gscColNum} ${sortField === 'position' ? styles.gscHighlight : ''}`}>
                 {row.position}
-                <ChangeBadge value={row.positionChange} tooltip={positionTip(row.positionChange, kwPeriod)} />
+                <ChangeBadge value={row.positionChange} tooltip={positionTip(row.positionChange, period)} />
               </span>
             </div>
           ))}
@@ -1253,7 +1246,7 @@ export default function DashboardContent({ translations }) {
               <div className={styles.dashboardSectionHeader}>
                 {data?.gaConnected && (
                   <div className={styles.kpiDateGroup}>
-                    <GAIcon />
+                    <span className={styles.iconTooltip} data-tooltip={t.dataFromGA}><GAIcon /></span>
                     <DateRangeSelect
                       preset={gaPreset}
                       onPresetChange={makePresetHandler(setGaPreset, setGaStartDate, setGaEndDate)}
@@ -1267,7 +1260,7 @@ export default function DashboardContent({ translations }) {
                 )}
                 {data?.gscConnected && (
                   <div className={styles.kpiDateGroup}>
-                    <GSCIcon />
+                    <span className={styles.iconTooltip} data-tooltip={t.dataFromGSC}><GSCIcon /></span>
                     <DateRangeSelect
                       preset={gscPreset}
                       onPresetChange={makePresetHandler(setGscPreset, setGscStartDate, setGscEndDate)}
@@ -1383,7 +1376,13 @@ export default function DashboardContent({ translations }) {
                   <Activity size={48} className={`${styles.chartPlaceholderIcon} ${styles.spinning}`} />
                 </div>
               ) : (keywordsData ?? data?.topQueries)?.length > 0 ? (
-                renderTopKeywords()
+                <GSCTable
+                  rows={getSortedKeywords()}
+                  variant="keywords"
+                  period={getPeriodName(keywordsStartDate, keywordsEndDate, keywordsPreset)}
+                  sortField={keywordSort}
+                  onSortChange={setKeywordSort}
+                />
               ) : (
                 <div className={styles.chartPlaceholder}>
                   <p>{t.noDataForRange || 'No data available for this date range.'}</p>
@@ -1415,7 +1414,11 @@ export default function DashboardContent({ translations }) {
                   <Activity size={48} className={`${styles.chartPlaceholderIcon} ${styles.spinning}`} />
                 </div>
               ) : (pagesData ?? data?.topPages)?.length > 0 ? (
-                renderTopPages()
+                <GSCTable
+                  rows={(pagesData ?? data?.topPages)?.slice(0, 5)}
+                  variant="pages"
+                  period={getPeriodName(pagesStartDate, pagesEndDate, pagesPreset)}
+                />
               ) : (
                 <div className={styles.chartPlaceholder}>
                   <p>{t.noDataForRange || 'No data available for this date range.'}</p>

@@ -394,7 +394,7 @@ function RepeaterField({ field, value }) {
                   <label className={styles.acfFieldLabel}>
                     {subField.label}
                   </label>
-                  <div style={{ color: 'var(--muted-foreground)', fontSize: '0.875rem' }}>
+                  <div style={{ color: 'var(--muted-foreground)', fontSize: '0.8125rem' }}>
                     {JSON.stringify(row[subField.name])}
                   </div>
                 </div>
@@ -429,7 +429,7 @@ function GroupField({ field, value }) {
           <label className={styles.acfFieldLabel}>
             {subField.label}
           </label>
-          <div style={{ color: 'var(--muted-foreground)', fontSize: '0.875rem' }}>
+          <div style={{ color: 'var(--muted-foreground)', fontSize: '0.8125rem' }}>
             {JSON.stringify(groupData[subField.name])}
           </div>
         </div>

@@ -109,7 +109,7 @@ export default function QuestionTable({
             </td>
             <td>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                <span style={{ fontWeight: 500, fontFamily: 'monospace', fontSize: '0.875rem' }}>
+                <span style={{ fontWeight: 500, fontFamily: 'monospace', fontSize: '0.8125rem' }}>
                   {question.translationKey}
                 </span>
                 {question.saveToField && (
@@ -122,7 +122,7 @@ export default function QuestionTable({
             <td>
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                 {getTypeIcon(question.questionType)}
-                <span style={{ fontSize: '0.875rem' }}>
+                <span style={{ fontSize: '0.8125rem' }}>
                   {getTypeLabel(t, question.questionType)}
                 </span>
               </div>
