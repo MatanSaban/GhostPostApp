@@ -130,7 +130,7 @@
 }
 
 .automationName {
-  font-size: 0.9375rem;
+  font-size: 0.9rem;
   font-weight: 500;
   color: var(--foreground);
 }
@@ -267,7 +267,7 @@
 }
 
 .activityText {
-  font-size: 0.9375rem;
+  font-size: 0.9rem;
   color: var(--foreground);
 }
 

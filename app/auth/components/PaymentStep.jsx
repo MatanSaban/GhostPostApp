@@ -32,7 +32,7 @@ export function PaymentStep({ translations, selectedPlan, userData, onComplete }
   const [cardOwnerPhone, setCardOwnerPhone] = useState(defaultPhone);
   const [expirationMonth, setExpirationMonth] = useState('');
   const [expirationYear, setExpirationYear] = useState('');
-  const [numberOfPayments, setNumberOfPayments] = useState('1');
+  const [numberOfPayments] = useState('1');
 
   // Validation state from iframes
   const [cardNumberValid, setCardNumberValid] = useState(null);
@@ -444,8 +444,30 @@ export function PaymentStep({ translations, selectedPlan, userData, onComplete }
                 <Check size={16} style={{ color: '#22c55e' }} />
                 <span style={{ flex: 1, fontFamily: 'monospace', fontWeight: 600 }}>{couponData.code}</span>
                 {(couponData.hasLimitationOverrides || couponData.hasExtraFeatures) && (
-                  <span style={{ fontSize: '0.6875rem', color: '#22c55e', padding: '0.125rem 0.5rem', background: 'rgba(34,197,94,0.15)', borderRadius: '9999px' }}>
-                    + {translations.coupon?.bonuses || 'Bonuses'}
+                  <span style={{ position: 'relative', display: 'inline-flex' }} className="couponBonusWrap">
+                    <span style={{ fontSize: '0.6875rem', color: '#22c55e', padding: '0.125rem 0.5rem', background: 'rgba(34,197,94,0.15)', borderRadius: '9999px', cursor: 'help' }}>
+                      + {translations.coupon?.bonuses || 'Bonuses'}
+                    </span>
+                    <span style={{
+                      position: 'absolute', bottom: 'calc(100% + 6px)', insetInlineStart: '50%', transform: 'translateX(-50%)',
+                      background: '#1f2937', color: '#f9fafb', fontSize: '0.6875rem', padding: '0.5rem 0.75rem',
+                      borderRadius: '8px', display: 'flex', flexDirection: 'column', gap: '0.25rem',
+                      whiteSpace: 'nowrap', opacity: 0, visibility: 'hidden', transition: 'opacity 0.15s, visibility 0.15s',
+                      pointerEvents: 'none', zIndex: 9999, boxShadow: '0 2px 8px rgba(0,0,0,0.18)',
+                    }} className="couponBonusTooltip">
+                      {couponData.limitationOverrides?.map((o, i) => (
+                        <span key={`lo-${i}`}>✦ {translations.limitations?.[o.key] || o.key}: {o.value?.toLocaleString()}</span>
+                      ))}
+                      {couponData.extraFeatures?.map((f, i) => (
+                        <span key={`ef-${i}`}>✦ {translations.features?.[f] || f}</span>
+                      ))}
+                    </span>
+                    <style>{`
+                      .couponBonusWrap:hover .couponBonusTooltip {
+                        opacity: 1 !important;
+                        visibility: visible !important;
+                      }
+                    `}</style>
                   </span>
                 )}
                 <button
@@ -669,25 +691,6 @@ export function PaymentStep({ translations, selectedPlan, userData, onComplete }
                       />
                     </div>
                   </div>
-                </div>
-
-                {/* Number of Payments */}
-                <div className={styles.formGroup}>
-                  <label className={styles.formLabel}>
-                    {translations.numberOfPayments || 'מספר תשלומים'}
-                  </label>
-                  <select
-                    value={numberOfPayments}
-                    onChange={(e) => setNumberOfPayments(e.target.value)}
-                    className={styles.formSelect}
-                    disabled={isProcessing}
-                  >
-                    <option value="1">{translations.singlePayment || 'תשלום אחד'}</option>
-                    <option value="2">2 {translations.payments || 'תשלומים'}</option>
-                    <option value="3">3 {translations.payments || 'תשלומים'}</option>
-                    <option value="6">6 {translations.payments || 'תשלומים'}</option>
-                    <option value="12">12 {translations.payments || 'תשלומים'}</option>
-                  </select>
                 </div>
               </>
             )}

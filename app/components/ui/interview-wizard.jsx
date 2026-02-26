@@ -5,6 +5,7 @@ import { createPortal } from 'react-dom';
 import { X, Send, CheckCircle2, Loader2, ChevronDown, Edit2, Check, RotateCcw, ExternalLink } from 'lucide-react';
 import Image from 'next/image';
 import { useLocale } from '@/app/context/locale-context';
+import AddCreditsModal from '@/app/components/ui/AddCreditsModal';
 import styles from './interview-wizard.module.css';
 
 export const InterviewWizard = forwardRef(function InterviewWizard({ onClose, onComplete, site }, ref) {
@@ -56,6 +57,10 @@ export const InterviewWizard = forwardRef(function InterviewWizard({ onClose, on
   // Auto action state (for AUTO_ACTION questions)
   const [isAutoActionRunning, setIsAutoActionRunning] = useState(false);
   const autoActionInProgress = useRef(false); // Use ref to avoid stale closure issues
+  // Auto action error state (e.g., website unreachable)
+  const [autoActionError, setAutoActionError] = useState(null);
+  // AI credits error state
+  const [creditsError, setCreditsError] = useState(null);
   // Edit modal state for EDITABLE_DATA
   const [showEditModal, setShowEditModal] = useState(false);
   const [editableDataConfirmed, setEditableDataConfirmed] = useState(false);
@@ -127,6 +132,29 @@ export const InterviewWizard = forwardRef(function InterviewWizard({ onClose, on
     console.log('[InterviewWizard] Starting interview');
     setHasStarted(true);
   };
+
+  // Check AI credit balance on mount
+  useEffect(() => {
+    const checkCredits = async () => {
+      try {
+        const res = await fetch('/api/credits/balance');
+        if (res.ok) {
+          const data = await res.json();
+          // -1 means unlimited
+          if (data.limit !== -1 && data.used >= data.limit) {
+            setCreditsError({
+              message: t('interviewWizard.errors.insufficientCredits') || 'Insufficient AI Credits',
+              currentUsage: data.used,
+              limit: data.limit,
+            });
+          }
+        }
+      } catch (err) {
+        console.error('[InterviewWizard] Error checking credits:', err);
+      }
+    };
+    checkCredits();
+  }, []);
 
   const fetchInterview = async () => {
     console.log('[InterviewWizard] fetchInterview started, site:', site?.url);
@@ -259,6 +287,9 @@ export const InterviewWizard = forwardRef(function InterviewWizard({ onClose, on
     
     // Only for AI_SUGGESTION questions with a suggestionsSource
     if (currentQuestion.questionType !== 'AI_SUGGESTION') return;
+    
+    // Skip AI actions if credits are exhausted
+    if (creditsError) return;
     
     const config = currentQuestion.inputConfig || {};
     const source = config.suggestionsSource;
@@ -510,6 +541,9 @@ export const InterviewWizard = forwardRef(function InterviewWizard({ onClose, on
     // Only for AUTO_ACTION questions
     if (currentQuestion.questionType !== 'AUTO_ACTION') return;
     
+    // Skip if credits are exhausted
+    if (creditsError) return;
+    
     const config = currentQuestion.inputConfig || {};
     // Support multiple config formats: 'autoAction', 'actionToRun', or 'autoActions' array
     const actionName = config.autoAction || config.actionToRun || 
@@ -531,6 +565,7 @@ export const InterviewWizard = forwardRef(function InterviewWizard({ onClose, on
       autoActionInProgress.current = true;
       console.log('[InterviewWizard] Running auto-action:', actionName);
       setIsAutoActionRunning(true);
+      setAutoActionError(null); // Clear previous errors
       const websiteUrl = responses.websiteUrl || externalData?.crawledData?.url;
       
       try {
@@ -551,9 +586,26 @@ export const InterviewWizard = forwardRef(function InterviewWizard({ onClose, on
           }
         } else {
           console.warn('[InterviewWizard] Auto-action failed:', result.error);
+          // Show error to user (e.g., website unreachable, credits insufficient)
+          if (result.creditsError) {
+            setCreditsError(result.creditsError);
+          } else {
+            setAutoActionError({
+              actionName,
+              error: result.error || t('interviewWizard.errors.autoActionFailed') || 'Something went wrong. Please try again.',
+            });
+          }
         }
       } catch (err) {
         console.error('[InterviewWizard] Error running auto action:', err);
+        if (err.creditsError) {
+          setCreditsError(err.creditsError);
+        } else {
+          setAutoActionError({
+            actionName,
+            error: err.message || t('interviewWizard.errors.autoActionFailed') || 'Something went wrong. Please try again.',
+          });
+        }
       } finally {
         setIsAutoActionRunning(false);
         autoActionInProgress.current = false;
@@ -571,6 +623,9 @@ export const InterviewWizard = forwardRef(function InterviewWizard({ onClose, on
     if (competitorSearchInProgress.current) return;
     
     if (!questionsData || currentQuestionIndex === undefined) return;
+    
+    // Skip if credits are exhausted
+    if (creditsError) return;
     
     const currentQuestion = questionsData[currentQuestionIndex];
     if (!currentQuestion) return;
@@ -840,6 +895,17 @@ export const InterviewWizard = forwardRef(function InterviewWizard({ onClose, on
       });
       
       if (!res.ok) {
+        // Handle 402 - insufficient credits
+        if (res.status === 402) {
+          const data = await res.json().catch(() => ({}));
+          const creditsErr = {
+            message: data.error || t('interviewWizard.errors.insufficientCredits') || 'Insufficient AI credits',
+            currentUsage: data.currentUsage,
+            limit: data.limit,
+          };
+          setCreditsError(creditsErr);
+          return { success: false, error: creditsErr.message, creditsError: creditsErr };
+        }
         throw new Error('Failed to trigger AI action');
       }
       
@@ -855,7 +921,7 @@ export const InterviewWizard = forwardRef(function InterviewWizard({ onClose, on
       };
     } catch (err) {
       console.error('Error triggering AI action:', err);
-      return { success: false, error: err.message };
+      return { success: false, error: err.message, creditsError: err.creditsError };
     } finally {
       setIsLoadingAiSuggestions(false);
     }
@@ -1049,8 +1115,12 @@ export const InterviewWizard = forwardRef(function InterviewWizard({ onClose, on
       setAiSuggestions(null);
       setSelectedSuggestions([]);
       setSelectedCompetitors([]);
-      // Mark search as "done" so the useEffect won't re-fire
-      competitorSearchInProgress.current = true;
+      // Only mark competitor search as "done" when submitting the competitor question itself,
+      // NOT when submitting the keywords question (which comes before competitors)
+      const submitConfig = currentQuestion.inputConfig || {};
+      if (submitConfig.suggestionsSource === 'findCompetitors') {
+        competitorSearchInProgress.current = true;
+      }
     }
     
     // For GREETING type, just move to next question
@@ -1692,8 +1762,132 @@ export const InterviewWizard = forwardRef(function InterviewWizard({ onClose, on
         );
 
       case 'AUTO_ACTION':
-        // Auto-action runs via useEffect and advances automatically — no input UI needed
-        return null;
+        // Auto-action runs via useEffect and advances automatically
+        // Show credits error UI if credits are insufficient
+        if (creditsError) {
+          return (
+            <div className={styles.autoActionErrorContainer}>
+              <div className={styles.autoActionErrorBanner} style={{ borderColor: 'rgba(255, 165, 0, 0.25)', background: 'rgba(255, 165, 0, 0.08)', color: '#ffa500' }}>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                  <line x1="12" y1="9" x2="12" y2="13"/>
+                  <line x1="12" y1="17" x2="12.01" y2="17"/>
+                </svg>
+                <div className={styles.autoActionErrorText}>
+                  <strong style={{ color: '#ffa500' }}>{t('interviewWizard.errors.insufficientCredits') || 'Insufficient AI Credits'}</strong>
+                  <p>{t('interviewWizard.errors.insufficientCreditsDesc') || 'You have run out of AI credits. Please upgrade your plan to continue using AI features.'}</p>
+                </div>
+              </div>
+              <div className={styles.autoActionErrorActions}>
+                <button
+                  onClick={handleClose}
+                  className={styles.secondaryButton}
+                >
+                  {t('common.close') || 'Close'}
+                </button>
+              </div>
+            </div>
+          );
+        }
+        // Show error UI if action failed (e.g., website unreachable)
+        if (autoActionError) {
+          return (
+            <div className={styles.autoActionErrorContainer}>
+              <div className={styles.autoActionErrorBanner}>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="12" r="10"/>
+                  <line x1="15" y1="9" x2="9" y2="15"/>
+                  <line x1="9" y1="9" x2="15" y2="15"/>
+                </svg>
+                <div className={styles.autoActionErrorText}>
+                  <strong>{t('interviewWizard.errors.websiteUnreachable') || 'Website is not reachable'}</strong>
+                  <p>{t('interviewWizard.errors.websiteUnreachableDesc') || 'We could not access the website you provided. Please check the URL and try again.'}</p>
+                </div>
+              </div>
+              <div className={styles.autoActionErrorActions}>
+                <button
+                  onClick={() => {
+                    setAutoActionError(null);
+                    // Revert to the URL question
+                    const urlQuestionIndex = questionsData.findIndex(q => q.saveToField === 'websiteUrl');
+                    if (urlQuestionIndex !== -1) {
+                      // Reset state
+                      setCurrentQuestionIndex(urlQuestionIndex);
+                      setInputValue(responses.websiteUrl || '');
+                      // Remove messages after the URL question
+                      const urlAgentMsgIdx = messages.findIndex(m => m.questionId === questionsData[urlQuestionIndex]?.id);
+                      if (urlAgentMsgIdx !== -1) {
+                        setMessages(prev => prev.slice(0, urlAgentMsgIdx));
+                      }
+                      // Re-add the URL question message
+                      const agentMsgId = messageIdCounter.current++;
+                      setMessages(prev => [...prev, {
+                        id: `msg-${agentMsgId}`,
+                        type: 'agent',
+                        content: t(questionsData[urlQuestionIndex].translationKey),
+                        questionType: questionsData[urlQuestionIndex].questionType,
+                        inputConfig: questionsData[urlQuestionIndex].inputConfig,
+                        questionId: questionsData[urlQuestionIndex].id,
+                        timestamp: new Date()
+                      }]);
+                    }
+                  }}
+                  className={styles.primaryButton}
+                >
+                  {t('interviewWizard.errors.changeUrl') || 'Change URL'}
+                </button>
+                <button
+                  onClick={() => {
+                    setAutoActionError(null);
+                    autoActionInProgress.current = false;
+                    // Retry with same URL
+                    const websiteUrl = responses.websiteUrl || externalData?.crawledData?.url;
+                    setIsAutoActionRunning(true);
+                    triggerAiAction(autoActionError.actionName, { url: websiteUrl }).then(result => {
+                      if (result.success) {
+                        if (result.externalData?.articles) {
+                          setDynamicOptions(result.externalData.articles);
+                        }
+                        submitResponse(currentQuestion.id, 'auto_completed').then(submitResult => {
+                          if (submitResult.success) moveToNextQuestion();
+                        });
+                      } else {
+                        if (result.creditsError) {
+                          setCreditsError(result.creditsError);
+                        } else {
+                          setAutoActionError({
+                            actionName: autoActionError.actionName,
+                            error: result.error,
+                          });
+                        }
+                      }
+                      setIsAutoActionRunning(false);
+                    });
+                  }}
+                  className={styles.secondaryButton}
+                >
+                  {t('common.retry') || 'Try Again'}
+                </button>
+              </div>
+            </div>
+          );
+        }
+        // Show loading spinner during auto action
+        if (isAutoActionRunning) {
+          return (
+            <div className={styles.autoActionLoading}>
+              <Loader2 size={20} className={styles.spinIcon} />
+              <span>{t('interviewWizard.messages.analyzing') || 'Analyzing your website...'}</span>
+            </div>
+          );
+        }
+        // If no error and not running, auto-action hasn't started yet — return loading
+        return (
+          <div className={styles.autoActionLoading}>
+            <Loader2 size={20} className={styles.spinIcon} />
+            <span>{t('interviewWizard.messages.analyzing') || 'Analyzing your website...'}</span>
+          </div>
+        );
 
       case 'INPUT_WITH_AI':
         // Two-phase input: first textarea, then AI suggestions
@@ -2819,6 +3013,13 @@ export const InterviewWizard = forwardRef(function InterviewWizard({ onClose, on
                 'width=500,height=650,scrollbars=yes,resizable=yes'
               );
               
+              // Check if the popup was blocked by the browser
+              if (!popup || popup.closed || typeof popup.closed === 'undefined') {
+                console.warn('[GoogleIntegration] Popup was blocked by browser');
+                setGoogleIntegrationStatus('popup-blocked');
+                return;
+              }
+              
               // Listen for postMessage from popup
               const messageHandler = (event) => {
                 if (event.data?.type === 'google-integration-success') {
@@ -2917,6 +3118,29 @@ export const InterviewWizard = forwardRef(function InterviewWizard({ onClose, on
                   <button
                     onClick={() => {
                       setGoogleIntegrationStatus('idle');
+                    }}
+                    className={styles.secondaryButton}
+                  >
+                    {t('common.retry') || 'Try Again'}
+                  </button>
+                </>
+              )}
+              
+              {googleIntegrationStatus === 'popup-blocked' && (
+                <>
+                  <div className={styles.integrationWarning}>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                      <line x1="12" y1="9" x2="12" y2="13"/>
+                      <line x1="12" y1="17" x2="12.01" y2="17"/>
+                    </svg>
+                    <span>{t('interviewWizard.googleIntegration.popupBlocked') || 'The sign-in popup was blocked by your browser. Please allow popups for this site and try again.'}</span>
+                  </div>
+                  <button
+                    onClick={() => {
+                      setGoogleIntegrationStatus('idle');
+                      // Small delay then retry
+                      setTimeout(() => handleConnectGoogle(), 100);
                     }}
                     className={styles.secondaryButton}
                   >
@@ -3030,6 +3254,11 @@ export const InterviewWizard = forwardRef(function InterviewWizard({ onClose, on
       </div>,
       document.body
     );
+  }
+
+  // If credits are exhausted, show add-credits modal instead of interview
+  if (creditsError) {
+    return <AddCreditsModal isOpen={true} onClose={onClose} />;
   }
 
   // Welcome screen - show before interview starts
@@ -3417,6 +3646,7 @@ export const InterviewWizard = forwardRef(function InterviewWizard({ onClose, on
             </div>
           </div>
         )}
+
       </div>
     </div>,
     document.body

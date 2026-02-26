@@ -190,7 +190,7 @@
   border: 1px solid var(--input-border);
   border-radius: var(--radius-md);
   color: var(--foreground);
-  font-size: 0.9375rem;
+  font-size: 0.9rem;
   transition: border-color var(--transition-fast);
 }
 
@@ -311,7 +311,7 @@
 }
 
 .domainName {
-  font-size: 0.9375rem;
+  font-size: 0.9rem;
   font-weight: 600;
   color: var(--foreground);
   direction: ltr;
@@ -396,7 +396,7 @@
 }
 
 .metricValue {
-  font-size: 0.9375rem;
+  font-size: 0.9rem;
   font-weight: 600;
   color: var(--foreground);
 }
@@ -640,7 +640,7 @@
 }
 
 .modalLabel {
-  font-size: 0.9375rem;
+  font-size: 0.9rem;
   font-weight: 500;
   color: var(--foreground);
 }
@@ -652,7 +652,7 @@
   border: 1px solid var(--input-border);
   border-radius: var(--radius-md);
   color: var(--foreground);
-  font-size: 0.9375rem;
+  font-size: 0.9rem;
   transition: border-color var(--transition-fast);
 }
 
@@ -673,7 +673,7 @@
   border: 1px solid var(--input-border);
   border-radius: var(--radius-md);
   color: var(--foreground);
-  font-size: 0.9375rem;
+  font-size: 0.9rem;
   cursor: pointer;
   outline: none;
   transition: border-color var(--transition-fast);
@@ -692,7 +692,7 @@
 }
 
 .paymentOptionsLabel {
-  font-size: 0.9375rem;
+  font-size: 0.9rem;
   font-weight: 500;
   color: var(--foreground);
   margin-bottom: -0.25rem;
@@ -776,7 +776,7 @@
 }
 
 .paymentName {
-  font-size: 0.9375rem;
+  font-size: 0.9rem;
   font-weight: 600;
   color: var(--foreground);
 }
@@ -799,7 +799,7 @@
 .modalCancel {
   padding: 0.5rem 1rem;
   border-radius: var(--radius-md);
-  font-size: 0.9375rem;
+  font-size: 0.9rem;
   color: var(--muted-foreground);
   transition: color var(--transition-fast);
   background: none;
@@ -819,7 +819,7 @@
   background: var(--gradient-primary);
   color: #fff;
   border-radius: var(--radius-md);
-  font-size: 0.9375rem;
+  font-size: 0.9rem;
   font-weight: 500;
   border: none;
   cursor: pointer;
@@ -871,7 +871,7 @@
 }
 
 .emptyDesc {
-  font-size: 0.9375rem;
+  font-size: 0.9rem;
   color: var(--muted-foreground);
 }
 
@@ -966,7 +966,7 @@
   transform: translateX(-50%);
   padding: 0.75rem 1.25rem;
   border-radius: var(--radius-md);
-  font-size: 0.9375rem;
+  font-size: 0.9rem;
   font-weight: 500;
   z-index: 11000;
   animation: toastIn 300ms ease;

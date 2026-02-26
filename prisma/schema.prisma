@@ -769,6 +769,7 @@ model Site {
   interview       Interview?
   keywords        Keyword[]
   contents        Content[]
+  campaigns       Campaign[]
   redirections    Redirection[]
   audits          SiteAudit[]
   entityTypes     SiteEntityType[]
@@ -1082,8 +1083,50 @@ enum InterviewStatus {
 }
 
 // ==========================================
-// KEYWORD & CONTENT MODELS
+// CAMPAIGN, KEYWORD & CONTENT MODELS
 // ==========================================
+
+model Campaign {
+  id                String         @id @default(auto()) @map("_id") @db.ObjectId
+  siteId            String         @db.ObjectId
+  name              String
+  color             String         @default("#6366f1") // Hex color for calendar dots
+  status            CampaignStatus @default(DRAFT)
+
+  // Schedule
+  startDate         DateTime
+  endDate           DateTime
+  publishDays       String[]       // ["sun","mon","tue",...]
+  publishTimeMode   String         @default("random") // "random" | "fixed"
+  publishTimeStart  String?        // e.g. "09:00"
+  publishTimeEnd    String?        // e.g. "18:00"
+
+  // Content plan
+  postsCount        Int
+  articleTypes      Json           // [{id: string, count: number}]
+  contentSettings   Json           // {wordCounts, featuredImage, contentImages, ...}
+  subjects          String[]       @default([])
+  keywordIds        String[]       @db.ObjectId
+
+  // AI prompts
+  textPrompt        String?        @default("")
+  imagePrompt       String?        @default("")
+
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+
+  site     Site      @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  contents Content[]
+
+  @@index([siteId])
+}
+
+enum CampaignStatus {
+  DRAFT
+  ACTIVE
+  PAUSED
+  COMPLETED
+}
 
 model Keyword {
   id           String        @id @default(auto()) @map("_id") @db.ObjectId
@@ -1121,6 +1164,7 @@ enum KeywordStatus {
 model Content {
   id              String        @id @default(auto()) @map("_id") @db.ObjectId
   siteId          String        @db.ObjectId
+  campaignId      String?       @db.ObjectId
   keywordId       String?       @db.ObjectId
   title           String
   slug            String?
@@ -1137,8 +1181,11 @@ model Content {
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
 
-  site    Site     @relation(fields: [siteId], references: [id], onDelete: Cascade)
-  keyword Keyword? @relation(fields: [keywordId], references: [id])
+  site     Site      @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  campaign Campaign? @relation(fields: [campaignId], references: [id])
+  keyword  Keyword?  @relation(fields: [keywordId], references: [id])
+
+  @@index([campaignId])
 }
 
 enum ContentStatus {
@@ -1150,6 +1197,15 @@ enum ContentStatus {
 
 enum ContentType {
   BLOG_POST
+  SEO
+  GUIDE
+  HOW_TO
+  LISTICLE
+  COMPARISON
+  REVIEW
+  NEWS
+  TUTORIAL
+  CASE_STUDY
   PAGE
   PRODUCT
   LANDING_PAGE

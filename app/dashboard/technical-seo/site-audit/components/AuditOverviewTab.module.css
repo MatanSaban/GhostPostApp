@@ -174,7 +174,7 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  font-size: 0.9375rem;
+  font-size: 0.9rem;
   font-weight: 600;
   color: var(--foreground);
   margin: 0;
@@ -269,7 +269,7 @@
   padding: 1.5rem;
   justify-content: center;
   color: var(--muted-foreground);
-  font-size: 0.9375rem;
+  font-size: 0.9rem;
 }
 
 .spinning {
@@ -282,7 +282,7 @@
 }
 
 .summaryContent {
-  font-size: 0.9375rem;
+  font-size: 0.9rem;
   line-height: 1.7;
   color: var(--foreground);
 }

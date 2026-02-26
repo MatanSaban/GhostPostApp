@@ -49,14 +49,19 @@ export async function POST(request) {
     }
 
     // Return coupon info (without sensitive internals)
+    const limitationOverrides = Array.isArray(coupon.limitationOverrides) ? coupon.limitationOverrides : [];
+    const extraFeatures = Array.isArray(coupon.extraFeatures) ? coupon.extraFeatures : [];
+
     return NextResponse.json({
       valid: true,
       coupon: {
         code: coupon.code,
         discountType: coupon.discountType,
         discountValue: coupon.discountValue,
-        hasLimitationOverrides: Array.isArray(coupon.limitationOverrides) && coupon.limitationOverrides.length > 0,
-        hasExtraFeatures: Array.isArray(coupon.extraFeatures) && coupon.extraFeatures.length > 0,
+        hasLimitationOverrides: limitationOverrides.length > 0,
+        hasExtraFeatures: extraFeatures.length > 0,
+        limitationOverrides,
+        extraFeatures,
         durationMonths: coupon.durationMonths,
       },
     });

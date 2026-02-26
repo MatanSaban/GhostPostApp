@@ -18,6 +18,7 @@ import { useLocale } from '@/app/context/locale-context';
 import { useUser } from '@/app/context/user-context';
 import { useRouter } from 'next/navigation';
 import CardComPaymentForm from './CardComPaymentForm';
+import UpgradePlanModal from './UpgradePlanModal';
 import styles from './AddCreditsModal.module.css';
 
 /**
@@ -39,6 +40,7 @@ export default function AddCreditsModal({ isOpen, onClose }) {
   const [selectedAddon, setSelectedAddon] = useState(null);
   const [selectedQty, setSelectedQty] = useState(1);
   const [paymentComplete, setPaymentComplete] = useState(false);
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -274,19 +276,30 @@ export default function AddCreditsModal({ isOpen, onClose }) {
               </div>
             )}
 
-            {/* Footer link */}
-            <button
-              className={styles.footerLink}
-              onClick={() => {
-                handleClose();
-                router.push('/dashboard/settings?tab=credits');
-              }}
-            >
-              {t('addCreditsModal.manageCredits') || 'Manage Credits'}
-              <ArrowRight size={14} />
-            </button>
+            {/* Footer actions */}
+            <div className={styles.footerActions}>
+              <button
+                className={styles.upgradePlanBtn}
+                onClick={() => setShowUpgradeModal(true)}
+              >
+                {t('addCreditsModal.upgradePlan') || 'Upgrade Plan'}
+              </button>
+              <button
+                className={styles.footerLink}
+                onClick={() => {
+                  handleClose();
+                  router.push('/dashboard/settings?tab=credits');
+                }}
+              >
+                {t('addCreditsModal.manageCredits') || 'Manage Credits'}
+                <ArrowRight size={14} />
+              </button>
+            </div>
           </>
         )}
+
+        {/* Upgrade Plan Modal */}
+        <UpgradePlanModal isOpen={showUpgradeModal} onClose={() => setShowUpgradeModal(false)} />
       </div>
     </div>,
     document.body

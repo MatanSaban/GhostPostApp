@@ -152,7 +152,7 @@
 .footer {
   position: absolute;
   bottom: 2rem;
-  font-size: 0.9375rem;
+  font-size: 0.9rem;
   color: var(--muted-foreground);
 }
 

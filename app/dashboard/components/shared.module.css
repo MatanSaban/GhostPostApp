@@ -298,7 +298,7 @@
   display: flex;
   align-items: center;
   gap: 0.25rem;
-  font-size: 0.9375rem;
+  font-size: 0.9rem;
   font-weight: 500;
 
   &.positive {
@@ -331,7 +331,7 @@
 }
 
 .statsLabel {
-  font-size: 0.9375rem;
+  font-size: 0.9rem;
   color: var(--muted-foreground);
 }
 
@@ -448,7 +448,7 @@
 }
 
 .dashboardCardSubtitle {
-  font-size: 0.9375rem;
+  font-size: 0.9rem;
   color: var(--muted-foreground);
   margin-top: -1rem;
   margin-bottom: 1.5rem;
@@ -512,7 +512,7 @@
 }
 
 .activityText {
-  font-size: 0.9375rem;
+  font-size: 0.9rem;
   color: var(--foreground);
 }
 
@@ -779,7 +779,7 @@
 .dashboardInput {
   width: 100%;
   padding: 0.75rem 1rem;
-  font-size: 0.9375rem;
+  font-size: 0.9rem;
   color: var(--foreground);
   background: var(--muted);
   border: 1px solid var(--border);
@@ -809,7 +809,7 @@
 
 .inputLabel {
   display: block;
-  font-size: 0.9375rem;
+  font-size: 0.9rem;
   color: var(--muted-foreground);
   margin-bottom: 0.5rem;
 }
@@ -873,7 +873,7 @@
 }
 
 .emptyStateText {
-  font-size: 0.9375rem;
+  font-size: 0.9rem;
   color: var(--muted-foreground);
   margin-bottom: 1.5rem;
 }
@@ -911,7 +911,7 @@
 }
 
 .pageSubtitle {
-  font-size: 0.9375rem;
+  font-size: 0.9rem;
   color: var(--muted-foreground);
   margin-top: 0.25rem;
 }
@@ -1067,7 +1067,7 @@
 }
 
 .emptyStateDescription {
-  font-size: 0.9375rem;
+  font-size: 0.9rem;
   color: var(--muted-foreground);
   max-width: 400px;
   margin-top: 0.5rem;
@@ -1143,7 +1143,7 @@
 
 .tableCell {
   padding: 1rem;
-  font-size: 0.9375rem;
+  font-size: 0.9rem;
   color: var(--foreground);
 }
 
@@ -1185,7 +1185,7 @@
 }
 
 .formLabel {
-  font-size: 0.9375rem;
+  font-size: 0.9rem;
   font-weight: 600;
   color: var(--foreground);
 
@@ -1204,7 +1204,7 @@
 .formSelect {
   width: 100%;
   padding: 0.75rem 1rem;
-  font-size: 0.9375rem;
+  font-size: 0.9rem;
   color: var(--foreground);
   background: var(--input-background, var(--muted));
   border: 1px solid var(--input-border, var(--border));
@@ -1275,7 +1275,7 @@
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  font-size: 0.9375rem;
+  font-size: 0.9rem;
   color: var(--foreground);
   cursor: pointer;
 }

@@ -36,7 +36,7 @@
 }
 
 .description {
-  font-size: 0.9375rem;
+  font-size: 0.9rem;
   color: var(--muted-foreground);
   line-height: 1.6;
   margin-bottom: 1.5rem;
@@ -51,7 +51,7 @@
   color: var(--primary-foreground);
   border: none;
   border-radius: 0.5rem;
-  font-size: 0.9375rem;
+  font-size: 0.9rem;
   font-weight: 500;
   cursor: pointer;
   transition: opacity 0.2s ease;

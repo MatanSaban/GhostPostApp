@@ -32,7 +32,7 @@
 }
 
 .subtitle {
-  font-size: 0.9375rem;
+  font-size: 0.9rem;
   color: var(--muted-foreground);
   margin: 0;
 }
@@ -52,7 +52,7 @@
   color: #fff;
   border: none;
   border-radius: var(--radius-md, 8px);
-  font-size: 0.9375rem;
+  font-size: 0.9rem;
   font-weight: 500;
   cursor: pointer;
   transition: opacity 0.2s, box-shadow 0.2s;
@@ -90,7 +90,7 @@
   color: var(--foreground);
   border: 1px solid var(--border);
   border-radius: var(--radius-md, 8px);
-  font-size: 0.9375rem;
+  font-size: 0.9rem;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s;
@@ -128,7 +128,7 @@
   border: 1px solid rgba(239, 68, 68, 0.2);
   border-radius: var(--radius-md, 8px);
   color: #ef4444;
-  font-size: 0.9375rem;
+  font-size: 0.9rem;
 }
 
 /* ─── Scanning Card ────────────────────────────────────────── */
@@ -185,7 +185,7 @@
 }
 
 .scanningStep {
-  font-size: 0.9375rem;
+  font-size: 0.9rem;
   color: var(--primary, #7b2cbf);
   margin: 0;
   min-height: 1.4em;
@@ -267,7 +267,7 @@
 }
 
 .failedDescription {
-  font-size: 0.9375rem;
+  font-size: 0.9rem;
   color: var(--muted-foreground);
   margin: 0 0 8px 0;
   max-width: 400px;
@@ -359,7 +359,7 @@
 }
 
 .scoreItemLabel {
-  font-size: 0.9375rem;
+  font-size: 0.9rem;
   color: var(--muted-foreground);
 }
 
@@ -405,14 +405,14 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 0.9375rem;
+  font-size: 0.9rem;
   font-weight: 600;
   color: var(--foreground);
   margin: 0 0 16px 0;
 }
 
 .sectionTitleInline {
-  font-size: 0.9375rem;
+  font-size: 0.9rem;
   font-weight: 600;
   color: var(--foreground);
   margin: 0;
@@ -513,7 +513,7 @@
   border: none;
   background: transparent;
   cursor: pointer;
-  font-size: 0.9375rem;
+  font-size: 0.9rem;
   font-weight: 500;
   color: var(--muted-foreground);
   white-space: nowrap;
@@ -534,7 +534,7 @@
 }
 
 .tabLabel {
-  font-size: 0.9375rem;
+  font-size: 0.9rem;
 }
 
 .tabBadge {
@@ -622,7 +622,7 @@
   padding: 48px 24px;
   gap: 8px;
   color: var(--muted-foreground);
-  font-size: 0.9375rem;
+  font-size: 0.9rem;
 }
 
 .tabEmptyIcon {
@@ -680,7 +680,7 @@
 }
 
 .aggMessage {
-  font-size: 0.9375rem;
+  font-size: 0.9rem;
   color: var(--foreground);
   line-height: 1.4;
 }
@@ -885,7 +885,7 @@
 }
 
 .drillDownTitle {
-  font-size: 0.9375rem;
+  font-size: 0.9rem;
   font-weight: 600;
   color: var(--foreground);
   margin: 0;
@@ -917,7 +917,7 @@
 }
 
 .drillDownSubtitle {
-  font-size: 0.9375rem;
+  font-size: 0.9rem;
   font-weight: 600;
   color: var(--foreground);
   margin: 0 0 12px 0;
@@ -951,7 +951,7 @@
 .drillDownEmpty {
   padding: 24px;
   text-align: center;
-  font-size: 0.9375rem;
+  font-size: 0.9rem;
   color: var(--muted-foreground);
 }
 
@@ -1038,14 +1038,14 @@
 }
 
 .pdMetricValue {
-  font-size: 0.9375rem;
+  font-size: 0.9rem;
   font-weight: 600;
   color: var(--foreground);
   font-family: ui-monospace, SFMono-Regular, monospace;
 }
 
 .pageDetailSubtitle {
-  font-size: 0.9375rem;
+  font-size: 0.9rem;
   font-weight: 600;
   color: var(--foreground);
   margin: 0 0 10px 0;
@@ -1086,7 +1086,7 @@
 }
 
 .pageDetailNoIssues {
-  font-size: 0.9375rem;
+  font-size: 0.9rem;
   color: var(--muted-foreground);
   padding: 8px 0;
   margin: 0;
@@ -1259,7 +1259,7 @@
 }
 
 .emptyDescription {
-  font-size: 0.9375rem;
+  font-size: 0.9rem;
   color: var(--muted-foreground);
   margin: 0 0 24px 0;
   max-width: 400px;
@@ -1276,7 +1276,7 @@
 }
 
 .historyTitle {
-  font-size: 0.9375rem;
+  font-size: 0.9rem;
   font-weight: 600;
   color: var(--foreground);
   margin: 0 0 16px 0;
@@ -1351,7 +1351,7 @@
 }
 
 .historyDate {
-  font-size: 0.9375rem;
+  font-size: 0.9rem;
   color: var(--foreground);
 }
 

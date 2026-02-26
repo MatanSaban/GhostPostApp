@@ -847,6 +847,15 @@
     "calendar": "Calendar",
     "list": "List",
     "allContent": "All Content",
+    "noPosts": "No posts found. Sync your site to see content here.",
+    "untitled": "Untitled",
+    "wpConnection": {
+      "title": "WordPress Plugin Not Connected",
+      "description": "The content planner requires a connected WordPress site with the Ghost Post plugin installed. Once connected, your posts will appear on the calendar and in the list view.",
+      "hint": "Go to Settings to download the plugin and connect your WordPress site.",
+      "dismiss": "Dismiss",
+      "goToSettings": "Go to Settings"
+    },
     "aiWizard": "AI Content Wizard",
     "totalPosts": "Total Posts",
     "published": "Published",
@@ -885,6 +894,48 @@
       "date1": "Jan 15, 2024",
       "date2": "Jan 22, 2024",
       "date3": "Jan 25, 2024"
+    },
+    "campaigns": {
+      "title": "Campaigns",
+      "all": "All",
+      "noCampaigns": "No campaigns yet",
+      "createFirst": "Create your first campaign",
+      "createNew": "Create Campaign",
+      "posts": "posts",
+      "active": "Active",
+      "draft": "Draft",
+      "paused": "Paused",
+      "completed": "Completed",
+      "editCampaign": "Edit campaign",
+      "editPosts": "Edit planned posts",
+      "createPosts": "Create posts",
+      "createModal": {
+        "title": "Create Campaign",
+        "description": "Give your campaign a name and pick a color to get started",
+        "nameLabel": "Campaign Name",
+        "namePlaceholder": "e.g. Summer Blog Series",
+        "colorLabel": "Color",
+        "reservedColor": "This color is reserved for post statuses (draft / published / scheduled)",
+        "cancel": "Cancel",
+        "create": "Create"
+      },
+      "editModal": {
+        "title": "Edit Campaign",
+        "nameLabel": "Campaign Name",
+        "namePlaceholder": "e.g. Summer Blog Series",
+        "colorLabel": "Color",
+        "reservedColor": "This color is reserved for post statuses (draft / published / scheduled)",
+        "delete": "Delete campaign",
+        "deleteConfirm": "Are you sure? This will remove the campaign permanently.",
+        "confirmDelete": "Delete",
+        "cancel": "Cancel",
+        "save": "Save"
+      }
+    },
+    "preview": {
+      "title": "Post Preview",
+      "noContent": "No content available",
+      "viewOnSite": "View on site"
     }
   },
   "keywordStrategy": {
@@ -2993,87 +3044,215 @@
   },
   "aiWizard": {
     "title": "AI Content Wizard",
-    "subtitle": "Create AI-powered content in minutes",
-    "generateContent": "Generate Content",
+    "subtitle": "Plan and generate AI-powered content campaigns",
+    "generateContent": "Create Campaign",
+    "wpRequired": {
+      "title": "WordPress Connection Required",
+      "description": "Connect your WordPress site with the Ghost Post plugin to use the AI Content Wizard.",
+      "notWordpress": "The AI Content Wizard requires a WordPress website with the Ghost Post plugin installed.",
+      "notConnected": "Your WordPress site needs to be connected via the Ghost Post plugin."
+    },
     "steps": {
-      "topic": "Topic",
-      "preferences": "Preferences",
-      "scheduling": "Scheduling",
-      "review": "Review"
+      "campaign": "Campaign",
+      "postCount": "Posts",
+      "schedule": "Schedule",
+      "articleTypes": "Article Types",
+      "contentSettings": "Settings",
+      "subjects": "Subjects",
+      "keywords": "Keywords",
+      "prompts": "Prompts",
+      "summary": "Summary"
     },
-    "step1": {
-      "title": "What Do You Want to Write About?",
-      "description": "Tell us what you want to write about",
-      "topicLabel": "Main Topic or Title",
-      "topicPlaceholder": "e.g., Complete Guide to Vintage Denim Care",
-      "keywordsLabel": "Target Keywords",
-      "keywordsPlaceholder": "e.g., vintage denim, denim care, how to wash vintage jeans",
-      "keywordsHint": "💡 Tip: Include 3-5 relevant keywords for optimal SEO",
-      "audienceLabel": "Target Audience",
-      "audiencePlaceholder": "e.g., Vintage fashion enthusiasts, collectors"
+    "campaign": {
+      "title": "Campaign",
+      "description": "Choose an existing campaign or create a new one",
+      "selectExisting": "Select Existing Campaign",
+      "createNew": "Create New Campaign",
+      "noCampaigns": "No campaigns yet. Create your first one!",
+      "nameLabel": "Campaign Name",
+      "namePlaceholder": "e.g., Summer Blog Series",
+      "colorLabel": "Campaign Color",
+      "reservedColor": "This color is reserved for post statuses (draft / published / scheduled)",
+      "editCampaign": "Edit Campaign",
+      "deleteCampaign": "Delete Campaign",
+      "deleteConfirm": "Are you sure you want to delete this campaign?"
     },
-    "step2": {
-      "title": "Content Preferences",
-      "description": "Customize your content preferences",
-      "contentTypeLabel": "Content Type",
-      "toneLabel": "Writing Tone",
-      "lengthLabel": "Content Length"
+    "postCount": {
+      "title": "Number of Posts",
+      "description": "How many articles do you want to create?",
+      "label": "Posts to Generate",
+      "hint": "Choose how many articles will be planned in this campaign"
     },
-    "step3": {
+    "schedule": {
       "title": "Publishing Schedule",
-      "description": "When should this content be published?",
-      "publishDateLabel": "Publish Date",
-      "publishDateHint": "Leave empty to create as draft",
-      "aiImagesLabel": "Generate AI Images",
-      "aiImagesDesc": "Include relevant images in your content",
-      "seoLabel": "SEO Optimization",
-      "seoDesc": "Optimize for search engines automatically",
-      "autoPublishLabel": "Auto-Publish",
-      "autoPublishDesc": "Publish automatically when ready"
+      "description": "Set the date range and publishing days",
+      "startDate": "Start Date",
+      "endDate": "End Date",
+      "selectDate": "Select on calendar",
+      "clearSelection": "Clear selection",
+      "publishDays": "Publishing Days",
+      "publishDaysHint": "Select which days of the week to publish",
+      "days": {
+        "sun": "Sun",
+        "mon": "Mon",
+        "tue": "Tue",
+        "wed": "Wed",
+        "thu": "Thu",
+        "fri": "Fri",
+        "sat": "Sat"
+      },
+      "daysFull": {
+        "sun": "Sunday",
+        "mon": "Monday",
+        "tue": "Tuesday",
+        "wed": "Wednesday",
+        "thu": "Thursday",
+        "fri": "Friday",
+        "sat": "Saturday"
+      },
+      "months": ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"],
+      "publishTime": "Publishing Time",
+      "randomTime": "Random Time",
+      "fixedTime": "Fixed Time",
+      "fixedTimeLabel": "Publish at",
+      "timeStart": "From",
+      "timeEnd": "To",
+      "randomHint": "Posts will be published at random times within the selected range",
+      "morePosts": "You have {posts} posts but only {days} available publishing days. Some days will have more than one post.",
+      "fewerPosts": "You have {posts} posts across {days} available publishing days. Not every day will have a post.",
+      "gotIt": "Got it"
     },
-    "step4": {
-      "title": "Review & Launch",
-      "description": "Confirm your settings and start creating",
-      "contentDetails": "Content Details",
-      "writingStyle": "Writing Style",
-      "publishingOptions": "Publishing Options",
-      "topicLabel": "Topic:",
-      "keywordsLabel": "Keywords:",
-      "audienceLabel": "Audience:",
-      "typeLabel": "Type:",
-      "toneLabel": "Tone:",
-      "lengthLabel": "Length:",
-      "publishDateLabel": "Publish Date:",
-      "notSpecified": "Not specified",
-      "saveAsDraft": "Save as draft",
-      "aiImages": "AI Images",
-      "seoOptimization": "SEO Optimization",
-      "autoPublish": "Auto-Publish"
+    "articleTypes": {
+      "title": "Article Types",
+      "description": "Choose article types for your campaign",
+      "types": {
+        "seo": { "label": "SEO Article", "description": "Optimized for search rankings", "example": "Best [topic] in 2025" },
+        "blogPost": { "label": "Blog Post", "description": "Engaging and informative article", "example": "Why [topic] Matters" },
+        "guide": { "label": "Complete Guide", "description": "In-depth comprehensive guide", "example": "The Complete Guide to [topic]" },
+        "howTo": { "label": "How-To", "description": "Step-by-step tutorial", "example": "How to [achieve goal]" },
+        "listicle": { "label": "Listicle", "description": "List-based article", "example": "10 Best [topic] Tips" },
+        "comparison": { "label": "Comparison", "description": "Compare products or options", "example": "[A] vs [B]: Which is Better?" },
+        "review": { "label": "Review", "description": "Detailed product or service review", "example": "[Product] Review: Pros and Cons" },
+        "news": { "label": "News", "description": "News or industry update", "example": "Breaking: [topic] Update" },
+        "tutorial": { "label": "Tutorial", "description": "Technical tutorial with examples", "example": "[Topic] Tutorial for Beginners" },
+        "caseStudy": { "label": "Case Study", "description": "Real-world case with results", "example": "How [company] Achieved [result]" }
+      },
+      "wordRange": "{min} - {max} words",
+      "postsOfType": "posts",
+      "total": "Total",
+      "of": "of",
+      "whatIsThis": "What is this?",
+      "exampleLabel": "Example",
+      "wordRangeLabel": "Word Range",
+      "gotIt": "Got it",
+      "unallocated": "unallocated",
+      "allocationError": "You still have {remaining} unallocated posts out of {total}. Please distribute all posts among the selected article types before continuing.",
+      "maxTypesError": "You can select up to {count} types ({count} posts). To add more types, go back to step 2 and increase the number of posts."
     },
-    "contentTypes": {
-      "blogPost": "Blog Post",
-      "blogPostDesc": "Long-form article optimized for SEO",
-      "productPage": "Product Page",
-      "productPageDesc": "E-commerce product description",
-      "landingPage": "Landing Page",
-      "landingPageDesc": "Conversion-focused landing page",
-      "socialMedia": "Social Media",
-      "socialMediaDesc": "Short-form social content"
+    "contentSettings": {
+      "title": "Content Settings",
+      "description": "Configure content generation settings for each article type",
+      "wordCountLabel": "Word count for {type}",
+      "recommended": "Recommended: {min} - {max}",
+      "words": "words",
+      "featuredImage": "Generate Featured Image",
+      "contentImages": "Generate Content Images",
+      "contentImagesCount": "Number of content images",
+      "images": "images",
+      "hebrewSlug": "Hebrew Slug",
+      "hebrewSlugHint": "English slug recommended for SEO",
+      "metaTitle": "Generate Meta Title",
+      "metaDescription": "Generate Meta Description",
+      "faq": "Add FAQ Section"
     },
-    "tones": {
-      "professional": "Professional",
-      "casual": "Casual",
-      "friendly": "Friendly",
-      "authoritative": "Authoritative",
-      "conversational": "Conversational"
+    "subjects": {
+      "title": "AI Subject Generator",
+      "description": "AI generates optimized article titles for each keyword. Select up to {max} subjects total, or add your own.",
+      "generate": "Generate Subjects with AI",
+      "regenerate": "Regenerate Subjects",
+      "generating": "Generating subjects...",
+      "noKeywordsWarning": "Please go back to the Keywords step and select at least one keyword before generating subjects.",
+      "errorGenerating": "Failed to generate subjects. Please try again.",
+      "selectedCount": "{count} / {max} subjects selected",
+      "addCustom": "Add Custom Subject",
+      "customPlaceholder": "Type your custom title...",
+      "explanationPlaceholder": "Brief description of what this article will cover...",
+      "addSubject": "Add",
+      "custom": "Custom",
+      "selectedSubjects": "Selected Subjects",
+      "allSelected": "All subjects selected!",
+      "selectRemaining": "Select {count} more subjects to continue"
     },
-    "lengths": {
-      "short": "Short",
-      "shortWords": "300-500 words",
-      "medium": "Medium",
-      "mediumWords": "800-1,200 words",
-      "long": "Long",
-      "longWords": "1,500-2,500 words"
+    "keywords": {
+      "title": "Campaign Keywords",
+      "description": "Select keywords from your list, Google Search Console, or add manually",
+      "selectFromList": "My Keywords",
+      "fromGSC": "Search Console",
+      "addManual": "Add Manually",
+      "manualPlaceholder": "Type a keyword and press Enter",
+      "selected": "{count} keywords selected",
+      "noKeywords": "No keywords available. Add keywords in the Keywords page first.",
+      "noGSC": "No Search Console data available. Connect GSC in Settings to import keywords.",
+      "noGSCData": "No keywords found in Search Console for this site.",
+      "noResults": "No keywords match your search.",
+      "connectGSC": "Connect Search Console",
+      "searchPlaceholder": "Search keywords...",
+      "clicks": "Clicks",
+      "impressions": "Impressions",
+      "selectGSCSite": "Select Search Console Site",
+      "selectGSCSiteDesc": "Choose which website property to use for keyword data",
+      "noGSCSites": "No Search Console sites found for this Google account.",
+      "permOwner": "Owner",
+      "permFull": "Full Access",
+      "permRestricted": "Restricted",
+      "permUnverified": "Unverified",
+      "domainProperty": "Domain Property",
+      "cancel": "Cancel"
+    },
+    "prompts": {
+      "title": "AI Prompts",
+      "description": "Customize prompts for AI content generation",
+      "textPromptLabel": "Text Generation Prompt",
+      "textPromptPlaceholder": "Instructions for the AI to generate article content...",
+      "textPromptHint": "This prompt guides how the AI writes the articles",
+      "imagePromptLabel": "Image Generation Prompt",
+      "imagePromptPlaceholder": "Instructions for AI image generation style...",
+      "imagePromptHint": "This prompt guides the AI image generation style"
+    },
+    "summary": {
+      "title": "Campaign Summary",
+      "description": "Review your campaign plan before creating",
+      "campaignName": "Campaign",
+      "totalPosts": "Total Posts",
+      "dateRange": "Date Range",
+      "publishDays": "Publish Days",
+      "publishTime": "Publish Time",
+      "articleTypes": "Article Types",
+      "keywords": "Keywords",
+      "plannedPosts": "Planned Posts",
+      "generatePlan": "Generate Plan",
+      "generatingPlan": "Generating plan...",
+      "postTitle": "Title",
+      "postType": "Type",
+      "postDate": "Scheduled Date",
+      "postKeyword": "Keyword",
+      "postSubject": "Subject",
+      "editTitle": "Edit title",
+      "noSubject": "No subject",
+      "noKeyword": "No keyword",
+      "expandAll": "Expand All",
+      "collapseAll": "Collapse All",
+      "random": "Random",
+      "fixed": "Fixed",
+      "subjectsTitle": "Subjects",
+      "explanation": "Explanation",
+      "wordCount": "Word Count",
+      "words": "words",
+      "custom": "Custom"
+    },
+    "nav": {
+      "previous": "Previous",
+      "next": "Next"
     }
   },
   "interviewWizard": {
@@ -3146,6 +3325,16 @@
     "hints": {
       "pressEnterToAdd": "Press Enter to add"
     },
+    "errors": {
+      "websiteUnreachable": "Website is not reachable",
+      "websiteUnreachableDesc": "We could not access the website you provided. Please check the URL and try again.",
+      "changeUrl": "Change URL",
+      "autoActionFailed": "Something went wrong. Please try again.",
+      "insufficientCredits": "Insufficient AI Credits",
+      "insufficientCreditsDesc": "You have run out of AI credits. Please upgrade your plan to continue using AI features.",
+      "cannotStartInterview": "You don't have enough AI credits to start the interview. Please upgrade your plan.",
+      "upgradePlan": "Upgrade Plan"
+    },
     "googleIntegration": {
       "title": "Connect Google Analytics & Search Console",
       "description": "Get deeper insights into your website performance with Google Analytics and Search Console data.",
@@ -3157,6 +3346,7 @@
       "connected": "Google account connected successfully!",
       "connectedMessage": "\u2713 Google account connected",
       "error": "Connection failed. You can try again or skip this step.",
+      "popupBlocked": "The sign-in popup was blocked by your browser. Please allow popups for this site and try again.",
       "skipText": "Skip \u2014 I'll set this up later in Settings"
     },
     "wordpressPlugin": {
@@ -3672,6 +3862,20 @@
         "discount": "Coupon Discount",
         "bonuses": "Coupon Bonuses",
         "durationNote": "Applied for {months} months"
+      },
+      "limitations": {
+        "maxSites": "Websites",
+        "maxMembers": "Team Members",
+        "aiCredits": "AI Credits",
+        "maxPages": "Pages",
+        "maxPosts": "Blog Posts",
+        "siteAudits": "Site Audits"
+      },
+      "features": {
+        "aiContentGeneration": "AI Content Generation",
+        "prioritySupport": "Priority Support",
+        "advancedAnalytics": "Advanced Analytics",
+        "seoOptimization": "SEO Optimization"
       }
     },
     "success": {
@@ -4833,6 +5037,7 @@
     "purchaseSuccess": "Credits added successfully!",
     "purchaseFailed": "Purchase failed",
     "manageCredits": "Manage Credits",
-    "noAddons": "No credit packs available"
+    "noAddons": "No credit packs available",
+    "upgradePlan": "Upgrade Plan"
   }
 }

@@ -122,7 +122,7 @@
   margin-bottom: 1rem;
 
   h3 {
-    font-size: 0.9375rem;
+    font-size: 0.9rem;
     font-weight: 600;
     color: var(--foreground);
     margin: 0;
@@ -146,7 +146,7 @@
 .urlInput {
   flex: 1;
   padding: 0.75rem 1rem;
-  font-size: 0.9375rem;
+  font-size: 0.9rem;
   border-radius: var(--radius-lg);
   border: 1px solid var(--border);
   background: var(--background);
@@ -180,7 +180,7 @@
   justify-content: center;
   gap: 0.5rem;
   padding: 0.75rem 1.5rem;
-  font-size: 0.9375rem;
+  font-size: 0.9rem;
   font-weight: 500;
   color: white;
   background: var(--gradient-primary);
@@ -202,7 +202,7 @@
 
 .cancelButton {
   padding: 0.75rem 1.5rem;
-  font-size: 0.9375rem;
+  font-size: 0.9rem;
   font-weight: 500;
   color: var(--muted-foreground);
   background: transparent;
@@ -302,7 +302,7 @@
 }
 
 .competitorDomain {
-  font-size: 0.9375rem;
+  font-size: 0.9rem;
   font-weight: 600;
   color: var(--foreground);
   margin: 0;
@@ -493,7 +493,7 @@
   justify-content: center;
   gap: 0.5rem;
   padding: 0.75rem 1.5rem;
-  font-size: 0.9375rem;
+  font-size: 0.9rem;
   font-weight: 500;
   color: white;
   background: var(--gradient-primary);
@@ -558,13 +558,13 @@
 }
 
 .columnTitle {
-  font-size: 0.9375rem;
+  font-size: 0.9rem;
   font-weight: 600;
   color: var(--foreground);
 }
 
 .vsIndicator {
-  font-size: 0.9375rem;
+  font-size: 0.9rem;
   font-weight: 700;
   color: var(--primary);
   padding: 0.5rem 1rem;
@@ -606,7 +606,7 @@
 }
 
 .metricName {
-  font-size: 0.9375rem;
+  font-size: 0.9rem;
   font-weight: 500;
   color: var(--foreground);
 }
@@ -621,7 +621,7 @@
   display: flex;
   align-items: center;
   gap: 0.25rem;
-  font-size: 0.9375rem;
+  font-size: 0.9rem;
   font-weight: 600;
   color: var(--muted-foreground);
 
@@ -648,7 +648,7 @@
   border-radius: var(--radius-xl);
 
   h4 {
-    font-size: 0.9375rem;
+    font-size: 0.9rem;
     font-weight: 600;
     color: var(--foreground);
     margin: 0 0 0.25rem 0;
@@ -661,7 +661,7 @@
 }
 
 .gapDescription {
-  font-size: 0.9375rem;
+  font-size: 0.9rem;
   color: var(--muted-foreground);
   margin-bottom: 1rem;
 }
@@ -713,7 +713,7 @@
 }
 
 .gapTopic {
-  font-size: 0.9375rem;
+  font-size: 0.9rem;
   font-weight: 600;
   color: var(--foreground);
 }
@@ -757,14 +757,14 @@
   }
 
   h4 {
-    font-size: 0.9375rem;
+    font-size: 0.9rem;
     font-weight: 600;
     color: var(--foreground);
     margin: 0 0 0.25rem 0;
   }
 
   p {
-    font-size: 0.9375rem;
+    font-size: 0.9rem;
     color: var(--muted-foreground);
     margin: 0;
   }
@@ -787,7 +787,7 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0.625rem 1rem;
-  font-size: 0.9375rem;
+  font-size: 0.9rem;
   font-weight: 500;
   color: var(--primary);
   background: rgba(147, 51, 234, 0.08);
@@ -913,7 +913,7 @@
   }
 
   p {
-    font-size: 0.9375rem;
+    font-size: 0.9rem;
     font-weight: 500;
     color: var(--foreground);
     margin: 0;
@@ -921,7 +921,7 @@
 }
 
 .discoveringHint {
-  font-size: 0.9375rem;
+  font-size: 0.9rem;
   color: var(--muted-foreground);
   text-align: center;
 }
@@ -939,7 +939,7 @@
   }
 
   p {
-    font-size: 0.9375rem;
+    font-size: 0.9rem;
     color: var(--muted-foreground);
     margin: 0;
     text-align: center;
@@ -961,7 +961,7 @@
 }
 
 .mainTopic {
-  font-size: 0.9375rem;
+  font-size: 0.9rem;
   color: var(--foreground);
   margin-bottom: 0.75rem;
 
@@ -994,7 +994,7 @@
 }
 
 .discoveredDescription {
-  font-size: 0.9375rem;
+  font-size: 0.9rem;
   color: var(--muted-foreground);
   margin: 0 0 1rem 0;
 }
@@ -1067,7 +1067,7 @@
 }
 
 .discoveredDomain {
-  font-size: 0.9375rem;
+  font-size: 0.9rem;
   font-weight: 500;
   color: var(--foreground);
   white-space: nowrap;
@@ -1128,7 +1128,7 @@
 }
 
 .selectedCount {
-  font-size: 0.9375rem;
+  font-size: 0.9rem;
   color: var(--muted-foreground);
 }
 
@@ -1137,7 +1137,7 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0.625rem 1.25rem;
-  font-size: 0.9375rem;
+  font-size: 0.9rem;
   font-weight: 500;
   color: white;
   background: var(--primary);
@@ -1208,7 +1208,7 @@
 }
 
 .confirmDescription {
-  font-size: 0.9375rem;
+  font-size: 0.9rem;
   color: var(--muted-foreground);
   text-align: center;
   margin: 0 0 1.5rem 0;
@@ -1270,7 +1270,7 @@
 
 .confirmSteps {
   h4 {
-    font-size: 0.9375rem;
+    font-size: 0.9rem;
     font-weight: 600;
     color: var(--foreground);
     margin: 0 0 0.75rem 0;
@@ -1311,7 +1311,7 @@
 .confirmCancel {
   flex: 1;
   padding: 0.75rem 1rem;
-  font-size: 0.9375rem;
+  font-size: 0.9rem;
   font-weight: 500;
   color: var(--foreground);
   background: var(--background);
@@ -1332,7 +1332,7 @@
   justify-content: center;
   gap: 0.5rem;
   padding: 0.75rem 1rem;
-  font-size: 0.9375rem;
+  font-size: 0.9rem;
   font-weight: 500;
   color: white;
   background: linear-gradient(135deg, #9333ea 0%, #3b82f6 100%);
@@ -1393,7 +1393,7 @@
 .competitorTable {
   width: 100%;
   border-collapse: collapse;
-  font-size: 0.9375rem;
+  font-size: 0.9rem;
 
   th, td {
     padding: 0.75rem 1rem;
@@ -1548,7 +1548,7 @@
 .skeletonTable {
   width: 100%;
   border-collapse: collapse;
-  font-size: 0.9375rem;
+  font-size: 0.9rem;
 
   th, td {
     padding: 0.75rem 1rem;

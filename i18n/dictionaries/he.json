@@ -847,6 +847,15 @@
     "calendar": "לוח שנה",
     "list": "רשימה",
     "allContent": "כל התוכן",
+    "noPosts": "לא נמצאו פוסטים. סנכרנו את האתר כדי לראות תוכן כאן.",
+    "untitled": "ללא כותרת",
+    "wpConnection": {
+      "title": "תוסף וורדפרס לא מחובר",
+      "description": "מתכנן התוכן דורש אתר וורדפרס מחובר עם תוסף Ghost Post. לאחר החיבור, הפוסטים שלך יופיעו בלוח השנה ובתצוגת הרשימה.",
+      "hint": "עבור להגדרות כדי להוריד את התוסף ולחבר את אתר הוורדפרס שלך.",
+      "dismiss": "סגור",
+      "goToSettings": "להגדרות"
+    },
     "aiWizard": "אשף תוכן AI",
     "totalPosts": "סה״כ פוסטים",
     "published": "פורסמו",
@@ -885,6 +894,48 @@
       "date1": "15 בינואר 2024",
       "date2": "22 בינואר 2024",
       "date3": "25 בינואר 2024"
+    },
+    "campaigns": {
+      "title": "קמפיינים",
+      "all": "הכל",
+      "noCampaigns": "אין קמפיינים עדיין",
+      "createFirst": "צור את הקמפיין הראשון שלך",
+      "createNew": "צור קמפיין",
+      "posts": "פוסטים",
+      "active": "פעיל",
+      "draft": "טיוטה",
+      "paused": "מושהה",
+      "completed": "הושלם",
+      "editCampaign": "ערוך קמפיין",
+      "editPosts": "ערוך פוסטים מתוכננים",
+      "createPosts": "צור פוסטים",
+      "createModal": {
+        "title": "צור קמפיין",
+        "description": "תן לקמפיין שם ובחר צבע כדי להתחיל",
+        "nameLabel": "שם הקמפיין",
+        "namePlaceholder": "למשל: סדרת בלוג קיץ",
+        "colorLabel": "צבע",
+        "reservedColor": "צבע זה שמור לסטטוסי פוסטים (טיוטה / פורסם / מתוזמן)",
+        "cancel": "ביטול",
+        "create": "צור"
+      },
+      "editModal": {
+        "title": "עריכת קמפיין",
+        "nameLabel": "שם הקמפיין",
+        "namePlaceholder": "למשל: סדרת בלוג קיץ",
+        "colorLabel": "צבע",
+        "reservedColor": "צבע זה שמור לסטטוסי פוסטים (טיוטה / פורסם / מתוזמן)",
+        "delete": "מחק קמפיין",
+        "deleteConfirm": "בטוח? פעולה זו תמחק את הקמפיין לצמיתות.",
+        "confirmDelete": "מחק",
+        "cancel": "ביטול",
+        "save": "שמור"
+      }
+    },
+    "preview": {
+      "title": "תצוגה מקדימה",
+      "noContent": "אין תוכן זמין",
+      "viewOnSite": "צפה באתר"
     }
   },
   "keywordStrategy": {
@@ -2998,87 +3049,215 @@
   },
   "aiWizard": {
     "title": "אשף תוכן AI",
-    "subtitle": "צור תוכן מונע AI בדקות",
-    "generateContent": "צור תוכן",
+    "subtitle": "תכנן וצור קמפיינים של תוכן מונע AI",
+    "generateContent": "צור קמפיין",
+    "wpRequired": {
+      "title": "נדרש חיבור ל-WordPress",
+      "description": "חבר את אתר ה-WordPress שלך עם תוסף Ghost Post כדי להשתמש באשף תוכן AI.",
+      "notWordpress": "אשף תוכן AI דורש אתר WordPress עם תוסף Ghost Post מותקן.",
+      "notConnected": "אתר ה-WordPress שלך צריך להיות מחובר דרך תוסף Ghost Post."
+    },
     "steps": {
-      "topic": "נושא",
-      "preferences": "העדפות",
-      "scheduling": "תזמון",
-      "review": "סקירה"
+      "campaign": "קמפיין",
+      "postCount": "פוסטים",
+      "schedule": "תזמון",
+      "articleTypes": "סוגי מאמרים",
+      "contentSettings": "הגדרות",
+      "subjects": "נושאים",
+      "keywords": "מילות מפתח",
+      "prompts": "פרומפטים",
+      "summary": "סיכום"
     },
-    "step1": {
-      "title": "על מה תרצה לכתוב?",
-      "description": "ספר לנו על מה אתה רוצה לכתוב",
-      "topicLabel": "נושא או כותרת ראשית",
-      "topicPlaceholder": "לדוגמה: מדריך מקיף לטיפול בג׳ינס וינטג׳",
-      "keywordsLabel": "מילות מפתח",
-      "keywordsPlaceholder": "לדוגמה: ג׳ינס וינטג׳, טיפול בג׳ינס, איך לכבס ג׳ינס וינטג׳",
-      "keywordsHint": "💡 טיפ: כלול 3-5 מילות מפתח רלוונטיות לאופטימיזציה מיטבית",
-      "audienceLabel": "קהל יעד",
-      "audiencePlaceholder": "לדוגמה: חובבי אופנת וינטג׳, אספנים"
+    "campaign": {
+      "title": "קמפיין",
+      "description": "בחר קמפיין קיים או צור חדש",
+      "selectExisting": "בחר קמפיין קיים",
+      "createNew": "צור קמפיין חדש",
+      "noCampaigns": "אין עדיין קמפיינים. צור את הראשון!",
+      "nameLabel": "שם קמפיין",
+      "namePlaceholder": "לדוגמה: סדרת בלוג קיץ",
+      "colorLabel": "צבע קמפיין",
+      "reservedColor": "צבע זה שמור לסטטוסי פוסטים (טיוטה / פורסם / מתוזמן)",
+      "editCampaign": "ערוך קמפיין",
+      "deleteCampaign": "מחק קמפיין",
+      "deleteConfirm": "האם אתה בטוח שברצונך למחוק קמפיין זה?"
     },
-    "step2": {
-      "title": "העדפות תוכן",
-      "description": "התאם אישית את העדפות התוכן שלך",
-      "contentTypeLabel": "סוג תוכן",
-      "toneLabel": "טון כתיבה",
-      "lengthLabel": "אורך תוכן"
+    "postCount": {
+      "title": "מספר פוסטים",
+      "description": "כמה מאמרים אתה רוצה ליצור?",
+      "label": "פוסטים ליצירה",
+      "hint": "בחר כמה מאמרים יתוכננו בקמפיין זה"
     },
-    "step3": {
+    "schedule": {
       "title": "לוח זמנים לפרסום",
-      "description": "מתי יש לפרסם תוכן זה?",
-      "publishDateLabel": "תאריך פרסום",
-      "publishDateHint": "השאר ריק כדי לשמור כטיוטה",
-      "aiImagesLabel": "צור תמונות AI",
-      "aiImagesDesc": "כלול תמונות רלוונטיות בתוכן שלך",
-      "seoLabel": "אופטימיזציית SEO",
-      "seoDesc": "בצע אופטימיזציה למנועי חיפוש באופן אוטומטי",
-      "autoPublishLabel": "פרסום אוטומטי",
-      "autoPublishDesc": "פרסם אוטומטית כשמוכן"
+      "description": "הגדר את טווח התאריכים וימי הפרסום",
+      "startDate": "תאריך התחלה",
+      "endDate": "תאריך סיום",
+      "selectDate": "בחר בלוח השנה",
+      "clearSelection": "נקה בחירה",
+      "publishDays": "ימי פרסום",
+      "publishDaysHint": "בחר באילו ימים בשבוע לפרסם",
+      "days": {
+        "sun": "א׳",
+        "mon": "ב׳",
+        "tue": "ג׳",
+        "wed": "ד׳",
+        "thu": "ה׳",
+        "fri": "ו׳",
+        "sat": "ש׳"
+      },
+      "daysFull": {
+        "sun": "ראשון",
+        "mon": "שני",
+        "tue": "שלישי",
+        "wed": "רביעי",
+        "thu": "חמישי",
+        "fri": "שישי",
+        "sat": "שבת"
+      },
+      "months": ["ינואר", "פברואר", "מרץ", "אפריל", "מאי", "יוני", "יולי", "אוגוסט", "ספטמבר", "אוקטובר", "נובמבר", "דצמבר"],
+      "publishTime": "שעת פרסום",
+      "randomTime": "שעה אקראית",
+      "fixedTime": "שעה קבועה",
+      "fixedTimeLabel": "פרסום בשעה",
+      "timeStart": "משעה",
+      "timeEnd": "עד שעה",
+      "randomHint": "הפוסטים יפורסמו בשעות אקראיות בטווח שנבחר",
+      "morePosts": "יש לך {posts} פוסטים אבל רק {days} ימי פרסום זמינים. חלק מהימים יקבלו יותר מפוסט אחד.",
+      "fewerPosts": "יש לך {posts} פוסטים ל-{days} ימי פרסום זמינים. לא כל יום יקבל פוסט.",
+      "gotIt": "הבנתי"
     },
-    "step4": {
-      "title": "סקירה והשקה",
-      "description": "אשר את ההגדרות והתחל ליצור",
-      "contentDetails": "פרטי תוכן",
-      "writingStyle": "סגנון כתיבה",
-      "publishingOptions": "אפשרויות פרסום",
-      "topicLabel": "נושא:",
-      "keywordsLabel": "מילות מפתח:",
-      "audienceLabel": "קהל יעד:",
-      "typeLabel": "סוג:",
-      "toneLabel": "טון:",
-      "lengthLabel": "אורך:",
-      "publishDateLabel": "תאריך פרסום:",
-      "notSpecified": "לא צוין",
-      "saveAsDraft": "שמור כטיוטה",
-      "aiImages": "תמונות AI",
-      "seoOptimization": "אופטימיזציית SEO",
-      "autoPublish": "פרסום אוטומטי"
+    "articleTypes": {
+      "title": "סוגי מאמרים",
+      "description": "בחר סוגי מאמרים לקמפיין",
+      "types": {
+        "seo": { "label": "מאמר SEO", "description": "ממוטב לדירוג בחיפוש", "example": "הטובים ביותר ב[נושא] 2025" },
+        "blogPost": { "label": "פוסט בלוג", "description": "מאמר מעניין ואינפורמטיבי", "example": "למה [נושא] חשוב" },
+        "guide": { "label": "מדריך מקיף", "description": "מדריך מעמיק ומקיף", "example": "המדריך המלא ל[נושא]" },
+        "howTo": { "label": "מדריך ביצוע", "description": "הדרכה צעד אחר צעד", "example": "איך ל[השיג מטרה]" },
+        "listicle": { "label": "רשימה", "description": "מאמר מבוסס רשימה", "example": "10 טיפים ל[נושא]" },
+        "comparison": { "label": "השוואה", "description": "השוואת מוצרים או אפשרויות", "example": "[א] מול [ב]: מה עדיף?" },
+        "review": { "label": "סקירה", "description": "סקירת מוצר או שירות מפורטת", "example": "סקירת [מוצר]: יתרונות וחסרונות" },
+        "news": { "label": "חדשות", "description": "חדשות או עדכון בתחום", "example": "בזק: עדכון [נושא]" },
+        "tutorial": { "label": "הדרכה", "description": "הדרכה טכנית עם דוגמאות", "example": "הדרכת [נושא] למתחילים" },
+        "caseStudy": { "label": "מקרה בוחן", "description": "מקרה מהעולם האמיתי עם תוצאות", "example": "איך [חברה] השיגה [תוצאה]" }
+      },
+      "wordRange": "{min} - {max} מילים",
+      "postsOfType": "פוסטים",
+      "total": "סה״כ",
+      "of": "מתוך",
+      "whatIsThis": "מה זה?",
+      "exampleLabel": "דוגמה",
+      "wordRangeLabel": "טווח מילים",
+      "gotIt": "הבנתי",
+      "unallocated": "לא מחולקים",
+      "allocationError": "נותרו {remaining} פוסטים לא מחולקים מתוך {total}. חלק את כל הפוסטים בין סוגי המאמרים שנבחרו לפני המשך.",
+      "maxTypesError": "ניתן לבחור עד {count} סוגים ({count} פוסטים). כדי להוסיף סוגים, חזור לשלב 2 והגדל את מספר הפוסטים."
     },
-    "contentTypes": {
-      "blogPost": "פוסט בלוג",
-      "blogPostDesc": "מאמר ארוך ממוטב ל-SEO",
-      "productPage": "דף מוצר",
-      "productPageDesc": "תיאור מוצר למסחר אלקטרוני",
-      "landingPage": "דף נחיתה",
-      "landingPageDesc": "דף נחיתה ממוקד המרות",
-      "socialMedia": "מדיה חברתית",
-      "socialMediaDesc": "תוכן קצר לרשתות חברתיות"
+    "contentSettings": {
+      "title": "הגדרות תוכן",
+      "description": "הגדר הגדרות יצירת תוכן לכל סוג מאמר",
+      "wordCountLabel": "מספר מילים ל{type}",
+      "recommended": "מומלץ: {min} - {max}",
+      "words": "מילים",
+      "featuredImage": "יצירת תמונה ראשית",
+      "contentImages": "יצירת תמונות תוכן",
+      "contentImagesCount": "מספר תמונות תוכן",
+      "images": "תמונות",
+      "hebrewSlug": "Slug בעברית",
+      "hebrewSlugHint": "Slug באנגלית מומלץ ל-SEO",
+      "metaTitle": "יצירת Meta Title",
+      "metaDescription": "יצירת Meta Description",
+      "faq": "הוספת שאלות ותשובות (FAQ)"
     },
-    "tones": {
-      "professional": "מקצועי",
-      "casual": "לא רשמי",
-      "friendly": "ידידותי",
-      "authoritative": "סמכותי",
-      "conversational": "שיחתי"
+    "subjects": {
+      "title": "מחולל נושאים חכם",
+      "description": "הבינה המלאכותית מייצרת כותרות מאמרים מותאמות לכל מילת מפתח. בחר עד {max} נושאים, או הוסף משלך.",
+      "generate": "צור נושאים עם AI",
+      "regenerate": "צור נושאים מחדש",
+      "generating": "מייצר נושאים...",
+      "noKeywordsWarning": "חזור לשלב מילות המפתח ובחר לפחות מילת מפתח אחת לפני יצירת נושאים.",
+      "errorGenerating": "יצירת הנושאים נכשלה. נסה שוב.",
+      "selectedCount": "{count} / {max} נושאים נבחרו",
+      "addCustom": "הוסף נושא מותאם אישית",
+      "customPlaceholder": "הקלד כותרת מותאמת אישית...",
+      "explanationPlaceholder": "תיאור קצר על מה המאמר יעסוק...",
+      "addSubject": "הוסף",
+      "custom": "מותאם",
+      "selectedSubjects": "נושאים שנבחרו",
+      "allSelected": "כל הנושאים נבחרו!",
+      "selectRemaining": "בחר עוד {count} נושאים כדי להמשיך"
     },
-    "lengths": {
-      "short": "קצר",
-      "shortWords": "300-500 מילים",
-      "medium": "בינוני",
-      "mediumWords": "800-1,200 מילים",
-      "long": "ארוך",
-      "longWords": "1,500-2,500 מילים"
+    "keywords": {
+      "title": "מילות מפתח לקמפיין",
+      "description": "בחר מילות מפתח מהרשימה, מ-Google Search Console, או הוסף ידנית",
+      "selectFromList": "מילות מפתח שלי",
+      "fromGSC": "Search Console",
+      "addManual": "הוסף ידנית",
+      "manualPlaceholder": "הקלד מילת מפתח ולחץ Enter",
+      "selected": "{count} מילות מפתח נבחרו",
+      "noKeywords": "אין מילות מפתח זמינות. הוסף מילות מפתח בדף מילות מפתח תחילה.",
+      "noGSC": "אין נתוני Search Console זמינים. חבר GSC בהגדרות כדי לייבא מילות מפתח.",
+      "noGSCData": "לא נמצאו מילות מפתח ב-Search Console לאתר זה.",
+      "noResults": "לא נמצאו מילות מפתח תואמות.",
+      "connectGSC": "חבר Search Console",
+      "searchPlaceholder": "חפש מילות מפתח...",
+      "clicks": "קליקים",
+      "impressions": "חשיפות",
+      "selectGSCSite": "בחר אתר Search Console",
+      "selectGSCSiteDesc": "בחר איזה אתר להשתמש בו לנתוני מילות מפתח",
+      "noGSCSites": "לא נמצאו אתרי Search Console עבור חשבון Google זה.",
+      "permOwner": "בעלים",
+      "permFull": "גישה מלאה",
+      "permRestricted": "מוגבל",
+      "permUnverified": "לא מאומת",
+      "domainProperty": "נכס דומיין",
+      "cancel": "ביטול"
+    },
+    "prompts": {
+      "title": "פרומפטים ל-AI",
+      "description": "התאם פרומפטים ליצירת תוכן AI",
+      "textPromptLabel": "פרומפט ליצירת טקסט",
+      "textPromptPlaceholder": "הוראות ל-AI ליצירת תוכן המאמר...",
+      "textPromptHint": "פרומפט זה מנחה את ה-AI בכתיבת המאמרים",
+      "imagePromptLabel": "פרומפט ליצירת תמונות",
+      "imagePromptPlaceholder": "הוראות לסגנון יצירת תמונות AI...",
+      "imagePromptHint": "פרומפט זה מנחה את סגנון יצירת התמונות"
+    },
+    "summary": {
+      "title": "סיכום קמפיין",
+      "description": "סקור את תוכנית הקמפיין לפני היצירה",
+      "campaignName": "קמפיין",
+      "totalPosts": "סה״כ פוסטים",
+      "dateRange": "טווח תאריכים",
+      "publishDays": "ימי פרסום",
+      "publishTime": "שעת פרסום",
+      "articleTypes": "סוגי מאמרים",
+      "keywords": "מילות מפתח",
+      "plannedPosts": "פוסטים מתוכננים",
+      "generatePlan": "צור תוכנית",
+      "generatingPlan": "מייצר תוכנית...",
+      "postTitle": "כותרת",
+      "postType": "סוג",
+      "postDate": "תאריך מתוזמן",
+      "postKeyword": "מילת מפתח",
+      "postSubject": "נושא",
+      "editTitle": "ערוך כותרת",
+      "noSubject": "ללא נושא",
+      "noKeyword": "ללא מילת מפתח",
+      "expandAll": "הרחב הכל",
+      "collapseAll": "כווץ הכל",
+      "random": "אקראי",
+      "fixed": "קבוע",
+      "subjectsTitle": "נושאים",
+      "explanation": "הסבר",
+      "wordCount": "מספר מילים",
+      "words": "מילים",
+      "custom": "מותאם אישית"
+    },
+    "nav": {
+      "previous": "הקודם",
+      "next": "הבא"
     }
   },
   "interviewWizard": {
@@ -3216,6 +3395,16 @@
     "hints": {
       "pressEnterToAdd": "לחץ Enter להוספה"
     },
+    "errors": {
+      "websiteUnreachable": "האתר לא נגיש",
+      "websiteUnreachableDesc": "לא הצלחנו לגשת לאתר שהזנת. אנא בדוק את הכתובת ונסה שוב.",
+      "changeUrl": "שנה כתובת",
+      "autoActionFailed": "משהו השתבש. אנא נסה שוב.",
+      "insufficientCredits": "אין מספיק קרדיטים",
+      "insufficientCreditsDesc": "נגמרו לך קרדיטים של AI. אנא שדרג את התוכנית שלך כדי להמשיך להשתמש בתכונות AI.",
+      "cannotStartInterview": "אין לך מספיק קרדיטים של AI כדי להתחיל את הראיון. אנא שדרג את התוכנית שלך.",
+      "upgradePlan": "שדרג תוכנית"
+    },
     "googleIntegration": {
       "title": "חיבור Google Analytics ו-Search Console",
       "description": "קבל תובנות מעמיקות יותר על ביצועי האתר שלך עם נתוני Google Analytics ו-Search Console.",
@@ -3227,6 +3416,7 @@
       "connected": "חשבון Google חובר בהצלחה!",
       "connectedMessage": "\u2713 חשבון Google חובר",
       "error": "החיבור נכשל. ניתן לנסות שוב או לדלג על שלב זה.",
+      "popupBlocked": "החלון הקופץ נחסם על ידי הדפדפן. אנא אפשר חלונות קופצים לאתר זה ונסה שוב.",
       "skipText": "דלג — אגדיר זאת מאוחר יותר בהגדרות"
     },
     "wordpressPlugin": {
@@ -3672,6 +3862,20 @@
         "discount": "הנחת קופון",
         "bonuses": "הטבות קופון",
         "durationNote": "מוחל ל-{months} חודשים"
+      },
+      "limitations": {
+        "maxSites": "אתרים",
+        "maxMembers": "חברי צוות",
+        "aiCredits": "קרדיטי AI",
+        "maxPages": "עמודים",
+        "maxPosts": "פוסטים",
+        "siteAudits": "ביקורת אתר"
+      },
+      "features": {
+        "aiContentGeneration": "יצירת תוכן AI",
+        "prioritySupport": "תמיכה בעדיפות",
+        "advancedAnalytics": "אנליטיקות מתקדמות",
+        "seoOptimization": "אופטימיזציה ל-SEO"
       }
     },
     "success": {
@@ -4832,6 +5036,7 @@
     "purchaseSuccess": "הקרדיטים נוספו בהצלחה!",
     "purchaseFailed": "הרכישה נכשלה",
     "manageCredits": "ניהול קרדיטים",
-    "noAddons": "אין חבילות קרדיטים זמינות"
+    "noAddons": "אין חבילות קרדיטים זמינות",
+    "upgradePlan": "שדרג תוכנית"
   }
 }

@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import prisma from '@/lib/prisma';
 import { executeAction } from '@/lib/bot-actions/executor';
+import { enforceCredits } from '@/lib/account-limits';
 
 const SESSION_COOKIE = 'user_session';
 
@@ -95,6 +96,22 @@ export async function POST(request) {
                       null;
 
     console.log('[Interview Actions] User:', user.id, 'AccountId:', accountId, 'Memberships:', user.accountMemberships?.length || 0);
+
+    // ── Enforce AI credit limit before executing action ──
+    if (accountId) {
+      const creditCheck = await enforceCredits(accountId, 1); // Check if at least 1 credit available
+      if (!creditCheck.allowed) {
+        return NextResponse.json(
+          { 
+            error: 'Insufficient AI credits',
+            currentUsage: creditCheck.usage?.used ?? 0,
+            limit: creditCheck.usage?.limit ?? 0,
+            remaining: creditCheck.usage?.remaining ?? 0,
+          },
+          { status: 402 }
+        );
+      }
+    }
 
     // Create context for execution (with account and site info for credits tracking)
     const context = {

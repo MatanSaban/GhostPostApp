@@ -67,7 +67,7 @@ export default function CardComPaymentForm({
   const [cardOwnerPhone, setCardOwnerPhone] = useState(defaultPhone);
   const [expirationMonth, setExpirationMonth] = useState('');
   const [expirationYear, setExpirationYear] = useState('');
-  const [numberOfPayments, setNumberOfPayments] = useState('1');
+  const [numberOfPayments] = useState('1');
 
   // Validation state from iframes
   const [cardNumberValid, setCardNumberValid] = useState(null);
@@ -520,8 +520,22 @@ export default function CardComPaymentForm({
                 <Check size={16} className={styles.couponAppliedIcon} />
                 <span className={styles.couponAppliedCode}>{couponData.code}</span>
                 {(couponData.hasLimitationOverrides || couponData.hasExtraFeatures) && (
-                  <span className={styles.couponBonusBadge}>
-                    + {t('payment.coupon.bonuses') || 'Bonuses'}
+                  <span className={styles.couponBonusWrap}>
+                    <span className={styles.couponBonusBadge}>
+                      + {t('payment.coupon.bonuses') || 'Bonuses'}
+                    </span>
+                    <span className={styles.couponBonusTooltip}>
+                      {couponData.limitationOverrides?.map((o, i) => (
+                        <span key={`lo-${i}`} className={styles.bonusTooltipItem}>
+                          ✦ {t(`settings.subscription.limitations.${o.key}`) || o.key}: {o.value?.toLocaleString()}
+                        </span>
+                      ))}
+                      {couponData.extraFeatures?.map((f, i) => (
+                        <span key={`ef-${i}`} className={styles.bonusTooltipItem}>
+                          ✦ {t(`settings.subscription.features.${f}`) || f}
+                        </span>
+                      ))}
+                    </span>
                   </span>
                 )}
                 <button type="button" onClick={handleRemoveCoupon} className={styles.couponRemoveBtn}>
@@ -747,25 +761,6 @@ export default function CardComPaymentForm({
               />
             </div>
           </div>
-        </div>
-
-        {/* Number of Payments */}
-        <div className={styles.formGroup}>
-          <label className={styles.label}>
-            {t('payment.numberOfPayments') || 'Number of Payments'}
-          </label>
-          <select
-            value={numberOfPayments}
-            onChange={(e) => setNumberOfPayments(e.target.value)}
-            className={styles.select}
-            disabled={isProcessing}
-          >
-            <option value="1">{t('payment.singlePayment') || 'Single Payment'}</option>
-            <option value="2">2 {t('payment.payments') || 'Payments'}</option>
-            <option value="3">3 {t('payment.payments') || 'Payments'}</option>
-            <option value="6">6 {t('payment.payments') || 'Payments'}</option>
-            <option value="12">12 {t('payment.payments') || 'Payments'}</option>
-          </select>
         </div>
 
         {/* Error Message */}

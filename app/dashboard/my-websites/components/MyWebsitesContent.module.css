@@ -29,7 +29,7 @@
   background: var(--gradient-primary);
   color: #fff;
   border-radius: var(--radius-md);
-  font-size: 0.9375rem;
+  font-size: 0.9rem;
   font-weight: 500;
   white-space: nowrap;
   transition: opacity var(--transition-fast), box-shadow var(--transition-fast);
@@ -64,7 +64,7 @@
   border: 1px solid var(--input-border);
   border-radius: var(--radius-md);
   color: var(--foreground);
-  font-size: 0.9375rem;
+  font-size: 0.9rem;
   transition: border-color var(--transition-fast);
 }
 
@@ -129,7 +129,7 @@
 .table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 0.9375rem;
+  font-size: 0.9rem;
 }
 
 .table thead {
@@ -299,7 +299,7 @@
 }
 
 .cardTitle h3 {
-  font-size: 0.9375rem;
+  font-size: 0.9rem;
   font-weight: 600;
   color: var(--foreground);
   overflow: hidden;
@@ -445,7 +445,7 @@
 
 .modalLabel {
   display: block;
-  font-size: 0.9375rem;
+  font-size: 0.9rem;
   font-weight: 500;
   color: var(--foreground);
   margin-bottom: 0.5rem;
@@ -458,7 +458,7 @@
   border: 1px solid var(--input-border);
   border-radius: var(--radius-md);
   color: var(--foreground);
-  font-size: 0.9375rem;
+  font-size: 0.9rem;
   transition: border-color var(--transition-fast);
 }
 
@@ -484,7 +484,7 @@
 .modalCancel {
   padding: 0.5rem 1rem;
   border-radius: var(--radius-md);
-  font-size: 0.9375rem;
+  font-size: 0.9rem;
   color: var(--muted-foreground);
   transition: color var(--transition-fast);
 }
@@ -501,7 +501,7 @@
   background: var(--primary);
   color: var(--primary-foreground);
   border-radius: var(--radius-md);
-  font-size: 0.9375rem;
+  font-size: 0.9rem;
   font-weight: 500;
   transition: background var(--transition-fast);
 }
@@ -523,7 +523,7 @@
   background: #ef4444;
   color: #fff;
   border-radius: var(--radius-md);
-  font-size: 0.9375rem;
+  font-size: 0.9rem;
   font-weight: 500;
   transition: background var(--transition-fast);
 }
@@ -554,7 +554,7 @@
 }
 
 .removeWarning p {
-  font-size: 0.9375rem;
+  font-size: 0.9rem;
   line-height: 1.5;
 }
 
@@ -566,7 +566,7 @@
   transform: translateX(-50%);
   padding: 0.75rem 1.25rem;
   border-radius: var(--radius-md);
-  font-size: 0.9375rem;
+  font-size: 0.9rem;
   font-weight: 500;
   z-index: 1100;
   animation: toastIn 300ms ease;

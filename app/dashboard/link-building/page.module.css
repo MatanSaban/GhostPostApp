@@ -39,7 +39,7 @@
 }
 
 .cardSubtitle {
-  font-size: 0.9375rem;
+  font-size: 0.9rem;
   color: var(--muted-foreground);
 }
 
@@ -88,7 +88,7 @@
 }
 
 .opportunityDomain {
-  font-size: 0.9375rem;
+  font-size: 0.9rem;
   font-weight: 500;
   color: var(--foreground);
   white-space: nowrap;
@@ -206,7 +206,7 @@
   background: var(--background);
   border: 1px solid var(--border-light);
   border-radius: var(--radius-lg);
-  font-size: 0.9375rem;
+  font-size: 0.9rem;
   transition: all var(--transition-fast);
 
   @media (max-width: 768px) {

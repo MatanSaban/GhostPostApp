@@ -75,6 +75,9 @@ export async function POST(request) {
 
     // Verify this is actually a downgrade (new plan costs less)
     const currentPlan = subscription.plan;
+    if (currentPlan.id === newPlan.id) {
+      return NextResponse.json({ error: 'Already on this plan' }, { status: 400 });
+    }
     if (newPlan.price >= currentPlan.price) {
       return NextResponse.json({ error: 'This is not a downgrade' }, { status: 400 });
     }

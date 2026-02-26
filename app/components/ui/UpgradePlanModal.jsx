@@ -116,6 +116,12 @@ export default function UpgradePlanModal({ isOpen, onClose }) {
         const data = await res.json();
         setProrationData(data);
       } else {
+        const data = await res.json().catch(() => ({}));
+        if (res.status === 400 && data.error === 'Already on this plan') {
+          setSelectedPlan(null);
+          setProrationData(null);
+          return;
+        }
         // Fallback: use full price if proration fails
         setProrationData(null);
       }

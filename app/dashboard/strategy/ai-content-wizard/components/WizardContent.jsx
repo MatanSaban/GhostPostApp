@@ -1,49 +1,160 @@
 'use client';
 
-import { useState } from 'react';
-import { 
-  Sparkles, 
-  Target, 
-  Calendar, 
-  FileText, 
-  Image as ImageIcon, 
-  Settings as SettingsIcon,
-  Check,
-  ArrowLeft,
-  ArrowRight,
-  Zap
+import { useReducer, useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
+import {
+  FolderOpen, Hash, Calendar, FileText,
+  Settings, BookOpen, Search, MessageSquare,
+  Sparkles, Check, ArrowLeft, ArrowRight,
+  AlertTriangle, X,
 } from 'lucide-react';
 import { useLocale } from '@/app/context/locale-context';
+import { useSite } from '@/app/context/site-context';
+import { INITIAL_WIZARD_STATE, WIZARD_STEPS } from '../wizardConfig';
+import {
+  CampaignStep,
+  PostCountStep,
+  ScheduleStep,
+  ArticleTypesStep,
+  ContentSettingsStep,
+  SubjectsStep,
+  KeywordsStep,
+  PromptsStep,
+  SummaryStep,
+} from './steps';
 import styles from '../page.module.css';
 
 const iconMap = {
-  Target,
-  SettingsIcon,
-  Calendar,
-  Sparkles,
+  FolderOpen, Hash, Calendar, FileText,
+  Settings, BookOpen, Search, MessageSquare, Sparkles,
 };
 
-export function WizardContent({ translations, steps, contentTypes, toneOptions, lengthOptions }) {
-  const [currentStep, setCurrentStep] = useState(1);
-  const [formData, setFormData] = useState({
-    topic: '',
-    keywords: '',
-    contentType: 'blog-post',
-    tone: 'professional',
-    length: 'medium',
-    targetAudience: '',
-    publishDate: '',
-    includeImages: true,
-    seoOptimize: true,
-    autoPublish: false,
-  });
+function wizardReducer(state, action) {
+  switch (action.type) {
+    case 'SET_FIELD':
+      return { ...state, [action.field]: action.value };
 
+    case 'SET_POSTS_COUNT': {
+      const newCount = action.value;
+      // Redistribute evenly among selected article types (default to SEO if none)
+      let articleTypes = state.articleTypes.length > 0
+        ? [...state.articleTypes]
+        : [{ id: 'SEO', count: 0 }];
+      const perType = Math.floor(newCount / articleTypes.length);
+      const remainder = newCount % articleTypes.length;
+      articleTypes = articleTypes.map((at, i) => ({
+        ...at,
+        count: perType + (i < remainder ? 1 : 0),
+      }));
+      return {
+        ...state,
+        postsCount: newCount,
+        articleTypes,
+        // Trim subjects if over new count
+        subjects: state.subjects.slice(0, newCount),
+      };
+    }
+
+    case 'NEW_CAMPAIGN':
+      return {
+        ...state,
+        campaignId: null,
+        campaignName: '',
+        campaignColor: '#6366f1',
+        isNewCampaign: true,
+        articleTypes: [{ id: 'SEO', count: state.postsCount }],
+      };
+
+    case 'LOAD_CAMPAIGN': {
+      const c = action.payload;
+      return {
+        ...state,
+        campaignId: c.id,
+        campaignName: c.name,
+        campaignColor: c.color,
+        isNewCampaign: false,
+        startDate: c.startDate ? new Date(c.startDate).toISOString().split('T')[0] : '',
+        endDate: c.endDate ? new Date(c.endDate).toISOString().split('T')[0] : '',
+        publishDays: c.publishDays?.length ? c.publishDays : ['sun', 'mon', 'tue', 'wed', 'thu'],
+        publishTimeMode: c.publishTimeMode || 'random',
+        publishTimeStart: c.publishTimeStart || '09:00',
+        publishTimeEnd: c.publishTimeEnd || '18:00',
+        postsCount: c.postsCount || 4,
+        articleTypes: c.articleTypes || [{ id: 'SEO', count: 4 }],
+        contentSettings: c.contentSettings || INITIAL_WIZARD_STATE.contentSettings,
+        subjects: c.subjects || [],
+        selectedKeywordIds: c.keywordIds || [],
+        textPrompt: c.textPrompt || '',
+        imagePrompt: c.imagePrompt || '',
+        generatedPlan: null,
+      };
+    }
+
+    default:
+      return state;
+  }
+}
+
+const stepComponents = [
+  CampaignStep,       // 1
+  PostCountStep,      // 2
+  ScheduleStep,       // 3
+  ArticleTypesStep,   // 4
+  ContentSettingsStep, // 5
+  KeywordsStep,       // 6
+  SubjectsStep,       // 7
+  PromptsStep,        // 8
+  SummaryStep,        // 9
+];
+
+export function WizardContent({ translations }) {
+  const [state, dispatch] = useReducer(wizardReducer, INITIAL_WIZARD_STATE);
+  const [currentStep, setCurrentStep] = useState(1);
   const { isRtl } = useLocale();
+  const { selectedSite } = useSite();
+
   const PrevArrow = isRtl ? ArrowRight : ArrowLeft;
   const NextArrow = isRtl ? ArrowLeft : ArrowRight;
 
+  // Auto-load campaign from URL query param
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const campaignId = params.get('campaignId');
+    if (!campaignId) return;
+
+    fetch(`/api/campaigns/${campaignId}`)
+      .then(res => res.ok ? res.json() : null)
+      .then(data => {
+        if (data?.campaign) {
+          dispatch({ type: 'LOAD_CAMPAIGN', payload: data.campaign });
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  // Check WP connection
+  const isWordpress = selectedSite?.platform === 'wordpress';
+  const isConnected = selectedSite?.connectionStatus === 'CONNECTED';
+  const needsWpGate = !isWordpress || !isConnected;
+
+  const [validationPopup, setValidationPopup] = useState(null);
+
   const handleNext = () => {
-    if (currentStep < steps.length) {
+    // Step 4 validation: all posts must be allocated to article types
+    if (currentStep === 4) {
+      const totalAllocated = state.articleTypes.reduce((sum, at) => sum + at.count, 0);
+      if (totalAllocated !== state.postsCount) {
+        const remaining = state.postsCount - totalAllocated;
+        setValidationPopup(
+          translations.articleTypes.allocationError
+            .replace('{remaining}', remaining)
+            .replace('{total}', state.postsCount)
+        );
+        return;
+      }
+    }
+
+    if (currentStep < WIZARD_STEPS.length) {
       setCurrentStep(currentStep + 1);
     }
   };
@@ -54,23 +165,25 @@ export function WizardContent({ translations, steps, contentTypes, toneOptions, 
     }
   };
 
-  const handleSubmit = () => {
-    console.log('Submitting wizard:', formData);
-  };
-
-  const updateFormData = (field, value) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
-  };
+  const StepComponent = stepComponents[currentStep - 1];
 
   return (
     <>
+      {/* WP Notice */}
+      {needsWpGate && currentStep === 1 && (
+        <div className={styles.wpNotice}>
+          <AlertTriangle size={16} className={styles.wpNoticeIcon} />
+          <span>{translations.wpRequired.description}</span>
+        </div>
+      )}
+
       {/* Progress Steps */}
       <div className={styles.progressCard}>
         <div className={styles.stepsWrapper}>
-          {steps.map((step, index) => {
+          {WIZARD_STEPS.map((step, index) => {
             const StepIcon = iconMap[step.iconName];
             return (
-              <div key={step.id} style={{ display: 'flex', alignItems: 'center', flex: 1 }}>
+              <div key={step.id} className={styles.stepGroup}>
                 <div className={styles.stepItem}>
                   <div className={`${styles.stepCircle} ${
                     currentStep === step.id ? styles.active :
@@ -85,13 +198,13 @@ export function WizardContent({ translations, steps, contentTypes, toneOptions, 
                   <span className={`${styles.stepName} ${
                     currentStep >= step.id ? styles.active : ''
                   }`}>
-                    {step.name}
+                    {translations.steps[step.key]}
                   </span>
                 </div>
-                {index < steps.length - 1 && (
+                {index < WIZARD_STEPS.length - 1 && (
                   <div className={`${styles.stepConnector} ${
                     currentStep > step.id ? styles.completed : ''
-                  }`}></div>
+                  }`} />
                 )}
               </div>
             );
@@ -101,250 +214,11 @@ export function WizardContent({ translations, steps, contentTypes, toneOptions, 
 
       {/* Step Content */}
       <div className={styles.contentCard}>
-        {/* Step 1: Topic & Keywords */}
-        {currentStep === 1 && (
-          <>
-            <div className={styles.stepHeader}>
-              <div className={styles.stepIconWrapper}>
-                <Target className={styles.stepHeaderIcon} />
-              </div>
-              <div className={styles.stepInfo}>
-                <h2 className={styles.stepTitle}>{translations.step1Title}</h2>
-                <p className={styles.stepDescription}>{translations.step1Description}</p>
-              </div>
-            </div>
-
-            <div className={styles.formGroup}>
-              <label className={styles.formLabel}>{translations.topicLabel}</label>
-              <input
-                type="text"
-                className={styles.formInput}
-                value={formData.topic}
-                onChange={(e) => updateFormData('topic', e.target.value)}
-                placeholder={translations.topicPlaceholder}
-              />
-            </div>
-
-            <div className={styles.formGroup}>
-              <label className={styles.formLabel}>{translations.keywordsLabel}</label>
-              <textarea
-                className={styles.formTextarea}
-                value={formData.keywords}
-                onChange={(e) => updateFormData('keywords', e.target.value)}
-                placeholder={translations.keywordsPlaceholder}
-              />
-              <p className={styles.formHint}>{translations.keywordsHint}</p>
-            </div>
-
-            <div className={styles.formGroup}>
-              <label className={styles.formLabel}>{translations.audienceLabel}</label>
-              <input
-                type="text"
-                className={styles.formInput}
-                value={formData.targetAudience}
-                onChange={(e) => updateFormData('targetAudience', e.target.value)}
-                placeholder={translations.audiencePlaceholder}
-              />
-            </div>
-          </>
-        )}
-
-        {/* Step 2: Content Settings */}
-        {currentStep === 2 && (
-          <>
-            <div className={styles.stepHeader}>
-              <div className={styles.stepIconWrapper}>
-                <SettingsIcon className={styles.stepHeaderIcon} />
-              </div>
-              <div className={styles.stepInfo}>
-                <h2 className={styles.stepTitle}>{translations.step2Title}</h2>
-                <p className={styles.stepDescription}>{translations.step2Description}</p>
-              </div>
-            </div>
-
-            <div className={styles.formGroup}>
-              <label className={styles.formLabel}>{translations.contentTypeLabel}</label>
-              <div className={styles.contentTypeGrid}>
-                {contentTypes.map((type) => (
-                  <button
-                    key={type.id}
-                    onClick={() => updateFormData('contentType', type.id)}
-                    className={`${styles.contentTypeButton} ${
-                      formData.contentType === type.id ? styles.selected : ''
-                    }`}
-                  >
-                    <div className={styles.contentTypeHeader}>
-                      <FileText className={styles.contentTypeIcon} />
-                      <span className={styles.contentTypeName}>{type.name}</span>
-                    </div>
-                    <p className={styles.contentTypeDesc}>{type.description}</p>
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div className={styles.formGroup}>
-              <label className={styles.formLabel}>{translations.toneLabel}</label>
-              <div className={styles.toneOptions}>
-                {toneOptions.map((tone) => (
-                  <button
-                    key={tone.id}
-                    onClick={() => updateFormData('tone', tone.id)}
-                    className={`${styles.toneButton} ${
-                      formData.tone === tone.id ? styles.selected : ''
-                    }`}
-                  >
-                    {tone.name}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div className={styles.formGroup}>
-              <label className={styles.formLabel}>{translations.lengthLabel}</label>
-              <div className={styles.lengthOptions}>
-                {lengthOptions.map((length) => (
-                  <button
-                    key={length.id}
-                    onClick={() => updateFormData('length', length.id)}
-                    className={`${styles.lengthButton} ${
-                      formData.length === length.id ? styles.selected : ''
-                    }`}
-                  >
-                    <div className={styles.lengthName}>{length.name}</div>
-                    <div className={styles.lengthWords}>{length.words}</div>
-                  </button>
-                ))}
-              </div>
-            </div>
-          </>
-        )}
-
-        {/* Step 3: Scheduling */}
-        {currentStep === 3 && (
-          <>
-            <div className={styles.stepHeader}>
-              <div className={styles.stepIconWrapper}>
-                <Calendar className={styles.stepHeaderIcon} />
-              </div>
-              <div className={styles.stepInfo}>
-                <h2 className={styles.stepTitle}>{translations.step3Title}</h2>
-                <p className={styles.stepDescription}>{translations.step3Description}</p>
-              </div>
-            </div>
-
-            <div className={styles.formGroup}>
-              <label className={styles.formLabel}>{translations.publishDateLabel}</label>
-              <input
-                type="datetime-local"
-                className={styles.formInput}
-                value={formData.publishDate}
-                onChange={(e) => updateFormData('publishDate', e.target.value)}
-              />
-              <p className={styles.formHint}>{translations.publishDateHint}</p>
-            </div>
-
-            <div className={styles.optionsSection}>
-              <div className={styles.optionRow}>
-                <div className={styles.optionInfo}>
-                  <ImageIcon className={styles.optionIcon} />
-                  <div className={styles.optionContent}>
-                    <span className={styles.optionLabel}>{translations.aiImagesLabel}</span>
-                    <span className={styles.optionDescription}>{translations.aiImagesDesc}</span>
-                  </div>
-                </div>
-                <button
-                  className={`${styles.toggleSwitch} ${formData.includeImages ? styles.active : ''}`}
-                  onClick={() => updateFormData('includeImages', !formData.includeImages)}
-                >
-                  <div className={styles.toggleKnob}></div>
-                </button>
-              </div>
-
-              <div className={styles.optionRow}>
-                <div className={styles.optionInfo}>
-                  <Zap className={styles.optionIcon} />
-                  <div className={styles.optionContent}>
-                    <span className={styles.optionLabel}>{translations.seoLabel}</span>
-                    <span className={styles.optionDescription}>{translations.seoDesc}</span>
-                  </div>
-                </div>
-                <button
-                  className={`${styles.toggleSwitch} ${formData.seoOptimize ? styles.active : ''}`}
-                  onClick={() => updateFormData('seoOptimize', !formData.seoOptimize)}
-                >
-                  <div className={styles.toggleKnob}></div>
-                </button>
-              </div>
-
-              <div className={styles.optionRow}>
-                <div className={styles.optionInfo}>
-                  <Sparkles className={styles.optionIcon} />
-                  <div className={styles.optionContent}>
-                    <span className={styles.optionLabel}>{translations.autoPublishLabel}</span>
-                    <span className={styles.optionDescription}>{translations.autoPublishDesc}</span>
-                  </div>
-                </div>
-                <button
-                  className={`${styles.toggleSwitch} ${formData.autoPublish ? styles.active : ''}`}
-                  onClick={() => updateFormData('autoPublish', !formData.autoPublish)}
-                >
-                  <div className={styles.toggleKnob}></div>
-                </button>
-              </div>
-            </div>
-          </>
-        )}
-
-        {/* Step 4: Review & Launch */}
-        {currentStep === 4 && (
-          <>
-            <div className={styles.stepHeader}>
-              <div className={`${styles.stepIconWrapper} ${styles.launch}`}>
-                <Sparkles className={styles.stepHeaderIcon} style={{ color: 'white' }} />
-              </div>
-              <div className={styles.stepInfo}>
-                <h2 className={styles.stepTitle}>{translations.step4Title}</h2>
-                <p className={styles.stepDescription}>{translations.step4Description}</p>
-              </div>
-            </div>
-
-            <div className={styles.summaryGrid}>
-              <div className={`${styles.summaryCard} ${styles.topic}`}>
-                <h3 className={styles.summaryTitle}>{translations.contentDetails}</h3>
-                <p className={styles.summaryItem}><strong>{translations.summaryTopicLabel}</strong> {formData.topic || translations.notSpecified}</p>
-                <p className={styles.summaryItem}><strong>{translations.summaryKeywordsLabel}</strong> {formData.keywords || translations.notSpecified}</p>
-                <p className={styles.summaryItem}><strong>{translations.summaryAudienceLabel}</strong> {formData.targetAudience || translations.notSpecified}</p>
-              </div>
-
-              <div className={`${styles.summaryCard} ${styles.settings}`}>
-                <h3 className={styles.summaryTitle}>{translations.writingStyle}</h3>
-                <p className={styles.summaryItem}><strong>{translations.summaryTypeLabel}</strong> {contentTypes.find(ct => ct.id === formData.contentType)?.name}</p>
-                <p className={styles.summaryItem}><strong>{translations.summaryToneLabel}</strong> {toneOptions.find(to => to.id === formData.tone)?.name}</p>
-                <p className={styles.summaryItem}><strong>{translations.summaryLengthLabel}</strong> {lengthOptions.find(l => l.id === formData.length)?.name}</p>
-              </div>
-
-              <div className={`${styles.summaryCard} ${styles.publish}`}>
-                <h3 className={styles.summaryTitle}>{translations.publishingOptions}</h3>
-                <p className={styles.summaryItem}><strong>{translations.summaryPublishDateLabel}</strong> {formData.publishDate || translations.saveAsDraft}</p>
-                <div className={styles.summaryOptions}>
-                  <span>{formData.includeImages ? '✅' : '❌'} {translations.summaryAiImages}</span>
-                  <span>{formData.seoOptimize ? '✅' : '❌'} {translations.summarySeoOptimization}</span>
-                  <span>{formData.autoPublish ? '✅' : '❌'} {translations.summaryAutoPublish}</span>
-                </div>
-              </div>
-            </div>
-
-            <button onClick={handleSubmit} className={styles.launchButton}>
-              <div className={styles.launchButtonBg}></div>
-              <div className={styles.launchButtonGlow}></div>
-              <div className={styles.launchButtonContent}>
-                <Sparkles className={styles.launchIcon} />
-                <span>{translations.generateContent}</span>
-              </div>
-            </button>
-          </>
-        )}
+        <StepComponent
+          state={state}
+          dispatch={dispatch}
+          translations={translations}
+        />
       </div>
 
       {/* Navigation Buttons */}
@@ -355,16 +229,35 @@ export function WizardContent({ translations, steps, contentTypes, toneOptions, 
           className={`${styles.navButton} ${styles.prev}`}
         >
           <PrevArrow className={styles.navIcon} />
-          {translations.previous}
+          {translations.nav.previous}
         </button>
 
-        {currentStep < steps.length && (
+        {currentStep < WIZARD_STEPS.length && (
           <button onClick={handleNext} className={`${styles.navButton} ${styles.next}`}>
-            {translations.next}
+            {translations.nav.next}
             <NextArrow className={styles.navIcon} />
           </button>
         )}
       </div>
+
+      {/* Validation popup */}
+      {validationPopup && createPortal(
+        <div className={styles.modalOverlay} onClick={() => setValidationPopup(null)}>
+          <div className={styles.validationPopup} onClick={(e) => e.stopPropagation()}>
+            <button className={styles.validationPopupClose} onClick={() => setValidationPopup(null)}>
+              <X size={18} />
+            </button>
+            <div className={styles.validationPopupIcon}>
+              <AlertTriangle size={28} />
+            </div>
+            <p className={styles.validationPopupMessage}>{validationPopup}</p>
+            <button className={styles.validationPopupBtn} onClick={() => setValidationPopup(null)}>
+              {translations.articleTypes.gotIt}
+            </button>
+          </div>
+        </div>,
+        document.body
+      )}
     </>
   );
 }

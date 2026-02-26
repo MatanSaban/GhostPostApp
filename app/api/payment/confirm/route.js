@@ -195,6 +195,11 @@ async function handlePlanUpgrade(payment, action, user) {
     throw new Error('No active subscription');
   }
 
+  // Prevent upgrading to the same plan
+  if (subscription.planId === plan.id) {
+    throw new Error('Already on this plan');
+  }
+
   const now = new Date();
   const nextFirst = getNextFirstOfMonth(now);
 

@@ -49,7 +49,7 @@
 }
 
 .pageSubtitle {
-  font-size: 0.9375rem;
+  font-size: 0.9rem;
   color: var(--muted-foreground);
   margin-top: 0.125rem;
 }
@@ -373,7 +373,7 @@
 }
 
 .notificationTitle {
-  font-size: 0.9375rem;
+  font-size: 0.9rem;
   font-weight: 600;
   color: var(--foreground);
   white-space: nowrap;
@@ -465,7 +465,7 @@
   color: var(--muted-foreground);
 
   p {
-    font-size: 0.9375rem;
+    font-size: 0.9rem;
   }
 }
 
@@ -500,7 +500,7 @@
 }
 
 .emptyMessage {
-  font-size: 0.9375rem;
+  font-size: 0.9rem;
   color: var(--muted-foreground);
   max-width: 320px;
   line-height: 1.5;

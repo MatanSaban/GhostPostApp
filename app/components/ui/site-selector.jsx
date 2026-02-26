@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
+import { useRouter, usePathname } from 'next/navigation';
 import { ChevronRight, Search, Check, Plus, X, Loader2, AlertCircle, Globe, Plug, PlugZap, Pencil, ExternalLink } from 'lucide-react';
 import { useLocale } from '@/app/context/locale-context';
 import { useSite } from '@/app/context/site-context';
@@ -37,6 +38,8 @@ function formatSiteUrl(url) {
 
 export function SiteSelector({ onSiteChange }) {
   const { t } = useLocale();
+  const router = useRouter();
+  const pathname = usePathname();
   const { sites, selectedSite, setSelectedSite, setSites, isLoading } = useSite();
   const [isOpen, setIsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -78,6 +81,11 @@ export function SiteSelector({ onSiteChange }) {
     setIsOpen(false);
     setSearchQuery('');
     onSiteChange?.(site);
+
+    // Redirect to dashboard when switching sites (unless already there)
+    if (pathname !== '/dashboard') {
+      router.push('/dashboard');
+    }
 
     // Save selected site to database
     try {
