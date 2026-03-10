@@ -7,13 +7,17 @@
  */
 
 // Current plugin version - increment this when making updates
-export const PLUGIN_VERSION = "1.8.5";
+export const PLUGIN_VERSION = "1.8.6";
 
 // Changelog for the current version
 export const PLUGIN_CHANGELOG = `
-= 1.8.5 =
+= 1.8.6 =
 * FIXED: Critical PHP parse error in entity sync class (escaped dollar signs in generated PHP)
-* Plugin now activates correctly on all PHP versions
+* Real-time entity sync - WordPress content changes are pushed instantly to Ghost Post
+* Automatic webhook on post create, update, trash, delete, and restore
+* Conflict prevention: changes from Ghost Post are not echoed back
+* Supports all post types including custom post types
+* Non-blocking webhook calls for zero performance impact
 
 = 1.8.4 =
 * NEW: Real-time entity sync - WordPress content changes are pushed instantly to Ghost Post
