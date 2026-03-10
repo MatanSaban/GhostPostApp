@@ -7,10 +7,17 @@
  */
 
 // Current plugin version - increment this when making updates
-export const PLUGIN_VERSION = "1.8.3";
+export const PLUGIN_VERSION = "1.8.4";
 
 // Changelog for the current version
 export const PLUGIN_CHANGELOG = `
+= 1.8.4 =
+* NEW: Real-time entity sync - WordPress content changes are pushed instantly to Ghost Post
+* Automatic webhook on post create, update, trash, delete, and restore
+* Conflict prevention: changes from Ghost Post are not echoed back
+* Supports all post types including custom post types
+* Non-blocking webhook calls for zero performance impact
+
 = 1.8.3 =
 * Updated permissions sync - ensures CPT_READ and other permissions are properly configured
 * Fixed custom post type access for entity sync

@@ -20,6 +20,7 @@ import { getClassSeoManager } from './plugin-templates/class-seo-manager';
 import { getClassCptManager } from './plugin-templates/class-cpt-manager';
 import { getClassAcfManager } from './plugin-templates/class-acf-manager';
 import { getClassUpdater } from './plugin-templates/class-updater';
+import { getClassEntitySync } from './plugin-templates/class-entity-sync';
 import { getAdminPage } from './plugin-templates/admin-page';
 import { getAdminCss } from './plugin-templates/admin-css';
 
@@ -132,6 +133,7 @@ export async function GET(request, { params }) {
     pluginFolder.file('includes/class-gp-cpt-manager.php', getClassCptManager());
     pluginFolder.file('includes/class-gp-acf-manager.php', getClassAcfManager());
     pluginFolder.file('includes/class-gp-updater.php', getClassUpdater());
+    pluginFolder.file('includes/class-gp-entity-sync.php', getClassEntitySync());
 
     // Admin folder
     pluginFolder.file('admin/views/settings-page.php', getAdminPage());

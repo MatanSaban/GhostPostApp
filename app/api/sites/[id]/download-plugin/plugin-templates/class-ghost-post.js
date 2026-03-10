@@ -30,6 +30,10 @@ class Ghost_Post {
         $this->validator = new GP_Request_Validator();
         $this->api_handler = new GP_API_Handler($this->validator);
         
+        // Initialize entity sync (real-time webhook push)
+        $entity_sync = new GP_Entity_Sync();
+        $entity_sync->init();
+        
         // Register REST API endpoints
         add_action('rest_api_init', array($this, 'register_rest_routes'));
         

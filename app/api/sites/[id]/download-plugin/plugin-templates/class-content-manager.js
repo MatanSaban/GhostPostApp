@@ -105,9 +105,13 @@ class GP_Content_Manager {
             $post_data['menu_order'] = (int) $data['menu_order'];
         }
         
+        // Mark as gp-platform origin BEFORE insert (save_post fires during wp_insert_post)
+        GP_Entity_Sync::mark_gp_origin();
+        
         $post_id = wp_insert_post($post_data, true);
         
         if (is_wp_error($post_id)) {
+            GP_Entity_Sync::clear_gp_origin();
             return new WP_REST_Response(array('error' => $post_id->get_error_message()), 400);
         }
         
@@ -199,9 +203,13 @@ class GP_Content_Manager {
             $post_data['menu_order'] = (int) $data['menu_order'];
         }
         
+        // Mark as gp-platform origin BEFORE update (save_post fires during wp_update_post)
+        GP_Entity_Sync::mark_gp_origin();
+        
         $result = wp_update_post($post_data, true);
         
         if (is_wp_error($result)) {
+            GP_Entity_Sync::clear_gp_origin();
             return new WP_REST_Response(array('error' => $result->get_error_message()), 400);
         }
         
