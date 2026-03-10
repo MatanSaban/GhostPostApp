@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import Image from 'next/image';
 import { useLocale } from '@/app/context/locale-context';
+import { useModalResize, ModalResizeButton } from '@/app/components/ui/ModalResizeButton';
 import styles from './interview-wizard-ai.module.css';
 
 // Question type renderers
@@ -398,6 +399,7 @@ const DefaultRenderer = ({ question, value, onChange, onSubmit, isSubmitting, t 
 
 export const InterviewWizardAI = forwardRef(function InterviewWizardAI({ onClose, onComplete }, ref) {
   const { t } = useLocale();
+  const { isMaximized, toggleMaximize } = useModalResize();
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [interview, setInterview] = useState(null);
@@ -689,7 +691,7 @@ export const InterviewWizardAI = forwardRef(function InterviewWizardAI({ onClose
 
   return createPortal(
     <div className={`${styles.overlay} ${isClosing ? styles.closing : ''}`}>
-      <div className={styles.wizard}>
+      <div className={`${styles.wizard} ${isMaximized ? 'modal-maximized' : ''}`}>
         {/* Header */}
         <div className={styles.header}>
           <div className={styles.headerLeft}>
@@ -714,9 +716,12 @@ export const InterviewWizardAI = forwardRef(function InterviewWizardAI({ onClose
               </span>
             </div>
           </div>
-          <button className={styles.closeButton} onClick={handleClose}>
-            <X size={24} />
-          </button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+            <ModalResizeButton isMaximized={isMaximized} onToggle={toggleMaximize} className={styles.closeButton} />
+            <button className={styles.closeButton} onClick={handleClose}>
+              <X size={24} />
+            </button>
+          </div>
         </div>
 
         {/* Progress bar */}

@@ -839,6 +839,7 @@
   background: var(--background);
   border-radius: var(--radius-xl);
   border: 1px solid var(--border);
+  transition: max-width 0.3s ease, max-height 0.3s ease, width 0.3s ease, height 0.3s ease;
   display: flex;
   flex-direction: column;
   overflow: hidden;

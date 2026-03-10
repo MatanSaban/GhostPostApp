@@ -3,6 +3,7 @@
 import { createPortal } from 'react-dom';
 import { Sparkles, X, Loader2, AlertCircle, Check, ExternalLink } from 'lucide-react';
 import { useLocale } from '@/app/context/locale-context';
+import { useModalResize, ModalResizeButton } from '@/app/components/ui/ModalResizeButton';
 import styles from '../competitors.module.css';
 
 export function DiscoveryModal({
@@ -16,22 +17,26 @@ export function DiscoveryModal({
   onClose,
 }) {
   const { t } = useLocale();
+  const { isMaximized, toggleMaximize } = useModalResize();
 
   return createPortal(
     <div className={styles.modalOverlay} onClick={() => !discovering && onClose()}>
-      <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
+      <div className={`${styles.modal} ${isMaximized ? 'modal-maximized' : ''}`} onClick={(e) => e.stopPropagation()}>
         <div className={styles.modalHeader}>
           <div className={styles.modalTitle}>
             <Sparkles size={20} />
             <h3>{t('competitorAnalysis.discoverCompetitors')}</h3>
           </div>
-          <button
-            className={styles.modalClose}
-            onClick={onClose}
-            disabled={discovering}
-          >
-            <X size={20} />
-          </button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+            <ModalResizeButton isMaximized={isMaximized} onToggle={toggleMaximize} className={styles.modalClose} />
+            <button
+              className={styles.modalClose}
+              onClick={onClose}
+              disabled={discovering}
+            >
+              <X size={20} />
+            </button>
+          </div>
         </div>
 
         <div className={styles.modalContent}>

@@ -765,6 +765,10 @@ model Site {
   // Tool settings (WebP conversion, etc.)
   toolSettings         Json?                      // { autoConvertToWebp: boolean, ... }
 
+  // Cached crawl data from interview (to avoid re-crawling with AI every time)
+  crawledData          Json?                      // Full crawl result including AI-extracted data
+  crawledAt            DateTime?                  // When the crawl data was fetched
+
   account         Account               @relation(fields: [accountId], references: [id], onDelete: Cascade)
   interview       Interview?
   keywords        Keyword[]
@@ -1106,11 +1110,16 @@ model Campaign {
   articleTypes      Json           // [{id: string, count: number}]
   contentSettings   Json           // {wordCounts, featuredImage, contentImages, ...}
   subjects          String[]       @default([])
+  subjectSuggestions Json?          // All generated suggestions [{keyword, subjects: [{title, explanation, articleType}]}]
   keywordIds        String[]       @db.ObjectId
 
   // AI prompts
   textPrompt        String?        @default("")
   imagePrompt       String?        @default("")
+
+  // Generated content plan
+  generatedPlan       Json?          // [{index, title, type, subject, keywordId, keywordText, scheduledAt}]
+  lastCompletedStep   Int?           @default(1) // Tracks wizard progress (1-9)
 
   createdAt         DateTime       @default(now())
   updatedAt         DateTime       @updatedAt
@@ -1129,19 +1138,20 @@ enum CampaignStatus {
 }
 
 model Keyword {
-  id           String        @id @default(auto()) @map("_id") @db.ObjectId
-  siteId       String        @db.ObjectId
+  id           String          @id @default(auto()) @map("_id") @db.ObjectId
+  siteId       String          @db.ObjectId
   keyword      String
   searchVolume Int?
   difficulty   Int?
   cpc          Float?
-  intent       KeywordIntent?
+  intents      KeywordIntent[]
   position     Int?
   url          String?
-  status       KeywordStatus @default(TRACKING)
+  status       KeywordStatus   @default(TRACKING)
   tags         String[]
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
+  aiSuggestion Json?           // Cached AI article type suggestion { articleType, reasoning, briefPlan, locale, analyzedAt }
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
 
   site     Site      @relation(fields: [siteId], references: [id], onDelete: Cascade)
   contents Content[]
@@ -1178,6 +1188,14 @@ model Content {
   metaDescription String?
   wordCount       Int?
   aiGenerated     Boolean       @default(false)
+
+  // Task queue fields
+  processingAttempts Int        @default(0)      // Retry counter for AI generation
+  publishAttempts    Int        @default(0)      // Retry counter for WordPress publishing
+  lastAttemptAt      DateTime?                   // Timestamp of last worker attempt
+  errorMessage       String?                     // Error stack/message when FAILED
+  aiResult           Json?                       // Generated HTML/title before push (failsafe)
+
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
 
@@ -1190,8 +1208,11 @@ model Content {
 
 enum ContentStatus {
   DRAFT
-  SCHEDULED
-  PUBLISHED
+  SCHEDULED        // Waiting in the queue for its scheduled time
+  PROCESSING       // Locked by a worker — AI is currently generating
+  READY_TO_PUBLISH // AI generation complete, waiting to push to target site
+  PUBLISHED        // Successfully pushed to WordPress/client site
+  FAILED           // Error during generation or publishing
   ARCHIVED
 }
 
@@ -1722,4 +1743,90 @@ model Notification {
   @@index([userId, read, createdAt(sort: Desc)])
   @@index([accountId, createdAt(sort: Desc)])
   @@map("notifications")
+}
+
+// ==========================================
+// PUSH QUESTIONS (Admin-managed questions for users)
+// ==========================================
+
+// Questions that superadmin can push to users on the site-profile page
+model PushQuestion {
+  id              String              @id @default(auto()) @map("_id") @db.ObjectId
+  order           Int                 @default(0)
+  question        String              // The question text (English - base language)
+  description     String?             // Optional description/hint
+  questionType    PushQuestionType    @default(TEXT)
+  
+  // For CHOICE/MULTI_CHOICE types - options as JSON array of strings
+  options         Json?               // ["option1", "option2", ...]
+  
+  // Targeting - who sees this question
+  targetAll       Boolean             @default(true)  // Show to all sites
+  targetSiteIds   String[]            @db.ObjectId    // Specific site IDs if not targetAll
+  
+  // Whether this question is required or can be skipped
+  required        Boolean             @default(false)
+  
+  // Category for grouping in admin UI
+  category        String?
+  
+  isActive        Boolean             @default(true)
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+
+  answers         PushQuestionAnswer[]
+  translations    PushQuestionTranslation[]
+
+  @@index([isActive, order])
+  @@map("push_questions")
+}
+
+// Translations for push questions
+model PushQuestionTranslation {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  questionId  String   @db.ObjectId
+  language    Language
+  question    String   // Translated question text
+  description String?  // Translated description
+  options     Json?    // Translated options for CHOICE/MULTI_CHOICE
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  pushQuestion PushQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@unique([questionId, language])
+  @@map("push_question_translations")
+}
+
+// User answers to push questions
+model PushQuestionAnswer {
+  id              String   @id @default(auto()) @map("_id") @db.ObjectId
+  questionId      String   @db.ObjectId
+  siteId          String   @db.ObjectId
+  userId          String   @db.ObjectId
+  
+  // The answer value - text for TEXT type, JSON array for MULTI_CHOICE
+  answer          String?
+  
+  // Whether user skipped this question
+  skipped         Boolean  @default(false)
+  
+  answeredAt      DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  question        PushQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@unique([questionId, siteId])
+  @@index([siteId])
+  @@index([userId])
+  @@map("push_question_answers")
+}
+
+enum PushQuestionType {
+  TEXT          // Free text input
+  TEXTAREA      // Multi-line text
+  CHOICE        // Single choice (radio)
+  MULTI_CHOICE  // Multiple choice (checkboxes)
+  NUMBER        // Numeric input
+  URL           // URL input
 }

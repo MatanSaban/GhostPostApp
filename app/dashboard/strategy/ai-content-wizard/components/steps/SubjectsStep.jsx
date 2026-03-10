@@ -1,9 +1,10 @@
 'use client';
 
 import { useState, useCallback, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import {
   BookOpen, Sparkles, Loader2, RefreshCw, PenLine, Check,
-  ChevronDown, Plus, X, Search as SearchIcon,
+  ChevronDown, Plus, X, Search as SearchIcon, AlertTriangle,
 } from 'lucide-react';
 import { useLocale } from '@/app/context/locale-context';
 import { useSite } from '@/app/context/site-context';
@@ -25,6 +26,7 @@ export default function SubjectsStep({ state, dispatch, translations }) {
   const [customTitle, setCustomTitle] = useState('');
   const [customExplanation, setCustomExplanation] = useState('');
   const [customArticleType, setCustomArticleType] = useState('');
+  const [validationPopup, setValidationPopup] = useState(null);
 
   const totalKeywords = state.selectedKeywordIds.length + state.manualKeywords.length;
   const hasData = state.subjectSuggestions?.length > 0;
@@ -101,6 +103,12 @@ export default function SubjectsStep({ state, dispatch, translations }) {
         value: state.subjects.filter((_, i) => i !== existing),
       });
     } else if (canSelectMore) {
+      // Check if keyword already has a selected subject
+      const keywordHasSelection = state.subjects.some(s => s.keyword === keyword);
+      if (keywordHasSelection) {
+        setValidationPopup(t.onePerKeyword);
+        return;
+      }
       // Select
       dispatch({
         type: 'SET_FIELD',
@@ -123,6 +131,12 @@ export default function SubjectsStep({ state, dispatch, translations }) {
   // Add a custom subject under a keyword
   const addCustomSubject = (keyword) => {
     if (!customTitle.trim() || !canSelectMore) return;
+    // Check if keyword already has a selected subject
+    const keywordHasSelection = state.subjects.some(s => s.keyword === keyword);
+    if (keywordHasSelection) {
+      setValidationPopup(t.onePerKeyword);
+      return;
+    }
     dispatch({
       type: 'SET_FIELD',
       field: 'subjects',
@@ -441,6 +455,25 @@ export default function SubjectsStep({ state, dispatch, translations }) {
             </span>
           )}
         </div>
+      )}
+
+      {/* One-per-keyword validation popup */}
+      {validationPopup && createPortal(
+        <div className={styles.modalOverlay} onClick={() => setValidationPopup(null)}>
+          <div className={styles.validationPopup} onClick={(e) => e.stopPropagation()}>
+            <button className={styles.validationPopupClose} onClick={() => setValidationPopup(null)}>
+              <X size={18} />
+            </button>
+            <div className={styles.validationPopupIcon}>
+              <AlertTriangle size={28} />
+            </div>
+            <p className={styles.validationPopupMessage}>{validationPopup}</p>
+            <button className={styles.validationPopupBtn} onClick={() => setValidationPopup(null)}>
+              {t.gotIt}
+            </button>
+          </div>
+        </div>,
+        document.body
       )}
     </div>
   );

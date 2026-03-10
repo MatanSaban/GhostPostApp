@@ -66,6 +66,13 @@ export async function GET(request, { params }) {
       return NextResponse.json({ error: 'No access' }, { status: 404 });
     }
 
+    // Deserialize subjects back to objects for the client
+    if (campaign.subjects) {
+      campaign.subjects = campaign.subjects.map((s) => {
+        try { return JSON.parse(s); } catch { return s; }
+      });
+    }
+
     return NextResponse.json({ campaign });
   } catch (error) {
     console.error('[Campaign API] GET error:', error);
@@ -104,13 +111,21 @@ export async function PUT(request, { params }) {
       'name', 'color', 'status', 'publishDays',
       'publishTimeMode', 'publishTimeStart', 'publishTimeEnd',
       'postsCount', 'articleTypes', 'contentSettings',
-      'subjects', 'keywordIds', 'textPrompt', 'imagePrompt',
+      'subjects', 'subjectSuggestions', 'keywordIds', 'textPrompt', 'imagePrompt',
+      'generatedPlan', 'lastCompletedStep',
     ];
 
     for (const field of allowedFields) {
       if (body[field] !== undefined) {
         updateData[field] = body[field];
       }
+    }
+
+    // Serialize subjects: Prisma expects String[] but the client sends objects
+    if (updateData.subjects) {
+      updateData.subjects = updateData.subjects.map((s) =>
+        typeof s === 'string' ? s : JSON.stringify(s)
+      );
     }
 
     // Handle date fields separately (convert to Date)

@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import prisma from '@/lib/prisma';
 import { syncAllEntities, getSiteInfo, getMenus, getPosts } from '@/lib/wp-api-client';
+import { acquireSyncLock, releaseSyncLock } from '@/lib/entity-sync';
 
 const SESSION_COOKIE = 'user_session';
 const LOCALE_COOKIE = 'ghost-post-locale';
@@ -95,14 +96,20 @@ export async function POST(request) {
       }, { status: 400 });
     }
 
-    // Start sync - update status
+    // Acquire sync lock — prevents conflicts with cron sync and webhook updates
+    const lockAcquired = await acquireSyncLock(siteId, 'manual');
+    if (!lockAcquired) {
+      return NextResponse.json({
+        error: 'A sync is already in progress for this site. Please wait and try again.',
+        errorCode: 'SYNC_IN_PROGRESS',
+      }, { status: 409 });
+    }
+
+    // Override lock message with localized starting message
     await prisma.site.update({
       where: { id: siteId },
       data: {
-        entitySyncStatus: 'SYNCING',
-        entitySyncProgress: 0,
         entitySyncMessage: messages.starting,
-        entitySyncError: null,
       },
     });
 
@@ -543,8 +550,8 @@ async function syncEntitiesForType(site, entityType) {
             content: post.content || null,
             status: mapPostStatus(post.status),
             featuredImage: post.featured_image || null,
-            publishedAt: post.date ? new Date(post.date) : null,
-            scheduledAt: post.status === 'future' && post.date ? new Date(post.date) : null,
+            publishedAt: post.date_gmt ? new Date(String(post.date_gmt).replace(' ', 'T') + 'Z') : (post.date ? new Date(String(post.date).replace(' ', 'T')) : null),
+            scheduledAt: post.status === 'future' && post.date_gmt ? new Date(String(post.date_gmt).replace(' ', 'T') + 'Z') : (post.status === 'future' && post.date ? new Date(String(post.date).replace(' ', 'T')) : null),
             externalId: String(post.id),
             metadata: {
               author: post.author_name || null,

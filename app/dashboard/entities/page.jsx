@@ -2,14 +2,11 @@
 
 import { Globe } from 'lucide-react';
 import { useLocale } from '@/app/context/locale-context';
-import WordPressPluginSection from '@/app/dashboard/settings/components/WordPressPluginSection';
 import {
   useEntities,
   EntitiesPageSkeleton,
   IntegrationSetupCard,
   EntityTypesDiscovery,
-  SyncStatusCard,
-  EnabledTypesCard,
 } from './components';
 import styles from './entities.module.css';
 
@@ -83,7 +80,6 @@ export default function EntitiesPage() {
   }
 
   const isConnected = selectedSite?.connectionStatus === 'CONNECTED';
-  const isWordPress = platform === 'wordpress';
 
   return (
     <div className={styles.container}>
@@ -95,7 +91,7 @@ export default function EntitiesPage() {
         </div>
       </div>
 
-      {/* Integration Setup Card */}
+      {/* Section 1: Connection Settings + Plugin */}
       <IntegrationSetupCard
         selectedSite={selectedSite}
         platform={platform}
@@ -104,7 +100,7 @@ export default function EntitiesPage() {
         onDetectPlatform={handleDetectPlatform}
       />
 
-      {/* Entity Types Discovery */}
+      {/* Section 2: Enabled Types + Discovery */}
       {platform && (
         <EntityTypesDiscovery
           discoveredTypes={discoveredTypes}
@@ -124,42 +120,20 @@ export default function EntitiesPage() {
           onDiscoverByCrawling={discoverByCrawling}
           onSaveAndPopulate={handleSaveAndPopulate}
           onDiscoverEntityTypes={discoverEntityTypes}
-        />
-      )}
-
-      {/* WordPress Plugin Section */}
-      {isWordPress && enabledTypes.length > 0 && (
-        <WordPressPluginSection
-          translations={t}
-          selectedSite={selectedSite}
           enabledTypes={enabledTypes}
-          isDownloadingPlugin={isDownloadingPlugin}
-          onDownloadPlugin={handleDownloadPlugin}
+          siteId={selectedSite?.id}
+          isConnected={isConnected}
+          onPopulateEntities={handlePopulateEntities}
+          onCrawlEntities={handleCrawlEntities}
+          syncStatus={syncStatus}
+          syncProgress={syncProgress}
+          syncMessage={syncMessage}
+          syncError={syncError}
+          populatedInfo={populatedInfo}
+          onStopSync={handleStopSync}
         />
       )}
 
-      {/* Sync Status Card */}
-      <SyncStatusCard
-        syncStatus={syncStatus}
-        syncProgress={syncProgress}
-        syncMessage={syncMessage}
-        syncError={syncError}
-        populatedInfo={populatedInfo}
-        isConnected={isConnected}
-        onPopulateEntities={handlePopulateEntities}
-        onCrawlEntities={handleCrawlEntities}
-        onStopSync={handleStopSync}
-      />
-
-      {/* Enabled Entity Types */}
-      <EnabledTypesCard
-        enabledTypes={enabledTypes}
-        siteId={selectedSite?.id}
-        isConnected={isConnected}
-        onPopulateEntities={handlePopulateEntities}
-        onCrawlEntities={handleCrawlEntities}
-        syncStatus={syncStatus}
-      />
     </div>
   );
 }

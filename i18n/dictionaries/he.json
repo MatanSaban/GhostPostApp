@@ -91,7 +91,8 @@
     "openInNewTab": "פתח בלשונית חדשה",
     "refresh": "רענן",
     "linksPerThousand": "קישורים / 1000 מילים",
-    "seconds": "שניות"
+    "seconds": "שניות",
+    "clear": "נקה"
   },
   "backgroundTasks": {
     "entityPopulation": {
@@ -263,10 +264,10 @@
     "strategy": {
       "title": "אסטרטגיה",
       "siteProfile": "פרופיל אתר",
-      "keywords": "מחקר מילות מפתח",
+      "keywords": "מילות מפתח",
       "contentPlanner": "יומן תוכן",
       "aiWizard": "אשף תוכן AI",
-      "competitorAnalysis": "ניתוח מתחרים"
+      "competitorAnalysis": "מתחרים"
     },
     "automations": "אוטומציות",
     "linkBuilding": "בניית קישורים",
@@ -307,6 +308,7 @@
       "interviewQuestions": "שאלות ראיון",
       "translations": "תרגומים",
       "interviewFlow": "מסלול ראיון",
+      "pushQuestions": "שאלות דחיפה",
       "botActions": "פעולות בוט",
       "backlinks": "קישורים נכנסים",
       "website": "תוכן אתר"
@@ -367,9 +369,20 @@
       "impressions": "חשיפות",
       "ctr": "CTR",
       "position": "מיקום",
-      "keyword": "מילת מפתח"
+      "keyword": "מילת מפתח",
+      "relatedPost": "פוסט קשור"
     },
     "topKeywords": "מילות מפתח מובילות",
+    "addToKeywords": "הוסף למילות מפתח",
+    "alreadyTracked": "כבר במעקב",
+    "track": "מעקב",
+    "viewAllKeywords": "צפה בכל מילות המפתח",
+    "allGscKeywords": "כל מילות המפתח מGoogle Search Console",
+    "searchKeywords": "חיפוש מילות מפתח...",
+    "keywordsFound": "מילות מפתח נמצאו",
+    "noKeywordsFound": "לא נמצאו מילות מפתח",
+    "perPage": "לעמוד",
+    "of": "מתוך",
     "sortBy": "מיין לפי",
     "tokenError": "החיבור לגוגל פג. אנא חבר מחדש את החשבון שלך.",
     "reconnectGoogle": "חבר מחדש את גוגל",
@@ -824,7 +837,7 @@
       "cardDescription": "הגדר את הזהות האתר, קהל היעד ומטרות העסק כדי להניע המלצות SEO מונעות AI."
     },
     "keywords": {
-      "title": "מחקר מילות מפתח",
+      "title": "מילות מפתח",
       "cardDescription": "חקור ועקוב אחר דירוג מילות מפתח, גלה הזדמנויות חדשות ומטב את התוכן שלך למנועי חיפוש."
     },
     "contentPlanner": {
@@ -836,7 +849,7 @@
       "cardDescription": "צור תקצירי תוכן ומתווים ממוטבי SEO באמצעות AI. קבל הצעות לכותרות, כותרות משנה ונקודות מפתח."
     },
     "competitorAnalysis": {
-      "title": "ניתוח מתחרים",
+      "title": "מתחרים",
       "cardDescription": "נתח את אסטרטגיות ה-SEO של המתחרים שלך, גלה את מילות המפתח המובילות שלהם ומצא פערי תוכן לניצול."
     }
   },
@@ -909,6 +922,16 @@
       "editCampaign": "ערוך קמפיין",
       "editPosts": "ערוך פוסטים מתוכננים",
       "createPosts": "צור פוסטים",
+      "activate": "הפעלה",
+      "pause": "עצירה",
+      "resume": "המשך",
+      "activating": "מפעיל...",
+      "pausing": "משהה...",
+      "activateConfirm": "פעולה זו תזמן את כל הפוסטים המתוכננים ליצירה אוטומטית ופרסום. להמשיך?",
+      "noPlan": "יש להשלים את אשף התוכן AI לפני כדי ליצור תוכנית.",
+      "progress": "התקדמות",
+      "of": "מתוך",
+      "postsPublished": "פורסמו",
       "createModal": {
         "title": "צור קמפיין",
         "description": "תן לקמפיין שם ובחר צבע כדי להתחיל",
@@ -932,14 +955,34 @@
         "save": "שמור"
       }
     },
+    "pipeline": {
+      "title": "צינור תוכן",
+      "noContent": "אין תוכן בצינור עדיין. הפעל קמפיין כדי להתחיל לייצר.",
+      "processing": "מעבד",
+      "readyToPublish": "מוכן לפרסום",
+      "failed": "נכשל",
+      "retry": "נסה שוב",
+      "retryPublish": "נסה שוב לפרסם",
+      "retrying": "מנסה שוב...",
+      "errorDetails": "פרטי שגיאה",
+      "attempts": "ניסיונות",
+      "viewContent": "צפה בתוכן"
+    },
     "preview": {
       "title": "תצוגה מקדימה",
       "noContent": "אין תוכן זמין",
-      "viewOnSite": "צפה באתר"
+      "viewOnSite": "צפה באתר",
+      "campaign": "קמפיין",
+      "status": "סטטוס",
+      "type": "סוג",
+      "keyword": "מילת מפתח",
+      "date": "תאריך",
+      "time": "שעה",
+      "source": "מקור"
     }
   },
   "keywordStrategy": {
-    "title": "מחקר מילות מפתח",
+    "title": "מילות מפתח",
     "subtitle": "עקוב אחר דירוגים וגלה הזדמנויות מילות מפתח חדשות",
     "addKeyword": "הוסף מילת מפתח",
     "enterKeyword": "הזן מילת מפתח...",
@@ -960,6 +1003,7 @@
     "trend": "מגמה",
     "difficulty": "קושי",
     "status": "סטטוס",
+    "intent": "כוונה",
     "easy": "קל",
     "medium": "בינוני",
     "hard": "קשה",
@@ -974,6 +1018,7 @@
     "startInterview": "התחל ראיון",
     "noSiteSelected": "בחר אתר כדי לצפות במילות מפתח",
     "fromInterview": "ראיון",
+    "fromManual": "ידני",
     "filter": {
       "all": "הכל",
       "tracking": "מעקב",
@@ -987,6 +1032,20 @@
       "ranking": "מדורג",
       "archived": "בארכיון"
     },
+    "intent": {
+      "label": "כוונה",
+      "informational": "מידעי",
+      "navigational": "ניווטי",
+      "transactional": "עסקי",
+      "commercial": "מסחרי",
+      "informationalDesc": "המשתמש רוצה ללמוד או להבין משהו",
+      "navigationalDesc": "המשתמש רוצה למצוא אתר או דף ספציפי",
+      "transactionalDesc": "המשתמש רוצה לבצע פעולה (רכישה, הרשמה, הורדה)",
+      "commercialDesc": "המשתמש חוקר לפני קבלת החלטת רכישה"
+    },
+    "setIntent": "הגדר כוונה",
+    "reanalyze": "נתח מחדש עם AI",
+    "confirmDelete": "האם אתה בטוח שברצונך למחוק מילת מפתח זו?",
     "columns": {
       "keyword": "מילת מפתח",
       "volume": "נפח",
@@ -994,7 +1053,8 @@
       "position": "מיקום",
       "trend": "מגמה",
       "traffic": "תנועה",
-      "cpc": "עלות לקליק"
+      "cpc": "עלות לקליק",
+      "relatedPost": "פוסט קשור"
     },
     "stats": {
       "trackedKeywords": "מילות מפתח במעקב",
@@ -1006,10 +1066,121 @@
       "easy": "קל",
       "medium": "בינוני",
       "hard": "קשה"
+    },
+    "generatePost": "צור פוסט AI"
+  },
+  "generatePost": {
+    "title": "צור פוסט AI",
+    "forKeyword": "למילת מפתח",
+    "steps": {
+      "settings": "הגדרות",
+      "keywords": "מילות מפתח",
+      "summary": "סיכום",
+      "preview": "תצוגה מקדימה"
+    },
+    "keywordsStep": {
+      "title": "מילות מפתח נוספות",
+      "description": "בחר מילות מפתח דומות לטרגט באותו מאמר כדי למנוע קניבליזציה. AI ינתח ויציע את ההתאמות הטובות ביותר.",
+      "searchPlaceholder": "חפש מילות מפתח...",
+      "aiSuggested": "הומלצו ע\"י AI",
+      "wordMatch": "התאמת מילים",
+      "otherKeywords": "מילות מפתח נוספות",
+      "loadingKeywords": "טוען מילות מפתח...",
+      "aiAnalyzing": "AI מנתח דמיון בין מילות מפתח...",
+      "noKeywords": "לא נמצאו מילות מפתח לאתר זה",
+      "selected": "נבחרו"
+    },
+    "writingStyle": "סגנון כתיבה",
+    "selectWritingStyle": "בחר סגנון כתיבה...",
+    "writingStyles": {
+      "professional": "מקצועי",
+      "casual": "לא רשמי",
+      "technical": "טכני",
+      "conversational": "שיחתי",
+      "formal": "רשמי",
+      "friendly": "ידידותי",
+      "authoritative": "סמכותי",
+      "educational": "חינוכי",
+      "persuasive": "שכנועי",
+      "storytelling": "סיפורי"
+    },
+    "fromInterview": "מראיון האתר",
+    "publishMode": "מצב פרסום",
+    "publishNow": "פרסם מיד",
+    "scheduleFor": "תזמן ל",
+    "intent": "כוונה",
+    "keywordIntents": "כוונות מילת מפתח",
+    "articleType": "סוג מאמר",
+    "recommendedFor": "מומלץ לכוונה זו",
+    "aiAnalyzing": "AI מנתח...",
+    "aiSuggested": "המלצת AI",
+    "briefPlan": "תכנית תוכן",
+    "reanalyze": "נתח מחדש",
+    "wordCount": "מספר מילים",
+    "words": "מילים",
+    "recommendedRange": "טווח מומלץ",
+    "featuredImage": "תמונה ראשית",
+    "contentImages": "תמונות תוכן",
+    "contentImagesCount": "מספר תמונות",
+    "maxImages": "מקסימום תמונות",
+    "basedOnWordCount": "בהתאם למספר המילים",
+    "images": "תמונות",
+    "contentPrompt": "הנחיות תוכן (אופציונלי)",
+    "contentPromptPlaceholder": "הוסף הנחיות ספציפיות ליצירת התוכן...",
+    "featuredImagePrompt": "הנחיות לתמונה ראשית (אופציונלי)",
+    "featuredImagePromptPlaceholder": "תאר מה התמונה הראשית צריכה לכלול...",
+    "contentImagesPrompt": "הנחיות לתמונות תוכן (אופציונלי)",
+    "contentImagesPromptPlaceholder": "תאר את הסגנון או הנושאים לתמונות התוכן...",
+    "next": "הבא",
+    "generate": "צור פוסט",
+    "generating": "יוצר...",
+    "summaryTitle": "סקור את ההגדרות",
+    "targetKeyword": "מילת מפתח יעד",
+    "customPrompts": "הנחיות מותאמות",
+    "preview": {
+      "title": "כותרת",
+      "featuredImage": "תמונה ראשית",
+      "metaTitle": "כותרת מטא",
+      "metaDescription": "תיאור מטא",
+      "excerpt": "תקציר",
+      "content": "תוכן",
+      "slug": "כתובת URL",
+      "changeHeadingLevel": "שנה רמת כותרת",
+      "contentPlaceholder": "לחץ כדי להתחיל לערוך...",
+      "bold": "מודגש",
+      "italic": "נטוי",
+      "underline": "קו תחתון",
+      "bulletList": "רשימת תבליטים",
+      "numberedList": "רשימה ממוספרת",
+      "addLink": "הוסף קישור",
+      "removeLink": "הסר קישור",
+      "enterUrl": "הזן כתובת URL:",
+      "showPreview": "הצג תצוגה מקדימה",
+      "parallelEdit": "עריכת בלוקים",
+      "freeEdit": "עריכה חופשית"
+    },
+    "regenerate": "צור מחדש",
+    "regenerateAll": "צור הכל מחדש",
+    "regeneratePromptPlaceholder": "תאר מה לשנות... (השאר ריק כדי רק ליצור מחדש)",
+    "regenerateSend": "צור מחדש עם הנחיות",
+    "save": "שמור כטיוטה",
+    "publish": "פרסם עכשיו",
+    "schedulePublish": "תזמן",
+    "generatingTitle": "יוצר את הפוסט שלך...",
+    "generatingHint": "זה עשוי לקחת דקה. אנחנו יוצרים תוכן איכותי מותאם למילת המפתח שלך.",
+    "progressMessages": {
+      "analyzingKeyword": "מנתח כוונת מילת מפתח ודפוסי חיפוש...",
+      "researchingTopic": "חוקר את הנושא ואוסף תובנות...",
+      "craftingOutline": "יוצר את המתאר המושלם...",
+      "writingIntroduction": "כותב הקדמה מרתקת...",
+      "generatingContent": "מייצר תוכן מעניין...",
+      "addingDetails": "מוסיף פרטים ודוגמאות תומכות...",
+      "optimizingSEO": "מייעל למנועי חיפוש...",
+      "finalizingPost": "מסיים את הפוסט שלך..."
     }
   },
   "competitorAnalysis": {
-    "title": "ניתוח מתחרים",
+    "title": "מתחרים",
     "subtitle": "נתח את התוכן של המתחרים שלך ומצא הזדמנויות לדרג גבוה יותר",
     "selectSite": "בחר אתר כדי לנתח מתחרים",
     "addCompetitor": "הוסף מתחרה",
@@ -1408,6 +1579,7 @@
       "fetchingEntities": "מביא {type}...",
       "fetchingMenus": "מביא תפריטים...",
       "completed": "הסנכרון הושלם בהצלחה!",
+      "completedWithCount": "הסנכרון הושלם! {count} פריטים סונכרנו",
       "error": "שגיאת סנכרון",
       "failed": "הסנכרון נכשל. נסה שוב.",
       "cancelled": "בוטל",
@@ -1522,7 +1694,8 @@
       "other": "אחר"
     },
     "items": "פריטים",
-    "core": "ליבה",
+    "entitySlug": "סלאג הישות:",
+    "core": "יישות ליבה",
     "integration": {
       "title": "חבר את האתר שלך",
       "description": "חבר את האתר שלך כדי לייבא ולנהל את תכני הישויות"
@@ -1547,8 +1720,8 @@
       "scanning": "סורק את האתר לחיפוש סוגי תוכן...",
       "failed": "לא ניתן לגלות סוגי תוכן. נסה שוב.",
       "found": "נמצאו {count} סוגי תוכן באתר שלך",
-      "noTypes": "לא נמצאו סוגי תוכן",
-      "noTypesDescription": "לחץ על הכפתור למטה כדי לסרוק את האתר שלך",
+      "noTypes": "לא נמצאו סוגי תוכן נוספים",
+      "noTypesDescription": "לחץ על הכפתור למטה כדי לסרוק את האתר שלך עבור סוגי תוכן נוספים",
       "scan": "סרוק אתר",
       "rescan": "סרוק שוב",
       "manualSitemapLabel": "כתובת מפת האתר",
@@ -2716,6 +2889,43 @@
       "title": "בדיקת אתר נכשלה",
       "message": "בדיקה של {siteName} נתקלה בשגיאה"
     },
+    "entitySync": {
+      "title": "סנכרון ישויות הושלם",
+      "message": "{siteName}: {created} חדשים, {updated} עודכנו"
+    },
+    "entityWebhook": {
+      "title": "תוכן עודכן",
+      "message": "{siteName}: \"{entityTitle}\" {action}"
+    },
+    "contentPublishFailed": {
+      "title": "פרסום תוכן נכשל",
+      "message": "נכשל פרסום \"{contentTitle}\" ל-{siteName}"
+    },
+    "failedPublishModal": {
+      "title": "הפרסום נכשל",
+      "subtitle": "התוכן הבא לא הצליח להתפרסם באתר שלך",
+      "errorLabel": "פרטי השגיאה",
+      "contentPreviewLabel": "תצוגה מקדימה",
+      "postDataLabel": "נתוני הפוסט",
+      "titleLabel": "כותרת",
+      "excerptLabel": "תקציר",
+      "metaTitleLabel": "כותרת מטא",
+      "metaDescriptionLabel": "תיאור מטא",
+      "wordCountLabel": "מספר מילים",
+      "retryPublish": "נסה שוב לפרסם",
+      "retrying": "מנסה שוב...",
+      "retryQueued": "התוכן הוכנס לתור לניסיון חוזר. הוא יפורסם בהרצה הבאה של הצינור.",
+      "viewContent": "צפה בתוכן",
+      "wpNotConnected": "תוסף וורדפרס לא מחובר. חבר את אתר הוורדפרס שלך כדי לאפשר פרסום.",
+      "connectWordPress": "חבר וורדפרס",
+      "close": "סגור",
+      "commonErrors": {
+        "rest_no_route": "נקודת הקצה של תוסף Ghost Post לא נמצאה. ודא שתוסף Ghost Post מותקן ומופעל בוורדפרס.",
+        "connection_refused": "לא ניתן להתחבר לאתר הוורדפרס שלך. ודא שהאתר נגיש.",
+        "timeout": "הבקשה חרגה מהזמן. ייתכן שהשרת שלך איטי או עמוס.",
+        "unauthorized": "האימות נכשל. אנא חבר מחדש את אתר הוורדפרס שלך."
+      }
+    },
     "viewResults": "צפה בתוצאות",
     "markRead": "סמן כנקרא",
     "markUnread": "סמן כלא נקרא"
@@ -2981,7 +3191,7 @@
         "preview": "ניתחתי מגמות עדכניות עבור..."
       },
       "keywordResearch": {
-        "title": "מחקר מילות מפתח",
+        "title": "מילות מפתח",
         "preview": "נמצאו 4 מילות מפתח עם תחרות נמוכה..."
       },
       "linkBuilding": {
@@ -3080,7 +3290,12 @@
       "reservedColor": "צבע זה שמור לסטטוסי פוסטים (טיוטה / פורסם / מתוזמן)",
       "editCampaign": "ערוך קמפיין",
       "deleteCampaign": "מחק קמפיין",
-      "deleteConfirm": "האם אתה בטוח שברצונך למחוק קמפיין זה?"
+      "deleteConfirm": "האם אתה בטוח שברצונך למחוק קמפיין זה?",
+      "cancelDelete": "ביטול",
+      "nameRequired": "נא להזין שם קמפיין",
+      "selectOrCreateError": "נא לבחור קמפיין קיים או ליצור חדש",
+      "createError": "יצירת הקמפיין נכשלה. אנא נסה שוב.",
+      "existingCampaigns": "הקמפיינים שלך"
     },
     "postCount": {
       "title": "מספר פוסטים",
@@ -3186,7 +3401,9 @@
       "custom": "מותאם",
       "selectedSubjects": "נושאים שנבחרו",
       "allSelected": "כל הנושאים נבחרו!",
-      "selectRemaining": "בחר עוד {count} נושאים כדי להמשיך"
+      "selectRemaining": "בחר עוד {count} נושאים כדי להמשיך",
+      "onePerKeyword": "ניתן לבחור נושא אחד בלבד לכל מילת מפתח. כדי לבחור נושא אחר, בטל תחילה את הנוכחי.",
+      "gotIt": "הבנתי"
     },
     "keywords": {
       "title": "מילות מפתח לקמפיין",
@@ -3253,7 +3470,19 @@
       "explanation": "הסבר",
       "wordCount": "מספר מילים",
       "words": "מילים",
-      "custom": "מותאם אישית"
+      "custom": "מותאם אישית",
+      "existingPosts": "פוסטים קיימים",
+      "otherCampaigns": "קמפיינים אחרים",
+      "otherCampaignPost": "מתוכנן ב",
+      "existingStatus": "סטטוס",
+      "published": "פורסם",
+      "publishedDate": "תאריך פרסום",
+      "scheduled": "מתוזמן",
+      "processing": "בעיבוד",
+      "readyToPublish": "מוכן",
+      "failed": "נכשל",
+      "draft": "טיוטה",
+      "viewPost": "צפה בפוסט"
     },
     "nav": {
       "previous": "הקודם",
@@ -4935,6 +5164,8 @@
       "unread": "לא נקראו",
       "auditComplete": "בדיקה הושלמה",
       "auditFailed": "בדיקה נכשלה",
+      "entitySync": "סנכרון ישויות",
+      "contentUpdate": "עדכון תוכן",
       "read": "נקראו"
     },
     "groups": {

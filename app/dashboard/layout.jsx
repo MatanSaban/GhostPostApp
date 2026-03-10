@@ -31,10 +31,12 @@ import {
   Bell,
   Link2,
   Ticket,
+  MessageSquarePlus,
 } from 'lucide-react';
 import { GhostChatPopup } from '@/app/components/ui/ghost-chat-popup';
 import { SiteSelector } from '@/app/components/ui/site-selector';
 import { DashboardHeader } from '@/app/dashboard/components/DashboardHeader';
+import ContentPipelineWorker from '@/app/dashboard/components/ContentPipelineWorker';
 import { useLocale } from '@/app/context/locale-context';
 import { useUser } from '@/app/context/user-context';
 import { useSite } from '@/app/context/site-context';
@@ -55,9 +57,9 @@ const menuItemsConfig = [
 const strategyItemsConfig = [
   { labelKey: 'nav.strategy.siteProfile', path: '/dashboard/strategy/site-profile' },
   { labelKey: 'nav.strategy.keywords', path: '/dashboard/strategy/keywords' },
+  { labelKey: 'nav.strategy.competitorAnalysis', path: '/dashboard/strategy/competitors' },
   { labelKey: 'nav.strategy.contentPlanner', path: '/dashboard/strategy/content-planner' },
   { labelKey: 'nav.strategy.aiWizard', path: '/dashboard/strategy/ai-content-wizard' },
-  { labelKey: 'nav.strategy.competitorAnalysis', path: '/dashboard/strategy/competitors' },
 ];
 
 // Tools sub-items (Technical SEO)
@@ -76,6 +78,7 @@ const adminMenuItemsConfig = [
   { icon: Package, labelKey: 'nav.admin.addons', path: '/dashboard/admin/addons' },
   { icon: Ticket, labelKey: 'nav.admin.coupons', path: '/dashboard/admin/coupons' },
   { icon: Bot, labelKey: 'nav.admin.interviewFlow', path: '/dashboard/admin/interview-flow' },
+  { icon: MessageSquarePlus, labelKey: 'nav.admin.pushQuestions', path: '/dashboard/admin/push-questions' },
   { icon: Zap, labelKey: 'nav.admin.botActions', path: '/dashboard/admin/bot-actions' },
   { icon: Languages, labelKey: 'nav.admin.translations', path: '/dashboard/admin/translations' },
   { icon: Link2, labelKey: 'nav.admin.backlinks', path: '/dashboard/admin/backlinks' },
@@ -519,6 +522,9 @@ export default function DashboardLayout({ children }) {
 
       {/* Chat Popup */}
       <GhostChatPopup ref={chatPopupRef} isOpen={isChatOpen} onClose={() => setIsChatOpen(false)} />
+
+      {/* Background content pipeline worker (handles cron jobs in dev mode) */}
+      <ContentPipelineWorker />
     </div>
   );
 }

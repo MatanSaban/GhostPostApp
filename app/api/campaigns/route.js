@@ -54,6 +54,15 @@ export async function GET(request) {
       },
     });
 
+    // Deserialize subjects (stored as JSON strings in String[])
+    for (const campaign of campaigns) {
+      if (campaign.subjects) {
+        campaign.subjects = campaign.subjects.map((s) => {
+          try { return typeof s === 'string' ? JSON.parse(s) : s; } catch { return s; }
+        });
+      }
+    }
+
     return NextResponse.json({ campaigns });
   } catch (error) {
     console.error('[Campaigns API] GET error:', error);
@@ -115,7 +124,8 @@ export async function POST(request) {
         postsCount,
         articleTypes: articleTypes || [],
         contentSettings: contentSettings || {},
-        subjects: subjects || [],
+        subjects: (subjects || []).map((s) => (typeof s === 'string' ? s : JSON.stringify(s))),
+        subjectSuggestions: body.subjectSuggestions || null,
         keywordIds: keywordIds || [],
         textPrompt: textPrompt || '',
         imagePrompt: imagePrompt || '',

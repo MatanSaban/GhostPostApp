@@ -1,13 +1,17 @@
 'use client';
 
 import { useState, useEffect, useRef, useLayoutEffect, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import Link from 'next/link';
 import { 
-  Activity, BarChart2, Search, Settings, ExternalLink,
+  Activity, BarChart2, Search, Settings, ExternalLink, Plus, Check, Loader2,
+  X, ChevronLeft, ChevronRight, Wand2, FileText,
 } from 'lucide-react';
+import GeneratePostModal from '../strategy/keywords/components/GeneratePostModal';
 import { useSite } from '@/app/context/site-context';
 import { StatsCard, DashboardCard, ActivityItem, QuickActions, ProgressBar, KpiSlider } from '../components';
 import { ArrowIcon } from '@/app/components/ui/arrow-icon';
+import { useModalResize, ModalResizeButton } from '@/app/components/ui/ModalResizeButton';
 import styles from '../page.module.css';
 
 export default function DashboardContent({ translations }) {
@@ -121,6 +125,13 @@ export default function DashboardContent({ translations }) {
   const [aiEndDate, setAiEndDate] = useState(aiDefault.end);
   const [aiLoading, setAiLoading] = useState(false);
   const [aiData, setAiData] = useState(null);
+
+  // Tracked keywords map (lowercase key → keyword object) for "add to keywords" + post column
+  const [trackedKeywords, setTrackedKeywords] = useState(new Map());
+  const [addingKeyword, setAddingKeyword] = useState(new Set()); // queries being added
+  const [showAllKeywords, setShowAllKeywords] = useState(false);
+  const [generatePostKeyword, setGeneratePostKeyword] = useState(null);
+  const [aiPostLoading, setAiPostLoading] = useState(null); // query being processed for AI post
   // const [aiKeywords, setAiKeywords] = useState([]);
   // const [inferredQueries, setInferredQueries] = useState([]);
   // const [inferredLoading, setInferredLoading] = useState(false);
@@ -148,7 +159,23 @@ export default function DashboardContent({ translations }) {
       }
     };
 
+    // Fetch tracked keywords to know which are already added
+    const fetchTrackedKeywords = async () => {
+      try {
+        const res = await fetch(`/api/keywords?siteId=${selectedSite.id}`);
+        if (res.ok) {
+          const json = await res.json();
+          const map = new Map();
+          for (const kw of (json.keywords || [])) {
+            map.set(kw.keyword.toLowerCase().trim(), kw);
+          }
+          setTrackedKeywords(map);
+        }
+      } catch { /* silent */ }
+    };
+
     fetchData();
+    fetchTrackedKeywords();
   }, [selectedSite?.id]);
 
   // Refetch only the traffic chart when dates change
@@ -1087,6 +1114,66 @@ export default function DashboardContent({ translations }) {
     return sorted.slice(0, 10);
   };
 
+  const handleAddKeywordFromGSC = async (query) => {
+    if (!selectedSite?.id || addingKeyword.has(query)) return;
+    setAddingKeyword(prev => new Set([...prev, query]));
+    try {
+      const res = await fetch('/api/keywords', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ siteId: selectedSite.id, keywords: query }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        const kw = data.keywords?.[0];
+        if (kw) {
+          setTrackedKeywords(prev => new Map([...prev, [query.toLowerCase().trim(), kw]]));
+        }
+      }
+    } catch (err) {
+      console.error('Error adding keyword:', err);
+    } finally {
+      setAddingKeyword(prev => { const next = new Set(prev); next.delete(query); return next; });
+    }
+  };
+
+  const handleAIPostFromGSC = async (query) => {
+    if (!selectedSite?.id || aiPostLoading) return;
+    setAiPostLoading(query);
+    try {
+      const res = await fetch('/api/keywords', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ siteId: selectedSite.id, keywords: query }),
+      });
+      const data = await res.json();
+      let kw = null;
+
+      if (res.ok && data.keywords?.length) {
+        kw = data.keywords[0];
+        setTrackedKeywords(prev => new Map([...prev, [query.toLowerCase().trim(), kw]]));
+      } else if (res.status === 409) {
+        // Already exists — use from map or fetch
+        kw = trackedKeywords.get(query.toLowerCase().trim());
+        if (!kw) {
+          const fetchRes = await fetch(`/api/keywords?siteId=${selectedSite.id}`);
+          if (fetchRes.ok) {
+            const fetchData = await fetchRes.json();
+            kw = fetchData.keywords?.find(k => k.keyword?.toLowerCase().trim() === query.toLowerCase().trim());
+          }
+        }
+      }
+
+      if (kw) {
+        setGeneratePostKeyword(kw);
+      }
+    } catch (err) {
+      console.error('Error adding keyword for AI post:', err);
+    } finally {
+      setAiPostLoading(null);
+    }
+  };
+
   const GSCTable = ({ rows, variant, period, sortField, onSortChange }) => {
     if (!rows?.length) return null;
     const isPages = variant === 'pages';
@@ -1108,9 +1195,65 @@ export default function DashboardContent({ translations }) {
           </span>
         );
       }
+
+      const key = row.query?.toLowerCase().trim();
+      const isTracked = trackedKeywords.has(key);
+      const isAdding = addingKeyword.has(row.query);
+
       return (
         <span className={styles.gscColLabel} title={row.query}>
+          {isTracked ? (
+            <span className={styles.kwTrackedIcon} title={t.alreadyTracked || 'Already tracked'}>
+              <Check size={12} />
+            </span>
+          ) : (
+            <button
+              className={styles.kwAddBtn}
+              onClick={() => handleAddKeywordFromGSC(row.query)}
+              disabled={isAdding}
+              title={t.addToKeywords || 'Add to keywords'}
+            >
+              {isAdding ? <Loader2 size={11} className={styles.spinning} /> : <Plus size={11} />}
+              <span>{t.track || 'Track'}</span>
+            </button>
+          )}
           {row.query}
+        </span>
+      );
+    };
+
+    const renderPostCell = (row) => {
+      const key = row.query?.toLowerCase().trim();
+      const kwData = trackedKeywords.get(key);
+      const relatedPost = kwData?.relatedPost;
+
+      if (relatedPost) {
+        return (
+          <span className={styles.gscColPost}>
+            <span className={styles.gscPostLinks}>
+              <Link href={`/dashboard/entities/posts/${relatedPost.id}`} className={styles.gscPostLink} title={relatedPost.title}>
+                <FileText size={12} />
+              </Link>
+              {relatedPost.url && (
+                <a href={relatedPost.url} target="_blank" rel="noopener noreferrer" className={styles.gscPostExternal} title={relatedPost.url}>
+                  <ExternalLink size={12} />
+                </a>
+              )}
+            </span>
+          </span>
+        );
+      }
+
+      return (
+        <span className={styles.gscColPost}>
+          <button
+            className={styles.gscAddPostBtn}
+            onClick={(e) => { e.stopPropagation(); handleAIPostFromGSC(row.query); }}
+            disabled={aiPostLoading === row.query}
+            title={t.generateAIPost || 'Generate AI Post'}
+          >
+            {aiPostLoading === row.query ? <Loader2 size={11} className={styles.spinning} /> : <><Wand2 size={12} /><Plus size={10} /></>}
+          </button>
         </span>
       );
     };
@@ -1140,6 +1283,7 @@ export default function DashboardContent({ translations }) {
           <div className={styles.gscTableHeader}>
             {isKeywords && <span className={styles.gscColRank}>#</span>}
             <span className={styles.gscColLabel}>{isPages ? t.page : (t.keyword || 'Keyword')}</span>
+            {isKeywords && <span className={styles.gscColPost}>{t.relatedPost || 'Related Post'}</span>}
             <span className={styles.gscColNum}>{t.clicks}</span>
             <span className={styles.gscColNum}>{t.impressions}</span>
             <span className={styles.gscColNum}>{t.ctr}</span>
@@ -1153,6 +1297,7 @@ export default function DashboardContent({ translations }) {
                 </span>
               )}
               {formatLabel(row)}
+              {isKeywords && renderPostCell(row)}
               <span className={`${styles.gscColNum} ${sortField === 'clicks' ? styles.gscHighlight : ''}`}>
                 {fmtNum(row.clicks)}
                 <ChangeBadge value={row.clicksChange} tooltip={changeTip(row.clicksChange, { value: fmtNum(row.clicks), metric: t.clicks, period })} />
@@ -1173,6 +1318,365 @@ export default function DashboardContent({ translations }) {
           ))}
         </div>
       </div>
+    );
+  };
+
+  // ─── All GSC Keywords Modal ───
+  const AllGSCKeywordsModal = () => {
+    const { isMaximized, toggleMaximize } = useModalResize();
+    const [rows, setRows] = useState([]);
+    const [total, setTotal] = useState(0);
+    const [modalLoading, setModalLoading] = useState(true);
+    const [searchVal, setSearchVal] = useState('');
+    const [debouncedSearch, setDebouncedSearch] = useState('');
+    const [pageSize, setPageSize] = useState(20);
+    const [page, setPage] = useState(1);
+    const [sortBy, setSortBy] = useState('clicks');
+    const searchTimerRef = useRef(null);
+    const [localAdding, setLocalAdding] = useState(new Set());
+    const [localTracked, setLocalTracked] = useState(() => new Map(trackedKeywords));
+    const [localAiPostLoading, setLocalAiPostLoading] = useState(null);
+
+    // Local date filter (initialized from parent keywords date)
+    const [modalPreset, setModalPreset] = useState(keywordsPreset);
+    const [modalStartDate, setModalStartDate] = useState(keywordsStartDate);
+    const [modalEndDate, setModalEndDate] = useState(keywordsEndDate);
+    const handleModalPresetChange = (e) => {
+      const value = e.target.value;
+      setModalPreset(value);
+      if (value !== 'custom') {
+        const range = getDateRange(value);
+        if (range) {
+          setModalStartDate(range.start);
+          setModalEndDate(range.end);
+        }
+      }
+      setPage(1);
+    };
+
+    // Debounce search
+    useEffect(() => {
+      clearTimeout(searchTimerRef.current);
+      searchTimerRef.current = setTimeout(() => {
+        setDebouncedSearch(searchVal);
+        setPage(1);
+      }, 400);
+      return () => clearTimeout(searchTimerRef.current);
+    }, [searchVal]);
+
+    // Fetch data
+    useEffect(() => {
+      if (!selectedSite?.id) return;
+      const offset = (page - 1) * pageSize;
+      setModalLoading(true);
+      const params = new URLSearchParams({
+        siteId: selectedSite.id,
+        startDate: modalStartDate,
+        endDate: modalEndDate,
+        limit: String(pageSize),
+        offset: String(offset),
+        sort: sortBy,
+      });
+      if (debouncedSearch) params.set('search', debouncedSearch);
+
+      fetch(`/api/dashboard/stats/gsc/keywords?${params}`)
+        .then(r => r.json())
+        .then(json => {
+          setRows(json.rows || []);
+          setTotal(json.total || 0);
+        })
+        .catch(err => console.error('All keywords fetch error:', err))
+        .finally(() => setModalLoading(false));
+    }, [selectedSite?.id, modalStartDate, modalEndDate, pageSize, page, sortBy, debouncedSearch]);
+
+    const totalPages = Math.max(1, Math.ceil(total / pageSize));
+    const kwPeriod = getPeriodName(modalStartDate, modalEndDate, modalPreset);
+
+    const handleModalAddKeyword = async (query) => {
+      if (!selectedSite?.id || localAdding.has(query)) return;
+      setLocalAdding(prev => new Set([...prev, query]));
+      try {
+        const res = await fetch('/api/keywords', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ siteId: selectedSite.id, keywords: query }),
+        });
+        if (res.ok) {
+          const data = await res.json();
+          const kw = data.keywords?.[0];
+          if (kw) {
+            const key = query.toLowerCase().trim();
+            setLocalTracked(prev => new Map([...prev, [key, kw]]));
+          }
+        }
+      } catch (err) {
+        console.error('Error adding keyword:', err);
+      } finally {
+        setLocalAdding(prev => { const next = new Set(prev); next.delete(query); return next; });
+      }
+    };
+
+    const handleModalAIPost = async (query) => {
+      if (!selectedSite?.id || localAiPostLoading) return;
+      setLocalAiPostLoading(query);
+      try {
+        const res = await fetch('/api/keywords', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ siteId: selectedSite.id, keywords: query }),
+        });
+        const data = await res.json();
+        let kw = null;
+
+        if (res.ok && data.keywords?.length) {
+          kw = data.keywords[0];
+          const key = query.toLowerCase().trim();
+          setLocalTracked(prev => new Map([...prev, [key, kw]]));
+        } else if (res.status === 409) {
+          kw = localTracked.get(query.toLowerCase().trim());
+          if (!kw) {
+            const fetchRes = await fetch(`/api/keywords?siteId=${selectedSite.id}`);
+            if (fetchRes.ok) {
+              const fetchData = await fetchRes.json();
+              kw = fetchData.keywords?.find(k => k.keyword?.toLowerCase().trim() === query.toLowerCase().trim());
+            }
+          }
+        }
+
+        if (kw) {
+          // Sync tracked keywords back to parent (include newly added kw) and close GSC modal
+          const updatedTracked = new Map(localTracked);
+          updatedTracked.set(query.toLowerCase().trim(), kw);
+          setTrackedKeywords(updatedTracked);
+          setShowAllKeywords(false);
+          setGeneratePostKeyword(kw);
+        }
+      } catch (err) {
+        console.error('Error adding keyword for AI post:', err);
+      } finally {
+        setLocalAiPostLoading(null);
+      }
+    };
+
+    const handleCloseModal = () => {
+      // Sync locally tracked keywords back to parent
+      setTrackedKeywords(new Map(localTracked));
+      setShowAllKeywords(false);
+    };
+
+    return createPortal(
+      <div className={styles.gscKwModalOverlay} onClick={handleCloseModal}>
+        <div className={`${styles.gscKwModal} ${isMaximized ? 'modal-maximized' : ''}`} onClick={e => e.stopPropagation()}>
+          {/* Header */}
+          <div className={styles.gscKwModalHeader}>
+            <div>
+              <h2 className={styles.gscKwModalTitle}>{t.allGscKeywords || 'All Keywords from Google Search Console'}</h2>
+              <p className={styles.gscKwModalSubtitle}>
+                {total.toLocaleString()} {t.keywordsFound || 'keywords found'}
+                {debouncedSearch && ` · "${debouncedSearch}"`}
+              </p>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+              <ModalResizeButton isMaximized={isMaximized} onToggle={toggleMaximize} className={styles.gscKwModalClose} />
+              <button className={styles.gscKwModalClose} onClick={handleCloseModal}>
+                <X size={18} />
+              </button>
+            </div>
+          </div>
+
+          {/* Date Filter */}
+          <div className={styles.gscKwDateRow}>
+            <DateRangeSelect
+              preset={modalPreset}
+              onPresetChange={handleModalPresetChange}
+              startDate={modalStartDate}
+              endDate={modalEndDate}
+              onStartChange={(v) => { setModalStartDate(v); setPage(1); }}
+              onEndChange={(v) => { setModalEndDate(v); setPage(1); }}
+              loading={modalLoading}
+            />
+          </div>
+
+          {/* Controls */}
+          <div className={styles.gscKwControls}>
+            <div className={styles.gscKwSearchWrap}>
+              <Search size={14} className={styles.gscKwSearchIcon} />
+              <input
+                type="text"
+                value={searchVal}
+                onChange={e => setSearchVal(e.target.value)}
+                placeholder={t.searchKeywords || 'Search keywords...'}
+                className={styles.gscKwSearchInput}
+              />
+              {searchVal && (
+                <button className={styles.gscKwSearchClear} onClick={() => setSearchVal('')}>
+                  <X size={12} />
+                </button>
+              )}
+            </div>
+            <div className={styles.gscKwControlsEnd}>
+              <div className={styles.gscKwSortWrap}>
+                <label>{t.sortBy || 'Sort by'}:</label>
+                <select value={sortBy} onChange={e => { setSortBy(e.target.value); setPage(1); }}>
+                  <option value="clicks">{t.clicks}</option>
+                  <option value="impressions">{t.impressions}</option>
+                  <option value="ctr">{t.ctr}</option>
+                  <option value="position">{t.position}</option>
+                </select>
+              </div>
+              <div className={styles.gscKwSortWrap}>
+                <label>{t.perPage || 'Per page'}:</label>
+                <select value={pageSize} onChange={e => { setPageSize(Number(e.target.value)); setPage(1); }}>
+                  {[20, 50, 100, 150, 200, 400, 500].map(n => (
+                    <option key={n} value={n}>{n}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+          </div>
+
+          {/* Table */}
+          <div className={styles.gscKwTableWrap}>
+            {modalLoading ? (
+              <div className={styles.gscKwLoading}>
+                <Loader2 size={24} className={styles.spinning} />
+              </div>
+            ) : rows.length === 0 ? (
+              <div className={styles.gscKwEmpty}>
+                <Search size={24} />
+                <p>{t.noKeywordsFound || 'No keywords found'}</p>
+              </div>
+            ) : (
+              <div className={styles.gscTable + ' ' + styles.gscTableWithRank}>
+                <div className={styles.gscTableHeader}>
+                  <span className={styles.gscColRank}>#</span>
+                  <span className={styles.gscColLabel}>{t.keyword || 'Keyword'}</span>
+                  <span className={styles.gscColPost}>{t.relatedPost || 'Related Post'}</span>
+                  <span className={styles.gscColNum}>{t.clicks}</span>
+                  <span className={styles.gscColNum}>{t.impressions}</span>
+                  <span className={styles.gscColNum}>{t.ctr}</span>
+                  <span className={styles.gscColNum}>{t.position}</span>
+                </div>
+                {rows.map((row, i) => {
+                  const globalIndex = (page - 1) * pageSize + i + 1;
+                  const key = row.query?.toLowerCase().trim();
+                  const isTracked = localTracked.has(key);
+                  const isAdding = localAdding.has(row.query);
+                  const kwData = localTracked.get(key);
+                  const relatedPost = kwData?.relatedPost;
+                  return (
+                    <div key={row.query + i} className={styles.gscTableRow}>
+                      <span className={styles.gscColRank}>
+                        <span className={styles.gscRankBadge}>{globalIndex}</span>
+                      </span>
+                      <span className={styles.gscColLabel} title={row.query}>
+                        {isTracked ? (
+                          <span className={styles.kwTrackedIcon} title={t.alreadyTracked || 'Already tracked'}>
+                            <Check size={12} />
+                          </span>
+                        ) : (
+                          <button
+                            className={styles.kwAddBtn}
+                            onClick={() => handleModalAddKeyword(row.query)}
+                            disabled={isAdding}
+                            title={t.addToKeywords || 'Add to keywords'}
+                          >
+                            {isAdding ? <Loader2 size={11} className={styles.spinning} /> : <Plus size={11} />}
+                            <span>{t.track || 'Track'}</span>
+                          </button>
+                        )}
+                        {row.query}
+                      </span>
+                      <span className={styles.gscColPost}>
+                        {relatedPost ? (
+                          <span className={styles.gscPostLinks}>
+                            <Link href={`/dashboard/entities/posts/${relatedPost.id}`} className={styles.gscPostLink} title={relatedPost.title}>
+                              <FileText size={12} />
+                            </Link>
+                            {relatedPost.url && (
+                              <a href={relatedPost.url} target="_blank" rel="noopener noreferrer" className={styles.gscPostExternal} title={relatedPost.url}>
+                                <ExternalLink size={12} />
+                              </a>
+                            )}
+                          </span>
+                        ) : (
+                          <button
+                            className={styles.gscAddPostBtn}
+                            onClick={(e) => { e.stopPropagation(); handleModalAIPost(row.query); }}
+                            disabled={localAiPostLoading === row.query}
+                            title={t.generateAIPost || 'Generate AI Post'}
+                          >
+                            {localAiPostLoading === row.query ? <Loader2 size={11} className={styles.spinning} /> : <><Wand2 size={12} /><Plus size={10} /></>}
+                          </button>
+                        )}
+                      </span>
+                      <span className={`${styles.gscColNum} ${sortBy === 'clicks' ? styles.gscHighlight : ''}`}>
+                        {fmtNum(row.clicks)}
+                        <ChangeBadge value={row.clicksChange} tooltip={changeTip(row.clicksChange, { value: fmtNum(row.clicks), metric: t.clicks, period: kwPeriod })} />
+                      </span>
+                      <span className={`${styles.gscColNum} ${sortBy === 'impressions' ? styles.gscHighlight : ''}`}>
+                        {fmtNum(row.impressions)}
+                        <ChangeBadge value={row.impressionsChange} tooltip={changeTip(row.impressionsChange, { value: fmtNum(row.impressions), metric: t.impressions, period: kwPeriod })} />
+                      </span>
+                      <span className={`${styles.gscColNum} ${sortBy === 'ctr' ? styles.gscHighlight : ''}`}>
+                        {row.ctr}%
+                        <ChangeBadge value={row.ctrChange} tooltip={changeTip(row.ctrChange, { value: `${row.ctr}%`, metric: t.ctr, period: kwPeriod })} />
+                      </span>
+                      <span className={`${styles.gscColNum} ${sortBy === 'position' ? styles.gscHighlight : ''}`}>
+                        {row.position}
+                        <ChangeBadge value={row.positionChange} tooltip={positionTip(row.positionChange, kwPeriod)} />
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
+          {/* Pagination */}
+          {!modalLoading && total > 0 && (
+            <div className={styles.gscKwPagination}>
+              <span className={styles.gscKwPageInfo}>
+                {((page - 1) * pageSize) + 1}–{Math.min(page * pageSize, total)} {t.of || 'of'} {total.toLocaleString()}
+              </span>
+              <div className={styles.gscKwPageBtns}>
+                <button disabled={page === 1} onClick={() => setPage(p => p - 1)}>
+                  <ChevronLeft size={16} />
+                </button>
+                {totalPages <= 7 ? (
+                  Array.from({ length: totalPages }, (_, i) => (
+                    <button
+                      key={i + 1}
+                      className={page === i + 1 ? styles.gscKwPageActive : ''}
+                      onClick={() => setPage(i + 1)}
+                    >
+                      {i + 1}
+                    </button>
+                  ))
+                ) : (
+                  <>
+                    {[1, 2].map(n => (
+                      <button key={n} className={page === n ? styles.gscKwPageActive : ''} onClick={() => setPage(n)}>{n}</button>
+                    ))}
+                    {page > 3 && <span className={styles.gscKwEllipsis}>…</span>}
+                    {page > 2 && page < totalPages - 1 && (
+                      <button className={styles.gscKwPageActive}>{page}</button>
+                    )}
+                    {page < totalPages - 2 && <span className={styles.gscKwEllipsis}>…</span>}
+                    {[totalPages - 1, totalPages].map(n => (
+                      <button key={n} className={page === n ? styles.gscKwPageActive : ''} onClick={() => setPage(n)}>{n}</button>
+                    ))}
+                  </>
+                )}
+                <button disabled={page === totalPages} onClick={() => setPage(p => p + 1)}>
+                  <ChevronRight size={16} />
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>,
+      document.body
     );
   };
 
@@ -1388,6 +1892,15 @@ export default function DashboardContent({ translations }) {
                   <p>{t.noDataForRange || 'No data available for this date range.'}</p>
                 </div>
               )}
+              {!keywordsLoading && (keywordsData ?? data?.topQueries)?.length > 0 && (
+                <button
+                  className={styles.viewAllKeywordsBtn}
+                  onClick={() => setShowAllKeywords(true)}
+                >
+                  {t.viewAllKeywords || 'View all keywords'}
+                  <ExternalLink size={13} />
+                </button>
+              )}
             </DashboardCard>
           ) : null}
 
@@ -1533,6 +2046,19 @@ export default function DashboardContent({ translations }) {
           </DashboardCard>
         </div>
       </div>
+
+      {/* All GSC Keywords Modal */}
+      {showAllKeywords && <AllGSCKeywordsModal />}
+
+      {/* Generate Post Modal */}
+      {generatePostKeyword && (
+        <GeneratePostModal
+          isOpen={!!generatePostKeyword}
+          onClose={() => setGeneratePostKeyword(null)}
+          keyword={generatePostKeyword}
+          onSuccess={() => setGeneratePostKeyword(null)}
+        />
+      )}
     </>
   );
 }

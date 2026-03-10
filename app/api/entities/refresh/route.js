@@ -521,15 +521,20 @@ export async function POST(request) {
     };
 
     // Update the entity
+    const refreshPublishDate = metadata.publishDate || existingMetadata.publishDate;
+    const updateData = {
+      title,
+      excerpt: metadata.description || metadata.ogDescription || entity.excerpt,
+      featuredImage,
+      seoData,
+      metadata: updatedMetadata,
+    };
+    if (refreshPublishDate && !entity.publishedAt) {
+      updateData.publishedAt = new Date(refreshPublishDate);
+    }
     const updatedEntity = await prisma.siteEntity.update({
       where: { id: entityId },
-      data: {
-        title,
-        excerpt: metadata.description || metadata.ogDescription || entity.excerpt,
-        featuredImage,
-        seoData,
-        metadata: updatedMetadata,
-      },
+      data: updateData,
     });
 
     console.log(`[Refresh] Successfully refreshed entity: ${entity.url}`);

@@ -24,6 +24,7 @@ import {
   Smartphone,
   ExternalLink,
   Maximize2,
+  Minimize2,
   X,
   Layers,
   LayoutDashboard,
@@ -52,6 +53,7 @@ import { toImgSrc, filmSrc } from './lib/img-src';
 import PluginRequiredModal from './components/PluginRequiredModal';
 import FixTitlePreviewModal from './components/FixTitlePreviewModal';
 import { MediaModal } from '@/app/dashboard/components/MediaModal/MediaModal';
+import { useModalResize, ModalResizeButton } from '@/app/components/ui/ModalResizeButton';
 import styles from './site-audit.module.css';
 
 // ─── Constants ────────────────────────────────────────────────────
@@ -169,6 +171,7 @@ export default function SiteAuditPage() {
   const { t, locale } = useLocale();
   const { selectedSite, isLoading: isSiteLoading } = useSite();
   const { user } = useUser();
+  const { isMaximized: isPageDetailMaximized, toggleMaximize: togglePageDetailMaximize } = useModalResize();
 
   // Audit quota from plan
   const auditQuota = (() => {
@@ -1112,10 +1115,13 @@ export default function SiteAuditPage() {
       {/* Page Detail Modal */}
       {pageDetail && createPortal(
         <div className={styles.lightbox} onClick={() => setPageDetail(null)}>
-          <div className={styles.pageDetailModal} onClick={(e) => e.stopPropagation()}>
-            <button className={styles.lightboxClose} onClick={() => setPageDetail(null)}>
-              <X size={20} />
-            </button>
+          <div className={`${styles.pageDetailModal} ${isPageDetailMaximized ? 'modal-maximized' : ''}`} onClick={(e) => e.stopPropagation()}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', position: 'absolute', top: '1rem', right: '1rem', zIndex: 1 }}>
+              <ModalResizeButton isMaximized={isPageDetailMaximized} onToggle={togglePageDetailMaximize} className={styles.lightboxClose} />
+              <button className={styles.lightboxClose} onClick={() => setPageDetail(null)}>
+                <X size={20} />
+              </button>
+            </div>
             <h3 className={styles.pageDetailTitle}>
               <FileSearch size={18} />
               {shortenUrl(pageDetail.url)}

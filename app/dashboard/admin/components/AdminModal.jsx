@@ -4,10 +4,12 @@ import { useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 import { useLocale } from '@/app/context/locale-context';
+import { useModalResize, ModalResizeButton } from '@/app/components/ui/ModalResizeButton';
 import styles from './AdminModal.module.css';
 
 export function AdminModal({ isOpen, onClose, title, children, size = 'medium' }) {
   const { t } = useLocale();
+  const { isMaximized, toggleMaximize } = useModalResize();
   const modalRef = useRef(null);
 
   useEffect(() => {
@@ -34,12 +36,15 @@ export function AdminModal({ isOpen, onClose, title, children, size = 'medium' }
 
   return createPortal(
     <div className={styles.overlay} onClick={handleOverlayClick}>
-      <div className={`${styles.modal} ${styles[size]}`} ref={modalRef}>
+      <div className={`${styles.modal} ${styles[size]} ${isMaximized ? 'modal-maximized' : ''}`} ref={modalRef}>
         <div className={styles.header}>
           <h2 className={styles.title}>{title}</h2>
-          <button className={styles.closeButton} onClick={onClose}>
-            <X size={20} />
-          </button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+            <ModalResizeButton isMaximized={isMaximized} onToggle={toggleMaximize} className={styles.closeButton} />
+            <button className={styles.closeButton} onClick={onClose}>
+              <X size={20} />
+            </button>
+          </div>
         </div>
         <div className={styles.content}>
           {children}

@@ -19,6 +19,7 @@ import { useLocale } from '@/app/context/locale-context';
 import { emitCreditsUpdated } from '@/app/context/user-context';
 import { handleLimitError } from '@/app/context/limit-guard-context';
 import SyncRequiredModal from './SyncRequiredModal';
+import { useModalResize, ModalResizeButton } from '@/app/components/ui/ModalResizeButton';
 import styles from './FixTitlePreviewModal.module.css';
 
 /**
@@ -32,6 +33,7 @@ import styles from './FixTitlePreviewModal.module.css';
  */
 export default function FixTitlePreviewModal({ open, onClose, auditId, siteId, onAuditUpdated }) {
   const { t } = useLocale();
+  const { isMaximized, toggleMaximize } = useModalResize();
 
   // Loading / error
   const [isLoading, setIsLoading] = useState(false);
@@ -245,10 +247,13 @@ export default function FixTitlePreviewModal({ open, onClose, auditId, siteId, o
     <>
     {createPortal(
     <div className={styles.overlay} onClick={handleClose}>
-      <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
-        <button className={styles.closeBtn} onClick={handleClose}>
-          <X size={18} />
-        </button>
+      <div className={`${styles.modal} ${isMaximized ? 'modal-maximized' : ''}`} onClick={(e) => e.stopPropagation()}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', position: 'absolute', top: '1rem', right: '1rem', zIndex: 1 }}>
+          <ModalResizeButton isMaximized={isMaximized} onToggle={toggleMaximize} className={styles.closeBtn} />
+          <button className={styles.closeBtn} onClick={handleClose}>
+            <X size={18} />
+          </button>
+        </div>
 
         {/* Header */}
         <div className={styles.header}>

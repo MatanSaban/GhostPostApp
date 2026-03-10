@@ -6,10 +6,12 @@ import { X, Send, CheckCircle2, Loader2, ChevronDown, Edit2, Check, RotateCcw, E
 import Image from 'next/image';
 import { useLocale } from '@/app/context/locale-context';
 import AddCreditsModal from '@/app/components/ui/AddCreditsModal';
+import { useModalResize, ModalResizeButton } from '@/app/components/ui/ModalResizeButton';
 import styles from './interview-wizard.module.css';
 
 export const InterviewWizard = forwardRef(function InterviewWizard({ onClose, onComplete, site }, ref) {
   const { t, dictionary, isLoading: isDictionaryLoading } = useLocale();
+  const { isMaximized, toggleMaximize } = useModalResize();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [questions, setQuestions] = useState([]);
@@ -72,6 +74,7 @@ export const InterviewWizard = forwardRef(function InterviewWizard({ onClose, on
   // Google Integration state
   const [interviewSiteId, setInterviewSiteId] = useState(null);
   const [googleIntegrationStatus, setGoogleIntegrationStatus] = useState('idle'); // 'idle' | 'connecting' | 'connected' | 'error'
+  const [isGoogleAlreadyConnected, setIsGoogleAlreadyConnected] = useState(false); // Pre-check: skip GOOGLE_INTEGRATION if already connected
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
   const messageIdCounter = useRef(0);
@@ -99,33 +102,91 @@ export const InterviewWizard = forwardRef(function InterviewWizard({ onClose, on
   const isDictionaryReady = !isDictionaryLoading && dictionary && Object.keys(dictionary).length > 0;
 
   // Initialize messages when dictionary is loaded AND interview has started
+  // If resuming an interview (currentQuestionIndex > 0), restore full chat history
   useEffect(() => {
     console.log('[InterviewWizard] Message init check:', { 
       isDictionaryReady, 
       questionsDataLength: questionsData?.length,
       messagesLength: messages.length,
-      hasStarted
+      hasStarted,
+      currentQuestionIndex,
+      responsesKeys: Object.keys(responses)
     });
     if (hasStarted && isDictionaryReady && questionsData?.length > 0 && messages.length === 0) {
-      const firstQuestion = questionsData[0];
-      const questionText = t(firstQuestion.translationKey);
-      console.log('[InterviewWizard] Creating first message:', { 
-        translationKey: firstQuestion.translationKey,
-        questionText,
-        questionType: firstQuestion.questionType
-      });
-      const messageId = messageIdCounter.current++;
-      setMessages([{
-        id: `msg-${messageId}`,
-        type: 'agent',
-        content: questionText,
-        questionType: firstQuestion.questionType,
-        inputConfig: firstQuestion.inputConfig,
-        questionId: firstQuestion.id,
-        timestamp: new Date()
-      }]);
+      const messagesToAdd = [];
+      
+      // If we're resuming an interview (have responses), reconstruct the chat history
+      if (currentQuestionIndex > 0 && Object.keys(responses).length > 0) {
+        console.log('[InterviewWizard] Restoring chat history for resumed interview');
+        
+        // Reconstruct messages for all answered questions
+        for (let i = 0; i < currentQuestionIndex && i < questionsData.length; i++) {
+          const question = questionsData[i];
+          const questionText = t(question.translationKey);
+          const responseValue = responses[question.id];
+          
+          // Skip questions that were auto-skipped (no response)
+          if (responseValue === undefined || responseValue === null) {
+            continue;
+          }
+          
+          // Add agent question message
+          const agentMsgId = messageIdCounter.current++;
+          messagesToAdd.push({
+            id: `msg-${agentMsgId}`,
+            type: 'agent',
+            content: questionText,
+            questionType: question.questionType,
+            inputConfig: question.inputConfig,
+            questionId: question.id,
+            timestamp: new Date()
+          });
+          
+          // Add user response message (format response for display)
+          const userMsgId = messageIdCounter.current++;
+          let displayResponse = responseValue;
+          
+          // Format response based on question type for better display
+          if (Array.isArray(responseValue)) {
+            displayResponse = responseValue.join(', ');
+          } else if (typeof responseValue === 'object') {
+            displayResponse = JSON.stringify(responseValue);
+          }
+          
+          messagesToAdd.push({
+            id: `msg-${userMsgId}`,
+            type: 'user',
+            content: String(displayResponse),
+            questionId: question.id,
+            timestamp: new Date()
+          });
+        }
+      }
+      
+      // Add current question message
+      const currentQuestion = questionsData[currentQuestionIndex];
+      if (currentQuestion) {
+        const questionText = t(currentQuestion.translationKey);
+        console.log('[InterviewWizard] Adding current question message:', { 
+          translationKey: currentQuestion.translationKey,
+          questionText,
+          questionType: currentQuestion.questionType
+        });
+        const messageId = messageIdCounter.current++;
+        messagesToAdd.push({
+          id: `msg-${messageId}`,
+          type: 'agent',
+          content: questionText,
+          questionType: currentQuestion.questionType,
+          inputConfig: currentQuestion.inputConfig,
+          questionId: currentQuestion.id,
+          timestamp: new Date()
+        });
+      }
+      
+      setMessages(messagesToAdd);
     }
-  }, [isDictionaryReady, questionsData, messages.length, t, hasStarted]);
+  }, [isDictionaryReady, questionsData, messages.length, t, hasStarted, currentQuestionIndex, responses]);
 
   // Handle starting the interview
   const handleStartInterview = () => {
@@ -155,6 +216,43 @@ export const InterviewWizard = forwardRef(function InterviewWizard({ onClose, on
     };
     checkCredits();
   }, []);
+
+  // Check if Google is already connected for this site
+  useEffect(() => {
+    const checkGoogleIntegration = async () => {
+      const siteId = interviewSiteId || site?.id;
+      if (!siteId) return;
+      
+      try {
+        const res = await fetch(`/api/settings/integrations/google?siteId=${siteId}`);
+        if (res.ok) {
+          const data = await res.json();
+          // Consider connected if refresh token exists (user authorized the app)
+          if (data.connected || data.refreshToken) {
+            console.log('[InterviewWizard] Google integration already connected for site:', siteId);
+            setIsGoogleAlreadyConnected(true);
+          }
+        }
+      } catch (err) {
+        console.error('[InterviewWizard] Error checking Google integration:', err);
+      }
+    };
+    checkGoogleIntegration();
+  }, [interviewSiteId, site?.id]);
+
+  // Auto-skip GOOGLE_INTEGRATION if already connected when interview loads on that question
+  useEffect(() => {
+    if (!questionsData || currentQuestionIndex === undefined) return;
+    if (!isGoogleAlreadyConnected) return;
+    
+    const currentQuestion = questionsData[currentQuestionIndex];
+    if (currentQuestion?.questionType === 'GOOGLE_INTEGRATION') {
+      console.log('[InterviewWizard] Current question is GOOGLE_INTEGRATION but already connected - auto-skipping');
+      // Auto-advance by submitting 'connected' as the response
+      handleSubmit('connected');
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isGoogleAlreadyConnected, questionsData, currentQuestionIndex]);
 
   const fetchInterview = async () => {
     console.log('[InterviewWizard] fetchInterview started, site:', site?.url);
@@ -1256,6 +1354,14 @@ export const InterviewWizard = forwardRef(function InterviewWizard({ onClose, on
       let nextIndex = currentQuestionIndex + 1;
       while (nextIndex < questions.length) {
         const candidate = questions[nextIndex];
+        
+        // Skip GOOGLE_INTEGRATION question if Google is already connected
+        if (candidate.questionType === 'GOOGLE_INTEGRATION' && isGoogleAlreadyConnected) {
+          console.log('[InterviewWizard] Skipping GOOGLE_INTEGRATION (already connected)');
+          nextIndex++;
+          continue;
+        }
+        
         if (candidate.showCondition) {
           try {
             const condition = typeof candidate.showCondition === 'string'
@@ -2388,6 +2494,18 @@ export const InterviewWizard = forwardRef(function InterviewWizard({ onClose, on
         );
 
       case 'SELECTION':
+        // Hide options immediately after selection while processing
+        if (isProcessing || isTyping) {
+          return (
+            <div className={styles.selectionContainer}>
+              <div className={styles.aiLoadingBanner}>
+                <Loader2 size={16} className={styles.spinIcon} />
+                <span>{t('interviewWizard.messages.processing') || 'Processing...'}</span>
+              </div>
+            </div>
+          );
+        }
+        
         // Check if this is the platform question and we have a detection
         const isPlatformQuestion = currentQuestion.saveToField === 'websitePlatform';
         const platformValue = detectedPlatform?.platform;
@@ -2543,6 +2661,18 @@ export const InterviewWizard = forwardRef(function InterviewWizard({ onClose, on
         );
 
       case 'MULTI_SELECTION':
+        // Hide options immediately after confirmation while processing
+        if (isProcessing || isTyping) {
+          return (
+            <div className={styles.multiSelectionContainer}>
+              <div className={styles.aiLoadingBanner}>
+                <Loader2 size={16} className={styles.spinIcon} />
+                <span>{t('interviewWizard.messages.processing') || 'Processing...'}</span>
+              </div>
+            </div>
+          );
+        }
+        
         const currentSelection = Array.isArray(responses[currentQuestion?.id]) 
           ? responses[currentQuestion.id] 
           : [];
@@ -2573,6 +2703,18 @@ export const InterviewWizard = forwardRef(function InterviewWizard({ onClose, on
         );
 
       case 'SLIDER':
+        // Hide options immediately after confirmation while processing
+        if (isProcessing || isTyping) {
+          return (
+            <div className={styles.sliderContainer}>
+              <div className={styles.aiLoadingBanner}>
+                <Loader2 size={16} className={styles.spinIcon} />
+                <span>{t('interviewWizard.messages.processing') || 'Processing...'}</span>
+              </div>
+            </div>
+          );
+        }
+        
         const sliderValue = responses[currentQuestion?.id] ?? internalLinksDefault ?? config.defaultValue ?? config.min;
         const isInternalLinksQuestion = currentQuestion.saveToField === 'internalLinksPer1000Words' || currentQuestion.saveToField === 'internalLinksCount';
         
@@ -3326,7 +3468,7 @@ export const InterviewWizard = forwardRef(function InterviewWizard({ onClose, on
 
   return createPortal(
     <div className={`${styles.overlay} ${isClosing ? styles.overlayClosing : ''}`}>
-      <div className={`${styles.wizardContainer} ${isClosing ? styles.wizardClosing : ''}`}>
+      <div className={`${styles.wizardContainer} ${isClosing ? styles.wizardClosing : ''} ${isMaximized ? 'modal-maximized' : ''}`}>
         {/* Ambient Glow */}
         <div className={styles.ambientGlow}></div>
         
@@ -3346,9 +3488,12 @@ export const InterviewWizard = forwardRef(function InterviewWizard({ onClose, on
                 </p>
               </div>
             </div>
-            <button onClick={handleClose} className={styles.closeButton}>
-              <X size={16} />
-            </button>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+              <ModalResizeButton isMaximized={isMaximized} onToggle={toggleMaximize} className={styles.closeButton} />
+              <button onClick={handleClose} className={styles.closeButton}>
+                <X size={16} />
+              </button>
+            </div>
           </div>
 
           {/* Progress Bar */}

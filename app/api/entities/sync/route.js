@@ -80,8 +80,8 @@ async function fetchWordPressEntities(site, postTypeSlug) {
           content: item.content || null,
           status: mappedStatus,
           featuredImage: item.featured_image || null,
-          publishedAt: item.date ? new Date(item.date) : null,
-          scheduledAt: item.status === 'future' && item.date ? new Date(item.date) : null,
+          publishedAt: item.date_gmt ? new Date(String(item.date_gmt).replace(' ', 'T') + 'Z') : (item.date ? new Date(String(item.date).replace(' ', 'T')) : null),
+          scheduledAt: item.status === 'future' && item.date_gmt ? new Date(String(item.date_gmt).replace(' ', 'T') + 'Z') : (item.status === 'future' && item.date ? new Date(String(item.date).replace(' ', 'T')) : null),
           // Additional data - store as objects (Prisma JSON fields)
           metadata: item.meta || null,
           acfData: item.acf || null,

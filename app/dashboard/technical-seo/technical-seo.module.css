@@ -508,6 +508,7 @@
   width: 100%;
   max-width: 700px;
   max-height: 80vh;
+  transition: max-width 0.3s ease, max-height 0.3s ease, width 0.3s ease, height 0.3s ease;
   display: flex;
   flex-direction: column;
   overflow: hidden;

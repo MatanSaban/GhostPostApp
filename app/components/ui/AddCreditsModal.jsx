@@ -19,6 +19,7 @@ import { useUser } from '@/app/context/user-context';
 import { useRouter } from 'next/navigation';
 import CardComPaymentForm from './CardComPaymentForm';
 import UpgradePlanModal from './UpgradePlanModal';
+import { useModalResize, ModalResizeButton } from '@/app/components/ui/ModalResizeButton';
 import styles from './AddCreditsModal.module.css';
 
 /**
@@ -41,6 +42,7 @@ export default function AddCreditsModal({ isOpen, onClose }) {
   const [selectedQty, setSelectedQty] = useState(1);
   const [paymentComplete, setPaymentComplete] = useState(false);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const { isMaximized, toggleMaximize } = useModalResize();
 
   useEffect(() => {
     if (!isOpen) return;
@@ -113,11 +115,14 @@ export default function AddCreditsModal({ isOpen, onClose }) {
 
   return createPortal(
     <div className={styles.overlay} onClick={handleClose}>
-      <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
+      <div className={`${styles.modal} ${isMaximized ? 'modal-maximized' : ''}`} onClick={(e) => e.stopPropagation()}>
         {/* Close */}
-        <button className={styles.closeBtn} onClick={handleClose}>
-          <X size={20} />
-        </button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', position: 'absolute', top: '1rem', right: '1rem', zIndex: 1 }}>
+          <ModalResizeButton isMaximized={isMaximized} onToggle={toggleMaximize} className={styles.closeBtn} />
+          <button className={styles.closeBtn} onClick={handleClose}>
+            <X size={20} />
+          </button>
+        </div>
 
         {/* Payment Step */}
         {selectedAddon ? (

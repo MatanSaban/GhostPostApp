@@ -17,6 +17,7 @@
   border: 1px solid var(--border);
   border-radius: 16px;
   padding: 0;
+  transition: max-width 0.3s ease, max-height 0.3s ease, width 0.3s ease, height 0.3s ease;
   max-width: 680px;
   width: 100%;
   max-height: 85vh;

@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 import { useSite } from '@/app/context/site-context';
 import { useLocale } from '@/app/context/locale-context';
+import { useModalResize, ModalResizeButton } from '@/app/components/ui/ModalResizeButton';
 import styles from './MediaModal.module.css';
 
 /**
@@ -36,6 +37,7 @@ export function MediaModal({
 }) {
   const { selectedSite } = useSite();
   const { t } = useLocale();
+  const { isMaximized, toggleMaximize } = useModalResize();
   const fileInputRef = useRef(null);
   
   const [activeTab, setActiveTab] = useState('library');
@@ -292,15 +294,18 @@ export function MediaModal({
   
   return createPortal(
     <div className={styles.overlay} onClick={onClose}>
-      <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
+      <div className={`${styles.modal} ${isMaximized ? 'modal-maximized' : ''}`} onClick={(e) => e.stopPropagation()}>
         {/* Header */}
         <div className={styles.header}>
           <h2 className={styles.title}>
             {title || t('media.modal.title')}
           </h2>
-          <button className={styles.closeButton} onClick={onClose}>
-            <X />
-          </button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+            <ModalResizeButton isMaximized={isMaximized} onToggle={toggleMaximize} className={styles.closeButton} />
+            <button className={styles.closeButton} onClick={onClose}>
+              <X />
+            </button>
+          </div>
         </div>
         
         {/* Tabs */}

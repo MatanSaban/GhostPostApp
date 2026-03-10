@@ -26,6 +26,7 @@
   box-shadow: var(--shadow-lg);
   animation: slideUp 0.3s ease;
   max-height: 90vh;
+  transition: max-width 0.3s ease, max-height 0.3s ease, width 0.3s ease, height 0.3s ease;
   overflow: hidden;
   display: flex;
   flex-direction: column;

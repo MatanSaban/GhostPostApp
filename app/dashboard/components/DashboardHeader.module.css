@@ -198,6 +198,15 @@
   transition: background var(--transition-fast);
   position: relative;
   border-bottom: 1px solid var(--border-light);
+  width: 100%;
+  text-align: start;
+  background: transparent;
+  border-left: none;
+  border-right: none;
+  border-top: none;
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
 
   &:hover {
     background: var(--muted);
@@ -275,6 +284,11 @@
 }
 
 .notificationIcon.audit_failed {
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+}
+
+.notificationIcon.content_publish_failed {
   background: rgba(239, 68, 68, 0.1);
   color: #ef4444;
 }

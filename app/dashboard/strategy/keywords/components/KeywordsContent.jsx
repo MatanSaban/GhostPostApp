@@ -1,11 +1,12 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
-import { TrendingUp, TrendingDown, Minus, Search, Loader2, Tag, Trash2, Plus, X, Sparkles, BarChart3, Crosshair, Trophy } from 'lucide-react';
+import { TrendingUp, TrendingDown, Minus, Search, Loader2, Tag, Trash2, Plus, X, Sparkles, BarChart3, Crosshair, Trophy, ChevronDown, Info, Navigation, ShoppingCart, DollarSign, ExternalLink, FileText, Wand2 } from 'lucide-react';
 import { useSite } from '@/app/context/site-context';
 import { useTranslation } from '@/app/context/locale-context';
 import { Skeleton } from '@/app/dashboard/components/Skeleton';
+import GeneratePostModal from './GeneratePostModal';
 import styles from '../page.module.css';
 
 const getPositionClass = (position) => {
@@ -63,9 +64,11 @@ function KeywordsPageSkeleton() {
         <div className={styles.tableHeader}>
           <Skeleton width="4rem" height="0.75rem" borderRadius="sm" />
           <Skeleton width="3rem" height="0.75rem" borderRadius="sm" />
-          <Skeleton width="3.5rem" height="0.75rem" borderRadius="sm" />
-          <Skeleton width="3.5rem" height="0.75rem" borderRadius="sm" />
           <Skeleton width="3rem" height="0.75rem" borderRadius="sm" />
+          <Skeleton width="3rem" height="0.75rem" borderRadius="sm" />
+          <Skeleton width="4rem" height="0.75rem" borderRadius="sm" />
+          <Skeleton width="3rem" height="0.75rem" borderRadius="sm" />
+          <Skeleton width="1rem" height="0.75rem" borderRadius="sm" />
         </div>
         <div className={styles.tableBody}>
           {Array.from({ length: 6 }).map((_, i) => (
@@ -79,11 +82,17 @@ function KeywordsPageSkeleton() {
               <div className={`${styles.cell} ${styles.volumeCell}`}>
                 <Skeleton width="3rem" height="0.875rem" borderRadius="sm" />
               </div>
-              <div className={`${styles.cell} ${styles.difficultyCell}`}>
+              <div className={`${styles.cell} ${styles.intentCell}`}>
                 <Skeleton width="4rem" height="1.4rem" borderRadius="full" />
+              </div>
+              <div className={`${styles.cell} ${styles.relatedPostCell}`}>
+                <Skeleton width="2rem" height="1.4rem" borderRadius="sm" />
               </div>
               <div className={`${styles.cell} ${styles.statusCell}`}>
                 <Skeleton width="4.5rem" height="1.4rem" borderRadius="full" />
+              </div>
+              <div className={`${styles.cell} ${styles.actionsCell}`}>
+                <Skeleton width="1.5rem" height="1.5rem" borderRadius="sm" />
               </div>
             </div>
           ))}
@@ -103,6 +112,23 @@ export function KeywordsContent() {
   const [newKeyword, setNewKeyword] = useState('');
   const [addingKeyword, setAddingKeyword] = useState(false);
   const [addError, setAddError] = useState('');
+  const [editingStatus, setEditingStatus] = useState(null); // keywordId being edited
+  const [editingIntent, setEditingIntent] = useState(null); // keywordId being edited
+  const [updatingKeyword, setUpdatingKeyword] = useState(null); // keywordId being updated
+  const [generatePostKeyword, setGeneratePostKeyword] = useState(null); // keyword for post generation modal
+  const dropdownRef = useRef(null);
+
+  // Close dropdowns when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+        setEditingStatus(null);
+        setEditingIntent(null);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   useEffect(() => {
     if (!selectedSite?.id) {
@@ -161,6 +187,149 @@ export function KeywordsContent() {
     } finally {
       setAddingKeyword(false);
     }
+  };
+
+  const handleUpdateStatus = async (keywordId, newStatus) => {
+    setUpdatingKeyword(keywordId);
+    try {
+      const res = await fetch('/api/keywords', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ keywordId, status: newStatus }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setKeywords(prev => prev.map(kw => 
+          kw.id === keywordId ? { ...kw, status: data.keyword.status } : kw
+        ));
+      }
+    } catch (err) {
+      console.error('Error updating status:', err);
+    } finally {
+      setUpdatingKeyword(null);
+      setEditingStatus(null);
+    }
+  };
+
+  const handleUpdateIntent = async (keywordId, intentToToggle) => {
+    const keyword = keywords.find(kw => kw.id === keywordId);
+    if (!keyword) return;
+
+    setUpdatingKeyword(keywordId);
+    
+    // Get current intents array (or empty)
+    const currentIntents = keyword.intents || [];
+    
+    // Toggle the intent
+    let newIntents;
+    if (currentIntents.includes(intentToToggle)) {
+      // Remove it
+      newIntents = currentIntents.filter(i => i !== intentToToggle);
+    } else {
+      // Add it
+      newIntents = [...currentIntents, intentToToggle];
+    }
+
+    try {
+      const res = await fetch('/api/keywords', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ keywordId, intents: newIntents }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setKeywords(prev => prev.map(kw => 
+          kw.id === keywordId ? { ...kw, intents: data.keyword.intents } : kw
+        ));
+      }
+    } catch (err) {
+      console.error('Error updating intents:', err);
+    } finally {
+      setUpdatingKeyword(null);
+    }
+  };
+
+  const handleClearIntents = async (keywordId) => {
+    setUpdatingKeyword(keywordId);
+    try {
+      const res = await fetch('/api/keywords', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ keywordId, intents: [] }),
+      });
+      if (res.ok) {
+        setKeywords(prev => prev.map(kw => 
+          kw.id === keywordId ? { ...kw, intents: [] } : kw
+        ));
+      }
+    } catch (err) {
+      console.error('Error clearing intents:', err);
+    } finally {
+      setUpdatingKeyword(null);
+      setEditingIntent(null);
+    }
+  };
+
+  const handleAnalyzeIntent = async (keywordId) => {
+    setUpdatingKeyword(keywordId);
+    try {
+      const res = await fetch('/api/keywords', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ keywordId, analyzeIntent: true }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setKeywords(prev => prev.map(kw => 
+          kw.id === keywordId ? { ...kw, intents: data.keyword.intents } : kw
+        ));
+      }
+    } catch (err) {
+      console.error('Error analyzing intent:', err);
+    } finally {
+      setUpdatingKeyword(null);
+    }
+  };
+
+  const handleDeleteKeyword = async (keywordId) => {
+    if (!confirm(t('keywordStrategy.confirmDelete'))) return;
+    
+    try {
+      const res = await fetch(`/api/keywords?keywordId=${keywordId}`, {
+        method: 'DELETE',
+      });
+      if (res.ok) {
+        setKeywords(prev => prev.filter(kw => kw.id !== keywordId));
+      }
+    } catch (err) {
+      console.error('Error deleting keyword:', err);
+    }
+  };
+
+  // Intent options
+  const intentOptions = [
+    { value: 'INFORMATIONAL', label: t('keywordStrategy.intent.informational'), desc: t('keywordStrategy.intent.informationalDesc'), icon: Info },
+    { value: 'NAVIGATIONAL', label: t('keywordStrategy.intent.navigational'), desc: t('keywordStrategy.intent.navigationalDesc'), icon: Navigation },
+    { value: 'TRANSACTIONAL', label: t('keywordStrategy.intent.transactional'), desc: t('keywordStrategy.intent.transactionalDesc'), icon: ShoppingCart },
+    { value: 'COMMERCIAL', label: t('keywordStrategy.intent.commercial'), desc: t('keywordStrategy.intent.commercialDesc'), icon: DollarSign },
+  ];
+
+  // Status options
+  const statusOptions = [
+    { value: 'TRACKING', label: t('keywordStrategy.statusLabels.tracking') },
+    { value: 'TARGETING', label: t('keywordStrategy.statusLabels.targeting') },
+    { value: 'RANKING', label: t('keywordStrategy.statusLabels.ranking') },
+    { value: 'ARCHIVED', label: t('keywordStrategy.statusLabels.archived') },
+  ];
+
+  const getIntentLabel = (intent) => {
+    const option = intentOptions.find(o => o.value === intent);
+    return option?.label || intent;
+  };
+
+  const getIntentDesc = (intent) => {
+    const option = intentOptions.find(o => o.value === intent);
+    return option?.desc || '';
   };
 
   const filteredKeywords = filter === 'all'
@@ -337,12 +506,15 @@ export function KeywordsContent() {
               <span>{t('keywordStrategy.keyword')}</span>
               <span>{t('keywordStrategy.position')}</span>
               <span>{t('keywordStrategy.volume')}</span>
-              <span>{t('keywordStrategy.difficulty')}</span>
+              <span>{t('keywordStrategy.intent.label')}</span>
+              <span>{t('keywordStrategy.columns.relatedPost')}</span>
               <span>{t('keywordStrategy.status')}</span>
+              <span></span>
             </div>
             <div className={styles.tableBody}>
               {filteredKeywords.map((kw) => {
                 const diffLevel = getDifficultyLevel(kw.difficulty);
+                const isUpdating = updatingKeyword === kw.id;
                 return (
                   <div key={kw.id} className={styles.tableRow}>
                     <div className={styles.keywordCell}>
@@ -350,6 +522,14 @@ export function KeywordsContent() {
                       {kw.tags?.includes('interview') && (
                         <span className={styles.interviewBadge}>
                           {t('keywordStrategy.fromInterview')}
+                        </span>
+                      )}
+                      {kw.tags?.includes('gsc') && (
+                        <span className={styles.gscBadge}>GSC</span>
+                      )}
+                      {kw.tags?.includes('manual') && (
+                        <span className={styles.manualBadge}>
+                          {t('keywordStrategy.fromManual')}
                         </span>
                       )}
                     </div>
@@ -365,20 +545,145 @@ export function KeywordsContent() {
                     <div className={`${styles.cell} ${styles.volumeCell}`}>
                       {kw.searchVolume ? kw.searchVolume.toLocaleString() : '—'}
                     </div>
-                    <div className={`${styles.cell} ${styles.difficultyCell}`}>
-                      {diffLevel ? (
-                        <span className={`${styles.difficultyBadge} ${styles[diffLevel]}`}>
-                          {getDifficultyText(diffLevel)}
-                          {kw.difficulty && ` (${kw.difficulty})`}
-                        </span>
+                    {/* Intent Column */}
+                    <div className={`${styles.cell} ${styles.intentCell}`} ref={editingIntent === kw.id ? dropdownRef : null}>
+                      <div className={styles.dropdownWrapper}>
+                        {kw.intents?.length > 0 ? (
+                          <div 
+                            className={styles.intentBadges}
+                            onClick={() => setEditingIntent(editingIntent === kw.id ? null : kw.id)}
+                          >
+                            {isUpdating ? (
+                              <Loader2 size={12} className={styles.spinner} />
+                            ) : (
+                              kw.intents.map(intent => (
+                                <span 
+                                  key={intent}
+                                  className={`${styles.intentBadge} ${styles[`intent${intent}`]} ${styles.hasTooltip}`}
+                                  data-tooltip={getIntentDesc(intent)}
+                                >
+                                  {getIntentLabel(intent)}
+                                </span>
+                              ))
+                            )}
+                          </div>
+                        ) : (
+                          <button 
+                            className={styles.analyzeIntentBtn}
+                            onClick={() => handleAnalyzeIntent(kw.id)}
+                            disabled={isUpdating}
+                          >
+                            {isUpdating ? <Loader2 size={12} className={styles.spinner} /> : <Sparkles size={12} />}
+                            {t('keywordStrategy.setIntent')}
+                          </button>
+                        )}
+                        {editingIntent === kw.id && (
+                          <div className={styles.dropdown}>
+                            {intentOptions.map((opt) => {
+                              const Icon = opt.icon;
+                              const isSelected = kw.intents?.includes(opt.value);
+                              return (
+                                <button
+                                  key={opt.value}
+                                  className={`${styles.dropdownItem} ${isSelected ? styles.active : ''}`}
+                                  onClick={() => handleUpdateIntent(kw.id, opt.value)}
+                                >
+                                  <span className={styles.checkmark}>{isSelected ? '✓' : ''}</span>
+                                  <Icon size={14} />
+                                  {opt.label}
+                                </button>
+                              );
+                            })}
+                            {kw.intents?.length > 0 && (
+                              <>
+                                <div className={styles.dropdownDivider} />
+                                <button
+                                  className={styles.dropdownItem}
+                                  onClick={() => { handleAnalyzeIntent(kw.id); setEditingIntent(null); }}
+                                >
+                                  <Sparkles size={14} />
+                                  {t('keywordStrategy.reanalyze')}
+                                </button>
+                                <button
+                                  className={styles.dropdownItem}
+                                  onClick={() => handleClearIntents(kw.id)}
+                                >
+                                  <X size={14} />
+                                  {t('common.clear')}
+                                </button>
+                              </>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    {/* Related Post Column */}
+                    <div className={`${styles.cell} ${styles.relatedPostCell}`}>
+                      {kw.relatedPost ? (
+                        <div className={styles.relatedPostLinks}>
+                          <Link 
+                            href={`/dashboard/entities/posts/${kw.relatedPost.id}`}
+                            className={styles.relatedPostLink}
+                            title={kw.relatedPost.title}
+                          >
+                            <FileText size={12} />
+                          </Link>
+                          {kw.relatedPost.url && (
+                            <a 
+                              href={kw.relatedPost.url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className={styles.externalLink}
+                              title={kw.relatedPost.url}
+                            >
+                              <ExternalLink size={12} />
+                            </a>
+                          )}
+                        </div>
                       ) : (
-                        <span className={styles.noData}>—</span>
+                        <button 
+                          className={styles.addPostBtn}
+                          onClick={() => setGeneratePostKeyword(kw)}
+                          title={t('keywordStrategy.generatePost')}
+                        >
+                          <Wand2 size={12} />
+                          <Plus size={10} />
+                        </button>
                       )}
                     </div>
-                    <div className={`${styles.cell} ${styles.statusCell}`}>
-                      <span className={`${styles.statusBadge} ${styles[`status${kw.status}`]}`}>
-                        {t(`keywordStrategy.statusLabels.${kw.status.toLowerCase()}`) || kw.status}
-                      </span>
+                    {/* Status Column */}
+                    <div className={`${styles.cell} ${styles.statusCell}`} ref={editingStatus === kw.id ? dropdownRef : null}>
+                      <div className={styles.dropdownWrapper}>
+                        <span 
+                          className={`${styles.statusBadge} ${styles[`status${kw.status}`]}`}
+                          onClick={() => setEditingStatus(editingStatus === kw.id ? null : kw.id)}
+                        >
+                          {isUpdating ? <Loader2 size={12} className={styles.spinner} /> : (t(`keywordStrategy.statusLabels.${kw.status.toLowerCase()}`) || kw.status)}
+                        </span>
+                        {editingStatus === kw.id && (
+                          <div className={styles.dropdown}>
+                            {statusOptions.map((opt) => (
+                              <button
+                                key={opt.value}
+                                className={`${styles.dropdownItem} ${kw.status === opt.value ? styles.active : ''}`}
+                                onClick={() => handleUpdateStatus(kw.id, opt.value)}
+                              >
+                                {opt.label}
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    {/* Actions */}
+                    <div className={`${styles.cell} ${styles.actionsCell}`}>
+                      <button
+                        className={styles.deleteBtn}
+                        onClick={() => handleDeleteKeyword(kw.id)}
+                        title={t('common.delete')}
+                      >
+                        <Trash2 size={14} />
+                      </button>
                     </div>
                   </div>
                 );
@@ -387,6 +692,17 @@ export function KeywordsContent() {
           </>
         )}
       </div>
+      
+      {/* Generate Post Modal */}
+      <GeneratePostModal
+        isOpen={!!generatePostKeyword}
+        onClose={() => setGeneratePostKeyword(null)}
+        keyword={generatePostKeyword}
+        onSuccess={(content) => {
+          // Refresh keywords to update related post
+          fetchKeywords(selectedSite.id);
+        }}
+      />
     </>
   );
 }

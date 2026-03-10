@@ -1707,7 +1707,7 @@ function IntegrationsSettings({ translations, canEdit = true }) {
             <h3 className={styles.sectionTitle}>{t.wordpressTitle || int.wordpress || 'WordPress'}</h3>
           </div>
         </div>
-        <WordPressPluginSection translations={t} />
+        <WordPressPluginSection />
       </div>
     </>
   );

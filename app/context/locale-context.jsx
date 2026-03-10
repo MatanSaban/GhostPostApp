@@ -1,6 +1,7 @@
 'use client';
 
 import { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
 import { locales, defaultLocale, isRtlLocale, getDirection, localeNames } from '@/i18n/config';
 
 const LocaleContext = createContext(undefined);
@@ -57,6 +58,7 @@ async function loadDictionary(locale) {
 }
 
 export function LocaleProvider({ children }) {
+  const router = useRouter();
   const [locale, setLocaleState] = useState(defaultLocale);
   const [dictionary, setDictionary] = useState({});
   const [isLoading, setIsLoading] = useState(true);
@@ -101,8 +103,10 @@ export function LocaleProvider({ children }) {
       document.documentElement.dir = getDirection(newLocale);
       setLocaleState(newLocale);
       loadLocale(newLocale);
+      // Force server components to re-render with the new locale cookie
+      router.refresh();
     }
-  }, [loadLocale]);
+  }, [loadLocale, router]);
 
   // Force refresh translations from server (clears cache)
   const refreshTranslations = useCallback(async () => {

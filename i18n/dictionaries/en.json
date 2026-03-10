@@ -91,7 +91,8 @@
     "openInNewTab": "Open in New Tab",
     "refresh": "Refresh",
     "linksPerThousand": "links / 1000 words",
-    "seconds": "seconds"
+    "seconds": "seconds",
+    "clear": "Clear"
   },
   "backgroundTasks": {
     "entityPopulation": {
@@ -263,10 +264,10 @@
     "strategy": {
       "title": "Strategy",
       "siteProfile": "Site Profile",
-      "keywords": "Keyword Research",
+      "keywords": "Keywords",
       "contentPlanner": "Content Calendar",
       "aiWizard": "AI Content Wizard",
-      "competitorAnalysis": "Competitor Analysis"
+      "competitorAnalysis": "Competitors"
     },
     "automations": "Automations",
     "linkBuilding": "Link Building",
@@ -307,6 +308,7 @@
       "interviewQuestions": "Interview Questions",
       "translations": "Translations",
       "interviewFlow": "Interview Flow",
+      "pushQuestions": "Push Questions",
       "botActions": "Bot Actions",
       "backlinks": "Backlinks",
       "website": "Website Content"
@@ -367,9 +369,20 @@
       "impressions": "Impressions",
       "ctr": "CTR",
       "position": "Position",
-      "keyword": "Keyword"
+      "keyword": "Keyword",
+      "relatedPost": "Related Post"
     },
     "topKeywords": "Top Keywords",
+    "addToKeywords": "Add to keywords",
+    "alreadyTracked": "Already tracked",
+    "track": "Track",
+    "viewAllKeywords": "View all keywords",
+    "allGscKeywords": "All Keywords from Google Search Console",
+    "searchKeywords": "Search keywords...",
+    "keywordsFound": "keywords found",
+    "noKeywordsFound": "No keywords found",
+    "perPage": "Per page",
+    "of": "of",
     "sortBy": "Sort by",
     "tokenError": "Google connection expired. Please reconnect your account.",
     "reconnectGoogle": "Reconnect Google",
@@ -824,7 +837,7 @@
       "cardDescription": "Define your site's identity, target audience, and business goals to power AI-driven SEO recommendations."
     },
     "keywords": {
-      "title": "Keyword Research",
+      "title": "Keywords",
       "cardDescription": "Research and track keyword rankings, discover new opportunities, and optimize your content for search engines."
     },
     "contentPlanner": {
@@ -836,7 +849,7 @@
       "cardDescription": "Generate SEO-optimized content briefs and outlines using AI. Get suggestions for titles, headings, and key points."
     },
     "competitorAnalysis": {
-      "title": "Competitor Analysis",
+      "title": "Competitors",
       "cardDescription": "Analyze your competitors' SEO strategies, discover their top keywords, and find content gaps to exploit."
     }
   },
@@ -909,6 +922,16 @@
       "editCampaign": "Edit campaign",
       "editPosts": "Edit planned posts",
       "createPosts": "Create posts",
+      "activate": "Activate",
+      "pause": "Stop",
+      "resume": "Resume",
+      "activating": "Activating...",
+      "pausing": "Pausing...",
+      "activateConfirm": "This will schedule all planned posts for AI generation and publishing. Continue?",
+      "noPlan": "Complete the AI Content Wizard first to generate a plan.",
+      "progress": "Progress",
+      "of": "of",
+      "postsPublished": "published",
       "createModal": {
         "title": "Create Campaign",
         "description": "Give your campaign a name and pick a color to get started",
@@ -932,14 +955,34 @@
         "save": "Save"
       }
     },
+    "pipeline": {
+      "title": "Content Pipeline",
+      "noContent": "No pipeline content yet. Activate a campaign to start generating.",
+      "processing": "Processing",
+      "readyToPublish": "Ready to Publish",
+      "failed": "Failed",
+      "retry": "Retry",
+      "retryPublish": "Retry Publishing",
+      "retrying": "Retrying...",
+      "errorDetails": "Error Details",
+      "attempts": "attempts",
+      "viewContent": "View Content"
+    },
     "preview": {
       "title": "Post Preview",
       "noContent": "No content available",
-      "viewOnSite": "View on site"
+      "viewOnSite": "View on site",
+      "campaign": "Campaign",
+      "status": "Status",
+      "type": "Type",
+      "keyword": "Keyword",
+      "date": "Date",
+      "time": "Time",
+      "source": "Source"
     }
   },
   "keywordStrategy": {
-    "title": "Keyword Research",
+    "title": "Keywords",
     "subtitle": "Track rankings and discover new keyword opportunities",
     "addKeyword": "Add Keyword",
     "enterKeyword": "Enter a keyword...",
@@ -960,6 +1003,7 @@
     "trend": "Trend",
     "difficulty": "Difficulty",
     "status": "Status",
+    "intent": "Intent",
     "easy": "Easy",
     "medium": "Medium",
     "hard": "Hard",
@@ -974,6 +1018,7 @@
     "startInterview": "Start Interview",
     "noSiteSelected": "Select a site to view keywords",
     "fromInterview": "Interview",
+    "fromManual": "Manual",
     "filter": {
       "all": "All",
       "tracking": "Tracking",
@@ -987,6 +1032,20 @@
       "ranking": "Ranking",
       "archived": "Archived"
     },
+    "intent": {
+      "label": "Intent",
+      "informational": "Informational",
+      "navigational": "Navigational",
+      "transactional": "Transactional",
+      "commercial": "Commercial",
+      "informationalDesc": "User wants to learn or understand something",
+      "navigationalDesc": "User wants to find a specific website or page",
+      "transactionalDesc": "User wants to complete an action (buy, sign up, download)",
+      "commercialDesc": "User is researching before making a purchase decision"
+    },
+    "setIntent": "Set intent",
+    "reanalyze": "Re-analyze with AI",
+    "confirmDelete": "Are you sure you want to delete this keyword?",
     "columns": {
       "keyword": "Keyword",
       "volume": "Volume",
@@ -994,7 +1053,8 @@
       "position": "Position",
       "trend": "Trend",
       "traffic": "Traffic",
-      "cpc": "CPC"
+      "cpc": "CPC",
+      "relatedPost": "Related Post"
     },
     "stats": {
       "trackedKeywords": "Tracked Keywords",
@@ -1006,10 +1066,121 @@
       "easy": "Easy",
       "medium": "Medium",
       "hard": "Hard"
+    },
+    "generatePost": "Generate AI Post"
+  },
+  "generatePost": {
+    "title": "Generate AI Post",
+    "forKeyword": "For keyword",
+    "steps": {
+      "settings": "Settings",
+      "keywords": "Keywords",
+      "summary": "Summary",
+      "preview": "Preview"
+    },
+    "keywordsStep": {
+      "title": "Additional Keywords",
+      "description": "Select similar keywords to target in the same article and avoid keyword cannibalization. AI will analyze and suggest the best matches.",
+      "searchPlaceholder": "Search keywords...",
+      "aiSuggested": "AI Suggested",
+      "wordMatch": "Word Match",
+      "otherKeywords": "Other Keywords",
+      "loadingKeywords": "Loading keywords...",
+      "aiAnalyzing": "AI is analyzing keyword similarity...",
+      "noKeywords": "No keywords found for this site",
+      "selected": "selected"
+    },
+    "writingStyle": "Writing Style",
+    "selectWritingStyle": "Select a writing style...",
+    "writingStyles": {
+      "professional": "Professional",
+      "casual": "Casual",
+      "technical": "Technical",
+      "conversational": "Conversational",
+      "formal": "Formal",
+      "friendly": "Friendly",
+      "authoritative": "Authoritative",
+      "educational": "Educational",
+      "persuasive": "Persuasive",
+      "storytelling": "Storytelling"
+    },
+    "fromInterview": "From site interview",
+    "publishMode": "Publish Mode",
+    "publishNow": "Publish Immediately",
+    "scheduleFor": "Schedule for",
+    "intent": "Intent",
+    "keywordIntents": "Keyword intents",
+    "articleType": "Article Type",
+    "recommendedFor": "Recommended for this intent",
+    "aiAnalyzing": "AI analyzing...",
+    "aiSuggested": "AI Recommendation",
+    "briefPlan": "Content Plan",
+    "reanalyze": "Reanalyze",
+    "wordCount": "Word Count",
+    "words": "words",
+    "recommendedRange": "Recommended range",
+    "featuredImage": "Featured Image",
+    "contentImages": "Content Images",
+    "contentImagesCount": "Number of images",
+    "maxImages": "Max images",
+    "basedOnWordCount": "based on word count",
+    "images": "images",
+    "contentPrompt": "Content Instructions (Optional)",
+    "contentPromptPlaceholder": "Add specific instructions for the AI content generation...",
+    "featuredImagePrompt": "Featured Image Instructions (Optional)",
+    "featuredImagePromptPlaceholder": "Describe what the featured image should include...",
+    "contentImagesPrompt": "Content Images Instructions (Optional)",
+    "contentImagesPromptPlaceholder": "Describe the style or subjects for content images...",
+    "next": "Next",
+    "generate": "Generate Post",
+    "generating": "Generating...",
+    "summaryTitle": "Review Your Settings",
+    "targetKeyword": "Target Keyword",
+    "customPrompts": "Custom Prompts",
+    "preview": {
+      "title": "Title",
+      "featuredImage": "Featured Image",
+      "metaTitle": "Meta Title",
+      "metaDescription": "Meta Description",
+      "excerpt": "Excerpt",
+      "content": "Content",
+      "slug": "URL Slug",
+      "changeHeadingLevel": "Change heading level",
+      "contentPlaceholder": "Click to start editing...",
+      "bold": "Bold",
+      "italic": "Italic",
+      "underline": "Underline",
+      "bulletList": "Bullet list",
+      "numberedList": "Numbered list",
+      "addLink": "Add link",
+      "removeLink": "Remove link",
+      "enterUrl": "Enter URL:",
+      "showPreview": "Show preview",
+      "parallelEdit": "Block edit",
+      "freeEdit": "Free edit"
+    },
+    "regenerate": "Regenerate",
+    "regenerateAll": "Regenerate All",
+    "regeneratePromptPlaceholder": "Describe what to change... (leave empty to just regenerate)",
+    "regenerateSend": "Regenerate with instructions",
+    "save": "Save as Draft",
+    "publish": "Publish Now",
+    "schedulePublish": "Schedule",
+    "generatingTitle": "Creating Your Post...",
+    "generatingHint": "This may take a minute. We're crafting quality content tailored to your keyword.",
+    "progressMessages": {
+      "analyzingKeyword": "Analyzing keyword intent and search patterns...",
+      "researchingTopic": "Researching topic and gathering insights...",
+      "craftingOutline": "Crafting the perfect outline...",
+      "writingIntroduction": "Writing a compelling introduction...",
+      "generatingContent": "Generating engaging content...",
+      "addingDetails": "Adding supporting details and examples...",
+      "optimizingSEO": "Optimizing for search engines...",
+      "finalizingPost": "Finalizing your post..."
     }
   },
   "competitorAnalysis": {
-    "title": "Competitor Analysis",
+    "title": "Competitors",
     "subtitle": "Analyze your competitors' content and find opportunities to outrank them",
     "selectSite": "Please select a site to analyze competitors",
     "addCompetitor": "Add Competitor",
@@ -1408,6 +1579,7 @@
       "fetchingEntities": "Fetching {type}...",
       "fetchingMenus": "Fetching menus...",
       "completed": "Sync completed successfully!",
+      "completedWithCount": "Sync complete! {count} items synced",
       "error": "Sync Error",
       "failed": "Sync failed. Please try again.",
       "cancelled": "Cancelled",
@@ -1522,7 +1694,8 @@
       "other": "Other"
     },
     "items": "items",
-    "core": "Core",
+    "entitySlug": "Entity slug:",
+    "core": "Core Entity",
     "integration": {
       "title": "Connect Your Website",
       "description": "Connect your website to import and manage its content entities"
@@ -1547,8 +1720,8 @@
       "scanning": "Scanning website for content types...",
       "failed": "Could not discover content types. Please try again.",
       "found": "Found {count} content types on your website",
-      "noTypes": "No content types discovered",
-      "noTypesDescription": "Click the button below to scan your website for content types",
+      "noTypes": "No additional content types found",
+      "noTypesDescription": "Click the button below to scan your website for additional content types",
       "scan": "Scan Website",
       "rescan": "Rescan",
       "manualSitemapLabel": "Sitemap URL",
@@ -2711,6 +2884,43 @@
       "title": "Site Audit Failed",
       "message": "Audit for {siteName} encountered an error"
     },
+    "entitySync": {
+      "title": "Entity Sync Complete",
+      "message": "{siteName}: {created} new, {updated} updated items synced"
+    },
+    "entityWebhook": {
+      "title": "Content Updated",
+      "message": "{siteName}: \"{entityTitle}\" was {action}"
+    },
+    "contentPublishFailed": {
+      "title": "Content Publishing Failed",
+      "message": "Failed to publish \"{contentTitle}\" to {siteName}"
+    },
+    "failedPublishModal": {
+      "title": "Publishing Failed",
+      "subtitle": "The following content could not be published to your website",
+      "errorLabel": "Error Details",
+      "contentPreviewLabel": "Content Preview",
+      "postDataLabel": "Post Data",
+      "titleLabel": "Title",
+      "excerptLabel": "Excerpt",
+      "metaTitleLabel": "Meta Title",
+      "metaDescriptionLabel": "Meta Description",
+      "wordCountLabel": "Word Count",
+      "retryPublish": "Retry Publishing",
+      "retrying": "Retrying...",
+      "retryQueued": "Content queued for retry. It will be published on the next pipeline run.",
+      "viewContent": "View Content",
+      "wpNotConnected": "WordPress plugin is not connected. Connect your WordPress site to enable publishing.",
+      "connectWordPress": "Connect WordPress",
+      "close": "Close",
+      "commonErrors": {
+        "rest_no_route": "The Ghost Post plugin endpoint was not found. Please make sure the Ghost Post WordPress plugin is installed and activated.",
+        "connection_refused": "Could not connect to your WordPress site. Please check that your site is accessible.",
+        "timeout": "The request timed out. Your server may be slow or overloaded.",
+        "unauthorized": "Authentication failed. Please reconnect your WordPress site."
+      }
+    },
     "viewResults": "View Results",
     "markRead": "Mark as read",
     "markUnread": "Mark as unread"
@@ -2976,7 +3186,7 @@
         "preview": "I analyzed current trends for..."
       },
       "keywordResearch": {
-        "title": "Keyword Research",
+        "title": "Keywords",
         "preview": "Found 4 low-competition keywords..."
       },
       "linkBuilding": {
@@ -3075,7 +3285,12 @@
       "reservedColor": "This color is reserved for post statuses (draft / published / scheduled)",
       "editCampaign": "Edit Campaign",
       "deleteCampaign": "Delete Campaign",
-      "deleteConfirm": "Are you sure you want to delete this campaign?"
+      "deleteConfirm": "Are you sure you want to delete this campaign?",
+      "cancelDelete": "Cancel",
+      "nameRequired": "Please enter a campaign name",
+      "selectOrCreateError": "Please select an existing campaign or create a new one",
+      "createError": "Failed to create campaign. Please try again.",
+      "existingCampaigns": "Your Campaigns"
     },
     "postCount": {
       "title": "Number of Posts",
@@ -3181,7 +3396,9 @@
       "custom": "Custom",
       "selectedSubjects": "Selected Subjects",
       "allSelected": "All subjects selected!",
-      "selectRemaining": "Select {count} more subjects to continue"
+      "selectRemaining": "Select {count} more subjects to continue",
+      "onePerKeyword": "You can only select one subject per keyword. To choose a different subject for this keyword, first deselect the current one.",
+      "gotIt": "Got it"
     },
     "keywords": {
       "title": "Campaign Keywords",
@@ -3248,7 +3465,19 @@
       "explanation": "Explanation",
       "wordCount": "Word Count",
       "words": "words",
-      "custom": "Custom"
+      "custom": "Custom",
+      "existingPosts": "Existing Posts",
+      "otherCampaigns": "Other Campaigns",
+      "otherCampaignPost": "Planned in",
+      "existingStatus": "Status",
+      "published": "Published",
+      "publishedDate": "Published",
+      "scheduled": "Scheduled",
+      "processing": "Processing",
+      "readyToPublish": "Ready",
+      "failed": "Failed",
+      "draft": "Draft",
+      "viewPost": "View Post"
     },
     "nav": {
       "previous": "Previous",
@@ -4936,6 +5165,8 @@
       "unread": "Unread",
       "auditComplete": "Audit Complete",
       "auditFailed": "Audit Failed",
+      "entitySync": "Entity Sync",
+      "contentUpdate": "Content Update",
       "read": "Read"
     },
     "groups": {

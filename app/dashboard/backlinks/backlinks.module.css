@@ -578,6 +578,7 @@
   width: 100%;
   max-width: 500px;
   max-height: 85vh;
+  transition: max-width 0.3s ease, max-height 0.3s ease, width 0.3s ease, height 0.3s ease;
   overflow-y: auto;
   box-shadow: var(--shadow-lg);
   animation: modalIn 200ms ease;

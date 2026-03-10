@@ -20,6 +20,7 @@
   max-width: 1000px;
   max-height: 90vh;
   display: flex;
+  transition: max-width 0.3s ease, max-height 0.3s ease, width 0.3s ease, height 0.3s ease;
   flex-direction: column;
   box-shadow: var(--shadow-xl);
   overflow: hidden;

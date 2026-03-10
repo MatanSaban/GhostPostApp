@@ -1,6 +1,7 @@
 'use client';
 
 import { useLocale } from '@/app/context/locale-context';
+import WordPressPluginSection from '@/app/dashboard/settings/components/WordPressPluginSection';
 import styles from '../entities.module.css';
 
 export function IntegrationSetupCard({
@@ -106,6 +107,18 @@ export function IntegrationSetupCard({
             <p className={styles.nonWordPressDesc}>{t('entities.setup.nonWordPressDesc')}</p>
           </div>
         </div>
+      )}
+
+      {/* WordPress Plugin Connection */}
+      {isWordPress && (
+        <>
+          <div className={styles.sectionDivider} />
+          <WordPressPluginSection
+            showInstructions={!isConnected}
+            compact={isConnected}
+            onConnectionChange={() => {}}
+          />
+        </>
       )}
     </div>
   );

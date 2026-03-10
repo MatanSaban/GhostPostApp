@@ -960,6 +960,25 @@ async function saveDiscoveredSitemaps(site, mainSitemap, sitemapCounts, userId =
         if (data.sitemaps && data.sitemaps.length > 0) {
           for (const childUrl of data.sitemaps) {
             try {
+              // Fetch child sitemap content to store it
+              let childContent = null;
+              let childUrlCount = Math.round(data.count / data.sitemaps.length);
+              try {
+                const childResp = await fetch(childUrl, {
+                  headers: { 'User-Agent': 'GhostPost-Platform/1.0' },
+                  signal: AbortSignal.timeout(20000),
+                  cache: 'no-store',
+                });
+                if (childResp.ok) {
+                  childContent = await childResp.text();
+                  // Count actual URLs in the child sitemap
+                  const urlMatches = childContent.match(/<url>/gi);
+                  if (urlMatches) childUrlCount = urlMatches.length;
+                }
+              } catch (fetchErr) {
+                console.log(`[Scan] Could not fetch child sitemap content: ${childUrl}`, fetchErr.message);
+              }
+
               const childRecord = await prisma.siteSitemap.upsert({
                 where: {
                   siteId_url: {
@@ -971,7 +990,8 @@ async function saveDiscoveredSitemaps(site, mainSitemap, sitemapCounts, userId =
                   type: 'STANDARD',
                   isIndex: false,
                   parentId: mainSitemapRecord.id,
-                  urlCount: data.count / data.sitemaps.length, // Approximate
+                  content: childContent,
+                  urlCount: childUrlCount,
                   lastScannedAt: new Date(),
                   lastScannedBy: userId,
                   scanStatus: 'COMPLETED',
@@ -984,7 +1004,8 @@ async function saveDiscoveredSitemaps(site, mainSitemap, sitemapCounts, userId =
                   type: 'STANDARD',
                   isIndex: false,
                   parentId: mainSitemapRecord.id,
-                  urlCount: data.count / data.sitemaps.length,
+                  content: childContent,
+                  urlCount: childUrlCount,
                   lastScannedAt: new Date(),
                   lastScannedBy: userId,
                   scanStatus: 'COMPLETED',
@@ -1309,7 +1330,7 @@ function cleanPageTitle(title) {
  * Fetch posts from WP REST API
  */
 async function fetchWpRestPosts(siteUrl, restEndpoint, page = 1, perPage = 100) {
-  const url = `${siteUrl}/wp-json/wp/v2/${restEndpoint}?page=${page}&per_page=${perPage}&_fields=id,slug,title,link,date,modified,status,excerpt,featured_media`;
+  const url = `${siteUrl}/wp-json/wp/v2/${restEndpoint}?page=${page}&per_page=${perPage}&_fields=id,slug,title,link,date,date_gmt,modified,status,excerpt,featured_media`;
   console.log(`[Scan] Fetching WP REST: ${url}`);
   
   try {
@@ -1393,7 +1414,7 @@ async function populateEntities(site, entityTypes, options = {}) {
               title: post.title?.rendered || post.title || slugToTitle(post.slug),
               url: post.link,
               excerpt: post.excerpt?.rendered?.replace(/<[^>]*>/g, '').trim() || null,
-              publishedAt: post.date ? new Date(post.date) : null,
+              publishedAt: post.date_gmt ? new Date(String(post.date_gmt).replace(' ', 'T') + 'Z') : (post.date ? new Date(String(post.date).replace(' ', 'T')) : null),
               modifiedAt: post.modified ? new Date(post.modified) : null,
               featuredMediaId: post.featured_media || null,
             });
@@ -2178,6 +2199,7 @@ async function deepCrawlEntities(site, options = {}) {
             excerpt: metadata.description || metadata.ogDescription || null,
             featuredImage,
             status: 'PUBLISHED',
+            publishedAt: metadata.publishDate ? new Date(metadata.publishDate) : null,
             seoData,
             metadata: {
               source: 'deep-crawl',
@@ -2421,6 +2443,12 @@ async function deepCrawlEntities(site, options = {}) {
             metadata: updatedMetadata,
             featuredImage,
           };
+
+          // Update publishedAt from crawled publishDate if not already set
+          const crawledPublishDate = metadata.publishDate || existingMetadata.publishDate;
+          if (crawledPublishDate && !entity.publishedAt) {
+            updateData.publishedAt = new Date(crawledPublishDate);
+          }
 
           // Update content if extracted
           if (mainContent && mainContent.length > 50) {

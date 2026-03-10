@@ -64,10 +64,33 @@ export async function GET(request, { params }) {
       return NextResponse.json({ error: 'Access denied' }, { status: 403 });
     }
 
-    // Parse URLs from stored content
+    // Parse URLs from stored content, or fetch live if no content stored
     let urls = [];
-    if (sitemap.content) {
-      urls = parseUrlsFromSitemap(sitemap.content, sitemap.isIndex);
+    let content = sitemap.content;
+    
+    if (!content) {
+      // Content not stored — fetch live from the sitemap URL
+      try {
+        const response = await fetch(sitemap.url, {
+          headers: { 'User-Agent': 'GhostPost-Platform/1.0' },
+          signal: AbortSignal.timeout(20000),
+          cache: 'no-store',
+        });
+        if (response.ok) {
+          content = await response.text();
+          // Save the fetched content for future use
+          await prisma.siteSitemap.update({
+            where: { id },
+            data: { content },
+          });
+        }
+      } catch (fetchErr) {
+        console.error('Error fetching sitemap content live:', fetchErr.message);
+      }
+    }
+    
+    if (content) {
+      urls = parseUrlsFromSitemap(content, sitemap.isIndex);
     }
 
     // Remove site from response
@@ -91,23 +114,40 @@ function parseUrlsFromSitemap(content, isIndex) {
   
   if (isIndex) {
     // Parse sitemap index - extract sitemap URLs
-    const sitemapRegex = /<sitemap>\s*<loc>([^<]+)<\/loc>(?:\s*<lastmod>([^<]+)<\/lastmod>)?/gi;
+    const sitemapRegex = /<sitemap>([\s\S]*?)<\/sitemap>/gi;
     let match;
     while ((match = sitemapRegex.exec(content)) !== null) {
-      urls.push({
-        loc: match[1],
-        lastmod: match[2] || null,
-        type: 'sitemap',
-      });
+      const block = match[1];
+      const loc = block.match(/<loc>([^<]+)<\/loc>/)?.[1] || null;
+      const lastmod = block.match(/<lastmod>([^<]+)<\/lastmod>/)?.[1] || null;
+      if (loc) {
+        urls.push({ loc, lastmod, type: 'sitemap' });
+      }
     }
   } else {
-    // Parse regular sitemap - extract page URLs
-    const urlRegex = /<url>\s*<loc>([^<]+)<\/loc>(?:[\s\S]*?<lastmod>([^<]+)<\/lastmod>)?/gi;
+    // Parse regular sitemap - extract page URLs with all available metadata
+    const urlRegex = /<url>([\s\S]*?)<\/url>/gi;
     let match;
     while ((match = urlRegex.exec(content)) !== null) {
+      const block = match[1];
+      const loc = block.match(/<loc>([^<]+)<\/loc>/)?.[1] || null;
+      if (!loc) continue;
+      
+      const lastmod = block.match(/<lastmod>([^<]+)<\/lastmod>/)?.[1] || null;
+      const changefreq = block.match(/<changefreq>([^<]+)<\/changefreq>/)?.[1] || null;
+      const priority = block.match(/<priority>([^<]+)<\/priority>/)?.[1] || null;
+      
+      // Extract image data if present
+      const imageMatch = block.match(/<image:loc>([^<]+)<\/image:loc>/);
+      const imageTitleMatch = block.match(/<image:title>([^<]+)<\/image:title>/);
+      
       urls.push({
-        loc: match[1],
-        lastmod: match[2] || null,
+        loc,
+        lastmod,
+        changefreq,
+        priority,
+        image: imageMatch?.[1] || null,
+        imageTitle: imageTitleMatch?.[1] || null,
       });
     }
   }

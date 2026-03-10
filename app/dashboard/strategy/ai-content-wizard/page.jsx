@@ -39,6 +39,11 @@ export default async function AIContentWizardPage() {
       editCampaign: t('aiWizard.campaign.editCampaign'),
       deleteCampaign: t('aiWizard.campaign.deleteCampaign'),
       deleteConfirm: t('aiWizard.campaign.deleteConfirm'),
+      cancelDelete: t('aiWizard.campaign.cancelDelete'),
+      nameRequired: t('aiWizard.campaign.nameRequired'),
+      selectOrCreateError: t('aiWizard.campaign.selectOrCreateError'),
+      createError: t('aiWizard.campaign.createError'),
+      existingCampaigns: t('aiWizard.campaign.existingCampaigns'),
     },
     // Post count step
     postCount: {
@@ -99,6 +104,10 @@ export default async function AIContentWizardPage() {
       t('aiWizard.schedule.months.9'),
       t('aiWizard.schedule.months.10'),
       t('aiWizard.schedule.months.11'),
+    ],
+    dayNames: [
+      t('time.sun'), t('time.mon'), t('time.tue'), t('time.wed'),
+      t('time.thu'), t('time.fri'), t('time.sat'),
     ],
     // Article types step
     articleTypes: {
@@ -203,6 +212,8 @@ export default async function AIContentWizardPage() {
       selectedSubjects: t('aiWizard.subjects.selectedSubjects'),
       allSelected: t('aiWizard.subjects.allSelected'),
       selectRemaining: t('aiWizard.subjects.selectRemaining'),
+      onePerKeyword: t('aiWizard.subjects.onePerKeyword'),
+      gotIt: t('aiWizard.subjects.gotIt'),
     },
     // Keywords step
     keywords: {
@@ -273,6 +284,18 @@ export default async function AIContentWizardPage() {
       wordCount: t('aiWizard.summary.wordCount'),
       words: t('aiWizard.summary.words'),
       custom: t('aiWizard.summary.custom'),
+      existingPosts: t('aiWizard.summary.existingPosts'),
+      otherCampaigns: t('aiWizard.summary.otherCampaigns'),
+      otherCampaignPost: t('aiWizard.summary.otherCampaignPost'),
+      existingStatus: t('aiWizard.summary.existingStatus'),
+      published: t('aiWizard.summary.published'),
+      publishedDate: t('aiWizard.summary.publishedDate'),
+      scheduled: t('aiWizard.summary.scheduled'),
+      processing: t('aiWizard.summary.processing'),
+      readyToPublish: t('aiWizard.summary.readyToPublish'),
+      failed: t('aiWizard.summary.failed'),
+      draft: t('aiWizard.summary.draft'),
+      viewPost: t('aiWizard.summary.viewPost'),
     },
     // Navigation
     nav: {
@@ -337,6 +360,14 @@ export default async function AIContentWizardPage() {
         manualInstallRequired: t('settings.wordpress.errors.manualInstallRequired'),
         unknownError: t('settings.wordpress.errors.unknownError'),
       },
+    },
+    // Campaign lifecycle actions
+    campaigns: {
+      activate: t('contentPlanner.campaigns.activate'),
+      pause: t('contentPlanner.campaigns.pause'),
+      resume: t('contentPlanner.campaigns.resume'),
+      noPlan: t('contentPlanner.campaigns.noPlan'),
+      activateConfirm: t('contentPlanner.campaigns.activateConfirm'),
     },
   };
 

@@ -1,12 +1,13 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { FolderOpen, Plus, Trash2, Loader2 } from 'lucide-react';
+import { createPortal } from 'react-dom';
+import { FolderOpen, Plus, Trash2, Loader2, AlertTriangle, X } from 'lucide-react';
 import { useSite } from '@/app/context/site-context';
 import CampaignForm from '../../../_shared/CampaignForm';
 import styles from '../../page.module.css';
 
-export default function CampaignStep({ state, dispatch, translations }) {
+export default function CampaignStep({ state, dispatch, translations, onLoadCampaign, onResetSteps }) {
   const t = translations.campaign;
   const { selectedSite } = useSite();
   const [campaigns, setCampaigns] = useState([]);
@@ -33,10 +34,12 @@ export default function CampaignStep({ state, dispatch, translations }) {
 
   const handleSelectCampaign = (campaign) => {
     dispatch({ type: 'LOAD_CAMPAIGN', payload: campaign });
+    onLoadCampaign?.(campaign);
   };
 
   const handleCreateNew = () => {
     dispatch({ type: 'NEW_CAMPAIGN' });
+    onResetSteps?.();
   };
 
   const handleDeleteCampaign = async (campaignId) => {
@@ -76,9 +79,9 @@ export default function CampaignStep({ state, dispatch, translations }) {
         <button
           className={`${styles.campaignToggleBtn} ${!state.isNewCampaign ? styles.active : ''}`}
           onClick={() => dispatch({ type: 'SET_FIELD', field: 'isNewCampaign', value: false })}
-          disabled={campaigns.length === 0}
+          disabled={loading || campaigns.length === 0}
         >
-          <FolderOpen size={16} />
+          {loading ? <Loader2 size={16} className={styles.spinner} /> : <FolderOpen size={16} />}
           {t.selectExisting}
         </button>
       </div>
@@ -95,6 +98,7 @@ export default function CampaignStep({ state, dispatch, translations }) {
         </div>
       ) : (
         <div className={styles.campaignList}>
+          <h3 className={styles.campaignListTitle}>{t.existingCampaigns}</h3>
           {loading ? (
             <div className={styles.loadingState}>
               <Loader2 className={styles.spinner} size={24} />
@@ -112,7 +116,7 @@ export default function CampaignStep({ state, dispatch, translations }) {
                 <div className={styles.campaignCardInfo}>
                   <span className={styles.campaignCardName}>{campaign.name}</span>
                   <span className={styles.campaignCardMeta}>
-                    {campaign._count?.contents || 0} {translations.articleTypes.postsOfType}
+                    {campaign._count?.contents || campaign.subjects?.length || 0} {translations.articleTypes.postsOfType}
                   </span>
                 </div>
                 <button
@@ -124,24 +128,40 @@ export default function CampaignStep({ state, dispatch, translations }) {
                 >
                   <Trash2 size={14} />
                 </button>
-
-                {deleteConfirm === campaign.id && (
-                  <div className={styles.deleteConfirm} onClick={(e) => e.stopPropagation()}>
-                    <p>{t.deleteConfirm}</p>
-                    <div className={styles.deleteConfirmActions}>
-                      <button onClick={() => handleDeleteCampaign(campaign.id)} className={styles.deleteConfirmYes}>
-                        {t.deleteCampaign}
-                      </button>
-                      <button onClick={() => setDeleteConfirm(null)} className={styles.deleteConfirmNo}>
-                        ✕
-                      </button>
-                    </div>
-                  </div>
-                )}
               </div>
             ))
           )}
         </div>
+      )}
+
+      {/* Delete confirmation popup */}
+      {deleteConfirm && createPortal(
+        <div className={styles.modalOverlay} onClick={() => setDeleteConfirm(null)}>
+          <div className={styles.validationPopup} onClick={(e) => e.stopPropagation()}>
+            <button className={styles.validationPopupClose} onClick={() => setDeleteConfirm(null)}>
+              <X size={18} />
+            </button>
+            <div className={styles.validationPopupIcon}>
+              <AlertTriangle size={28} />
+            </div>
+            <p className={styles.validationPopupMessage}>{t.deleteConfirm}</p>
+            <div className={styles.deletePopupActions}>
+              <button
+                className={styles.deletePopupConfirm}
+                onClick={() => handleDeleteCampaign(deleteConfirm)}
+              >
+                {t.deleteCampaign}
+              </button>
+              <button
+                className={styles.deletePopupCancel}
+                onClick={() => setDeleteConfirm(null)}
+              >
+                {t.cancelDelete}
+              </button>
+            </div>
+          </div>
+        </div>,
+        document.body
       )}
     </div>
   );

@@ -5,12 +5,14 @@ import { Link2, ExternalLink, Globe, Tag, Languages, Search, X, Shield, Shopping
 import { useLocale } from '@/app/context/locale-context';
 import { useUser } from '@/app/context/user-context';
 import { useSite } from '@/app/context/site-context';
+import { useModalResize, ModalResizeButton } from '@/app/components/ui/ModalResizeButton';
 import styles from '../backlinks.module.css';
 
 // ──────────────────────────────────────────────
 // Create Listing Modal
 // ──────────────────────────────────────────────
 function CreateListingModal({ userSites, t, onClose, onSubmit }) {
+  const { isMaximized, toggleMaximize } = useModalResize();
   const [selectedSiteIdx, setSelectedSiteIdx] = useState('');
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -121,10 +123,13 @@ function CreateListingModal({ userSites, t, onClose, onSubmit }) {
 
   return (
     <div className={styles.modalOverlay} onClick={onClose}>
-      <div className={`${styles.modal} ${styles.modalWide}`} onClick={e => e.stopPropagation()}>
+      <div className={`${styles.modal} ${styles.modalWide} ${isMaximized ? 'modal-maximized' : ''}`} onClick={e => e.stopPropagation()}>
         <div className={styles.modalHeader}>
           <h2 className={styles.modalTitle}>{t('backlinks.createListing.title')}</h2>
-          <button className={styles.modalClose} onClick={onClose}><X size={18} /></button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+            <ModalResizeButton isMaximized={isMaximized} onToggle={toggleMaximize} className={styles.modalClose} />
+            <button className={styles.modalClose} onClick={onClose}><X size={18} /></button>
+          </div>
         </div>
 
         <div className={styles.modalBody}>

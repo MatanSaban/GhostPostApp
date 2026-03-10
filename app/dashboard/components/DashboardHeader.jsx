@@ -26,6 +26,7 @@ import { ThemeToggle } from '@/app/components/ui/theme-toggle';
 import { LanguageSwitcher } from '@/app/components/ui/language-switcher';
 import UpgradePlanModal from '@/app/components/ui/UpgradePlanModal';
 import AddCreditsModal from '@/app/components/ui/AddCreditsModal';
+import FailedPublishModal from './FailedPublishModal';
 import { useLocale } from '@/app/context/locale-context';
 import { useUser } from '@/app/context/user-context';
 import { useSite } from '@/app/context/site-context';
@@ -69,6 +70,7 @@ const NOTIFICATION_ICONS = {
   ai: Sparkles,
   alert: AlertCircle,
   success: TrendingUp,
+  content_publish_failed: AlertCircle,
 };
 
 // Relative time helper
@@ -146,6 +148,7 @@ export function DashboardHeader() {
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [showCreditsModal, setShowCreditsModal] = useState(false);
+  const [failedPublishData, setFailedPublishData] = useState(null);
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [entityTypes, setEntityTypes] = useState([]);
@@ -296,7 +299,14 @@ export function DashboardHeader() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const handleNotificationClick = async (notification) => {
+  const handleNotificationClick = async (notification, e) => {
+    // Handle content_publish_failed - open modal instead of navigating
+    if (notification.type === 'content_publish_failed') {
+      e?.preventDefault();
+      setFailedPublishData(notification.data);
+      setIsNotificationsOpen(false);
+    }
+
     if (!notification.read) {
       // Optimistic update
       setNotifications(prev =>
@@ -310,7 +320,10 @@ export function DashboardHeader() {
         body: JSON.stringify({ id: notification.id }),
       }).catch(() => {});
     }
-    setIsNotificationsOpen(false);
+
+    if (notification.type !== 'content_publish_failed') {
+      setIsNotificationsOpen(false);
+    }
   };
 
   const markAllAsRead = async () => {
@@ -467,12 +480,21 @@ export function DashboardHeader() {
                     const messageText = notification.message?.startsWith('notifications.')
                       ? t(notification.message, notification.data || {})
                       : notification.message;
+                    
+                    // Use different element for content_publish_failed (modal) vs others (link)
+                    // Use div with role="button" for modal notifications to avoid nested buttons
+                    const isModalNotification = notification.type === 'content_publish_failed';
+                    const ItemComponent = isModalNotification ? 'div' : Link;
+                    const itemProps = isModalNotification 
+                      ? { role: 'button', tabIndex: 0, onKeyDown: (e) => e.key === 'Enter' && handleNotificationClick(notification, e) }
+                      : { href: notification.link || '/dashboard' };
+                    
                     return (
-                      <Link
+                      <ItemComponent
                         key={notification.id}
-                        href={notification.link || '/dashboard'}
+                        {...itemProps}
                         className={`${styles.notificationItem} ${!notification.read ? styles.unread : ''}`}
-                        onClick={() => handleNotificationClick(notification)}
+                        onClick={(e) => handleNotificationClick(notification, e)}
                       >
                         <div className={`${styles.notificationIcon} ${styles[notification.type] || ''}`}>
                           <Icon size={16} />
@@ -497,7 +519,7 @@ export function DashboardHeader() {
                             <X size={14} />
                           </button>
                         </div>
-                      </Link>
+                      </ItemComponent>
                     );
                   })
                 )}
@@ -668,6 +690,11 @@ export function DashboardHeader() {
 
     <UpgradePlanModal isOpen={showUpgradeModal} onClose={() => setShowUpgradeModal(false)} />
     <AddCreditsModal isOpen={showCreditsModal} onClose={() => setShowCreditsModal(false)} />
+    <FailedPublishModal 
+      data={failedPublishData} 
+      translations={t('notifications.failedPublishModal', { returnObjects: true })}
+      onClose={() => setFailedPublishData(null)} 
+    />
   </>
   );
 }

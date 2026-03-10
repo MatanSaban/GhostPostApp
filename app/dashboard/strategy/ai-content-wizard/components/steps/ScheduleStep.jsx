@@ -1,9 +1,10 @@
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useRef, useCallback } from 'react';
 import { createPortal } from 'react-dom';
-import { Calendar, ChevronLeft, ChevronRight, ChevronsRight, AlertTriangle, X } from 'lucide-react';
+import { Calendar, ChevronLeft, ChevronRight, ChevronsRight, AlertTriangle, X, Globe, ExternalLink } from 'lucide-react';
 import { WEEK_DAYS } from '../../wizardConfig';
+import { useSite } from '@/app/context/site-context';
 import styles from '../../page.module.css';
 
 function getDaysInMonth(year, month) {
@@ -64,8 +65,93 @@ function countPublishDaysInRange(start, end, publishDays) {
 
 export default function ScheduleStep({ state, dispatch, translations }) {
   const t = translations.schedule;
+  const summaryT = translations.summary;
+  const articleTypesT = translations.articleTypes;
   const [hoverDate, setHoverDate] = useState(null);
   const [schedulePopup, setSchedulePopup] = useState(null);
+  const { selectedSite } = useSite();
+  const [existingPosts, setExistingPosts] = useState([]);
+  const [otherCampaignPosts, setOtherCampaignPosts] = useState([]);
+  const [postPopover, setPostPopover] = useState(null); // { posts, rect } or { otherCampaignPosts, rect }
+  const popoverRef = useRef(null);
+
+  // Fetch existing site posts
+  useEffect(() => {
+    if (!selectedSite?.id) return;
+    fetch(`/api/entities?siteId=${selectedSite.id}&type=posts`)
+      .then(res => res.json())
+      .then(data => setExistingPosts(data.entities || []))
+      .catch(() => setExistingPosts([]));
+  }, [selectedSite?.id]);
+
+  // Fetch other campaigns' planned posts
+  useEffect(() => {
+    if (!selectedSite?.id) return;
+    fetch(`/api/campaigns?siteId=${selectedSite.id}`)
+      .then(res => res.json())
+      .then(data => {
+        const campaigns = data.campaigns || data || [];
+        const posts = [];
+        campaigns.forEach(c => {
+          if (c.id === state.campaignId) return;
+          if (!Array.isArray(c.generatedPlan)) return;
+          c.generatedPlan.forEach(p => {
+            if (!p.scheduledAt) return;
+            posts.push({
+              ...p,
+              _campaignId: c.id,
+              _campaignName: c.name,
+              _campaignColor: c.color || '#6366f1',
+            });
+          });
+        });
+        setOtherCampaignPosts(posts);
+      })
+      .catch(() => setOtherCampaignPosts([]));
+  }, [selectedSite?.id, state.campaignId]);
+
+  // Build existing posts map by date key (only published posts)
+  // Priority: publishedAt > metadata.publishDate (from crawl) > createdAt
+  const existingByDate = useMemo(() => {
+    const map = {};
+    existingPosts
+      .filter(p => p.status === 'PUBLISHED')
+      .forEach(p => {
+        const dateStr = p.publishedAt || p.metadata?.publishDate || p.createdAt;
+        if (!dateStr) return;
+        const d = new Date(dateStr);
+        if (isNaN(d.getTime())) return;
+        const key = `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
+        if (!map[key]) map[key] = [];
+        map[key].push(p);
+      });
+    return map;
+  }, [existingPosts]);
+
+  // Build other campaigns' posts map by date key
+  const otherCampaignsByDate = useMemo(() => {
+    const map = {};
+    otherCampaignPosts.forEach(p => {
+      const d = new Date(p.scheduledAt);
+      if (isNaN(d.getTime())) return;
+      const key = `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
+      if (!map[key]) map[key] = [];
+      map[key].push(p);
+    });
+    return map;
+  }, [otherCampaignPosts]);
+
+  // Close popover on outside click
+  useEffect(() => {
+    if (!postPopover) return;
+    const handler = (e) => {
+      if (popoverRef.current && !popoverRef.current.contains(e.target)) {
+        setPostPopover(null);
+      }
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [postPopover]);
 
   const today = new Date();
   today.setHours(0, 0, 0, 0);
@@ -231,15 +317,22 @@ export default function ScheduleStep({ state, dispatch, translations }) {
 
     const days = [];
     for (let i = 0; i < firstDay; i++) {
-      days.push({ day: null, date: null, isPast: false });
+      days.push({ day: null, date: null, isPast: false, existing: null, otherCampaigns: null });
     }
     for (let day = 1; day <= daysInMonth; day++) {
       const date = new Date(year, month, day);
       const isPast = date < today;
-      days.push({ day, date, isPast });
+      const key = `${year}-${month}-${day}`;
+      days.push({ day, date, isPast, existing: existingByDate[key] || null, otherCampaigns: otherCampaignsByDate[key] || null });
     }
     return days;
-  }, [calendarMonth]);
+  }, [calendarMonth, existingByDate, otherCampaignsByDate]);
+
+  const openExistingPopover = useCallback((posts, e) => {
+    e.stopPropagation();
+    const rect = e.currentTarget.getBoundingClientRect();
+    setPostPopover({ posts, rect });
+  }, []);
 
   return (
     <div className={styles.stepContent}>
@@ -364,12 +457,50 @@ export default function ScheduleStep({ state, dispatch, translations }) {
                 cell.date && isEnd(cell.date) ? styles.calendarCellEnd : '',
                 cell.date && isHoverEnd(cell.date) ? styles.calendarCellHoverEnd : '',
                 cell.date && isInRange(cell.date) ? styles.calendarCellInRange : '',
+                cell.existing ? styles.calendarCellHasExisting : '',
+                cell.otherCampaigns ? styles.calendarCellHasOtherCampaign : '',
               ].filter(Boolean).join(' ')}
               onClick={() => cell.date && !cell.isPast && handleDateClick(cell.date)}
               onMouseEnter={() => cell.date && !cell.isPast && startDate && !endDate && setHoverDate(cell.date)}
               onMouseLeave={() => setHoverDate(null)}
             >
               <span className={styles.calendarCellDay}>{cell.day}</span>
+              {cell.existing && (
+                <div
+                  className={styles.scheduleExistingDots}
+                  onClick={(e) => openExistingPopover(cell.existing, e)}
+                  title={`${cell.existing.length} published post${cell.existing.length > 1 ? 's' : ''}`}
+                >
+                  {cell.existing.slice(0, 3).map((_, i) => (
+                    <span key={i} className={styles.scheduleExistingDot} />
+                  ))}
+                  {cell.existing.length > 3 && (
+                    <span className={styles.scheduleExistingMore}>+{cell.existing.length - 3}</span>
+                  )}
+                </div>
+              )}
+              {cell.otherCampaigns && (
+                <div
+                  className={styles.scheduleOtherCampaignDots}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    const rect = e.currentTarget.getBoundingClientRect();
+                    setPostPopover({ otherCampaignPosts: cell.otherCampaigns, rect });
+                  }}
+                  title={`${cell.otherCampaigns.length} planned in other campaigns`}
+                >
+                  {cell.otherCampaigns.slice(0, 3).map((p, i) => (
+                    <span
+                      key={i}
+                      className={styles.scheduleOtherCampaignDot}
+                      style={{ background: p._campaignColor }}
+                    />
+                  ))}
+                  {cell.otherCampaigns.length > 3 && (
+                    <span className={styles.scheduleOtherCampaignMore}>+{cell.otherCampaigns.length - 3}</span>
+                  )}
+                </div>
+              )}
             </div>
           ))}
         </div>
@@ -463,6 +594,102 @@ export default function ScheduleStep({ state, dispatch, translations }) {
           <p className={styles.formHint}>{t.randomHint}</p>
         )}
       </div>
+
+      {/* Existing posts popover */}
+      {postPopover?.posts && createPortal(
+        <div className={styles.postPopoverOverlay} onClick={() => setPostPopover(null)}>
+          <div
+            ref={popoverRef}
+            className={`${styles.postPopover} ${styles.postPopoverExisting}`}
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              top: Math.min(postPopover.rect.bottom + 8, window.innerHeight - 280),
+              left: Math.min(Math.max(postPopover.rect.left, 16), window.innerWidth - 320),
+            }}
+          >
+            <div className={styles.postPopoverHeader}>
+              <h4 className={styles.postPopoverTitle}>
+                {summaryT?.existingPosts || 'Published Posts'} ({postPopover.posts.length})
+              </h4>
+              <button className={styles.postPopoverClose} onClick={() => setPostPopover(null)}>
+                <X size={16} />
+              </button>
+            </div>
+            <div className={styles.postPopoverBody}>
+              {postPopover.posts.map((post) => {
+                const pubDate = new Date(post.publishedAt || post.metadata?.publishDate || post.createdAt);
+                return (
+                  <div key={post.id} className={styles.scheduleExistingPostItem}>
+                    <Globe size={12} className={styles.scheduleExistingPostIcon} />
+                    <div className={styles.scheduleExistingPostInfo}>
+                      <span className={styles.scheduleExistingPostTitle}>{post.title}</span>
+                      <span className={styles.scheduleExistingPostDate}>
+                        {pubDate.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}
+                      </span>
+                    </div>
+                    {post.url && (
+                      <a
+                        href={post.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className={styles.scheduleExistingPostLink}
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <ExternalLink size={12} />
+                      </a>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
+
+      {/* Other campaign posts popover */}
+      {postPopover?.otherCampaignPosts && createPortal(
+        <div className={styles.postPopoverOverlay} onClick={() => setPostPopover(null)}>
+          <div
+            ref={popoverRef}
+            className={`${styles.postPopover} ${styles.postPopoverOtherCampaign}`}
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              top: Math.min(postPopover.rect.bottom + 8, window.innerHeight - 280),
+              left: Math.min(Math.max(postPopover.rect.left, 16), window.innerWidth - 320),
+            }}
+          >
+            <div className={styles.postPopoverHeader}>
+              <h4 className={styles.postPopoverTitle}>
+                {summaryT?.otherCampaigns || 'Other Campaigns'} ({postPopover.otherCampaignPosts.length})
+              </h4>
+              <button className={styles.postPopoverClose} onClick={() => setPostPopover(null)}>
+                <X size={16} />
+              </button>
+            </div>
+            <div className={styles.postPopoverBody}>
+              {postPopover.otherCampaignPosts.map((post, idx) => {
+                const postDate = new Date(post.scheduledAt);
+                return (
+                  <div key={idx} className={styles.scheduleExistingPostItem}>
+                    <span
+                      className={styles.otherCampaignColorDot}
+                      style={{ background: post._campaignColor }}
+                    />
+                    <div className={styles.scheduleExistingPostInfo}>
+                      <span className={styles.scheduleExistingPostTitle}>{post.title}</span>
+                      <span className={styles.scheduleExistingPostDate}>
+                        {post._campaignName} · {postDate.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}
+                      </span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
 
       {/* Days vs posts warning popup */}
       {schedulePopup && createPortal(

@@ -6,6 +6,11 @@ import styles from '../auth.module.css';
 export const metadata = {
   title: 'Accept Invitation | Ghost Post',
   description: 'Accept your invitation to join an account on Ghost Post',
+  icons: {
+    icon: '/ghostpost_logo.png',
+    shortcut: '/ghostpost_logo.png',
+    apple: '/ghostpost_logo.png',
+  },
 };
 
 export default async function AcceptInvitePage({ searchParams }) {

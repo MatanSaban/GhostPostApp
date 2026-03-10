@@ -367,7 +367,7 @@ export function useEntities() {
       const updated = data.stats?.updated || 0;
       updateTask(taskId, { 
         status: 'completed',
-        message: `Sync complete! ${created + updated} items synced`,
+        message: t('entities.sync.completedWithCount').replace('{count}', created + updated),
         progress: 100,
       });
       setSyncStatus('COMPLETED');

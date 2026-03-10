@@ -44,6 +44,7 @@ export const INITIAL_WIZARD_STATE = {
   campaignId: null,
   campaignName: '',
   campaignColor: '#6366f1',
+  campaignStatus: 'DRAFT',
   isNewCampaign: true,
 
   // Step 2 - Post count
@@ -77,6 +78,7 @@ export const INITIAL_WIZARD_STATE = {
 
   // Step 9 - Generated plan
   generatedPlan: null,
+  planNeedsRegeneration: false,
 };
 
 export const WIZARD_STEPS = [

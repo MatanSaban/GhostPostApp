@@ -1,7 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { createPortal } from 'react-dom';
+import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { 
   Calendar, 
@@ -14,11 +13,19 @@ import {
   Sparkles,
   Pencil,
   FileText,
-  X,
-  ExternalLink,
+  Play,
+  Pause,
+  AlertCircle,
+  CheckCircle2,
+  Clock,
+  Zap,
+  RotateCcw,
 } from 'lucide-react';
 import { useSite } from '@/app/context/site-context';
 import { StatusBadge } from '../../../components';
+import CalendarGrid from '../../_shared/CalendarGrid';
+import PostPopover from '../../_shared/PostPopover';
+import { activateCampaign, pauseCampaign, resumeCampaign } from '../../_shared/campaignActions';
 import CreateCampaignModal from './CreateCampaignModal';
 import EditCampaignModal from './EditCampaignModal';
 import WpConnectionModal from './WpConnectionModal';
@@ -42,8 +49,139 @@ export function ContentPlannerView({ translations }) {
   const [posts, setPosts] = useState([]);
   const [loadingPosts, setLoadingPosts] = useState(true);
   const [showWpModal, setShowWpModal] = useState(false);
-  const [previewPost, setPreviewPost] = useState(null);
+  const [popover, setPopover] = useState(null); // { post, rect }
+  const [activatingId, setActivatingId] = useState(null);
+  const [pausingId, setPausingId] = useState(null);
+  const [pipelineContents, setPipelineContents] = useState([]);
+  const [pipelineStats, setPipelineStats] = useState(null);
+  const [loadingPipeline, setLoadingPipeline] = useState(true);
   const { selectedSite } = useSite();
+
+  // ── Popover helpers ────────────────────────────────────────────
+  const openPopover = (post, e) => {
+    e.stopPropagation();
+    const rect = e.currentTarget.getBoundingClientRect();
+    setPopover({ post, rect });
+  };
+  const closePopover = () => setPopover(null);
+
+  // ── Update post date/time from popover ─────────────────────────
+  const updatePostDate = (post, newDateStr) => {
+    if (!newDateStr || !/^\d{4}-\d{2}-\d{2}$/.test(newDateStr)) return; // Invalid date format
+    const oldDate = new Date(post.scheduledAt);
+    const [year, month, day] = newDateStr.split('-').map(Number);
+    const newDate = new Date(year, month - 1, day, oldDate.getHours(), oldDate.getMinutes(), 0);
+    if (isNaN(newDate.getTime())) return; // Invalid date
+    const newScheduledAt = newDate.toISOString();
+
+    if (post.source === 'plan') {
+      const campaign = campaigns.find(c => c.id === post.campaignId);
+      if (!campaign) return;
+      const plan = [...(campaign.generatedPlan || [])];
+      if (plan[post.planIndex]) {
+        plan[post.planIndex] = { ...plan[post.planIndex], scheduledAt: newScheduledAt };
+        setCampaigns(prev => prev.map(c =>
+          c.id === post.campaignId ? { ...c, generatedPlan: plan } : c
+        ));
+        // Update popover post in state
+        setPopover(prev => prev ? { ...prev, post: { ...prev.post, scheduledAt: newScheduledAt } } : null);
+        fetch(`/api/campaigns/${post.campaignId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ generatedPlan: plan }),
+        }).catch(() => {});
+      }
+    } else if (post.source === 'pipeline') {
+      setPipelineContents(prev => prev.map(c =>
+        c.id === post.id ? { ...c, scheduledAt: newScheduledAt } : c
+      ));
+      setPopover(prev => prev ? { ...prev, post: { ...prev.post, scheduledAt: newScheduledAt } } : null);
+      fetch(`/api/contents/${post.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ scheduledAt: newScheduledAt }),
+      }).catch(() => {});
+    }
+  };
+
+  const updatePostTime = (post, newTimeStr) => {
+    if (!newTimeStr || !/^\d{1,2}:\d{2}$/.test(newTimeStr)) return; // Invalid time format
+    const oldDate = new Date(post.scheduledAt);
+    const [h, m] = newTimeStr.split(':').map(Number);
+    const newDate = new Date(oldDate);
+    newDate.setHours(h, m, 0, 0);
+    if (isNaN(newDate.getTime())) return; // Invalid time
+    const newScheduledAt = newDate.toISOString();
+
+    if (post.source === 'plan') {
+      const campaign = campaigns.find(c => c.id === post.campaignId);
+      if (!campaign) return;
+      const plan = [...(campaign.generatedPlan || [])];
+      if (plan[post.planIndex]) {
+        plan[post.planIndex] = { ...plan[post.planIndex], scheduledAt: newScheduledAt };
+        setCampaigns(prev => prev.map(c =>
+          c.id === post.campaignId ? { ...c, generatedPlan: plan } : c
+        ));
+        setPopover(prev => prev ? { ...prev, post: { ...prev.post, scheduledAt: newScheduledAt } } : null);
+        fetch(`/api/campaigns/${post.campaignId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ generatedPlan: plan }),
+        }).catch(() => {});
+      }
+    } else if (post.source === 'pipeline') {
+      setPipelineContents(prev => prev.map(c =>
+        c.id === post.id ? { ...c, scheduledAt: newScheduledAt } : c
+      ));
+      setPopover(prev => prev ? { ...prev, post: { ...prev.post, scheduledAt: newScheduledAt } } : null);
+      fetch(`/api/contents/${post.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ scheduledAt: newScheduledAt }),
+      }).catch(() => {});
+    }
+  };
+
+  // ── Drag & Drop handler (called by CalendarGrid) ─────────────
+  const handleCalendarDrop = useCallback((draggedPost, targetCell) => {
+    const year = currentDate.getFullYear();
+    const month = currentDate.getMonth();
+    const targetDay = targetCell.day;
+    const oldDate = new Date(draggedPost.scheduledAt);
+    const newDate = new Date(year, month, targetDay, oldDate.getHours(), oldDate.getMinutes(), oldDate.getSeconds());
+
+    // Same day — no-op
+    if (oldDate.getDate() === targetDay && oldDate.getMonth() === month && oldDate.getFullYear() === year) return;
+
+    const newScheduledAt = newDate.toISOString();
+
+    if (draggedPost.source === 'plan') {
+      const campaign = campaigns.find(c => c.id === draggedPost.campaignId);
+      if (!campaign) return;
+      const plan = [...(campaign.generatedPlan || [])];
+      const planIdx = draggedPost.planIndex;
+      if (plan[planIdx]) {
+        plan[planIdx] = { ...plan[planIdx], scheduledAt: newScheduledAt };
+        setCampaigns(prev => prev.map(c =>
+          c.id === draggedPost.campaignId ? { ...c, generatedPlan: plan } : c
+        ));
+        fetch(`/api/campaigns/${draggedPost.campaignId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ generatedPlan: plan }),
+        }).catch(() => {});
+      }
+    } else if (draggedPost.source === 'pipeline') {
+      setPipelineContents(prev => prev.map(c =>
+        c.id === draggedPost.id ? { ...c, scheduledAt: newScheduledAt } : c
+      ));
+      fetch(`/api/contents/${draggedPost.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ scheduledAt: newScheduledAt }),
+      }).catch(() => {});
+    }
+  }, [currentDate, campaigns]);
 
   // Check WP connection on mount
   useEffect(() => {
@@ -89,6 +227,74 @@ export function ContentPlannerView({ translations }) {
       .finally(() => setLoadingPosts(false));
   }, [selectedSite?.id]);
 
+  // Fetch Content pipeline records (always fetch ALL — filter locally for view)
+  const fetchPipeline = useCallback(() => {
+    if (!selectedSite?.id) return;
+    fetch(`/api/contents?siteId=${selectedSite.id}`)
+      .then(res => res.json())
+      .then(data => {
+        setPipelineContents(data.contents || []);
+        setPipelineStats(data.stats || null);
+      })
+      .catch(() => {
+        setPipelineContents([]);
+        setPipelineStats(null);
+      })
+      .finally(() => setLoadingPipeline(false));
+  }, [selectedSite?.id]);
+
+  useEffect(() => {
+    setLoadingPipeline(true);
+    fetchPipeline();
+  }, [fetchPipeline]);
+
+  // Auto-refresh pipeline every 30s when active campaigns exist
+  useEffect(() => {
+    const hasActive = campaigns.some(c => c.status === 'ACTIVE');
+    if (!hasActive) return;
+    const interval = setInterval(fetchPipeline, 30_000);
+    return () => clearInterval(interval);
+  }, [campaigns, fetchPipeline]);
+
+  // ── Campaign lifecycle handlers ────────────────────────────────
+  const handleActivate = async (campaign) => {
+    const tc = translations.campaigns || {};
+    setActivatingId(campaign.id);
+    const result = await activateCampaign(campaign, {
+      translations: tc,
+      onSuccess: (newStatus) => {
+        setCampaigns(prev => prev.map(c => c.id === campaign.id ? { ...c, status: newStatus } : c));
+        fetchPipeline();
+      },
+      onError: (err) => {
+        if (err !== 'cancelled') alert(err);
+      },
+    });
+    setActivatingId(null);
+  };
+
+  const handlePause = async (campaign) => {
+    setPausingId(campaign.id);
+    await pauseCampaign(campaign, {
+      onSuccess: (newStatus) => {
+        setCampaigns(prev => prev.map(c => c.id === campaign.id ? { ...c, status: newStatus } : c));
+      },
+      onError: (err) => alert(err),
+    });
+    setPausingId(null);
+  };
+
+  const handleResume = async (campaign) => {
+    setActivatingId(campaign.id);
+    await resumeCampaign(campaign, {
+      onSuccess: (newStatus) => {
+        setCampaigns(prev => prev.map(c => c.id === campaign.id ? { ...c, status: newStatus } : c));
+      },
+      onError: (err) => alert(err),
+    });
+    setActivatingId(null);
+  };
+
   const goToPrevMonth = () => {
     setCurrentDate(prev => new Date(prev.getFullYear(), prev.getMonth() - 1, 1));
   };
@@ -102,16 +308,27 @@ export function ContentPlannerView({ translations }) {
     return months[date.getMonth()];
   };
 
-  // Map entity status to dot type
+  // Map entity/content status to dot type
   const statusToDot = (status) => {
     switch (status) {
       case 'PUBLISHED': return 'published';
       case 'SCHEDULED': return 'scheduled';
       case 'DRAFT': return 'draft';
       case 'PENDING': return 'draft';
+      case 'PROCESSING': return 'processing';
+      case 'READY_TO_PUBLISH': return 'readyToPublish';
+      case 'FAILED': return 'failed';
       default: return null;
     }
   };
+
+  // IDs of campaigns that already have Content records in the pipeline
+  const activatedCampaignIds = new Set(pipelineContents.map(c => c.campaignId).filter(Boolean));
+
+  // Filter pipeline contents by selected campaign (local filter)
+  const filteredPipelineContents = selectedCampaignId
+    ? pipelineContents.filter(c => c.campaignId === selectedCampaignId)
+    : pipelineContents;
 
   // Build date → posts map for the current month
   const getPostsByDate = () => {
@@ -119,6 +336,7 @@ export function ContentPlannerView({ translations }) {
     const month = currentDate.getMonth();
     const map = {};
 
+    // Add entity posts (from WordPress sync)
     posts.forEach(post => {
       const dateStr = post.publishedAt || post.scheduledAt || post.createdAt;
       if (!dateStr) return;
@@ -128,7 +346,59 @@ export function ContentPlannerView({ translations }) {
       if (!status) return;
       const day = d.getDate();
       if (!map[day]) map[day] = [];
-      map[day].push({ ...post, title: post.title || translations.untitled, dotStatus: status });
+      map[day].push({ ...post, title: post.title || translations.untitled, dotStatus: status, source: 'entity' });
+    });
+
+    // Add pipeline content (from Content records) — only filtered ones
+    filteredPipelineContents.forEach(content => {
+      const dateStr = content.publishedAt || content.scheduledAt;
+      if (!dateStr) return;
+      const d = new Date(dateStr);
+      if (d.getFullYear() !== year || d.getMonth() !== month) return;
+      const status = statusToDot(content.status);
+      if (!status) return;
+      const day = d.getDate();
+      if (!map[day]) map[day] = [];
+      map[day].push({
+        ...content,
+        title: content.title || translations.untitled,
+        dotStatus: status,
+        source: 'pipeline',
+        campaignColor: content.campaign?.color,
+        campaignName: content.campaign?.name,
+      });
+    });
+
+    // Add planned posts from generatedPlan for campaigns that have NOT been
+    // activated yet (no Content records). This ensures DRAFT campaign posts
+    // are visible on the calendar.
+    campaigns.forEach(campaign => {
+      // Skip if this campaign already has Content records
+      if (activatedCampaignIds.has(campaign.id)) return;
+      // Skip if a specific campaign is selected and it's not this one
+      if (selectedCampaignId && selectedCampaignId !== campaign.id) return;
+      const plan = campaign.generatedPlan;
+      if (!Array.isArray(plan) || plan.length === 0) return;
+
+      plan.forEach((entry, i) => {
+        if (!entry.scheduledAt) return;
+        const d = new Date(entry.scheduledAt);
+        if (d.getFullYear() !== year || d.getMonth() !== month) return;
+        const day = d.getDate();
+        if (!map[day]) map[day] = [];
+        map[day].push({
+          id: `plan-${campaign.id}-${i}`,
+          title: entry.title || `Post ${i + 1}`,
+          dotStatus: 'scheduled', // planned posts show as scheduled
+          source: 'plan',
+          type: entry.type,
+          scheduledAt: entry.scheduledAt,
+          campaignColor: campaign.color,
+          campaignName: campaign.name,
+          campaignId: campaign.id,
+          planIndex: i,
+        });
+      });
     });
 
     return map;
@@ -171,6 +441,67 @@ export function ContentPlannerView({ translations }) {
 
   const calendarDays = generateCalendarDays();
   const tc = translations.campaigns || {};
+  const tp = translations.pipeline || {};
+  const ts = translations.status || {};
+
+  // Build planned-post items from generatedPlan for non-activated campaigns
+  const plannedItems = campaigns.flatMap(campaign => {
+    if (activatedCampaignIds.has(campaign.id)) return [];
+    if (selectedCampaignId && selectedCampaignId !== campaign.id) return [];
+    const plan = campaign.generatedPlan;
+    if (!Array.isArray(plan) || plan.length === 0) return [];
+    return plan.map((entry, i) => ({
+      id: `plan-${campaign.id}-${i}`,
+      title: entry.title || `Post ${i + 1}`,
+      status: 'SCHEDULED',
+      dotStatus: 'scheduled',
+      source: 'plan',
+      type: entry.type,
+      scheduledAt: entry.scheduledAt,
+      campaignColor: campaign.color,
+      campaignName: campaign.name,
+      campaignId: campaign.id,
+    }));
+  });
+
+  // Merge entity posts + pipeline contents + planned posts for the list view
+  const allListItems = [
+    ...posts.map(p => ({ ...p, source: 'entity', dotStatus: statusToDot(p.status) })),
+    ...filteredPipelineContents.map(c => ({
+      ...c,
+      source: 'pipeline',
+      dotStatus: statusToDot(c.status),
+      campaignColor: c.campaign?.color,
+      campaignName: c.campaign?.name,
+    })),
+    ...plannedItems,
+  ].sort((a, b) => {
+    const dateA = new Date(a.scheduledAt || a.publishedAt || a.createdAt || 0);
+    const dateB = new Date(b.scheduledAt || b.publishedAt || b.createdAt || 0);
+    return dateA - dateB;
+  });
+
+  const getStatusText = (dotType) => {
+    switch (dotType) {
+      case 'published': return translations.published;
+      case 'scheduled': return translations.scheduled;
+      case 'processing': return tp.processing || 'Processing';
+      case 'readyToPublish': return tp.readyToPublish || 'Ready';
+      case 'failed': return tp.failed || 'Failed';
+      default: return translations.draft;
+    }
+  };
+
+  const getBadgeStatus = (dotType) => {
+    switch (dotType) {
+      case 'published': return 'complete';
+      case 'scheduled': return 'pending';
+      case 'processing': return 'pending';
+      case 'readyToPublish': return 'pending';
+      case 'failed': return 'error';
+      default: return 'paused';
+    }
+  };
 
   const handleCampaignCreated = (campaign) => {
     setCampaigns(prev => [campaign, ...prev]);
@@ -222,11 +553,24 @@ export function ContentPlannerView({ translations }) {
               <span className={styles.sidebarCampaignDot} style={{ background: 'var(--muted-foreground)' }} />
               <span className={styles.sidebarCampaignName}>{tc.all || 'All'}</span>
               <span className={styles.sidebarCampaignCount}>
-                {campaigns.reduce((sum, c) => sum + (c._count?.contents || 0), 0)}
+                {campaigns.reduce((sum, c) => {
+                  const pipelineCount = pipelineContents.filter(p => p.campaignId === c.id).length;
+                  return sum + (pipelineCount || (Array.isArray(c.generatedPlan) ? c.generatedPlan.length : 0));
+                }, 0)}
               </span>
             </button>
 
-            {campaigns.map(campaign => (
+            {campaigns.map(campaign => {
+              // Calculate real counts from pipeline or generatedPlan
+              const campaignContents = pipelineContents.filter(c => c.campaignId === campaign.id);
+              const publishedCount = campaignContents.filter(c => c.status === 'PUBLISHED').length;
+              const pipelineTotal = campaignContents.length;
+              const planTotal = Array.isArray(campaign.generatedPlan) ? campaign.generatedPlan.length : 0;
+              // Use pipeline count if campaign has been activated, otherwise use plan count
+              const totalCount = pipelineTotal > 0 ? pipelineTotal : planTotal;
+              const hasProgress = pipelineTotal > 0;
+
+              return (
               <div key={campaign.id} className={styles.sidebarCampaignRow}>
                 <button
                   className={`${styles.sidebarCampaignItem} ${selectedCampaignId === campaign.id ? styles.active : ''}`}
@@ -236,14 +580,55 @@ export function ContentPlannerView({ translations }) {
                   <div className={styles.sidebarCampaignInfo}>
                     <span className={styles.sidebarCampaignName}>{campaign.name}</span>
                     <span className={styles.sidebarCampaignMeta}>
-                      {campaign._count?.contents || 0} {tc.posts || 'posts'}
+                      {hasProgress
+                        ? `${publishedCount}/${totalCount} ${tc.postsPublished || 'published'}`
+                        : `${totalCount} ${tc.posts || 'posts'}`
+                      }
                       {' · '}
                       {tc[STATUS_MAP[campaign.status]] || campaign.status}
                     </span>
+                    {hasProgress && campaign.status === 'ACTIVE' && (
+                      <div className={styles.progressBar}>
+                        <div
+                          className={styles.progressFill}
+                          style={{ width: `${totalCount > 0 ? (publishedCount / totalCount) * 100 : 0}%` }}
+                        />
+                      </div>
+                    )}
                   </div>
-                  <span className={styles.sidebarCampaignCount}>{campaign._count?.contents || 0}</span>
                 </button>
                 <div className={styles.campaignActions}>
+                  {/* Lifecycle buttons */}
+                  {campaign.status === 'DRAFT' && campaign.generatedPlan && (
+                    <button
+                      className={`${styles.campaignActionBtn} ${styles.activateBtn}`}
+                      onClick={(e) => { e.stopPropagation(); handleActivate(campaign); }}
+                      disabled={activatingId === campaign.id}
+                      title={tc.activate || 'Activate'}
+                    >
+                      {activatingId === campaign.id ? <Loader2 size={13} className={styles.spinner} /> : <Play size={13} />}
+                    </button>
+                  )}
+                  {campaign.status === 'ACTIVE' && (
+                    <button
+                      className={`${styles.campaignActionBtn} ${styles.pauseBtn}`}
+                      onClick={(e) => { e.stopPropagation(); handlePause(campaign); }}
+                      disabled={pausingId === campaign.id}
+                      title={tc.pause || 'Pause'}
+                    >
+                      {pausingId === campaign.id ? <Loader2 size={13} className={styles.spinner} /> : <Pause size={13} />}
+                    </button>
+                  )}
+                  {campaign.status === 'PAUSED' && (
+                    <button
+                      className={`${styles.campaignActionBtn} ${styles.activateBtn}`}
+                      onClick={(e) => { e.stopPropagation(); handleResume(campaign); }}
+                      disabled={activatingId === campaign.id}
+                      title={tc.resume || 'Resume'}
+                    >
+                      {activatingId === campaign.id ? <Loader2 size={13} className={styles.spinner} /> : <Play size={13} />}
+                    </button>
+                  )}
                   <button
                     className={styles.campaignActionBtn}
                     onClick={(e) => { e.stopPropagation(); setEditingCampaign(campaign); }}
@@ -261,7 +646,8 @@ export function ContentPlannerView({ translations }) {
                   </Link>
                 </div>
               </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </aside>
@@ -286,94 +672,106 @@ export function ContentPlannerView({ translations }) {
       </div>
 
       {viewMode === 'calendar' ? (
-        <div className={styles.calendarCard}>
-          <div className={styles.calendarHeader}>
-            <h3 className={styles.calendarTitle}>{getMonthName(currentDate)} {currentDate.getFullYear()}</h3>
-            <div className={styles.calendarNav}>
-              <button className={styles.calendarNavButton} onClick={goToPrevMonth}>
-                <ChevronLeft size={16} />
-              </button>
-              <button className={styles.calendarNavButton} onClick={goToNextMonth}>
-                <ChevronRight size={16} />
-              </button>
-            </div>
-          </div>
-          <div className={styles.calendarGrid}>
-            {translations.dayNames.map((day) => (
-              <div key={day} className={styles.calendarDayHeader}>{day}</div>
-            ))}
-            {calendarDays.map((item, index) => (
-              <div 
-                key={index} 
-                className={`${styles.calendarDay} ${item.today ? styles.today : ''} ${item.month ? styles.otherMonth : ''}`}
-              >
-                <span className={styles.dayNumber}>{item.day}</span>
-                {item.posts && (
-                  <div className={styles.dayPosts}>
-                    {item.posts.map((post) => (
-                      <div key={post.id} className={styles.dayPostItem} onClick={() => setPreviewPost(post)}>
-                        <span className={`${styles.dayPostDot} ${styles[post.dotStatus]}`} />
-                        <span className={styles.dayPostTitle}>{post.title}</span>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-          <div className={styles.legend}>
-            <div className={styles.legendItem}>
-              <span className={`${styles.legendDot} ${styles.published}`} />
-              {translations.published}
-            </div>
-            <div className={styles.legendItem}>
-              <span className={`${styles.legendDot} ${styles.scheduled}`} />
-              {translations.scheduled}
-            </div>
-            <div className={styles.legendItem}>
-              <span className={`${styles.legendDot} ${styles.draft}`} />
-              {translations.draft}
-            </div>
-          </div>
-        </div>
+        <CalendarGrid
+          monthLabel={`${getMonthName(currentDate)} ${currentDate.getFullYear()}`}
+          dayNames={translations.dayNames}
+          calendarDays={calendarDays}
+          onPrevMonth={goToPrevMonth}
+          onNextMonth={goToNextMonth}
+          onPostClick={(post, e) => openPopover(post, e)}
+          onDrop={handleCalendarDrop}
+          statusLabels={{
+            published: ts.published || translations.published || 'Published',
+            scheduled: ts.scheduled || translations.scheduled || 'Scheduled',
+            processing: tp.processing || 'Processing',
+            readyToPublish: tp.readyToPublish || 'Ready',
+            failed: tp.failed || 'Failed',
+            draft: ts.draft || translations.draft || 'Draft',
+          }}
+          legendItems={[
+            { icon: '/icons/letter-p.svg', alt: 'P', label: ts.published || translations.published || 'Published' },
+            { icon: '/icons/letter-s.svg', alt: 'S', label: ts.scheduled || translations.scheduled || 'Scheduled' },
+            { icon: '/icons/letter-l.svg', alt: 'L', label: tp.processing || 'Processing' },
+            { icon: '/icons/letter-r.svg', alt: 'R', label: tp.readyToPublish || 'Ready' },
+            { icon: '/icons/letter-f.svg', alt: 'F', label: tp.failed || 'Failed' },
+            { icon: '/icons/letter-d.svg', alt: 'D', label: ts.draft || translations.draft || 'Draft' },
+          ]}
+        />
       ) : (
         <div className={styles.calendarCard}>
           <div className={styles.calendarHeader}>
             <h3 className={styles.calendarTitle}>{translations.allContent}</h3>
+            {pipelineStats && (
+              <div className={styles.pipelineStatsBar}>
+                {pipelineStats.scheduled > 0 && (
+                  <span className={`${styles.statBadge} ${styles.scheduledBadge}`}>
+                    <Clock size={12} /> {pipelineStats.scheduled}
+                  </span>
+                )}
+                {pipelineStats.processing > 0 && (
+                  <span className={`${styles.statBadge} ${styles.processingBadge}`}>
+                    <Zap size={12} /> {pipelineStats.processing}
+                  </span>
+                )}
+                {pipelineStats.readyToPublish > 0 && (
+                  <span className={`${styles.statBadge} ${styles.readyBadge}`}>
+                    <CheckCircle2 size={12} /> {pipelineStats.readyToPublish}
+                  </span>
+                )}
+                {pipelineStats.published > 0 && (
+                  <span className={`${styles.statBadge} ${styles.publishedBadge}`}>
+                    <CheckCircle2 size={12} /> {pipelineStats.published}
+                  </span>
+                )}
+                {pipelineStats.failed > 0 && (
+                  <span className={`${styles.statBadge} ${styles.failedBadge}`}>
+                    <AlertCircle size={12} /> {pipelineStats.failed}
+                  </span>
+                )}
+              </div>
+            )}
           </div>
-          {loadingPosts ? (
+          {(loadingPosts && loadingPipeline) ? (
             <div className={styles.sidebarLoading}>
               <Loader2 size={18} className={styles.spinner} />
             </div>
-          ) : posts.length === 0 ? (
+          ) : (allListItems.length === 0) ? (
             <div className={styles.sidebarEmpty}>
               <p>{translations.noPosts || 'No posts found'}</p>
             </div>
           ) : (
             <div className={styles.contentList}>
-              {posts.map((post) => {
-                const dotType = statusToDot(post.status);
-                const statusText = dotType === 'published' ? translations.published
-                  : dotType === 'scheduled' ? translations.scheduled
-                  : translations.draft;
-                const badgeStatus = dotType === 'published' ? 'complete'
-                  : dotType === 'scheduled' ? 'pending' : 'paused';
-                const dateStr = post.publishedAt || post.scheduledAt || post.createdAt;
+              {allListItems.map((item) => {
+                const dotType = statusToDot(item.status);
+                const statusText = getStatusText(dotType);
+                const badgeStatus = getBadgeStatus(dotType);
+                const dateStr = item.publishedAt || item.scheduledAt || item.createdAt;
                 const formattedDate = dateStr ? new Date(dateStr).toLocaleDateString() : '-';
 
                 return (
-                  <div key={post.id} className={styles.contentItem}>
+                  <div key={`${item.source}-${item.id}`} className={styles.contentItem}>
+                    {item.campaignColor && (
+                      <span className={styles.contentCampaignDot} style={{ background: item.campaignColor }} />
+                    )}
                     <div className={styles.contentInfo}>
-                      <span className={styles.contentTitle}>{post.title}</span>
-                      <span className={styles.contentMeta}>{post.entityType?.name || 'Post'}</span>
+                      <span className={styles.contentTitle}>{item.title}</span>
+                      <span className={styles.contentMeta}>
+                        {item.source === 'pipeline' ? (item.type || 'Post') : (item.entityType?.name || 'Post')}
+                        {item.campaignName && ` · ${item.campaignName}`}
+                      </span>
                     </div>
                     <StatusBadge status={badgeStatus}>
                       {statusText}
                     </StatusBadge>
                     <span className={styles.contentDate}>{formattedDate}</span>
-                    {post.url && (
+                    {item.errorMessage && (
+                      <span className={styles.contentError} title={item.errorMessage}>
+                        <AlertCircle size={14} />
+                      </span>
+                    )}
+                    {item.url && (
                       <div className={styles.contentActions}>
-                        <a href={post.url} target="_blank" rel="noopener noreferrer" className={styles.actionButton}>
+                        <a href={item.url} target="_blank" rel="noopener noreferrer" className={styles.actionButton}>
                           <Eye size={14} />
                         </a>
                       </div>
@@ -424,64 +822,36 @@ export function ContentPlannerView({ translations }) {
         />
       )}
 
-      {previewPost && createPortal(
-        <div className={styles.modalOverlay} onClick={() => setPreviewPost(null)}>
-          <div className={`${styles.modal} ${styles.previewModal}`} onClick={e => e.stopPropagation()}>
-            <div className={styles.modalHeader}>
-              <h3 className={styles.modalTitle}>{translations.preview?.title || 'Post Preview'}</h3>
-              <button className={styles.modalClose} onClick={() => setPreviewPost(null)}>
-                <X size={16} />
-              </button>
-            </div>
-            <div className={styles.modalBody}>
-              {previewPost.featuredImage && (
-                <div className={styles.previewImage}>
-                  <img src={previewPost.featuredImage} alt={previewPost.title} />
-                </div>
-              )}
-              <h4 className={styles.previewTitle}>{previewPost.title}</h4>
-              <div className={styles.previewMeta}>
-                <StatusBadge status={
-                  previewPost.dotStatus === 'published' ? 'complete'
-                    : previewPost.dotStatus === 'scheduled' ? 'pending' : 'paused'
-                }>
-                  {previewPost.dotStatus === 'published' ? translations.published
-                    : previewPost.dotStatus === 'scheduled' ? translations.scheduled
-                    : translations.draft}
-                </StatusBadge>
-                {(previewPost.publishedAt || previewPost.scheduledAt) && (
-                  <span className={styles.previewDate}>
-                    {new Date(previewPost.publishedAt || previewPost.scheduledAt).toLocaleDateString()}
-                  </span>
-                )}
-              </div>
-              {previewPost.excerpt && (
-                <p className={styles.previewExcerpt}>{previewPost.excerpt}</p>
-              )}
-              {previewPost.content && (
-                <div className={styles.previewContent} dangerouslySetInnerHTML={{ __html: previewPost.content }} />
-              )}
-              {!previewPost.excerpt && !previewPost.content && (
-                <p className={styles.previewEmpty}>{translations.preview?.noContent || 'No content available'}</p>
-              )}
-            </div>
-            {previewPost.url && (
-              <div className={styles.modalFooter}>
-                <a
-                  href={previewPost.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className={styles.previewLink}
-                >
-                  <ExternalLink size={14} />
-                  {translations.preview?.viewOnSite || 'View on site'}
-                </a>
-              </div>
-            )}
-          </div>
-        </div>,
-        document.body
-      )}
+      <PostPopover
+        post={popover?.post}
+        rect={popover?.rect}
+        onClose={closePopover}
+        translations={{
+          ...translations.preview,
+          published: translations.published,
+          scheduled: translations.scheduled,
+          draft: translations.draft,
+          processing: translations.pipeline?.processing || 'Processing',
+          readyToPublish: translations.pipeline?.readyToPublish || 'Ready',
+          failed: translations.pipeline?.failed || 'Failed',
+          retryPublish: translations.pipeline?.retryPublish || 'Retry',
+        }}
+        onDateChange={
+          popover?.post && 
+          (popover.post.source === 'plan' || popover.post.source === 'pipeline') &&
+          popover.post.dotStatus !== 'published'
+            ? (date) => updatePostDate(popover.post, date)
+            : undefined
+        }
+        onTimeChange={
+          popover?.post && 
+          (popover.post.source === 'plan' || popover.post.source === 'pipeline') &&
+          popover.post.dotStatus !== 'published'
+            ? (time) => updatePostTime(popover.post, time)
+            : undefined
+        }
+        onRetrySuccess={fetchPipeline}
+      />
     </div>
   );
 }

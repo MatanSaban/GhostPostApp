@@ -14,6 +14,7 @@ import {
   ExternalLink,
 } from 'lucide-react';
 import { useLocale } from '@/app/context/locale-context';
+import { useModalResize, ModalResizeButton } from '@/app/components/ui/ModalResizeButton';
 import styles from '../../technical-seo.module.css';
 
 export default function AiOptimizationModal({
@@ -39,24 +40,28 @@ export default function AiOptimizationModal({
   onOptimize,
 }) {
   const { t } = useLocale();
+  const { isMaximized, toggleMaximize } = useModalResize();
   
   if (!showModal) return null;
   
   return createPortal(
     <div className={styles.modalOverlay} onClick={() => !aiOptimizing && onClose()}>
-      <div className={`${styles.modal} ${styles.modalLarge}`} onClick={(e) => e.stopPropagation()}>
+      <div className={`${styles.modal} ${styles.modalLarge} ${isMaximized ? 'modal-maximized' : ''}`} onClick={(e) => e.stopPropagation()}>
         <div className={styles.modalHeader}>
           <h2>
             <Sparkles />
             {t('tools.ai.selectImages')}
           </h2>
-          <button 
-            className={styles.modalClose}
-            onClick={() => !aiOptimizing && onClose()}
-            disabled={aiOptimizing}
-          >
-            <X />
-          </button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+            <ModalResizeButton isMaximized={isMaximized} onToggle={toggleMaximize} className={styles.modalClose} />
+            <button 
+              className={styles.modalClose}
+              onClick={() => !aiOptimizing && onClose()}
+              disabled={aiOptimizing}
+            >
+              <X />
+            </button>
+          </div>
         </div>
         
         <div className={styles.modalContent}>

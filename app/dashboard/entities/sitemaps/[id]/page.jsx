@@ -44,6 +44,15 @@ function formatDate(date, format = 'short') {
   return d.toLocaleDateString('he-IL', { day: '2-digit', month: 'long', year: 'numeric' });
 }
 
+// Safely decode percent-encoded URLs for display (Hebrew, etc.)
+function decodeDisplayUrl(url) {
+  try {
+    return decodeURI(url);
+  } catch {
+    return url;
+  }
+}
+
 // Format date and time helper
 function formatDateTime(date) {
   if (!date) return '-';
@@ -181,7 +190,7 @@ export default function SingleSitemapPage() {
               ) : (
                 <FileText size={28} style={{ marginInlineEnd: '0.5rem', verticalAlign: 'middle' }} />
               )}
-              {sitemap.url}
+              {decodeDisplayUrl(sitemap.url)}
             </h1>
             <div className={sitemapStyles.sitemapHeaderMeta}>
               <span className={`${sitemapStyles.statusBadge} ${sitemapStyles[`status${statusConfig.color}`]}`}>
@@ -305,27 +314,75 @@ export default function SingleSitemapPage() {
           <div className={sitemapStyles.urlPreviewHeader}>
             <h3 className={sitemapStyles.urlPreviewTitle}>{t('entities.sitemaps.urlsInSitemap')}</h3>
             <span className={sitemapStyles.urlPreviewCount}>
-              {t('entities.sitemaps.showingUrls', { count: Math.min(urls.length, 100), total: sitemap.urlCount })}
+              {t('entities.sitemaps.showingUrls', { count: Math.min(urls.length, 500), total: urls.length })}
             </span>
           </div>
           <div className={sitemapStyles.urlList}>
-            {urls.slice(0, 100).map((url, index) => (
+            {urls.slice(0, 500).map((url, index) => (
               <div key={index} className={sitemapStyles.urlItem}>
-                <a 
-                  href={url.loc || url} 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className={sitemapStyles.urlItemUrl}
-                >
-                  {url.loc || url}
-                </a>
-                {url.lastmod && (
-                  <span className={sitemapStyles.urlItemDate}>
-                    {formatDate(new Date(url.lastmod), 'short')}
-                  </span>
-                )}
+                <div className={sitemapStyles.urlItemMain}>
+                  <span className={sitemapStyles.urlItemIndex}>{index + 1}</span>
+                  <div className={sitemapStyles.urlItemContent}>
+                    <a 
+                      href={url.loc || url} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className={sitemapStyles.urlItemUrl}
+                    >
+                      {decodeDisplayUrl(url.loc || url)}
+                      <ExternalLink size={12} style={{ marginInlineStart: '0.375rem', opacity: 0.5 }} />
+                    </a>
+                    {url.imageTitle && (
+                      <span className={sitemapStyles.urlItemImageTitle}>{url.imageTitle}</span>
+                    )}
+                  </div>
+                </div>
+                <div className={sitemapStyles.urlItemMeta}>
+                  {url.lastmod && (
+                    <span className={sitemapStyles.urlItemDate} title="Last Modified">
+                      <Calendar size={12} />
+                      {formatDate(new Date(url.lastmod), 'short')}
+                    </span>
+                  )}
+                  {url.priority && (
+                    <span className={sitemapStyles.urlItemBadge} title="Priority">
+                      {url.priority}
+                    </span>
+                  )}
+                  {url.changefreq && (
+                    <span className={sitemapStyles.urlItemBadge} title="Change Frequency">
+                      {url.changefreq}
+                    </span>
+                  )}
+                  {url.type === 'sitemap' && (
+                    <span className={`${sitemapStyles.urlItemBadge} ${sitemapStyles.urlItemBadgeIndex}`}>
+                      sitemap
+                    </span>
+                  )}
+                </div>
               </div>
             ))}
+          </div>
+        </div>
+      )}
+
+      {/* Empty state when no URLs */}
+      {!isLoading && urls.length === 0 && sitemap && (
+        <div className={sitemapStyles.urlPreview}>
+          <div className={sitemapStyles.urlPreviewHeader}>
+            <h3 className={sitemapStyles.urlPreviewTitle}>{t('entities.sitemaps.urlsInSitemap')}</h3>
+          </div>
+          <div className={sitemapStyles.urlListEmpty}>
+            <AlertCircle size={32} />
+            <p>{t('entities.sitemaps.noUrlsFound') || 'No URLs found in this sitemap. Try resyncing.'}</p>
+            <button
+              className={sitemapStyles.resyncButton}
+              onClick={handleResync}
+              disabled={isResyncing}
+            >
+              <RefreshCw size={16} className={isResyncing ? sitemapStyles.spinning : ''} />
+              {isResyncing ? t('entities.sitemaps.resyncing') : t('entities.sitemaps.resync')}
+            </button>
           </div>
         </div>
       )}

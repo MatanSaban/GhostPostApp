@@ -993,6 +993,7 @@
   width: 80vw;
   max-width: 900px;
   max-height: 80vh;
+  transition: max-width 0.3s ease, max-height 0.3s ease, width 0.3s ease, height 0.3s ease;
   height: fit-content;
   overflow-y: auto;
   position: relative;

@@ -19,6 +19,7 @@ import {
   Unplug,
 } from 'lucide-react';
 import { useSite } from '@/app/context/site-context';
+import { useLocale } from '@/app/context/locale-context';
 import styles from './WordPressPluginSection.module.css';
 
 const CONNECTION_STATUS = {
@@ -31,20 +32,19 @@ const CONNECTION_STATUS = {
 
 /**
  * WordPressPluginSection - Reusable component for WordPress plugin connection
+ * Uses useLocale() internally for translations (settings.wordpress.* keys)
  * 
  * @param {Object} props
- * @param {Object} props.translations - Translation strings for the component
  * @param {boolean} props.compact - If true, shows a more compact version (no auto-install)
  * @param {boolean} props.showInstructions - If true, always shows installation instructions (for entities page)
  * @param {function} props.onConnectionChange - Callback when connection status changes
  */
 export default function WordPressPluginSection({ 
-  translations, 
   compact = false, 
   showInstructions = false,
   onConnectionChange,
 }) {
-  const t = translations;
+  const { t } = useLocale();
   const { selectedSite, refreshSites } = useSite();
   
   const [isDownloading, setIsDownloading] = useState(false);
@@ -71,7 +71,7 @@ export default function WordPressPluginSection({
 
   // Format last ping time
   const formatLastPing = (dateString) => {
-    if (!dateString) return t?.wordpress?.neverConnected || 'Never connected';
+    if (!dateString) return t('settings.wordpress.neverConnected');
     
     const date = new Date(dateString);
     const now = new Date();
@@ -80,10 +80,10 @@ export default function WordPressPluginSection({
     const diffHours = Math.floor(diffMs / 3600000);
     const diffDays = Math.floor(diffMs / 86400000);
 
-    if (diffMins < 5) return t?.wordpress?.justNow || 'Just now';
-    if (diffMins < 60) return `${diffMins} ${t?.wordpress?.minutesAgo || 'minutes ago'}`;
-    if (diffHours < 24) return `${diffHours} ${t?.wordpress?.hoursAgo || 'hours ago'}`;
-    if (diffDays < 7) return `${diffDays} ${t?.wordpress?.daysAgo || 'days ago'}`;
+    if (diffMins < 5) return t('settings.wordpress.justNow');
+    if (diffMins < 60) return `${diffMins} ${t('settings.wordpress.minutesAgo')}`;
+    if (diffHours < 24) return `${diffHours} ${t('settings.wordpress.hoursAgo')}`;
+    if (diffDays < 7) return `${diffDays} ${t('settings.wordpress.daysAgo')}`;
     
     return date.toLocaleDateString();
   };
@@ -94,37 +94,37 @@ export default function WordPressPluginSection({
       case CONNECTION_STATUS.CONNECTED:
         return {
           icon: CheckCircle2,
-          label: t?.wordpress?.connected || 'Connected',
+          label: t('settings.wordpress.connected'),
           color: 'success',
-          description: t?.wordpress?.connectedDesc || 'Plugin is active and communicating',
+          description: t('settings.wordpress.connectedDesc'),
         };
       case CONNECTION_STATUS.CONNECTING:
         return {
           icon: Loader2,
-          label: t?.wordpress?.connecting || 'Connecting...',
+          label: t('settings.wordpress.connecting'),
           color: 'warning',
-          description: t?.wordpress?.connectingDesc || 'Waiting for plugin activation',
+          description: t('settings.wordpress.connectingDesc'),
         };
       case CONNECTION_STATUS.DISCONNECTED:
         return {
           icon: XCircle,
-          label: t?.wordpress?.disconnected || 'Disconnected',
+          label: t('settings.wordpress.disconnected'),
           color: 'error',
-          description: t?.wordpress?.disconnectedDesc || 'Plugin was deactivated or uninstalled',
+          description: t('settings.wordpress.disconnectedDesc'),
         };
       case CONNECTION_STATUS.ERROR:
         return {
           icon: AlertCircle,
-          label: t?.wordpress?.error || 'Connection Error',
+          label: t('settings.wordpress.error'),
           color: 'error',
-          description: t?.wordpress?.errorDesc || 'There was a problem with the connection',
+          description: t('settings.wordpress.errorDesc'),
         };
       default:
         return {
           icon: Clock,
-          label: t?.wordpress?.notConnected || 'Not Connected',
+          label: t('settings.wordpress.notConnected'),
           color: 'neutral',
-          description: t?.wordpress?.notConnectedDesc || 'Install the plugin to connect your site',
+          description: t('settings.wordpress.notConnectedDesc'),
         };
     }
   };
@@ -177,18 +177,18 @@ export default function WordPressPluginSection({
   // Get translated error message from error code
   const getAutoInstallErrorMessage = (errorCode, errorDetail) => {
     const errorMessages = {
-      REST_API_UNREACHABLE: t?.wordpress?.errors?.restApiUnreachable || 'Could not reach WordPress REST API. Make sure the site is accessible and REST API is enabled.',
-      REST_API_ERROR: t?.wordpress?.errors?.restApiError || 'WordPress REST API returned an error. The REST API may be disabled or blocked.',
-      AUTH_REQUEST_FAILED: t?.wordpress?.errors?.authRequestFailed || 'Could not connect to WordPress for authentication. Check the site URL.',
-      AUTH_FAILED: t?.wordpress?.errors?.authFailed || 'Authentication failed. Check your username and password (use an Application Password for security).',
-      INSUFFICIENT_PERMISSIONS: t?.wordpress?.errors?.insufficientPermissions || 'This user does not have permission to install plugins. Admin access is required.',
-      PLUGINS_API_UNAVAILABLE: t?.wordpress?.errors?.pluginsApiUnavailable || 'WordPress plugins API is not available. You may need to install the plugin manually.',
-      ACTIVATION_FAILED: t?.wordpress?.errors?.activationFailed || 'The plugin is installed but could not be activated. Try activating it manually.',
-      MANUAL_INSTALL_REQUIRED: t?.wordpress?.errors?.manualInstallRequired || 'The plugin cannot be installed automatically. Please download and install it manually.',
-      UNKNOWN_ERROR: t?.wordpress?.errors?.unknownError || 'An unexpected error occurred during installation.',
+      REST_API_UNREACHABLE: t('settings.wordpress.errors.restApiUnreachable'),
+      REST_API_ERROR: t('settings.wordpress.errors.restApiError'),
+      AUTH_REQUEST_FAILED: t('settings.wordpress.errors.authRequestFailed'),
+      AUTH_FAILED: t('settings.wordpress.errors.authFailed'),
+      INSUFFICIENT_PERMISSIONS: t('settings.wordpress.errors.insufficientPermissions'),
+      PLUGINS_API_UNAVAILABLE: t('settings.wordpress.errors.pluginsApiUnavailable'),
+      ACTIVATION_FAILED: t('settings.wordpress.errors.activationFailed'),
+      MANUAL_INSTALL_REQUIRED: t('settings.wordpress.errors.manualInstallRequired'),
+      UNKNOWN_ERROR: t('settings.wordpress.errors.unknownError'),
     };
     
-    return errorMessages[errorCode] || errorDetail || (t?.wordpress?.errors?.unknownError || 'An unexpected error occurred.');
+    return errorMessages[errorCode] || errorDetail || t('settings.wordpress.errors.unknownError');
   };
 
   // Handle auto-install
@@ -217,7 +217,7 @@ export default function WordPressPluginSection({
         // Use error code if available, otherwise use the error message
         const errorMessage = data.errorCode 
           ? getAutoInstallErrorMessage(data.errorCode, data.errorDetail)
-          : data.error || (t?.wordpress?.autoInstallFailed || 'Auto-install failed');
+          : data.error || t('settings.wordpress.autoInstallFailed');
         throw new Error(errorMessage);
       }
 
@@ -249,8 +249,7 @@ export default function WordPressPluginSection({
     if (!selectedSite?.id) return;
     
     // Confirm before disconnecting
-    const confirmMessage = t?.wordpress?.disconnectConfirm || 
-      'Are you sure you want to disconnect? You will need to download and install the plugin again to reconnect.';
+    const confirmMessage = t('settings.wordpress.disconnectConfirm');
     if (!window.confirm(confirmMessage)) return;
 
     setIsDisconnecting(true);
@@ -264,7 +263,7 @@ export default function WordPressPluginSection({
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || (t?.wordpress?.disconnectFailed || 'Failed to disconnect'));
+        throw new Error(data.error || t('settings.wordpress.disconnectFailed'));
       }
 
       // Refresh sites to get updated status
@@ -303,12 +302,12 @@ export default function WordPressPluginSection({
             {isDownloading ? (
               <>
                 <Loader2 size={14} className={styles.spinning} />
-                {t?.wordpress?.downloading || 'Downloading...'}
+                {t('settings.wordpress.downloading')}
               </>
             ) : (
               <>
                 <Download size={14} />
-                {t?.wordpress?.downloadPlugin || 'Download Plugin'}
+                {t('settings.wordpress.downloadPlugin')}
               </>
             )}
           </button>
@@ -319,7 +318,7 @@ export default function WordPressPluginSection({
               onClick={() => setShowAutoInstall(!showAutoInstall)}
             >
               <Zap size={14} />
-              {t?.wordpress?.autoInstall || 'Auto-Install'}
+              {t('settings.wordpress.autoInstall')}
               {showAutoInstall ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
             </button>
           )}
@@ -333,12 +332,12 @@ export default function WordPressPluginSection({
               {isDisconnecting ? (
                 <>
                   <Loader2 size={14} className={styles.spinning} />
-                  {t?.wordpress?.disconnecting || 'Disconnecting...'}
+                  {t('settings.wordpress.disconnecting')}
                 </>
               ) : (
                 <>
                   <Unplug size={14} />
-                  {t?.wordpress?.disconnect || 'Disconnect'}
+                  {t('settings.wordpress.disconnect')}
                 </>
               )}
             </button>
@@ -364,7 +363,7 @@ export default function WordPressPluginSection({
       {autoInstallSuccess && (
         <div className={styles.successMessage}>
           <CheckCircle2 size={14} />
-          <span>{t?.wordpress?.autoInstallSuccess || 'Plugin installed successfully! Waiting for activation...'}</span>
+          <span>{t('settings.wordpress.autoInstallSuccess')}</span>
         </div>
       )}
 
@@ -372,16 +371,16 @@ export default function WordPressPluginSection({
       {showAutoInstall && !isConnected && (
         <form className={styles.autoInstallForm} onSubmit={handleAutoInstall}>
           <div className={styles.formHeader}>
-            <h4>{t?.wordpress?.autoInstallTitle || 'Auto-Install Plugin'}</h4>
+            <h4>{t('settings.wordpress.autoInstallTitle')}</h4>
             <p className={styles.formDescription}>
-              {t?.wordpress?.autoInstallDesc || 'Enter your WordPress admin credentials to automatically install and activate the plugin. Your credentials are encrypted and deleted immediately after installation.'}
+              {t('settings.wordpress.autoInstallDesc')}
             </p>
           </div>
           
           <div className={styles.formFields}>
             <div className={`${styles.formGroup} ${styles.fullWidth}`}>
               <label className={styles.formLabel}>
-                {t?.wordpress?.wpAdminUrl || 'WordPress Admin URL'}
+                {t('settings.wordpress.wpAdminUrl')}
               </label>
               <input
                 type="url"
@@ -395,21 +394,21 @@ export default function WordPressPluginSection({
             
             <div className={styles.formGroup}>
               <label className={styles.formLabel}>
-                {t?.wordpress?.wpUsername || 'WordPress Username'}
+                {t('settings.wordpress.wpUsername')}
               </label>
               <input
                 type="text"
                 className={styles.formInput}
                 value={autoInstallForm.wpUsername}
                 onChange={(e) => setAutoInstallForm(prev => ({ ...prev, wpUsername: e.target.value }))}
-                placeholder={t?.wordpress?.wpUsernamePlaceholder || 'admin'}
+                placeholder={t('settings.wordpress.wpUsernamePlaceholder')}
                 required
               />
             </div>
             
             <div className={styles.formGroup}>
               <label className={styles.formLabel}>
-                {t?.wordpress?.wpPassword || 'WordPress Password'}
+                {t('settings.wordpress.wpPassword')}
               </label>
               <input
                 type="password"
@@ -435,7 +434,7 @@ export default function WordPressPluginSection({
               className={styles.cancelButton}
               onClick={() => setShowAutoInstall(false)}
             >
-              {t?.common?.cancel || 'Cancel'}
+              {t('common.cancel')}
             </button>
             <button 
               type="submit" 
@@ -445,12 +444,12 @@ export default function WordPressPluginSection({
               {isAutoInstalling ? (
                 <>
                   <Loader2 size={14} className={styles.spinning} />
-                  {t?.wordpress?.installing || 'Installing...'}
+                  {t('settings.wordpress.installing')}
                 </>
               ) : (
                 <>
                   <Zap size={14} />
-                  {t?.wordpress?.installNow || 'Install Now'}
+                  {t('settings.wordpress.installNow')}
                 </>
               )}
             </button>
@@ -458,7 +457,7 @@ export default function WordPressPluginSection({
 
           <p className={styles.securityNote}>
             <Key size={12} />
-            {t?.wordpress?.securityNote || 'Your credentials are encrypted and automatically deleted after installation.'}
+            {t('settings.wordpress.securityNote')}
           </p>
         </form>
       )}
@@ -471,31 +470,31 @@ export default function WordPressPluginSection({
             onClick={() => setShowDetails(!showDetails)}
           >
             <Settings size={14} />
-            {t?.wordpress?.connectionDetails || 'Connection Details'}
+            {t('settings.wordpress.connectionDetails')}
             {showDetails ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
           </button>
 
           {showDetails && (
             <div className={styles.detailsGrid}>
               <div className={styles.detailItem}>
-                <span className={styles.detailLabel}>{t?.wordpress?.lastPing || 'Last Ping'}</span>
+                <span className={styles.detailLabel}>{t('settings.wordpress.lastPing')}</span>
                 <span className={styles.detailValue}>{formatLastPing(lastPingAt)}</span>
               </div>
               {pluginVersion && (
                 <div className={styles.detailItem}>
-                  <span className={styles.detailLabel}>{t?.wordpress?.pluginVersion || 'Plugin Version'}</span>
+                  <span className={styles.detailLabel}>{t('settings.wordpress.pluginVersion')}</span>
                   <span className={styles.detailValue}>{pluginVersion}</span>
                 </div>
               )}
               {wpVersion && (
                 <div className={styles.detailItem}>
-                  <span className={styles.detailLabel}>{t?.wordpress?.wpVersion || 'WordPress Version'}</span>
+                  <span className={styles.detailLabel}>{t('settings.wordpress.wpVersion')}</span>
                   <span className={styles.detailValue}>{wpVersion}</span>
                 </div>
               )}
               {selectedSite?.siteKey && (
                 <div className={styles.detailItem}>
-                  <span className={styles.detailLabel}>{t?.wordpress?.siteKey || 'Site Key'}</span>
+                  <span className={styles.detailLabel}>{t('settings.wordpress.siteKey')}</span>
                   <span className={`${styles.detailValue} ${styles.monospace}`}>
                     {selectedSite.siteKey.substring(0, 8)}...
                   </span>
@@ -510,24 +509,24 @@ export default function WordPressPluginSection({
       {(showInstructions || (!isConnected && !showAutoInstall)) && (
         <div className={styles.installationSteps}>
           <h4 className={styles.stepsTitle}>
-            {t?.wordpress?.howToInstall || 'How to Install'}
+            {t('settings.wordpress.howToInstall')}
           </h4>
           <ol className={styles.stepsList}>
             <li>
               <span className={styles.stepNumber}>1</span>
-              <span>{t?.wordpress?.step1 || 'Download the plugin ZIP file above'}</span>
+              <span>{t('settings.wordpress.step1')}</span>
             </li>
             <li>
               <span className={styles.stepNumber}>2</span>
-              <span>{t?.wordpress?.step2 || 'Go to WordPress Dashboard → Plugins → Add New → Upload Plugin'}</span>
+              <span>{t('settings.wordpress.step2')}</span>
             </li>
             <li>
               <span className={styles.stepNumber}>3</span>
-              <span>{t?.wordpress?.step3 || 'Upload the ZIP file and click "Install Now"'}</span>
+              <span>{t('settings.wordpress.step3')}</span>
             </li>
             <li>
               <span className={styles.stepNumber}>4</span>
-              <span>{t?.wordpress?.step4 || 'Activate the plugin - it will connect automatically'}</span>
+              <span>{t('settings.wordpress.step4')}</span>
             </li>
           </ol>
         </div>

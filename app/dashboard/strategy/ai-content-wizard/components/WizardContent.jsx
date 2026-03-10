@@ -6,11 +6,12 @@ import {
   FolderOpen, Hash, Calendar, FileText,
   Settings, BookOpen, Search, MessageSquare,
   Sparkles, Check, ArrowLeft, ArrowRight,
-  AlertTriangle, X,
+  AlertTriangle, X, Loader2, Play, Pause,
 } from 'lucide-react';
 import { useLocale } from '@/app/context/locale-context';
 import { useSite } from '@/app/context/site-context';
 import { INITIAL_WIZARD_STATE, WIZARD_STEPS } from '../wizardConfig';
+import { getCampaignAction, executeCampaignAction } from '../../_shared/campaignActions';
 import {
   CampaignStep,
   PostCountStep,
@@ -29,10 +30,36 @@ const iconMap = {
   Settings, BookOpen, Search, MessageSquare, Sparkles,
 };
 
+/**
+ * Reconstruct subjectSuggestions from saved subjects so the Subjects step
+ * recognises there is existing data and does NOT auto-regenerate.
+ */
+function buildSuggestionsFromSubjects(subjects) {
+  if (!subjects || subjects.length === 0) return [];
+  const byKeyword = {};
+  for (const s of subjects) {
+    const kw = s.keyword || 'unknown';
+    if (!byKeyword[kw]) byKeyword[kw] = { keyword: kw, subjects: [] };
+    byKeyword[kw].subjects.push({
+      title: s.title || '',
+      explanation: s.explanation || '',
+      articleType: s.articleType || '',
+    });
+  }
+  return Object.values(byKeyword);
+}
+
 function wizardReducer(state, action) {
   switch (action.type) {
-    case 'SET_FIELD':
-      return { ...state, [action.field]: action.value };
+    case 'SET_FIELD': {
+      const scheduleFields = ['startDate', 'endDate', 'publishDays'];
+      const planStale = scheduleFields.includes(action.field) && state.generatedPlan;
+      return {
+        ...state,
+        [action.field]: action.value,
+        ...(planStale ? { planNeedsRegeneration: true, generatedPlan: null } : {}),
+      };
+    }
 
     case 'SET_POSTS_COUNT': {
       const newCount = action.value;
@@ -72,6 +99,7 @@ function wizardReducer(state, action) {
         campaignId: c.id,
         campaignName: c.name,
         campaignColor: c.color,
+        campaignStatus: c.status || 'DRAFT',
         isNewCampaign: false,
         startDate: c.startDate ? new Date(c.startDate).toISOString().split('T')[0] : '',
         endDate: c.endDate ? new Date(c.endDate).toISOString().split('T')[0] : '',
@@ -83,10 +111,13 @@ function wizardReducer(state, action) {
         articleTypes: c.articleTypes || [{ id: 'SEO', count: 4 }],
         contentSettings: c.contentSettings || INITIAL_WIZARD_STATE.contentSettings,
         subjects: c.subjects || [],
+        // Use saved suggestions if available, otherwise reconstruct from selected subjects
+        subjectSuggestions: c.subjectSuggestions || buildSuggestionsFromSubjects(c.subjects || []),
         selectedKeywordIds: c.keywordIds || [],
         textPrompt: c.textPrompt || '',
         imagePrompt: c.imagePrompt || '',
-        generatedPlan: null,
+        generatedPlan: c.generatedPlan || null,
+        planNeedsRegeneration: false,
       };
     }
 
@@ -107,9 +138,18 @@ const stepComponents = [
   SummaryStep,        // 9
 ];
 
+/**
+ * Get the highest step the user has reached for a campaign.
+ * Uses the persisted lastCompletedStep field.
+ */
+function getMaxStepFromCampaign(campaign) {
+  return campaign.lastCompletedStep || 1;
+}
+
 export function WizardContent({ translations }) {
   const [state, dispatch] = useReducer(wizardReducer, INITIAL_WIZARD_STATE);
   const [currentStep, setCurrentStep] = useState(1);
+  const [maxStepReached, setMaxStepReached] = useState(1);
   const { isRtl } = useLocale();
   const { selectedSite } = useSite();
 
@@ -127,6 +167,7 @@ export function WizardContent({ translations }) {
       .then(data => {
         if (data?.campaign) {
           dispatch({ type: 'LOAD_CAMPAIGN', payload: data.campaign });
+          setMaxStepReached(getMaxStepFromCampaign(data.campaign));
         }
       })
       .catch(() => {});
@@ -138,8 +179,83 @@ export function WizardContent({ translations }) {
   const needsWpGate = !isWordpress || !isConnected;
 
   const [validationPopup, setValidationPopup] = useState(null);
+  const [nextLoading, setNextLoading] = useState(false);
+  const [campaignActionLoading, setCampaignActionLoading] = useState(false);
 
-  const handleNext = () => {
+  // ── Campaign start/pause action ──
+  const handleCampaignAction = async () => {
+    if (!state.campaignId || !state.generatedPlan) return;
+    
+    const campaign = {
+      id: state.campaignId,
+      status: state.campaignStatus,
+      generatedPlan: state.generatedPlan,
+    };
+    
+    setCampaignActionLoading(true);
+    await executeCampaignAction(campaign, {
+      translations: translations.campaigns || {},
+      onSuccess: (newStatus) => {
+        dispatch({ type: 'SET_FIELD', field: 'campaignStatus', value: newStatus });
+      },
+      onError: (err) => {
+        if (err !== 'cancelled') alert(err);
+      },
+    });
+    setCampaignActionLoading(false);
+  };
+
+  const handleNext = async () => {
+    // Step 1 validation: must select existing or fill new campaign name
+    if (currentStep === 1) {
+      if (!state.isNewCampaign && !state.campaignId) {
+        setValidationPopup(translations.campaign.selectOrCreateError);
+        return;
+      }
+      if (state.isNewCampaign) {
+        if (!state.campaignName.trim()) {
+          setValidationPopup(translations.campaign.nameRequired);
+          return;
+        }
+        // Create the campaign via API
+        try {
+          setNextLoading(true);
+          const res = await fetch('/api/campaigns', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              siteId: selectedSite.id,
+              name: state.campaignName.trim(),
+              color: state.campaignColor,
+              startDate: state.startDate || new Date().toISOString().split('T')[0],
+              endDate: state.endDate || new Date(Date.now() + 30 * 86400000).toISOString().split('T')[0],
+              postsCount: state.postsCount,
+              publishDays: state.publishDays,
+              publishTimeMode: state.publishTimeMode,
+              publishTimeStart: state.publishTimeStart,
+              publishTimeEnd: state.publishTimeEnd,
+              articleTypes: state.articleTypes,
+              contentSettings: state.contentSettings,
+              subjects: [],
+              keywordIds: [],
+              textPrompt: '',
+              imagePrompt: '',
+            }),
+          });
+          if (!res.ok) throw new Error('Failed to create campaign');
+          const data = await res.json();
+          dispatch({ type: 'SET_FIELD', field: 'campaignId', value: data.campaign.id });
+          dispatch({ type: 'SET_FIELD', field: 'isNewCampaign', value: false });
+        } catch (err) {
+          console.error('Failed to create campaign:', err);
+          setValidationPopup(translations.campaign.createError);
+          return;
+        } finally {
+          setNextLoading(false);
+        }
+      }
+    }
+
     // Step 4 validation: all posts must be allocated to article types
     if (currentStep === 4) {
       const totalAllocated = state.articleTypes.reduce((sum, at) => sum + at.count, 0);
@@ -155,7 +271,20 @@ export function WizardContent({ translations }) {
     }
 
     if (currentStep < WIZARD_STEPS.length) {
-      setCurrentStep(currentStep + 1);
+      const next = currentStep + 1;
+      setCurrentStep(next);
+      setMaxStepReached(prev => {
+        const newMax = Math.max(prev, next);
+        // Persist step progress to DB
+        if (state.campaignId && newMax > prev) {
+          fetch(`/api/campaigns/${state.campaignId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ lastCompletedStep: newMax }),
+          }).catch(() => {});
+        }
+        return newMax;
+      });
     }
   };
 
@@ -182,14 +311,20 @@ export function WizardContent({ translations }) {
         <div className={styles.stepsWrapper}>
           {WIZARD_STEPS.map((step, index) => {
             const StepIcon = iconMap[step.iconName];
+            const isCompleted = currentStep > step.id;
+            const isReachable = step.id < currentStep || step.id <= maxStepReached;
             return (
               <div key={step.id} className={styles.stepGroup}>
-                <div className={styles.stepItem}>
+                <div
+                  className={`${styles.stepItem} ${isReachable && step.id !== currentStep ? styles.clickable : ''}`}
+                  onClick={isReachable && step.id !== currentStep ? () => setCurrentStep(step.id) : undefined}
+                >
                   <div className={`${styles.stepCircle} ${
                     currentStep === step.id ? styles.active :
-                    currentStep > step.id ? styles.completed : styles.pending
+                    isCompleted ? styles.completed : 
+                    step.id <= maxStepReached ? styles.completed : styles.pending
                   }`}>
-                    {currentStep > step.id ? (
+                    {isCompleted || (step.id <= maxStepReached && step.id !== currentStep) ? (
                       <Check className={styles.stepIcon} />
                     ) : (
                       <StepIcon className={styles.stepIcon} />
@@ -203,7 +338,7 @@ export function WizardContent({ translations }) {
                 </div>
                 {index < WIZARD_STEPS.length - 1 && (
                   <div className={`${styles.stepConnector} ${
-                    currentStep > step.id ? styles.completed : ''
+                    isCompleted || step.id < maxStepReached ? styles.completed : ''
                   }`} />
                 )}
               </div>
@@ -218,24 +353,51 @@ export function WizardContent({ translations }) {
           state={state}
           dispatch={dispatch}
           translations={translations}
+          onLoadCampaign={(campaign) => setMaxStepReached(getMaxStepFromCampaign(campaign))}
+          onResetSteps={() => setMaxStepReached(1)}
         />
       </div>
 
       {/* Navigation Buttons */}
       <div className={styles.navigationButtons}>
-        <button
-          onClick={handlePrevious}
-          disabled={currentStep === 1}
-          className={`${styles.navButton} ${styles.prev}`}
-        >
-          <PrevArrow className={styles.navIcon} />
-          {translations.nav.previous}
-        </button>
+        <div className={styles.navButtonsLeft}>
+          <button
+            onClick={handlePrevious}
+            disabled={currentStep === 1}
+            className={`${styles.navButton} ${styles.prev}`}
+          >
+            <PrevArrow className={styles.navIcon} />
+            {translations.nav.previous}
+          </button>
+
+          {/* Campaign action button - only on final step with a plan */}
+          {currentStep === WIZARD_STEPS.length && state.campaignId && state.generatedPlan && (() => {
+            const actionInfo = getCampaignAction(state.campaignStatus, translations.campaigns || {});
+            if (!actionInfo.action) return null;
+            return (
+              <button
+                className={`${styles.campaignActionBtn} ${actionInfo.action === 'pause' ? styles.pauseBtn : styles.activateBtn}`}
+                onClick={handleCampaignAction}
+                disabled={campaignActionLoading}
+                title={actionInfo.label}
+              >
+                {campaignActionLoading ? (
+                  <Loader2 size={16} className={styles.spinner} />
+                ) : actionInfo.icon === 'pause' ? (
+                  <Pause size={16} />
+                ) : (
+                  <Play size={16} />
+                )}
+                <span>{actionInfo.label}</span>
+              </button>
+            );
+          })()}
+        </div>
 
         {currentStep < WIZARD_STEPS.length && (
-          <button onClick={handleNext} className={`${styles.navButton} ${styles.next}`}>
-            {translations.nav.next}
-            <NextArrow className={styles.navIcon} />
+          <button onClick={handleNext} disabled={nextLoading} className={`${styles.navButton} ${styles.next}`}>
+            {nextLoading ? <Loader2 size={16} className={styles.spinner} /> : translations.nav.next}
+            {!nextLoading && <NextArrow className={styles.navIcon} />}
           </button>
         )}
       </div>

@@ -1,0 +1,16 @@
+{
+  "crons": [
+    {
+      "path": "/api/cron/process-content",
+      "schedule": "*/5 * * * *"
+    },
+    {
+      "path": "/api/cron/publish-content",
+      "schedule": "*/5 * * * *"
+    },
+    {
+      "path": "/api/cron/sync-entities",
+      "schedule": "0 * * * *"
+    }
+  ]
+}

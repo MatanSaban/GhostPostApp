@@ -82,6 +82,14 @@ p {
   border: 0;
 }
 
+/* Modal maximize/minimize global utility */
+.modal-maximized {
+  max-width: 95vw !important;
+  max-height: 95vh !important;
+  width: 95vw !important;
+  height: 95vh !important;
+}
+
 /* Scrollbar styling */
 ::-webkit-scrollbar {
   width: 8px;

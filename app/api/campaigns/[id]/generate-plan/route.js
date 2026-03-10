@@ -33,34 +33,32 @@ function generatePublishDates(startDate, endDate, publishDays, postsCount) {
   const dayMap = { sun: 0, mon: 1, tue: 2, wed: 3, thu: 4, fri: 5, sat: 6 };
   const allowedDays = new Set(publishDays.map(d => dayMap[d]).filter(d => d !== undefined));
 
-  const dates = [];
+  // Collect all valid days within the date range
+  const availableDates = [];
   const current = new Date(startDate);
   const end = new Date(endDate);
 
-  while (current <= end && dates.length < postsCount) {
+  while (current <= end) {
     if (allowedDays.has(current.getDay())) {
-      dates.push(new Date(current));
+      availableDates.push(new Date(current));
     }
     current.setDate(current.getDate() + 1);
   }
 
-  // If not enough dates found, cycle through available dates
-  if (dates.length < postsCount && dates.length > 0) {
-    let idx = 0;
-    while (dates.length < postsCount) {
-      const base = new Date(dates[idx % dates.length]);
-      // Push a week ahead from the last date
-      const extra = new Date(dates[dates.length - 1]);
-      extra.setDate(extra.getDate() + 1);
-      while (!allowedDays.has(extra.getDay())) {
-        extra.setDate(extra.getDate() + 1);
-      }
-      dates.push(new Date(extra));
-      idx++;
-    }
+  if (availableDates.length === 0) return [];
+
+  // Randomly pick dates from available slots, spread as evenly as possible
+  // Shuffle available dates then distribute posts
+  const shuffled = [...availableDates].sort(() => Math.random() - 0.5);
+  const dates = [];
+  for (let i = 0; i < postsCount; i++) {
+    dates.push(new Date(shuffled[i % shuffled.length]));
   }
 
-  return dates.slice(0, postsCount);
+  // Sort chronologically for the final plan
+  dates.sort((a, b) => a - b);
+
+  return dates;
 }
 
 /**
@@ -142,7 +140,10 @@ export async function POST(request, { params }) {
     const typeAssignments = distributeArticleTypes(articleTypes, campaign.postsCount);
 
     // Distribute subjects and keywords round-robin
-    const subjects = campaign.subjects || [];
+    // Subjects are stored as JSON strings in a String[] field — parse them back
+    const subjects = (campaign.subjects || []).map((s) => {
+      try { return typeof s === 'string' ? JSON.parse(s) : s; } catch { return s; }
+    });
     const keywordIds = campaign.keywordIds || [];
 
     // Fetch keyword data for context
@@ -156,12 +157,13 @@ export async function POST(request, { params }) {
 
     // Build planned posts
     const plannedPosts = scheduledDates.map((date, i) => {
-      const subject = subjects.length > 0 ? subjects[i % subjects.length] : '';
+      const subject = subjects.length > 0 ? subjects[i % subjects.length] : null;
       const keyword = keywords.length > 0 ? keywords[i % keywords.length] : null;
       const type = typeAssignments[i];
 
-      // Generate a placeholder title (will be editable in the UI)
-      const titleParts = [subject, keyword?.keyword].filter(Boolean);
+      // Subject may be an object { title, keyword, articleType, explanation } or a string
+      const subjectTitle = typeof subject === 'object' ? subject?.title : subject;
+      const titleParts = [subjectTitle, keyword?.keyword].filter(Boolean);
       const title = titleParts.length > 0
         ? titleParts.join(' - ')
         : `Post ${i + 1}`;

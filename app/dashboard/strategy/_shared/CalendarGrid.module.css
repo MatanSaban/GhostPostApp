@@ -1,0 +1,303 @@
+/* ── CalendarGrid — shared calendar component ──────────────── */
+
+.calendarCard {
+  position: relative;
+  padding: 1.25rem;
+  border-radius: var(--radius-xl);
+  background: linear-gradient(135deg, rgba(147, 51, 234, 0.03) 0%, rgba(59, 130, 246, 0.03) 100%);
+  border: 1px solid rgba(147, 51, 234, 0.15);
+
+  :global(.dark) & {
+    background: linear-gradient(135deg, rgba(123, 44, 191, 0.1) 0%, rgba(67, 97, 238, 0.05) 100%);
+    border-color: rgba(123, 44, 191, 0.2);
+  }
+}
+
+/* ── Header ────────────────────────────────────────────── */
+.calendarHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+.calendarTitle {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--foreground);
+}
+
+.calendarNav {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+}
+
+.calendarNavBtn {
+  width: 1.75rem;
+  height: 1.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-md);
+  color: var(--muted-foreground);
+  background: var(--muted);
+  border: none;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+
+  &:hover {
+    color: var(--foreground);
+    background: var(--border);
+  }
+
+  :global(.dark) & {
+    background: rgba(0, 0, 0, 0.4);
+
+    &:hover {
+      background: rgba(123, 44, 191, 0.2);
+    }
+  }
+}
+
+:global(html[dir="rtl"]) .calendarNavBtn svg {
+  transform: scaleX(-1);
+}
+
+/* ── Grid ──────────────────────────────────────────────── */
+.calendarGrid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 0.25rem;
+  overflow: hidden;
+  width: 100%;
+}
+
+.calendarDayHeader {
+  padding: 0.375rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--muted-foreground);
+  text-align: center;
+  text-transform: uppercase;
+}
+
+/* ── Day Cell ──────────────────────────────────────────── */
+.calendarDay {
+  aspect-ratio: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-start;
+  padding: 0.25rem;
+  border-radius: var(--radius-md);
+  font-size: 0.85rem;
+  color: var(--foreground);
+  background: var(--background);
+  border: 1px solid transparent;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  transition: all var(--transition-fast);
+
+  &:hover {
+    border-color: var(--primary);
+  }
+
+  &.today {
+    background: rgba(123, 44, 191, 0.1);
+    border-color: rgba(123, 44, 191, 0.3);
+    font-weight: 600;
+
+    :global(.dark) & {
+      background: rgba(123, 44, 191, 0.2);
+    }
+  }
+
+  &.otherMonth {
+    color: var(--muted-foreground);
+    opacity: 0.5;
+  }
+
+  &.inRange {
+    background: rgba(123, 44, 191, 0.04);
+
+    :global(.dark) & {
+      background: rgba(123, 44, 191, 0.08);
+    }
+  }
+
+  :global(.dark) & {
+    background: rgba(0, 0, 0, 0.3);
+  }
+}
+
+.dayNumber {
+  margin-bottom: 0.125rem;
+  text-align: center;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+/* ── Posts inside a day cell ───────────────────────────── */
+.dayPosts {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  flex: 1;
+  overflow-y: auto;
+  max-width: 100%;
+
+  &::-webkit-scrollbar {
+    width: 3px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: var(--border);
+    border-radius: 3px;
+  }
+}
+
+.dayPostItem {
+  display: flex;
+  align-items: center;
+  gap: 0.1875rem;
+  padding: 0.0625rem 0.1875rem;
+  border-radius: var(--radius-sm);
+  background: var(--muted);
+  min-width: 0;
+  cursor: pointer;
+  transition: background 0.15s;
+
+  :global(.dark) & {
+    background: rgba(255, 255, 255, 0.05);
+  }
+
+  &:hover {
+    background: var(--border);
+
+    :global(.dark) & {
+      background: rgba(255, 255, 255, 0.1);
+    }
+  }
+}
+
+.dayPostCampaignDot {
+  width: 0.375rem;
+  height: 0.375rem;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.dayPostStatusIcon {
+  width: 1.5rem;
+  height: 1.5rem;
+  flex-shrink: 0;
+  object-fit: contain;
+}
+
+.dayPostTitle {
+  font-size: 0.5625rem;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--foreground);
+}
+
+/* ── Drag & Drop States ────────────────────────────────── */
+.calendarDayDragOver {
+  background: rgba(123, 44, 191, 0.15) !important;
+  border-color: var(--primary) !important;
+  box-shadow: inset 0 0 0 2px rgba(123, 44, 191, 0.3);
+
+  :global(.dark) & {
+    background: rgba(123, 44, 191, 0.25) !important;
+  }
+}
+
+.dayPostDraggable {
+  cursor: grab;
+
+  &:active {
+    cursor: grabbing;
+  }
+}
+
+.dayPostDragging {
+  opacity: 0.3;
+}
+
+.dayPostGrip {
+  flex-shrink: 0;
+  color: var(--muted-foreground);
+  opacity: 0;
+  transition: opacity 0.15s;
+
+  .dayPostDraggable:hover & {
+    opacity: 0.6;
+  }
+}
+
+/* ── Legend ─────────────────────────────────────────────── */
+.legend {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  padding: 0.75rem;
+  margin-top: 0.75rem;
+  background: var(--muted);
+  border-radius: var(--radius-lg);
+
+  @media (max-width: 640px) {
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+
+  :global(.dark) & {
+    background: rgba(0, 0, 0, 0.3);
+  }
+}
+
+.legendItem {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+}
+
+.legendIcon {
+  width: 1.5rem;
+  height: 1.5rem;
+  object-fit: contain;
+}
+
+.legendDot {
+  width: 0.4375rem;
+  height: 0.4375rem;
+  border-radius: 50%;
+}
+
+/* ── Portal Tooltip ────────────────────────────────────── */
+.portalTooltip {
+  position: fixed;
+  z-index: 9999;
+  transform: translate(-50%, -100%);
+  background: var(--popover, #1f2937);
+  color: var(--popover-foreground, #f9fafb);
+  font-size: 0.625rem;
+  font-weight: 400;
+  line-height: 1.4;
+  padding: 0.3rem 0.5rem;
+  border-radius: 6px;
+  white-space: nowrap;
+  pointer-events: none;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
+  animation: tooltipFadeIn 0.12s ease;
+}
+
+@keyframes tooltipFadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}

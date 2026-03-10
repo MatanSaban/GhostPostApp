@@ -30,7 +30,6 @@ export default function WpConnectionModal({ translations, onClose, onConnected }
         <div className={styles.modalBody}>
           <p className={styles.wpModalText}>{t.description}</p>
           <WordPressPluginSection
-            translations={{ wordpress: t.wordpress }}
             compact
             onConnectionChange={handleConnectionChange}
           />

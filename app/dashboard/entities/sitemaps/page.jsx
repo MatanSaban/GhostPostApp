@@ -49,6 +49,15 @@ function formatDate(date, format = 'short') {
   return d.toLocaleDateString('he-IL', { day: '2-digit', month: 'long', year: 'numeric' });
 }
 
+// Safely decode percent-encoded URLs for display (Hebrew, etc.)
+function decodeDisplayUrl(url) {
+  try {
+    return decodeURI(url);
+  } catch {
+    return url;
+  }
+}
+
 export default function SitemapsPage() {
   const { t } = useLocale();
   const { selectedSite, isLoading: isSiteLoading } = useSite();
@@ -281,7 +290,7 @@ export default function SitemapsPage() {
                     <FolderTree size={24} />
                   </div>
                   <div className={sitemapStyles.sitemapInfo}>
-                    <div className={sitemapStyles.sitemapUrl}>{sitemap.url}</div>
+                    <div className={sitemapStyles.sitemapUrl}>{decodeDisplayUrl(sitemap.url)}</div>
                     <div className={sitemapStyles.sitemapMeta}>
                       <span className={`${sitemapStyles.badge} ${sitemapStyles.badgeIndex}`}>
                         {t('entities.sitemaps.type.index')}
@@ -337,7 +346,7 @@ export default function SitemapsPage() {
                             <FileText size={20} />
                           </div>
                           <div className={sitemapStyles.sitemapInfo}>
-                            <div className={sitemapStyles.sitemapUrl}>{child.url}</div>
+                            <div className={sitemapStyles.sitemapUrl}>{decodeDisplayUrl(child.url)}</div>
                             <div className={sitemapStyles.sitemapMeta}>
                               <span className={sitemapStyles.metaItem}>
                                 {child.urlCount.toLocaleString()} URLs
@@ -400,7 +409,7 @@ export default function SitemapsPage() {
                   <FileText size={24} />
                 </div>
                 <div className={sitemapStyles.sitemapInfo}>
-                  <div className={sitemapStyles.sitemapUrl}>{sitemap.url}</div>
+                  <div className={sitemapStyles.sitemapUrl}>{decodeDisplayUrl(sitemap.url)}</div>
                   <div className={sitemapStyles.sitemapMeta}>
                     <span className={sitemapStyles.metaItem}>
                       {sitemap.urlCount.toLocaleString()} URLs

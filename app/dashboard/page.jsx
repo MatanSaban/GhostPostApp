@@ -59,7 +59,18 @@ export default async function DashboardPage() {
 
     // Top Keywords
     topKeywords: t('dashboard.topKeywords'),
+    addToKeywords: t('dashboard.addToKeywords'),
+    alreadyTracked: t('dashboard.alreadyTracked'),
+    track: t('dashboard.track'),
+    viewAllKeywords: t('dashboard.viewAllKeywords'),
+    allGscKeywords: t('dashboard.allGscKeywords'),
+    searchKeywords: t('dashboard.searchKeywords'),
+    keywordsFound: t('dashboard.keywordsFound'),
+    noKeywordsFound: t('dashboard.noKeywordsFound'),
+    perPage: t('dashboard.perPage'),
+    of: t('dashboard.of'),
     keyword: t('dashboard.table.keyword'),
+    relatedPost: t('dashboard.table.relatedPost'),
     sortBy: t('dashboard.sortBy'),
     pageViews: t('dashboard.stats.totalPageViews'),
     visitors: t('dashboard.stats.visitors'),

@@ -11,6 +11,7 @@ import {
   Play 
 } from 'lucide-react';
 import { useLocale } from '@/app/context/locale-context';
+import { useModalResize, ModalResizeButton } from '@/app/components/ui/ModalResizeButton';
 import styles from '../../technical-seo.module.css';
 
 export default function WebpConversionModal({
@@ -37,21 +38,25 @@ export default function WebpConversionModal({
   onConvert,
 }) {
   const { t } = useLocale();
+  const { isMaximized, toggleMaximize } = useModalResize();
   
   if (!showModal) return null;
   
   return createPortal(
     <div className={styles.modalOverlay} onClick={() => !converting && onClose()}>
-      <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
+      <div className={`${styles.modal} ${isMaximized ? 'modal-maximized' : ''}`} onClick={(e) => e.stopPropagation()}>
         <div className={styles.modalHeader}>
           <h2>{t('tools.webp.selectImages')}</h2>
-          <button 
-            className={styles.modalClose}
-            onClick={() => !converting && onClose()}
-            disabled={converting}
-          >
-            <X />
-          </button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+            <ModalResizeButton isMaximized={isMaximized} onToggle={toggleMaximize} className={styles.modalClose} />
+            <button 
+              className={styles.modalClose}
+              onClick={() => !converting && onClose()}
+              disabled={converting}
+            >
+              <X />
+            </button>
+          </div>
         </div>
         
         <div className={styles.modalContent}>

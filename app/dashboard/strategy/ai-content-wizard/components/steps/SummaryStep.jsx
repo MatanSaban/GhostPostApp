@@ -1,8 +1,14 @@
 'use client';
 
-import { useState } from 'react';
-import { Sparkles, ChevronDown, ChevronUp, Edit3, Loader2, FileText, Tag, Type, AlignLeft, Hash } from 'lucide-react';
+import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
+import {
+  Sparkles, ChevronDown, ChevronUp,
+  Edit3, Loader2, FileText, Tag, Type, AlignLeft, Hash,
+  Calendar, List,
+} from 'lucide-react';
 import { useSite } from '@/app/context/site-context';
+import CalendarGrid from '../../../_shared/CalendarGrid';
+import PostPopover from '../../../_shared/PostPopover';
 import { ARTICLE_TYPE_KEY_MAP, ARTICLE_TYPES, WEEK_DAYS } from '../../wizardConfig';
 import styles from '../../page.module.css';
 
@@ -10,12 +16,72 @@ export default function SummaryStep({ state, dispatch, translations }) {
   const t = translations.summary;
   const scheduleT = translations.schedule;
   const articleTypesT = translations.articleTypes;
+  const months = translations.months || [];
+  const dayNames = translations.dayNames || ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
   const { selectedSite } = useSite();
   const [loading, setLoading] = useState(false);
   const [expandedPosts, setExpandedPosts] = useState(new Set());
   const [allExpanded, setAllExpanded] = useState(false);
+  const [planView, setPlanView] = useState('calendar'); // 'calendar' | 'list'
+  const [calMonth, setCalMonth] = useState(null); // calendar month being viewed
+  const [existingPosts, setExistingPosts] = useState([]);
+  const [otherCampaignPosts, setOtherCampaignPosts] = useState([]); // posts from other campaigns
+
+  // Fetch existing site posts for the calendar
+  useEffect(() => {
+    if (!selectedSite?.id) return;
+    fetch(`/api/entities?siteId=${selectedSite.id}&type=posts`)
+      .then(res => res.json())
+      .then(data => setExistingPosts(data.entities || []))
+      .catch(() => setExistingPosts([]));
+  }, [selectedSite?.id]);
+
+  // Fetch other campaigns' planned posts
+  useEffect(() => {
+    if (!selectedSite?.id) return;
+    fetch(`/api/campaigns?siteId=${selectedSite.id}`)
+      .then(res => res.json())
+      .then(data => {
+        const campaigns = data.campaigns || data || [];
+        const posts = [];
+        campaigns.forEach(c => {
+          if (c.id === state.campaignId) return; // skip current campaign
+          if (!Array.isArray(c.generatedPlan)) return;
+          c.generatedPlan.forEach(p => {
+            if (!p.scheduledAt) return;
+            posts.push({
+              ...p,
+              _campaignId: c.id,
+              _campaignName: c.name,
+              _campaignColor: c.color || '#6366f1',
+            });
+          });
+        });
+        setOtherCampaignPosts(posts);
+      })
+      .catch(() => setOtherCampaignPosts([]));
+  }, [selectedSite?.id, state.campaignId]);
+
+  // Initialize calendar to the campaign's start month when plan is generated
+  useEffect(() => {
+    if (state.generatedPlan?.length > 0 && !calMonth) {
+      const first = new Date(state.generatedPlan[0].scheduledAt);
+      setCalMonth(new Date(first.getFullYear(), first.getMonth(), 1));
+    }
+  }, [state.generatedPlan]); // eslint-disable-line react-hooks/exhaustive-deps
   // Subject accordion state (index of open subject, null = none)
   const [openSubject, setOpenSubject] = useState(null);
+
+  // Ref to hold generatePlan – assigned after function definition below
+  const generatePlanRef = useRef(null);
+
+  // Auto-regenerate plan if schedule was changed
+  useEffect(() => {
+    if (state.planNeedsRegeneration && state.campaignId) {
+      dispatch({ type: 'SET_FIELD', field: 'planNeedsRegeneration', value: false });
+      generatePlanRef.current?.();
+    }
+  }, [state.planNeedsRegeneration, state.campaignId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Resolve subjects to serializable data for API
   const resolveSubjects = () => {
@@ -56,6 +122,7 @@ export default function SummaryStep({ state, dispatch, translations }) {
             articleTypes: state.articleTypes,
             contentSettings: state.contentSettings,
             subjects: resolveSubjects(),
+            subjectSuggestions: state.subjectSuggestions || [],
             keywordIds: state.selectedKeywordIds,
             textPrompt: state.textPrompt,
             imagePrompt: state.imagePrompt,
@@ -81,6 +148,7 @@ export default function SummaryStep({ state, dispatch, translations }) {
             articleTypes: state.articleTypes,
             contentSettings: state.contentSettings,
             subjects: resolveSubjects(),
+            subjectSuggestions: state.subjectSuggestions || [],
             keywordIds: state.selectedKeywordIds,
             textPrompt: state.textPrompt,
             imagePrompt: state.imagePrompt,
@@ -96,10 +164,122 @@ export default function SummaryStep({ state, dispatch, translations }) {
       if (!planRes.ok) throw new Error(planData.error || 'Failed to generate plan');
 
       dispatch({ type: 'SET_FIELD', field: 'generatedPlan', value: planData.plan });
+
+      // Save the generated plan to the campaign
+      await fetch(`/api/campaigns/${campaignId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ generatedPlan: planData.plan }),
+      });
     } catch (err) {
       console.error('Failed to generate plan:', err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Keep a ref to generatePlan so the auto-regen effect can call it
+  generatePlanRef.current = generatePlan;
+
+  // ── Post popover state ──────────────────────────────────────────
+  const [popover, setPopover] = useState(null); // { type: 'planned'|'existing'|'other-campaign', planIndex?, post?, rect }
+
+
+  const openPostPopover = (planIndex, e) => {
+    e.stopPropagation();
+    const rect = e.currentTarget.getBoundingClientRect();
+    setPopover({ type: 'planned', planIndex, rect });
+  };
+
+  const openExistingPopover = (post, e) => {
+    e.stopPropagation();
+    const rect = e.currentTarget.getBoundingClientRect();
+    setPopover({ type: 'existing', post, rect });
+  };
+
+  const openOtherCampaignPopover = (post, e) => {
+    e.stopPropagation();
+    const rect = e.currentTarget.getBoundingClientRect();
+    setPopover({ type: 'other-campaign', post, rect });
+  };
+
+  const closePopover = () => setPopover(null);
+
+  const updatePostTime = (planIndex, newTime) => {
+    if (!newTime || !/^\d{1,2}:\d{2}$/.test(newTime)) return; // Invalid time format
+    const updated = [...state.generatedPlan];
+    const post = { ...updated[planIndex] };
+    const d = new Date(post.scheduledAt);
+    const [h, m] = newTime.split(':').map(Number);
+    d.setHours(h, m, 0, 0);
+    if (isNaN(d.getTime())) return; // Invalid time
+    post.scheduledAt = d.toISOString();
+    updated[planIndex] = post;
+    dispatch({ type: 'SET_FIELD', field: 'generatedPlan', value: updated });
+    // Persist
+    if (state.campaignId) {
+      fetch(`/api/campaigns/${state.campaignId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ generatedPlan: updated }),
+      }).catch(() => {});
+    }
+  };
+
+  const updatePostDate = (planIndex, newDate) => {
+    if (!newDate || !/^\d{4}-\d{2}-\d{2}$/.test(newDate)) return; // Invalid date format
+    const updated = [...state.generatedPlan];
+    const post = { ...updated[planIndex] };
+    const oldDate = new Date(post.scheduledAt);
+    const [year, month, day] = newDate.split('-').map(Number);
+    const d = new Date(year, month - 1, day, oldDate.getHours(), oldDate.getMinutes(), 0, 0);
+    if (isNaN(d.getTime())) return; // Invalid date
+    post.scheduledAt = d.toISOString();
+    updated[planIndex] = post;
+    dispatch({ type: 'SET_FIELD', field: 'generatedPlan', value: updated });
+    // Persist
+    if (state.campaignId) {
+      fetch(`/api/campaigns/${state.campaignId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ generatedPlan: updated }),
+      }).catch(() => {});
+    }
+  };
+
+  // ── Drag & Drop handler (called by CalendarGrid) ────────────────
+  const handleCalendarDrop = useCallback((draggedPost, targetCell) => {
+    if (!draggedPost?.planIndex == null || !state.generatedPlan) return;
+
+    const idx = draggedPost.planIndex;
+    if (idx == null || !state.generatedPlan[idx]) return;
+
+    const updated = [...state.generatedPlan];
+    const post = { ...updated[idx] };
+    const oldDate = new Date(post.scheduledAt);
+    const newDate = new Date(targetCell.date);
+    newDate.setHours(oldDate.getHours(), oldDate.getMinutes(), oldDate.getSeconds(), 0);
+    post.scheduledAt = newDate.toISOString();
+    updated[idx] = post;
+    dispatch({ type: 'SET_FIELD', field: 'generatedPlan', value: updated });
+
+    if (state.campaignId) {
+      fetch(`/api/campaigns/${state.campaignId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ generatedPlan: updated }),
+      }).catch(() => {});
+    }
+  }, [state.generatedPlan, state.campaignId, dispatch]);
+
+  // ── Unified post click handler (dispatches to correct popover) ──
+  const handlePostClick = (post, e) => {
+    if (post.source === 'plan') {
+      openPostPopover(post.planIndex, e);
+    } else if (post.source === 'entity') {
+      openExistingPopover(post, e);
+    } else if (post.source === 'other-campaign') {
+      openOtherCampaignPopover(post, e);
     }
   };
 
@@ -135,6 +315,124 @@ export default function SummaryStep({ state, dispatch, translations }) {
       hour: '2-digit', minute: '2-digit',
     });
   };
+
+  // ── Calendar helpers ──────────────────────────────────────────────
+  const campaignStart = state.startDate ? new Date(state.startDate) : null;
+  const campaignEnd = state.endDate ? new Date(state.endDate) : null;
+
+  const calendarDays = useMemo(() => {
+    if (!calMonth) return [];
+    const year = calMonth.getFullYear();
+    const month = calMonth.getMonth();
+    const firstDay = new Date(year, month, 1).getDay(); // 0=Sun
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const daysInPrevMonth = new Date(year, month, 0).getDate();
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    // Build planned posts map by date key (YYYY-MM-DD) — include plan index
+    const plannedByKey = {};
+    (state.generatedPlan || []).forEach((post, idx) => {
+      const d = new Date(post.scheduledAt);
+      const key = `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
+      if (!plannedByKey[key]) plannedByKey[key] = [];
+      plannedByKey[key].push({ ...post, _planIndex: idx });
+    });
+
+    // Build existing posts map by date key (only published posts)
+    // Priority: publishedAt > metadata.publishDate (from crawl) > createdAt
+    const existingByKey = {};
+    existingPosts
+      .filter((post) => post.status === 'PUBLISHED')
+      .forEach((post) => {
+        const dateStr = post.publishedAt || post.metadata?.publishDate || post.createdAt;
+        if (!dateStr) return;
+        const d = new Date(dateStr);
+        if (isNaN(d.getTime())) return;
+        const key = `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
+        if (!existingByKey[key]) existingByKey[key] = [];
+        existingByKey[key].push(post);
+      });
+
+    // Build other campaigns' posts map by date key
+    const otherCampaignsByKey = {};
+    otherCampaignPosts.forEach((post) => {
+      const d = new Date(post.scheduledAt);
+      if (isNaN(d.getTime())) return;
+      const key = `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
+      if (!otherCampaignsByKey[key]) otherCampaignsByKey[key] = [];
+      otherCampaignsByKey[key].push(post);
+    });
+
+    const buildCell = (cellDate, isOther) => {
+      const key = `${cellDate.getFullYear()}-${cellDate.getMonth()}-${cellDate.getDate()}`;
+      const isToday = cellDate.getTime() === today.getTime();
+      const inRange = campaignStart && campaignEnd && cellDate >= campaignStart && cellDate <= campaignEnd;
+
+      // Build flat posts array — same shape CalendarGrid expects
+      const posts = [];
+      (existingByKey[key] || []).forEach(post => {
+        posts.push({
+          ...post,
+          dotStatus: 'published',
+          source: 'entity',
+        });
+      });
+      (otherCampaignsByKey[key] || []).forEach((post, idx) => {
+        posts.push({
+          ...post,
+          id: `oc-${post._campaignId}-${idx}`,
+          dotStatus: 'scheduled',
+          source: 'other-campaign',
+          campaignColor: post._campaignColor,
+          campaignName: post._campaignName,
+        });
+      });
+      (plannedByKey[key] || []).forEach(post => {
+        posts.push({
+          ...post,
+          id: `plan-${post._planIndex}`,
+          dotStatus: 'scheduled',
+          source: 'plan',
+          campaignColor: state.campaignColor,
+          campaignName: state.campaignName,
+          planIndex: post._planIndex,
+        });
+      });
+
+      return {
+        date: new Date(cellDate),
+        dateKey: key,
+        day: cellDate.getDate(),
+        other: isOther,
+        today: isToday,
+        inRange: isOther ? false : inRange,
+        posts: posts.length > 0 ? posts : undefined,
+      };
+    };
+
+    const days = [];
+
+    // Previous month trailing days (if month doesn't start on Sunday)
+    for (let i = firstDay - 1; i >= 0; i--) {
+      const d = new Date(year, month - 1, daysInPrevMonth - i);
+      days.push(buildCell(d, true));
+    }
+
+    // Current month days
+    for (let i = 1; i <= daysInMonth; i++) {
+      days.push(buildCell(new Date(year, month, i), false));
+    }
+
+    // Next month padding — always fill to exactly 42 cells (6 full rows)
+    let nextDay = 1;
+    while (days.length < 42) {
+      days.push(buildCell(new Date(year, month + 1, nextDay++), true));
+    }
+
+    return days;
+  }, [calMonth, state.generatedPlan, state.campaignColor, state.campaignName, existingPosts, otherCampaignPosts, campaignStart, campaignEnd]);
 
   return (
     <div className={styles.stepContent}>
@@ -299,74 +597,188 @@ export default function SummaryStep({ state, dispatch, translations }) {
 
       {/* Generated plan posts */}
       {state.generatedPlan && (
-        <div className={styles.plannedPostsSection}>
+        <div className={styles.planCalendarSection}>
           <div className={styles.plannedPostsHeader}>
             <h3 className={styles.plannedPostsTitle}>
               {t.plannedPosts} ({state.generatedPlan.length})
             </h3>
-            <button onClick={toggleAll} className={styles.expandToggle}>
-              {allExpanded ? t.collapseAll : t.expandAll}
-            </button>
+            <div className={styles.planViewToggle}>
+              <button
+                className={`${styles.planViewBtn} ${planView === 'calendar' ? styles.planViewBtnActive : ''}`}
+                onClick={() => setPlanView('calendar')}
+              >
+                <Calendar size={14} />
+              </button>
+              <button
+                className={`${styles.planViewBtn} ${planView === 'list' ? styles.planViewBtnActive : ''}`}
+                onClick={() => setPlanView('list')}
+              >
+                <List size={14} />
+              </button>
+            </div>
           </div>
 
-          <div className={styles.plannedPostsList}>
-            {state.generatedPlan.map((post, index) => {
-              const isExpanded = expandedPosts.has(index);
-              const typeKey = ARTICLE_TYPE_KEY_MAP[post.type];
-              const typeLabel = articleTypesT.types[typeKey]?.label || post.type;
+          {/* ── Calendar View ─────────────────────────────────── */}
+          {planView === 'calendar' && calMonth && (
+            <>
+              <CalendarGrid
+                monthLabel={`${months[calMonth.getMonth()]} ${calMonth.getFullYear()}`}
+                dayNames={dayNames}
+                calendarDays={calendarDays}
+                onPrevMonth={() => setCalMonth(new Date(calMonth.getFullYear(), calMonth.getMonth() - 1, 1))}
+                onNextMonth={() => setCalMonth(new Date(calMonth.getFullYear(), calMonth.getMonth() + 1, 1))}
+                onPostClick={(post, e) => handlePostClick(post, e)}
+                onDrop={handleCalendarDrop}
+                statusLabels={{
+                  published: t.published || 'Published',
+                  scheduled: t.scheduled || 'Scheduled',
+                  processing: t.processing || 'Processing',
+                  readyToPublish: t.readyToPublish || 'Ready',
+                  failed: t.failed || 'Failed',
+                  draft: t.draft || 'Draft',
+                }}
+                legendItems={[
+                  { icon: '/icons/letter-p.svg', alt: 'P', label: t.published || 'Published' },
+                  { icon: '/icons/letter-s.svg', alt: 'S', label: t.scheduled || 'Scheduled' },
+                  { icon: '/icons/letter-l.svg', alt: 'L', label: t.processing || 'Processing' },
+                  { icon: '/icons/letter-r.svg', alt: 'R', label: t.readyToPublish || 'Ready' },
+                  { icon: '/icons/letter-f.svg', alt: 'F', label: t.failed || 'Failed' },
+                  { icon: '/icons/letter-d.svg', alt: 'D', label: t.draft || 'Draft' },
+                ]}
+              />
 
-              return (
-                <div key={index} className={styles.plannedPost}>
-                  <div
-                    className={styles.plannedPostHeader}
-                    onClick={() => togglePost(index)}
-                  >
-                    <span className={styles.plannedPostIndex}>{index + 1}</span>
-                    <div className={styles.plannedPostInfo}>
-                      <span className={styles.plannedPostTitle}>{post.title}</span>
-                      <span className={styles.plannedPostMeta}>
-                        {typeLabel} · {formatDate(post.scheduledAt)}
-                      </span>
-                    </div>
-                    {isExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-                  </div>
+              {/* Unified Post Popover */}
+              {popover && (() => {
+                // Build normalized post based on popover type
+                let normalizedPost = null;
+                let showEdit = false;
 
-                  {isExpanded && (
-                    <div className={styles.plannedPostDetails}>
-                      <div className={styles.detailRow}>
-                        <label className={styles.detailLabel}>{t.postTitle}</label>
-                        <div className={styles.editableTitle}>
-                          <input
-                            type="text"
-                            className={styles.formInput}
-                            value={post.title}
-                            onChange={(e) => updatePlanTitle(index, e.target.value)}
-                          />
-                          <Edit3 size={14} className={styles.editIcon} />
+                if (popover.type === 'planned' && state.generatedPlan?.[popover.planIndex]) {
+                  const post = state.generatedPlan[popover.planIndex];
+                  const typeKey = ARTICLE_TYPE_KEY_MAP[post.type];
+                  normalizedPost = {
+                    ...post,
+                    campaignName: state.campaignName,
+                    campaignColor: state.campaignColor,
+                    typeLabel: articleTypesT.types[typeKey]?.label || post.type,
+                  };
+                  showEdit = true;
+                } else if (popover.type === 'existing' && popover.post) {
+                  normalizedPost = {
+                    ...popover.post,
+                    dotStatus: 'published',
+                    source: 'entity',
+                  };
+                } else if (popover.type === 'other-campaign' && popover.post) {
+                  const post = popover.post;
+                  const typeKey = ARTICLE_TYPE_KEY_MAP[post.type];
+                  normalizedPost = {
+                    ...post,
+                    campaignName: post.campaignName || post._campaignName,
+                    campaignColor: post.campaignColor || post._campaignColor,
+                    typeLabel: articleTypesT.types[typeKey]?.label || post.type,
+                  };
+                }
+
+                if (!normalizedPost) return null;
+
+                return (
+                  <PostPopover
+                    post={normalizedPost}
+                    rect={popover.rect}
+                    onClose={closePopover}
+                    translations={{
+                      campaign: t.campaignName,
+                      status: t.existingStatus || 'Status',
+                      type: t.postType,
+                      keyword: t.postKeyword,
+                      date: t.postDate,
+                      time: t.publishTime || t.postTime,
+                      source: 'Source',
+                      viewOnSite: t.viewPost || 'View on site',
+                      published: t.published || 'Published',
+                      scheduled: t.scheduled || 'Scheduled',
+                      processing: t.processing || 'Processing',
+                      readyToPublish: t.readyToPublish || 'Ready',
+                      failed: t.failed || 'Failed',
+                      draft: t.draft || 'Draft',
+                    }}
+                    onDateChange={showEdit ? (date) => updatePostDate(popover.planIndex, date) : undefined}
+                    onTimeChange={showEdit ? (time) => updatePostTime(popover.planIndex, time) : undefined}
+                  />
+                );
+              })()}
+            </>
+          )}
+
+          {/* ── List View ─────────────────────────────────────── */}
+          {planView === 'list' && (
+            <>
+              <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                <button onClick={toggleAll} className={styles.expandToggle}>
+                  {allExpanded ? t.collapseAll : t.expandAll}
+                </button>
+              </div>
+              <div className={styles.plannedPostsList}>
+                {state.generatedPlan.map((post, index) => {
+                  const isExpanded = expandedPosts.has(index);
+                  const typeKey = ARTICLE_TYPE_KEY_MAP[post.type];
+                  const typeLabel = articleTypesT.types[typeKey]?.label || post.type;
+
+                  return (
+                    <div key={index} className={styles.plannedPost}>
+                      <div
+                        className={styles.plannedPostHeader}
+                        onClick={() => togglePost(index)}
+                      >
+                        <span className={styles.plannedPostIndex}>{index + 1}</span>
+                        <div className={styles.plannedPostInfo}>
+                          <span className={styles.plannedPostTitle}>{post.title}</span>
+                          <span className={styles.plannedPostMeta}>
+                            {typeLabel} · {formatDate(post.scheduledAt)}
+                          </span>
                         </div>
+                        {isExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
                       </div>
-                      <div className={styles.detailRow}>
-                        <label className={styles.detailLabel}>{t.postType}</label>
-                        <span>{typeLabel}</span>
-                      </div>
-                      <div className={styles.detailRow}>
-                        <label className={styles.detailLabel}>{t.postDate}</label>
-                        <span>{formatDate(post.scheduledAt)}</span>
-                      </div>
-                      <div className={styles.detailRow}>
-                        <label className={styles.detailLabel}>{t.postSubject}</label>
-                        <span>{post.subject || t.noSubject}</span>
-                      </div>
-                      <div className={styles.detailRow}>
-                        <label className={styles.detailLabel}>{t.postKeyword}</label>
-                        <span>{post.keywordText || t.noKeyword}</span>
-                      </div>
+
+                      {isExpanded && (
+                        <div className={styles.plannedPostDetails}>
+                          <div className={styles.detailRow}>
+                            <label className={styles.detailLabel}>{t.postTitle}</label>
+                            <div className={styles.editableTitle}>
+                              <input
+                                type="text"
+                                className={styles.formInput}
+                                value={post.title}
+                                onChange={(e) => updatePlanTitle(index, e.target.value)}
+                              />
+                              <Edit3 size={14} className={styles.editIcon} />
+                            </div>
+                          </div>
+                          <div className={styles.detailRow}>
+                            <label className={styles.detailLabel}>{t.postType}</label>
+                            <span>{typeLabel}</span>
+                          </div>
+                          <div className={styles.detailRow}>
+                            <label className={styles.detailLabel}>{t.postDate}</label>
+                            <span>{formatDate(post.scheduledAt)}</span>
+                          </div>
+                          <div className={styles.detailRow}>
+                            <label className={styles.detailLabel}>{t.postSubject}</label>
+                            <span>{typeof post.subject === 'object' ? post.subject?.title : post.subject || t.noSubject}</span>
+                          </div>
+                          <div className={styles.detailRow}>
+                            <label className={styles.detailLabel}>{t.postKeyword}</label>
+                            <span>{post.keywordText || t.noKeyword}</span>
+                          </div>
+                        </div>
+                      )}
                     </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
+                  );
+                })}
+              </div>
+            </>
+          )}
         </div>
       )}
     </div>
