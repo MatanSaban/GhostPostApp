@@ -10,10 +10,14 @@
  */
 
 // Current plugin version - increment this when making updates
-export const PLUGIN_VERSION = "1.8.7";
+export const PLUGIN_VERSION = "1.8.8";
 
 // Changelog for the current version
 export const PLUGIN_CHANGELOG = `
+= 1.8.8 =
+* FIXED: Trashed posts no longer returned by content/CPT API (excludes trash from default post_status)
+* Ensures entity sync correctly reflects published vs trashed content
+
 = 1.8.7 =
 * FIXED: Cron entity sync producing false-positive updates and unnecessary notifications
 * Content manager and CPT manager now return full data (SEO, ACF, taxonomies) when requested
