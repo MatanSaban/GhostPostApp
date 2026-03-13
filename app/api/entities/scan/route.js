@@ -1546,7 +1546,6 @@ async function populateEntities(site, entityTypes, options = {}) {
           excerpt: entity.excerpt,
           featuredImage: entity.featuredImage || null,
           publishedAt: entity.publishedAt,
-          status: 'PUBLISHED',
           metadata: {
             source: usedRestApi ? 'wp-rest-api' : 'sitemap',
             externalId: entity.externalId,
@@ -1557,6 +1556,7 @@ async function populateEntities(site, entityTypes, options = {}) {
         };
 
         if (existing) {
+          // Don't overwrite status — entity sync has the authoritative status from WP
           await prisma.siteEntity.update({
             where: { id: existing.id },
             data: entityData,
@@ -1567,6 +1567,7 @@ async function populateEntities(site, entityTypes, options = {}) {
           const createData = {
             siteId: site.id,
             entityTypeId: entityType.id,
+            status: 'PUBLISHED',
             ...entityData,
           };
           if (entity.externalId) {
@@ -2198,7 +2199,6 @@ async function deepCrawlEntities(site, options = {}) {
             url,
             excerpt: metadata.description || metadata.ogDescription || null,
             featuredImage,
-            status: 'PUBLISHED',
             publishedAt: metadata.publishDate ? new Date(metadata.publishDate) : null,
             seoData,
             metadata: {
@@ -2214,6 +2214,7 @@ async function deepCrawlEntities(site, options = {}) {
           };
           
           if (existing) {
+            // Don't overwrite status — entity sync has the authoritative status from WP
             await prisma.siteEntity.update({
               where: { id: existing.id },
               data: entityData,
@@ -2224,6 +2225,7 @@ async function deepCrawlEntities(site, options = {}) {
               data: {
                 siteId: site.id,
                 entityTypeId: entityType.id,
+                status: 'PUBLISHED',
                 ...entityData,
               },
             });

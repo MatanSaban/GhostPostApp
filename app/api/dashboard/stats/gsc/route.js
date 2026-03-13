@@ -94,10 +94,15 @@ export async function GET(request) {
     const range = (startDate && endDate) ? { startDate, endDate } : 30;
     const compareRange = (compareStartDate && compareEndDate) ? { startDate: compareStartDate, endDate: compareEndDate } : null;
     const result = {};
+    const errors = {};
+
+    const isAuthError = (errMsg) =>
+      /\b(401|403|UNAUTHENTICATED|PERMISSION_DENIED|invalid_grant|CREDENTIALS_MISSING)\b/i.test(errMsg || '');
 
     if (!section || section === 'kpis') {
       result.gsc = await fetchGSCReport(accessToken, integration.gscSiteUrl, range, compareRange).catch(err => {
         console.error('[GSC] fetchGSCReport error:', err.message);
+        errors.gsc = err.message;
         return null;
       });
     }
@@ -105,6 +110,7 @@ export async function GET(request) {
     if (!section || section === 'topPages') {
       result.topPages = await fetchGSCTopPages(accessToken, integration.gscSiteUrl, range, compareRange).catch(err => {
         console.error('[GSC] fetchGSCTopPages error:', err.message);
+        errors.topPages = err.message;
         return [];
       });
     }
@@ -112,9 +118,13 @@ export async function GET(request) {
     if (!section || section === 'topKeywords') {
       result.topQueries = await fetchGSCTopQueries(accessToken, integration.gscSiteUrl, range, compareRange).catch(err => {
         console.error('[GSC] fetchGSCTopQueries error:', err.message);
+        errors.topQueries = err.message;
         return [];
       });
     }
+
+    const hasTokenError = isAuthError(errors.gsc) || isAuthError(errors.topPages) || isAuthError(errors.topQueries);
+    if (hasTokenError) result.tokenError = true;
 
     return NextResponse.json(result);
   } catch (error) {

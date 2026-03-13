@@ -258,28 +258,28 @@ export async function POST(request) {
           return NextResponse.json({ error: 'Not connected' }, { status: 400 });
         }
 
-        let accessToken = integration.accessToken;
-        // Refresh token if expired
-        if (integration.tokenExpiresAt && new Date(integration.tokenExpiresAt) < new Date()) {
-          if (!integration.refreshToken) {
-            return NextResponse.json({ error: 'Token expired, reconnect required' }, { status: 401 });
-          }
-          const tokens = await refreshAccessToken(integration.refreshToken);
-          accessToken = tokens.access_token;
-          await prisma.googleIntegration.update({
-            where: { siteId },
-            data: {
-              accessToken: tokens.access_token,
-              tokenExpiresAt: new Date(Date.now() + tokens.expires_in * 1000),
-            },
-          });
-        }
-
         try {
+          let accessToken = integration.accessToken;
+          // Refresh token if expired
+          if (integration.tokenExpiresAt && new Date(integration.tokenExpiresAt) < new Date()) {
+            if (!integration.refreshToken) {
+              return NextResponse.json({ properties: [], needsScopes: true });
+            }
+            const tokens = await refreshAccessToken(integration.refreshToken);
+            accessToken = tokens.access_token;
+            await prisma.googleIntegration.update({
+              where: { siteId },
+              data: {
+                accessToken: tokens.access_token,
+                tokenExpiresAt: new Date(Date.now() + tokens.expires_in * 1000),
+              },
+            });
+          }
+
           const properties = await listGAProperties(accessToken);
           return NextResponse.json({ properties });
         } catch (err) {
-          // If scope is insufficient, tell the client to re-auth with GA scopes
+          // Auth error or token refresh failed — tell client to re-auth
           console.error('[API/integrations/google] list-properties failed:', err.message);
           return NextResponse.json({ properties: [], needsScopes: true });
         }
@@ -293,23 +293,23 @@ export async function POST(request) {
           return NextResponse.json({ error: 'Not connected' }, { status: 400 });
         }
 
-        let accessToken = integration.accessToken;
-        if (integration.tokenExpiresAt && new Date(integration.tokenExpiresAt) < new Date()) {
-          if (!integration.refreshToken) {
-            return NextResponse.json({ error: 'Token expired, reconnect required' }, { status: 401 });
-          }
-          const tokens = await refreshAccessToken(integration.refreshToken);
-          accessToken = tokens.access_token;
-          await prisma.googleIntegration.update({
-            where: { siteId },
-            data: {
-              accessToken: tokens.access_token,
-              tokenExpiresAt: new Date(Date.now() + tokens.expires_in * 1000),
-            },
-          });
-        }
-
         try {
+          let accessToken = integration.accessToken;
+          if (integration.tokenExpiresAt && new Date(integration.tokenExpiresAt) < new Date()) {
+            if (!integration.refreshToken) {
+              return NextResponse.json({ sites: [], needsScopes: true });
+            }
+            const tokens = await refreshAccessToken(integration.refreshToken);
+            accessToken = tokens.access_token;
+            await prisma.googleIntegration.update({
+              where: { siteId },
+              data: {
+                accessToken: tokens.access_token,
+                tokenExpiresAt: new Date(Date.now() + tokens.expires_in * 1000),
+              },
+            });
+          }
+
           const sites = await listGSCSites(accessToken);
           return NextResponse.json({ sites });
         } catch (err) {

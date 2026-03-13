@@ -269,6 +269,7 @@ export default function DashboardContent({ translations }) {
       );
       if (!res.ok) throw new Error('Failed to fetch GSC KPIs');
       const json = await res.json();
+      if (json.tokenError) setData(prev => prev ? { ...prev, tokenError: true } : prev);
       setGscData(json.gsc);
     } catch (err) {
       console.error('GSC KPIs fetch error:', err);
@@ -294,6 +295,7 @@ export default function DashboardContent({ translations }) {
       );
       if (!res.ok) throw new Error('Failed to fetch keywords');
       const json = await res.json();
+      if (json.tokenError) setData(prev => prev ? { ...prev, tokenError: true } : prev);
       setKeywordsData(json.topQueries || []);
     } catch (err) {
       console.error('Keywords fetch error:', err);
@@ -319,6 +321,7 @@ export default function DashboardContent({ translations }) {
       );
       if (!res.ok) throw new Error('Failed to fetch top pages');
       const json = await res.json();
+      if (json.tokenError) setData(prev => prev ? { ...prev, tokenError: true } : prev);
       setPagesData(json.topPages || []);
     } catch (err) {
       console.error('Top pages fetch error:', err);
@@ -1891,10 +1894,10 @@ export default function DashboardContent({ translations }) {
           {/* Top Keywords from GSC */}
           {loading ? (
             <SectionSkeleton height={250} />
-          ) : data?.gscConnected && (data?.topQueries?.length > 0 || keywordsData !== null) ? (
+          ) : data?.gscConnected && (data?.topQueries?.length > 0 || keywordsData !== null || data?.tokenError) ? (
             <DashboardCard
               title={t.topKeywords || 'Top Keywords'}
-              headerRight={
+              headerRight={!data?.tokenError ?
                 <DateRangeSelect
                   preset={keywordsPreset}
                   onPresetChange={makePresetHandler(setKeywordsPreset, setKeywordsStartDate, setKeywordsEndDate)}
@@ -1904,9 +1907,17 @@ export default function DashboardContent({ translations }) {
                   onEndChange={setKeywordsEndDate}
                   loading={keywordsLoading}
                 />
-              }
+              : null}
             >
-              {keywordsLoading ? (
+              {data?.tokenError ? (
+                <div className={styles.chartPlaceholder}>
+                  <Activity size={48} className={styles.chartPlaceholderIcon} />
+                  <p>{t.tokenError}</p>
+                  <a href="/dashboard/settings?tab=integrations&reconnect=google" className={styles.reconnectLink}>
+                    {t.reconnectGoogle}
+                  </a>
+                </div>
+              ) : keywordsLoading ? (
                 <div className={styles.chartPlaceholder}>
                   <Activity size={48} className={`${styles.chartPlaceholderIcon} ${styles.spinning}`} />
                 </div>
@@ -1938,10 +1949,10 @@ export default function DashboardContent({ translations }) {
           {/* Top Pages from GSC */}
           {loading ? (
             <SectionSkeleton height={250} />
-          ) : data?.gscConnected && (data?.topPages?.length > 0 || pagesData !== null) ? (
+          ) : data?.gscConnected && (data?.topPages?.length > 0 || pagesData !== null || data?.tokenError) ? (
             <DashboardCard
               title={t.topPages}
-              headerRight={
+              headerRight={!data?.tokenError ?
                 <DateRangeSelect
                   preset={pagesPreset}
                   onPresetChange={makePresetHandler(setPagesPreset, setPagesStartDate, setPagesEndDate)}
@@ -1951,9 +1962,17 @@ export default function DashboardContent({ translations }) {
                   onEndChange={setPagesEndDate}
                   loading={pagesLoading}
                 />
-              }
+              : null}
             >
-              {pagesLoading ? (
+              {data?.tokenError ? (
+                <div className={styles.chartPlaceholder}>
+                  <Activity size={48} className={styles.chartPlaceholderIcon} />
+                  <p>{t.tokenError}</p>
+                  <a href="/dashboard/settings?tab=integrations&reconnect=google" className={styles.reconnectLink}>
+                    {t.reconnectGoogle}
+                  </a>
+                </div>
+              ) : pagesLoading ? (
                 <div className={styles.chartPlaceholder}>
                   <Activity size={48} className={`${styles.chartPlaceholderIcon} ${styles.spinning}`} />
                 </div>

@@ -113,7 +113,7 @@ export async function GET(request) {
 
     // Helper: check if an error is an auth/token error (401/403)
     const isAuthError = (errMsg) =>
-      /\b(401|403|UNAUTHENTICATED|PERMISSION_DENIED|invalid_grant)\b/i.test(errMsg || '');
+      /\b(401|403|UNAUTHENTICATED|PERMISSION_DENIED|invalid_grant|CREDENTIALS_MISSING)\b/i.test(errMsg || '');
 
     // Fetch data in parallel
     const promises = {};
@@ -159,7 +159,8 @@ export async function GET(request) {
     });
 
     // Only flag tokenError for actual auth failures (401/403), not transient API errors
-    const hasTokenError = isAuthError(errors.ga) || isAuthError(errors.trafficChart);
+    const hasTokenError = isAuthError(errors.ga) || isAuthError(errors.trafficChart)
+      || isAuthError(errors.gsc) || isAuthError(errors.topPages) || isAuthError(errors.topQueries);
 
     console.log('[Dashboard Stats] Results:', {
       gaConnected: integration.gaConnected,

@@ -150,18 +150,12 @@ function resolveChangePercent(d) {
   return 0;
 }
 
-// Cache for entity URL lookups to avoid repeated requests
-const entityCache = new Map();
-
 function EntityLinkCell({ url, siteId, translations }) {
   const [entity, setEntity] = useState(undefined); // undefined=loading, null=not found, object=found
   const labels = translations?.agent?.detailLabels || {};
 
   useEffect(() => {
     if (!url || !siteId) { setEntity(null); return; }
-
-    const cached = entityCache.get(url);
-    if (cached !== undefined) { setEntity(cached); return; }
 
     let cancelled = false;
     (async () => {
@@ -174,10 +168,8 @@ function EntityLinkCell({ url, siteId, translations }) {
         if (!res.ok) throw new Error();
         const data = await res.json();
         const found = data.urlMap?.[url] || null;
-        entityCache.set(url, found);
         if (!cancelled) setEntity(found);
       } catch {
-        entityCache.set(url, null);
         if (!cancelled) setEntity(null);
       }
     })();

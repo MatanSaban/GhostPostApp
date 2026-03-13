@@ -42,20 +42,34 @@ export async function POST(request) {
     // Limit to prevent abuse
     const lookupUrls = urls.slice(0, 50);
 
-    // Extract pathnames for fallback matching
-    const urlPatterns = lookupUrls.map(u => {
+    // Build URL variants for flexible matching (http↔https, trailing slash)
+    const allVariants = new Set(lookupUrls);
+    for (const u of lookupUrls) {
       try {
-        return new URL(u).pathname.replace(/\/$/, '') || '/';
-      } catch {
-        return u;
-      }
-    });
+        const parsed = new URL(u);
+        const withSlash = parsed.href.endsWith('/') ? parsed.href : parsed.href + '/';
+        const withoutSlash = parsed.href.endsWith('/') ? parsed.href.slice(0, -1) : parsed.href;
+        allVariants.add(withSlash);
+        allVariants.add(withoutSlash);
+        if (parsed.protocol === 'https:') {
+          const http = new URL(u);
+          http.protocol = 'http:';
+          allVariants.add(http.href);
+          allVariants.add(http.href.endsWith('/') ? http.href.slice(0, -1) : http.href + '/');
+        } else if (parsed.protocol === 'http:') {
+          const https = new URL(u);
+          https.protocol = 'https:';
+          allVariants.add(https.href);
+          allVariants.add(https.href.endsWith('/') ? https.href.slice(0, -1) : https.href + '/');
+        }
+      } catch {}
+    }
 
-    // Find entities by exact URL match
+    // Find entities by URL match (including variants)
     const entities = await prisma.siteEntity.findMany({
       where: {
         siteId,
-        url: { in: lookupUrls },
+        url: { in: [...allVariants] },
       },
       select: {
         id: true,
@@ -67,10 +81,23 @@ export async function POST(request) {
     });
 
     // Build URL → entity map
+    // Map entities back to original lookup URLs using normalized comparison
     const urlMap = {};
+    const normalize = (u) => {
+      try { const p = new URL(u); return p.hostname + p.pathname.replace(/\/$/, ''); } catch { return u; }
+    };
+    const entityByNorm = {};
     for (const entity of entities) {
       if (entity.url) {
-        urlMap[entity.url] = {
+        const norm = normalize(entity.url);
+        entityByNorm[norm] = entity;
+      }
+    }
+    for (const lookupUrl of lookupUrls) {
+      const norm = normalize(lookupUrl);
+      const entity = entityByNorm[norm];
+      if (entity) {
+        urlMap[lookupUrl] = {
           entityId: entity.id,
           entityTypeSlug: entity.entityType?.slug,
           entityTypeName: entity.entityType?.name,
