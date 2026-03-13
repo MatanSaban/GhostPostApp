@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { TrendingUp, TrendingDown, Minus, Search, Loader2, Tag, Trash2, Plus, X, Sparkles, BarChart3, Crosshair, Trophy, ChevronDown, Info, Navigation, ShoppingCart, DollarSign, ExternalLink, FileText, Wand2 } from 'lucide-react';
 import { useSite } from '@/app/context/site-context';
 import { useTranslation } from '@/app/context/locale-context';
+import { usePermissions } from '@/app/hooks/usePermissions';
 import { Skeleton } from '@/app/dashboard/components/Skeleton';
 import GeneratePostModal from './GeneratePostModal';
 import styles from '../page.module.css';
@@ -105,6 +106,13 @@ function KeywordsPageSkeleton() {
 export function KeywordsContent() {
   const { t } = useTranslation();
   const { selectedSite, isLoading: isSiteLoading } = useSite();
+  const { canCreate, canEdit, canDelete, MODULES } = usePermissions();
+  
+  // Permission checks for keywords
+  const canCreateKeywords = canCreate(MODULES.KEYWORDS);
+  const canEditKeywords = canEdit(MODULES.KEYWORDS);
+  const canDeleteKeywords = canDelete(MODULES.KEYWORDS);
+  
   const [keywords, setKeywords] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [filter, setFilter] = useState('all'); // all, tracking, targeting, ranking, archived
@@ -424,43 +432,46 @@ export function KeywordsContent() {
       </div>
 
       {/* Add Keyword */}
-      {showAddForm ? (
-        <div className={styles.addKeywordCard}>
-          <form onSubmit={handleAddKeyword} className={styles.addKeywordForm}>
-            <input
-              type="text"
-              value={newKeyword}
-              onChange={(e) => setNewKeyword(e.target.value)}
-              placeholder={t('keywordStrategy.enterKeyword')}
-              className={styles.addKeywordInput}
-              autoFocus
-            />
-            <button
-              type="submit"
-              className={styles.addKeywordBtn}
-              disabled={addingKeyword || !newKeyword.trim()}
-            >
-              {addingKeyword ? <Loader2 size={14} className={styles.spinner} /> : <Plus size={14} />}
-              {t('common.add')}
-            </button>
-            <button
-              type="button"
-              className={styles.addKeywordCancel}
-              onClick={() => { setShowAddForm(false); setAddError(''); }}
-            >
-              <X size={14} />
-            </button>
-          </form>
-          {addError && <p className={styles.addError}>{addError}</p>}
-        </div>
-      ) : (
-        <button
-          className={styles.addKeywordToggle}
-          onClick={() => setShowAddForm(true)}
-        >
-          <Plus size={14} />
-          {t('keywordStrategy.addKeyword')}
-        </button>
+      {/* Add Keyword Form - Only show if user can create keywords */}
+      {canCreateKeywords && (
+        showAddForm ? (
+          <div className={styles.addKeywordCard}>
+            <form onSubmit={handleAddKeyword} className={styles.addKeywordForm}>
+              <input
+                type="text"
+                value={newKeyword}
+                onChange={(e) => setNewKeyword(e.target.value)}
+                placeholder={t('keywordStrategy.enterKeyword')}
+                className={styles.addKeywordInput}
+                autoFocus
+              />
+              <button
+                type="submit"
+                className={styles.addKeywordBtn}
+                disabled={addingKeyword || !newKeyword.trim()}
+              >
+                {addingKeyword ? <Loader2 size={14} className={styles.spinner} /> : <Plus size={14} />}
+                {t('common.add')}
+              </button>
+              <button
+                type="button"
+                className={styles.addKeywordCancel}
+                onClick={() => { setShowAddForm(false); setAddError(''); }}
+              >
+                <X size={14} />
+              </button>
+            </form>
+            {addError && <p className={styles.addError}>{addError}</p>}
+          </div>
+        ) : (
+          <button
+            className={styles.addKeywordToggle}
+            onClick={() => setShowAddForm(true)}
+          >
+            <Plus size={14} />
+            {t('keywordStrategy.addKeyword')}
+          </button>
+        )
       )}
 
       {/* Filter Tabs */}
@@ -551,7 +562,8 @@ export function KeywordsContent() {
                         {kw.intents?.length > 0 ? (
                           <div 
                             className={styles.intentBadges}
-                            onClick={() => setEditingIntent(editingIntent === kw.id ? null : kw.id)}
+                            onClick={() => canEditKeywords && setEditingIntent(editingIntent === kw.id ? null : kw.id)}
+                            style={{ cursor: canEditKeywords ? 'pointer' : 'default' }}
                           >
                             {isUpdating ? (
                               <Loader2 size={12} className={styles.spinner} />
@@ -567,7 +579,7 @@ export function KeywordsContent() {
                               ))
                             )}
                           </div>
-                        ) : (
+                        ) : canEditKeywords ? (
                           <button 
                             className={styles.analyzeIntentBtn}
                             onClick={() => handleAnalyzeIntent(kw.id)}
@@ -576,8 +588,10 @@ export function KeywordsContent() {
                             {isUpdating ? <Loader2 size={12} className={styles.spinner} /> : <Sparkles size={12} />}
                             {t('keywordStrategy.setIntent')}
                           </button>
+                        ) : (
+                          <span className={styles.noPermission}>—</span>
                         )}
-                        {editingIntent === kw.id && (
+                        {canEditKeywords && editingIntent === kw.id && (
                           <div className={styles.dropdown}>
                             {intentOptions.map((opt) => {
                               const Icon = opt.icon;
@@ -656,11 +670,12 @@ export function KeywordsContent() {
                       <div className={styles.dropdownWrapper}>
                         <span 
                           className={`${styles.statusBadge} ${styles[`status${kw.status}`]}`}
-                          onClick={() => setEditingStatus(editingStatus === kw.id ? null : kw.id)}
+                          onClick={() => canEditKeywords && setEditingStatus(editingStatus === kw.id ? null : kw.id)}
+                          style={{ cursor: canEditKeywords ? 'pointer' : 'default' }}
                         >
                           {isUpdating ? <Loader2 size={12} className={styles.spinner} /> : (t(`keywordStrategy.statusLabels.${kw.status.toLowerCase()}`) || kw.status)}
                         </span>
-                        {editingStatus === kw.id && (
+                        {canEditKeywords && editingStatus === kw.id && (
                           <div className={styles.dropdown}>
                             {statusOptions.map((opt) => (
                               <button
@@ -677,13 +692,15 @@ export function KeywordsContent() {
                     </div>
                     {/* Actions */}
                     <div className={`${styles.cell} ${styles.actionsCell}`}>
-                      <button
-                        className={styles.deleteBtn}
-                        onClick={() => handleDeleteKeyword(kw.id)}
-                        title={t('common.delete')}
-                      >
-                        <Trash2 size={14} />
-                      </button>
+                      {canDeleteKeywords && (
+                        <button
+                          className={styles.deleteBtn}
+                          onClick={() => handleDeleteKeyword(kw.id)}
+                          title={t('common.delete')}
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      )}
                     </div>
                   </div>
                 );

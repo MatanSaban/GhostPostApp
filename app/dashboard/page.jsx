@@ -1,15 +1,9 @@
-import { getTranslations } from '@/i18n/server';
+import { getTranslations, getLocaleInfo } from '@/i18n/server';
 import DashboardContent from './components/DashboardContent';
 
 export default async function DashboardPage() {
   const t = await getTranslations();
-
-  const activityData = [
-    { action: t('dashboard.activity.publishedArticles', { count: 3 }), time: t('time.hoursAgo', { count: 2 }), dotColor: 'success' },
-    { action: t('dashboard.activity.fixedLinks', { count: 12 }), time: t('time.hoursAgo', { count: 5 }), dotColor: 'success' },
-    { action: t('dashboard.activity.newKeywords', { count: 8 }), time: t('time.daysAgo', { count: 1 }), dotColor: 'info' },
-    { action: t('dashboard.activity.updatedMeta', { count: 15 }), time: t('time.daysAgo', { count: 2 }), dotColor: 'success' },
-  ];
+  const { dictionary } = await getLocaleInfo();
 
   const translations = {
     commandCenter: t('dashboard.commandCenter'),
@@ -113,6 +107,30 @@ export default async function DashboardPage() {
     dataFromGA: t('dashboard.tooltips.dataFromGA'),
     dataFromGSC: t('dashboard.tooltips.dataFromGSC'),
 
+    // KPI descriptions
+    kpiDescriptions: {
+      organicVisitors: t('dashboard.tooltips.kpiDescriptions.organicVisitors'),
+      totalPageViews: t('dashboard.tooltips.kpiDescriptions.totalPageViews'),
+      avgSessionDuration: t('dashboard.tooltips.kpiDescriptions.avgSessionDuration'),
+      sessions: t('dashboard.tooltips.kpiDescriptions.sessions'),
+      totalClicks: t('dashboard.tooltips.kpiDescriptions.totalClicks'),
+      totalImpressions: t('dashboard.tooltips.kpiDescriptions.totalImpressions'),
+      avgCtr: t('dashboard.tooltips.kpiDescriptions.avgCtr'),
+      avgPosition: t('dashboard.tooltips.kpiDescriptions.avgPosition'),
+    },
+    // KPI full descriptions for popups
+    kpiFullDescriptions: {
+      organicVisitors: dictionary.dashboard?.tooltips?.kpiFullDescriptions?.organicVisitors,
+      totalPageViews: dictionary.dashboard?.tooltips?.kpiFullDescriptions?.totalPageViews,
+      avgSessionDuration: dictionary.dashboard?.tooltips?.kpiFullDescriptions?.avgSessionDuration,
+      sessions: dictionary.dashboard?.tooltips?.kpiFullDescriptions?.sessions,
+      totalClicks: dictionary.dashboard?.tooltips?.kpiFullDescriptions?.totalClicks,
+      totalImpressions: dictionary.dashboard?.tooltips?.kpiFullDescriptions?.totalImpressions,
+      avgCtr: dictionary.dashboard?.tooltips?.kpiFullDescriptions?.avgCtr,
+      avgPosition: dictionary.dashboard?.tooltips?.kpiFullDescriptions?.avgPosition,
+      gotIt: t('dashboard.tooltips.kpiFullDescriptions.gotIt'),
+    },
+
     // AI Traffic
     aiTrafficTitle: t('dashboard.aiTraffic.title'),
     aiTotalSessions: t('dashboard.aiTraffic.totalAiSessions'),
@@ -143,8 +161,8 @@ export default async function DashboardPage() {
     keywords: t('nav.strategy.keywords'),
     siteAudit: t('nav.tools.siteAudit'),
 
-    // Activity data (pre-rendered on server)
-    activityData,
+    // Agent translations (nested object for AgentActivity component)
+    agent: dictionary.agent,
   };
 
   return <DashboardContent translations={translations} />;

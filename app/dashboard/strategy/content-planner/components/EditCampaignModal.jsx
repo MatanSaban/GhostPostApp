@@ -6,7 +6,7 @@ import { X, Save, Loader2, Trash2 } from 'lucide-react';
 import CampaignForm, { CAMPAIGN_COLORS } from '../../_shared/CampaignForm';
 import styles from '../page.module.css';
 
-export default function EditCampaignModal({ campaign, translations, onClose, onUpdated, onDeleted }) {
+export default function EditCampaignModal({ campaign, translations, onClose, onUpdated, onDeleted, canDelete = true }) {
   const t = translations;
   const [name, setName] = useState(campaign.name);
   const [color, setColor] = useState(campaign.color || CAMPAIGN_COLORS[0]);
@@ -85,40 +85,42 @@ export default function EditCampaignModal({ campaign, translations, onClose, onU
             />
 
             {/* Delete section */}
-            <div className={styles.formGroup}>
-              {!confirmDelete ? (
-                <button
-                  type="button"
-                  className={styles.deleteButton}
-                  onClick={() => setConfirmDelete(true)}
-                >
-                  <Trash2 size={14} />
-                  {t.delete}
-                </button>
-              ) : (
-                <div className={styles.deleteConfirm}>
-                  <p className={styles.deleteConfirmText}>{t.deleteConfirm}</p>
-                  <div className={styles.deleteConfirmActions}>
-                    <button
-                      type="button"
-                      className={styles.secondaryButton}
-                      onClick={() => setConfirmDelete(false)}
-                    >
-                      {t.cancel}
-                    </button>
-                    <button
-                      type="button"
-                      className={styles.deleteConfirmButton}
-                      onClick={handleDelete}
-                      disabled={deleting}
-                    >
-                      {deleting ? <Loader2 size={14} className={styles.spinner} /> : <Trash2 size={14} />}
-                      {t.confirmDelete}
-                    </button>
+            {canDelete && (
+              <div className={styles.formGroup}>
+                {!confirmDelete ? (
+                  <button
+                    type="button"
+                    className={styles.deleteButton}
+                    onClick={() => setConfirmDelete(true)}
+                  >
+                    <Trash2 size={14} />
+                    {t.delete}
+                  </button>
+                ) : (
+                  <div className={styles.deleteConfirm}>
+                    <p className={styles.deleteConfirmText}>{t.deleteConfirm}</p>
+                    <div className={styles.deleteConfirmActions}>
+                      <button
+                        type="button"
+                        className={styles.secondaryButton}
+                        onClick={() => setConfirmDelete(false)}
+                      >
+                        {t.cancel}
+                      </button>
+                      <button
+                        type="button"
+                        className={styles.deleteConfirmButton}
+                        onClick={handleDelete}
+                        disabled={deleting}
+                      >
+                        {deleting ? <Loader2 size={14} className={styles.spinner} /> : <Trash2 size={14} />}
+                        {t.confirmDelete}
+                      </button>
+                    </div>
                   </div>
-                </div>
-              )}
-            </div>
+                )}
+              </div>
+            )}
           </div>
 
           <div className={styles.modalFooter}>

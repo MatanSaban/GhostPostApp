@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import prisma from '@/lib/prisma';
 import { syncAllEntities, getSiteInfo, getMenus, getPosts } from '@/lib/wp-api-client';
-import { acquireSyncLock, releaseSyncLock } from '@/lib/entity-sync';
+import { acquireSyncLock, releaseSyncLock, buildEntityData } from '@/lib/entity-sync';
 
 const SESSION_COOKIE = 'user_session';
 const LOCALE_COOKIE = 'ghost-post-locale';
@@ -315,6 +315,7 @@ async function performFullSync(site, messages) {
     menus: 0,
     updated: 0,
     created: 0,
+    deleted: 0,
   };
   const errors = [];
 
@@ -481,10 +482,11 @@ async function performFullSync(site, messages) {
       try {
         console.log(`Syncing entity type: ${entityType.slug} (${entityType.name})`);
         const entitiesCount = await syncEntitiesForType(site, entityType);
-        console.log(`Synced ${entityType.slug}: ${entitiesCount.total} total, ${entitiesCount.created} created, ${entitiesCount.updated} updated`);
+        console.log(`Synced ${entityType.slug}: ${entitiesCount.total} total, ${entitiesCount.created} created, ${entitiesCount.updated} updated, ${entitiesCount.deleted} deleted`);
         stats.entities += entitiesCount.total;
         stats.created += entitiesCount.created;
         stats.updated += entitiesCount.updated;
+        stats.deleted += entitiesCount.deleted;
       } catch (e) {
         console.error(`Error syncing ${entityType.slug}:`, e.message);
         errors.push({ type: 'entities', slug: entityType.slug, error: e.message });
@@ -517,10 +519,11 @@ async function performFullSync(site, messages) {
  * Sync entities for a specific entity type using the authenticated plugin API
  */
 async function syncEntitiesForType(site, entityType) {
-  const stats = { total: 0, created: 0, updated: 0 };
+  const stats = { total: 0, created: 0, updated: 0, deleted: 0 };
   
   // Determine the post type slug to use with the plugin API
   const postTypeSlug = entityType.slug;
+  const seenExternalIds = new Set();
   
   let page = 1;
   let hasMore = true;
@@ -542,34 +545,9 @@ async function syncEntitiesForType(site, entityType) {
       // Process each post
       for (const post of posts) {
         try {
-          const entityData = {
-            title: post.title || 'Untitled',
-            slug: post.slug,
-            url: post.permalink || post.link,
-            excerpt: post.excerpt || null,
-            content: post.content || null,
-            status: mapPostStatus(post.status),
-            featuredImage: post.featured_image || null,
-            publishedAt: post.date_gmt ? new Date(String(post.date_gmt).replace(' ', 'T') + 'Z') : (post.date ? new Date(String(post.date).replace(' ', 'T')) : null),
-            scheduledAt: post.status === 'future' && post.date_gmt ? new Date(String(post.date_gmt).replace(' ', 'T') + 'Z') : (post.status === 'future' && post.date ? new Date(String(post.date).replace(' ', 'T')) : null),
-            externalId: String(post.id),
-            metadata: {
-              author: post.author_name || null,
-              authorId: post.author,
-              categories: post.categories || [],
-              tags: post.tags || [],
-              modified: post.modified,
-              template: post.template || null,
-              menuOrder: post.menu_order || 0,
-              parent: post.parent || null,
-              taxonomies: post.taxonomies || {},
-              meta: post.meta || {},
-            },
-            // SEO data - plugin returns 'seo' not 'seo_data'
-            seoData: post.seo || null,
-            // ACF data - plugin returns 'acf'
-            acfData: post.acf || null,
-          };
+          seenExternalIds.add(String(post.id));
+
+          const entityData = buildEntityData(post);
 
           // Check if entity exists - first by externalId, then by slug
           let existing = await prisma.siteEntity.findFirst({
@@ -625,6 +603,27 @@ async function syncEntitiesForType(site, entityType) {
     } catch (e) {
       console.error(`Error fetching ${postTypeSlug} page ${page}:`, e);
       hasMore = false;
+    }
+  }
+
+  // Remove entities that have an externalId but no longer exist on WordPress
+  // Only delete entities with externalId (crawl-created entities without externalId are left alone)
+  if (seenExternalIds.size > 0) {
+    const staleEntities = await prisma.siteEntity.findMany({
+      where: {
+        siteId: site.id,
+        entityTypeId: entityType.id,
+        externalId: { not: null, notIn: [...seenExternalIds] },
+      },
+      select: { id: true, title: true, externalId: true },
+    });
+
+    if (staleEntities.length > 0) {
+      await prisma.siteEntity.deleteMany({
+        where: { id: { in: staleEntities.map(e => e.id) } },
+      });
+      stats.deleted = staleEntities.length;
+      console.log(`[Populate] Removed ${staleEntities.length} deleted ${postTypeSlug} entities`);
     }
   }
 

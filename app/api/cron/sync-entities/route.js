@@ -98,7 +98,7 @@ export async function GET(request) {
         });
 
         console.log(
-          `[CronSyncEntities] ${site.url}: ${stats.total} synced (${stats.created} new, ${stats.updated} updated)`,
+          `[CronSyncEntities] ${site.url}: ${stats.total} checked (${stats.created} new, ${stats.updated} updated, ${stats.unchanged} unchanged)`,
         );
       } catch (err) {
         console.error(`[CronSyncEntities] Error syncing site ${site.url}:`, err.message);

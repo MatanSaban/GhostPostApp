@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect, useMemo, useCallback } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
@@ -30,6 +30,7 @@ import FailedPublishModal from './FailedPublishModal';
 import { useLocale } from '@/app/context/locale-context';
 import { useUser } from '@/app/context/user-context';
 import { useSite } from '@/app/context/site-context';
+import { useNotifications } from '@/app/context/notifications-context';
 import { usePermissions } from '@/app/hooks/usePermissions';
 import styles from './DashboardHeader.module.css';
 
@@ -90,11 +91,9 @@ function timeAgo(dateStr, t) {
   return new Date(dateStr).toLocaleDateString();
 }
 
-// Polling interval for notifications (30s)
-const NOTIFICATION_POLL_INTERVAL = 30_000;
-
 // Mapping of path segments to translation keys
 const segmentTranslationKeys = {
+  'agent': 'nav.agent',
   'site-interview': 'nav.siteInterview',
   'site-profile': 'nav.strategy.siteProfile',
   'content-planner': 'nav.strategy.contentPlanner',
@@ -144,13 +143,19 @@ export function DashboardHeader() {
   const { user: contextUser, clearUser } = useUser();
   const { selectedSite } = useSite();
   const { isOwner, canAccessTab } = usePermissions();
+  const {
+    notifications,
+    unreadCount,
+    markAsRead,
+    markAllAsRead,
+    toggleRead,
+    deleteNotification,
+  } = useNotifications();
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [showCreditsModal, setShowCreditsModal] = useState(false);
   const [failedPublishData, setFailedPublishData] = useState(null);
-  const [notifications, setNotifications] = useState([]);
-  const [unreadCount, setUnreadCount] = useState(0);
   const [entityTypes, setEntityTypes] = useState([]);
   const [entityTitle, setEntityTitle] = useState(null);
   const [entityId, setEntityId] = useState(null);
@@ -202,26 +207,6 @@ export function DashboardHeader() {
       aiCreditsLimit: aiCreditsLimit,
     };
   }, [contextUser, locale]);
-
-  // ─── Fetch notifications from API ─────────────────────────
-  const fetchNotifications = useCallback(async () => {
-    try {
-      const res = await fetch('/api/notifications?limit=20');
-      if (!res.ok) return;
-      const data = await res.json();
-      setNotifications(data.notifications || []);
-      setUnreadCount(data.unreadCount || 0);
-    } catch {
-      // silent
-    }
-  }, []);
-
-  // Fetch on mount + poll every 30s
-  useEffect(() => {
-    fetchNotifications();
-    const interval = setInterval(fetchNotifications, NOTIFICATION_POLL_INTERVAL);
-    return () => clearInterval(interval);
-  }, [fetchNotifications]);
 
   // Check if user can access account/subscription features
   // Owner OR has access to account + subscription settings tab
@@ -308,17 +293,7 @@ export function DashboardHeader() {
     }
 
     if (!notification.read) {
-      // Optimistic update
-      setNotifications(prev =>
-        prev.map(n => n.id === notification.id ? { ...n, read: true } : n)
-      );
-      setUnreadCount(prev => Math.max(0, prev - 1));
-      // Persist
-      fetch('/api/notifications', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: notification.id }),
-      }).catch(() => {});
+      markAsRead(notification.id);
     }
 
     if (notification.type !== 'content_publish_failed') {
@@ -326,44 +301,20 @@ export function DashboardHeader() {
     }
   };
 
-  const markAllAsRead = async () => {
-    setNotifications(prev => prev.map(n => ({ ...n, read: true })));
-    setUnreadCount(0);
-    fetch('/api/notifications', {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ all: true }),
-    }).catch(() => {});
+  const handleMarkAllAsRead = async () => {
+    markAllAsRead();
   };
 
-  const toggleReadStatus = async (e, notification) => {
+  const handleToggleRead = async (e, notification) => {
     e.stopPropagation();
     e.preventDefault();
-    const newRead = !notification.read;
-    // Optimistic update
-    setNotifications(prev =>
-      prev.map(n => n.id === notification.id ? { ...n, read: newRead } : n)
-    );
-    setUnreadCount(prev => newRead ? Math.max(0, prev - 1) : prev + 1);
-    // Persist
-    fetch('/api/notifications', {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id: notification.id, read: newRead }),
-    }).catch(() => {});
+    toggleRead(notification.id);
   };
 
-  const clearNotification = async (e, id) => {
+  const handleDeleteNotification = async (e, id) => {
     e.stopPropagation();
     e.preventDefault();
-    const wasUnread = notifications.find(n => n.id === id && !n.read);
-    setNotifications(prev => prev.filter(n => n.id !== id));
-    if (wasUnread) setUnreadCount(prev => Math.max(0, prev - 1));
-    fetch('/api/notifications', {
-      method: 'DELETE',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id }),
-    }).catch(() => {});
+    deleteNotification(id);
   };
 
   // Get breadcrumb items from current path
@@ -457,7 +408,7 @@ export function DashboardHeader() {
                 {unreadCount > 0 && (
                   <button 
                     className={styles.markAllReadButton}
-                    onClick={markAllAsRead}
+                    onClick={handleMarkAllAsRead}
                   >
                     <CheckCheck size={14} />
                     {t('notifications.markAllRead')}
@@ -477,8 +428,17 @@ export function DashboardHeader() {
                     const titleText = notification.title?.startsWith('notifications.')
                       ? t(notification.title, notification.data || {})
                       : notification.title;
+                    // Pre-translate fields for entity webhook notifications
+                    const notifData = notification.data || {};
+                    let interpolationData = notifData;
+                    if (notification.type === 'entity_webhook_update') {
+                      const slug = notifData.entityTypeSlug || 'post';
+                      const entityType = t(`notifications.entityWebhook.entityTypes.${slug}`) || t('notifications.entityWebhook.entityTypes.default');
+                      const action = notifData.action ? (t(`notifications.entityWebhook.actions.${notifData.action}`) || notifData.action) : '';
+                      interpolationData = { ...notifData, entityType, action };
+                    }
                     const messageText = notification.message?.startsWith('notifications.')
-                      ? t(notification.message, notification.data || {})
+                      ? t(notification.message, interpolationData)
                       : notification.message;
                     
                     // Use different element for content_publish_failed (modal) vs others (link)
@@ -507,14 +467,14 @@ export function DashboardHeader() {
                         <div className={styles.notificationItemActions}>
                           <button
                             className={styles.notificationAction}
-                            onClick={(e) => toggleReadStatus(e, notification)}
+                            onClick={(e) => handleToggleRead(e, notification)}
                             title={notification.read ? t('notifications.markUnread') : t('notifications.markRead')}
                           >
                             {notification.read ? <Mail size={14} /> : <MailOpen size={14} />}
                           </button>
                           <button 
                             className={styles.notificationClose}
-                            onClick={(e) => clearNotification(e, notification.id)}
+                            onClick={(e) => handleDeleteNotification(e, notification.id)}
                           >
                             <X size={14} />
                           </button>

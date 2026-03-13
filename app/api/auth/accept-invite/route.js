@@ -21,7 +21,7 @@ export async function POST(request) {
     }
 
     // Find the member invitation
-    const member = await prisma.accountMember.findUnique({
+    const member = await prisma.accountMember.findFirst({
       where: { inviteToken: token },
       include: {
         account: {

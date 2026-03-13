@@ -9,7 +9,8 @@ import {
 } from 'lucide-react';
 import GeneratePostModal from '../strategy/keywords/components/GeneratePostModal';
 import { useSite } from '@/app/context/site-context';
-import { StatsCard, DashboardCard, ActivityItem, QuickActions, ProgressBar, KpiSlider } from '../components';
+import { StatsCard, DashboardCard, QuickActions, ProgressBar, KpiSlider } from '../components';
+import AgentActivity from './AgentActivity';
 import { ArrowIcon } from '@/app/components/ui/arrow-icon';
 import { useModalResize, ModalResizeButton } from '@/app/components/ui/ModalResizeButton';
 import styles from '../page.module.css';
@@ -117,6 +118,9 @@ export default function DashboardContent({ translations }) {
   const [pagesEndDate, setPagesEndDate] = useState(pagesDefault.end);
   const [pagesLoading, setPagesLoading] = useState(false);
   const [pagesData, setPagesData] = useState(null);
+
+  // Agent insights state (for section ordering)
+  const [hasAgentInsights, setHasAgentInsights] = useState(false);
 
   // AI Traffic date range
   const [aiPreset, setAiPreset] = useState('30d');
@@ -581,6 +585,9 @@ export default function DashboardContent({ translations }) {
       trendTooltip: cardTip(t.organicVisitors, activeGa.visitorsChange, gaPeriod),
       badge: <GAIcon />,
       badgeTooltip: t.dataFromGA,
+      description: t.kpiDescriptions?.organicVisitors,
+      fullDescription: t.kpiFullDescriptions?.organicVisitors,
+      gotItLabel: t.kpiFullDescriptions?.gotIt,
       color: 'purple',
     },
     {
@@ -592,6 +599,9 @@ export default function DashboardContent({ translations }) {
       trendTooltip: cardTip(t.totalPageViews, activeGa.pageViewsChange, gaPeriod),
       badge: <GAIcon />,
       badgeTooltip: t.dataFromGA,
+      description: t.kpiDescriptions?.totalPageViews,
+      fullDescription: t.kpiFullDescriptions?.totalPageViews,
+      gotItLabel: t.kpiFullDescriptions?.gotIt,
       color: 'blue',
     },
     {
@@ -603,6 +613,9 @@ export default function DashboardContent({ translations }) {
       trendTooltip: cardTip(t.avgSessionDuration, activeGa.avgSessionDurationChange, gaPeriod),
       badge: <GAIcon />,
       badgeTooltip: t.dataFromGA,
+      description: t.kpiDescriptions?.avgSessionDuration,
+      fullDescription: t.kpiFullDescriptions?.avgSessionDuration,
+      gotItLabel: t.kpiFullDescriptions?.gotIt,
       color: 'orange',
     },
     {
@@ -614,6 +627,9 @@ export default function DashboardContent({ translations }) {
       trendTooltip: cardTip(t.sessions, activeGa.sessionsChange, gaPeriod),
       badge: <GAIcon />,
       badgeTooltip: t.dataFromGA,
+      description: t.kpiDescriptions?.sessions,
+      fullDescription: t.kpiFullDescriptions?.sessions,
+      gotItLabel: t.kpiFullDescriptions?.gotIt,
       color: 'green',
     },
   ] : null;
@@ -632,6 +648,9 @@ export default function DashboardContent({ translations }) {
       trendTooltip: cardTip(t.totalClicks, activeGsc.clicksChange, gscPeriod),
       badge: <GSCIcon />,
       badgeTooltip: t.dataFromGSC,
+      description: t.kpiDescriptions?.totalClicks,
+      fullDescription: t.kpiFullDescriptions?.totalClicks,
+      gotItLabel: t.kpiFullDescriptions?.gotIt,
       color: 'purple',
     },
     {
@@ -643,6 +662,9 @@ export default function DashboardContent({ translations }) {
       trendTooltip: cardTip(t.totalImpressions, activeGsc.impressionsChange, gscPeriod),
       badge: <GSCIcon />,
       badgeTooltip: t.dataFromGSC,
+      description: t.kpiDescriptions?.totalImpressions,
+      fullDescription: t.kpiFullDescriptions?.totalImpressions,
+      gotItLabel: t.kpiFullDescriptions?.gotIt,
       color: 'blue',
     },
     {
@@ -654,6 +676,9 @@ export default function DashboardContent({ translations }) {
       trendTooltip: cardTip(t.avgCtr, activeGsc.ctrChange, gscPeriod),
       badge: <GSCIcon />,
       badgeTooltip: t.dataFromGSC,
+      description: t.kpiDescriptions?.avgCtr,
+      fullDescription: t.kpiFullDescriptions?.avgCtr,
+      gotItLabel: t.kpiFullDescriptions?.gotIt,
       color: 'orange',
     },
     {
@@ -665,6 +690,9 @@ export default function DashboardContent({ translations }) {
       trendTooltip: cardTip(t.avgPosition, activeGsc.positionChange, gscPeriod),
       badge: <GSCIcon />,
       badgeTooltip: t.dataFromGSC,
+      description: t.kpiDescriptions?.avgPosition,
+      fullDescription: t.kpiFullDescriptions?.avgPosition,
+      gotItLabel: t.kpiFullDescriptions?.gotIt,
       color: 'green',
     },
   ] : null;
@@ -1778,8 +1806,11 @@ export default function DashboardContent({ translations }) {
                 )}
               </div>
               <KpiSlider>
-                {[...(gaCards || []), ...(gscCards || [])].map((kpi, index) => (
-                  <StatsCard key={index} {...kpi} />
+                {(gaCards || []).map((kpi, index) => (
+                  <StatsCard key={`ga-${index}`} {...kpi} loading={gaLoading} />
+                ))}
+                {(gscCards || []).map((kpi, index) => (
+                  <StatsCard key={`gsc-${index}`} {...kpi} loading={gscLoading} />
                 ))}
               </KpiSlider>
             </>
@@ -1943,6 +1974,9 @@ export default function DashboardContent({ translations }) {
 
         {/* End Column */}
         <div className={styles.endColumn}>
+          {/* AI Agent Activity — show first if it has insights */}
+          {hasAgentInsights && <AgentActivity translations={t} onInsightsLoaded={setHasAgentInsights} />}
+
           {/* AI Traffic Overview */}
           {loading ? (
             <>
@@ -2022,23 +2056,8 @@ export default function DashboardContent({ translations }) {
             </>
           ) : null}
 
-          {/* AI Agent Activity */}
-          <DashboardCard title={t.aiAgentActivity}>
-            <div className={styles.activityList}>
-              {(t.activityData || []).map((item, index) => (
-                <ActivityItem
-                  key={index}
-                  dotColor={item.dotColor}
-                  text={item.action}
-                  time={item.time}
-                />
-              ))}
-            </div>
-            <Link href="/dashboard/automations" className={styles.viewAllLink}>
-              {t.viewAllActivity}
-              <ArrowIcon size={16} />
-            </Link>
-          </DashboardCard>
+          {/* AI Agent Activity — show after AI Traffic if no insights */}
+          {!hasAgentInsights && <AgentActivity translations={t} onInsightsLoaded={setHasAgentInsights} />}
 
           {/* Quick Actions */}
           <DashboardCard title={t.quickActions}>

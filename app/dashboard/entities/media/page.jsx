@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 import { useSite } from '@/app/context/site-context';
 import { useLocale } from '@/app/context/locale-context';
+import { usePermissions, MODULES } from '@/app/hooks/usePermissions';
 import { ContentGridSkeleton, PageHeaderSkeleton } from '@/app/dashboard/components';
 import styles from './media.module.css';
 
@@ -33,6 +34,10 @@ export default function MediaPage() {
   const router = useRouter();
   const { selectedSite, isLoading: isSiteLoading } = useSite();
   const { t, isRtl } = useLocale();
+  const { canCreate, canEdit, canDelete } = usePermissions();
+  const canUploadMedia = canCreate(MODULES.ENTITIES);
+  const canEditMedia = canEdit(MODULES.ENTITIES);
+  const canDeleteMedia = canDelete(MODULES.ENTITIES);
   const fileInputRef = useRef(null);
   
   const [media, setMedia] = useState([]);
@@ -308,26 +313,30 @@ export default function MediaPage() {
               className={styles.searchInput}
             />
           </div>
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/*,video/*,application/pdf"
-            multiple
-            onChange={handleFileSelect}
-            className={styles.hiddenInput}
-          />
-          <button
-            onClick={() => fileInputRef.current?.click()}
-            disabled={isUploading}
-            className={styles.uploadButton}
-          >
-            {isUploading ? (
-              <Loader2 className={styles.spinIcon} />
-            ) : (
-              <Upload className={styles.buttonIcon} />
-            )}
-            {t('media.upload')}
-          </button>
+          {canUploadMedia && (
+            <>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*,video/*,application/pdf"
+                multiple
+                onChange={handleFileSelect}
+                className={styles.hiddenInput}
+              />
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                disabled={isUploading}
+                className={styles.uploadButton}
+              >
+                {isUploading ? (
+                  <Loader2 className={styles.spinIcon} />
+                ) : (
+                  <Upload className={styles.buttonIcon} />
+                )}
+                {t('media.upload')}
+              </button>
+            </>
+          )}
         </div>
       </div>
       
@@ -482,27 +491,31 @@ export default function MediaPage() {
               </div>
               
               <div className={styles.detailsActions}>
-                <button
-                  onClick={handleSave}
-                  disabled={isSaving}
-                  className={styles.saveButton}
-                >
-                  {isSaving ? (
-                    <Loader2 className={styles.spinIcon} />
-                  ) : saveSuccess ? (
-                    <Check />
-                  ) : (
-                    <Save />
-                  )}
-                  {t('common.save')}
-                </button>
-                <button
-                  onClick={handleDelete}
-                  className={styles.deleteButton}
-                >
-                  <Trash2 />
-                  {t('common.delete')}
-                </button>
+                {canEditMedia && (
+                  <button
+                    onClick={handleSave}
+                    disabled={isSaving}
+                    className={styles.saveButton}
+                  >
+                    {isSaving ? (
+                      <Loader2 className={styles.spinIcon} />
+                    ) : saveSuccess ? (
+                      <Check />
+                    ) : (
+                      <Save />
+                    )}
+                    {t('common.save')}
+                  </button>
+                )}
+                {canDeleteMedia && (
+                  <button
+                    onClick={handleDelete}
+                    className={styles.deleteButton}
+                  >
+                    <Trash2 />
+                    {t('common.delete')}
+                  </button>
+                )}
               </div>
             </div>
           </div>

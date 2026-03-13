@@ -1,7 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef } from 'react';
-import Link from 'next/link';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   Bell,
@@ -21,6 +20,7 @@ import {
   MailOpen,
 } from 'lucide-react';
 import { useLocale } from '@/app/context/locale-context';
+import { useNotifications } from '@/app/context/notifications-context';
 import styles from './page.module.css';
 
 // Notification type → icon mapping (same as DashboardHeader)
@@ -74,72 +74,44 @@ const PAGE_SIZE = 20;
 export default function NotificationsPage() {
   const { t, locale } = useLocale();
   const router = useRouter();
-  const [notifications, setNotifications] = useState([]);
-  const [unreadCount, setUnreadCount] = useState(0);
-  const [totalCount, setTotalCount] = useState(0);
-  const [hasMore, setHasMore] = useState(false);
-  const [nextCursor, setNextCursor] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  
+  // Get shared context - use directly for full sync
+  const {
+    notifications: contextNotifications,
+    unreadCount: contextUnreadCount,
+    totalCount: contextTotalCount,
+    isLoading: contextIsLoading,
+    hasMore: contextHasMore,
+    loadMore: contextLoadMore,
+    markAsRead,
+    markAllAsRead,
+    toggleRead,
+    deleteNotification,
+    deleteAllNotifications,
+    refresh,
+  } = useNotifications();
+
   const [activeFilter, setActiveFilter] = useState('all');
-  const [actionInProgress, setActionInProgress] = useState(null); // id of notification being acted on
+  const [actionInProgress, setActionInProgress] = useState(null);
   const observerRef = useRef(null);
   const loadMoreRef = useRef(null);
 
-  // Fetch notifications (initial or filter change)
-  const fetchNotifications = useCallback(async (filter, cursor = null) => {
-    try {
-      const params = new URLSearchParams({ limit: String(PAGE_SIZE) });
-
-      if (filter === 'unread') {
-        params.set('unreadOnly', 'true');
-      } else if (filter === 'read') {
-        params.set('readOnly', 'true');
-      }
-
-      if (cursor) params.set('cursor', cursor);
-
-      const res = await fetch(`/api/notifications?${params}`);
-      if (!res.ok) throw new Error('Failed to fetch');
-      return await res.json();
-    } catch (err) {
-      console.error('Failed to fetch notifications:', err);
-      return null;
+  // Filter notifications client-side based on active filter
+  const notifications = useMemo(() => {
+    if (activeFilter === 'unread') {
+      return contextNotifications.filter(n => !n.read);
     }
-  }, []);
-
-  // Initial load & filter change
-  useEffect(() => {
-    let cancelled = false;
-    setIsLoading(true);
-
-    fetchNotifications(activeFilter).then((data) => {
-      if (cancelled || !data) return;
-      setNotifications(data.notifications || []);
-      setUnreadCount(data.unreadCount || 0);
-      setTotalCount(data.totalCount || 0);
-      setHasMore(data.hasMore || false);
-      setNextCursor(data.nextCursor || null);
-      setIsLoading(false);
-    });
-
-    return () => { cancelled = true; };
-  }, [activeFilter, fetchNotifications]);
-
-  // Load more (infinite scroll)
-  const loadMore = useCallback(async () => {
-    if (isLoadingMore || !hasMore || !nextCursor) return;
-    setIsLoadingMore(true);
-
-    const data = await fetchNotifications(activeFilter, nextCursor);
-    if (data) {
-      setNotifications((prev) => [...prev, ...(data.notifications || [])]);
-      setUnreadCount(data.unreadCount || 0);
-      setHasMore(data.hasMore || false);
-      setNextCursor(data.nextCursor || null);
+    if (activeFilter === 'read') {
+      return contextNotifications.filter(n => n.read);
     }
-    setIsLoadingMore(false);
-  }, [isLoadingMore, hasMore, nextCursor, activeFilter, fetchNotifications]);
+    return contextNotifications;
+  }, [contextNotifications, activeFilter]);
+
+  // Derived counts
+  const unreadCount = contextUnreadCount;
+  const totalCount = contextTotalCount;
+  const isLoading = contextIsLoading;
+  const hasMore = contextHasMore;
 
   // Intersection Observer for infinite scroll
   useEffect(() => {
@@ -147,8 +119,8 @@ export default function NotificationsPage() {
 
     observerRef.current = new IntersectionObserver(
       (entries) => {
-        if (entries[0].isIntersecting && hasMore && !isLoadingMore) {
-          loadMore();
+        if (entries[0].isIntersecting && hasMore && !isLoading) {
+          contextLoadMore();
         }
       },
       { threshold: 0.5 }
@@ -159,115 +131,45 @@ export default function NotificationsPage() {
     }
 
     return () => observerRef.current?.disconnect();
-  }, [hasMore, isLoadingMore, loadMore]);
-
-  // Mark single notification as read
-  const markAsRead = async (id) => {
-    setActionInProgress(id);
-    setNotifications((prev) =>
-      prev.map((n) => (n.id === id ? { ...n, read: true } : n))
-    );
-    setUnreadCount((c) => Math.max(0, c - 1));
-    try {
-      const res = await fetch('/api/notifications', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id }),
-      });
-      if (res.ok) {
-        const data = await res.json();
-        setUnreadCount(data.unreadCount);
-      }
-    } catch { /* revert would go here */ }
-    setActionInProgress(null);
-  };
-
-  // Toggle read/unread for a notification
-  const toggleReadStatus = async (id) => {
-    const notification = notifications.find((n) => n.id === id);
-    if (!notification) return;
-    const newRead = !notification.read;
-    setActionInProgress(id);
-    setNotifications((prev) =>
-      prev.map((n) => (n.id === id ? { ...n, read: newRead } : n))
-    );
-    setUnreadCount((c) => newRead ? Math.max(0, c - 1) : c + 1);
-    try {
-      const res = await fetch('/api/notifications', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id, read: newRead }),
-      });
-      if (res.ok) {
-        const data = await res.json();
-        setUnreadCount(data.unreadCount);
-      }
-    } catch { /* silent */ }
-    setActionInProgress(null);
-  };
+  }, [hasMore, isLoading, contextLoadMore]);
 
   // Click on notification row — navigate to link and mark as read
-  const handleNotificationClick = (notification) => {
+  const handleNotificationClick = async (notification) => {
     if (!notification.read) {
-      markAsRead(notification.id);
+      setActionInProgress(notification.id);
+      await markAsRead(notification.id);
+      setActionInProgress(null);
     }
     if (notification.link) {
       router.push(notification.link);
     }
   };
 
-  // Mark all as read
-  const markAllAsRead = async () => {
+  // Handle mark all as read
+  const handleMarkAllAsRead = async () => {
     setActionInProgress('all-read');
-    // Optimistic
-    setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
-    setUnreadCount(0);
-
-    try {
-      await fetch('/api/notifications', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ all: true }),
-      });
-    } catch { /* silent */ }
+    await markAllAsRead();
     setActionInProgress(null);
   };
 
-  // Delete single notification
-  const deleteNotification = async (id) => {
+  // Handle toggle read status
+  const handleToggleRead = async (id) => {
     setActionInProgress(id);
-    const wasUnread = notifications.find((n) => n.id === id && !n.read);
-    // Optimistic
-    setNotifications((prev) => prev.filter((n) => n.id !== id));
-    setTotalCount((c) => Math.max(0, c - 1));
-    if (wasUnread) setUnreadCount((c) => Math.max(0, c - 1));
-
-    try {
-      await fetch('/api/notifications', {
-        method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id }),
-      });
-    } catch { /* silent */ }
+    await toggleRead(id);
     setActionInProgress(null);
   };
 
-  // Clear all notifications
-  const clearAll = async () => {
-    setActionInProgress('clear-all');
-    setNotifications([]);
-    setUnreadCount(0);
-    setTotalCount(0);
-    setHasMore(false);
-    setNextCursor(null);
+  // Handle delete notification
+  const handleDeleteNotification = async (id) => {
+    setActionInProgress(id);
+    await deleteNotification(id);
+    setActionInProgress(null);
+  };
 
-    try {
-      await fetch('/api/notifications', {
-        method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ all: true }),
-      });
-    } catch { /* silent */ }
+  // Handle clear all
+  const handleClearAll = async () => {
+    setActionInProgress('clear-all');
+    await deleteAllNotifications();
     setActionInProgress(null);
   };
 
@@ -335,7 +237,7 @@ export default function NotificationsPage() {
             {unreadCount > 0 && (
               <button
                 className={styles.headerAction}
-                onClick={markAllAsRead}
+                onClick={handleMarkAllAsRead}
                 disabled={actionInProgress === 'all-read'}
               >
                 <CheckCheck size={16} />
@@ -344,7 +246,7 @@ export default function NotificationsPage() {
             )}
             <button
               className={`${styles.headerAction} ${styles.danger}`}
-              onClick={clearAll}
+              onClick={handleClearAll}
               disabled={actionInProgress === 'clear-all'}
             >
               <Trash2 size={16} />
@@ -423,8 +325,17 @@ export default function NotificationsPage() {
                       const titleText = notification.title?.startsWith('notifications.')
                         ? t(notification.title, notification.data || {})
                         : notification.title;
+                      // Pre-translate fields for entity webhook notifications
+                      const notifData = notification.data || {};
+                      let interpolationData = notifData;
+                      if (notification.type === 'entity_webhook_update') {
+                        const slug = notifData.entityTypeSlug || 'post';
+                        const entityType = t(`notifications.entityWebhook.entityTypes.${slug}`) || t('notifications.entityWebhook.entityTypes.default');
+                        const action = notifData.action ? (t(`notifications.entityWebhook.actions.${notifData.action}`) || notifData.action) : '';
+                        interpolationData = { ...notifData, entityType, action };
+                      }
                       const messageText = notification.message?.startsWith('notifications.')
-                        ? t(notification.message, notification.data || {})
+                        ? t(notification.message, interpolationData)
                         : notification.message;
 
                       return (
@@ -454,7 +365,7 @@ export default function NotificationsPage() {
                           <div className={styles.notificationActions}>
                             <button
                               className={styles.actionBtn}
-                              onClick={(e) => { e.stopPropagation(); toggleReadStatus(notification.id); }}
+                              onClick={(e) => { e.stopPropagation(); handleToggleRead(notification.id); }}
                               title={notification.read ? t('notifications.markUnread') : t('notifications.markRead')}
                               disabled={actionInProgress === notification.id}
                             >
@@ -462,7 +373,7 @@ export default function NotificationsPage() {
                             </button>
                             <button
                               className={`${styles.actionBtn} ${styles.deleteBtn}`}
-                              onClick={(e) => { e.stopPropagation(); deleteNotification(notification.id); }}
+                              onClick={(e) => { e.stopPropagation(); handleDeleteNotification(notification.id); }}
                               title={t('notificationCenter.delete')}
                               disabled={actionInProgress === notification.id}
                             >
@@ -479,7 +390,7 @@ export default function NotificationsPage() {
 
             {/* Infinite scroll trigger */}
             <div ref={loadMoreRef} className={styles.loadMoreTrigger}>
-              {isLoadingMore && (
+              {isLoading && hasMore && (
                 <div className={styles.loadingMore}>
                   <Loader2 size={20} className={styles.spinner} />
                   <span>{t('notificationCenter.loadingMore')}</span>

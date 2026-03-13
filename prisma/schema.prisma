@@ -89,18 +89,42 @@ enum Permission {
   SITES_EDIT
   SITES_DELETE
 
-  // Content Management
-  CONTENT_VIEW
-  CONTENT_CREATE
-  CONTENT_EDIT
-  CONTENT_PUBLISH
-  CONTENT_DELETE
+  // Content Planner
+  CONTENT_PLANNER_VIEW
+  CONTENT_PLANNER_CREATE
+  CONTENT_PLANNER_EDIT
+  CONTENT_PLANNER_DELETE
+
+  // AI Content Wizard
+  AI_CONTENT_VIEW
+  AI_CONTENT_CREATE
+  AI_CONTENT_EDIT
+  AI_CONTENT_DELETE
+
+  // Entities Management
+  ENTITIES_VIEW
+  ENTITIES_CREATE
+  ENTITIES_EDIT
+  ENTITIES_PUBLISH
+  ENTITIES_DELETE
+
+  // Campaigns
+  CAMPAIGNS_VIEW
+  CAMPAIGNS_CREATE
+  CAMPAIGNS_EDIT
+  CAMPAIGNS_DELETE
 
   // Keyword Management
   KEYWORDS_VIEW
   KEYWORDS_CREATE
   KEYWORDS_EDIT
   KEYWORDS_DELETE
+
+  // Competitor Management
+  COMPETITORS_VIEW
+  COMPETITORS_CREATE
+  COMPETITORS_EDIT
+  COMPETITORS_DELETE
 
   // Redirections
   REDIRECTIONS_VIEW
@@ -175,6 +199,7 @@ model AccountMember {
   account            Account           @relation(fields: [accountId], references: [id], onDelete: Cascade)
   user               User?             @relation(fields: [userId], references: [id], onDelete: Cascade)
   role               Role              @relation(fields: [roleId], references: [id])
+  siteMembers        SiteMember[]      // Sites this member is assigned to
 
   @@unique([accountId, userId])
   @@unique([accountId, inviteEmail])
@@ -783,8 +808,31 @@ model Site {
   sitemaps        SiteSitemap[]
   competitors     Competitor[]
   googleIntegration GoogleIntegration?
+  members         SiteMember[]
 
   @@index([siteKey])
+}
+
+// ==========================================
+// SITE TEAM MEMBERS
+// ==========================================
+
+// Assigns account members to specific sites
+// Members can only see/access sites they're assigned to (unless they're owner)
+model SiteMember {
+  id              String   @id @default(auto()) @map("_id") @db.ObjectId
+  siteId          String   @db.ObjectId
+  accountMemberId String   @db.ObjectId
+  
+  // When the member was assigned to this site
+  assignedAt      DateTime @default(now())
+  assignedBy      String?  @db.ObjectId  // userId who assigned them
+  
+  site            Site           @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  accountMember   AccountMember  @relation(fields: [accountMemberId], references: [id], onDelete: Cascade)
+  
+  @@unique([siteId, accountMemberId])
+  @@index([accountMemberId])
 }
 
 // ==========================================
@@ -1829,4 +1877,108 @@ enum PushQuestionType {
   MULTI_CHOICE  // Multiple choice (checkboxes)
   NUMBER        // Numeric input
   URL           // URL input
+}
+
+// ==========================================
+// AI AGENT
+// ==========================================
+
+// An AI agent insight, suggestion, or action.
+// This is the core model for the Ghost AI Agent.
+model AgentInsight {
+  id            String              @id @default(auto()) @map("_id") @db.ObjectId
+  siteId        String              @db.ObjectId
+  accountId     String              @db.ObjectId
+
+  // Classification
+  category      AgentInsightCategory   // CONTENT, TRAFFIC, KEYWORDS, COMPETITORS, TECHNICAL
+  type          AgentInsightType       // DISCOVERY, SUGGESTION, ACTION, ANALYSIS, ALERT
+  priority      AgentInsightPriority   @default(MEDIUM)
+
+  // Content
+  titleKey      String           // Translation key for short title
+  descriptionKey String          // Translation key for description
+  data          Json?            // Dynamic payload: { keywordId, entityId, position, ctr, etc. }
+
+  // For ACTION type insights that need user approval
+  status        AgentInsightStatus   @default(PENDING)
+  actionType    String?              // "update_meta", "add_internal_link", "push_to_wp", etc.
+  actionPayload Json?               // Data needed to execute the action
+  approvedAt    DateTime?
+  approvedBy    String?              @db.ObjectId
+  rejectedAt    DateTime?
+  executedAt    DateTime?
+  executionResult Json?             // Result from executing the action
+
+  // Source tracking
+  source        String               @default("cron")  // "cron" | "manual" | "realtime"
+  batchId       String?              // Groups insights generated in the same run
+
+  // Lifecycle
+  dismissedAt   DateTime?
+  resolvedAt    DateTime?            // When the issue was auto-resolved (not found in latest analysis)
+  expiresAt     DateTime?            // Auto-dismiss stale insights
+  createdAt     DateTime             @default(now())
+  updatedAt     DateTime             @updatedAt
+
+  @@index([siteId, status, createdAt(sort: Desc)])
+  @@index([accountId, createdAt(sort: Desc)])
+  @@index([siteId, category, createdAt(sort: Desc)])
+  @@map("agent_insights")
+}
+
+// Overall agent run log — one per cron/manual run per site.
+model AgentRun {
+  id            String          @id @default(auto()) @map("_id") @db.ObjectId
+  siteId        String          @db.ObjectId
+  accountId     String          @db.ObjectId
+  source        String          @default("cron")  // "cron" | "manual"
+  status        AgentRunStatus  @default(RUNNING)
+  startedAt     DateTime        @default(now())
+  completedAt   DateTime?
+  error         String?
+  insightsCount Int             @default(0)
+  summary       Json?           // { discoveries: 2, suggestions: 1, alerts: 0, ... }
+
+  @@index([siteId, startedAt(sort: Desc)])
+  @@map("agent_runs")
+}
+
+enum AgentInsightCategory {
+  CONTENT       // Content optimization, thin content, outdated posts
+  TRAFFIC       // Traffic spikes/drops, session patterns
+  KEYWORDS      // Ranking opportunities, cannibalization
+  COMPETITORS   // Competitor changes, content gaps
+  TECHNICAL     // Missing meta, broken links, audit issues
+}
+
+enum AgentInsightType {
+  DISCOVERY     // Agent found something noteworthy
+  SUGGESTION    // Agent recommends an action
+  ACTION        // Agent can perform an action (needs approval)
+  ANALYSIS      // Periodic report/summary
+  ALERT         // Something urgent needs attention
+}
+
+enum AgentInsightPriority {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum AgentInsightStatus {
+  PENDING       // Waiting for user review (default)
+  APPROVED      // User approved the action
+  REJECTED      // User dismissed/rejected
+  EXECUTED      // Action was executed successfully
+  FAILED        // Action execution failed
+  EXPIRED       // Auto-expired after expiresAt
+  RESOLVED      // Issue no longer detected in latest analysis (auto-resolved)
+}
+
+enum AgentRunStatus {
+  RUNNING
+  COMPLETED
+  FAILED
 }

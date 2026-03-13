@@ -14,6 +14,7 @@ export default async function SettingsPage() {
     { id: 'notifications', label: t('settings.notifications'), iconName: 'Bell', description: t('settings.descriptions.notifications') },
     { id: 'seo', label: t('settings.seoSettings'), iconName: 'Search', description: t('settings.descriptions.seo') },
     { id: 'integrations', label: t('settings.integrations'), iconName: 'Link', description: t('settings.descriptions.integrations') },
+    { id: 'agent-config', label: t('settings.agentConfig'), iconName: 'Bot', description: t('settings.descriptions.agentConfig') },
     { id: 'team', label: t('settings.team'), iconName: 'Users', description: t('settings.descriptions.team') },
   ];
 
@@ -146,6 +147,8 @@ export default async function SettingsPage() {
     common: {
       cancel: t('common.cancel'),
       loading: t('common.loading'),
+      accessDenied: t('common.accessDenied'),
+      noPermissions: t('common.noPermissions'),
     },
     
     // WordPress Plugin Section (nested for component)
@@ -425,6 +428,27 @@ export default async function SettingsPage() {
     accountDangerZone: t('settings.accountSection.dangerZone'),
     accountDeleteAccount: t('settings.accountSection.deleteAccount'),
     accountDeleteAccountDesc: t('settings.accountSection.deleteAccountDesc'),
+
+    // Agent Config Settings
+    agentSettings: {
+      analysisModules: t('agent.settings.analysisModules'),
+      analysisModulesDesc: t('agent.settings.analysisModulesDesc'),
+      contentModule: t('agent.settings.contentModule'),
+      contentModuleDesc: t('agent.settings.contentModuleDesc'),
+      trafficModule: t('agent.settings.trafficModule'),
+      trafficModuleDesc: t('agent.settings.trafficModuleDesc'),
+      keywordsModule: t('agent.settings.keywordsModule'),
+      keywordsModuleDesc: t('agent.settings.keywordsModuleDesc'),
+      competitorsModule: t('agent.settings.competitorsModule'),
+      competitorsModuleDesc: t('agent.settings.competitorsModuleDesc'),
+      technicalModule: t('agent.settings.technicalModule'),
+      technicalModuleDesc: t('agent.settings.technicalModuleDesc'),
+      behavior: t('agent.settings.behavior'),
+      enableAgent: t('agent.settings.enableAgent'),
+      enableAgentDesc: t('agent.settings.enableAgentDesc'),
+      notifyInsights: t('agent.settings.notifyInsights'),
+      notifyInsightsDesc: t('agent.settings.notifyInsightsDesc'),
+    },
   };
 
   return (

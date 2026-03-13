@@ -1,16 +1,25 @@
 /**
- * Plugin Version Configuration
+ * Plugin Version Configuration — SINGLE SOURCE OF TRUTH
  *
- * This file is the single source of truth for the plugin version.
- * Update the version here when making plugin changes, and all
- * connected WordPress sites will receive the update notification.
+ * To release a new plugin version:
+ * 1. Update PLUGIN_VERSION below
+ * 2. Add changelog entry to PLUGIN_CHANGELOG
+ * 3. Run: node scripts/sync-plugin-version.mjs
+ *    (this updates the WordPress plugin PHP file to match)
+ * 4. Deploy gp-platform and commit the plugin changes
  */
 
 // Current plugin version - increment this when making updates
-export const PLUGIN_VERSION = "1.8.6";
+export const PLUGIN_VERSION = "1.8.7";
 
 // Changelog for the current version
 export const PLUGIN_CHANGELOG = `
+= 1.8.7 =
+* FIXED: Cron entity sync producing false-positive updates and unnecessary notifications
+* Content manager and CPT manager now return full data (SEO, ACF, taxonomies) when requested
+* Fixed field name consistency between API responses and entity sync (camelCase + snake_case)
+* Moved resolved SEO data logic to GP_SEO_Manager for shared use across sync paths
+
 = 1.8.6 =
 * FIXED: Critical PHP parse error in entity sync class (escaped dollar signs in generated PHP)
 * Real-time entity sync - WordPress content changes are pushed instantly to Ghost Post

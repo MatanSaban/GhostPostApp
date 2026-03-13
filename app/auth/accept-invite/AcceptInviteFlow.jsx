@@ -145,7 +145,8 @@ export function AcceptInviteFlow({ token, translations: fallbackTranslations }) 
 
   // Apply RTL to document when language changes
   useEffect(() => {
-    if (status === 'valid' && inviteData?.language) {
+    // Apply RTL for all meaningful statuses (not just 'valid')
+    if (status !== 'loading' && inviteData?.language) {
       document.documentElement.dir = isRtl ? 'rtl' : 'ltr';
       document.documentElement.lang = language.toLowerCase();
     }

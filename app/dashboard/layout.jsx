@@ -46,6 +46,7 @@ import styles from './dashboard.module.css';
 // Menu items with translation keys (entities added above settings)
 const menuItemsConfig = [
   { icon: LayoutDashboard, labelKey: 'nav.dashboard', path: '/dashboard' },
+  { icon: Bot, labelKey: 'nav.agent', path: '/dashboard/agent' },
   // { icon: Zap, labelKey: 'nav.automations', path: '/dashboard/automations' },
   // { icon: Link2, labelKey: 'nav.linkBuilding', path: '/dashboard/link-building' },
   // { icon: Monitor, labelKey: 'nav.seoFrontend', path: '/dashboard/seo-frontend' },
@@ -91,7 +92,7 @@ export default function DashboardLayout({ children }) {
   const { t, isRtl } = useLocale();
   const { user, isSuperAdmin, isLoading: isUserLoading, clearUser } = useUser();
   const { selectedSite } = useSite();
-  const { filterMenuItems, canViewPath, isLoading: isPermissionsLoading } = usePermissions();
+  const { filterMenuItems, canViewPath, canAccessAnySettingsTab, isLoading: isPermissionsLoading } = usePermissions();
   const [isChatOpen, setIsChatOpen] = useState(false);
   // Single state for open menu - only one can be open at a time (accordion behavior)
   const [openMenu, setOpenMenu] = useState(null); // 'strategy' | 'entities' | 'tools' | 'admin' | null
@@ -103,9 +104,25 @@ export default function DashboardLayout({ children }) {
   // Filter menu items based on permissions - MUST be before any early returns
   const filteredMenuItems = useMemo(() => {
     if (isPermissionsLoading) {
-      return menuItemsConfig; // Show all while loading to prevent flicker
+      return []; // Don't show menu items until permissions are loaded
     }
     return filterMenuItems(menuItemsConfig);
+  }, [filterMenuItems, isPermissionsLoading]);
+
+  // Filter strategy items based on permissions
+  const filteredStrategyItems = useMemo(() => {
+    if (isPermissionsLoading) {
+      return [];
+    }
+    return filterMenuItems(strategyItemsConfig);
+  }, [filterMenuItems, isPermissionsLoading]);
+
+  // Filter tools items based on permissions
+  const filteredToolsItems = useMemo(() => {
+    if (isPermissionsLoading) {
+      return [];
+    }
+    return filterMenuItems(toolsItemsConfig);
   }, [filterMenuItems, isPermissionsLoading]);
 
   // Redirect to login if not authenticated
@@ -278,40 +295,42 @@ export default function DashboardLayout({ children }) {
             );
           })}
 
-          {/* Strategy Section - Expandable sub-items */}
-          <div className={styles.navGroup}>
-            <Link
-              href="/dashboard/strategy"
-              className={`${styles.navItem} ${styles.navGroupToggle} ${pathname.startsWith('/dashboard/strategy') ? styles.active : ''}`}
-            >
-              <Lightbulb className={styles.navIcon} />
-              <span className={styles.navLabel}>{t('nav.strategy.title')}</span>
-              <button
-                className={styles.navChevronButton}
-                onClick={handleStrategyChevronClick}
-                aria-label={openMenu === 'strategy' ? t('common.collapse') : t('common.expand')}
+          {/* Strategy Section - Expandable sub-items (only show if user has access to at least one item) */}
+          {filteredStrategyItems.length > 0 && (
+            <div className={styles.navGroup}>
+              <Link
+                href="/dashboard/strategy"
+                className={`${styles.navItem} ${styles.navGroupToggle} ${pathname.startsWith('/dashboard/strategy') ? styles.active : ''}`}
               >
-                <ChevronRight className={`${styles.navChevron} ${openMenu === 'strategy' ? styles.navChevronOpen : ''}`} />
-              </button>
-            </Link>
-            <div className={`${styles.navGroupItems} ${openMenu === 'strategy' ? styles.navGroupItemsOpen : ''}`}>
-              <div className={styles.navGroupItemsInner}>
-                {strategyItemsConfig.map((item) => {
-                  const isActive = pathname === item.path || pathname.startsWith(item.path + '/');
+                <Lightbulb className={styles.navIcon} />
+                <span className={styles.navLabel}>{t('nav.strategy.title')}</span>
+                <button
+                  className={styles.navChevronButton}
+                  onClick={handleStrategyChevronClick}
+                  aria-label={openMenu === 'strategy' ? t('common.collapse') : t('common.expand')}
+                >
+                  <ChevronRight className={`${styles.navChevron} ${openMenu === 'strategy' ? styles.navChevronOpen : ''}`} />
+                </button>
+              </Link>
+              <div className={`${styles.navGroupItems} ${openMenu === 'strategy' ? styles.navGroupItemsOpen : ''}`}>
+                <div className={styles.navGroupItemsInner}>
+                  {filteredStrategyItems.map((item) => {
+                    const isActive = pathname === item.path || pathname.startsWith(item.path + '/');
 
-                  return (
-                    <Link
-                      key={item.path}
-                      href={item.path}
-                      className={`${styles.navItem} ${styles.navSubItem} ${isActive ? styles.active : ''}`}
-                    >
-                      <span className={styles.navLabel}>{t(item.labelKey)}</span>
-                    </Link>
-                  );
-                })}
+                    return (
+                      <Link
+                        key={item.path}
+                        href={item.path}
+                        className={`${styles.navItem} ${styles.navSubItem} ${isActive ? styles.active : ''}`}
+                      >
+                        <span className={styles.navLabel}>{t(item.labelKey)}</span>
+                      </Link>
+                    );
+                  })}
+                </div>
               </div>
             </div>
-          </div>
+          )}
 
           {/* Entities Section - Dynamic with expandable sub-items */}
           {canViewPath('/dashboard/entities') && (
@@ -371,43 +390,45 @@ export default function DashboardLayout({ children }) {
             </div>
           )}
 
-          {/* Tools Section (Technical SEO) - Expandable sub-items */}
-          <div className={styles.navGroup}>
-            <Link
-              href="/dashboard/technical-seo"
-              className={`${styles.navItem} ${styles.navGroupToggle} ${pathname.startsWith('/dashboard/technical-seo') ? styles.active : ''}`}
-            >
-              <Wrench className={styles.navIcon} />
-              <span className={styles.navLabel}>{t('nav.tools.title')}</span>
-              <button
-                className={styles.navChevronButton}
-                onClick={handleToolsChevronClick}
-                aria-label={openMenu === 'tools' ? t('common.collapse') : t('common.expand')}
+          {/* Tools Section (Technical SEO) - Expandable sub-items (only show if user has access to at least one item) */}
+          {filteredToolsItems.length > 0 && (
+            <div className={styles.navGroup}>
+              <Link
+                href="/dashboard/technical-seo"
+                className={`${styles.navItem} ${styles.navGroupToggle} ${pathname.startsWith('/dashboard/technical-seo') ? styles.active : ''}`}
               >
-                <ChevronRight className={`${styles.navChevron} ${openMenu === 'tools' ? styles.navChevronOpen : ''}`} />
-              </button>
-            </Link>
-            <div className={`${styles.navGroupItems} ${openMenu === 'tools' ? styles.navGroupItemsOpen : ''}`}>
-              <div className={styles.navGroupItemsInner}>
-                {toolsItemsConfig.map((item) => {
-                  const isActive = pathname === item.path || pathname.startsWith(item.path + '/');
+                <Wrench className={styles.navIcon} />
+                <span className={styles.navLabel}>{t('nav.tools.title')}</span>
+                <button
+                  className={styles.navChevronButton}
+                  onClick={handleToolsChevronClick}
+                  aria-label={openMenu === 'tools' ? t('common.collapse') : t('common.expand')}
+                >
+                  <ChevronRight className={`${styles.navChevron} ${openMenu === 'tools' ? styles.navChevronOpen : ''}`} />
+                </button>
+              </Link>
+              <div className={`${styles.navGroupItems} ${openMenu === 'tools' ? styles.navGroupItemsOpen : ''}`}>
+                <div className={styles.navGroupItemsInner}>
+                  {filteredToolsItems.map((item) => {
+                    const isActive = pathname === item.path || pathname.startsWith(item.path + '/');
 
-                  return (
-                    <Link
-                      key={item.path}
-                      href={item.path}
-                      className={`${styles.navItem} ${styles.navSubItem} ${isActive ? styles.active : ''}`}
-                    >
-                      <span className={styles.navLabel}>{t(item.labelKey)}</span>
-                    </Link>
-                  );
-                })}
+                    return (
+                      <Link
+                        key={item.path}
+                        href={item.path}
+                        className={`${styles.navItem} ${styles.navSubItem} ${isActive ? styles.active : ''}`}
+                      >
+                        <span className={styles.navLabel}>{t(item.labelKey)}</span>
+                      </Link>
+                    );
+                  })}
+                </div>
               </div>
             </div>
-          </div>
+          )}
 
           {/* My Websites - Visible to users with SITES_VIEW permission */}
-          {canViewPath('/dashboard/my-websites') && (
+          {!isPermissionsLoading && canViewPath('/dashboard/my-websites') && (
             <Link
               href="/dashboard/my-websites"
               className={`${styles.navItem} ${pathname === '/dashboard/my-websites' ? styles.active : ''}`}
@@ -418,7 +439,7 @@ export default function DashboardLayout({ children }) {
           )}
 
           {/* Backlinks Marketplace */}
-          {canViewPath('/dashboard/backlinks') && (
+          {!isPermissionsLoading && canViewPath('/dashboard/backlinks') && (
             <Link
               href="/dashboard/backlinks"
               className={`${styles.navItem} ${pathname === '/dashboard/backlinks' || pathname.startsWith('/dashboard/backlinks/') ? styles.active : ''}`}
@@ -429,22 +450,26 @@ export default function DashboardLayout({ children }) {
           )}
 
           {/* Notification Center */}
-          <Link
-            href="/dashboard/notifications"
-            className={`${styles.navItem} ${pathname === '/dashboard/notifications' ? styles.active : ''}`}
-          >
-            <Bell className={styles.navIcon} />
-            <span className={styles.navLabel}>{t('notificationCenter.navTitle')}</span>
-          </Link>
+          {!isPermissionsLoading && (
+            <Link
+              href="/dashboard/notifications"
+              className={`${styles.navItem} ${pathname === '/dashboard/notifications' ? styles.active : ''}`}
+            >
+              <Bell className={styles.navIcon} />
+              <span className={styles.navLabel}>{t('notificationCenter.navTitle')}</span>
+            </Link>
+          )}
 
           {/* Settings - Below My Websites */}
-          <Link
-            href="/dashboard/settings"
-            className={`${styles.navItem} ${pathname === '/dashboard/settings' ? styles.active : ''}`}
-          >
-            <Settings className={styles.navIcon} />
-            <span className={styles.navLabel}>{t('nav.settings')}</span>
-          </Link>
+          {!isPermissionsLoading && canAccessAnySettingsTab() && (
+            <Link
+              href="/dashboard/settings"
+              className={`${styles.navItem} ${pathname === '/dashboard/settings' ? styles.active : ''}`}
+            >
+              <Settings className={styles.navIcon} />
+              <span className={styles.navLabel}>{t('nav.settings')}</span>
+            </Link>
+          )}
 
           {/* Admin Section - Only visible to super admins */}
           {!isUserLoading && isSuperAdmin && (

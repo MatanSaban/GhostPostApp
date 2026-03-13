@@ -2,6 +2,7 @@
 
 import { useState, useEffect, use } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { 
   ArrowLeft, 
   Save, 
@@ -170,16 +171,16 @@ export default function EntityEditPage({ params }) {
       {/* Header */}
       <div className={styles.header}>
         <div className={styles.headerLeft}>
-          <button 
-            onClick={() => router.back()} 
+          <Link 
+            href={`/dashboard/entities/${type}`}
             className={styles.backButton}
           >
             <ArrowLeft />
-          </button>
+          </Link>
           <div className={styles.headerInfo}>
             <h1 className={styles.title}>{formData.title || t('entities.untitled')}</h1>
             <div className={styles.meta}>
-              <span className={styles.entityType}>{entity.entityType?.name}</span>
+              <Link href={`/dashboard/entities/${type}`} className={styles.entityType}>{entity.entityType?.name}</Link>
               <span className={styles.separator}>•</span>
               <span className={`${styles.status} ${styles[formData.status.toLowerCase()]}`}>
                 {t(`entities.${formData.status.toLowerCase()}`)}

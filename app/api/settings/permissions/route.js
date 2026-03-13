@@ -28,12 +28,32 @@ const MODULES = [
     special: ['create'] 
   },
   { 
-    id: 'content', 
+    id: 'content_planner', 
+    capabilities: ['view', 'edit', 'delete'],
+    special: ['create'] 
+  },
+  { 
+    id: 'ai_content', 
+    capabilities: ['view', 'edit', 'delete'],
+    special: ['create'] 
+  },
+  { 
+    id: 'entities', 
     capabilities: ['view', 'edit', 'delete'],
     special: ['create', 'publish'] 
   },
   { 
+    id: 'campaigns', 
+    capabilities: ['view', 'edit', 'delete'],
+    special: ['create'] 
+  },
+  { 
     id: 'keywords', 
+    capabilities: ['view', 'edit', 'delete'],
+    special: ['create'] 
+  },
+  { 
+    id: 'competitors', 
     capabilities: ['view', 'edit', 'delete'],
     special: ['create'] 
   },

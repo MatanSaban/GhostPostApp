@@ -88,6 +88,8 @@
     "goBack": "Go Back",
     "characters": "characters",
     "dismiss": "Dismiss",
+    "accessDenied": "Access Denied",
+    "noPermissions": "You don't have permission to access this section.",
     "openInNewTab": "Open in New Tab",
     "refresh": "Refresh",
     "linksPerThousand": "links / 1000 words",
@@ -260,6 +262,7 @@
   },
   "nav": {
     "dashboard": "Dashboard",
+    "agent": "AI Agent",
     "siteInterview": "Site Profile",
     "strategy": {
       "title": "Strategy",
@@ -418,7 +421,60 @@
       "positionDown": "Position dropped by {percent}% {period}",
       "positionNoChange": "Position unchanged from {period}",
       "dataFromGA": "Data from Google Analytics",
-      "dataFromGSC": "Data from Google Search Console"
+      "dataFromGSC": "Data from Google Search Console",
+      "kpiDescriptions": {
+        "organicVisitors": "Unique users who visited your site via organic search. One person visiting 5 pages counts as 1 visitor.",
+        "totalPageViews": "Total number of pages viewed. Repeated views of a single page are counted.",
+        "avgSessionDuration": "The average time users spend on your site during a single session.",
+        "sessions": "Total number of sessions. A session is a period of activity on your site from a single user.",
+        "totalClicks": "Number of times users clicked on your site in Google search results.",
+        "totalImpressions": "Number of times your site appeared in Google search results.",
+        "avgCtr": "Click-through rate — the percentage of impressions that resulted in a click.",
+        "avgPosition": "Average ranking position of your site in Google search results."
+      },
+      "kpiFullDescriptions": {
+        "organicVisitors": {
+          "title": "Organic Visitors",
+          "description": "Unique users who visited your site through organic (non-paid) search results.",
+          "details": "This metric counts individual people, not page views. If one person visits your site 5 times, they count as 1 organic visitor. This helps you understand how many actual people are discovering your content through search engines. A higher number indicates better SEO performance and content visibility."
+        },
+        "totalPageViews": {
+          "title": "Total Page Views",
+          "description": "The total number of pages viewed on your site during the selected period.",
+          "details": "Every time a user loads a page, it counts as a page view — including repeated views of the same page. This metric helps you understand overall engagement and content consumption. Compare with visitors to calculate pages per session and identify how deeply users explore your site."
+        },
+        "avgSessionDuration": {
+          "title": "Average Session Duration",
+          "description": "The average amount of time users spend on your site during a single session.",
+          "details": "A session starts when a user arrives on your site and ends after 30 minutes of inactivity or at midnight. Longer session durations typically indicate engaging content that keeps visitors interested. Use this metric alongside bounce rate to evaluate content quality and user experience."
+        },
+        "sessions": {
+          "title": "Sessions",
+          "description": "Total number of individual browsing sessions on your site.",
+          "details": "A session groups user interactions within a time frame. One user can have multiple sessions. Sessions help you understand traffic patterns and user behavior. Compare sessions with users to see how often people return to your site, and with page views to calculate pages per session."
+        },
+        "totalClicks": {
+          "title": "Total Clicks",
+          "description": "The number of times users clicked on your site in Google search results.",
+          "details": "This data comes from Google Search Console and shows actual clicks from search results to your website. A click means someone saw your listing and chose to visit your site. Increasing clicks while maintaining or improving CTR indicates growing search presence and compelling search snippets."
+        },
+        "totalImpressions": {
+          "title": "Total Impressions",
+          "description": "How many times your site appeared in Google search results.",
+          "details": "An impression is counted each time your URL appears in search results, whether or not it was scrolled into view. High impressions with low clicks may indicate a need to improve your title tags and meta descriptions. This metric helps you understand your overall search visibility."
+        },
+        "avgCtr": {
+          "title": "Average CTR (Click-Through Rate)",
+          "description": "The percentage of impressions that resulted in a click.",
+          "details": "CTR is calculated as (Clicks ÷ Impressions) × 100. A higher CTR means your search listings are compelling users to click. Typical CTR varies by position — top results average 3-5% CTR, while lower positions see much less. Improving title tags and meta descriptions can boost CTR."
+        },
+        "avgPosition": {
+          "title": "Average Position",
+          "description": "Your average ranking position in Google search results.",
+          "details": "Position 1 is the top of search results. This is averaged across all queries your site appears for. A lower number is better. Position affects visibility and CTR significantly — the top 3 positions receive the majority of clicks. Track position changes to measure SEO progress over time."
+        },
+        "gotIt": "Got it"
+      }
     },
     "aiTraffic": {
       "title": "AI Traffic Overview",
@@ -2182,7 +2238,8 @@
       "profile": "Update your personal profile and preferences",
       "account": "Manage your company account settings",
       "roles": "Create and manage roles for your account members",
-      "permissions": "Assign permissions to each role in your account"
+      "permissions": "Assign permissions to each role in your account",
+      "agentConfig": "Configure AI Agent analysis modules and behavior"
     },
     "fields": {
       "siteUrl": "Site URL",
@@ -2450,6 +2507,19 @@
     },
     "teamSection": {
       "inviteTeamMember": "Invite Team Member",
+      "description": "Manage which team members have access to this website. Members assigned here will be able to see and work with this site based on their role permissions.",
+      "noSiteSelected": "Please select a site to manage team members.",
+      "assignedMembers": "Assigned Members",
+      "noAssignedMembers": "No team members assigned to this site yet.",
+      "assignMember": "Assign Team Member",
+      "allMembersAssigned": "All team members are already assigned to this site.",
+      "assignMemberTitle": "Assign Team Member",
+      "assignMemberDescription": "Select a team member to give them access to this site.",
+      "confirmRemove": "Are you sure you want to remove this member from the site?",
+      "removeFromSite": "Remove from site",
+      "noRole": "No Role",
+      "assignFailed": "Failed to assign member",
+      "removeFailed": "Failed to remove member",
       "roles": {
         "owner": "Owner",
         "admin": "Admin",
@@ -2728,8 +2798,12 @@
         "members": "Members",
         "roles": "Roles",
         "sites": "Sites",
-        "content": "Content",
+        "content_planner": "Content Planner",
+        "ai_content": "AI Content Wizard",
+        "entities": "Entities",
+        "campaigns": "Campaigns",
         "keywords": "Keywords",
+        "competitors": "Competitors",
         "redirections": "Redirections",
         "interview": "Interview",
         "audit": "Audit Log",
@@ -2749,8 +2823,12 @@
         "members": "Members",
         "roles": "Roles",
         "sites": "Sites",
-        "content": "Content",
+        "content_planner": "Content Planner",
+        "ai_content": "AI Content Wizard",
+        "entities": "Entities",
+        "campaigns": "Campaigns",
         "keywords": "Keywords",
+        "competitors": "Competitors",
         "redirections": "Redirections",
         "interview": "Interview",
         "audit": "Audit",
@@ -2774,15 +2852,31 @@
         "SITES_CREATE": "Create Sites",
         "SITES_EDIT": "Edit Sites",
         "SITES_DELETE": "Delete Sites",
-        "CONTENT_VIEW": "View Content",
-        "CONTENT_CREATE": "Create Content",
-        "CONTENT_EDIT": "Edit Content",
-        "CONTENT_DELETE": "Delete Content",
-        "CONTENT_PUBLISH": "Publish Content",
+        "CONTENT_PLANNER_VIEW": "View Content Planner",
+        "CONTENT_PLANNER_CREATE": "Create Content Plan",
+        "CONTENT_PLANNER_EDIT": "Edit Content Plan",
+        "CONTENT_PLANNER_DELETE": "Delete Content Plan",
+        "AI_CONTENT_VIEW": "View AI Content Wizard",
+        "AI_CONTENT_CREATE": "Create AI Content",
+        "AI_CONTENT_EDIT": "Edit AI Content",
+        "AI_CONTENT_DELETE": "Delete AI Content",
+        "ENTITIES_VIEW": "View Entities",
+        "ENTITIES_CREATE": "Create Entities",
+        "ENTITIES_EDIT": "Edit Entities",
+        "ENTITIES_DELETE": "Delete Entities",
+        "ENTITIES_PUBLISH": "Publish Entities",
+        "CAMPAIGNS_VIEW": "View Campaigns",
+        "CAMPAIGNS_CREATE": "Create Campaigns",
+        "CAMPAIGNS_EDIT": "Edit Campaigns",
+        "CAMPAIGNS_DELETE": "Delete Campaigns",
         "KEYWORDS_VIEW": "View Keywords",
         "KEYWORDS_CREATE": "Create Keywords",
         "KEYWORDS_EDIT": "Edit Keywords",
         "KEYWORDS_DELETE": "Delete Keywords",
+        "COMPETITORS_VIEW": "View Competitors",
+        "COMPETITORS_CREATE": "Add Competitors",
+        "COMPETITORS_EDIT": "Edit Competitors",
+        "COMPETITORS_DELETE": "Delete Competitors",
         "REDIRECTIONS_VIEW": "View Redirections",
         "REDIRECTIONS_CREATE": "Create Redirections",
         "REDIRECTIONS_EDIT": "Edit Redirections",
@@ -2890,11 +2984,35 @@
     },
     "entityWebhook": {
       "title": "Content Updated",
-      "message": "{siteName}: \"{entityTitle}\" was {action}"
+      "message": "{siteName}: \"{entityTitle}\" was {action}",
+      "messages": {
+        "created": "The {entityType} \"{entityTitle}\" was created",
+        "updated": "The {entityType} \"{entityTitle}\" was updated",
+        "trashed": "The {entityType} \"{entityTitle}\" was moved to trash",
+        "deleted": "The {entityType} \"{entityTitle}\" was permanently deleted"
+      },
+      "entityTypes": {
+        "post": "post",
+        "posts": "post",
+        "page": "page",
+        "pages": "page",
+        "product": "product",
+        "default": "content"
+      },
+      "actions": {
+        "created": "created",
+        "updated": "updated",
+        "trashed": "trashed",
+        "deleted": "deleted"
+      }
     },
     "contentPublishFailed": {
       "title": "Content Publishing Failed",
       "message": "Failed to publish \"{contentTitle}\" to {siteName}"
+    },
+    "agentInsights": {
+      "title": "New Agent Insights",
+      "message": "{count} new insights found for your site"
     },
     "failedPublishModal": {
       "title": "Publishing Failed",
@@ -5270,5 +5388,198 @@
     "manageCredits": "Manage Credits",
     "noAddons": "No credit packs available",
     "upgradePlan": "Upgrade Plan"
+  },
+  "agent": {
+    "title": "AI Agent Activity",
+    "settings": {
+      "analysisModules": "Analysis Modules",
+      "analysisModulesDesc": "Choose which areas the AI Agent should analyze for insights.",
+      "contentModule": "Content Analysis",
+      "contentModuleDesc": "Detect stale content, missing SEO metadata, and content optimization opportunities.",
+      "trafficModule": "Traffic Analysis",
+      "trafficModuleDesc": "Monitor traffic changes, visitor trends, and growth opportunities from Google Analytics.",
+      "keywordsModule": "Keywords Analysis",
+      "keywordsModuleDesc": "Find strike zone keywords, unlinked keywords, and ranking opportunities from Search Console.",
+      "competitorsModule": "Competitors Analysis",
+      "competitorsModuleDesc": "Discover content gaps and opportunities based on competitor data.",
+      "technicalModule": "Technical Analysis",
+      "technicalModuleDesc": "Check for technical SEO issues and site health problems.",
+      "behavior": "Agent Behavior",
+      "enableAgent": "Enable AI Agent",
+      "enableAgentDesc": "When enabled, the AI Agent will automatically analyze your site and generate insights.",
+      "notifyInsights": "Notify on New Insights",
+      "notifyInsightsDesc": "Receive notifications when the AI Agent finds new insights for your site."
+    },
+    "viewAll": "View All Activity",
+    "noInsights": "No insights yet. The AI Agent will analyze your site data and provide suggestions.",
+    "runAnalysis": "Run Analysis",
+    "running": "Analyzing...",
+    "lastRun": "Last run: {time}",
+    "pendingApproval": "{count} pending approval",
+    "totalInsights": "Total Insights",
+    "pendingReview": "Pending Review",
+    "recentRuns": "Recent Runs",
+    "noInsightsFound": "No Insights Found",
+    "noMatchingInsights": "No insights match the current filters.",
+    "insightsCountLabel": "insights",
+    "filterAllCategories": "All Categories",
+    "filterAllStatuses": "All Statuses",
+    "filterAllFix": "All",
+    "filterUnfixed": "Needs Attention",
+    "filterFixed": "Fixed",
+    "legend": {
+      "title": "Legend",
+      "priorityTitle": "Priority",
+      "categoryTitle": "Category",
+      "directionTitle": "Direction",
+      "CRITICAL": "Urgent issue requiring immediate attention",
+      "HIGH": "Important issue to address soon",
+      "MEDIUM": "Moderate finding worth reviewing",
+      "LOW": "Minor observation for awareness",
+      "up": "Positive trend (increase)",
+      "down": "Negative trend (decrease)",
+      "equal": "No significant change"
+    },
+    "loadMore": "Load More",
+    "refresh": "Refresh",
+    "minutesAgo": "{n}m ago",
+    "hoursAgo": "{n}h ago",
+    "daysAgo": "{n}d ago",
+    "approve": "Approve",
+    "reject": "Reject",
+    "dismiss": "Dismiss",
+    "execute": "Execute",
+    "fixWithAi": "Fix with AI",
+    "fixing": "Fixing...",
+    "fixSuccess": "Fix applied successfully: {summary}",
+    "fixFailed": "Fix failed. Please try again.",
+    "fixPreviewTitle": "AI Fix Preview",
+    "fixPreviewSubtitle": "Review the proposed changes before applying them to your site.",
+    "fixGenerating": "Generating AI suggestions...",
+    "fixRetry": "Try Again",
+    "fixRegenerate": "Regenerate",
+    "fixFieldTitle": "SEO Title",
+    "fixFieldDesc": "Meta Description",
+    "fixCurrent": "Now",
+    "fixNew": "New",
+    "fixEmpty": "(empty)",
+    "fixReadyCount": "{count} changes ready",
+    "fixAllApplied": "All changes applied!",
+    "fixCancel": "Cancel",
+    "fixApply": "Apply Changes",
+    "fixApplying": "Applying...",
+    "fixApplyItem": "Apply",
+    "fixApplyingItem": "Applying...",
+    "fixGeneratingShort": "Generating...",
+    "fixDone": "Done",
+    "fixItemApplied": "Applied",
+    "fixItemFailed": "Failed",
+    "fixNoItems": "No items to fix.",
+    "fixSkipped": "Skipped",
+    "approved": "Approved",
+    "rejected": "Rejected",
+    "executed": "Executed",
+    "failed": "Failed",
+    "expired": "Expired",
+    "pending": "Pending",
+    "resolved": "Resolved",
+    "categories": {
+      "CONTENT": "Content",
+      "TRAFFIC": "Traffic",
+      "KEYWORDS": "Keywords",
+      "COMPETITORS": "Competitors",
+      "TECHNICAL": "Technical"
+    },
+    "types": {
+      "DISCOVERY": "Discovery",
+      "SUGGESTION": "Suggestion",
+      "ACTION": "Action",
+      "ANALYSIS": "Analysis",
+      "ALERT": "Alert"
+    },
+    "priorities": {
+      "LOW": "Low",
+      "MEDIUM": "Medium",
+      "HIGH": "High",
+      "CRITICAL": "Critical"
+    },
+    "insights": {
+      "keywordStrikeZone": {
+        "title": "Keyword in Strike Zone",
+        "description": "\"{keyword}\" is ranking at position {position} with {searchVolume} monthly searches. A content boost could push it to the top 3."
+      },
+      "unlinkedKeywords": {
+        "title": "Unlinked Keywords Found",
+        "description": "{count} tracked keywords with high search volume aren't linked to any page. Consider creating content for them."
+      },
+      "staleContent": {
+        "title": "Stale Content Detected",
+        "description": "{count} published pages haven't been updated in over 6 months. Updating them could improve rankings."
+      },
+      "missingSeo": {
+        "title": "Missing SEO Metadata",
+        "description": "{count} pages are missing meta titles or descriptions. Adding them can improve click-through rates."
+      },
+      "trafficDrop": {
+        "title": "Search Traffic Drop",
+        "description": "Search clicks dropped by {change}% in the last 30 days. Review recent changes and check for indexing issues."
+      },
+      "lowCtrQueries": {
+        "title": "Low CTR Opportunities",
+        "description": "{count} queries have high impressions but low CTR. Optimizing titles and meta descriptions could increase clicks."
+      },
+      "decliningPages": {
+        "title": "Declining Pages",
+        "description": "{count} pages are losing search traffic. Consider updating their content or checking for technical issues."
+      },
+      "visitorsDrop": {
+        "title": "Visitor Count Drop",
+        "description": "Organic visitors dropped by {change}% in the last 30 days. This may indicate a ranking change or technical issue."
+      },
+      "trafficGrowth": {
+        "title": "Traffic Growing",
+        "description": "Organic visitors grew by {change}% in the last 30 days. Keep up the momentum!"
+      },
+      "contentGaps": {
+        "title": "Content Gaps Found",
+        "description": "Analyzed {competitorsAnalyzed} competitors and found {gapsCount} content gaps you could exploit."
+      },
+      "staleCompetitorScans": {
+        "title": "Outdated Competitor Data",
+        "description": "{count} competitor scans are over 30 days old. Consider re-scanning for fresh insights."
+      },
+      "noindexDetected": {
+        "title": "Pages Marked as Noindex",
+        "description": "{count} published pages are set to noindex and won't appear in search results. Verify this is intentional."
+      }
+    },
+    "detailLabels": {
+      "keyword": "Keyword",
+      "position": "Position",
+      "searchVolume": "Search Volume",
+      "page": "Page",
+      "url": "URL",
+      "lastUpdated": "Last Updated",
+      "clicks": "Clicks",
+      "clicksChange": "Change",
+      "impressions": "Impressions",
+      "query": "Query",
+      "change": "Change",
+      "visitors": "Visitors",
+      "sessions": "Sessions",
+      "pageViews": "Page Views",
+      "contentGap": "Content Gap",
+      "competitor": "Competitor",
+      "lastScanned": "Last Scanned",
+      "andMore": "and {count} more...",
+      "entity": "Entity",
+      "viewEntity": "View",
+      "seoPriority": "Priority"
+    },
+    "seoPriorities": {
+      "high": "High",
+      "medium": "Medium",
+      "low": "Low"
+    }
   }
 }

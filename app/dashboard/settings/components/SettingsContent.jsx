@@ -50,6 +50,10 @@ import {
   Minus,
   ShoppingCart,
   ExternalLink,
+  Bot,
+  FileText,
+  TrendingUp,
+  Wrench,
 } from 'lucide-react';
 import { useSite } from '@/app/context/site-context';
 import { useLocale } from '@/app/context/locale-context';
@@ -59,6 +63,7 @@ import { SettingsFormSkeleton, TableSkeleton, FormSkeleton } from '@/app/dashboa
 import WordPressPluginSection from './WordPressPluginSection';
 import UpgradePlanModal from '@/app/components/ui/UpgradePlanModal';
 import AddCreditsModal from '@/app/components/ui/AddCreditsModal';
+import { AdminModal } from '@/app/dashboard/admin/components/AdminModal';
 import styles from '../page.module.css';
 
 const iconMap = {
@@ -78,6 +83,7 @@ const iconMap = {
   Building2,
   Coins,
   Puzzle,
+  Bot,
 };
 
 // Account-level tab IDs that require special permissions
@@ -135,7 +141,7 @@ export default function SettingsContent({ translations, websiteTabs, accountTabs
     if (validTabs.includes(tabFromUrl)) {
       return tabFromUrl;
     }
-    return validTabs[0] || 'general';
+    return validTabs[0] || null;
   };
   
   const [activeTab, setActiveTab] = useState(getTabFromUrl);
@@ -164,10 +170,17 @@ export default function SettingsContent({ translations, websiteTabs, accountTabs
 
   // Update active tab if it's no longer available (e.g., permissions changed or category changed)
   useEffect(() => {
-    if (!permissionsLoading && !validTabs.includes(activeTab) && validTabs.length > 0) {
-      setActiveTab(validTabs[0]);
+    if (!permissionsLoading && !validTabs.includes(activeTab)) {
+      setActiveTab(validTabs[0] || null);
     }
   }, [validTabs, activeTab, permissionsLoading]);
+
+  // Redirect to dashboard if user has no access to any settings tab
+  useEffect(() => {
+    if (!permissionsLoading && availableWebsiteTabs.length === 0 && availableAccountTabs.length === 0) {
+      router.push('/dashboard');
+    }
+  }, [permissionsLoading, availableWebsiteTabs.length, availableAccountTabs.length, router]);
 
   // Sync active tab with URL - only update URL, not state
   const handleTabChange = (tabId) => {
@@ -349,10 +362,12 @@ export default function SettingsContent({ translations, websiteTabs, accountTabs
         return <SEOSettings seo={seo} setSeo={setSeo} translations={translations} canEdit={canEdit} />;
       case 'integrations':
         return <IntegrationsSettings translations={translations} canEdit={canEdit} />;
+      case 'agent-config':
+        return <AgentConfigSettings translations={translations} canEdit={canEdit} />;
       case 'users':
         return <UsersSettings translations={translations} canEdit={canEdit} />;
       case 'team':
-        return <TeamSettings team={team} translations={translations} canEdit={canEdit} />;
+        return <TeamSettings translations={translations} canEdit={canEdit} />;
       case 'roles':
         return <RolesSettings translations={translations} canEdit={canEdit} />;
       case 'permissions':
@@ -439,21 +454,24 @@ export default function SettingsContent({ translations, websiteTabs, accountTabs
         </div>
       </div>
 
-      <div className={styles.contentPanel}>
-        <div className={styles.sectionHeader}>
-          <div className={styles.sectionIconWrapper}>
-            <ActiveIcon className={styles.sectionIcon} />
+      {/* Content panel - only show when user has access to at least one tab */}
+      {activeTab && (
+        <div className={styles.contentPanel}>
+          <div className={styles.sectionHeader}>
+            <div className={styles.sectionIconWrapper}>
+              <ActiveIcon className={styles.sectionIcon} />
+            </div>
+            <div className={styles.sectionInfo}>
+              <h2 className={styles.sectionTitle}>{activeTabData?.label}</h2>
+              <p className={styles.sectionDescription}>
+                {activeTabData?.description}
+              </p>
+            </div>
           </div>
-          <div className={styles.sectionInfo}>
-            <h2 className={styles.sectionTitle}>{activeTabData?.label}</h2>
-            <p className={styles.sectionDescription}>
-              {activeTabData?.description}
-            </p>
-          </div>
-        </div>
 
-        {renderTabContent()}
-      </div>
+          {renderTabContent()}
+        </div>
+      )}
     </>
   );
 }
@@ -1713,6 +1731,145 @@ function IntegrationsSettings({ translations, canEdit = true }) {
   );
 }
 
+// Agent Config Settings Component
+function AgentConfigSettings({ translations, canEdit = true }) {
+  const t = translations;
+  const at = t.agentSettings || {};
+  const { selectedSite } = useSite();
+
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [config, setConfig] = useState({
+    enabled: true,
+    modules: { content: true, traffic: true, keywords: true, competitors: true, technical: true },
+    notifyOnNewInsights: true,
+  });
+
+  useEffect(() => {
+    if (!selectedSite?.id) return;
+    setLoading(true);
+    fetch(`/api/settings/agent-config?siteId=${selectedSite.id}`)
+      .then(res => res.ok ? res.json() : Promise.reject())
+      .then(data => setConfig(data.agentConfig))
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, [selectedSite?.id]);
+
+  const updateModule = (mod, value) => {
+    setConfig(prev => ({ ...prev, modules: { ...prev.modules, [mod]: value } }));
+  };
+
+  const updateField = (field, value) => {
+    setConfig(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleSave = async () => {
+    if (!selectedSite?.id || saving) return;
+    setSaving(true);
+    try {
+      const res = await fetch('/api/settings/agent-config', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ siteId: selectedSite.id, agentConfig: config }),
+      });
+      if (!res.ok) throw new Error();
+    } catch {
+      console.error('[AgentConfig] Save failed');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  if (loading) return <SettingsFormSkeleton />;
+
+  const MODULES = [
+    { key: 'content', icon: FileText, label: at.contentModule, desc: at.contentModuleDesc },
+    { key: 'traffic', icon: TrendingUp, label: at.trafficModule, desc: at.trafficModuleDesc },
+    { key: 'keywords', icon: Search, label: at.keywordsModule, desc: at.keywordsModuleDesc },
+    { key: 'competitors', icon: Users, label: at.competitorsModule, desc: at.competitorsModuleDesc },
+    { key: 'technical', icon: Wrench, label: at.technicalModule, desc: at.technicalModuleDesc },
+  ];
+
+  return (
+    <>
+      <div className={styles.subsection} style={{ borderTop: 'none', paddingTop: 0, marginTop: 0 }}>
+        <h3 className={styles.subsectionTitle}>
+          <Bot className={styles.subsectionIcon} />
+          {at.behavior}
+        </h3>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          <div className={styles.toggleRow}>
+            <div className={styles.toggleInfo}>
+              <Zap className={styles.toggleIcon} />
+              <div className={styles.toggleContent}>
+                <span className={styles.toggleLabel}>{at.enableAgent}</span>
+                <span className={styles.toggleDescription}>{at.enableAgentDesc}</span>
+              </div>
+            </div>
+            <button
+              className={`${styles.toggleSwitch} ${config.enabled ? styles.active : ''}`}
+              onClick={() => updateField('enabled', !config.enabled)}
+              disabled={!canEdit}
+            >
+              <div className={styles.toggleKnob}></div>
+            </button>
+          </div>
+          <div className={styles.toggleRow}>
+            <div className={styles.toggleInfo}>
+              <Bell className={styles.toggleIcon} />
+              <div className={styles.toggleContent}>
+                <span className={styles.toggleLabel}>{at.notifyInsights}</span>
+                <span className={styles.toggleDescription}>{at.notifyInsightsDesc}</span>
+              </div>
+            </div>
+            <button
+              className={`${styles.toggleSwitch} ${config.notifyOnNewInsights ? styles.active : ''}`}
+              onClick={() => updateField('notifyOnNewInsights', !config.notifyOnNewInsights)}
+              disabled={!canEdit}
+            >
+              <div className={styles.toggleKnob}></div>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div className={styles.subsection}>
+        <h3 className={styles.subsectionTitle}>
+          <Settings className={styles.subsectionIcon} />
+          {at.analysisModules}
+        </h3>
+        <p className={styles.formHint} style={{ marginBottom: '1rem' }}>{at.analysisModulesDesc}</p>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          {MODULES.map(({ key, icon: Icon, label, desc }) => (
+            <div key={key} className={styles.toggleRow}>
+              <div className={styles.toggleInfo}>
+                <Icon className={styles.toggleIcon} />
+                <div className={styles.toggleContent}>
+                  <span className={styles.toggleLabel}>{label}</span>
+                  <span className={styles.toggleDescription}>{desc}</span>
+                </div>
+              </div>
+              <button
+                className={`${styles.toggleSwitch} ${config.modules[key] ? styles.active : ''}`}
+                onClick={() => updateModule(key, !config.modules[key])}
+                disabled={!canEdit || !config.enabled}
+              >
+                <div className={styles.toggleKnob}></div>
+              </button>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className={styles.saveButtonWrapper}>
+        <button className={styles.saveButton} onClick={handleSave} disabled={saving || !canEdit}>
+          {saving ? (t.saving || 'Saving...') : t.saveChanges}
+        </button>
+      </div>
+    </>
+  );
+}
+
 // Users Settings Component
 function UsersSettings({ translations, canEdit = true }) {
   const t = translations;
@@ -1724,7 +1881,7 @@ function UsersSettings({ translations, canEdit = true }) {
   const [isLoading, setIsLoading] = useState(true);
   const [inviteEmail, setInviteEmail] = useState('');
   const [inviteRoleId, setInviteRoleId] = useState('');
-  const [inviteLanguage, setInviteLanguage] = useState('EN');
+  const [inviteLanguage, setInviteLanguage] = useState(locale?.toUpperCase() || 'EN');
   const [isInviting, setIsInviting] = useState(false);
   const [showConfirmRemove, setShowConfirmRemove] = useState(null);
   const [showChangeRole, setShowChangeRole] = useState(null);
@@ -2244,46 +2401,230 @@ function UsersSettings({ translations, canEdit = true }) {
   );
 }
 
-// Team Settings Component
-function TeamSettings({ team, translations, canEdit = true }) {
+// Team Settings Component - Manage which members have access to the current site
+function TeamSettings({ translations, canEdit = true }) {
   const t = translations;
+  const { selectedSite } = useSite();
+  const { t: translate } = useLocale();
   
+  const [assignedMembers, setAssignedMembers] = useState([]);
+  const [availableMembers, setAvailableMembers] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [actionLoading, setActionLoading] = useState(null);
+  const [showAssignModal, setShowAssignModal] = useState(false);
+
+  // Fetch site members on mount or when site changes
+  useEffect(() => {
+    if (selectedSite?.id) {
+      fetchSiteMembers();
+    }
+  }, [selectedSite?.id]);
+
+  const fetchSiteMembers = async () => {
+    try {
+      setIsLoading(true);
+      const res = await fetch(`/api/sites/${selectedSite.id}/members`);
+      if (res.ok) {
+        const data = await res.json();
+        setAssignedMembers(data.assignedMembers || []);
+        setAvailableMembers(data.availableMembers || []);
+      }
+    } catch (error) {
+      console.error('Error fetching site members:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleAssignMember = async (accountMemberId) => {
+    try {
+      setActionLoading(accountMemberId);
+      const res = await fetch(`/api/sites/${selectedSite.id}/members`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ accountMemberId }),
+      });
+
+      if (res.ok) {
+        await fetchSiteMembers();
+        setShowAssignModal(false);
+      } else {
+        const error = await res.json();
+        alert(error.error || translate('settings.teamSection.assignFailed'));
+      }
+    } catch (error) {
+      console.error('Error assigning member:', error);
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const handleRemoveMember = async (siteMemberId) => {
+    if (!confirm(translate('settings.teamSection.confirmRemove'))) {
+      return;
+    }
+
+    try {
+      setActionLoading(siteMemberId);
+      const res = await fetch(`/api/sites/${selectedSite.id}/members/${siteMemberId}`, {
+        method: 'DELETE',
+      });
+
+      if (res.ok) {
+        await fetchSiteMembers();
+      } else {
+        const error = await res.json();
+        alert(error.error || translate('settings.teamSection.removeFailed'));
+      }
+    } catch (error) {
+      console.error('Error removing member:', error);
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const getMemberDisplayName = (member) => {
+    if (member.firstName || member.lastName) {
+      return `${member.firstName || ''} ${member.lastName || ''}`.trim();
+    }
+    return member.email;
+  };
+
+  if (!selectedSite) {
+    return (
+      <div className={styles.emptyState}>
+        <p>{translate('settings.teamSection.noSiteSelected')}</p>
+      </div>
+    );
+  }
+
+  if (isLoading) {
+    return (
+      <div className={styles.loadingState}>
+        <Loader2 className={styles.spinner} size={24} />
+        <p>{translate('common.loading')}</p>
+      </div>
+    );
+  }
+
   return (
     <>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-        {team.members.map((member) => (
-          <div key={member.id} className={styles.teamMemberRow}>
-            <div className={styles.memberInfo}>
-              <span className={styles.memberName}>{member.name}</span>
-              <span className={styles.memberEmail}>{member.email}</span>
-            </div>
-            <span className={`${styles.roleBadge} ${styles[member.role.toLowerCase()]}`}>
-              {member.roleLabel}
-            </span>
-            <span className={styles.statusBadge}>
-              <span className={styles.statusDot}></span>
-              {member.statusLabel}
-            </span>
-            <div className={styles.memberActions}>
-              <button className={styles.actionButton}>
-                <Edit2 size={14} />
-              </button>
-              <button className={`${styles.actionButton} ${styles.danger}`}>
-                <Trash2 size={14} />
-              </button>
-            </div>
-          </div>
-        ))}
+      <div className={styles.teamDescription}>
+        <p>{translate('settings.teamSection.description')}</p>
       </div>
 
-      <button className={styles.addButton} style={{ marginTop: '1.5rem' }}>
-        <Plus size={16} />
-        {t.teamInviteTeamMember}
-      </button>
-
-      <div className={styles.saveButtonWrapper}>
-        <button className={styles.saveButton}>{t.saveChanges}</button>
+      {/* Assigned Members */}
+      <div className={styles.sectionSubtitle} style={{ marginTop: '1.5rem' }}>
+        <Users size={18} />
+        <span>{translate('settings.teamSection.assignedMembers')}</span>
+        <span className={styles.badge}>{assignedMembers.length}</span>
       </div>
+
+      {assignedMembers.length === 0 ? (
+        <div className={styles.emptyListMessage}>
+          {translate('settings.teamSection.noAssignedMembers')}
+        </div>
+      ) : (
+        <div className={styles.teamMembersList}>
+          {assignedMembers.map((member) => (
+            <div key={member.id} className={styles.teamMemberRow}>
+              <div className={styles.memberInfo}>
+                <div className={styles.memberAvatar}>
+                  {member.image ? (
+                    <img src={member.image} alt="" />
+                  ) : (
+                    <span>{getMemberDisplayName(member).charAt(0).toUpperCase()}</span>
+                  )}
+                </div>
+                <div className={styles.memberDetails}>
+                  <span className={styles.memberName}>{getMemberDisplayName(member)}</span>
+                  <span className={styles.memberEmail}>{member.email}</span>
+                </div>
+              </div>
+              <span className={styles.roleBadge}>
+                {member.role?.name || translate('settings.teamSection.noRole')}
+              </span>
+              {canEdit && (
+                <div className={styles.memberActions}>
+                  <button 
+                    className={`${styles.actionButton} ${styles.danger}`}
+                    onClick={() => handleRemoveMember(member.siteMemberId)}
+                    disabled={actionLoading === member.siteMemberId}
+                    title={translate('settings.teamSection.removeFromSite')}
+                  >
+                    {actionLoading === member.siteMemberId ? (
+                      <Loader2 size={14} className={styles.spinner} />
+                    ) : (
+                      <X size={14} />
+                    )}
+                  </button>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Add Member Button */}
+      {canEdit && availableMembers.length > 0 && (
+        <button 
+          className={styles.addButton} 
+          style={{ marginTop: '1.5rem' }}
+          onClick={() => setShowAssignModal(true)}
+        >
+          <UserPlus size={16} />
+          {translate('settings.teamSection.assignMember')}
+        </button>
+      )}
+
+      {canEdit && availableMembers.length === 0 && assignedMembers.length > 0 && (
+        <div className={styles.infoMessage} style={{ marginTop: '1rem' }}>
+          <Check size={16} />
+          {translate('settings.teamSection.allMembersAssigned')}
+        </div>
+      )}
+
+      {/* Assign Member Modal */}
+      <AdminModal
+        isOpen={showAssignModal}
+        onClose={() => setShowAssignModal(false)}
+        title={translate('settings.teamSection.assignMemberTitle')}
+        size="small"
+      >
+        <p className={styles.modalDescription}>
+          {translate('settings.teamSection.assignMemberDescription')}
+        </p>
+        <div className={styles.memberSelectList}>
+          {availableMembers.map((member) => (
+            <button
+              key={member.id}
+              className={styles.memberSelectItem}
+              onClick={() => handleAssignMember(member.id)}
+              disabled={actionLoading === member.id}
+            >
+              <div className={styles.memberAvatar}>
+                {member.image ? (
+                  <img src={member.image} alt="" />
+                ) : (
+                  <span>{getMemberDisplayName(member).charAt(0).toUpperCase()}</span>
+                )}
+              </div>
+              <div className={styles.memberDetails}>
+                <span className={styles.memberName}>{getMemberDisplayName(member)}</span>
+                <span className={styles.memberEmail}>{member.email}</span>
+              </div>
+              <span className={styles.roleBadge}>
+                {member.role?.name || translate('settings.teamSection.noRole')}
+              </span>
+              {actionLoading === member.id ? (
+                <Loader2 size={16} className={styles.spinner} />
+              ) : (
+                <Plus size={16} />
+              )}
+            </button>
+          ))}
+        </div>
+      </AdminModal>
     </>
   );
 }
@@ -4652,10 +4993,12 @@ function RolesSettings({ translations, canEdit = true }) {
             <Shield className={styles.subsectionIcon} />
             {t('settings.rolesSection.title')}
           </h3>
-          <button className={styles.editButton} onClick={handleAdd}>
-            <Plus size={16} />
-            {t('settings.rolesSection.addRole')}
-          </button>
+          {canEdit && (
+            <button className={styles.editButton} onClick={handleAdd}>
+              <Plus size={16} />
+              {t('settings.rolesSection.addRole')}
+            </button>
+          )}
         </div>
 
         {roles.length === 0 ? (
@@ -4691,25 +5034,27 @@ function RolesSettings({ translations, canEdit = true }) {
                       </span>
                     </td>
                     <td>
-                      <div className={styles.actionButtons}>
-                        <button 
-                          className={styles.iconButton} 
-                          onClick={() => handleEdit(role)}
-                          title={t('common.edit')}
-                        >
-                          <Edit2 size={16} />
-                        </button>
-                        {!role.isSystemRole && (
+                      {canEdit && (
+                        <div className={styles.actionButtons}>
                           <button 
-                            className={`${styles.iconButton} ${styles.danger}`}
-                            onClick={() => handleDelete(role)}
-                            title={t('common.delete')}
-                            disabled={role.membersCount > 0}
+                            className={styles.iconButton} 
+                            onClick={() => handleEdit(role)}
+                            title={t('common.edit')}
                           >
-                            <Trash2 size={16} />
+                            <Edit2 size={16} />
                           </button>
-                        )}
-                      </div>
+                          {!role.isSystemRole && (
+                            <button 
+                              className={`${styles.iconButton} ${styles.danger}`}
+                              onClick={() => handleDelete(role)}
+                              title={t('common.delete')}
+                              disabled={role.membersCount > 0}
+                            >
+                              <Trash2 size={16} />
+                            </button>
+                          )}
+                        </div>
+                      )}
                     </td>
                   </tr>
                 ))}
@@ -4921,7 +5266,7 @@ function PermissionsSettings({ translations, canEdit = true }) {
 
   // Handle permission toggle
   const handlePermissionToggle = (moduleId, capability) => {
-    if (isOwnerRole) return; // Owner permissions are not editable
+    if (isOwnerRole || !canEdit) return; // Owner permissions are not editable, also check canEdit
 
     const permKey = getPermKey(moduleId, capability);
     let newPermissions = [...rolePermissions];
@@ -4952,7 +5297,7 @@ function PermissionsSettings({ translations, canEdit = true }) {
 
   // Handle module row "all" toggle
   const handleModuleToggle = (module) => {
-    if (isOwnerRole) return;
+    if (isOwnerRole || !canEdit) return;
 
     const allPerms = module.capabilities.map(cap => getPermKey(module.id, cap));
     const allEnabled = allPerms.every(p => rolePermissions.includes(p));
@@ -4991,7 +5336,7 @@ function PermissionsSettings({ translations, canEdit = true }) {
 
   // Handle capability column "all" toggle
   const handleCapabilityColumnToggle = (capability, modulesList) => {
-    if (isOwnerRole) return;
+    if (isOwnerRole || !canEdit) return;
 
     // Get all modules that have this capability
     const modulesWithCapability = modulesList.filter(m => m.capabilities.includes(capability));
@@ -5065,7 +5410,7 @@ function PermissionsSettings({ translations, canEdit = true }) {
 
   // Handle toggle all modules at once (master checkbox)
   const handleAllModulesToggle = (modulesList) => {
-    if (isOwnerRole) return;
+    if (isOwnerRole || !canEdit) return;
 
     // Get all permissions for all modules
     const allPerms = modulesList.flatMap(m => m.capabilities.map(cap => getPermKey(m.id, cap)));
@@ -5104,7 +5449,7 @@ function PermissionsSettings({ translations, canEdit = true }) {
   };
 
   const handleSave = async () => {
-    if (!selectedRole || isOwnerRole) return;
+    if (!selectedRole || isOwnerRole || !canEdit) return;
     setIsSaving(true);
     setSaveSuccess(false);
 
@@ -5190,7 +5535,7 @@ function PermissionsSettings({ translations, canEdit = true }) {
                               checked={isAllModulesAllEnabled(coreModules)}
                               ref={el => el && (el.indeterminate = isAllModulesSomeEnabled(coreModules))}
                               onChange={() => handleAllModulesToggle(coreModules)}
-                              disabled={isOwnerRole}
+                              disabled={isOwnerRole || !canEdit}
                             />
                             <span className={styles.checkmark}></span>
                           </label>
@@ -5206,7 +5551,7 @@ function PermissionsSettings({ translations, canEdit = true }) {
                               checked={isCapabilityColumnAllEnabled('view', coreModules)}
                               ref={el => el && (el.indeterminate = isCapabilityColumnSomeEnabled('view', coreModules))}
                               onChange={() => handleCapabilityColumnToggle('view', coreModules)}
-                              disabled={isOwnerRole}
+                              disabled={isOwnerRole || !canEdit}
                             />
                             <span className={styles.checkmark}></span>
                           </label>
@@ -5221,7 +5566,7 @@ function PermissionsSettings({ translations, canEdit = true }) {
                               checked={isCapabilityColumnAllEnabled('edit', coreModules)}
                               ref={el => el && (el.indeterminate = isCapabilityColumnSomeEnabled('edit', coreModules))}
                               onChange={() => handleCapabilityColumnToggle('edit', coreModules)}
-                              disabled={isOwnerRole}
+                              disabled={isOwnerRole || !canEdit}
                             />
                             <span className={styles.checkmark}></span>
                           </label>
@@ -5236,7 +5581,7 @@ function PermissionsSettings({ translations, canEdit = true }) {
                               checked={isCapabilityColumnAllEnabled('delete', coreModules)}
                               ref={el => el && (el.indeterminate = isCapabilityColumnSomeEnabled('delete', coreModules))}
                               onChange={() => handleCapabilityColumnToggle('delete', coreModules)}
-                              disabled={isOwnerRole}
+                              disabled={isOwnerRole || !canEdit}
                             />
                             <span className={styles.checkmark}></span>
                           </label>
@@ -5261,7 +5606,7 @@ function PermissionsSettings({ translations, canEdit = true }) {
                                 checked={isModuleAllEnabled(module)}
                                 ref={el => el && (el.indeterminate = isModuleSomeEnabled(module))}
                                 onChange={() => handleModuleToggle(module)}
-                                disabled={isOwnerRole}
+                                disabled={isOwnerRole || !canEdit}
                               />
                               <span className={styles.checkmark}></span>
                             </label>
@@ -5278,7 +5623,7 @@ function PermissionsSettings({ translations, canEdit = true }) {
                                   type="checkbox"
                                   checked={hasPermission(module.id, 'view')}
                                   onChange={() => handlePermissionToggle(module.id, 'view')}
-                                  disabled={isOwnerRole}
+                                  disabled={isOwnerRole || !canEdit}
                                 />
                                 <span className={styles.checkmark}></span>
                               </label>
@@ -5291,7 +5636,7 @@ function PermissionsSettings({ translations, canEdit = true }) {
                                   type="checkbox"
                                   checked={hasPermission(module.id, 'edit')}
                                   onChange={() => handlePermissionToggle(module.id, 'edit')}
-                                  disabled={isOwnerRole || viewDisabled}
+                                  disabled={isOwnerRole || viewDisabled || !canEdit}
                                 />
                                 <span className={styles.checkmark}></span>
                               </label>
@@ -5304,7 +5649,7 @@ function PermissionsSettings({ translations, canEdit = true }) {
                                   type="checkbox"
                                   checked={hasPermission(module.id, 'delete')}
                                   onChange={() => handlePermissionToggle(module.id, 'delete')}
-                                  disabled={isOwnerRole || viewDisabled}
+                                  disabled={isOwnerRole || viewDisabled || !canEdit}
                                 />
                                 <span className={styles.checkmark}></span>
                               </label>
@@ -5333,7 +5678,7 @@ function PermissionsSettings({ translations, canEdit = true }) {
                               checked={isAllModulesAllEnabled(settingsModules)}
                               ref={el => el && (el.indeterminate = isAllModulesSomeEnabled(settingsModules))}
                               onChange={() => handleAllModulesToggle(settingsModules)}
-                              disabled={isOwnerRole}
+                              disabled={isOwnerRole || !canEdit}
                             />
                             <span className={styles.checkmark}></span>
                           </label>
@@ -5349,7 +5694,7 @@ function PermissionsSettings({ translations, canEdit = true }) {
                               checked={isCapabilityColumnAllEnabled('view', settingsModules)}
                               ref={el => el && (el.indeterminate = isCapabilityColumnSomeEnabled('view', settingsModules))}
                               onChange={() => handleCapabilityColumnToggle('view', settingsModules)}
-                              disabled={isOwnerRole}
+                              disabled={isOwnerRole || !canEdit}
                             />
                             <span className={styles.checkmark}></span>
                           </label>
@@ -5364,7 +5709,7 @@ function PermissionsSettings({ translations, canEdit = true }) {
                               checked={isCapabilityColumnAllEnabled('edit', settingsModules)}
                               ref={el => el && (el.indeterminate = isCapabilityColumnSomeEnabled('edit', settingsModules))}
                               onChange={() => handleCapabilityColumnToggle('edit', settingsModules)}
-                              disabled={isOwnerRole}
+                              disabled={isOwnerRole || !canEdit}
                             />
                             <span className={styles.checkmark}></span>
                           </label>
@@ -5390,7 +5735,7 @@ function PermissionsSettings({ translations, canEdit = true }) {
                                 checked={isModuleAllEnabled(module)}
                                 ref={el => el && (el.indeterminate = isModuleSomeEnabled(module))}
                                 onChange={() => handleModuleToggle(module)}
-                                disabled={isOwnerRole}
+                                disabled={isOwnerRole || !canEdit}
                               />
                               <span className={styles.checkmark}></span>
                             </label>
@@ -5407,7 +5752,7 @@ function PermissionsSettings({ translations, canEdit = true }) {
                                   type="checkbox"
                                   checked={hasPermission(module.id, 'view')}
                                   onChange={() => handlePermissionToggle(module.id, 'view')}
-                                  disabled={isOwnerRole}
+                                  disabled={isOwnerRole || !canEdit}
                                 />
                                 <span className={styles.checkmark}></span>
                               </label>
@@ -5420,7 +5765,7 @@ function PermissionsSettings({ translations, canEdit = true }) {
                                   type="checkbox"
                                   checked={hasPermission(module.id, 'edit')}
                                   onChange={() => handlePermissionToggle(module.id, 'edit')}
-                                  disabled={isOwnerRole || viewDisabled}
+                                  disabled={isOwnerRole || viewDisabled || !canEdit}
                                 />
                                 <span className={styles.checkmark}></span>
                               </label>
@@ -5434,7 +5779,7 @@ function PermissionsSettings({ translations, canEdit = true }) {
               </div>
             </div>
 
-            {!isOwnerRole && (
+            {!isOwnerRole && canEdit && (
               <div className={styles.saveButtonWrapper}>
                 <button 
                   className={styles.saveButton} 

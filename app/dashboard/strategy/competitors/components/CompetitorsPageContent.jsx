@@ -9,6 +9,7 @@ import {
   AIDiscoverButton,
 } from '../../../components';
 import { useCompetitors } from './useCompetitors';
+import { usePermissions } from '@/app/hooks/usePermissions';
 import { CompetitorCard, CompetitorCardSkeleton } from './CompetitorCard';
 import { CompetitorTable, CompetitorTableSkeleton } from './CompetitorTable';
 import { AddCompetitorForm } from './AddCompetitorForm';
@@ -20,6 +21,13 @@ import styles from '../competitors.module.css';
 
 export function CompetitorsPageContent({ translations }) {
   const t = translations;
+  const { canCreate, canEdit, canDelete, MODULES } = usePermissions();
+  
+  // Permission checks for competitors
+  const canCreateCompetitors = canCreate(MODULES.COMPETITORS);
+  const canEditCompetitors = canEdit(MODULES.COMPETITORS);
+  const canDeleteCompetitors = canDelete(MODULES.COMPETITORS);
+  
   const {
     // Site
     selectedSite,
@@ -117,20 +125,22 @@ export function CompetitorsPageContent({ translations }) {
         title={t.title}
         subtitle={t.subtitle}
       >
-        <div className={styles.headerActions}>
-          <AIDiscoverButton
-            isDiscovering={discovering}
-            onClick={() => setShowDiscoveryConfirm(true)}
-            label={t.findWithAI}
-          />
-          <PrimaryActionButton
-            iconName="Plus"
-            onClick={() => setShowAddForm(true)}
-            disabled={competitors.length >= limit}
-          >
-            {t.addCompetitor}
-          </PrimaryActionButton>
-        </div>
+        {canCreateCompetitors && (
+          <div className={styles.headerActions}>
+            <AIDiscoverButton
+              isDiscovering={discovering}
+              onClick={() => setShowDiscoveryConfirm(true)}
+              label={t.findWithAI}
+            />
+            <PrimaryActionButton
+              iconName="Plus"
+              onClick={() => setShowAddForm(true)}
+              disabled={competitors.length >= limit}
+            >
+              {t.addCompetitor}
+            </PrimaryActionButton>
+          </div>
+        )}
       </PageHeader>
 
       <StatsGrid stats={translatedStats} columns={3} loading={loading || isSiteLoading} />
@@ -196,9 +206,11 @@ export function CompetitorsPageContent({ translations }) {
           title={t.noCompetitors}
           description={t.noCompetitorsDescription}
         >
-          <PrimaryActionButton iconName="Plus" onClick={() => setShowAddForm(true)}>
-            {t.addFirstCompetitor}
-          </PrimaryActionButton>
+          {canCreateCompetitors && (
+            <PrimaryActionButton iconName="Plus" onClick={() => setShowAddForm(true)}>
+              {t.addFirstCompetitor}
+            </PrimaryActionButton>
+          )}
         </EmptyState>
       ) : (
         <>
@@ -218,7 +230,7 @@ export function CompetitorsPageContent({ translations }) {
                   isScanning={scanningIds.has(competitor.id)}
                   onSelect={setSelectedCompetitor}
                   onScan={handleScanCompetitor}
-                  onRemove={handleRemoveCompetitor}
+                  onRemove={canDeleteCompetitors ? handleRemoveCompetitor : undefined}
                   translations={t}
                 />
               ))}
@@ -232,7 +244,7 @@ export function CompetitorsPageContent({ translations }) {
               scanningIds={scanningIds}
               onSelect={setSelectedCompetitor}
               onScan={handleScanCompetitor}
-              onRemove={handleRemoveCompetitor}
+              onRemove={canDeleteCompetitors ? handleRemoveCompetitor : undefined}
               translations={t}
             />
           )}

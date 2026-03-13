@@ -18,6 +18,7 @@ import {
   AlertTriangle,
 } from 'lucide-react';
 import { useLocale } from '@/app/context/locale-context';
+import { usePermissions } from '@/app/hooks/usePermissions';
 import { TableSkeleton } from '@/app/dashboard/components';
 import { OnboardingCard } from './OnboardingCard';
 import styles from '../entities.module.css';
@@ -52,6 +53,12 @@ export function EntitiesTable({
 }) {
   const { t } = useLocale();
   const router = useRouter();
+  const { canEdit, canDelete, MODULES } = usePermissions();
+  
+  // Permission checks for entities
+  const canEditEntities = canEdit(MODULES.ENTITIES);
+  const canDeleteEntities = canDelete(MODULES.ENTITIES);
+  
   const [searchQuery, setSearchQuery] = useState('');
   const [deletingId, setDeletingId] = useState(null);
   const [deleteType, setDeleteType] = useState(null); // 'remove' or 'trash'
@@ -402,8 +409,8 @@ export function EntitiesTable({
         </div>
       ) : (
         <>
-          {/* Bulk Actions Bar */}
-          {selectedIds.size > 0 && (
+          {/* Bulk Actions Bar - Only show if user has delete permission */}
+          {selectedIds.size > 0 && canDeleteEntities && (
             <div className={styles.bulkActionsBar}>
               <div className={styles.bulkActionsInfo}>
                 <span className={styles.selectedCount}>
@@ -543,28 +550,32 @@ export function EntitiesTable({
                         <ExternalLink />
                       </a>
                     )}
-                    <button 
-                      className={`${styles.actionButton} ${styles.edit}`}
-                      onClick={() => router.push(`/dashboard/entities/${entityType}/${entity.id}`)}
-                      title={t('common.edit')}
-                    >
-                      <Edit />
-                    </button>
+                    {canEditEntities && (
+                      <button 
+                        className={`${styles.actionButton} ${styles.edit}`}
+                        onClick={() => router.push(`/dashboard/entities/${entityType}/${entity.id}`)}
+                        title={t('common.edit')}
+                      >
+                        <Edit />
+                      </button>
+                    )}
                     {/* Remove from platform only (X button) */}
-                    <button 
-                      className={`${styles.actionButton} ${styles.remove}`}
-                      onClick={() => handleRemoveFromPlatform(entity)}
-                      disabled={deletingId === entity.id}
-                      title={t('entities.removeFromPlatformTooltip')}
-                    >
-                      {deletingId === entity.id && deleteType === 'remove' ? (
-                        <Loader2 className={styles.spinningIcon} />
-                      ) : (
-                        <X />
-                      )}
-                    </button>
-                    {/* Delete from WordPress (Trash button) - only show if plugin connected */}
-                    {isPluginConnected && (
+                    {canDeleteEntities && (
+                      <button 
+                        className={`${styles.actionButton} ${styles.remove}`}
+                        onClick={() => handleRemoveFromPlatform(entity)}
+                        disabled={deletingId === entity.id}
+                        title={t('entities.removeFromPlatformTooltip')}
+                      >
+                        {deletingId === entity.id && deleteType === 'remove' ? (
+                          <Loader2 className={styles.spinningIcon} />
+                        ) : (
+                          <X />
+                        )}
+                      </button>
+                    )}
+                    {/* Delete from WordPress (Trash button) - only show if plugin connected and has delete permission */}
+                    {isPluginConnected && canDeleteEntities && (
                       <button 
                         className={`${styles.actionButton} ${styles.delete}`}
                         onClick={() => handleDeleteFromWordPress(entity)}

@@ -79,7 +79,7 @@ async function fetchWordPressEntities(site, postTypeSlug) {
           excerpt: item.excerpt || null,
           content: item.content || null,
           status: mappedStatus,
-          featuredImage: item.featured_image || null,
+          featuredImage: item.featured_image || item.featuredImage || null,
           publishedAt: item.date_gmt ? new Date(String(item.date_gmt).replace(' ', 'T') + 'Z') : (item.date ? new Date(String(item.date).replace(' ', 'T')) : null),
           scheduledAt: item.status === 'future' && item.date_gmt ? new Date(String(item.date_gmt).replace(' ', 'T') + 'Z') : (item.status === 'future' && item.date ? new Date(String(item.date).replace(' ', 'T')) : null),
           // Additional data - store as objects (Prisma JSON fields)
@@ -181,14 +181,18 @@ export async function POST(request) {
     let totalSynced = 0;
     let totalUpdated = 0;
     let totalCreated = 0;
+    let totalDeleted = 0;
     
     for (const entityType of entityTypes) {
       // Fetch entities using authenticated plugin API with post type slug
       const fetchedEntities = await fetchWordPressEntities(site, entityType.slug);
+      const seenExternalIds = new Set();
       
       // Upsert each entity - try to match by externalId first, then by slug
       for (const entity of fetchedEntities) {
         try {
+          seenExternalIds.add(entity.externalId);
+
           // First, try to find existing entity by externalId
           let existingEntity = await prisma.siteEntity.findFirst({
             where: {
@@ -251,6 +255,26 @@ export async function POST(request) {
           console.error(`[Sync] Error syncing entity ${entity.slug}:`, error.message);
         }
       }
+
+      // Remove entities that have an externalId but no longer exist on WordPress
+      if (seenExternalIds.size > 0) {
+        const staleEntities = await prisma.siteEntity.findMany({
+          where: {
+            siteId: site.id,
+            entityTypeId: entityType.id,
+            externalId: { not: null, notIn: [...seenExternalIds] },
+          },
+          select: { id: true },
+        });
+
+        if (staleEntities.length > 0) {
+          await prisma.siteEntity.deleteMany({
+            where: { id: { in: staleEntities.map(e => e.id) } },
+          });
+          totalDeleted += staleEntities.length;
+          console.log(`[Sync] Removed ${staleEntities.length} deleted ${entityType.slug} entities`);
+        }
+      }
     }
 
     // Update site's updatedAt to track last sync
@@ -259,14 +283,15 @@ export async function POST(request) {
       data: { updatedAt: new Date() },
     });
 
-    console.log(`[Sync] Complete: ${totalSynced} total (${totalUpdated} updated, ${totalCreated} created)`);
+    console.log(`[Sync] Complete: ${totalSynced} total (${totalUpdated} updated, ${totalCreated} created, ${totalDeleted} deleted)`);
 
     return NextResponse.json({ 
       success: true,
       synced: totalSynced,
       updated: totalUpdated,
       created: totalCreated,
-      message: `Synced ${totalSynced} entities (${totalUpdated} updated, ${totalCreated} created)`,
+      deleted: totalDeleted,
+      message: `Synced ${totalSynced} entities (${totalUpdated} updated, ${totalCreated} created, ${totalDeleted} deleted)`,
     });
   } catch (error) {
     console.error('Failed to sync entities:', error);

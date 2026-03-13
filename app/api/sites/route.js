@@ -77,17 +77,52 @@ export async function GET() {
       ? user.lastSelectedAccountId
       : accountIds[0];
 
-    // Get the user's last selected site for this account
+    // Get the user's current membership for this account
     const currentMembership = user.accountMemberships.find(m => m.accountId === selectedAccountId);
     const lastSelectedSiteId = currentMembership?.lastSelectedSiteId || null;
 
-    const sites = await prisma.site.findMany({
-      where: { 
-        accountId: selectedAccountId || { in: accountIds },
-        isActive: true,
+    // Get full membership info including isOwner
+    const accountMember = await prisma.accountMember.findFirst({
+      where: {
+        accountId: selectedAccountId,
+        userId: user.id,
+        status: 'ACTIVE',
       },
-      orderBy: { createdAt: 'desc' },
+      select: {
+        id: true,
+        isOwner: true,
+        siteMembers: {
+          select: {
+            siteId: true,
+          },
+        },
+      },
     });
+
+    let sites;
+
+    // Owners see all account sites, non-owners only see assigned sites
+    if (accountMember?.isOwner) {
+      sites = await prisma.site.findMany({
+        where: { 
+          accountId: selectedAccountId || { in: accountIds },
+          isActive: true,
+        },
+        orderBy: { createdAt: 'desc' },
+      });
+    } else {
+      // Get only sites the user is assigned to
+      const assignedSiteIds = accountMember?.siteMembers.map(sm => sm.siteId) || [];
+      
+      sites = await prisma.site.findMany({
+        where: { 
+          id: { in: assignedSiteIds },
+          accountId: selectedAccountId,
+          isActive: true,
+        },
+        orderBy: { createdAt: 'desc' },
+      });
+    }
 
     return NextResponse.json({ sites, lastSelectedSiteId });
   } catch (error) {

@@ -4,12 +4,15 @@ import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { FolderOpen, Plus, Trash2, Loader2, AlertTriangle, X } from 'lucide-react';
 import { useSite } from '@/app/context/site-context';
+import { usePermissions, MODULES } from '@/app/hooks/usePermissions';
 import CampaignForm from '../../../_shared/CampaignForm';
 import styles from '../../page.module.css';
 
 export default function CampaignStep({ state, dispatch, translations, onLoadCampaign, onResetSteps }) {
   const t = translations.campaign;
   const { selectedSite } = useSite();
+  const { canDelete } = usePermissions();
+  const canDeleteCampaign = canDelete(MODULES.CONTENT_PLANNER);
   const [campaigns, setCampaigns] = useState([]);
   const [loading, setLoading] = useState(true);
   const [deleteConfirm, setDeleteConfirm] = useState(null);
@@ -119,15 +122,17 @@ export default function CampaignStep({ state, dispatch, translations, onLoadCamp
                     {campaign._count?.contents || campaign.subjects?.length || 0} {translations.articleTypes.postsOfType}
                   </span>
                 </div>
-                <button
-                  className={styles.campaignCardDelete}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setDeleteConfirm(campaign.id);
-                  }}
-                >
-                  <Trash2 size={14} />
-                </button>
+                {canDeleteCampaign && (
+                  <button
+                    className={styles.campaignCardDelete}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setDeleteConfirm(campaign.id);
+                    }}
+                  >
+                    <Trash2 size={14} />
+                  </button>
+                )}
               </div>
             ))
           )}

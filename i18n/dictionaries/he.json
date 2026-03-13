@@ -88,6 +88,8 @@
     "goBack": "חזור אחורה",
     "characters": "תווים",
     "dismiss": "סגור",
+    "accessDenied": "הגישה נדחתה",
+    "noPermissions": "אין לך הרשאה לגשת לחלק זה.",
     "openInNewTab": "פתח בלשונית חדשה",
     "refresh": "רענן",
     "linksPerThousand": "קישורים / 1000 מילים",
@@ -260,6 +262,7 @@
   },
   "nav": {
     "dashboard": "לוח הבקרה",
+    "agent": "סוכן AI",
     "siteInterview": "פרופיל אתר",
     "strategy": {
       "title": "אסטרטגיה",
@@ -418,7 +421,60 @@
       "positionDown": "המיקום ירד ב-{percent}% {period}",
       "positionNoChange": "המיקום לא השתנה מ-{period}",
       "dataFromGA": "נתונים מ-Google Analytics",
-      "dataFromGSC": "נתונים מ-Google Search Console"
+      "dataFromGSC": "נתונים מ-Google Search Console",
+      "kpiDescriptions": {
+        "organicVisitors": "משתמשים ייחודיים שביקרו באתר שלך דרך חיפוש אורגני. אדם אחד שצופה ב-5 דפים נספר כמבקר 1.",
+        "totalPageViews": "מספר הדפים הכולל שנצפו. צפיות חוזרות בדף נספרות.",
+        "avgSessionDuration": "הזמן הממוצע שמשתמשים מבלים באתר במהלך ביקור יחיד.",
+        "sessions": "מספר הסשנים הכולל. סשן הוא תקופת פעילות באתר ממשתמש יחיד.",
+        "totalClicks": "מספר הפעמים שמשתמשים לחצו על האתר שלך בתוצאות החיפוש של גוגל.",
+        "totalImpressions": "מספר הפעמים שהאתר שלך הופיע בתוצאות החיפוש של גוגל.",
+        "avgCtr": "שיעור הקלקה — אחוז החשיפות שהובילו ללחיצה.",
+        "avgPosition": "מיקום ממוצע באתר שלך בתוצאות החיפוש של גוגל."
+      },
+      "kpiFullDescriptions": {
+        "organicVisitors": {
+          "title": "מבקרים אורגניים",
+          "description": "משתמשים ייחודיים שביקרו באתר שלך דרך תוצאות חיפוש אורגניות (לא ממומנות).",
+          "details": "מדד זה סופר אנשים בודדים, לא צפיות בעמודים. אם אדם אחד מבקר באתר שלך 5 פעמים, הוא נספר כמבקר אורגני אחד. זה עוזר לך להבין כמה אנשים ממש מגלים את התוכן שלך דרך מנועי חיפוש. מספר גבוה יותר מצביע על ביצועי SEO טובים יותר ונראות תוכן."
+        },
+        "totalPageViews": {
+          "title": "סך צפיות בעמודים",
+          "description": "מספר הדפים הכולל שנצפו באתר שלך בתקופה הנבחרת.",
+          "details": "בכל פעם שמשתמש טוען עמוד, זה נספר כצפייה בעמוד — כולל צפיות חוזרות באותו עמוד. מדד זה עוזר לך להבין מעורבות כוללת וצריכת תוכן. השווה עם מבקרים כדי לחשב עמודים לסשן ולזהות עד כמה המשתמשים חוקרים את האתר שלך לעומק."
+        },
+        "avgSessionDuration": {
+          "title": "משך סשן ממוצע",
+          "description": "הזמן הממוצע שמשתמשים מבלים באתר שלך במהלך סשן יחיד.",
+          "details": "סשן מתחיל כשמשתמש מגיע לאתר שלך ומסתיים לאחר 30 דקות של חוסר פעילות או בחצות. משך סשן ארוך יותר מעיד בדרך כלל על תוכן מעניין ששומר על המבקרים מעוניינים. השתמש במדד זה לצד שיעור נטישה כדי להעריך איכות תוכן וחוויית משתמש."
+        },
+        "sessions": {
+          "title": "סשנים",
+          "description": "מספר סשני הגלישה הבודדים באתר שלך.",
+          "details": "סשן מקבץ אינטראקציות משתמש בתוך מסגרת זמן. משתמש אחד יכול להיות לו מספר סשנים. סשנים עוזרים לך להבין דפוסי תנועה והתנהגות משתמש. השווה סשנים עם משתמשים כדי לראות כמה פעמים אנשים חוזרים, ועם צפיות בעמודים כדי לחשב עמודים לסשן."
+        },
+        "totalClicks": {
+          "title": "סך קליקים",
+          "description": "מספר הפעמים שמשתמשים לחצו על האתר שלך בתוצאות החיפוש של גוגל.",
+          "details": "הנתונים האלה מגיעים מ-Google Search Console ומראים קליקים ממשיים מתוצאות חיפוש לאתר שלך. קליק פירושו שמישהו ראה את הרישום שלך ובחר לבקר באתר שלך. הגדלת קליקים תוך שמירה או שיפור ה-CTR מצביעה על נוכחות חיפוש גדלה ותיאורי חיפוש משכנעים."
+        },
+        "totalImpressions": {
+          "title": "סך חשיפות",
+          "description": "כמה פעמים האתר שלך הופיע בתוצאות החיפוש של גוגל.",
+          "details": "חשיפה נספרת בכל פעם שה-URL שלך מופיע בתוצאות החיפוש, בין אם הגללה אליו או לא. חשיפות גבוהות עם קליקים נמוכים עשויות להצביע על צורך לשפר את תגי הכותרת והתיאורים המטא. מדד זה עוזר לך להבין את הנראות הכוללת שלך בחיפוש."
+        },
+        "avgCtr": {
+          "title": "CTR ממוצע (יחס קליקים)",
+          "description": "אחוז החשיפות שהובילו לקליק.",
+          "details": "CTR מחושב כ-(קליקים ÷ חשיפות) × 100. CTR גבוה יותר פירושו שרישומי החיפוש שלך משכנעים משתמשים ללחוץ. CTR טיפוסי משתנה לפי מיקום — תוצאות עליונות ממוצעות 3-5% CTR, בעוד מיקומים נמוכים יותר רואים הרבה פחות. שיפור תגי כותרת ותיאורים מטא יכול להגביר את ה-CTR."
+        },
+        "avgPosition": {
+          "title": "מיקום ממוצע",
+          "description": "מיקום הדירוג הממוצע שלך בתוצאות החיפוש של גוגל.",
+          "details": "מיקום 1 הוא הראש של תוצאות החיפוש. זה ממוצע על פני כל השאילתות שהאתר שלך מופיע בהן. מספר נמוך יותר עדיף. המיקום משפיע משמעותית על הנראות וה-CTR — 3 המיקומים הראשונים מקבלים את רוב הקליקים. עקוב אחר שינויי מיקום כדי למדוד התקדמות SEO לאורך זמן."
+        },
+        "gotIt": "הבנתי"
+      }
     },
     "aiTraffic": {
       "title": "סקירת תנועת AI",
@@ -2146,6 +2202,7 @@
     },
     "general": "כללי",
     "aiConfiguration": "תצורת AI",
+    "agentConfig": "סוכן AI",
     "scheduling": "תזמון",
     "notifications": "התראות",
     "seoSettings": "SEO",
@@ -2182,7 +2239,8 @@
       "profile": "עדכן את הפרופיל האישי וההעדפות שלך",
       "account": "נהל את הגדרות חשבון החברה",
       "roles": "צור ונהל תפקידים עבור חברי החשבון שלך",
-      "permissions": "הקצה הרשאות לכל תפקיד בחשבון שלך"
+      "permissions": "הקצה הרשאות לכל תפקיד בחשבון שלך",
+      "agentConfig": "הגדר מודולי ניתוח והתנהגות סוכן AI"
     },
     "fields": {
       "siteUrl": "כתובת האתר",
@@ -2455,6 +2513,19 @@
     },
     "teamSection": {
       "inviteTeamMember": "הזמן חבר צוות",
+      "description": "נהל אילו חברי צוות יש להם גישה לאתר זה. חברים שהוקצו כאן יוכלו לראות ולעבוד עם האתר בהתאם להרשאות התפקיד שלהם.",
+      "noSiteSelected": "בחר אתר כדי לנהל חברי צוות.",
+      "assignedMembers": "חברים מוקצים",
+      "noAssignedMembers": "עדיין לא הוקצו חברי צוות לאתר זה.",
+      "assignMember": "הקצה חבר צוות",
+      "allMembersAssigned": "כל חברי הצוות כבר מוקצים לאתר זה.",
+      "assignMemberTitle": "הקצה חבר צוות",
+      "assignMemberDescription": "בחר חבר צוות כדי לתת לו גישה לאתר זה.",
+      "confirmRemove": "האם אתה בטוח שברצונך להסיר את החבר הזה מהאתר?",
+      "removeFromSite": "הסר מהאתר",
+      "noRole": "ללא תפקיד",
+      "assignFailed": "הקצאת החבר נכשלה",
+      "removeFailed": "הסרת החבר נכשלה",
       "roles": {
         "owner": "בעלים",
         "admin": "מנהל",
@@ -2733,8 +2804,12 @@
         "members": "צוות",
         "roles": "תפקידים",
         "sites": "אתרים",
-        "content": "תוכן",
+        "content_planner": "תכנון תוכן",
+        "ai_content": "אשף תוכן AI",
+        "entities": "ישויות",
+        "campaigns": "קמפיינים",
         "keywords": "מילות מפתח",
+        "competitors": "מתחרים",
         "redirections": "הפניות",
         "interview": "ראיון",
         "audit": "יומן פעילות",
@@ -2754,8 +2829,12 @@
         "members": "צוות",
         "roles": "תפקידים",
         "sites": "אתרים",
-        "content": "תוכן",
+        "content_planner": "תכנון תוכן",
+        "ai_content": "אשף תוכן AI",
+        "entities": "ישויות",
+        "campaigns": "קמפיינים",
         "keywords": "מילות מפתח",
+        "competitors": "מתחרים",
         "redirections": "הפניות",
         "interview": "ראיון",
         "audit": "יומן פעילות",
@@ -2779,15 +2858,31 @@
         "SITES_CREATE": "יצירת אתרים",
         "SITES_EDIT": "עריכת אתרים",
         "SITES_DELETE": "מחיקת אתרים",
-        "CONTENT_VIEW": "צפייה בתוכן",
-        "CONTENT_CREATE": "יצירת תוכן",
-        "CONTENT_EDIT": "עריכת תוכן",
-        "CONTENT_DELETE": "מחיקת תוכן",
-        "CONTENT_PUBLISH": "פרסום תוכן",
+        "CONTENT_PLANNER_VIEW": "צפייה בתכנון תוכן",
+        "CONTENT_PLANNER_CREATE": "יצירת תכנית תוכן",
+        "CONTENT_PLANNER_EDIT": "עריכת תכנית תוכן",
+        "CONTENT_PLANNER_DELETE": "מחיקת תכנית תוכן",
+        "AI_CONTENT_VIEW": "צפייה באשף תוכן AI",
+        "AI_CONTENT_CREATE": "יצירת תוכן AI",
+        "AI_CONTENT_EDIT": "עריכת תוכן AI",
+        "AI_CONTENT_DELETE": "מחיקת תוכן AI",
+        "ENTITIES_VIEW": "צפייה בישויות",
+        "ENTITIES_CREATE": "יצירת ישויות",
+        "ENTITIES_EDIT": "עריכת ישויות",
+        "ENTITIES_DELETE": "מחיקת ישויות",
+        "ENTITIES_PUBLISH": "פרסום ישויות",
+        "CAMPAIGNS_VIEW": "צפייה בקמפיינים",
+        "CAMPAIGNS_CREATE": "יצירת קמפיינים",
+        "CAMPAIGNS_EDIT": "עריכת קמפיינים",
+        "CAMPAIGNS_DELETE": "מחיקת קמפיינים",
         "KEYWORDS_VIEW": "צפייה במילות מפתח",
         "KEYWORDS_CREATE": "יצירת מילות מפתח",
         "KEYWORDS_EDIT": "עריכת מילות מפתח",
         "KEYWORDS_DELETE": "מחיקת מילות מפתח",
+        "COMPETITORS_VIEW": "צפייה במתחרים",
+        "COMPETITORS_CREATE": "הוספת מתחרים",
+        "COMPETITORS_EDIT": "עריכת מתחרים",
+        "COMPETITORS_DELETE": "מחיקת מתחרים",
         "REDIRECTIONS_VIEW": "צפייה בהפניות",
         "REDIRECTIONS_CREATE": "יצירת הפניות",
         "REDIRECTIONS_EDIT": "עריכת הפניות",
@@ -2895,11 +2990,35 @@
     },
     "entityWebhook": {
       "title": "תוכן עודכן",
-      "message": "{siteName}: \"{entityTitle}\" {action}"
+      "message": "{siteName}: \"{entityTitle}\" {action}",
+      "messages": {
+        "created": "ה{entityType} \"{entityTitle}\" נוצר",
+        "updated": "ה{entityType} \"{entityTitle}\" עודכן",
+        "trashed": "ה{entityType} \"{entityTitle}\" הועבר לפח",
+        "deleted": "ה{entityType} \"{entityTitle}\" נמחק לצמיתות"
+      },
+      "entityTypes": {
+        "post": "פוסט",
+        "posts": "פוסט",
+        "page": "עמוד",
+        "pages": "עמוד",
+        "product": "מוצר",
+        "default": "תוכן"
+      },
+      "actions": {
+        "created": "נוצר",
+        "updated": "עודכן",
+        "trashed": "הועבר לפח",
+        "deleted": "נמחק"
+      }
     },
     "contentPublishFailed": {
       "title": "פרסום תוכן נכשל",
       "message": "נכשל פרסום \"{contentTitle}\" ל-{siteName}"
+    },
+    "agentInsights": {
+      "title": "תובנות סוכן חדשות",
+      "message": "נמצאו {count} תובנות חדשות לאתר שלך"
     },
     "failedPublishModal": {
       "title": "הפרסום נכשל",
@@ -5269,5 +5388,198 @@
     "manageCredits": "ניהול קרדיטים",
     "noAddons": "אין חבילות קרדיטים זמינות",
     "upgradePlan": "שדרג תוכנית"
+  },
+  "agent": {
+    "title": "פעילות סוכן AI",
+    "settings": {
+      "analysisModules": "מודולי ניתוח",
+      "analysisModulesDesc": "בחר אילו תחומים סוכן ה-AI ינתח לתובנות.",
+      "contentModule": "ניתוח תוכן",
+      "contentModuleDesc": "זיהוי תוכן מיושן, מטא-דאטה SEO חסר והזדמנויות לאופטימיזציה.",
+      "trafficModule": "ניתוח תנועה",
+      "trafficModuleDesc": "מעקב אחר שינויי תנועה, מגמות מבקרים והזדמנויות צמיחה מ-Google Analytics.",
+      "keywordsModule": "ניתוח מילות מפתח",
+      "keywordsModuleDesc": "מציאת מילות מפתח באזור הפריצה, מילות ללא קישור והזדמנויות דירוג מ-Search Console.",
+      "competitorsModule": "ניתוח מתחרים",
+      "competitorsModuleDesc": "גילוי פערי תוכן והזדמנויות בהתבסס על נתוני מתחרים.",
+      "technicalModule": "ניתוח טכני",
+      "technicalModuleDesc": "בדיקת בעיות SEO טכניות ובריאות האתר.",
+      "behavior": "התנהגות סוכן",
+      "enableAgent": "הפעל סוכן AI",
+      "enableAgentDesc": "כשמופעל, סוכן ה-AI ינתח אוטומטית את האתר וייצר תובנות.",
+      "notifyInsights": "התראה על תובנות חדשות",
+      "notifyInsightsDesc": "קבל התראות כשסוכן ה-AI מוצא תובנות חדשות לאתר שלך."
+    },
+    "viewAll": "צפה בכל הפעילות",
+    "noInsights": "אין תובנות עדיין. סוכן ה-AI ינתח את נתוני האתר שלך ויציע הצעות.",
+    "runAnalysis": "הפעל ניתוח",
+    "running": "מנתח...",
+    "lastRun": "הרצה אחרונה: {time}",
+    "pendingApproval": "{count} ממתינים לאישור",
+    "totalInsights": "סה\"כ תובנות",
+    "pendingReview": "ממתינים לבדיקה",
+    "recentRuns": "הרצות אחרונות",
+    "noInsightsFound": "לא נמצאו תובנות",
+    "noMatchingInsights": "אין תובנות התואמות לסינון הנוכחי.",
+    "insightsCountLabel": "תובנות",
+    "filterAllCategories": "כל הקטגוריות",
+    "filterAllStatuses": "כל הסטטוסים",
+    "filterAllFix": "הכל",
+    "filterUnfixed": "דורש טיפול",
+    "filterFixed": "תוקנו",
+    "legend": {
+      "title": "מקרא",
+      "priorityTitle": "עדיפות",
+      "categoryTitle": "קטגוריה",
+      "directionTitle": "כיוון",
+      "CRITICAL": "בעיה דחופה הדורשת טיפול מיידי",
+      "HIGH": "בעיה חשובה לטפל בהקדם",
+      "MEDIUM": "ממצא בינוני שכדאי לבדוק",
+      "LOW": "תצפית קלה לידיעה",
+      "up": "מגמה חיובית (עלייה)",
+      "down": "מגמה שלילית (ירידה)",
+      "equal": "אין שינוי משמעותי"
+    },
+    "loadMore": "טען עוד",
+    "refresh": "רענן",
+    "minutesAgo": "לפני {n} דק׳",
+    "hoursAgo": "לפני {n} שע׳",
+    "daysAgo": "לפני {n} ימים",
+    "approve": "אשר",
+    "reject": "דחה",
+    "dismiss": "סגור",
+    "execute": "בצע",
+    "fixWithAi": "תקן עם AI",
+    "fixing": "מתקן...",
+    "fixSuccess": "תוקן בהצלחה: {summary}",
+    "fixFailed": "התיקון נכשל. נסה שוב.",
+    "fixPreviewTitle": "תצוגה מקדימה - תיקון AI",
+    "fixPreviewSubtitle": "בדוק את השינויים המוצעים לפני החלתם על האתר.",
+    "fixGenerating": "מייצר הצעות AI...",
+    "fixRetry": "נסה שוב",
+    "fixRegenerate": "צור מחדש",
+    "fixFieldTitle": "כותרת SEO",
+    "fixFieldDesc": "תיאור Meta",
+    "fixCurrent": "כעת",
+    "fixNew": "חדש",
+    "fixEmpty": "(ריק)",
+    "fixReadyCount": "{count} שינויים מוכנים",
+    "fixAllApplied": "כל השינויים הוחלו!",
+    "fixCancel": "ביטול",
+    "fixApply": "החל שינויים",
+    "fixApplying": "מחיל...",
+    "fixApplyItem": "החל",
+    "fixApplyingItem": "מחיל...",
+    "fixGeneratingShort": "מייצר...",
+    "fixDone": "סיום",
+    "fixItemApplied": "הוחל",
+    "fixItemFailed": "נכשל",
+    "fixNoItems": "אין פריטים לתיקון.",
+    "fixSkipped": "דולג",
+    "approved": "אושר",
+    "rejected": "נדחה",
+    "executed": "בוצע",
+    "failed": "נכשל",
+    "expired": "פג תוקף",
+    "pending": "ממתין",
+    "resolved": "נפתר",
+    "categories": {
+      "CONTENT": "תוכן",
+      "TRAFFIC": "תנועה",
+      "KEYWORDS": "מילות מפתח",
+      "COMPETITORS": "מתחרים",
+      "TECHNICAL": "טכני"
+    },
+    "types": {
+      "DISCOVERY": "גילוי",
+      "SUGGESTION": "הצעה",
+      "ACTION": "פעולה",
+      "ANALYSIS": "ניתוח",
+      "ALERT": "התראה"
+    },
+    "priorities": {
+      "LOW": "נמוך",
+      "MEDIUM": "בינוני",
+      "HIGH": "גבוה",
+      "CRITICAL": "קריטי"
+    },
+    "insights": {
+      "keywordStrikeZone": {
+        "title": "מילת מפתח באזור הפריצה",
+        "description": "\"{keyword}\" מדורגת במיקום {position} עם {searchVolume} חיפושים חודשיים. שיפור התוכן יכול לדחוף אותה ל-3 הראשונים."
+      },
+      "unlinkedKeywords": {
+        "title": "מילות מפתח ללא קישור",
+        "description": "{count} מילות מפתח עם נפח חיפוש גבוה לא מקושרות לאף עמוד. שקול ליצור תוכן עבורן."
+      },
+      "staleContent": {
+        "title": "תוכן מיושן זוהה",
+        "description": "{count} עמודים מפורסמים לא עודכנו מעל 6 חודשים. עדכון שלהם יכול לשפר דירוגים."
+      },
+      "missingSeo": {
+        "title": "מטא-דאטה SEO חסר",
+        "description": "ל-{count} עמודים חסרים כותרת מטא או תיאור. הוספתם יכולה לשפר את שיעור ההקלקה."
+      },
+      "trafficDrop": {
+        "title": "ירידה בתנועת חיפוש",
+        "description": "הקליקים מחיפוש ירדו ב-{change}% ב-30 הימים האחרונים. בדוק שינויים אחרונים ובעיות אינדקס."
+      },
+      "lowCtrQueries": {
+        "title": "הזדמנויות CTR נמוך",
+        "description": "ל-{count} שאילתות יש חשיפות גבוהות אבל CTR נמוך. אופטימיזציה של כותרות ותיאורי מטא יכולה להגדיל קליקים."
+      },
+      "decliningPages": {
+        "title": "עמודים בירידה",
+        "description": "{count} עמודים מאבדים תנועה מחיפוש. שקול לעדכן את התוכן שלהם או לבדוק בעיות טכניות."
+      },
+      "visitorsDrop": {
+        "title": "ירידה במספר מבקרים",
+        "description": "מבקרים אורגניים ירדו ב-{change}% ב-30 הימים האחרונים. זה עשוי להצביע על שינוי בדירוג או בעיה טכנית."
+      },
+      "trafficGrowth": {
+        "title": "תנועה בעלייה",
+        "description": "מבקרים אורגניים עלו ב-{change}% ב-30 הימים האחרונים. המשיכו כך!"
+      },
+      "contentGaps": {
+        "title": "פערי תוכן נמצאו",
+        "description": "ניתוח של {competitorsAnalyzed} מתחרים חשף {gapsCount} פערי תוכן שאפשר לנצל."
+      },
+      "staleCompetitorScans": {
+        "title": "נתוני מתחרים מיושנים",
+        "description": "ל-{count} סריקות מתחרים עברו 30 יום. שקול לסרוק מחדש לתובנות עדכניות."
+      },
+      "noindexDetected": {
+        "title": "עמודים מסומנים כ-noindex",
+        "description": "{count} עמודים מפורסמים מסומנים כ-noindex ולא יופיעו במנועי חיפוש. בדוק שזה מכוון."
+      }
+    },
+    "detailLabels": {
+      "keyword": "מילת מפתח",
+      "position": "מיקום",
+      "searchVolume": "נפח חיפוש",
+      "page": "עמוד",
+      "url": "כתובת",
+      "lastUpdated": "עדכון אחרון",
+      "clicks": "קליקים",
+      "clicksChange": "שינוי",
+      "impressions": "חשיפות",
+      "query": "שאילתא",
+      "change": "שינוי",
+      "visitors": "מבקרים",
+      "sessions": "סשנים",
+      "pageViews": "צפיות עמוד",
+      "contentGap": "פער תוכן",
+      "competitor": "מתחרה",
+      "lastScanned": "סריקה אחרונה",
+      "andMore": "ועוד {count}...",
+      "entity": "ישות",
+      "viewEntity": "צפה",
+      "seoPriority": "עדיפות"
+    },
+    "seoPriorities": {
+      "high": "גבוה",
+      "medium": "בינוני",
+      "low": "נמוך"
+    }
   }
 }

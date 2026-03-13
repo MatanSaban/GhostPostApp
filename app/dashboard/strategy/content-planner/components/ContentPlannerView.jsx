@@ -22,6 +22,7 @@ import {
   RotateCcw,
 } from 'lucide-react';
 import { useSite } from '@/app/context/site-context';
+import { usePermissions, MODULES } from '@/app/hooks/usePermissions';
 import { StatusBadge } from '../../../components';
 import CalendarGrid from '../../_shared/CalendarGrid';
 import PostPopover from '../../_shared/PostPopover';
@@ -56,6 +57,12 @@ export function ContentPlannerView({ translations }) {
   const [pipelineStats, setPipelineStats] = useState(null);
   const [loadingPipeline, setLoadingPipeline] = useState(true);
   const { selectedSite } = useSite();
+  
+  // Permission checks for content planner
+  const { canCreate, canEdit, canDelete } = usePermissions();
+  const canCreateCampaign = canCreate(MODULES.CONTENT_PLANNER);
+  const canEditCampaign = canEdit(MODULES.CONTENT_PLANNER);
+  const canDeleteCampaign = canDelete(MODULES.CONTENT_PLANNER);
 
   // ── Popover helpers ────────────────────────────────────────────
   const openPopover = (post, e) => {
@@ -525,9 +532,11 @@ export function ContentPlannerView({ translations }) {
         <div className={styles.sidebarHeader}>
           <FolderOpen size={16} />
           <h3 className={styles.sidebarTitle}>{tc.title || 'Campaigns'}</h3>
-          <button className={styles.sidebarAddBtn} onClick={openCreateModal} title={tc.createNew || 'Create campaign'}>
-            <Sparkles size={14} />
-          </button>
+          {canCreateCampaign && (
+            <button className={styles.sidebarAddBtn} onClick={openCreateModal} title={tc.createNew || 'Create campaign'}>
+              <Sparkles size={14} />
+            </button>
+          )}
         </div>
 
         {loadingCampaigns ? (
@@ -538,10 +547,12 @@ export function ContentPlannerView({ translations }) {
           <div className={styles.sidebarEmpty}>
             <p>{tc.noCampaigns || 'No campaigns yet'}</p>
             <p className={styles.sidebarEmptyHint}>{tc.createFirst || 'Create your first campaign'}</p>
-            <button className={styles.sidebarWizardLink} onClick={openCreateModal}>
-              <Sparkles size={14} />
-              {tc.createNew || 'Create Campaign'}
-            </button>
+            {canCreateCampaign && (
+              <button className={styles.sidebarWizardLink} onClick={openCreateModal}>
+                <Sparkles size={14} />
+                {tc.createNew || 'Create Campaign'}
+              </button>
+            )}
           </div>
         ) : (
           <div className={styles.sidebarCampaignList}>
@@ -629,13 +640,15 @@ export function ContentPlannerView({ translations }) {
                       {activatingId === campaign.id ? <Loader2 size={13} className={styles.spinner} /> : <Play size={13} />}
                     </button>
                   )}
-                  <button
-                    className={styles.campaignActionBtn}
-                    onClick={(e) => { e.stopPropagation(); setEditingCampaign(campaign); }}
-                    title={tc.editCampaign || 'Edit campaign'}
-                  >
-                    <Pencil size={13} />
-                  </button>
+                  {canEditCampaign && (
+                    <button
+                      className={styles.campaignActionBtn}
+                      onClick={(e) => { e.stopPropagation(); setEditingCampaign(campaign); }}
+                      title={tc.editCampaign || 'Edit campaign'}
+                    >
+                      <Pencil size={13} />
+                    </button>
+                  )}
                   <Link
                     href={`/dashboard/strategy/ai-content-wizard?campaignId=${campaign.id}`}
                     className={styles.campaignActionBtn}
@@ -799,7 +812,8 @@ export function ContentPlannerView({ translations }) {
           translations={translations.editModal || {}}
           onClose={() => setEditingCampaign(null)}
           onUpdated={handleCampaignUpdated}
-          onDeleted={handleCampaignDeleted}
+          onDeleted={canDeleteCampaign ? handleCampaignDeleted : undefined}
+          canDelete={canDeleteCampaign}
         />
       )}
 

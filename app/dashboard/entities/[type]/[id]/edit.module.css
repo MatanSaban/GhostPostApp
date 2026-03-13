@@ -4,8 +4,7 @@
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
-  max-width: 1200px;
-  margin: 0 auto;
+  width: 100%;
 }
 
 /* Loading & Error States */
@@ -45,6 +44,7 @@
   border-bottom: 1px solid var(--border);
   gap: 1rem;
   flex-wrap: wrap;
+  width: 100%;
 }
 
 .headerLeft {
@@ -65,9 +65,11 @@
   color: var(--foreground);
   cursor: pointer;
   transition: all 0.2s;
+  text-decoration: none;
 
   &:hover {
-    background: var(--accent);
+    background: var(--bg-hover);
+    border-color: var(--border-hover);
   }
 
   svg {
@@ -101,6 +103,14 @@
   background: var(--muted);
   padding: 0.125rem 0.5rem;
   border-radius: var(--radius-sm);
+  text-decoration: none;
+  color: inherit;
+  transition: all 0.2s;
+
+  &:hover {
+    background: var(--bg-hover);
+    color: var(--primary);
+  }
 }
 
 .separator {
@@ -199,6 +209,7 @@
   border-bottom: 1px solid var(--border);
   overflow-x: auto;
   padding-bottom: -1px;
+  width: 100%;
 }
 
 .tab {
@@ -233,16 +244,18 @@
 /* Content Area */
 .content {
   padding: 1.5rem 0;
+  width: 100%;
 }
 
 .contentTab {
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
+  width: 100%;
 }
 
 .mediaTab {
-  max-width: 600px;
+  width: 100%;
 }
 
 /* Field Groups */

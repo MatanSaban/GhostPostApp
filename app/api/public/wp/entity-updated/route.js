@@ -133,7 +133,7 @@ export async function POST(request) {
     // Send notification to account members
     if (result) {
       // Don't await — fire and forget to keep response fast
-      notifyEntityWebhookUpdate(site, result, action).catch(() => {});
+      notifyEntityWebhookUpdate(site, result, action, post_type).catch(() => {});
     }
 
     return NextResponse.json({
