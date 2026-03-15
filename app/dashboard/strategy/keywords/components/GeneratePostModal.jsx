@@ -14,7 +14,8 @@ import {
   Info, Navigation, ShoppingCart, DollarSign, Wand2,
   Bold, Italic, Underline as UnderlineIcon, List, ListOrdered, Link as LinkIcon, Unlink,
   Heading1, Heading2, Heading3, Heading4, Heading5, Heading6, ChevronDown,
-  GripVertical, CornerDownLeft, Maximize2, Minimize2, Search, Tags, Globe
+  GripVertical, CornerDownLeft, Maximize2, Minimize2, Search, Tags, Globe,
+  Download, CheckCircle, AlertTriangle, Plug
 } from 'lucide-react';
 import TiptapImage from '@tiptap/extension-image';
 import { useTranslation } from '@/app/context/locale-context';
@@ -66,7 +67,7 @@ const STEPS = {
 
 export default function GeneratePostModal({ isOpen, onClose, keyword, onSuccess }) {
   const { t, locale } = useTranslation();
-  const { selectedSite } = useSite();
+  const { selectedSite, refreshSites } = useSite();
   
   // Current step
   const [currentStep, setCurrentStep] = useState(STEPS.SETTINGS);
@@ -101,6 +102,12 @@ export default function GeneratePostModal({ isOpen, onClose, keyword, onSuccess 
   
   // Modal size state
   const [isMaximized, setIsMaximized] = useState(false);
+  
+  // WordPress plugin setup state
+  const [wpPluginStatus, setWpPluginStatus] = useState('idle'); // idle, downloaded, checking, connected, error
+  const [showPluginStep, setShowPluginStep] = useState(false);
+  const [pendingAction, setPendingAction] = useState(null); // null, 'save', 'publish', 'schedule'
+  const wpPluginPollRef = useRef(null);
   
   // Site interview data for defaults
   const [siteDefaults, setSiteDefaults] = useState(null);
@@ -469,8 +476,98 @@ export default function GeneratePostModal({ isOpen, onClose, keyword, onSuccess 
     }
   };
   
-  // Check if WordPress is connected
+  // Check if WordPress site and plugin connected
+  const isWordPress = selectedSite?.platform === 'wordpress';
   const isWpConnected = selectedSite?.connectionStatus === 'CONNECTED';
+  const needsPluginSetup = isWordPress && !isWpConnected;
+  
+  // Refresh site data when modal opens to get latest connectionStatus
+  useEffect(() => {
+    if (isOpen) {
+      refreshSites();
+      // Reset plugin step state
+      setWpPluginStatus('idle');
+      setShowPluginStep(false);
+      setPendingAction(null);
+    }
+    return () => {
+      if (wpPluginPollRef.current) {
+        clearInterval(wpPluginPollRef.current);
+        wpPluginPollRef.current = null;
+      }
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen]);
+  
+  // Plugin download URL
+  const pluginDownloadUrl = selectedSite?.siteKey
+    ? `/api/plugin/download?site_key=${selectedSite.siteKey}`
+    : null;
+  
+  // Handle final action with plugin check
+  const handleFinalAction = (actionType) => {
+    if (needsPluginSetup && !showPluginStep) {
+      setShowPluginStep(true);
+      setPendingAction(actionType);
+      return;
+    }
+    executeFinalAction(actionType);
+  };
+  
+  const executeFinalAction = (actionType) => {
+    if (actionType === 'save') handleSave();
+    else if (actionType === 'publish') handlePublish(false);
+    else if (actionType === 'schedule') handlePublish(true);
+    setShowPluginStep(false);
+    setPendingAction(null);
+  };
+  
+  // Plugin connection polling - uses lightweight endpoint with cache-busting
+  const startConnectionPolling = () => {
+    if (wpPluginPollRef.current) return;
+    setWpPluginStatus('checking');
+    let attempts = 0;
+    const maxAttempts = 30; // ~60 seconds
+    const siteId = selectedSite?.id;
+    if (!siteId) return;
+    
+    wpPluginPollRef.current = setInterval(async () => {
+      attempts++;
+      try {
+        const res = await fetch(`/api/sites/${siteId}/connection-status?_t=${Date.now()}`);
+        if (res.ok) {
+          const data = await res.json();
+          if (data.connectionStatus === 'CONNECTED') {
+            clearInterval(wpPluginPollRef.current);
+            wpPluginPollRef.current = null;
+            setWpPluginStatus('connected');
+            refreshSites();
+            // Auto-proceed after connection
+            setTimeout(() => {
+              if (pendingAction) executeFinalAction(pendingAction);
+            }, 1500);
+          }
+        }
+      } catch { /* ignore poll errors */ }
+      if (attempts >= maxAttempts) {
+        clearInterval(wpPluginPollRef.current);
+        wpPluginPollRef.current = null;
+        setWpPluginStatus('error');
+      }
+    }, 2000);
+  };
+  
+  const handlePluginSkip = () => {
+    if (wpPluginPollRef.current) {
+      clearInterval(wpPluginPollRef.current);
+      wpPluginPollRef.current = null;
+    }
+    const action = pendingAction;
+    setShowPluginStep(false);
+    setPendingAction(null);
+    setWpPluginStatus('idle');
+    if (action) executeFinalAction(action);
+  };
   
   // Intent options
   const intentOptions = [
@@ -588,7 +685,7 @@ export default function GeneratePostModal({ isOpen, onClose, keyword, onSuccess 
           )}
           
           {/* Preview Step */}
-          {currentStep === STEPS.PREVIEW && generatedPost && (
+          {currentStep === STEPS.PREVIEW && generatedPost && !showPluginStep && (
             <PreviewStep
               post={generatedPost}
               isRegenerating={isRegenerating}
@@ -597,11 +694,87 @@ export default function GeneratePostModal({ isOpen, onClose, keyword, onSuccess 
               t={t}
             />
           )}
+          
+          {/* Plugin Install Step (shown within PREVIEW) */}
+          {currentStep === STEPS.PREVIEW && showPluginStep && (
+            <div className={styles.pluginStepContainer}>
+              <div className={styles.pluginStepCard}>
+                <div className={styles.pluginStepIcon}>
+                  <Plug size={32} />
+                </div>
+                <h3 className={styles.pluginStepTitle}>
+                  {t('generatePost.pluginStep.title')}
+                </h3>
+                <p className={styles.pluginStepDesc}>
+                  {t('generatePost.pluginStep.description')}
+                </p>
+                
+                <ul className={styles.pluginStepBenefits}>
+                  <li><Check size={14} /> {t('generatePost.pluginStep.benefit1')}</li>
+                  <li><Check size={14} /> {t('generatePost.pluginStep.benefit2')}</li>
+                  <li><Check size={14} /> {t('generatePost.pluginStep.benefit3')}</li>
+                </ul>
+              </div>
+              
+              <div className={styles.pluginStepActions}>
+                {wpPluginStatus === 'connected' && (
+                  <div className={styles.pluginStepSuccess}>
+                    <CheckCircle size={18} />
+                    <span>{t('generatePost.pluginStep.connected')}</span>
+                  </div>
+                )}
+                
+                {wpPluginStatus === 'checking' && (
+                  <div className={styles.pluginStepChecking}>
+                    <Loader2 size={16} className={styles.spinner} />
+                    <span>{t('generatePost.pluginStep.checking')}</span>
+                  </div>
+                )}
+                
+                {wpPluginStatus === 'error' && (
+                  <>
+                    <div className={styles.pluginStepError}>
+                      <AlertTriangle size={16} />
+                      <span>{t('generatePost.pluginStep.connectionTimeout')}</span>
+                    </div>
+                    <p className={styles.pluginStepHint}>
+                      {t('generatePost.pluginStep.reactivateHint')}
+                    </p>
+                  </>
+                )}
+                
+                {(wpPluginStatus === 'idle' || wpPluginStatus === 'downloaded' || wpPluginStatus === 'error') && pluginDownloadUrl && (
+                  <div className={styles.pluginStepButtons}>
+                    <button
+                      className={styles.pluginDownloadButton}
+                      onClick={() => {
+                        window.open(pluginDownloadUrl, '_blank');
+                        setWpPluginStatus('downloaded');
+                      }}
+                    >
+                      <Download size={18} />
+                      {t('generatePost.pluginStep.download')}
+                    </button>
+                    
+                    {(wpPluginStatus === 'downloaded' || wpPluginStatus === 'error') && (
+                      <button
+                        className={styles.pluginCheckButton}
+                        onClick={startConnectionPolling}
+                      >
+                        <CheckCircle size={16} />
+                        {t('generatePost.pluginStep.checkConnection')}
+                      </button>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
         </div>
         
         {/* Footer */}
         <div className={styles.footer}>
-          {currentStep !== STEPS.SETTINGS && (
+          {currentStep !== STEPS.SETTINGS && !showPluginStep && (
             <button 
               className={styles.backButton}
               onClick={handleBack}
@@ -653,7 +826,7 @@ export default function GeneratePostModal({ isOpen, onClose, keyword, onSuccess 
               </button>
             )}
             
-            {currentStep === STEPS.PREVIEW && (
+            {currentStep === STEPS.PREVIEW && !showPluginStep && (
               <>
                 <button
                   className={styles.regenerateButton}
@@ -681,11 +854,11 @@ export default function GeneratePostModal({ isOpen, onClose, keyword, onSuccess 
                   {t('generatePost.save')}
                 </button>
                 
-                {isWpConnected && (
+                {isWordPress && (
                   <>
                     <button
                       className={styles.publishButton}
-                      onClick={() => handlePublish(false)}
+                      onClick={() => handleFinalAction('publish')}
                       disabled={isRegenerating || isSaving || isPublishing}
                     >
                       {isPublishing ? (
@@ -699,7 +872,7 @@ export default function GeneratePostModal({ isOpen, onClose, keyword, onSuccess 
                     {formData.publishMode === 'schedule' && formData.scheduleDate && (
                       <button
                         className={styles.scheduleButton}
-                        onClick={() => handlePublish(true)}
+                        onClick={() => handleFinalAction('schedule')}
                         disabled={isRegenerating || isSaving || isPublishing}
                       >
                         <Clock size={18} />
@@ -708,6 +881,33 @@ export default function GeneratePostModal({ isOpen, onClose, keyword, onSuccess 
                     )}
                   </>
                 )}
+              </>
+            )}
+            
+            {currentStep === STEPS.PREVIEW && showPluginStep && (
+              <>
+                <button
+                  className={styles.pluginSkipButton}
+                  onClick={handlePluginSkip}
+                  disabled={wpPluginStatus === 'checking'}
+                >
+                  {t('generatePost.pluginStep.skip')}
+                </button>
+                <button
+                  className={styles.backButton}
+                  onClick={() => {
+                    if (wpPluginPollRef.current) {
+                      clearInterval(wpPluginPollRef.current);
+                      wpPluginPollRef.current = null;
+                    }
+                    setShowPluginStep(false);
+                    setPendingAction(null);
+                    setWpPluginStatus('idle');
+                  }}
+                >
+                  <ChevronLeft size={18} />
+                  {t('generatePost.pluginStep.backToPreview')}
+                </button>
               </>
             )}
           </div>

@@ -1233,6 +1233,21 @@
       "addingDetails": "Adding supporting details and examples...",
       "optimizingSEO": "Optimizing for search engines...",
       "finalizingPost": "Finalizing your post..."
+    },
+    "pluginStep": {
+      "title": "Connect WordPress Plugin",
+      "description": "Install the Ghost Post plugin on your WordPress site to publish content directly from here. It takes just a minute!",
+      "benefit1": "Publish articles directly to your WordPress site",
+      "benefit2": "Automatic SEO meta tags and featured images",
+      "benefit3": "Sync and manage all content from one place",
+      "download": "Download Plugin",
+      "checkConnection": "I installed it — Check Connection",
+      "checking": "Waiting for plugin connection... Install and activate the plugin in WordPress.",
+      "connected": "WordPress plugin connected successfully!",
+      "connectionTimeout": "Could not detect the plugin. Make sure it's installed and activated, then try again.",
+      "reactivateHint": "If you replaced an existing plugin, try deactivating and reactivating it in WordPress Plugins page.",
+      "skip": "Skip — Continue without plugin",
+      "backToPreview": "Back to Preview"
     }
   },
   "competitorAnalysis": {

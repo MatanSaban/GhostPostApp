@@ -226,6 +226,16 @@ export async function POST(request, { params }) {
 
     const userPrompt = `Write a ${typeConfig.label} about "${keyword.keyword}".`;
 
+    // Calculate maxTokens based on word count and language
+    // Hebrew/RTL languages need ~3-4 tokens per word, English ~1.5
+    const isRtlLanguage = ['he', 'ar'].includes(keyword.site.contentLanguage);
+    const tokensPerWord = isRtlLanguage ? 4 : 1.5;
+    const contentTokens = Math.ceil(wordCount * tokensPerWord);
+    // Add buffer for JSON structure, metadata fields, and safety margin
+    const estimatedMaxTokens = Math.ceil(contentTokens * 1.3) + 1000;
+    // Ensure minimum of 8192 for any generation
+    const maxTokens = Math.max(8192, estimatedMaxTokens);
+
     // Generate article using AI
     let article;
     try {
@@ -234,6 +244,7 @@ export async function POST(request, { params }) {
         prompt: userPrompt,
         schema: ArticleSchema,
         temperature: 0.7,
+        maxTokens,
         operation: 'GENERATE_POST',
         metadata: {
           keywordId,
@@ -521,7 +532,7 @@ function buildSystemPrompt({
   let prompt = `You are an expert SEO content writer creating a publish-ready ${typeConfig.label}.
 
 TARGET KEYWORD: "${keyword}"
-WORD COUNT: Approximately ${wordCount} words (minimum ${Math.floor(wordCount * 0.9)}, maximum ${Math.ceil(wordCount * 1.1)})
+WORD COUNT: STRICTLY ${wordCount} words. This is a hard requirement — the article MUST contain at least ${Math.floor(wordCount * 0.9)} words and ideally reach ${wordCount} words. Write comprehensive, detailed content to fill the full word count. Do NOT write a shorter article.
 CONTENT LANGUAGE: ${siteLanguage === 'he' ? 'Hebrew' : 'English'}`;
 
   // Inject rich business context so AI understands what kind of website this is

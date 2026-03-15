@@ -53,6 +53,12 @@ class Ghost_Post {
         if (!wp_next_scheduled('gp_connector_ping')) {
             wp_schedule_event(time(), 'hourly', 'gp_connector_ping');
         }
+        
+        // Auto-verify connection if not yet connected (handles plugin replace/update scenarios)
+        $status = get_option('gp_connector_connection_status', '');
+        if ($status !== 'connected' && defined('GP_SITE_KEY') && is_admin()) {
+            add_action('admin_init', array($this, 'maybe_verify_connection'), 20);
+        }
     }
     
     /**
@@ -96,6 +102,19 @@ class Ghost_Post {
      */
     public function render_admin_page() {
         include GP_CONNECTOR_PLUGIN_DIR . 'admin/views/settings-page.php';
+    }
+    
+    /**
+     * Auto-verify if not connected yet (called on admin_init)
+     * Throttled to once per 5 minutes to avoid hammering the API
+     */
+    public function maybe_verify_connection() {
+        $last_attempt = get_option('gp_connector_last_verify_attempt', 0);
+        if (time() - $last_attempt < 300) {
+            return;
+        }
+        update_option('gp_connector_last_verify_attempt', time());
+        $this->verify_connection();
     }
     
     /**

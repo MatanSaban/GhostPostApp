@@ -18,6 +18,9 @@ export const InterviewWizard = forwardRef(function InterviewWizard({ onClose, on
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [interviewId, setInterviewId] = useState(null);
   const [responses, setResponses] = useState({});
+  const responsesRef = useRef({});
+  // Keep ref in sync so setTimeout closures always read the latest responses
+  useEffect(() => { responsesRef.current = responses; }, [responses]);
   const [externalData, setExternalData] = useState({});
   const [editableData, setEditableData] = useState({});
   const [messages, setMessages] = useState([]);
@@ -75,6 +78,9 @@ export const InterviewWizard = forwardRef(function InterviewWizard({ onClose, on
   const [interviewSiteId, setInterviewSiteId] = useState(null);
   const [googleIntegrationStatus, setGoogleIntegrationStatus] = useState('idle'); // 'idle' | 'connecting' | 'connected' | 'error'
   const [isGoogleAlreadyConnected, setIsGoogleAlreadyConnected] = useState(false); // Pre-check: skip GOOGLE_INTEGRATION if already connected
+  // WordPress Plugin connection state
+  const [wpPluginStatus, setWpPluginStatus] = useState('idle'); // 'idle' | 'downloaded' | 'checking' | 'connected' | 'error'
+  const wpPluginPollRef = useRef(null);
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
   const messageIdCounter = useRef(0);
@@ -89,6 +95,11 @@ export const InterviewWizard = forwardRef(function InterviewWizard({ onClose, on
     
     return () => {
       document.body.style.overflow = originalOverflow;
+      // Clean up WP plugin polling on unmount
+      if (wpPluginPollRef.current) {
+        clearInterval(wpPluginPollRef.current);
+        wpPluginPollRef.current = null;
+      }
     };
   }, []);
 
@@ -497,9 +508,7 @@ export const InterviewWizard = forwardRef(function InterviewWizard({ onClose, on
     }
   }, [currentQuestionIndex, questionsData]);
 
-  // Trigger platform detection for websitePlatform question
-  const platformAutoSubmitted = useRef(false);
-  const [pendingPlatformSubmit, setPendingPlatformSubmit] = useState(null);
+  // Trigger platform detection for websitePlatform question (detection only, no auto-submit)
   useEffect(() => {
     if (!questionsData || currentQuestionIndex === undefined) return;
     
@@ -509,33 +518,21 @@ export const InterviewWizard = forwardRef(function InterviewWizard({ onClose, on
     // Only for the websitePlatform question
     if (currentQuestion.saveToField !== 'websitePlatform') return;
     
-    // Helper: set detected platform and schedule auto-submit via state
-    const setAndScheduleSubmit = (platformData) => {
-      setDetectedPlatform(platformData);
-      if (!platformAutoSubmitted.current && platformData.confidence >= 0.5) {
-        platformAutoSubmitted.current = true;
-        // Use state to trigger submit in a separate effect (avoids stale handleSubmit closure)
-        setTimeout(() => {
-          setPendingPlatformSubmit(platformData.platform);
-        }, 2000);
-      }
-    };
-    
     // First priority: Check if site already has platform saved (from entities page or previous detection)
     if (site?.platform) {
-      setAndScheduleSubmit({ platform: site.platform, confidence: 1.0 });
+      setDetectedPlatform({ platform: site.platform, confidence: 1.0 });
       return;
     }
     
     // Check if we already have platform data in externalData
     if (externalData?.platformData?.platform) {
-      setAndScheduleSubmit(externalData.platformData);
+      setDetectedPlatform(externalData.platformData);
       return;
     }
     
     // Check if platform was detected during crawl
     if (externalData?.crawledData?.platform) {
-      setAndScheduleSubmit({ platform: externalData.crawledData.platform, confidence: 0.9 });
+      setDetectedPlatform({ platform: externalData.crawledData.platform, confidence: 0.9 });
       return;
     }
     
@@ -557,7 +554,7 @@ export const InterviewWizard = forwardRef(function InterviewWizard({ onClose, on
         if (result.success) {
           const platformData = result.externalData?.platformData || result.result;
           if (platformData?.platform) {
-            setAndScheduleSubmit(platformData);
+            setDetectedPlatform(platformData);
           }
         }
       } catch (err) {
@@ -569,14 +566,6 @@ export const InterviewWizard = forwardRef(function InterviewWizard({ onClose, on
     
     detectPlatform();
   }, [currentQuestionIndex, questionsData, site?.platform]);
-
-  // Execute pending platform auto-submit (separate effect ensures fresh handleSubmit reference)
-  useEffect(() => {
-    if (pendingPlatformSubmit && !isProcessing && !isTyping) {
-      setPendingPlatformSubmit(null);
-      handleSubmit(pendingPlatformSubmit);
-    }
-  }, [pendingPlatformSubmit, isProcessing, isTyping]);
 
   // Trigger article fetching for DYNAMIC questions with articles source
   useEffect(() => {
@@ -1303,10 +1292,11 @@ export const InterviewWizard = forwardRef(function InterviewWizard({ onClose, on
       }]);
     }
 
-    // Save response locally
+    // Save response locally (include saveToField so showCondition checks work immediately)
     setResponses(prev => ({
       ...prev,
       [currentQuestion.id]: submittedValue,
+      ...(currentQuestion.saveToField ? { [currentQuestion.saveToField]: submittedValue } : {}),
     }));
 
     setInputValue('');
@@ -1342,6 +1332,12 @@ export const InterviewWizard = forwardRef(function InterviewWizard({ onClose, on
     setSelectedDynamicOptions([]);
     setEditableDataConfirmed(false);
     setGoogleIntegrationStatus('idle');
+    // Clean up WP plugin polling if active
+    if (wpPluginPollRef.current) {
+      clearInterval(wpPluginPollRef.current);
+      wpPluginPollRef.current = null;
+    }
+    setWpPluginStatus('idle');
     
     setTimeout(async () => {
       // Clear competitor UI state inside setTimeout, AFTER the index advances.
@@ -1351,6 +1347,8 @@ export const InterviewWizard = forwardRef(function InterviewWizard({ onClose, on
       setCompetitorSuggestions([]);
       
       // Find next question that passes showCondition
+      // Use ref to get latest responses (avoids stale closure from setTimeout)
+      const latestResponses = responsesRef.current;
       let nextIndex = currentQuestionIndex + 1;
       while (nextIndex < questions.length) {
         const candidate = questions[nextIndex];
@@ -1367,7 +1365,7 @@ export const InterviewWizard = forwardRef(function InterviewWizard({ onClose, on
             const condition = typeof candidate.showCondition === 'string'
               ? JSON.parse(candidate.showCondition)
               : candidate.showCondition;
-            const fieldValue = responses[condition.field];
+            const fieldValue = latestResponses[condition.field];
             let passes = true;
             switch (condition.operator) {
               case 'equals': passes = fieldValue === condition.value; break;
@@ -1454,7 +1452,7 @@ export const InterviewWizard = forwardRef(function InterviewWizard({ onClose, on
         setIsComplete(true);
         setIsTyping(false);
         setTimeout(() => {
-          onComplete?.(responses);
+          onComplete?.(responsesRef.current);
         }, 2000);
       }
     }, 800 + Math.random() * 500);
@@ -3056,15 +3054,44 @@ export const InterviewWizard = forwardRef(function InterviewWizard({ onClose, on
         );
 
       case 'WORDPRESS_PLUGIN': {
+        const pluginSiteId = interviewSiteId || site?.id;
         const pluginSiteKey = site?.siteKey;
-        const pluginDownloadUrl = pluginSiteKey 
-          ? `/api/plugin/download?site_key=${pluginSiteKey}`
+        const pluginDownloadUrl = pluginSiteId
+          ? `/api/plugin/download?site_key=${pluginSiteKey || ''}`
           : null;
         
         const handleDownloadPlugin = () => {
           if (pluginDownloadUrl) {
             window.open(pluginDownloadUrl, '_blank');
+            setWpPluginStatus('downloaded');
           }
+        };
+
+        const startConnectionPolling = () => {
+          if (wpPluginPollRef.current || !pluginSiteId) return;
+          setWpPluginStatus('checking');
+          let attempts = 0;
+          const maxAttempts = 30; // ~60 seconds
+          wpPluginPollRef.current = setInterval(async () => {
+            attempts++;
+            try {
+              const res = await fetch(`/api/sites/${pluginSiteId}/connection-status?_t=${Date.now()}`);
+              if (res.ok) {
+                const data = await res.json();
+                if (data.connectionStatus === 'CONNECTED') {
+                  clearInterval(wpPluginPollRef.current);
+                  wpPluginPollRef.current = null;
+                  setWpPluginStatus('connected');
+                  setTimeout(() => handleSubmit('connected'), 1500);
+                }
+              }
+            } catch { /* ignore poll errors */ }
+            if (attempts >= maxAttempts) {
+              clearInterval(wpPluginPollRef.current);
+              wpPluginPollRef.current = null;
+              setWpPluginStatus('error');
+            }
+          }, 2000);
         };
         
         return (
@@ -3092,32 +3119,85 @@ export const InterviewWizard = forwardRef(function InterviewWizard({ onClose, on
             </div>
             
             <div className={styles.integrationActions}>
-              {pluginDownloadUrl ? (
-                <button
-                  onClick={handleDownloadPlugin}
-                  className={styles.wordpressPluginButton}
-                  disabled={isProcessing}
-                >
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                    <polyline points="7 10 12 15 17 10"/>
-                    <line x1="12" y1="15" x2="12" y2="3"/>
-                  </svg>
-                  {t('interviewWizard.wordpressPlugin.downloadButton') || 'Download Plugin'}
-                </button>
-              ) : (
+              {wpPluginStatus === 'connected' && (
+                <div className={styles.integrationSuccess}>
+                  <CheckCircle2 size={18} />
+                  <span>{t('interviewWizard.wordpressPlugin.connected') || 'WordPress plugin connected successfully!'}</span>
+                </div>
+              )}
+              
+              {wpPluginStatus === 'checking' && (
+                <div className={styles.integrationConnecting}>
+                  <Loader2 size={16} className={styles.spinIcon} />
+                  <span>{t('interviewWizard.wordpressPlugin.waitingForConnection') || 'Waiting for plugin connection... Install and activate the plugin in WordPress.'}</span>
+                </div>
+              )}
+
+              {wpPluginStatus === 'error' && (
+                <>
+                  <p className={styles.integrationError}>
+                    {t('interviewWizard.wordpressPlugin.connectionTimeout') || "We couldn't detect the plugin connection. You can try again or skip and set it up later in Settings."}
+                  </p>
+                  <button
+                    onClick={() => {
+                      setWpPluginStatus('downloaded');
+                    }}
+                    className={styles.secondaryButton}
+                  >
+                    {t('common.retry') || 'Try Again'}
+                  </button>
+                </>
+              )}
+
+              {(wpPluginStatus === 'idle' || wpPluginStatus === 'downloaded') && pluginDownloadUrl && (
+                <>
+                  <button
+                    onClick={handleDownloadPlugin}
+                    className={styles.wordpressPluginButton}
+                    disabled={isProcessing}
+                  >
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                      <polyline points="7 10 12 15 17 10"/>
+                      <line x1="12" y1="15" x2="12" y2="3"/>
+                    </svg>
+                    {t('interviewWizard.wordpressPlugin.downloadButton') || 'Download Plugin'}
+                  </button>
+                  
+                  {wpPluginStatus === 'downloaded' && (
+                    <button
+                      onClick={startConnectionPolling}
+                      className={styles.primaryButton}
+                      disabled={isProcessing}
+                    >
+                      <CheckCircle2 size={16} />
+                      {t('interviewWizard.wordpressPlugin.checkConnection') || 'I installed & activated it — Check Connection'}
+                    </button>
+                  )}
+                </>
+              )}
+
+              {!pluginDownloadUrl && wpPluginStatus === 'idle' && (
                 <p className={styles.integrationDesc}>
                   {t('interviewWizard.wordpressPlugin.noSiteKey') || 'Plugin will be available after setup is complete.'}
                 </p>
               )}
               
-              <button
-                onClick={() => handleSubmit('skipped')}
-                className={styles.skipLink}
-                disabled={isProcessing}
-              >
-                {t('interviewWizard.wordpressPlugin.skipText') || "Skip — I'll install it later"}
-              </button>
+              {wpPluginStatus !== 'connected' && (
+                <button
+                  onClick={() => {
+                    if (wpPluginPollRef.current) {
+                      clearInterval(wpPluginPollRef.current);
+                      wpPluginPollRef.current = null;
+                    }
+                    handleSubmit('skipped');
+                  }}
+                  className={styles.skipLink}
+                  disabled={isProcessing || wpPluginStatus === 'checking'}
+                >
+                  {t('interviewWizard.wordpressPlugin.skipText') || "Skip — I'll install it later"}
+                </button>
+              )}
             </div>
           </div>
         );
@@ -3211,12 +3291,12 @@ export const InterviewWizard = forwardRef(function InterviewWizard({ onClose, on
                   {t('interviewWizard.googleIntegration.title') || 'Connect Google Analytics & Search Console'}
                 </h4>
                 <p className={styles.integrationDesc}>
-                  {t('interviewWizard.googleIntegration.description') || 'Get deeper insights into your website performance with Google Analytics and Search Console data.'}
+                  {t('interviewWizard.googleIntegration.description') || 'Connecting Google Analytics (GA4) and Search Console (GSC) lets us understand how your site performs in search results and identify the best opportunities to grow your traffic.'}
                 </p>
                 <ul className={styles.integrationBenefits}>
-                  <li>{t('interviewWizard.googleIntegration.benefit1') || 'Track real traffic and user behavior'}</li>
-                  <li>{t('interviewWizard.googleIntegration.benefit2') || 'Monitor search rankings and impressions'}</li>
-                  <li>{t('interviewWizard.googleIntegration.benefit3') || 'Get AI-powered SEO recommendations'}</li>
+                  <li>{t('interviewWizard.googleIntegration.benefit1') || 'See which pages bring the most traffic and how visitors behave'}</li>
+                  <li>{t('interviewWizard.googleIntegration.benefit2') || 'Track your search rankings, impressions, and click-through rates'}</li>
+                  <li>{t('interviewWizard.googleIntegration.benefit3') || 'Get smarter AI recommendations based on real performance data'}</li>
                 </ul>
               </div>
             </div>
