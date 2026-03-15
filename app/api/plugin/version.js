@@ -10,10 +10,14 @@
  */
 
 // Current plugin version - increment this when making updates
-export const PLUGIN_VERSION = "1.8.8";
+export const PLUGIN_VERSION = "1.8.9";
 
 // Changelog for the current version
 export const PLUGIN_CHANGELOG = `
+= 1.8.9 =
+* FIXED: Plugin connection not detected after upload/replace (activation hook not firing)
+* Auto-verify connection on admin page load if not yet connected (throttled to 5 min)
+
 = 1.8.8 =
 * FIXED: Trashed posts no longer returned by content/CPT API (excludes trash from default post_status)
 * Ensures entity sync correctly reflects published vs trashed content
