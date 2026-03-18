@@ -27,6 +27,7 @@ import {
 import { InterviewWizard } from '@/app/components/ui/interview-wizard';
 import { useSite } from '@/app/context/site-context';
 import { useLocale } from '@/app/context/locale-context';
+import { decodeDisplayUrl } from '@/lib/urlDisplay';
 import styles from '../page.module.css';
 
 const iconMap = {
@@ -929,7 +930,7 @@ export function InterviewContent({ translations }) {
             <div className={styles.articlesContainer}>
               {item.value.map((article, i) => (
                 <a key={i} href={article.url || article} target="_blank" rel="noopener noreferrer" className={styles.articleLink}>
-                  {article.title || article.url || (typeof article === 'string' ? article : '')}
+                  <bdi dir="ltr">{article.title || decodeDisplayUrl(article.url) || (typeof article === 'string' ? decodeDisplayUrl(article) : '')}</bdi>
                   <ExternalLink size={12} />
                 </a>
               ))}
@@ -951,7 +952,7 @@ export function InterviewContent({ translations }) {
                   return (
                     <div key={i} className={`${styles.competitorTag} ${item.editable ? styles.removable : ''}`}>
                       <a href={url} target="_blank" rel="noopener noreferrer" className={styles.competitorTagLink}>
-                        <span className={styles.competitorName}>{name}</span>
+                        <span className={styles.competitorName} dir="ltr">{decodeDisplayUrl(name)}</span>
                         <ExternalLink size={12} />
                       </a>
                       {item.editable && (

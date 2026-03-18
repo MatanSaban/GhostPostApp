@@ -82,6 +82,7 @@ export async function GET(request) {
         id: true,
         name: true,
         slug: true,
+        labels: true,
         apiEndpoint: true,
         sitemaps: true,
         _count: {
@@ -90,7 +91,13 @@ export async function GET(request) {
       },
     });
 
-    return NextResponse.json({ types });
+    // Map labels to nameHe for frontend compatibility
+    const typesWithNames = types.map(type => ({
+      ...type,
+      nameHe: type.labels?.he || type.name,
+    }));
+
+    return NextResponse.json({ types: typesWithNames });
   } catch (error) {
     console.error('Failed to fetch entity types:', error);
     return NextResponse.json({ types: [] });
@@ -170,6 +177,13 @@ export async function POST(request) {
           sitemaps: type.sitemaps || [],
           isEnabled: true, // Explicitly enable selected types
           sortOrder: i,
+          ...(type.labels || type.nameHe ? {
+            labels: {
+              en: type.name,
+              ...(type.labels || {}),
+              ...(type.nameHe ? { he: type.nameHe } : {}),
+            },
+          } : {}),
         },
         create: {
           siteId,
@@ -179,20 +193,86 @@ export async function POST(request) {
           sitemaps: type.sitemaps || [],
           isEnabled: true, // New types from selection are enabled
           sortOrder: i,
+          labels: {
+            en: type.name,
+            ...(type.labels || {}),
+            ...(type.nameHe ? { he: type.nameHe } : {}),
+          },
         },
       });
       
       results.push(entityType);
     }
 
+    // Map labels to nameHe for frontend compatibility
+    const resultsWithNames = results.map(type => ({
+      ...type,
+      nameHe: type.labels?.he || type.name,
+    }));
+
     return NextResponse.json({ 
       success: true,
-      types: results,
+      types: resultsWithNames,
     });
   } catch (error) {
     console.error('Failed to save entity types:', error);
     return NextResponse.json(
       { error: 'Failed to save entity types' },
+      { status: 500 }
+    );
+  }
+}
+
+// PATCH - Update entity type label for a specific locale
+export async function PATCH(request) {
+  try {
+    const user = await getAuthenticatedUser();
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const body = await request.json();
+    const { entityTypeId, locale, label } = body;
+
+    if (!entityTypeId || !locale || typeof label !== 'string') {
+      return NextResponse.json(
+        { error: 'entityTypeId, locale, and label are required' },
+        { status: 400 }
+      );
+    }
+
+    const trimmedLabel = label.trim();
+    if (!trimmedLabel) {
+      return NextResponse.json(
+        { error: 'Label cannot be empty' },
+        { status: 400 }
+      );
+    }
+
+    // Fetch the entity type and verify ownership
+    const entityType = await prisma.siteEntityType.findUnique({
+      where: { id: entityTypeId },
+      include: { site: { select: { accountId: true } } },
+    });
+
+    if (!entityType || entityType.site.accountId !== user.accountId) {
+      return NextResponse.json({ error: 'Not found' }, { status: 404 });
+    }
+
+    // Merge new label into existing labels
+    const existingLabels = (entityType.labels && typeof entityType.labels === 'object') ? entityType.labels : {};
+    const updatedLabels = { ...existingLabels, [locale]: trimmedLabel };
+
+    const updated = await prisma.siteEntityType.update({
+      where: { id: entityTypeId },
+      data: { labels: updatedLabels },
+    });
+
+    return NextResponse.json({ success: true, labels: updated.labels });
+  } catch (error) {
+    console.error('Failed to update entity type label:', error);
+    return NextResponse.json(
+      { error: 'Failed to update label' },
       { status: 500 }
     );
   }

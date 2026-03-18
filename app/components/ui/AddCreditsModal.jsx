@@ -196,7 +196,7 @@ export default function AddCreditsModal({ isOpen, onClose }) {
                     {t('addCreditsModal.currentBalance') || 'Current Balance'}
                   </span>
                   <span className={styles.balanceValue}>
-                    {(user.aiCreditsUsed || 0).toLocaleString()} / {(user.subscription?.plan?.limitations?.find?.(l => l.key === 'aiCredits')?.value || 0).toLocaleString()}
+                    {(user.aiCreditsUsed || 0).toLocaleString()} / {(user.aiCreditsLimit != null ? user.aiCreditsLimit : (user.subscription?.plan?.limitations?.find?.(l => l.key === 'aiCredits')?.value || 0)).toLocaleString()}
                   </span>
                 </div>
               )}

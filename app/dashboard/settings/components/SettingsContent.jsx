@@ -59,7 +59,7 @@ import { useSite } from '@/app/context/site-context';
 import { useLocale } from '@/app/context/locale-context';
 import { useUser } from '@/app/context/user-context';
 import { usePermissions } from '@/app/hooks/usePermissions';
-import { SettingsFormSkeleton, TableSkeleton, FormSkeleton } from '@/app/dashboard/components';
+import { SettingsFormSkeleton, TableSkeleton, FormSkeleton, Skeleton } from '@/app/dashboard/components';
 import WordPressPluginSection from './WordPressPluginSection';
 import UpgradePlanModal from '@/app/components/ui/UpgradePlanModal';
 import AddCreditsModal from '@/app/components/ui/AddCreditsModal';
@@ -231,10 +231,12 @@ export default function SettingsContent({ translations, websiteTabs, accountTabs
     );
     const planLabel = planTranslation?.name || plan.name || t('user.plans.free');
     
-    // Get AI credits limit from plan limitations
+    // Get AI credits limit - prefer addon-aware value from balance polling
     const limitations = plan.limitations || [];
     const aiCreditsLimitation = limitations.find?.(l => l.key === 'aiCredits');
-    const aiCreditsLimit = aiCreditsLimitation?.value || 0;
+    const aiCreditsLimit = user?.aiCreditsLimit != null
+      ? user.aiCreditsLimit
+      : (aiCreditsLimitation?.value || 0);
     
     // Get current AI credits used from user context
     const aiCreditsUsed = user?.aiCreditsUsed || 0;
@@ -581,7 +583,35 @@ function GeneralSettings({ general, setGeneral, translations, canEdit = true }) 
   };
 
   if (isLoading) {
-    return <SettingsFormSkeleton fields={6} />;
+    return (
+      <>
+        <div className={styles.formGrid}>
+          {[1,2,3,4].map(i => (
+            <div key={i} className={styles.formGroup}>
+              <Skeleton width="30%" height="0.875rem" />
+              <Skeleton width="100%" height="2.5rem" borderRadius="md" />
+              {i === 3 && <Skeleton width="60%" height="0.7rem" />}
+              {i === 4 && <Skeleton width="65%" height="0.7rem" />}
+            </div>
+          ))}
+        </div>
+        <div className={styles.subsection}>
+          <div className={styles.warningBox} style={{ pointerEvents: 'none' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flex: 1 }}>
+              <Skeleton width="1.5rem" height="1.5rem" borderRadius="sm" />
+              <div style={{ flex: 1 }}>
+                <Skeleton width="40%" height="0.9rem" />
+                <Skeleton width="70%" height="0.7rem" style={{ marginTop: '0.35rem' }} />
+              </div>
+            </div>
+            <Skeleton width="2.5rem" height="1.25rem" borderRadius="full" />
+          </div>
+        </div>
+        <div className={styles.saveButtonWrapper}>
+          <Skeleton width="8rem" height="2.5rem" borderRadius="md" />
+        </div>
+      </>
+    );
   }
 
   if (!selectedSite) {
@@ -1423,7 +1453,20 @@ function IntegrationsSettings({ translations, canEdit = true }) {
   }
 
   if (loading) {
-    return <SettingsFormSkeleton />;
+    return (
+      <>
+        {[1, 2, 3].map(i => (
+          <div key={i} className={styles.settingsSection}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}>
+              <Skeleton width="1.25rem" height="1.25rem" borderRadius="sm" />
+              <Skeleton width={i === 1 ? '9rem' : '11rem'} height="1.1rem" />
+            </div>
+            <Skeleton width="80%" height="0.8rem" />
+            <Skeleton width={i === 1 ? '12rem' : '8rem'} height="2.25rem" borderRadius="md" style={{ marginTop: '0.75rem' }} />
+          </div>
+        ))}
+      </>
+    );
   }
 
   return (
@@ -1693,7 +1736,7 @@ function IntegrationsSettings({ translations, canEdit = true }) {
                       <div>
                         <div className={styles.pickerItemName}>
                           <Globe size={14} style={{ opacity: 0.5, flexShrink: 0 }} />
-                          {cleanUrl}
+                          <bdi dir="ltr">{cleanUrl}</bdi>
                         </div>
                         <div className={styles.pickerItemMeta}>
                           <span className={`${styles.permBadge} ${isOwner ? styles.permOwner : styles.permOther}`}>
@@ -1780,7 +1823,55 @@ function AgentConfigSettings({ translations, canEdit = true }) {
     }
   };
 
-  if (loading) return <SettingsFormSkeleton />;
+  if (loading) {
+    return (
+      <>
+        <div className={styles.subsection} style={{ borderTop: 'none', paddingTop: 0, marginTop: 0 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
+            <Skeleton width="1.125rem" height="1.125rem" borderRadius="sm" />
+            <Skeleton width="6rem" height="1rem" />
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            {[1, 2].map(i => (
+              <div key={i} className={styles.toggleRow}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flex: 1 }}>
+                  <Skeleton width="1.25rem" height="1.25rem" borderRadius="sm" />
+                  <div style={{ flex: 1 }}>
+                    <Skeleton width="40%" height="0.875rem" />
+                    <Skeleton width="70%" height="0.7rem" style={{ marginTop: '0.35rem' }} />
+                  </div>
+                </div>
+                <Skeleton width="2.5rem" height="1.25rem" borderRadius="full" />
+              </div>
+            ))}
+          </div>
+        </div>
+        <div className={styles.subsection}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
+            <Skeleton width="1.125rem" height="1.125rem" borderRadius="sm" />
+            <Skeleton width="9rem" height="1rem" />
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            {[1, 2, 3, 4, 5].map(i => (
+              <div key={i} className={styles.toggleRow}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flex: 1 }}>
+                  <Skeleton width="1.25rem" height="1.25rem" borderRadius="sm" />
+                  <div style={{ flex: 1 }}>
+                    <Skeleton width="35%" height="0.875rem" />
+                    <Skeleton width="60%" height="0.7rem" style={{ marginTop: '0.35rem' }} />
+                  </div>
+                </div>
+                <Skeleton width="2.5rem" height="1.25rem" borderRadius="full" />
+              </div>
+            ))}
+          </div>
+        </div>
+        <div className={styles.saveButtonWrapper}>
+          <Skeleton width="8rem" height="2.5rem" borderRadius="md" />
+        </div>
+      </>
+    );
+  }
 
   const MODULES = [
     { key: 'content', icon: FileText, label: at.contentModule, desc: at.contentModuleDesc },
@@ -2500,10 +2591,31 @@ function TeamSettings({ translations, canEdit = true }) {
 
   if (isLoading) {
     return (
-      <div className={styles.loadingState}>
-        <Loader2 className={styles.spinner} size={24} />
-        <p>{translate('common.loading')}</p>
-      </div>
+      <>
+        <div className={styles.teamDescription}>
+          <Skeleton width="80%" height="0.85rem" />
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '1.5rem', marginBottom: '1rem' }}>
+          <Skeleton width="1.125rem" height="1.125rem" borderRadius="sm" />
+          <Skeleton width="8rem" height="1rem" />
+          <Skeleton width="1.5rem" height="1.25rem" borderRadius="full" />
+        </div>
+        <div className={styles.teamMembersList}>
+          {[1, 2, 3].map(i => (
+            <div key={i} className={styles.teamMemberRow}>
+              <div className={styles.memberInfo}>
+                <Skeleton width="2.25rem" height="2.25rem" borderRadius="full" />
+                <div>
+                  <Skeleton width="7rem" height="0.875rem" />
+                  <Skeleton width="10rem" height="0.7rem" style={{ marginTop: '0.25rem' }} />
+                </div>
+              </div>
+              <Skeleton width="4rem" height="1.25rem" borderRadius="full" />
+              <Skeleton width="1.75rem" height="1.75rem" borderRadius="sm" />
+            </div>
+          ))}
+        </div>
+      </>
     );
   }
 
@@ -2633,10 +2745,64 @@ function TeamSettings({ translations, canEdit = true }) {
 function SubscriptionSettings({ subscription, translations, canEdit = true, isLoading = false }) {
   const t = translations;
   const { locale, t: translate, direction } = useLocale();
+  const { user } = useUser();
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const [addonBonuses, setAddonBonuses] = useState({});
   const usagePercentage = subscription.aiCreditsLimit > 0 
     ? (subscription.aiCreditsUsed / subscription.aiCreditsLimit) * 100 
     : 0;
+
+  // Map AddOnType to limitation key
+  const ADDON_TYPE_TO_LIMIT_KEY = {
+    SITES: 'maxSites',
+    SEATS: 'maxMembers',
+    SITE_AUDITS: 'siteAudits',
+    KEYWORDS: 'maxKeywords',
+    CONTENT: 'maxContent',
+    STORAGE: 'maxStorage',
+    AI_CREDITS: 'aiCredits',
+  };
+
+  // Fetch addon purchases and compute per-limitation bonuses
+  useEffect(() => {
+    if (!user?.subscription?.id) return;
+    (async () => {
+      try {
+        const res = await fetch('/api/user/addon-purchases');
+        if (!res.ok) return;
+        const data = await res.json();
+        const purchases = data.purchases || [];
+        
+        // Group bonuses by limitation key
+        const bonuses = {};
+        for (const p of purchases) {
+          const addon = p.addOn;
+          if (!addon) continue;
+          const limitKey = ADDON_TYPE_TO_LIMIT_KEY[addon.type];
+          if (!limitKey) continue;
+          
+          const qty = (addon.quantity || 1) * (p.quantity || 1);
+          const isPermanent = addon.billingType === 'RECURRING';
+          const isOneTime = addon.billingType === 'ONE_TIME';
+          
+          if (!bonuses[limitKey]) {
+            bonuses[limitKey] = { permanent: 0, oneTime: 0 };
+          }
+          if (isPermanent) {
+            bonuses[limitKey].permanent += qty;
+          } else if (isOneTime) {
+            // For AI_CREDITS one-time, use creditsRemaining if available
+            if (addon.type === 'AI_CREDITS' && p.creditsRemaining != null) {
+              bonuses[limitKey].oneTime += p.creditsRemaining;
+            } else {
+              bonuses[limitKey].oneTime += qty;
+            }
+          }
+        }
+        setAddonBonuses(bonuses);
+      } catch (e) { console.error('Error fetching addon bonuses:', e); }
+    })();
+  }, [user?.subscription?.id]);
 
   // Format date according to current locale
   const formatDate = (dateString) => {
@@ -2730,10 +2896,69 @@ function SubscriptionSettings({ subscription, translations, canEdit = true, isLo
   // Show loading state
   if (isLoading) {
     return (
-      <div className={styles.loadingContainer}>
-        <div className={styles.loadingSpinner}></div>
-        <p>{translate('common.loading') || 'Loading...'}</p>
-      </div>
+      <>
+        <div className={styles.subscriptionCard}>
+          <div className={styles.subscriptionHeader}>
+            <div className={styles.planInfo}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <Skeleton width="1.25rem" height="1.25rem" borderRadius="sm" />
+                <Skeleton width="8rem" height="1.25rem" />
+              </div>
+              <Skeleton width="3.5rem" height="1rem" borderRadius="full" style={{ marginTop: '0.5rem' }} />
+            </div>
+            <div className={styles.planPrice}>
+              <Skeleton width="4rem" height="2rem" />
+              <Skeleton width="3rem" height="0.8rem" />
+            </div>
+          </div>
+          <Skeleton width="14rem" height="0.75rem" style={{ marginTop: '1rem' }} />
+        </div>
+
+        <div className={styles.subsection}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
+            <Skeleton width="1.125rem" height="1.125rem" borderRadius="sm" />
+            <Skeleton width="8rem" height="1rem" />
+          </div>
+          <div className={styles.limitationsGrid}>
+            {[1, 2, 3, 4].map(i => (
+              <div key={i} className={styles.limitationCard}>
+                <div className={styles.limitationHeader}>
+                  <Skeleton width="5rem" height="0.85rem" />
+                  <Skeleton width="4rem" height="0.85rem" />
+                </div>
+                <Skeleton width="100%" height="0.4rem" borderRadius="full" />
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className={styles.subsection}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
+            <Skeleton width="1.125rem" height="1.125rem" borderRadius="sm" />
+            <Skeleton width="7rem" height="1rem" />
+          </div>
+          <div className={styles.featuresGrid}>
+            {[1, 2, 3, 4, 5, 6].map(i => (
+              <div key={i} className={styles.featureItem}>
+                <Skeleton width="1rem" height="1rem" borderRadius="sm" />
+                <Skeleton width="70%" height="0.85rem" />
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className={styles.subsection}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
+            <Skeleton width="1.125rem" height="1.125rem" borderRadius="sm" />
+            <Skeleton width="7rem" height="1rem" />
+          </div>
+          <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+            <Skeleton width="8rem" height="2.25rem" borderRadius="md" />
+            <Skeleton width="10rem" height="2.25rem" borderRadius="md" />
+            <Skeleton width="7rem" height="2.25rem" borderRadius="md" />
+          </div>
+        </div>
+      </>
     );
   }
 
@@ -2787,12 +3012,19 @@ function SubscriptionSettings({ subscription, translations, canEdit = true, isLo
               const isUnlimited = limit === -1 || limitation.type === 'unlimited';
               const translatedLabel = getLimitationLabel(limitation);
               
+              // Addon bonuses for this limitation
+              const bonus = addonBonuses[limitation.key];
+              const totalBonus = (bonus?.permanent || 0) + (bonus?.oneTime || 0);
+              const effectiveLimit = limit > 0 ? limit + totalBonus : limit;
+              
               // For AI credits, show used/limit
               const isAiCredits = limitation.key === 'aiCredits';
               const used = isAiCredits ? subscription.aiCreditsUsed : 0;
-              const usagePercent = limit > 0 
-                ? (isAiCredits ? (used / limit) * 100 : (currentUsage / limit) * 100)
+              const usagePercent = effectiveLimit > 0 
+                ? (isAiCredits ? (used / effectiveLimit) * 100 : (currentUsage / effectiveLimit) * 100)
                 : 0;
+              const hasPermanentBonus = bonus?.permanent > 0;
+              const hasOneTimeBonus = bonus?.oneTime > 0;
               
               return (
                 <div key={limitation.key || index} className={styles.limitationCard}>
@@ -2807,6 +3039,16 @@ function SubscriptionSettings({ subscription, translations, canEdit = true, isLo
                           : `${formatNumber(currentUsage)} / ${formatNumber(limit)}`
                       ) : (
                         formatNumber(limit)
+                      )}
+                      {hasPermanentBonus && (
+                        <span className={styles.addonBonusBadge}>
+                          +{formatNumber(bonus.permanent)}
+                        </span>
+                      )}
+                      {hasOneTimeBonus && (
+                        <span className={`${styles.addonBonusBadge} ${styles.addonBonusOneTime}`}>
+                          +{formatNumber(bonus.oneTime)} ({translate('settings.subscriptionSection.temporary') || 'temp'})
+                        </span>
                       )}
                     </span>
                   </div>
@@ -2846,7 +3088,12 @@ function SubscriptionSettings({ subscription, translations, canEdit = true, isLo
       )}
 
       {/* Purchased Add-ons Section */}
-      <SubscriptionPurchasedAddons translate={translate} locale={locale} />
+      <PurchasedAddonsList 
+        translate={translate} 
+        locale={locale} 
+        title={translate('settings.subscriptionSection.purchasedAddons') || 'Active Add-ons'}
+        icon={Package}
+      />
 
       {/* Billing Actions */}
       <div className={styles.subsection}>
@@ -2874,24 +3121,32 @@ function SubscriptionSettings({ subscription, translations, canEdit = true, isLo
   );
 }
 
-// Purchased add-ons sub-component for Subscription tab
-function SubscriptionPurchasedAddons({ translate, locale }) {
+// Shared component for displaying active addon purchases
+// Used in: Subscription tab, Credits tab, and Addons tab
+function PurchasedAddonsList({ translate, locale, filterType, title, icon: IconComponent = Package }) {
   const { user } = useUser();
   const [purchasedAddons, setPurchasedAddons] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [cancelingId, setCancelingId] = useState(null);
+
+  const fetchPurchases = async () => {
+    if (!user?.subscription?.id) { setIsLoading(false); return; }
+    try {
+      const res = await fetch('/api/user/addon-purchases');
+      if (res.ok) {
+        const data = await res.json();
+        let purchases = data.purchases || [];
+        // Optionally filter by addon type (e.g., 'AI_CREDITS')
+        if (filterType) {
+          purchases = purchases.filter(p => p.addOn?.type === filterType);
+        }
+        setPurchasedAddons(purchases);
+      }
+    } catch (e) { console.error(e); }
+    finally { setIsLoading(false); }
+  };
 
   useEffect(() => {
-    async function fetchPurchases() {
-      if (!user?.subscription?.id) { setIsLoading(false); return; }
-      try {
-        const res = await fetch('/api/user/addon-purchases');
-        if (res.ok) {
-          const data = await res.json();
-          setPurchasedAddons(data.purchases || []);
-        }
-      } catch (e) { console.error(e); }
-      finally { setIsLoading(false); }
-    }
     fetchPurchases();
   }, [user?.subscription?.id]);
 
@@ -2902,37 +3157,146 @@ function SubscriptionPurchasedAddons({ translate, locale }) {
     });
   };
 
-  if (isLoading || purchasedAddons.length === 0) return null;
+  const formatCredits = (credits) => {
+    if (credits >= 1000000) return `${(credits / 1000000).toFixed(1)}M`;
+    if (credits >= 1000) return `${(credits / 1000).toFixed(0)}K`;
+    return credits.toString();
+  };
 
-  // Group purchases by addon
-  const grouped = {};
-  purchasedAddons.forEach(p => {
-    if (!grouped[p.addOnId]) grouped[p.addOnId] = { addon: p.addOn, purchases: [] };
-    grouped[p.addOnId].purchases.push(p);
-  });
+  // Get translated addon name from translations array
+  const getAddonName = (addon) => {
+    if (!addon) return translate('settings.addonsSection.addonFallback') || 'Add-on';
+    const lang = locale?.toUpperCase() || 'EN';
+    const translation = addon.translations?.find(t => t.language === lang);
+    return translation?.name || addon.name;
+  };
+
+  // Get translated status
+  const getStatusLabel = (status) => {
+    const statusKey = status?.toLowerCase();
+    return translate(`settings.subscriptionSection.statuses.${statusKey}`) || status;
+  };
+
+  // Type icons mapping
+  const typeIcons = {
+    SEATS: '👥', SITES: '🌐', AI_CREDITS: '✨', STORAGE: '💾', KEYWORDS: '🔑', CONTENT: '📝',
+  };
+
+  // Handle cancel recurring addon
+  const handleCancel = async (purchaseId) => {
+    const confirmed = window.confirm(
+      translate('settings.subscriptionSection.cancelAddonConfirm') || 
+      'Are you sure you want to cancel this add-on? It will remain active until your next billing period renewal.'
+    );
+    if (!confirmed) return;
+
+    setCancelingId(purchaseId);
+    try {
+      const res = await fetch(`/api/user/addon-purchases/${purchaseId}/cancel`, { method: 'POST' });
+      if (res.ok) {
+        await fetchPurchases();
+      } else {
+        const data = await res.json();
+        alert(data.error || 'Failed to cancel');
+      }
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setCancelingId(null);
+    }
+  };
+
+  // Skeleton loading state
+  if (isLoading) {
+    return (
+      <div className={styles.subsection}>
+        <h3 className={styles.subsectionTitle}>
+          <IconComponent className={styles.subsectionIcon} />
+          {title}
+        </h3>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+          {[1, 2].map(i => (
+            <div key={i} className={styles.addonPurchaseHistoryCard}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <Skeleton width="1.25rem" height="1.25rem" borderRadius="sm" />
+                  <Skeleton width="8rem" height="1rem" />
+                  <Skeleton width="2rem" height="1rem" borderRadius="full" />
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                  <Skeleton width="3.5rem" height="1.25rem" borderRadius="full" />
+                  <Skeleton width="6rem" height="0.875rem" />
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (purchasedAddons.length === 0) return null;
 
   return (
     <div className={styles.subsection}>
       <h3 className={styles.subsectionTitle}>
-        <Package className={styles.subsectionIcon} />
-        {translate('settings.subscriptionSection.purchasedAddons') || 'Purchased Add-ons'}
+        <IconComponent className={styles.subsectionIcon} />
+        {title}
       </h3>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-        {Object.values(grouped).map(({ addon, purchases }) => (
-          <div key={addon?.id || purchases[0]?.id} className={styles.addonPurchaseHistoryCard}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+        {purchasedAddons.map((purchase) => (
+          <div key={purchase.id} className={styles.addonPurchaseHistoryCard}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                 <span style={{ fontSize: '1.25rem' }}>
-                  {addon?.type === 'SEATS' ? '👥' : addon?.type === 'SITES' ? '🌐' : addon?.type === 'AI_CREDITS' ? '✨' : '📦'}
+                  {typeIcons[purchase.addOn?.type] || '📦'}
                 </span>
-                <span style={{ fontWeight: 600 }}>{addon?.name || 'Add-on'}</span>
-                <span className={styles.addonPurchaseCountBadge}>
-                  ×{purchases.reduce((sum, p) => sum + (p.quantity || 1), 0)}
-                </span>
+                <span style={{ fontWeight: 600 }}>{getAddonName(purchase.addOn)}</span>
+                {purchase.addOn?.type === 'AI_CREDITS' && purchase.addOn?.quantity && (
+                  <span className={styles.addonPurchaseCountBadge}>
+                    +{formatCredits(purchase.addOn.quantity * (purchase.quantity || 1))}
+                  </span>
+                )}
+                {!purchase.addOn?.type?.includes('AI_CREDITS') && (purchase.quantity || 1) > 1 && (
+                  <span className={styles.addonPurchaseCountBadge}>
+                    ×{purchase.quantity}
+                  </span>
+                )}
               </div>
-              <span style={{ fontSize: '0.8125rem', color: 'var(--muted-foreground)' }}>
-                {translate('settings.addonsSection.purchased') || 'Purchased'}: {formatDate(purchases[purchases.length - 1]?.purchasedAt)}
-              </span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
+                <span className={`${styles.addonStatusBadge} ${purchase.status === 'ACTIVE' ? styles.addonStatusActive : styles.addonStatusInactive}`}>
+                  {purchase.status === 'ACTIVE' ? <Check size={10} /> : null}
+                  {getStatusLabel(purchase.status)}
+                </span>
+                {purchase.addOn?.billingType === 'ONE_TIME' && (
+                  <span className={`${styles.addonStatusBadge} ${styles.addonStatusOneTime}`}>
+                    {translate('settings.addonsSection.oneTimeBadge') || 'ONE-TIME'}
+                  </span>
+                )}
+                {purchase.canceledAt && (
+                  <span className={`${styles.addonStatusBadge} ${styles.addonStatusInactive}`}>
+                    {translate('settings.subscriptionSection.cancelsAtRenewal') || 'Cancels at renewal'}
+                  </span>
+                )}
+                <span style={{ fontSize: '0.8125rem', color: 'var(--muted-foreground)' }}>
+                  {translate('settings.addonsSection.purchased') || 'Purchased'}: {formatDate(purchase.purchasedAt)}
+                </span>
+                {purchase.addOn?.billingType === 'RECURRING' && !purchase.canceledAt && (
+                  <button
+                    className={styles.addonCancelButton}
+                    onClick={() => handleCancel(purchase.id)}
+                    disabled={cancelingId === purchase.id}
+                    title={translate('settings.subscriptionSection.cancelAddon') || 'Cancel add-on'}
+                  >
+                    {cancelingId === purchase.id ? (
+                      <Loader2 size={12} className="animate-spin" />
+                    ) : (
+                      <X size={12} />
+                    )}
+                    {translate('settings.subscriptionSection.cancelAddon') || 'Cancel'}
+                  </button>
+                )}
+              </div>
             </div>
           </div>
         ))}
@@ -2947,24 +3311,31 @@ function CreditsSettings({ subscription, translations, canEdit = true, isLoading
   const { locale, t: translate, direction } = useLocale();
   const [usageLogs, setUsageLogs] = useState([]);
   const [logsLoading, setLogsLoading] = useState(true);
+  const [logsLoadingMore, setLogsLoadingMore] = useState(false);
   const [logsError, setLogsError] = useState(null);
-  const [showMore, setShowMore] = useState(false);
+  const [hasMoreLogs, setHasMoreLogs] = useState(false);
+  const [totalLogs, setTotalLogs] = useState(0);
   const [showCreditsModal, setShowCreditsModal] = useState(false);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   
+  const INITIAL_LOG_COUNT = 5;
+  const LOAD_MORE_COUNT = 10;
+
   const usagePercentage = subscription.aiCreditsLimit > 0 
     ? (subscription.aiCreditsUsed / subscription.aiCreditsLimit) * 100 
     : 0;
 
-  // Fetch usage logs on mount
+  // Fetch usage logs on mount (initial 5)
   useEffect(() => {
     async function fetchUsageLogs() {
       try {
         setLogsLoading(true);
-        const res = await fetch('/api/credits/logs?limit=50');
+        const res = await fetch(`/api/credits/logs?limit=${INITIAL_LOG_COUNT}&offset=0`);
         if (!res.ok) throw new Error('Failed to fetch logs');
         const data = await res.json();
         setUsageLogs(data.logs || []);
+        setHasMoreLogs(data.hasMore || false);
+        setTotalLogs(data.total || 0);
       } catch (err) {
         console.error('Error fetching usage logs:', err);
         setLogsError(err.message);
@@ -2974,6 +3345,24 @@ function CreditsSettings({ subscription, translations, canEdit = true, isLoading
     }
     fetchUsageLogs();
   }, []);
+
+  // Load more logs
+  const loadMoreLogs = async () => {
+    try {
+      setLogsLoadingMore(true);
+      const offset = usageLogs.length;
+      const res = await fetch(`/api/credits/logs?limit=${LOAD_MORE_COUNT}&offset=${offset}`);
+      if (!res.ok) throw new Error('Failed to fetch logs');
+      const data = await res.json();
+      setUsageLogs(prev => [...prev, ...(data.logs || [])]);
+      setHasMoreLogs(data.hasMore || false);
+      setTotalLogs(data.total || 0);
+    } catch (err) {
+      console.error('Error loading more logs:', err);
+    } finally {
+      setLogsLoadingMore(false);
+    }
+  };
 
   // Format AI credits number with K/M suffix
   const formatCredits = (credits) => {
@@ -3002,10 +3391,14 @@ function CreditsSettings({ subscription, translations, canEdit = true, isLoading
   const getOperationName = (log) => {
     const operationKey = log.source;
     
-    // First, try to get from translations dictionary
+    // First, try to get from translations dictionary (try both original and uppercased key)
     const translatedName = translate(`settings.creditsSection.operations.${operationKey}`);
     if (translatedName && !translatedName.includes('settings.creditsSection.operations.')) {
       return translatedName;
+    }
+    const translatedUpper = translate(`settings.creditsSection.operations.${operationKey?.toUpperCase()}`);
+    if (translatedUpper && !translatedUpper.includes('settings.creditsSection.operations.')) {
+      return translatedUpper;
     }
     
     // Fallback to metadata
@@ -3027,7 +3420,29 @@ function CreditsSettings({ subscription, translations, canEdit = true, isLoading
     'COMPLETE_INTERVIEW': 'completedInterview',
     'IMAGE_ALT_OPTIMIZATION': 'optimizedImageAlt',
     'ENTITY_REFRESH': 'extractedFocusKeyword',
-    'GENERIC': 'entityEnrichment',
+    'GENERIC': 'genericOperation',
+    'REWRITE_PARAGRAPH': 'rewriteParagraph',
+    'COMPETITOR_ANALYSIS': 'competitorAnalysis',
+    'CANNIBALIZATION_FIX': 'cannibalizationFix',
+    'FULL_ARTICLE': 'fullArticle',
+    'INTERVIEW_CHAT': 'interviewChat',
+    'COMPETITOR_SCAN': 'competitorScan',
+    'COMPETITOR_GAP_ANALYSIS': 'competitorGapAnalysis',
+    'SKYSCRAPER_OUTLINE': 'skyscraperOutline',
+    'addon_purchase': 'addonPurchase',
+    'addon_purchase_webhook': 'addonPurchase',
+    'plan_renewal': 'planRenewal',
+    'plan_activation': 'planActivation',
+    'backlink_purchase': 'backlinkPurchase',
+    'backlink_sale': 'backlinkSale',
+    'manual': 'manualAdjustment',
+    'MANUAL': 'manualAdjustment',
+    'audit_rescan': 'auditRescan',
+    'audit_quick_fix': 'auditQuickFix',
+    'ai_title_fix': 'aiTitleFix',
+    'a11y_alt_fix': 'a11yAltFix',
+    'TRANSLATE_POST_TYPES': 'translatePostTypes',
+    'content_generation': 'contentGeneration',
   };
 
   // Helper to decode URL-encoded strings (especially Hebrew URLs)
@@ -3052,14 +3467,21 @@ function CreditsSettings({ subscription, translations, canEdit = true, isLoading
       let translated = translate(`settings.creditsSection.descriptions.${descriptionKey}`);
       if (translated && !translated.includes('settings.creditsSection.descriptions.')) {
         // Replace placeholders like {count}, {url}, etc.
-        // For older logs without descriptionParams, try to extract from metadata
-        const effectiveParams = Object.keys(params).length > 0 ? params : {
-          count: metadata.competitorsFound || metadata.totalKeywords || metadata.keywordsCount || metadata.keywordCount || '',
-          keywords: metadata.keywordsSearched?.length || '',
-          url: decodeUrl(metadata.url || metadata.websiteUrl) || '',
-          platform: metadata.detectedPlatform || metadata.platform || '',
-          filename: metadata.suggestedFilename || '',
-        };
+        // For older logs without descriptionParams, try to extract from metadata or description
+        let effectiveParams = params;
+        if (Object.keys(params).length === 0) {
+          // Extract URL from description if not in metadata — prefer explicit protocol URLs first
+          const descUrlMatch = log.description?.match(/https?:\/\/[^\s]+/) || log.description?.match(/(?:^|\s)((?:[a-zA-Z0-9][-a-zA-Z0-9]*\.)+(?:com|co\.il|org|net|io|dev|me|info|biz)[^\s]*)/);
+          const descCountMatch = log.description?.match(/(\d+)\s*page/);
+          effectiveParams = {
+            count: metadata.competitorsFound || metadata.totalKeywords || metadata.keywordsCount || metadata.keywordCount || descCountMatch?.[1] || '',
+            keywords: metadata.keywordsSearched?.length || '',
+            url: decodeUrl(metadata.url || metadata.websiteUrl) || (descUrlMatch ? decodeUrl(descUrlMatch[1] || descUrlMatch[0]) : ''),
+            platform: metadata.detectedPlatform || metadata.platform || '',
+            filename: metadata.suggestedFilename || '',
+            description: metadata.addonName || metadata.description || '',
+          };
+        }
         
         Object.keys(effectiveParams).forEach(key => {
           if (effectiveParams[key] !== undefined && effectiveParams[key] !== '') {
@@ -3137,18 +3559,37 @@ function CreditsSettings({ subscription, translations, canEdit = true, isLoading
     return description;
   };
 
-  // Show loading state
+  // Show skeleton loading state for the credits overview card
   if (isLoading) {
     return (
-      <div className={styles.loadingContainer}>
-        <div className={styles.loadingSpinner}></div>
-        <p>{translate('common.loading') || 'Loading...'}</p>
-      </div>
+      <>
+        <div className={styles.subscriptionCard}>
+          <div className={styles.subscriptionHeader}>
+            <div className={styles.planInfo}>
+              <Skeleton width="8rem" height="1.25rem" />
+              <Skeleton width="3rem" height="1rem" />
+            </div>
+            <div className={styles.planPrice}>
+              <Skeleton width="4rem" height="2rem" />
+            </div>
+          </div>
+          <div style={{ marginTop: '1rem' }}>
+            <Skeleton width="100%" height="0.5rem" borderRadius="full" />
+          </div>
+          <div style={{ marginTop: '1rem' }}>
+            <Skeleton width="80%" height="0.8rem" />
+          </div>
+        </div>
+        <div className={styles.subsection}>
+          <Skeleton width="6rem" height="1.125rem" />
+          <div style={{ display: 'flex', gap: '1rem', marginTop: '0.75rem' }}>
+            <Skeleton width="7rem" height="2rem" borderRadius="md" />
+            <Skeleton width="7rem" height="2rem" borderRadius="md" />
+          </div>
+        </div>
+      </>
     );
   }
-
-  // Display logs (limited or all based on showMore)
-  const displayedLogs = showMore ? usageLogs : usageLogs.slice(0, 10);
 
   return (
     <>
@@ -3210,7 +3651,13 @@ function CreditsSettings({ subscription, translations, canEdit = true, isLoading
       </div>
 
       {/* Purchased AI Credits Add-ons */}
-      <CreditsPurchasedAddons translate={translate} locale={locale} />
+      <PurchasedAddonsList 
+        translate={translate} 
+        locale={locale} 
+        filterType="AI_CREDITS"
+        title={translate('settings.creditsSection.purchasedPacks') || 'Purchased Credit Packs'}
+        icon={ShoppingCart}
+      />
 
       {/* Usage Log Section */}
       <div className={styles.subsection}>
@@ -3220,9 +3667,34 @@ function CreditsSettings({ subscription, translations, canEdit = true, isLoading
         </h3>
         
         {logsLoading ? (
-          <div className={`${styles.loadingContainer} ${styles.usageLogLoading}`}>
-            <Loader2 size={24} className={styles.loadingSpinner} />
-            <p>{translate('common.loading') || 'Loading...'}</p>
+          <div className={styles.creditsLogTable}>
+            <table className={styles.usageLogTable}>
+              <thead>
+                <tr className={`${styles.usageLogHeaderRow} ${direction === 'rtl' ? styles.textRight : styles.textLeft}`}>
+                  <th className={styles.usageLogHeaderCell}>{translate('settings.creditsSection.logColumns.date') || 'Date'}</th>
+                  <th className={styles.usageLogHeaderCell}>{translate('settings.creditsSection.logColumns.action') || 'Action'}</th>
+                  <th className={styles.usageLogHeaderCell}>{translate('settings.creditsSection.logColumns.website') || 'Website'}</th>
+                  <th className={styles.usageLogHeaderCell}>{translate('settings.creditsSection.logColumns.user') || 'User'}</th>
+                  <th className={styles.usageLogHeaderCellCenter}>{translate('settings.creditsSection.logColumns.credits') || 'Credits'}</th>
+                  <th className={styles.usageLogHeaderCellCenter}>{translate('settings.creditsSection.logColumns.balance') || 'Balance'}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {[1, 2, 3, 4, 5].map(i => (
+                  <tr key={i} className={styles.usageLogRow}>
+                    <td className={styles.usageLogCellMuted}><Skeleton width="6rem" height="0.8rem" /></td>
+                    <td className={styles.usageLogCell}>
+                      <Skeleton width="8rem" height="0.9rem" />
+                      <Skeleton width="12rem" height="0.7rem" className={styles.usageLogSkeletonDesc} />
+                    </td>
+                    <td className={styles.usageLogCell}><Skeleton width="5rem" height="0.8rem" /></td>
+                    <td className={styles.usageLogCell}><Skeleton width="4rem" height="0.8rem" /></td>
+                    <td className={styles.usageLogCellCenter}><Skeleton width="2.5rem" height="0.8rem" /></td>
+                    <td className={styles.usageLogCellCenterMuted}><Skeleton width="3rem" height="0.8rem" /></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         ) : logsError ? (
           <div className={styles.usageLogError}>
@@ -3259,7 +3731,7 @@ function CreditsSettings({ subscription, translations, canEdit = true, isLoading
                   </tr>
                 </thead>
                 <tbody>
-                  {displayedLogs.map((log) => (
+                  {usageLogs.map((log) => (
                     <tr key={log.id} className={styles.usageLogRow}>
                       <td className={styles.usageLogCellMuted}>
                         {formatDate(log.createdAt)}
@@ -3307,15 +3779,17 @@ function CreditsSettings({ subscription, translations, canEdit = true, isLoading
               </table>
             </div>
             
-            {usageLogs.length > 10 && (
+            {hasMoreLogs && (
               <div className={styles.usageLogShowMoreContainer}>
                 <button 
-                  onClick={() => setShowMore(!showMore)}
+                  onClick={loadMoreLogs}
+                  disabled={logsLoadingMore}
                   className={`${styles.editButton} ${styles.usageLogShowMoreButton}`}
                 >
-                  {showMore 
-                    ? (translate('common.showLess') || 'Show Less') 
-                    : (translate('common.showMore') || `Show More (${usageLogs.length - 10} more)`)}
+                  {logsLoadingMore ? (
+                    <Loader2 size={14} className="animate-spin" style={{ marginInlineEnd: '0.25rem' }} />
+                  ) : null}
+                  {translate('common.showMore') || 'Show More'} ({totalLogs - usageLogs.length} {translate('settings.creditsSection.remaining') || 'remaining'})
                 </button>
               </div>
             )}
@@ -3326,80 +3800,6 @@ function CreditsSettings({ subscription, translations, canEdit = true, isLoading
       <AddCreditsModal isOpen={showCreditsModal} onClose={() => setShowCreditsModal(false)} />
       <UpgradePlanModal isOpen={showUpgradeModal} onClose={() => setShowUpgradeModal(false)} />
     </>
-  );
-}
-
-// Purchased AI Credits sub-component for Credits tab
-function CreditsPurchasedAddons({ translate, locale }) {
-  const { user } = useUser();
-  const [purchasedAddons, setPurchasedAddons] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    async function fetchPurchases() {
-      if (!user?.subscription?.id) { setIsLoading(false); return; }
-      try {
-        const res = await fetch('/api/user/addon-purchases');
-        if (res.ok) {
-          const data = await res.json();
-          // Filter only AI credits purchases
-          const aiCreditsPurchases = (data.purchases || []).filter(p => p.addOn?.type === 'AI_CREDITS');
-          setPurchasedAddons(aiCreditsPurchases);
-        }
-      } catch (e) { console.error(e); }
-      finally { setIsLoading(false); }
-    }
-    fetchPurchases();
-  }, [user?.subscription?.id]);
-
-  const formatDate = (dateString) => {
-    if (!dateString) return '';
-    return new Date(dateString).toLocaleDateString(locale === 'he' ? 'he-IL' : 'en-US', {
-      year: 'numeric', month: 'short', day: 'numeric',
-    });
-  };
-
-  const formatCredits = (credits) => {
-    if (credits >= 1000000) return `${(credits / 1000000).toFixed(1)}M`;
-    if (credits >= 1000) return `${(credits / 1000).toFixed(0)}K`;
-    return credits.toString();
-  };
-
-  if (isLoading || purchasedAddons.length === 0) return null;
-
-  return (
-    <div className={styles.subsection}>
-      <h3 className={styles.subsectionTitle}>
-        <ShoppingCart className={styles.subsectionIcon} />
-        {translate('settings.creditsSection.purchasedPacks') || 'Purchased Credit Packs'}
-      </h3>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-        {purchasedAddons.map((purchase) => (
-          <div key={purchase.id} className={styles.addonPurchaseHistoryCard}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <span style={{ fontSize: '1.25rem' }}>✨</span>
-                <span style={{ fontWeight: 600 }}>{purchase.addOn?.name || 'AI Credits'}</span>
-                {purchase.addOn?.quantity && (
-                  <span className={styles.addonPurchaseCountBadge}>
-                    +{formatCredits(purchase.addOn.quantity * (purchase.quantity || 1))}
-                  </span>
-                )}
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                <span className={`${styles.addonStatusBadge} ${purchase.status === 'ACTIVE' ? styles.addonStatusActive : styles.addonStatusInactive}`}>
-                  {purchase.status === 'ACTIVE' ? <Check size={10} /> : null}
-                  {purchase.status}
-                </span>
-                <span style={{ fontSize: '0.8125rem', color: 'var(--muted-foreground)' }}>
-                  {formatDate(purchase.purchasedAt)}
-                </span>
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
   );
 }
 
@@ -3552,8 +3952,25 @@ function AddonsSettings({ translations, canEdit = true }) {
         </p>
         
         {isLoading ? (
-          <div style={{ display: 'flex', justifyContent: 'center', padding: '2rem' }}>
-            <Loader2 className="animate-spin" size={24} style={{ color: 'var(--muted-foreground)' }} />
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            {[1, 2, 3].map(i => (
+              <div key={i} className={styles.subscriptionCard} style={{ padding: '1.25rem' }}>
+                <div className={styles.subscriptionHeader}>
+                  <div className={styles.planInfo}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                      <Skeleton width="1.5rem" height="1.5rem" borderRadius="50%" />
+                      <Skeleton width="10rem" height="1.1rem" />
+                      <Skeleton width="4rem" height="1rem" borderRadius="var(--radius)" />
+                    </div>
+                    <Skeleton width="18rem" height="0.8rem" style={{ marginTop: '0.5rem' }} />
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '0.5rem' }}>
+                    <Skeleton width="4rem" height="1.5rem" />
+                    <Skeleton width="8rem" height="2rem" borderRadius="var(--radius)" />
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
         ) : addons.length === 0 ? (
           <div style={{ 
@@ -3663,6 +4080,13 @@ function AddonsSettings({ translations, canEdit = true }) {
           </div>
         )}
       </div>
+
+      <PurchasedAddonsList
+        translate={translate}
+        locale={locale}
+        title={translate('settings.subscriptionSection.purchasedAddons') || 'Purchased Add-ons'}
+        icon={Package}
+      />
     </>
   );
 }
@@ -3930,10 +4354,29 @@ function ProfileSettings({ translations }) {
 
   if (isLoading) {
     return (
-      <div className={styles.loadingContainer}>
-        <div className={styles.loadingSpinner}></div>
-        <p>{translate('common.loading')}</p>
-      </div>
+      <>
+        <div className={styles.profileTabsWrapper}>
+          <div className={styles.profileTabs}>
+            {[1, 2, 3].map(i => (
+              <Skeleton key={i} width="5rem" height="2rem" borderRadius="md" />
+            ))}
+          </div>
+        </div>
+        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '1.5rem' }}>
+          <Skeleton width="6rem" height="6rem" borderRadius="full" />
+        </div>
+        <div className={styles.formGrid}>
+          {[1, 2, 3, 4].map(i => (
+            <div key={i} className={styles.formGroup}>
+              <Skeleton width="30%" height="0.875rem" />
+              <Skeleton width="100%" height="2.5rem" borderRadius="md" />
+            </div>
+          ))}
+        </div>
+        <div className={styles.saveButtonWrapper}>
+          <Skeleton width="8rem" height="2.5rem" borderRadius="md" />
+        </div>
+      </>
     );
   }
 
@@ -4525,7 +4968,63 @@ function AccountSettings({ translations, canEdit = true }) {
   };
 
   if (isLoading) {
-    return <SettingsFormSkeleton />;
+    return (
+      <>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1.5rem' }}>
+          <Skeleton width="4rem" height="4rem" borderRadius="md" />
+          <div>
+            <Skeleton width="6rem" height="2rem" borderRadius="md" />
+            <Skeleton width="12rem" height="0.7rem" style={{ marginTop: '0.35rem' }} />
+          </div>
+        </div>
+        <div className={styles.subsection}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
+            <Skeleton width="1.125rem" height="1.125rem" borderRadius="sm" />
+            <Skeleton width="10rem" height="1rem" />
+          </div>
+          <div className={styles.formGrid}>
+            {[1, 2, 3, 4].map(i => (
+              <div key={i} className={styles.formGroup}>
+                <Skeleton width="30%" height="0.875rem" />
+                <Skeleton width="100%" height="2.5rem" borderRadius="md" />
+              </div>
+            ))}
+          </div>
+        </div>
+        <div className={styles.subsection}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
+            <Skeleton width="1.125rem" height="1.125rem" borderRadius="sm" />
+            <Skeleton width="8rem" height="1rem" />
+          </div>
+          <div className={styles.formGrid}>
+            {[1, 2].map(i => (
+              <div key={i} className={styles.formGroup}>
+                <Skeleton width="35%" height="0.875rem" />
+                <Skeleton width="100%" height="2.5rem" borderRadius="md" />
+                <Skeleton width="70%" height="0.7rem" />
+              </div>
+            ))}
+          </div>
+        </div>
+        <div className={styles.subsection}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
+            <Skeleton width="1.125rem" height="1.125rem" borderRadius="sm" />
+            <Skeleton width="8rem" height="1rem" />
+          </div>
+          <div className={styles.formGrid}>
+            {[1, 2].map(i => (
+              <div key={i} className={styles.formGroup}>
+                <Skeleton width="25%" height="0.875rem" />
+                <Skeleton width="100%" height="2.5rem" borderRadius="md" />
+              </div>
+            ))}
+          </div>
+        </div>
+        <div className={styles.saveButtonWrapper}>
+          <Skeleton width="8rem" height="2.5rem" borderRadius="md" />
+        </div>
+      </>
+    );
   }
 
   return (
@@ -4906,7 +5405,15 @@ function RolesSettings({ translations, canEdit = true }) {
 
   const handleEdit = (role) => {
     setEditingRole(role);
-    setFormData({ key: role.key || '', name: role.name, description: role.description || '' });
+    const derivedKey = role.key || (role.isSystemRole ? role.name.toLowerCase().replace(/\s+/g, '_') : '');
+    const displayName = role.isSystemRole ? getRoleLabel(role) : role.name;
+    let description = role.description || '';
+    if (role.isSystemRole) {
+      const descKey = `settings.rolesSection.roleDescriptions.${derivedKey}`;
+      const translated = t(descKey);
+      if (translated !== descKey) description = translated;
+    }
+    setFormData({ key: derivedKey, name: displayName, description });
     setError(null);
     setModalOpen(true);
   };
@@ -4955,10 +5462,14 @@ function RolesSettings({ translations, canEdit = true }) {
         : '/api/settings/roles';
       const method = editingRole ? 'PUT' : 'POST';
 
+      const payload = editingRole?.isSystemRole
+        ? { description: formData.description }
+        : formData;
+
       const response = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(payload),
       });
 
       if (response.ok) {
@@ -5026,7 +5537,17 @@ function RolesSettings({ translations, canEdit = true }) {
                         <span>{getRoleLabel(role)}</span>
                       </div>
                     </td>
-                    <td>{role.description || '-'}</td>
+                    <td>
+                      {(() => {
+                        if (role.isSystemRole) {
+                          const roleKey = role.key || role.name.toLowerCase().replace(/\s+/g, '_');
+                          const translationKey = `settings.rolesSection.roleDescriptions.${roleKey}`;
+                          const translated = t(translationKey);
+                          return translated !== translationKey ? translated : (role.description || '-');
+                        }
+                        return role.description || '-';
+                      })()}
+                    </td>
                     <td>{role.membersCount}</td>
                     <td>
                       <span className={`${styles.badge} ${role.isSystemRole ? styles.systemBadge : styles.customBadge}`}>

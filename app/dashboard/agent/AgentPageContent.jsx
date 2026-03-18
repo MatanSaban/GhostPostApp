@@ -10,6 +10,7 @@ import { useSite } from '@/app/context/site-context';
 import { useAgent } from '@/app/context/agent-context';
 import { PageHeader } from '../components';
 import FixPreviewModal from '../components/FixPreviewModal';
+import { formatPageUrl } from '@/lib/urlDisplay';
 import styles from './agent.module.css';
 
 const FIXABLE_INSIGHT_TYPES = new Set(['missingSeo', 'keywordStrikeZone']);
@@ -132,15 +133,7 @@ function isInsightFullyFixed(insight) {
   return pages.every(p => fixedUrls.has(p.url));
 }
 
-function formatPageUrl(url) {
-  try {
-    const parsed = new URL(url);
-    const display = parsed.pathname === '/' ? parsed.origin : parsed.pathname;
-    return decodeURIComponent(display);
-  } catch {
-    try { return decodeURIComponent(url); } catch { return url; }
-  }
-}
+// Moved to lib/urlDisplay.js
 
 function resolveChangePercent(d) {
   if (d.change !== undefined && d.change !== null) return Math.round(d.change * 100);
@@ -307,7 +300,7 @@ function InsightDetails({ insight, translations, siteId, pluginConnected, onItem
         {d.url && (
           <div className={styles.detailUrlRow}>
             <a href={d.url} target="_blank" rel="noopener noreferrer" className={styles.detailLink}>
-              {formatPageUrl(d.url)} <ExternalLink size={12} />
+              <bdi dir="ltr">{formatPageUrl(d.url)}</bdi> <ExternalLink size={12} />
             </a>
             <EntityLinkCell url={d.url} siteId={siteId} translations={translations} />
             {canFix && (
@@ -405,7 +398,7 @@ function InsightDetails({ insight, translations, siteId, pluginConnected, onItem
                   <td>
                     {p.url && (
                       <a href={p.url} target="_blank" rel="noopener noreferrer" className={styles.detailLink}>
-                        {formatPageUrl(p.url)} <ExternalLink size={12} />
+                        <bdi dir="ltr">{formatPageUrl(p.url)}</bdi> <ExternalLink size={12} />
                       </a>
                     )}
                   </td>
@@ -456,7 +449,7 @@ function InsightDetails({ insight, translations, siteId, pluginConnected, onItem
                 <td>
                   {p.url && (
                     <a href={p.url} target="_blank" rel="noopener noreferrer" className={styles.detailLink}>
-                      {formatPageUrl(p.url)} <ExternalLink size={12} />
+                      <bdi dir="ltr">{formatPageUrl(p.url)}</bdi> <ExternalLink size={12} />
                     </a>
                   )}
                 </td>
@@ -544,7 +537,7 @@ function InsightDetails({ insight, translations, siteId, pluginConnected, onItem
             {d.pages.map((p, i) => (
               <tr key={i}>
                 <td className={styles.detailPageTitle}>
-                  {p.page ? formatPageUrl(p.page) : '—'}
+                  <bdi dir="ltr">{p.page ? formatPageUrl(p.page) : '—'}</bdi>
                 </td>
                 <td>{p.clicks?.toLocaleString()}</td>
                 <td className={styles.detailNegative}>{p.clicksChange}%</td>

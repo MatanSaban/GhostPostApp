@@ -9,20 +9,47 @@ import { z } from 'zod';
 const SESSION_COOKIE = 'user_session';
 
 /**
- * Fetch and parse WordPress sitemap
+ * Fetch and parse sitemap (supports all platforms, not just WordPress)
+ * Checks robots.txt first, then common patterns
  */
 async function fetchWordPressSitemap(siteUrl) {
-  const sitemapUrls = [
+  const discoveredUrls = new Set();
+  
+  // Check robots.txt first for ALL sitemap directives
+  try {
+    const robotsResponse = await fetch(`${siteUrl}/robots.txt`, {
+      headers: { 'User-Agent': 'GhostPost-Platform/1.0' },
+      signal: AbortSignal.timeout(5000),
+    });
+    if (robotsResponse.ok) {
+      const robotsContent = await robotsResponse.text();
+      const matches = robotsContent.matchAll(/^Sitemap:\s*(.+)$/gmi);
+      for (const match of matches) {
+        const url = match[1].trim();
+        if (url) discoveredUrls.add(url);
+      }
+    }
+  } catch { /* ignore */ }
+  
+  // Add common patterns
+  const commonPatterns = [
     `${siteUrl}/wp-sitemap.xml`,           // WordPress 5.5+ default
-    `${siteUrl}/sitemap.xml`,               // Yoast SEO
+    `${siteUrl}/sitemap.xml`,               // Universal / Yoast SEO
     `${siteUrl}/sitemap_index.xml`,         // Yoast SEO alternative
     `${siteUrl}/sitemap-index.xml`,         // Rank Math
+    `${siteUrl}/server-sitemap.xml`,        // Next.js
+    `${siteUrl}/sitemaps/sitemap.xml`,
+    `${siteUrl}/sitemaps/static`,           // Custom frameworks
+    `${siteUrl}/sitemap1.xml`,
   ];
+  for (const url of commonPatterns) {
+    discoveredUrls.add(url);
+  }
 
   let sitemapContent = null;
   let usedUrl = null;
 
-  for (const url of sitemapUrls) {
+  for (const url of discoveredUrls) {
     try {
       const response = await fetch(url, {
         headers: { 'User-Agent': 'GhostPost-Platform/1.0' },
@@ -34,7 +61,9 @@ async function fetchWordPressSitemap(siteUrl) {
         if (text.includes('<urlset') || text.includes('<sitemapindex')) {
           sitemapContent = text;
           usedUrl = url;
-          break;
+          // Prefer sitemap indexes
+          if (text.includes('<sitemapindex')) break;
+          // Keep looking for a sitemap index, but remember this one
         }
       }
     } catch (e) {
@@ -335,11 +364,28 @@ async function populateEntitiesFromSitemap(siteId, entityTypes, sitemapEntities)
           slug: entityType.slug,
           name: entityType.name,
           apiEndpoint: entityType.apiEndpoint,
+          labels: {
+            en: entityType.name,
+            ...(entityType.nameHe ? { he: entityType.nameHe } : {}),
+          },
           isEnabled: true,
           sortOrder: entityType.isCore ? 0 : 10,
         },
       });
       stats.types++;
+    } else if (entityType.nameHe && !dbEntityType.labels?.he) {
+      // Backfill Hebrew label if missing
+      const existingLabels = (dbEntityType.labels && typeof dbEntityType.labels === 'object') ? dbEntityType.labels : {};
+      await prisma.siteEntityType.update({
+        where: { id: dbEntityType.id },
+        data: {
+          labels: {
+            ...existingLabels,
+            en: existingLabels.en || entityType.name,
+            he: entityType.nameHe,
+          },
+        },
+      });
     }
 
     // Create entities from sitemap data

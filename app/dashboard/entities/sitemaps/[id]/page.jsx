@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 import { useLocale } from '@/app/context/locale-context';
 import { useSite } from '@/app/context/site-context';
+import { decodeDisplayUrl } from '@/lib/urlDisplay';
 import { DetailPageSkeleton } from '@/app/dashboard/components';
 import styles from '../../entities.module.css';
 import sitemapStyles from '../sitemaps.module.css';
@@ -44,14 +45,7 @@ function formatDate(date, format = 'short') {
   return d.toLocaleDateString('he-IL', { day: '2-digit', month: 'long', year: 'numeric' });
 }
 
-// Safely decode percent-encoded URLs for display (Hebrew, etc.)
-function decodeDisplayUrl(url) {
-  try {
-    return decodeURI(url);
-  } catch {
-    return url;
-  }
-}
+// Moved to lib/urlDisplay.js
 
 // Format date and time helper
 function formatDateTime(date) {
@@ -190,7 +184,7 @@ export default function SingleSitemapPage() {
               ) : (
                 <FileText size={28} style={{ marginInlineEnd: '0.5rem', verticalAlign: 'middle' }} />
               )}
-              {decodeDisplayUrl(sitemap.url)}
+              <bdi dir="ltr">{decodeDisplayUrl(sitemap.url)}</bdi>
             </h1>
             <div className={sitemapStyles.sitemapHeaderMeta}>
               <span className={`${sitemapStyles.statusBadge} ${sitemapStyles[`status${statusConfig.color}`]}`}>
@@ -329,7 +323,7 @@ export default function SingleSitemapPage() {
                       rel="noopener noreferrer"
                       className={sitemapStyles.urlItemUrl}
                     >
-                      {decodeDisplayUrl(url.loc || url)}
+                      <bdi dir="ltr">{decodeDisplayUrl(url.loc || url)}</bdi>
                       <ExternalLink size={12} style={{ marginInlineStart: '0.375rem', opacity: 0.5 }} />
                     </a>
                     {url.imageTitle && (

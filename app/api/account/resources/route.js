@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import prisma from '@/lib/prisma';
 import { getAccountResourceLimits } from '@/lib/account-utils';
+import { getAccountUsage } from '@/lib/account-limits';
 
 const SESSION_COOKIE = 'user_session';
 
@@ -72,15 +73,29 @@ export async function GET(request) {
       });
     }
 
+    // Use the unified AI credits calculation (handles one-time vs period correctly)
+    const aiCreditsUsage = await getAccountUsage(accountId, 'aiCredits');
+
     return NextResponse.json({
       hasSubscription: true,
       limits: resources.limits,
       usage: resources.usage,
       // Calculate remaining
       remaining: {
-        members: resources.limits.maxMembers - resources.usage.members,
-        sites: resources.limits.maxSites - resources.usage.sites,
-        aiCredits: resources.usage.aiCreditsBalance,
+        members: resources.limits.maxMembers === null
+          ? null
+          : resources.limits.maxMembers - resources.usage.members,
+        sites: resources.limits.maxSites === null
+          ? null
+          : resources.limits.maxSites - resources.usage.sites,
+        aiCredits: aiCreditsUsage.remaining,
+      },
+      // AI credits breakdown
+      aiCredits: {
+        used: aiCreditsUsage.used,
+        limit: aiCreditsUsage.limit,
+        remaining: aiCreditsUsage.remaining,
+        percentUsed: aiCreditsUsage.percentUsed,
       },
       // Add-on capacity
       addOnCapacity: {

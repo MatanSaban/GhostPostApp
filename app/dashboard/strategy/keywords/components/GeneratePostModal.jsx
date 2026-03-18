@@ -447,18 +447,22 @@ export default function GeneratePostModal({ isOpen, onClose, keyword, onSuccess 
     setError('');
     
     try {
+      const publishBody = {
+        siteId: selectedSite.id,
+        keywordId: keyword.id,
+        ...generatedPost,
+        status: scheduled ? 'SCHEDULED' : 'READY_TO_PUBLISH',
+        scheduledAt: scheduled && formData.publishMode === 'schedule'
+          ? new Date(`${formData.scheduleDate}T${formData.scheduleTime}`).toISOString()
+          : null,
+      };
+
+      console.log('[Publish] html field present:', !!publishBody.html, '| length:', (publishBody.html || '').length, '| keys:', Object.keys(publishBody).join(','));
+
       const res = await fetch('/api/content', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          siteId: selectedSite.id,
-          keywordId: keyword.id,
-          ...generatedPost,
-          status: scheduled ? 'SCHEDULED' : 'READY_TO_PUBLISH',
-          scheduledAt: scheduled && formData.publishMode === 'schedule'
-            ? new Date(`${formData.scheduleDate}T${formData.scheduleTime}`).toISOString()
-            : null,
-        }),
+        body: JSON.stringify(publishBody),
       });
       
       const data = await res.json();
@@ -466,8 +470,13 @@ export default function GeneratePostModal({ isOpen, onClose, keyword, onSuccess 
       if (!res.ok) {
         throw new Error(data.error || 'Failed to publish post');
       }
+
+      // Check if WP publish failed (content saved but WP push errored)
+      if (data.content?.status === 'FAILED') {
+        throw new Error(data.content.errorMessage || 'Failed to publish to WordPress');
+      }
       
-      onSuccess?.(data.content);
+      onSuccess?.({ ...data.content, wpPostUrl: data.wpPostUrl, siteEntityId: data.siteEntityId });
       onClose();
     } catch (err) {
       setError(err.message);

@@ -1,14 +1,17 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import prisma from '@/lib/prisma';
-import { getLimitFromPlan } from '@/lib/account-utils';
+import { getAccountUsage } from '@/lib/account-limits';
 
 const SESSION_COOKIE = 'user_session';
 
 /**
  * GET /api/credits/balance
- * Lightweight endpoint that returns only the credit balance for the current account.
- * Used for background polling to keep credits in sync across users/tabs.
+ * Lightweight endpoint that returns the credit balance for the current account.
+ * Uses the unified getAccountUsage calculation which properly handles:
+ * - Period-based usage (resets each billing cycle)
+ * - Plan base credits + recurring addon bonus
+ * - One-time addon credits (persist until consumed)
  */
 export async function GET() {
   try {
@@ -25,22 +28,7 @@ export async function GET() {
         lastSelectedAccountId: true,
         accountMemberships: {
           where: { status: 'ACTIVE' },
-          select: {
-            accountId: true,
-            account: {
-              select: {
-                id: true,
-                aiCreditsUsedTotal: true,
-                subscription: {
-                  select: {
-                    plan: {
-                      select: { limitations: true },
-                    },
-                  },
-                },
-              },
-            },
-          },
+          select: { accountId: true },
         },
       },
     });
@@ -50,21 +38,19 @@ export async function GET() {
     }
 
     const memberships = user.accountMemberships || [];
-    const current = user.lastSelectedAccountId
-      ? memberships.find((m) => m.accountId === user.lastSelectedAccountId)
-      : memberships[0];
+    const accountId = user.lastSelectedAccountId
+      || memberships[0]?.accountId;
 
-    const account = current?.account;
-    if (!account) {
-      return NextResponse.json({ used: 0, limit: 0 });
+    if (!accountId) {
+      return NextResponse.json({ used: 0, limit: 0, remaining: 0 });
     }
 
-    const planLimitations = account.subscription?.plan?.limitations || [];
-    const limit = getLimitFromPlan(planLimitations, 'aiCredits', 0);
+    const usage = await getAccountUsage(accountId, 'aiCredits');
 
     return NextResponse.json({
-      used: account.aiCreditsUsedTotal || 0,
-      limit: limit === null ? -1 : (limit || 0), // -1 = unlimited
+      used: usage.used,
+      limit: usage.limit === null ? -1 : (usage.limit || 0), // -1 = unlimited
+      remaining: usage.remaining,
     });
   } catch (error) {
     console.error('[API/credits/balance] Error:', error);

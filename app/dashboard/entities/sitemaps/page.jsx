@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { useLocale } from '@/app/context/locale-context';
 import { useSite } from '@/app/context/site-context';
+import { decodeDisplayUrl } from '@/lib/urlDisplay';
 import { PageHeaderSkeleton, ContentGridSkeleton, StatsGridSkeleton } from '@/app/dashboard/components';
 import styles from '../entities.module.css';
 import sitemapStyles from './sitemaps.module.css';
@@ -49,14 +50,7 @@ function formatDate(date, format = 'short') {
   return d.toLocaleDateString('he-IL', { day: '2-digit', month: 'long', year: 'numeric' });
 }
 
-// Safely decode percent-encoded URLs for display (Hebrew, etc.)
-function decodeDisplayUrl(url) {
-  try {
-    return decodeURI(url);
-  } catch {
-    return url;
-  }
-}
+// Moved to lib/urlDisplay.js
 
 export default function SitemapsPage() {
   const { t } = useLocale();
@@ -290,7 +284,7 @@ export default function SitemapsPage() {
                     <FolderTree size={24} />
                   </div>
                   <div className={sitemapStyles.sitemapInfo}>
-                    <div className={sitemapStyles.sitemapUrl}>{decodeDisplayUrl(sitemap.url)}</div>
+                    <div className={sitemapStyles.sitemapUrl} dir="ltr">{decodeDisplayUrl(sitemap.url)}</div>
                     <div className={sitemapStyles.sitemapMeta}>
                       <span className={`${sitemapStyles.badge} ${sitemapStyles.badgeIndex}`}>
                         {t('entities.sitemaps.type.index')}
@@ -346,7 +340,7 @@ export default function SitemapsPage() {
                             <FileText size={20} />
                           </div>
                           <div className={sitemapStyles.sitemapInfo}>
-                            <div className={sitemapStyles.sitemapUrl}>{decodeDisplayUrl(child.url)}</div>
+                            <div className={sitemapStyles.sitemapUrl} dir="ltr">{decodeDisplayUrl(child.url)}</div>
                             <div className={sitemapStyles.sitemapMeta}>
                               <span className={sitemapStyles.metaItem}>
                                 {child.urlCount.toLocaleString()} URLs
@@ -409,7 +403,7 @@ export default function SitemapsPage() {
                   <FileText size={24} />
                 </div>
                 <div className={sitemapStyles.sitemapInfo}>
-                  <div className={sitemapStyles.sitemapUrl}>{decodeDisplayUrl(sitemap.url)}</div>
+                  <div className={sitemapStyles.sitemapUrl} dir="ltr">{decodeDisplayUrl(sitemap.url)}</div>
                   <div className={sitemapStyles.sitemapMeta}>
                     <span className={sitemapStyles.metaItem}>
                       {sitemap.urlCount.toLocaleString()} URLs

@@ -196,7 +196,7 @@ export default function ScannedPageRow({
           rel="noopener noreferrer"
           className={styles.pageUrl}
         >
-          {shortenUrl(pr.url)}
+          <bdi dir="ltr">{shortenUrl(pr.url)}</bdi>
         </a>
         {pr.title && (
           <span className={styles.pageTitle}>{pr.title}</span>

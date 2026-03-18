@@ -17,13 +17,12 @@ async function detectPlatformFromHTML(html, siteUrl) {
     signals: [],
   };
 
-  // WordPress signals
+  // WordPress signals — only structural patterns to avoid false positives
   const wpSignals = [
-    { pattern: /wp-content/i, weight: 3, name: 'wp-content path' },
-    { pattern: /wp-includes/i, weight: 3, name: 'wp-includes path' },
-    { pattern: /wp-json/i, weight: 2, name: 'wp-json API' },
+    { pattern: /(?:src|href)=["'][^"']*\/wp-content\//i, weight: 3, name: 'wp-content path' },
+    { pattern: /(?:src|href)=["'][^"']*\/wp-includes\//i, weight: 3, name: 'wp-includes path' },
+    { pattern: /<link[^>]*rel=["']https:\/\/api\.w\.org\//i, weight: 4, name: 'WP REST API link' },
     { pattern: /<meta[^>]*generator[^>]*WordPress/i, weight: 5, name: 'WordPress generator meta' },
-    { pattern: /wordpress\.org/i, weight: 2, name: 'wordpress.org reference' },
     { pattern: /class="[^"]*wp-/i, weight: 2, name: 'wp- CSS classes' },
     { pattern: /id="[^"]*wp-/i, weight: 1, name: 'wp- element IDs' },
   ];

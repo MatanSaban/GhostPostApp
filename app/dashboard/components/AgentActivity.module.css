@@ -470,6 +470,42 @@
   }
 }
 
+/* Missing SEO vertical list */
+.seoPagesList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.seoPageItem {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 0.5rem 0.625rem;
+  background: var(--background);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
+
+  .dark & {
+    background: rgba(123, 44, 191, 0.05);
+    border-color: rgba(123, 44, 191, 0.1);
+  }
+}
+
+.seoPageDate {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.6875rem;
+  color: var(--muted-foreground);
+}
+
+.seoPageTitle {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--foreground);
+}
+
 .detailNegative {
   color: var(--error, #ef4444);
   font-weight: 500;

@@ -716,8 +716,16 @@ export function KeywordsContent() {
         onClose={() => setGeneratePostKeyword(null)}
         keyword={generatePostKeyword}
         onSuccess={(content) => {
-          // Refresh keywords to update related post
-          fetchKeywords(selectedSite.id);
+          // Update only the affected keyword row (not full refetch)
+          if (content?.wpPostUrl && generatePostKeyword?.id) {
+            setKeywords(prev => prev.map(kw =>
+              kw.id === generatePostKeyword.id
+                ? { ...kw, url: content.wpPostUrl, relatedPost: { id: content.siteEntityId || content.id, title: content.title, url: content.wpPostUrl } }
+                : kw
+            ));
+          } else {
+            fetchKeywords(selectedSite.id);
+          }
         }}
       />
     </>

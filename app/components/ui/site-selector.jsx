@@ -31,9 +31,64 @@ function getPlatformLabel(platform) {
 function formatSiteUrl(url) {
   if (!url) return { display: '', href: '' };
   const href = url.startsWith('http://') || url.startsWith('https://') ? url : `https://${url}`;
-  const display = url.replace(/^https?:\/\//, '').replace(/\/$/, '');
+  const raw = url.replace(/^https?:\/\//, '').replace(/\/$/, '');
+  let display;
+  try { display = decodeURI(raw); } catch { display = raw; }
   const isHttps = href.startsWith('https://');
   return { display, href, isHttps };
+}
+
+/**
+ * Favicon image using stored Cloudinary URL, with Globe icon fallback
+ */
+function SiteFavicon({ faviconUrl, size = 16, className }) {
+  const [hasError, setHasError] = useState(false);
+
+  if (!faviconUrl || hasError) {
+    return <Globe size={size} className={className || styles.faviconFallback} />;
+  }
+
+  return (
+    <img
+      src={faviconUrl}
+      alt=""
+      width={size}
+      height={size}
+      className={className || styles.favicon}
+      onError={() => setHasError(true)}
+      loading="lazy"
+    />
+  );
+}
+
+/**
+ * Fire-and-forget: call the favicon check API for a site.
+ * Returns the (possibly updated) favicon URL.
+ */
+async function checkSiteFavicon(siteId) {
+  try {
+    const res = await fetch(`/api/sites/${siteId}/favicon`, { method: 'POST' });
+    if (!res.ok) return null;
+    const data = await res.json();
+    return data.favicon || null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Fire-and-forget: call the logo check API for a site.
+ * Returns the (possibly updated) logo URL.
+ */
+async function checkSiteLogo(siteId) {
+  try {
+    const res = await fetch(`/api/sites/${siteId}/logo`, { method: 'POST' });
+    if (!res.ok) return null;
+    const data = await res.json();
+    return data.logo ? { logo: data.logo, logoBgLight: data.logoBgLight, logoBgDark: data.logoBgDark } : null;
+  } catch {
+    return null;
+  }
 }
 
 export function SiteSelector({ onSiteChange }) {
@@ -75,6 +130,30 @@ export function SiteSelector({ onSiteChange }) {
       searchInputRef.current.focus();
     }
   }, [isOpen]);
+
+  // Update favicon in local state for a site
+  const updateSiteFavicon = (siteId, favicon) => {
+    setSites(prev => prev.map(s => s.id === siteId ? { ...s, favicon } : s));
+    setSelectedSite(prev => prev?.id === siteId ? { ...prev, favicon } : prev);
+  };
+
+  // Update logo in local state for a site
+  const updateSiteLogo = (siteId, { logo, logoBgLight, logoBgDark }) => {
+    setSites(prev => prev.map(s => s.id === siteId ? { ...s, logo, logoBgLight, logoBgDark } : s));
+    setSelectedSite(prev => prev?.id === siteId ? { ...prev, logo, logoBgLight, logoBgDark } : prev);
+  };
+
+  // On mount (or when selectedSite changes to a new site), check favicon & logo freshness
+  useEffect(() => {
+    if (!selectedSite?.id) return;
+    checkSiteFavicon(selectedSite.id).then((favicon) => {
+      if (favicon) updateSiteFavicon(selectedSite.id, favicon);
+    });
+    checkSiteLogo(selectedSite.id).then((result) => {
+      if (result) updateSiteLogo(selectedSite.id, result);
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedSite?.id]);
 
   const handleSelect = async (site) => {
     setSelectedSite(site);
@@ -235,6 +314,7 @@ export function SiteSelector({ onSiteChange }) {
           onClick={handleToggle}
         >
           <span className={styles.selectedNameWrapper}>
+            <SiteFavicon faviconUrl={selectedSite?.favicon} size={16} />
             <span className={styles.selectedName}>{selectedSite?.name || t('sites.selectSite')}</span>
             {selectedSite?.platform === 'wordpress' && (
               <span 
@@ -285,6 +365,7 @@ export function SiteSelector({ onSiteChange }) {
                     >
                       <div className={styles.siteInfo}>
                         <div className={styles.siteNameRow}>
+                          <SiteFavicon faviconUrl={site.favicon} size={16} />
                           <span className={styles.siteName}>{site.name}</span>
                           {site.platform === 'wordpress' && (
                             <span 
@@ -303,7 +384,7 @@ export function SiteSelector({ onSiteChange }) {
                             />
                           )}
                         </div>
-                        <span className={styles.siteUrl}>{formatSiteUrl(site.url).display}</span>
+                        <span className={styles.siteUrl} dir="ltr">{formatSiteUrl(site.url).display}</span>
                       </div>
                     </button>
                     <div className={styles.siteItemActions}>
@@ -383,7 +464,7 @@ export function SiteSelector({ onSiteChange }) {
             {editingSite && (
               <div className={styles.formGroup}>
                 <label className={styles.formLabel}>{t('sites.edit.urlLabel')}</label>
-                <div className={styles.urlDisplay}>
+                <div className={styles.urlDisplay} dir="ltr">
                   <span className={`${styles.protocolBadge} ${formatSiteUrl(editingSite.url).isHttps ? styles.protocolHttps : styles.protocolHttp}`}>
                     {formatSiteUrl(editingSite.url).isHttps ? 'HTTPS' : 'HTTP'}
                   </span>

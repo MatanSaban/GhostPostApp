@@ -10,7 +10,7 @@ import { handleLimitError } from '@/app/context/limit-guard-context';
 export function useEntities() {
   const router = useRouter();
   const { t, locale } = useLocale();
-  const { selectedSite, isLoading: isSiteLoading } = useSite();
+  const { selectedSite, isLoading: isSiteLoading, refreshSites } = useSite();
   const { addTask, updateTask, getTask, cancelTask } = useBackgroundTasks();
 
   // Core state
@@ -40,7 +40,6 @@ export function useEntities() {
   const [syncMessage, setSyncMessage] = useState('');
   const [syncError, setSyncError] = useState(null);
   const syncPollingRef = useRef(null);
-  const userTriggeredSync = useRef(false);
 
   // Plugin download state
   const [isDownloadingPlugin, setIsDownloadingPlugin] = useState(false);
@@ -92,22 +91,21 @@ export function useEntities() {
     loadEntityTypes();
   }, [selectedSite?.id, selectedSite?.platform, checkSyncStatus]);
 
-  // Poll sync status while syncing
+  // Poll sync status while syncing (covers: page load during active sync, or user-triggered sync)
   useEffect(() => {
-    if (syncStatus === 'SYNCING' && userTriggeredSync.current) {
+    if (syncStatus === 'SYNCING') {
       syncPollingRef.current = setInterval(async () => {
         const status = await checkSyncStatus();
         if (status && status !== 'SYNCING') {
           clearInterval(syncPollingRef.current);
           syncPollingRef.current = null;
-          userTriggeredSync.current = false;
           const response = await fetch(`/api/entities/types?siteId=${selectedSite.id}`);
           if (response.ok) {
             const data = await response.json();
             setEnabledTypes(data.types || []);
           }
         }
-      }, 500);
+      }, 1500);
     }
     return () => {
       if (syncPollingRef.current) {
@@ -141,6 +139,8 @@ export function useEntities() {
       if (data.platform) {
         setPlatform(data.platform);
         setDetectionResult({ success: true, platform: data.platform });
+        // Refresh site context so other pages see the updated platform
+        refreshSites();
         if (data.platform === 'wordpress') {
           await discoverEntityTypes();
         }
@@ -261,7 +261,9 @@ export function useEntities() {
         if (locale === 'he' && discovered?.nameHe) displayName = discovered.nameHe;
         return {
           slug,
-          name: displayName,
+          name: discovered?.name || displayName,
+          nameHe: discovered?.nameHe || null,
+          labels: discovered?.labels || null,
           apiEndpoint: discovered?.restEndpoint || discovered?.apiEndpoint || slug,
           sitemaps: discovered?.sitemaps || [],
           isEnabled: true,
@@ -309,8 +311,9 @@ export function useEntities() {
           progress: 0,
           metadata: { siteId: selectedSite.id, siteName: selectedSite.name },
         });
-        setSyncStatus(null);
-        setSyncMessage('');
+        setSyncStatus('SYNCING');
+        setSyncProgress(0);
+        setSyncMessage(t('entities.sync.starting') || 'Starting sync...');
         setIsSaving(false);
         runBackgroundPopulation(taskId, selectedSite.id);
       }
@@ -396,6 +399,21 @@ export function useEntities() {
         progress: 10,
       });
 
+      // Poll sync progress from the server while the crawl runs
+      const pollInterval = setInterval(async () => {
+        try {
+          const statusResponse = await fetch(`/api/entities/populate?siteId=${siteId}`);
+          if (statusResponse.ok) {
+            const statusData = await statusResponse.json();
+            if (statusData.status === 'SYNCING' && statusData.progress > 0) {
+              updateTask(taskId, { progress: statusData.progress, message: statusData.message });
+              setSyncProgress(statusData.progress);
+              setSyncMessage(statusData.message || '');
+            }
+          }
+        } catch (e) {}
+      }, 1000);
+
       const crawlResponse = await fetch('/api/entities/scan', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -405,26 +423,42 @@ export function useEntities() {
           options: { batchSize: 100, forceRescan: true, createFromSitemap: true },
         }),
       });
+      clearInterval(pollInterval);
       const crawlData = await crawlResponse.json();
 
       if (!crawlResponse.ok && handleLimitError(crawlData)) {
         updateTask(taskId, { status: 'error', message: crawlData.error || 'Credit limit reached' });
+        setSyncStatus('ERROR');
+        setSyncError(crawlData.error || 'Credit limit reached');
         return;
       }
 
       if (crawlData.success) {
         updateTask(taskId, { status: 'completed', progress: 100, message: 'Complete!' });
+        setSyncStatus('COMPLETED');
+        setSyncProgress(100);
+        setSyncMessage(null);
         setPopulatedInfo({
           created: crawlData.stats?.created || 0,
           updated: crawlData.stats?.updated || 0,
           totalEntities: crawlData.stats?.crawled || 0,
         });
+
+        const typesResponse = await fetch(`/api/entities/types?siteId=${siteId}`);
+        if (typesResponse.ok) {
+          const typesData = await typesResponse.json();
+          setEnabledTypes(typesData.types || []);
+        }
         router.refresh();
       } else {
         updateTask(taskId, { status: 'error', message: crawlData.error || 'Crawl failed' });
+        setSyncStatus('ERROR');
+        setSyncError(crawlData.error || 'Crawl failed');
       }
     } catch (error) {
       updateTask(taskId, { status: 'error', message: error.message });
+      setSyncStatus('ERROR');
+      setSyncError(error.message);
     }
   };
 
@@ -467,8 +501,9 @@ export function useEntities() {
       progress: 0,
       metadata: { siteId: selectedSite.id, siteName: selectedSite.name },
     });
-    setSyncStatus(null);
-    setSyncMessage('');
+    setSyncStatus('SYNCING');
+    setSyncProgress(0);
+    setSyncMessage(t('entities.sync.starting') || 'Starting sync...');
     setSyncError(null);
     runBackgroundCrawl(taskId, selectedSite.id);
   };
@@ -477,51 +512,66 @@ export function useEntities() {
   const runBackgroundCrawl = async (taskId, siteId) => {
     try {
       updateTask(taskId, { message: 'Fetching content...', progress: 10 });
+
+      // Poll sync progress from the server
+      const pollInterval = setInterval(async () => {
+        try {
+          const statusResponse = await fetch(`/api/entities/populate?siteId=${siteId}`);
+          if (statusResponse.ok) {
+            const statusData = await statusResponse.json();
+            if (statusData.status === 'SYNCING' && statusData.progress > 0) {
+              updateTask(taskId, { progress: statusData.progress, message: statusData.message });
+              setSyncProgress(statusData.progress);
+              setSyncMessage(statusData.message || '');
+            }
+          }
+        } catch (e) {}
+      }, 1000);
+
       const populateResponse = await fetch('/api/entities/scan', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ siteId, phase: 'populate' }),
       });
+      clearInterval(pollInterval);
       const populateData = await populateResponse.json();
 
       if (!populateResponse.ok && handleLimitError(populateData)) {
         updateTask(taskId, { status: 'error', message: populateData.error || 'Credit limit reached' });
+        setSyncStatus('ERROR');
+        setSyncError(populateData.error || 'Credit limit reached');
         return;
       }
 
       if (!populateData.success) {
         updateTask(taskId, { status: 'error', message: populateData.error || 'Failed' });
+        setSyncStatus('ERROR');
+        setSyncError(populateData.error || 'Failed');
         return;
       }
 
       const total = (populateData.stats?.created || 0) + (populateData.stats?.updated || 0);
-      updateTask(taskId, { message: `Found ${total} items. Deep crawling...`, progress: 50 });
 
-      const crawlResponse = await fetch('/api/entities/scan', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ siteId, phase: 'crawl', options: { batchSize: 100, forceRescan: true } }),
+      setSyncStatus('COMPLETED');
+      setSyncProgress(100);
+      setSyncMessage(null);
+      setPopulatedInfo({
+        created: populateData.stats?.created || 0,
+        updated: populateData.stats?.updated || 0,
+        totalEntities: total,
       });
-      const crawlData = await crawlResponse.json();
+      updateTask(taskId, { status: 'completed', progress: 100, message: `Complete! ${total} items` });
 
-      if (!crawlResponse.ok && handleLimitError(crawlData)) {
-        updateTask(taskId, { status: 'error', message: crawlData.error || 'Credit limit reached' });
-        return;
+      const typesResponse = await fetch(`/api/entities/types?siteId=${siteId}`);
+      if (typesResponse.ok) {
+        const typesData = await typesResponse.json();
+        setEnabledTypes(typesData.types || []);
       }
-
-      if (crawlData.success) {
-        setPopulatedInfo({
-          created: populateData.stats?.created || 0,
-          updated: populateData.stats?.updated || 0,
-          totalEntities: total,
-        });
-        updateTask(taskId, { status: 'completed', progress: 100, message: `Complete! ${total} items` });
-        router.refresh();
-      } else {
-        updateTask(taskId, { status: 'error', message: crawlData.error || 'Crawl failed' });
-      }
+      router.refresh();
     } catch (error) {
       updateTask(taskId, { status: 'error', message: error.message });
+      setSyncStatus('ERROR');
+      setSyncError(error.message);
     }
   };
 

@@ -1,7 +1,18 @@
 'use client';
 
+import { useRef, useEffect, useState } from 'react';
 import { useLocale } from '@/app/context/locale-context';
 import styles from '../entities.module.css';
+
+function formatTimeLeft(seconds, t) {
+  if (seconds < 60) return t('entities.sync.etaSeconds').replace('{seconds}', String(Math.ceil(seconds)));
+  const minutes = Math.floor(seconds / 60);
+  const secs = Math.ceil(seconds % 60);
+  if (minutes < 60) return t('entities.sync.etaMinutes').replace('{minutes}', String(minutes)).replace('{seconds}', String(secs));
+  const hours = Math.floor(minutes / 60);
+  const mins = minutes % 60;
+  return t('entities.sync.etaHours').replace('{hours}', String(hours)).replace('{minutes}', String(mins));
+}
 
 export function SyncStatusCard({
   syncStatus,
@@ -15,6 +26,34 @@ export function SyncStatusCard({
   onStopSync,
 }) {
   const { t } = useLocale();
+  const syncStartRef = useRef(null);
+  const startProgressRef = useRef(0);
+  const [eta, setEta] = useState(null);
+
+  useEffect(() => {
+    if (syncStatus === 'SYNCING' && syncProgress > 0 && !syncStartRef.current) {
+      syncStartRef.current = Date.now();
+      startProgressRef.current = syncProgress;
+    }
+    if (syncStatus !== 'SYNCING') {
+      syncStartRef.current = null;
+      startProgressRef.current = 0;
+      setEta(null);
+    }
+  }, [syncStatus, syncProgress]);
+
+  useEffect(() => {
+    if (syncStatus !== 'SYNCING' || !syncStartRef.current || syncProgress <= startProgressRef.current) {
+      return;
+    }
+    const elapsed = (Date.now() - syncStartRef.current) / 1000;
+    const progressDelta = syncProgress - startProgressRef.current;
+    if (progressDelta > 0 && elapsed > 2) {
+      const rate = progressDelta / elapsed;
+      const remaining = (100 - syncProgress) / rate;
+      setEta(remaining);
+    }
+  }, [syncStatus, syncProgress]);
 
   if (!syncStatus && !populatedInfo) {
     return null;
@@ -52,7 +91,10 @@ export function SyncStatusCard({
           </div>
           <div className={styles.syncMeta}>
             <span className={styles.syncProgressText}>{syncProgress}%</span>
-            {syncMessage && <span className={styles.syncMessage}>{syncMessage}</span>}
+            {eta != null && eta > 0 && syncProgress < 99 && (
+              <span className={styles.syncEta}>{formatTimeLeft(eta, t)}</span>
+            )}
+            {syncMessage && <span className={styles.syncMessage} dir="ltr">{syncMessage}</span>}
           </div>
           <button onClick={onStopSync} className={styles.stopButton}>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">

@@ -12,6 +12,7 @@ import { useAgent } from '@/app/context/agent-context';
 import { DashboardCard } from './DashboardCard';
 import { ArrowIcon } from '@/app/components/ui/arrow-icon';
 import FixPreviewModal from './FixPreviewModal';
+import { formatPageUrl } from '@/lib/urlDisplay';
 import styles from './AgentActivity.module.css';
 
 const FIXABLE_INSIGHT_TYPES = new Set(['missingSeo', 'keywordStrikeZone']);
@@ -150,15 +151,7 @@ function isInsightFullyFixed(insight) {
   return pages.every(p => fixedUrls.has(p.url));
 }
 
-function formatPageUrl(url) {
-  try {
-    const parsed = new URL(url);
-    const display = parsed.pathname === '/' ? parsed.origin : parsed.pathname;
-    return decodeURIComponent(display);
-  } catch {
-    try { return decodeURIComponent(url); } catch { return url; }
-  }
-}
+// Moved to lib/urlDisplay.js
 
 /**
  * Resolve change % from insight data, checking all possible fields.
@@ -198,7 +191,7 @@ function InsightDetails({ insight, translations }) {
         </div>
         {d.url && (
           <a href={d.url} target="_blank" rel="noopener noreferrer" className={styles.detailLink}>
-            {formatPageUrl(d.url)} <ExternalLink size={12} />
+            <bdi dir="ltr">{formatPageUrl(d.url)}</bdi> <ExternalLink size={12} />
           </a>
         )}
       </div>
@@ -243,19 +236,27 @@ function InsightDetails({ insight, translations }) {
       seen.add(key);
       return true;
     });
+    const detectedDate = insight.createdAt || insight.detectedAt;
     return (
       <div className={styles.detailSection}>
-        <table className={styles.detailTable}>
-          <thead><tr><th>{labels.page || 'Page'}</th><th>{labels.url || 'URL'}</th></tr></thead>
-          <tbody>
-            {uniquePages.slice(0, 5).map((p, i) => (
-              <tr key={i}>
-                <td>{p.title}</td>
-                <td>{p.url && <a href={p.url} target="_blank" rel="noopener noreferrer" className={styles.detailLink}>{formatPageUrl(p.url)} <ExternalLink size={12} /></a>}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        <div className={styles.seoPagesList}>
+          {uniquePages.slice(0, 5).map((p, i) => (
+            <div key={i} className={styles.seoPageItem}>
+              {detectedDate && (
+                <span className={styles.seoPageDate}>
+                  <Clock size={12} />
+                  {new Date(detectedDate).toLocaleDateString()}
+                </span>
+              )}
+              <span className={styles.seoPageTitle}>{p.title}</span>
+              {p.url && (
+                <a href={p.url} target="_blank" rel="noopener noreferrer" className={styles.detailLink}>
+                  <bdi dir="ltr">{formatPageUrl(p.url)}</bdi> <ExternalLink size={12} />
+                </a>
+              )}
+            </div>
+          ))}
+        </div>
       </div>
     );
   }
@@ -269,7 +270,7 @@ function InsightDetails({ insight, translations }) {
             {d.pages.slice(0, 5).map((p, i) => (
               <tr key={i}>
                 <td>{p.title}</td>
-                <td>{p.url && <a href={p.url} target="_blank" rel="noopener noreferrer" className={styles.detailLink}>{formatPageUrl(p.url)} <ExternalLink size={12} /></a>}</td>
+                <td>{p.url && <a href={p.url} target="_blank" rel="noopener noreferrer" className={styles.detailLink}><bdi dir="ltr">{formatPageUrl(p.url)}</bdi> <ExternalLink size={12} /></a>}</td>
               </tr>
             ))}
           </tbody>
@@ -325,7 +326,7 @@ function InsightDetails({ insight, translations }) {
           <tbody>
             {d.pages.slice(0, 5).map((p, i) => (
               <tr key={i}>
-                <td>{p.page ? formatPageUrl(p.page) : '—'}</td>
+                <td><bdi dir="ltr">{p.page ? formatPageUrl(p.page) : '—'}</bdi></td>
                 <td>{p.clicks?.toLocaleString()}</td>
                 <td className={styles.detailNegative}>{p.clicksChange}%</td>
               </tr>

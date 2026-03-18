@@ -89,7 +89,7 @@ const adminMenuItemsConfig = [
 export default function DashboardLayout({ children }) {
   const pathname = usePathname();
   const router = useRouter();
-  const { t, isRtl } = useLocale();
+  const { t, isRtl, locale } = useLocale();
   const { user, isSuperAdmin, isLoading: isUserLoading, clearUser } = useUser();
   const { selectedSite } = useSite();
   const { filterMenuItems, canViewPath, canAccessAnySettingsTab, isLoading: isPermissionsLoading } = usePermissions();
@@ -174,6 +174,11 @@ export default function DashboardLayout({ children }) {
     }
 
     fetchEntityTypes();
+
+    // Re-fetch when an entity type label is updated (from [type] page inline edit)
+    const handleLabelUpdate = () => fetchEntityTypes();
+    window.addEventListener('entityTypeLabelUpdated', handleLabelUpdate);
+    return () => window.removeEventListener('entityTypeLabelUpdated', handleLabelUpdate);
   }, [selectedSite?.id]);
 
   // Show loading state while checking authentication
@@ -364,7 +369,7 @@ export default function DashboardLayout({ children }) {
                           href={`/dashboard/entities/${entityType.slug}`}
                           className={`${styles.navItem} ${styles.navSubItem} ${isActive ? styles.active : ''}`}
                         >
-                          <span className={styles.navLabel}>{entityType.name}</span>
+                          <span className={styles.navLabel}>{entityType.labels?.[locale] || entityType.name}</span>
                         </Link>
                       );
                     })}

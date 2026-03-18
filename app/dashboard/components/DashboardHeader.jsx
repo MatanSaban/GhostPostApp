@@ -191,10 +191,12 @@ export function DashboardHeader() {
     // Only use DB translation if it exists for current locale, otherwise let i18n handle it
     const planName = planTranslation?.name || null;
     
-    // Get AI credits limit from plan limitations
+    // Get AI credits limit - prefer addon-aware value from balance polling
     const limitations = plan?.limitations || [];
     const aiCreditsLimitation = limitations.find?.(l => l.key === 'aiCredits');
-    const aiCreditsLimit = aiCreditsLimitation?.value || 0;
+    const aiCreditsLimit = contextUser.aiCreditsLimit != null
+      ? contextUser.aiCreditsLimit
+      : (aiCreditsLimitation?.value || 0);
     
     return {
       name: getUserDisplayName(contextUser.firstName, contextUser.lastName, contextUser.email),

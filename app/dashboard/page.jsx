@@ -8,6 +8,7 @@ export default async function DashboardPage() {
   const translations = {
     commandCenter: t('dashboard.commandCenter'),
     subtitle: t('dashboard.subtitle'),
+    welcomeTo: t('dashboard.welcomeTo'),
     trafficOverview: t('dashboard.trafficOverview'),
     siteHealthScore: t('dashboard.siteHealthScore'),
     aiAgentActivity: t('dashboard.aiAgentActivity'),
@@ -142,6 +143,7 @@ export default async function DashboardPage() {
     aiPage: t('dashboard.aiTraffic.page'),
     aiSessions: t('dashboard.aiTraffic.sessions'),
     aiNoTraffic: t('dashboard.aiTraffic.noAiTraffic'),
+    aiHomePage: t('dashboard.aiTraffic.homePage'),
     tipAiSessions: t('dashboard.aiTraffic.tipAiSessions'),
     tipAiShare: t('dashboard.aiTraffic.tipAiShare'),
     // aiKeywordsTitle: t('dashboard.aiTraffic.aiKeywordsTitle'),

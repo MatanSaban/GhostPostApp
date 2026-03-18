@@ -414,12 +414,23 @@ async function performFullSync(site, messages) {
         
         if (existing) {
           // Update existing type - keep isEnabled as-is
+          const updateData = {
+            name: pt.name,
+            apiEndpoint: pt.restBase,
+          };
+          // Store per-language labels if available
+          if (pt.labels || pt.nameHe) {
+            const existingLabels = (existing.labels && typeof existing.labels === 'object') ? existing.labels : {};
+            updateData.labels = {
+              ...existingLabels,
+              en: pt.name,
+              ...(pt.labels || {}),
+              ...(pt.nameHe ? { he: pt.nameHe } : {}),
+            };
+          }
           await prisma.siteEntityType.update({
             where: { id: existing.id },
-            data: {
-              name: pt.name,
-              apiEndpoint: pt.restBase,
-            },
+            data: updateData,
           });
         } else {
           // Create new type - disabled by default
@@ -430,6 +441,11 @@ async function performFullSync(site, messages) {
               slug: pt.slug,
               name: pt.name,
               apiEndpoint: pt.restBase,
+              labels: {
+                en: pt.name,
+                ...(pt.labels || {}),
+                ...(pt.nameHe ? { he: pt.nameHe } : {}),
+              },
               isEnabled: false, // Disabled by default - user must enable
               sortOrder: pt.isBuiltin ? 0 : 10,
             },

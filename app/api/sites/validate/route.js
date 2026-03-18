@@ -122,11 +122,13 @@ function detectPlatformFromHTML(html, hostname) {
   }
 
   // WordPress detection (fallback - check HTML if API failed)
+  // Only match structural WordPress paths in src/href attributes to avoid
+  // false positives from page content that merely mentions WordPress.
   if (
-    html.includes('wp-content') ||
-    html.includes('wp-includes') ||
-    html.includes('wordpress') ||
-    html.includes('wp-json')
+    /(?:src|href|action)=["'][^"']*\/wp-content\//i.test(html) ||
+    /(?:src|href)=["'][^"']*\/wp-includes\//i.test(html) ||
+    /<link[^>]*rel=["']https:\/\/api\.w\.org\/["']/i.test(html) ||
+    /<meta[^>]*name=["']generator["'][^>]*content=["'][^"']*WordPress/i.test(html)
   ) {
     return 'wordpress';
   }

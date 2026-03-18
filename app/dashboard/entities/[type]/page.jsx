@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect, use, useRef } from 'react';
-import { FileText, Newspaper, FolderKanban, Briefcase, Package, MoreHorizontal, Database } from 'lucide-react';
+import { useState, useEffect, use, useRef, useCallback } from 'react';
+import { FileText, Newspaper, FolderKanban, Briefcase, Package, MoreHorizontal, Database, Pencil, Check, X } from 'lucide-react';
 import { useLocale } from '@/app/context/locale-context';
 import { useSite } from '@/app/context/site-context';
 import { handleLimitError } from '@/app/context/limit-guard-context';
@@ -18,12 +18,26 @@ const TYPE_ICONS = {
   other: MoreHorizontal,
 };
 
+// Get the display name for an entity type based on current locale
+function getLocalizedName(entityType, locale) {
+  if (!entityType) return '';
+  const labels = entityType.labels;
+  if (labels && typeof labels === 'object' && labels[locale]) {
+    return labels[locale];
+  }
+  return entityType.name || '';
+}
+
 export default function EntityTypePage({ params }) {
   const { type } = use(params);
-  const { t } = useLocale();
+  const { t, locale } = useLocale();
   const { selectedSite } = useSite();
   
   const [entityType, setEntityType] = useState(null);
+  const [isEditingTitle, setIsEditingTitle] = useState(false);
+  const [editTitleValue, setEditTitleValue] = useState('');
+  const [isSavingTitle, setIsSavingTitle] = useState(false);
+  const titleInputRef = useRef(null);
   const [entities, setEntities] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSyncing, setIsSyncing] = useState(false);
@@ -42,6 +56,67 @@ export default function EntityTypePage({ params }) {
   const syncAbortControllerRef = useRef(null);
 
   const Icon = TYPE_ICONS[type] || Database;
+
+  // Resolved localized display name
+  const displayName = getLocalizedName(entityType, locale);
+
+  // Start inline editing
+  const handleStartEditTitle = useCallback(() => {
+    setEditTitleValue(displayName);
+    setIsEditingTitle(true);
+    // Focus input after render
+    setTimeout(() => titleInputRef.current?.focus(), 0);
+  }, [displayName]);
+
+  // Save edited title
+  const handleSaveTitle = useCallback(async () => {
+    const trimmed = editTitleValue.trim();
+    if (!trimmed || !entityType?.id || trimmed === displayName) {
+      setIsEditingTitle(false);
+      return;
+    }
+
+    setIsSavingTitle(true);
+    try {
+      const res = await fetch('/api/entities/types', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          entityTypeId: entityType.id,
+          locale,
+          label: trimmed,
+        }),
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        // Update local entityType state with new labels
+        setEntityType(prev => ({ ...prev, labels: data.labels }));
+        // Notify sidebar to refresh
+        window.dispatchEvent(new Event('entityTypeLabelUpdated'));
+      }
+    } catch (error) {
+      console.error('Failed to save entity type label:', error);
+    } finally {
+      setIsSavingTitle(false);
+      setIsEditingTitle(false);
+    }
+  }, [editTitleValue, entityType?.id, displayName, locale]);
+
+  // Cancel editing
+  const handleCancelEditTitle = useCallback(() => {
+    setIsEditingTitle(false);
+  }, []);
+
+  // Handle key events in title input
+  const handleTitleKeyDown = useCallback((e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      handleSaveTitle();
+    } else if (e.key === 'Escape') {
+      handleCancelEditTitle();
+    }
+  }, [handleSaveTitle, handleCancelEditTitle]);
 
   // Fetch entity type info and entities when site changes
   useEffect(() => {
@@ -237,40 +312,40 @@ export default function EntityTypePage({ params }) {
     { 
       iconName: 'Database', 
       value: String(stats.total), 
-      label: entityType?.name 
-        ? t('entities.totalWithName', { entityName: entityType.name })
+      label: displayName 
+        ? t('entities.totalWithName', { entityName: displayName })
         : t('entities.totalEntities'), 
       color: 'purple' 
     },
     { 
       iconName: 'CheckCircle', 
       value: String(stats.published), 
-      label: entityType?.name 
-        ? t('entities.publishedWithName', { entityName: entityType.name })
+      label: displayName 
+        ? t('entities.publishedWithName', { entityName: displayName })
         : t('entities.published'), 
       color: 'green' 
     },
     { 
       iconName: 'Clock', 
       value: String(stats.scheduled), 
-      label: entityType?.name 
-        ? t('entities.scheduledWithName', { entityName: entityType.name })
+      label: displayName 
+        ? t('entities.scheduledWithName', { entityName: displayName })
         : t('entities.scheduled'), 
       color: 'blue' 
     },
     { 
       iconName: 'AlertCircle', 
       value: String(stats.pending), 
-      label: entityType?.name 
-        ? t('entities.pendingWithName', { entityName: entityType.name })
+      label: displayName 
+        ? t('entities.pendingWithName', { entityName: displayName })
         : t('entities.pending'), 
       color: 'orange' 
     },
     { 
       iconName: 'FileEdit', 
       value: String(stats.draft), 
-      label: entityType?.name 
-        ? t('entities.draftWithName', { entityName: entityType.name })
+      label: displayName 
+        ? t('entities.draftWithName', { entityName: displayName })
         : t('entities.draft'), 
       color: 'gray' 
     },
@@ -307,11 +382,46 @@ export default function EntityTypePage({ params }) {
       {/* Header */}
       <div className={styles.pageHeader}>
         <div className={styles.headerContent}>
-          <h1 className={styles.pageTitle}>
-            {entityType?.name || t(`entities.${type}.title`)}
-          </h1>
+          {isEditingTitle ? (
+            <div className={styles.editTitleRow}>
+              <input
+                ref={titleInputRef}
+                className={styles.editTitleInput}
+                value={editTitleValue}
+                onChange={(e) => setEditTitleValue(e.target.value)}
+                onKeyDown={handleTitleKeyDown}
+                onBlur={handleSaveTitle}
+                disabled={isSavingTitle}
+              />
+              <button
+                className={styles.editTitleBtn}
+                onMouseDown={(e) => { e.preventDefault(); handleSaveTitle(); }}
+                disabled={isSavingTitle}
+                aria-label={t('common.save')}
+              >
+                <Check size={16} />
+              </button>
+              <button
+                className={styles.editTitleBtnCancel}
+                onMouseDown={(e) => { e.preventDefault(); handleCancelEditTitle(); }}
+                disabled={isSavingTitle}
+                aria-label={t('common.cancel')}
+              >
+                <X size={16} />
+              </button>
+            </div>
+          ) : (
+            <h1
+              className={`${styles.pageTitle} ${styles.pageTitleEditable}`}
+              onClick={handleStartEditTitle}
+              title={t('entities.editTypeName')}
+            >
+              {displayName || t(`entities.${type}.title`)}
+              <Pencil className={styles.editTitleIcon} size={14} />
+            </h1>
+          )}
           <p className={styles.pageSubtitle}>
-            {entityType?.name 
+            {displayName 
               ? t('entities.subtitle') 
               : t(`entities.${type}.subtitle`) || t('entities.subtitle')}
           </p>
@@ -335,7 +445,7 @@ export default function EntityTypePage({ params }) {
       <EntitiesTable
         entities={entities}
         entityType={type}
-        entityTypeName={entityType?.name}
+        entityTypeName={displayName}
         onSync={handleSync}
         onStopSync={handleStopSync}
         onRefreshEntity={handleRefreshEntity}

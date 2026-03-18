@@ -794,6 +794,16 @@ model Site {
   crawledData          Json?                      // Full crawl result including AI-extracted data
   crawledAt            DateTime?                  // When the crawl data was fetched
 
+  // Favicon
+  favicon              String?                    // Cloudinary URL of the site's favicon
+  faviconCheckedAt     DateTime?                  // Last time favicon was checked/refreshed
+
+  // Logo
+  logo                 String?                    // Cloudinary URL of the site's logo
+  logoCheckedAt        DateTime?                  // Last time logo was checked/refreshed
+  logoBgLight          String?                    // AI-determined background for logo in light theme (CSS color)
+  logoBgDark           String?                    // AI-determined background for logo in dark theme (CSS color)
+
   account         Account               @relation(fields: [accountId], references: [id], onDelete: Cascade)
   interview       Interview?
   keywords        Keyword[]
@@ -991,6 +1001,7 @@ model SiteEntityType {
   slug        String   // URL slug (e.g., "posts", "projects")
   apiEndpoint String?  // WordPress REST API endpoint (e.g., "posts", "pages", "project")
   sitemaps    String[] // Sitemap URLs for this entity type
+  labels      Json?    // Per-language display names: { "en": "Posts", "he": "מאמרים" }
   isEnabled   Boolean  @default(true)
   sortOrder   Int      @default(0)
   createdAt   DateTime @default(now())

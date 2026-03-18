@@ -29,6 +29,88 @@
   color: var(--foreground);
 }
 
+.pageTitleEditable {
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  border-radius: var(--radius-md);
+  padding: 0.125rem 0.375rem;
+  margin: -0.125rem -0.375rem;
+  transition: background 0.15s;
+
+  &:hover {
+    background: var(--muted);
+  }
+
+  &:hover .editTitleIcon {
+    opacity: 1;
+  }
+}
+
+.editTitleIcon {
+  opacity: 0;
+  color: var(--muted-foreground);
+  transition: opacity 0.15s;
+  flex-shrink: 0;
+}
+
+.editTitleRow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+}
+
+.editTitleInput {
+  font-size: 1.8125rem;
+  font-weight: 600;
+  color: var(--foreground);
+  background: var(--muted);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 0.125rem 0.5rem;
+  outline: none;
+  min-width: 120px;
+
+  &:focus {
+    border-color: var(--ring);
+    box-shadow: 0 0 0 2px var(--ring-alpha, rgba(59, 130, 246, 0.15));
+  }
+}
+
+.editTitleBtn,
+.editTitleBtnCancel {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--card);
+  color: var(--muted-foreground);
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+
+  &:hover {
+    background: var(--muted);
+    color: var(--foreground);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+.editTitleBtn:hover {
+  color: var(--success, #22c55e);
+}
+
+.editTitleBtnCancel:hover {
+  color: var(--destructive, #ef4444);
+}
+
 .pageSubtitle {
   font-size: 0.9rem;
   color: var(--muted-foreground);
@@ -654,6 +736,38 @@
   margin-bottom: 1.5rem;
   padding-bottom: 1.5rem;
   border-bottom: 1px solid var(--border);
+}
+
+.setupHeaderActions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-inline-start: auto;
+}
+
+.redetectButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--muted-foreground);
+  cursor: pointer;
+  transition: all 0.15s ease;
+
+  &:hover {
+    color: var(--foreground);
+    border-color: var(--muted-foreground);
+    background: var(--muted);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
 }
 
 .setupIcon {
@@ -1548,6 +1662,8 @@
   background: var(--muted);
   border-radius: var(--radius-md);
   padding: 1rem;
+  margin-top: 1rem;
+  border: 1px solid var(--border);
 }
 
 .syncProgressHeader {
@@ -1972,6 +2088,13 @@
 .syncMessage {
   font-size: 0.9rem;
   color: var(--muted-foreground);
+}
+
+.syncEta {
+  font-size: 0.85rem;
+  color: var(--primary);
+  font-weight: 500;
+  white-space: nowrap;
 }
 
 .stopButton {

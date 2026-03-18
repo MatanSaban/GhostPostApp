@@ -508,7 +508,7 @@ export function EntitiesTable({
                         </span>
                       )}
                     </div>
-                    <div className={styles.entitySlug}>{decodeText(entity.slug)}</div>
+                    <div className={styles.entitySlug} dir="ltr">{decodeText(entity.slug)}</div>
                   </td>
                   <td>
                     <span className={`${styles.statusBadge} ${getStatusClass(entity.status)}`}>

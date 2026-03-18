@@ -100,6 +100,23 @@ export function UserProvider({ children }) {
           setUser(data.user);
           setIsVerified(true);
           localStorage.setItem('user', JSON.stringify(data.user));
+          // Immediately fetch addon-aware credit balance
+          try {
+            const creditsRes = await fetch('/api/credits/balance');
+            if (creditsRes.ok) {
+              const { used, limit } = await creditsRes.json();
+              if (used !== undefined) {
+                setUser(prev => {
+                  if (!prev) return prev;
+                  const updated = { ...prev, aiCreditsUsed: used, aiCreditsLimit: limit === -1 ? null : limit };
+                  localStorage.setItem('user', JSON.stringify(updated));
+                  return updated;
+                });
+              }
+            }
+          } catch {
+            // Non-critical — will be corrected by polling
+          }
         } else if (response.status === 401 || response.status === 403) {
           // Only trigger logout if we don't have a localStorage user
           // or if we previously had a verified user
@@ -151,16 +168,20 @@ const clearUser = useCallback(() => {
   setUser(null);
 }, []);
 
-// Refresh only the credits from the server
+// Refresh credits from the lightweight balance endpoint (period-based, addon-aware)
 const refreshCredits = useCallback(async () => {
   try {
-    const response = await fetch('/api/user/me');
-    if (response.ok) {
-      const data = await response.json();
-      if (data.user?.aiCreditsUsed !== undefined) {
+    const res = await fetch('/api/credits/balance');
+    if (res.ok) {
+      const { used, limit } = await res.json();
+      if (used !== undefined) {
         setUser(prev => {
           if (!prev) return prev;
-          const updated = { ...prev, aiCreditsUsed: data.user.aiCreditsUsed };
+          const updated = {
+            ...prev,
+            aiCreditsUsed: used,
+            aiCreditsLimit: limit === -1 ? null : limit,
+          };
           localStorage.setItem('user', JSON.stringify(updated));
           return updated;
         });
@@ -173,20 +194,9 @@ const refreshCredits = useCallback(async () => {
 
 // Listen for credits update events
 useEffect(() => {
-  const handleCreditsUpdated = (event) => {
-    const { creditsUsed } = event.detail || {};
-    if (creditsUsed !== null && creditsUsed !== undefined) {
-      // If we have the new value directly, update immediately
-      setUser(prev => {
-        if (!prev) return prev;
-        const updated = { ...prev, aiCreditsUsed: creditsUsed };
-        localStorage.setItem('user', JSON.stringify(updated));
-        return updated;
-      });
-    } else {
-      // Otherwise, fetch from server
-      refreshCredits();
-    }
+  const handleCreditsUpdated = () => {
+    // Always refresh from the balance API for accurate period-based data
+    refreshCredits();
   };
 
   window.addEventListener(CREDITS_UPDATED_EVENT, handleCreditsUpdated);
@@ -208,11 +218,13 @@ useEffect(() => {
     try {
       const res = await fetch('/api/credits/balance');
       if (res.ok) {
-        const { used } = await res.json();
+        const { used, limit } = await res.json();
         if (used !== undefined) {
           setUser(prev => {
-            if (!prev || prev.aiCreditsUsed === used) return prev;
-            const updated = { ...prev, aiCreditsUsed: used };
+            if (!prev) return prev;
+            const newLimit = limit === -1 ? null : limit;
+            if (prev.aiCreditsUsed === used && prev.aiCreditsLimit === newLimit) return prev;
+            const updated = { ...prev, aiCreditsUsed: used, aiCreditsLimit: newLimit };
             localStorage.setItem('user', JSON.stringify(updated));
             return updated;
           });

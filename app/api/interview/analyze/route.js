@@ -303,8 +303,13 @@ async function fetchAndParsePage(url) {
 function detectPlatform(html, headers) {
   const platforms = [];
   
-  // WordPress indicators
-  if (html.includes('wp-content') || html.includes('wp-includes') || html.includes('wordpress')) {
+  // WordPress indicators — match structural paths only to avoid false positives
+  if (
+    /(?:src|href)=["'][^"']*\/wp-content\//i.test(html) ||
+    /(?:src|href)=["'][^"']*\/wp-includes\//i.test(html) ||
+    /<meta[^>]*generator[^>]*WordPress/i.test(html) ||
+    /<link[^>]*rel=["']https:\/\/api\.w\.org\//i.test(html)
+  ) {
     platforms.push({ name: 'WordPress', confidence: 0.9 });
   }
   

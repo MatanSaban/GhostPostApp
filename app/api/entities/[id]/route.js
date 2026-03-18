@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import prisma from '@/lib/prisma';
 import { updatePost, updateSeoData, updateAcfFields, getPostBySlug } from '@/lib/wp-api-client';
+import { processBase64ImagesInHtml } from '@/lib/cloudinary-upload';
 
 const SESSION_COOKIE = 'user_session';
 
@@ -138,80 +139,9 @@ export async function PUT(request, { params }) {
     }
 
     // Sync to WordPress if enabled and site is connected
-    let wpSyncResult = null;
-    let wpSyncError = null;
-    
-    if (syncToWordPress && existingEntity.site.connectionStatus === 'CONNECTED' && existingEntity.externalId) {
-      try {
-        const postType = existingEntity.entityType?.slug || 'post';
-        const wpPostId = existingEntity.externalId;
-        
-        // Prepare data for WordPress
-        // Map our status to WordPress status
-        const statusToWp = {
-          'PUBLISHED': 'publish',
-          'DRAFT': 'draft',
-          'PENDING': 'pending',
-          'SCHEDULED': 'future',
-          'PRIVATE': 'private',
-          'TRASH': 'trash',
-          'ARCHIVED': 'trash',
-        };
-        
-        const wpData = {
-          title: body.title,
-          slug: body.slug,
-          excerpt: body.excerpt,
-          content: body.content,
-          status: statusToWp[body.status] || 'draft',
-          featured_image: body.featuredImage,
-        };
-        
-        // Add scheduled date for future posts
-        if (body.status === 'SCHEDULED' && body.scheduledAt) {
-          wpData.date = new Date(body.scheduledAt).toISOString();
-        }
-        
-        // Update post in WordPress
-        wpSyncResult = await updatePost(existingEntity.site, postType, wpPostId, wpData);
-        
-        // Update SEO data if provided
-        if (body.seoData) {
-          try {
-            await updateSeoData(existingEntity.site, wpPostId, body.seoData);
-          } catch (seoError) {
-            console.warn('Failed to update SEO data:', seoError.message);
-            // Don't fail the whole request for SEO errors
-          }
-        }
-        
-        // Update ACF fields if provided
-        if (body.acfData) {
-          try {
-            // Extract just the field values for updating
-            const acfValues = {};
-            if (body.acfData.fields) {
-              for (const field of body.acfData.fields) {
-                acfValues[field.name] = field.value;
-              }
-            }
-            if (Object.keys(acfValues).length > 0) {
-              await updateAcfFields(existingEntity.site, wpPostId, acfValues);
-            }
-          } catch (acfError) {
-            console.warn('Failed to update ACF fields:', acfError.message);
-            // Don't fail the whole request for ACF errors
-          }
-        }
-        
-      } catch (error) {
-        console.error('WordPress sync error:', error);
-        wpSyncError = error.message;
-        // Continue with local update even if WP sync fails
-      }
-    }
+    const shouldSyncWp = syncToWordPress && existingEntity.site.connectionStatus === 'CONNECTED' && existingEntity.externalId;
 
-    // Update the entity in our database
+    // Update the entity in our database FIRST (don't block on WP sync)
     const updatedEntity = await prisma.siteEntity.update({
       where: { id },
       data: {
@@ -238,13 +168,82 @@ export async function PUT(request, { params }) {
       },
     });
 
+    // Fire-and-forget WP sync in the background so the user isn't blocked
+    if (shouldSyncWp) {
+      const site = existingEntity.site;
+      const postType = existingEntity.entityType?.slug || 'post';
+      const wpPostId = existingEntity.externalId;
+
+      console.log(`[Entity ${id}] Starting WP sync - postType: ${postType}, wpPostId: ${wpPostId}, content length: ${(body.content || '').length}`);
+
+      (async () => {
+        try {
+          const statusToWp = {
+            'PUBLISHED': 'publish',
+            'DRAFT': 'draft',
+            'PENDING': 'pending',
+            'SCHEDULED': 'future',
+            'PRIVATE': 'private',
+            'TRASH': 'trash',
+            'ARCHIVED': 'trash',
+          };
+
+          // Process content: upload any base64 images to Cloudinary before syncing
+          const processedContent = await processBase64ImagesInHtml(body.content || '', 'ghostpost/posts', `entity-${id}`);
+
+          const wpData = {
+            title: body.title,
+            slug: body.slug,
+            excerpt: body.excerpt,
+            content: processedContent,
+            status: statusToWp[body.status] || 'draft',
+            featured_image: body.featuredImage,
+          };
+
+          console.log(`[Entity ${id}] WP sync data - title: ${body.title}, content length: ${processedContent.length}`);
+
+          if (body.status === 'SCHEDULED' && body.scheduledAt) {
+            wpData.date = new Date(body.scheduledAt).toISOString();
+          }
+
+          const wpResult = await updatePost(site, postType, wpPostId, wpData);
+          console.log(`[Entity ${id}] WordPress sync completed for WP post ${wpPostId}:`, JSON.stringify(wpResult));
+
+          if (body.seoData) {
+            try {
+              await updateSeoData(site, wpPostId, body.seoData);
+            } catch (seoError) {
+              console.warn('Failed to update SEO data:', seoError.message);
+            }
+          }
+
+          if (body.acfData) {
+            try {
+              const acfValues = {};
+              if (body.acfData.fields) {
+                for (const field of body.acfData.fields) {
+                  acfValues[field.name] = field.value;
+                }
+              }
+              if (Object.keys(acfValues).length > 0) {
+                await updateAcfFields(site, wpPostId, acfValues);
+              }
+            } catch (acfError) {
+              console.warn('Failed to update ACF fields:', acfError.message);
+            }
+          }
+        } catch (error) {
+          console.error(`[Entity ${id}] WordPress sync failed:`, error.message);
+        }
+      })();
+    }
+
     return NextResponse.json({ 
       entity: updatedEntity,
       message: 'Entity updated successfully',
       wpSync: {
-        attempted: syncToWordPress && existingEntity.site.connectionStatus === 'CONNECTED',
-        success: wpSyncResult !== null && wpSyncError === null,
-        error: wpSyncError,
+        attempted: shouldSyncWp,
+        background: shouldSyncWp, // Sync runs in background
       },
     });
   } catch (error) {

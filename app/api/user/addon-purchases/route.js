@@ -6,7 +6,9 @@ const SESSION_COOKIE = 'user_session';
 
 /**
  * GET /api/user/addon-purchases
- * Get current user's active addon purchases
+ * Get current user's addon purchases.
+ * Returns all ACTIVE purchases (including those pending cancellation).
+ * ONE_TIME purchases whose credits are depleted are excluded via status.
  */
 export async function GET() {
   try {
@@ -32,6 +34,7 @@ export async function GET() {
                 subscription: {
                   select: {
                     id: true,
+                    currentPeriodEnd: true,
                     addOnPurchases: {
                       where: {
                         status: 'ACTIVE',
@@ -47,9 +50,11 @@ export async function GET() {
                             currency: true,
                             billingType: true,
                             quantity: true,
+                            translations: true,
                           },
                         },
                       },
+                      orderBy: { purchasedAt: 'desc' },
                     },
                   },
                 },
@@ -82,12 +87,14 @@ export async function GET() {
       creditsRemaining: purchase.creditsRemaining,
       purchasedAt: purchase.purchasedAt,
       expiresAt: purchase.expiresAt,
+      canceledAt: purchase.canceledAt,
       addOn: purchase.addOn,
     }));
 
     return NextResponse.json({
       purchases: formattedPurchases,
       subscriptionId: subscription?.id || null,
+      currentPeriodEnd: subscription?.currentPeriodEnd || null,
     });
   } catch (error) {
     console.error('Error fetching addon purchases:', error);

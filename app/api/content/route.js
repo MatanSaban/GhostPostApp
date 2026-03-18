@@ -7,8 +7,8 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import prisma from '@/lib/prisma';
-
-const SESSION_COOKIE = 'user_session';
+import { createPost, uploadMediaFromUrl, updateSeoData, getPost } from '@/lib/wp-api-client';
+import { uploadBase64ToCloudinary, processBase64ImagesInHtml } from '@/lib/cloudinary-upload';
 
 // Get authenticated user
 async function getAuthenticatedUser() {
@@ -109,6 +109,8 @@ export async function POST(request) {
       excerpt,
       metaTitle,
       metaDescription,
+      featuredImage,
+      featuredImageAlt,
       type = 'BLOG_POST',
       status = 'DRAFT',
       scheduledAt,
@@ -134,7 +136,9 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Site not found' }, { status: 404 });
     }
 
-    // Create content
+    const contentSlug = slug || title.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+
+    // Create content record in DB
     const content = await prisma.content.create({
       data: {
         siteId,
@@ -142,7 +146,7 @@ export async function POST(request) {
         campaignId: campaignId || undefined,
         title,
         content: html,
-        slug: slug || title.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+        slug: contentSlug,
         excerpt,
         metaTitle: metaTitle || title,
         metaDescription,
@@ -154,7 +158,215 @@ export async function POST(request) {
       },
     });
 
-    return NextResponse.json({ content }, { status: 201 });
+    // If READY_TO_PUBLISH and site is connected WordPress, push to WP
+    const shouldPublish = (status === 'READY_TO_PUBLISH' || status === 'SCHEDULED') 
+      && site.platform === 'wordpress' 
+      && site.connectionStatus === 'CONNECTED'
+      && site.siteKey && site.siteSecret;
+
+    let wpPostId = null;
+    let wpPostUrl = null;
+
+    if (shouldPublish) {
+      try {
+        // Upload featured image to WP if present
+        let featuredImageId = null;
+        let featuredImageCdnUrl = null;
+        if (featuredImage) {
+          try {
+            console.log('[Content API] Uploading featured image:', featuredImage?.substring(0, 80));
+            // If base64, upload to Cloudinary first to get a real URL
+            let imageUrl = featuredImage;
+            if (featuredImage.startsWith('data:')) {
+              const publicId = `${contentSlug}-featured-${Date.now()}`;
+              imageUrl = await uploadBase64ToCloudinary(featuredImage, 'ghostpost/posts', publicId);
+              featuredImageCdnUrl = imageUrl;
+              console.log('[Content API] Featured image uploaded to Cloudinary:', imageUrl);
+            }
+            // Now upload the URL to WP media
+            const mediaResult = await uploadMediaFromUrl(site, imageUrl, {
+              alt: featuredImageAlt || title,
+              title: featuredImageAlt || title,
+            });
+            console.log('[Content API] Media upload result:', JSON.stringify(mediaResult));
+            featuredImageId = mediaResult?.id || mediaResult?.attachment_id;
+          } catch (imgError) {
+            console.error('[Content API] Featured image upload failed:', imgError.message);
+            // Continue without featured image
+          }
+        }
+
+        // Determine WP post status
+        let wpStatus = 'publish';
+        if (status === 'SCHEDULED' && scheduledAt) {
+          wpStatus = 'future';
+        }
+
+        // Process HTML content: upload any base64 images to Cloudinary and replace src
+        const processedContent = await processBase64ImagesInHtml(html || '', 'ghostpost/posts', contentSlug);
+
+        // Create post in WordPress
+        const wpData = {
+          title,
+          content: processedContent,
+          excerpt: excerpt || '',
+          slug: contentSlug,
+          status: wpStatus,
+        };
+
+        console.log('[Content API] featuredImageId:', featuredImageId);
+
+        if (featuredImageId) {
+          wpData.featured_image_id = featuredImageId;
+          wpData.featured_image = featuredImageId; // Template version accepts both
+        }
+
+        if (wpStatus === 'future' && scheduledAt) {
+          wpData.date = new Date(scheduledAt).toISOString().replace('T', ' ').replace('Z', '');
+        }
+
+        const wpResult = await createPost(site, 'post', wpData);
+        console.log('[Content API] WP create result:', JSON.stringify(wpResult));
+
+        // Verify the post was created with content
+        if (wpResult?.id) {
+          try {
+            const verifyPost = await getPost(site, 'post', wpResult.id);
+            const wpContent = verifyPost?.content || verifyPost?.post_content || '';
+            console.log('[Content API] WP verify - post content length:', wpContent.length, '| preview:', String(wpContent).substring(0, 200));
+          } catch (verifyErr) {
+            console.warn('[Content API] Could not verify WP post content:', verifyErr.message);
+          }
+        }
+        wpPostId = wpResult?.id;
+
+        if (wpPostId) {
+          // Update SEO data if meta title/description provided
+          if (metaTitle || metaDescription) {
+            try {
+              await updateSeoData(site, wpPostId, {
+                title: metaTitle || title,
+                description: metaDescription || '',
+              });
+            } catch (seoError) {
+              console.error('[Content API] SEO update failed:', seoError.message);
+            }
+          }
+
+          // Get the WP post URL
+          const wpPost = wpResult?.post;
+          wpPostUrl = wpPost?.url || wpPost?.link || wpPost?.permalink 
+            || `${site.url.replace(/\/$/, '')}/${contentSlug}/`;
+
+          // Update content record as PUBLISHED
+          await prisma.content.update({
+            where: { id: content.id },
+            data: {
+              status: 'PUBLISHED',
+              publishedAt: new Date(),
+            },
+          });
+          content.status = 'PUBLISHED';
+          content.publishedAt = new Date();
+
+          // Create or update SiteEntity so it appears in dashboard entities
+          let siteEntityId = null;
+          try {
+            // Find the "posts" entity type for this site
+            let entityType = await prisma.siteEntityType.findFirst({
+              where: { siteId, slug: { in: ['posts', 'post'] } },
+            });
+
+            // Create entity type if it doesn't exist
+            if (!entityType) {
+              entityType = await prisma.siteEntityType.create({
+                data: {
+                  siteId,
+                  name: 'Blog Posts',
+                  slug: 'posts',
+                  apiEndpoint: 'posts',
+                  isEnabled: true,
+                },
+              });
+            }
+
+            const siteEntity = await prisma.siteEntity.upsert({
+              where: {
+                siteId_entityTypeId_slug: {
+                  siteId,
+                  entityTypeId: entityType.id,
+                  slug: contentSlug,
+                },
+              },
+              create: {
+                siteId,
+                entityTypeId: entityType.id,
+                title,
+                slug: contentSlug,
+                url: wpPostUrl,
+                excerpt: excerpt || '',
+                content: html,
+                status: wpStatus === 'future' ? 'SCHEDULED' : 'PUBLISHED',
+                featuredImage: featuredImage || null,
+                externalId: String(wpPostId),
+                publishedAt: new Date(),
+                seoData: metaTitle || metaDescription ? { title: metaTitle, description: metaDescription } : undefined,
+              },
+              update: {
+                title,
+                url: wpPostUrl,
+                excerpt: excerpt || '',
+                content: html,
+                status: wpStatus === 'future' ? 'SCHEDULED' : 'PUBLISHED',
+                featuredImage: featuredImage || null,
+                externalId: String(wpPostId),
+                publishedAt: new Date(),
+                seoData: metaTitle || metaDescription ? { title: metaTitle, description: metaDescription } : undefined,
+              },
+            });
+            siteEntityId = siteEntity.id;
+          } catch (entityError) {
+            console.error('[Content API] Entity creation failed:', entityError.message);
+          }
+
+          // Link keyword to the published URL
+          if (keywordId) {
+            try {
+              await prisma.keyword.update({
+                where: { id: keywordId },
+                data: {
+                  url: wpPostUrl,
+                  status: 'TARGETING',
+                },
+              });
+            } catch (kwError) {
+              console.error('[Content API] Keyword update failed:', kwError.message);
+            }
+          }
+        }
+      } catch (wpError) {
+        console.error('[Content API] WordPress publish failed:', wpError.message);
+        // Update content with error info
+        await prisma.content.update({
+          where: { id: content.id },
+          data: {
+            status: 'FAILED',
+            errorMessage: wpError.message,
+            publishAttempts: { increment: 1 },
+            lastAttemptAt: new Date(),
+          },
+        });
+        content.status = 'FAILED';
+        content.errorMessage = wpError.message;
+      }
+    }
+
+    return NextResponse.json({ 
+      content,
+      wpPostId,
+      wpPostUrl,
+      siteEntityId,
+    }, { status: 201 });
   } catch (error) {
     console.error('[Content API] POST error:', error);
     return NextResponse.json(

@@ -5,19 +5,22 @@ import { createPortal } from 'react-dom';
 import Link from 'next/link';
 import { 
   Activity, BarChart2, Search, Settings, ExternalLink, Plus, Check, Loader2,
-  X, ChevronLeft, ChevronRight, Wand2, FileText,
+  X, ChevronLeft, ChevronRight, Wand2, FileText, Globe,
 } from 'lucide-react';
 import GeneratePostModal from '../strategy/keywords/components/GeneratePostModal';
 import { useSite } from '@/app/context/site-context';
+import { useTheme } from '@/app/context/theme-context';
 import { StatsCard, DashboardCard, QuickActions, ProgressBar, KpiSlider } from '../components';
 import AgentActivity from './AgentActivity';
 import { ArrowIcon } from '@/app/components/ui/arrow-icon';
 import { useModalResize, ModalResizeButton } from '@/app/components/ui/ModalResizeButton';
+import { decodeDisplayUrl } from '@/lib/urlDisplay';
 import styles from '../page.module.css';
 
 export default function DashboardContent({ translations }) {
   const t = translations;
   const { selectedSite } = useSite();
+  const { theme } = useTheme();
 
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState(null);
@@ -1002,7 +1005,7 @@ export default function DashboardContent({ translations }) {
                     let displayPath = row.page;
                     try {
                       displayPath = decodeURIComponent(row.page);
-                      if (displayPath === '/') displayPath = '/ (Homepage)';
+                      if (displayPath === '/') displayPath = `/ (${t.aiHomePage || 'Homepage'})`;
                     } catch { /* keep raw */ }
                     return (
                       <div key={j} className={styles.aiEnginePageRow}>
@@ -1013,7 +1016,7 @@ export default function DashboardContent({ translations }) {
                             </span>
                           )}
                           <a href={toExternalUrl(row.page)} target="_blank" rel="noopener noreferrer" className={styles.aiEnginePageLink}>
-                            <span className={styles.aiEnginePagePath} title={row.page}>{displayPath}</span>
+                            <bdi dir="ltr"><span className={styles.aiEnginePagePath} title={row.page}>{displayPath}</span></bdi>
                             <ExternalLink size={10} className={styles.pageLinkIcon} />
                           </a>
                         </div>
@@ -1761,6 +1764,42 @@ export default function DashboardContent({ translations }) {
 
   return (
     <>
+      {/* Welcome Section */}
+      {selectedSite && (
+        <div className={styles.welcomeSection}>
+          <div
+            className={styles.welcomeLogo}
+            style={{
+              backgroundColor: selectedSite.logo
+                ? (theme === 'dark' ? selectedSite.logoBgDark : selectedSite.logoBgLight) || 'transparent'
+                : 'transparent',
+            }}
+          >
+            {selectedSite.logo ? (
+              <img src={selectedSite.logo} alt={selectedSite.name} className={styles.welcomeLogoImg} />
+            ) : selectedSite.favicon ? (
+              <img src={selectedSite.favicon} alt={selectedSite.name} className={styles.welcomeLogoImg} />
+            ) : (
+              <Globe size={40} className={styles.welcomeLogoFallback} />
+            )}
+          </div>
+          <div className={styles.welcomeText}>
+            <h1 className={styles.welcomeTitle}>
+              {(t.welcomeTo || 'Welcome to {siteName} Dashboard').replace('{siteName}', selectedSite.name)}
+            </h1>
+            <a
+              href={selectedSite.url.startsWith('http') ? selectedSite.url : `https://${selectedSite.url}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={styles.welcomeUrl}
+            >
+              <bdi dir="ltr">{decodeDisplayUrl(selectedSite.url.replace(/^https?:\/\//, '').replace(/\/$/, ''))}</bdi>
+              <ExternalLink size={12} />
+            </a>
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <div className={styles.pageHeader}>
         <div>

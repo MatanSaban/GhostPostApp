@@ -5,6 +5,7 @@ import { generateStructuredResponse } from '@/lib/ai/gemini';
 import { trackAIUsage } from '@/lib/ai/credits-service';
 import { enforceCredits } from '@/lib/account-limits';
 import { getSiteInfo as getPluginSiteInfo } from '@/lib/wp-api-client';
+import { refreshAccessToken, listGSCSitemaps } from '@/lib/google-integration';
 import { z } from 'zod';
 
 // Force dynamic - never cache this route
@@ -12,6 +13,59 @@ export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
 const SESSION_COOKIE = 'user_session';
+
+// Translatable sync progress messages
+const SCAN_MESSAGES = {
+  en: {
+    startingPopulation: 'Starting entity population...',
+    startingDeepCrawl: 'Starting deep crawl...',
+    fetchingContent: 'Fetching page content and metadata...',
+    populating: (name) => `Populating ${name}...`,
+    finalizing: 'Finalizing...',
+    fetchingSitemapUrls: 'Fetching sitemap URLs...',
+    crawling: (current, total, url) => `Crawling (${current}/${total}): ${url}...`,
+    deepCrawlComplete: 'Deep crawl complete',
+  },
+  he: {
+    startingPopulation: '\u05de\u05ea\u05d7\u05d9\u05dc \u05d0\u05db\u05dc\u05d5\u05e1 \u05ea\u05d5\u05db\u05df...',
+    startingDeepCrawl: '\u05de\u05ea\u05d7\u05d9\u05dc \u05e1\u05e8\u05d9\u05e7\u05d4 \u05e2\u05de\u05d5\u05e7\u05d4...',
+    fetchingContent: '\u05de\u05d1\u05d9\u05d0 \u05ea\u05d5\u05db\u05df \u05d5\u05de\u05d8\u05d0-\u05d3\u05d0\u05d8\u05d4...',
+    populating: (name) => `\u05de\u05d0\u05db\u05dc\u05e1 ${name}...`,
+    finalizing: '\u05de\u05e1\u05d9\u05d9\u05dd...',
+    fetchingSitemapUrls: '\u05de\u05d1\u05d9\u05d0 \u05db\u05ea\u05d5\u05d1\u05d5\u05ea \u05de\u05de\u05e4\u05ea \u05d0\u05ea\u05e8...',
+    crawling: (current, total, url) => `\u05e1\u05d5\u05e8\u05e7 (${current}/${total}): ${url}...`,
+    deepCrawlComplete: '\u05d4\u05e1\u05e8\u05d9\u05e7\u05d4 \u05d4\u05e2\u05de\u05d5\u05e7\u05d4 \u05d4\u05d5\u05e9\u05dc\u05de\u05d4',
+  },
+};
+
+function getScanMessages(locale) {
+  return SCAN_MESSAGES[locale] || SCAN_MESSAGES.en;
+}
+
+/**
+ * Fetch sitemap URLs from Google Search Console if the site has GSC connected
+ */
+async function fetchGSCSitemapUrls(site) {
+  try {
+    const integration = await prisma.googleIntegration.findUnique({
+      where: { siteId: site.id },
+    });
+    
+    if (!integration?.gscConnected || !integration.gscSiteUrl || !integration.refreshToken) {
+      return [];
+    }
+    
+    // Refresh the access token
+    const { accessToken } = await refreshAccessToken(integration.refreshToken);
+    if (!accessToken) return [];
+    
+    const sitemaps = await listGSCSitemaps(accessToken, integration.gscSiteUrl);
+    return sitemaps;
+  } catch (e) {
+    console.log('[Scan] GSC sitemap fetch failed:', e.message);
+    return [];
+  }
+}
 
 /**
  * Decode HTML entities like &#x27; to actual characters
@@ -101,102 +155,280 @@ function decodeHtmlEntities(text) {
 
 /**
  * Fetch main sitemap and detect type
- * Now supports all platforms, not just WordPress
+ * Comprehensive discovery: robots.txt → hardcoded patterns → GSC API
+ * Discovers ALL sitemaps, not just the first one found
  */
-async function fetchMainSitemap(siteUrl, customSitemapUrl = null) {
-  console.log('[Scan] Looking for sitemap at:', siteUrl);
+async function fetchMainSitemap(siteUrl, customSitemapUrl = null, gscSitemapUrls = []) {
+  console.log('[Scan] Looking for sitemaps at:', siteUrl);
   
-  // If custom sitemap URL is provided, try it first
-  const sitemapUrls = customSitemapUrl 
-    ? [customSitemapUrl]
-    : [
-        // WordPress sitemaps
-        `${siteUrl}/wp-sitemap.xml`,           // WordPress 5.5+ default
-        `${siteUrl}/sitemap.xml`,               // Universal / Yoast SEO
-        `${siteUrl}/sitemap_index.xml`,         // Yoast SEO alternative
-        `${siteUrl}/sitemap-index.xml`,         // Rank Math
-        // Shopify sitemaps
-        `${siteUrl}/sitemap.xml`,               // Shopify default
-        // Next.js / other frameworks
-        `${siteUrl}/server-sitemap.xml`,        // Next.js sitemap
-        `${siteUrl}/server-sitemap-index.xml`,
-        // Common alternatives
-        `${siteUrl}/sitemaps/sitemap.xml`,
-        `${siteUrl}/sitemap/sitemap.xml`,
-        `${siteUrl}/sitemap1.xml`,
-        // Robots.txt fallback (we'll check this separately)
-      ];
-
-  // Deduplicate URLs
-  const uniqueUrls = [...new Set(sitemapUrls)];
-
-  for (const url of uniqueUrls) {
-    try {
-      console.log('[Scan] Trying sitemap URL:', url);
-      const response = await fetch(url, {
-        headers: { 'User-Agent': 'GhostPost-Platform/1.0' },
-        signal: AbortSignal.timeout(10000),
-        cache: 'no-store',
-      });
-
-      if (response.ok) {
-        const content = await response.text();
-        if (content.includes('<urlset') || content.includes('<sitemapindex')) {
-          // Detect sitemap type based on URL patterns and content
-          const isWordPressDefault = url.includes('wp-sitemap');
-          const isYoast = url.includes('sitemap') && (content.includes('yoast') || content.includes('post-sitemap') || content.includes('page-sitemap'));
-          const isRankMath = url.includes('sitemap-index') || url.includes('sitemap_index');
-          // Only mark as Shopify if URL or content clearly indicates Shopify
-          const isShopify = url.includes('.myshopify.com') || content.includes('myshopify.com') || content.includes('cdn.shopify.com');
-          
-          const type = isWordPressDefault ? 'wordpress' : 
-                       isShopify ? 'shopify' :
-                       isYoast ? 'yoast' : 
-                       isRankMath ? 'rankmath' : 'generic';
-          
-          console.log('[Scan] Found sitemap:', { url, type, isIndex: content.includes('<sitemapindex') });
-          
-          return { 
-            content, 
-            url, 
-            type,
-            isIndex: content.includes('<sitemapindex'),
-          };
+  // If custom sitemap URL is provided, just try that one
+  if (customSitemapUrl) {
+    const result = await tryFetchSitemap(customSitemapUrl);
+    return result;
+  }
+  
+  // Collect ALL discovered sitemap URLs from multiple sources
+  const discoveredSitemapUrls = new Set();
+  
+  // ── Source 0: GSC sitemaps (highest confidence) ──
+  for (const url of gscSitemapUrls) {
+    discoveredSitemapUrls.add(url);
+  }
+  
+  // ── Source 1: robots.txt (check first, often lists ALL sitemaps) ──
+  try {
+    console.log('[Scan] Checking robots.txt for sitemaps...');
+    const robotsResponse = await fetch(`${siteUrl}/robots.txt`, {
+      headers: { 'User-Agent': 'GhostPost-Platform/1.0' },
+      signal: AbortSignal.timeout(5000),
+      cache: 'no-store',
+    });
+    
+    if (robotsResponse.ok) {
+      const robotsContent = await robotsResponse.text();
+      // Extract ALL Sitemap: directives (not just the first one)
+      const sitemapMatches = robotsContent.matchAll(/^Sitemap:\s*(.+)$/gmi);
+      for (const match of sitemapMatches) {
+        const url = match[1].trim();
+        if (url) {
+          discoveredSitemapUrls.add(url);
+          console.log('[Scan] Found sitemap in robots.txt:', url);
         }
       }
-    } catch (e) {
-      console.log('[Scan] Failed to fetch sitemap:', url, e.message);
+    }
+  } catch (e) {
+    console.log('[Scan] Failed to check robots.txt:', e.message);
+  }
+  
+  // ── Source 2: Common sitemap URL patterns ──
+  const commonPatterns = [
+    // WordPress sitemaps
+    `${siteUrl}/wp-sitemap.xml`,            // WordPress 5.5+ default
+    `${siteUrl}/sitemap.xml`,                // Universal / Yoast / most CMS
+    `${siteUrl}/sitemap_index.xml`,          // Yoast SEO alternative
+    `${siteUrl}/sitemap-index.xml`,          // Rank Math
+    // Next.js / React frameworks
+    `${siteUrl}/server-sitemap.xml`,         // next-sitemap
+    `${siteUrl}/server-sitemap-index.xml`,
+    // Dynamic / programmatic sitemaps
+    `${siteUrl}/sitemaps/sitemap.xml`,       // Custom folder-based
+    `${siteUrl}/sitemap/sitemap.xml`,
+    `${siteUrl}/sitemaps/static`,            // Next.js / custom frameworks (non-XML)
+    `${siteUrl}/sitemap1.xml`,               // Numbered sitemaps
+    // Wix
+    `${siteUrl}/sitemap.xml`,
+    // Squarespace
+    `${siteUrl}/sitemap.xml`,
+    // Drupal
+    `${siteUrl}/sitemap.xml`,
+    // Joomla
+    `${siteUrl}/index.php?option=com_osmap&view=xml`,
+  ];
+  
+  for (const url of commonPatterns) {
+    discoveredSitemapUrls.add(url);
+  }
+  
+  console.log(`[Scan] Will try ${discoveredSitemapUrls.size} unique sitemap URLs`);
+  
+  // ── Try each URL and collect ALL valid sitemaps ──
+  // Track which URLs are from high-confidence sources (robots.txt / GSC)
+  const highConfidenceUrls = new Set(gscSitemapUrls);
+  // robots.txt URLs were added before common patterns, so they're the first entries
+  // We track them by checking if they're NOT in commonPatterns
+  const commonPatternSet = new Set(commonPatterns);
+  
+  let mainSitemap = null;
+  const allValidSitemaps = [];
+  let foundIndex = false;
+  
+  for (const url of discoveredSitemapUrls) {
+    // Once we found an index, skip speculative common-pattern URLs
+    // But still try all robots.txt and GSC URLs (they may have extra sitemaps)
+    if (foundIndex && commonPatternSet.has(url) && !highConfidenceUrls.has(url)) {
       continue;
     }
-  }
-
-  // Try to find sitemap from robots.txt
-  if (!customSitemapUrl) {
-    try {
-      console.log('[Scan] Checking robots.txt for sitemap...');
-      const robotsResponse = await fetch(`${siteUrl}/robots.txt`, {
-        headers: { 'User-Agent': 'GhostPost-Platform/1.0' },
-        signal: AbortSignal.timeout(5000),
-        cache: 'no-store',
-      });
-      
-      if (robotsResponse.ok) {
-        const robotsContent = await robotsResponse.text();
-        const sitemapMatch = robotsContent.match(/Sitemap:\s*(.+)/i);
-        if (sitemapMatch) {
-          const robotsSitemapUrl = sitemapMatch[1].trim();
-          console.log('[Scan] Found sitemap in robots.txt:', robotsSitemapUrl);
-          // Recursively try to fetch this sitemap
-          return fetchMainSitemap(siteUrl, robotsSitemapUrl);
-        }
+    
+    const result = await tryFetchSitemap(url);
+    if (result) {
+      allValidSitemaps.push(result);
+      // Prefer sitemap indexes as main entry point
+      if (!mainSitemap || (!mainSitemap.isIndex && result.isIndex)) {
+        mainSitemap = result;
       }
-    } catch (e) {
-      console.log('[Scan] Failed to check robots.txt:', e.message);
+      if (result.isIndex) {
+        foundIndex = true;
+        console.log('[Scan] Found sitemap index:', url);
+      }
     }
   }
-
+  
+  // If we found a sitemap index, merge any extra sitemaps not already in its children
+  if (mainSitemap?.isIndex) {
+    const childRefs = new Set(extractSitemapRefs(mainSitemap.content));
+    
+    // Find valid sitemaps that aren't in the index and aren't themselves indexes
+    const extraSitemaps = allValidSitemaps.filter(
+      s => s.url !== mainSitemap.url && !s.isIndex && !childRefs.has(s.url)
+    );
+    
+    if (extraSitemaps.length > 0) {
+      const extraRefs = extraSitemaps.map(s => `<sitemap><loc>${s.url}</loc></sitemap>`);
+      console.log(`[Scan] Found ${extraRefs.length} extra sitemaps not in index, merging`);
+      mainSitemap.content = mainSitemap.content.replace(
+        '</sitemapindex>',
+        extraRefs.join('\n') + '\n</sitemapindex>'
+      );
+      mainSitemap.extraSitemaps = extraSitemaps;
+    }
+    
+    return mainSitemap;
+  }
+  
+  // No sitemap index found — if we have multiple individual sitemaps, 
+  // create a synthetic sitemap index to wrap them all
+  if (allValidSitemaps.length > 1) {
+    console.log(`[Scan] Found ${allValidSitemaps.length} individual sitemaps, creating synthetic index`);
+    const sitemapRefs = allValidSitemaps.map(s => `<sitemap><loc>${s.url}</loc></sitemap>`);
+    const syntheticContent = `<?xml version="1.0" encoding="UTF-8"?>\n<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${sitemapRefs.join('\n')}\n</sitemapindex>`;
+    
+    return {
+      content: syntheticContent,
+      url: `${siteUrl}/sitemap_index.xml`,
+      type: 'generic',
+      isIndex: true,
+      isSynthetic: true,
+      childSitemaps: allValidSitemaps,
+    };
+  }
+  
+  // Single sitemap or none
+  if (mainSitemap) {
+    return mainSitemap;
+  }
+  
+  // ── Last resort: Try to discover sitemaps by probing common CMS patterns ──
+  const lastResortPatterns = [
+    `${siteUrl}/blog-sitemap.xml`,
+    `${siteUrl}/post-sitemap.xml`,
+    `${siteUrl}/page-sitemap.xml`,
+    `${siteUrl}/category-sitemap.xml`,
+    `${siteUrl}/product-sitemap.xml`,
+    `${siteUrl}/news-sitemap.xml`,
+  ];
+  
+  const lastResortResults = [];
+  for (const url of lastResortPatterns) {
+    if (discoveredSitemapUrls.has(url)) continue; // Already tried
+    const result = await tryFetchSitemap(url);
+    if (result) lastResortResults.push(result);
+  }
+  
+  if (lastResortResults.length > 0) {
+    if (lastResortResults.length === 1) {
+      return lastResortResults[0];
+    }
+    // Multiple found — wrap in synthetic index
+    const sitemapRefs = lastResortResults.map(s => `<sitemap><loc>${s.url}</loc></sitemap>`);
+    const syntheticContent = `<?xml version="1.0" encoding="UTF-8"?>\n<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${sitemapRefs.join('\n')}\n</sitemapindex>`;
+    
+    return {
+      content: syntheticContent,
+      url: `${siteUrl}/sitemap_index.xml`,
+      type: 'generic',
+      isIndex: true,
+      isSynthetic: true,
+      childSitemaps: lastResortResults,
+    };
+  }
+  
   console.log('[Scan] No sitemap found');
   return null;
+}
+
+/**
+ * Try to fetch and validate a single sitemap URL
+ */
+async function tryFetchSitemap(url) {
+  try {
+    const response = await fetch(url, {
+      headers: { 'User-Agent': 'GhostPost-Platform/1.0' },
+      signal: AbortSignal.timeout(15000),
+      cache: 'no-store',
+    });
+
+    if (!response.ok) return null;
+    
+    const contentType = response.headers.get('content-type') || '';
+    const content = await response.text();
+    
+    // Check for valid XML sitemap content
+    if (content.includes('<urlset') || content.includes('<sitemapindex')) {
+      const isWordPressDefault = url.includes('wp-sitemap');
+      const isYoast = content.includes('yoast') || /[a-z]+-sitemap\d*\.xml/i.test(url);
+      const isRankMath = url.includes('sitemap-index') || url.includes('sitemap_index');
+      const isShopify = url.includes('.myshopify.com') || content.includes('myshopify.com') || content.includes('cdn.shopify.com');
+      
+      const type = isWordPressDefault ? 'wordpress' : 
+                   isShopify ? 'shopify' :
+                   isYoast ? 'yoast' : 
+                   isRankMath ? 'rankmath' : 'generic';
+      
+      console.log('[Scan] Valid sitemap:', { url, type, isIndex: content.includes('<sitemapindex') });
+      
+      return { 
+        content, 
+        url, 
+        type,
+        isIndex: content.includes('<sitemapindex'),
+      };
+    }
+    
+    // Also accept JSON sitemaps (some Next.js/custom frameworks)
+    if (contentType.includes('application/json') || content.trim().startsWith('[') || content.trim().startsWith('{')) {
+      try {
+        const jsonData = JSON.parse(content);
+        const urls = Array.isArray(jsonData) ? jsonData : (jsonData.urls || jsonData.urlset || []);
+        if (urls.length > 0) {
+          // Convert JSON sitemap to XML format for uniform processing
+          const xmlUrls = urls.map(u => {
+            const loc = typeof u === 'string' ? u : (u.loc || u.url || u.href);
+            if (!loc) return '';
+            return `<url><loc>${loc}</loc></url>`;
+          }).filter(Boolean).join('\n');
+          
+          const xmlContent = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${xmlUrls}\n</urlset>`;
+          
+          console.log('[Scan] Valid JSON sitemap (converted to XML):', { url, urlCount: urls.length });
+          
+          return {
+            content: xmlContent,
+            url,
+            type: 'generic',
+            isIndex: false,
+          };
+        }
+      } catch {
+        // Not valid JSON
+      }
+    }
+    
+    return null;
+  } catch (e) {
+    return null;
+  }
+}
+
+/**
+ * Extract sitemap references from a sitemap index
+ */
+function extractSitemapRefs(sitemapContent) {
+  const refs = [];
+  const matches = sitemapContent.matchAll(/<loc>([^<]+)<\/loc>/g);
+  for (const match of matches) {
+    refs.push(match[1].trim());
+  }
+  return refs;
 }
 
 // Hebrew translations for common post types
@@ -511,60 +743,168 @@ async function countUrlsFromSitemapIndex(sitemapContent, sitemapType) {
     sitemapRefs.push(match[1]);
   }
 
+  // Pre-filter: detect types and skip taxonomy/user sitemaps before fetching
+  const skipTypes = new Set(['taxonomies', 'users', 'author', 'category', 'tag', 'post_tag']);
+  const sitemapsToFetch = [];
+  
   for (const sitemapUrl of sitemapRefs) {
-    let postType = null;
-
-    // WordPress 5.5+ format: wp-sitemap-posts-1.xml, wp-sitemap-pages-1.xml
-    const wpMatch = sitemapUrl.match(/wp-sitemap-([a-z0-9_-]+)-\d+\.xml/i);
-    if (wpMatch) {
-      postType = wpMatch[1];
-    }
-
-    // Yoast format: post-sitemap.xml, page-sitemap.xml
-    const yoastMatch = sitemapUrl.match(/([a-z0-9_-]+)-sitemap\d*\.xml/i);
-    if (!postType && yoastMatch) {
-      postType = yoastMatch[1];
-    }
-
-    // Skip non-content sitemaps
-    if (!postType || 
-        postType === 'taxonomies' || 
-        postType === 'users' ||
-        postType === 'author' ||
-        postType === 'category' ||
-        postType === 'tag' ||
-        postType === 'post_tag') {
+    const detectedType = detectPostTypeFromSitemapUrl(sitemapUrl);
+    if (detectedType && skipTypes.has(detectedType)) {
+      console.log(`[Scan] Skipping taxonomy/user sitemap: ${sitemapUrl} (${detectedType})`);
       continue;
     }
+    sitemapsToFetch.push({ url: sitemapUrl, detectedType });
+  }
 
-    // Normalize to plural form
-    if (postType === 'post') postType = 'posts';
-    if (postType === 'page') postType = 'pages';
-
-    // Quick count: fetch sitemap and count <url> tags
-    try {
-      const response = await fetch(sitemapUrl, {
+  console.log(`[Scan] Fetching ${sitemapsToFetch.length} child sitemaps in parallel...`);
+  
+  // Fetch ALL child sitemaps in parallel with generous timeout
+  // Dynamic sitemaps (e.g. kiddoz kindergartens with 3000 entries) can take 30-60s to generate
+  const CHILD_SITEMAP_TIMEOUT = 60000;
+  
+  const fetchResults = await Promise.allSettled(
+    sitemapsToFetch.map(async ({ url, detectedType }) => {
+      const response = await fetch(url, {
         headers: { 'User-Agent': 'GhostPost-Platform/1.0' },
-        signal: AbortSignal.timeout(8000),
+        signal: AbortSignal.timeout(CHILD_SITEMAP_TIMEOUT),
         cache: 'no-store',
       });
-
-      if (response.ok) {
-        const content = await response.text();
-        const urlCount = (content.match(/<url>/g) || []).length;
-        
-        if (!counts[postType]) {
-          counts[postType] = { count: 0, sitemaps: [] };
-        }
-        counts[postType].count += urlCount;
-        counts[postType].sitemaps.push(sitemapUrl);
+      if (!response.ok) {
+        console.log(`[Scan] Child sitemap HTTP ${response.status}: ${url}`);
+        return null;
       }
-    } catch (e) {
-      // Skip failed sitemaps
+      const content = await response.text();
+      return { url, content, detectedType };
+    })
+  );
+
+  // Process successful results
+  for (const result of fetchResults) {
+    if (result.status !== 'fulfilled' || !result.value) {
+      if (result.status === 'rejected') {
+        console.log(`[Scan] Child sitemap failed: ${result.reason?.message || 'unknown'}`);
+      }
+      continue;
     }
+    
+    const { url, content, detectedType } = result.value;
+    let postType = detectedType;
+    
+    // Handle nested sitemap indexes
+    if (content.includes('<sitemapindex')) {
+      const nestedCounts = await countUrlsFromSitemapIndex(content, sitemapType);
+      for (const [nestedType, nestedData] of Object.entries(nestedCounts)) {
+        if (!counts[nestedType]) {
+          counts[nestedType] = { count: 0, sitemaps: [] };
+        }
+        counts[nestedType].count += nestedData.count;
+        counts[nestedType].sitemaps.push(...nestedData.sitemaps);
+      }
+      continue;
+    }
+    
+    const urlCount = (content.match(/<url>/g) || []).length;
+    
+    // If we couldn't detect the post type from the URL, try to infer from content
+    if (!postType && urlCount > 0) {
+      postType = inferPostTypeFromSitemapContent(content, url);
+    }
+    
+    // Default fallback
+    if (!postType) postType = 'pages';
+    
+    if (!counts[postType]) {
+      counts[postType] = { count: 0, sitemaps: [] };
+    }
+    counts[postType].count += urlCount;
+    counts[postType].sitemaps.push(url);
+    
+    console.log(`[Scan] Child sitemap: ${url} → ${postType} (${urlCount} URLs)`);
   }
 
   return counts;
+}
+
+/**
+ * Detect post type from a sitemap URL pattern
+ * Handles WordPress, Yoast, custom frameworks, and generic patterns
+ */
+function detectPostTypeFromSitemapUrl(sitemapUrl) {
+  let postType = null;
+  
+  // WordPress 5.5+ format: wp-sitemap-posts-1.xml, wp-sitemap-pages-1.xml
+  const wpMatch = sitemapUrl.match(/wp-sitemap-([a-z0-9_-]+)-\d+\.xml/i);
+  if (wpMatch) {
+    postType = wpMatch[1];
+  }
+
+  // Yoast/generic format: post-sitemap.xml, page-sitemap.xml, kindergartens-sitemap.xml
+  if (!postType) {
+    const yoastMatch = sitemapUrl.match(/\/([a-z0-9_-]+)-sitemap\d*\.xml/i);
+    if (yoastMatch) {
+      postType = yoastMatch[1];
+    }
+  }
+  
+  // Path-based format: /sitemaps/blog/1, /sitemaps/kindergartens/1, /sitemaps/static
+  if (!postType) {
+    const pathMatch = sitemapUrl.match(/\/sitemaps\/([a-z0-9_-]+)(?:\/\d+)?$/i);
+    if (pathMatch) {
+      postType = pathMatch[1];
+    }
+  }
+  
+  // Generic sitemap name in URL: /sitemap-blog.xml, /sitemap_products.xml
+  if (!postType) {
+    const genericMatch = sitemapUrl.match(/sitemap[-_]([a-z0-9_-]+)\.xml/i);
+    if (genericMatch) {
+      postType = genericMatch[1];
+      // Exclude index-like names
+      if (['index', 'main', 'master'].includes(postType)) postType = null;
+    }
+  }
+
+  if (postType) {
+    // Normalize to plural form
+    if (postType === 'post') postType = 'posts';
+    if (postType === 'page') postType = 'pages';
+    // Rename 'static' to 'pages' since that's what it usually means
+    if (postType === 'static') postType = 'pages';
+  }
+  
+  return postType;
+}
+
+/**
+ * Infer post type from sitemap content by analyzing the URLs it contains
+ */
+function inferPostTypeFromSitemapContent(content, sitemapUrl) {
+  // Extract a sample of URLs from the sitemap
+  const locMatches = [...content.matchAll(/<loc>([^<]+)<\/loc>/g)].slice(0, 20);
+  if (locMatches.length === 0) return null;
+  
+  // Analyze URL patterns to determine content type
+  const pathFirstSegments = {};
+  
+  for (const match of locMatches) {
+    try {
+      const urlObj = new URL(match[1]);
+      const segments = urlObj.pathname.replace(/\/$/, '').split('/').filter(Boolean);
+      if (segments.length >= 1) {
+        const first = segments[0].toLowerCase();
+        pathFirstSegments[first] = (pathFirstSegments[first] || 0) + 1;
+      }
+    } catch { /* skip invalid URLs */ }
+  }
+  
+  // Find the most common first path segment
+  const sorted = Object.entries(pathFirstSegments).sort((a, b) => b[1] - a[1]);
+  if (sorted.length > 0 && sorted[0][1] >= locMatches.length * 0.5) {
+    // At least 50% of URLs share this prefix
+    return sorted[0][0];
+  }
+  
+  return null;
 }
 
 /**
@@ -1033,7 +1373,7 @@ async function saveDiscoveredSitemaps(site, mainSitemap, sitemapCounts, userId =
  * Phase 1: Discover post types from sitemap
  * Works for all platforms, not just WordPress
  */
-async function discoverPostTypes(site, customSitemapUrl = null, userId = null) {
+async function discoverPostTypes(site, customSitemapUrl = null, userId = null, userLocale = 'he') {
   const siteUrl = site.url.replace(/\/$/, '');
   const result = {
     postTypes: [],
@@ -1048,7 +1388,17 @@ async function discoverPostTypes(site, customSitemapUrl = null, userId = null) {
   };
 
   // Fetch main sitemap (with optional custom URL)
-  const sitemap = await fetchMainSitemap(siteUrl, customSitemapUrl);
+  // Also try GSC sitemaps if the site has Google Search Console connected
+  let gscSitemapUrls = [];
+  if (!customSitemapUrl) {
+    gscSitemapUrls = await fetchGSCSitemapUrls(site);
+    if (gscSitemapUrls.length > 0) {
+      console.log(`[Scan] GSC provided ${gscSitemapUrls.length} sitemaps:`, gscSitemapUrls);
+      result.source.gscSitemaps = gscSitemapUrls;
+    }
+  }
+  
+  const sitemap = await fetchMainSitemap(siteUrl, customSitemapUrl, gscSitemapUrls);
   if (sitemap) {
     result.source.sitemap = true;
     result.source.sitemapUrl = sitemap.url;
@@ -1223,7 +1573,89 @@ async function discoverPostTypes(site, customSitemapUrl = null, userId = null) {
       return b.entityCount - a.entityCount;
     });
 
+  // Auto-translate post type names that don't have a proper translation
+  result.postTypes = await translatePostTypeNames(result.postTypes, userLocale);
+
   return result;
+}
+
+/**
+ * Translate post type names using AI for types not in the hardcoded translations map.
+ * Translates all untranslated names in a single AI call for efficiency.
+ */
+async function translatePostTypeNames(postTypes, targetLocale = 'he') {
+  // If target is English, names are already in English — nothing to translate
+  if (targetLocale === 'en') return postTypes;
+  
+  // Find post types that need translation (nameHe is same as name → no real translation)
+  const needsTranslation = postTypes.filter(pt => {
+    if (pt.isCore) return false; // Core types always have hardcoded translations
+    const hasHardcoded = POST_TYPE_TRANSLATIONS[pt.slug] || POST_TYPE_TRANSLATIONS[pt.slug?.replace(/s$/, '')];
+    if (hasHardcoded) return false;
+    // If nameHe equals name, it's just the English fallback — needs real translation
+    return !pt.nameHe || pt.nameHe === pt.name;
+  });
+  
+  if (needsTranslation.length === 0) return postTypes;
+  
+  console.log(`[Scan] Translating ${needsTranslation.length} post type names to ${targetLocale}:`, needsTranslation.map(pt => pt.slug));
+  
+  const LANGUAGE_NAMES = {
+    he: 'Hebrew',
+    ar: 'Arabic',
+    es: 'Spanish',
+    fr: 'French',
+    de: 'German',
+    ru: 'Russian',
+    pt: 'Portuguese',
+  };
+  const langName = LANGUAGE_NAMES[targetLocale] || targetLocale;
+  
+  try {
+    const schema = z.object({
+      translations: z.array(z.object({
+        slug: z.string(),
+        translated: z.string(),
+      })),
+    });
+    
+    const result = await generateStructuredResponse({
+      system: `You are a professional translator specializing in web content management terminology. Translate website content type names to ${langName}. Use natural, commonly-used terms (1-3 words). For example: "Posts" → "פוסטים", "Kindergartens" → "גני ילדים", "Areas" → "אזורים".`,
+      prompt: `Translate these website content type names to ${langName}:\n${needsTranslation.map(pt => `- slug: "${pt.slug}", english: "${pt.name}"`).join('\n')}`,
+      schema,
+      temperature: 0.2,
+      operation: 'TRANSLATE_POST_TYPES',
+      metadata: { targetLocale, count: needsTranslation.length },
+    });
+    
+    if (!result?.translations) return postTypes;
+    
+    // Build translation lookup
+    const translationMap = new Map();
+    for (const t of result.translations) {
+      if (t.slug && t.translated) {
+        translationMap.set(t.slug, t.translated);
+      }
+    }
+    
+    console.log('[Scan] AI translations:', Object.fromEntries(translationMap));
+    
+    // Apply translations
+    return postTypes.map(pt => {
+      const translated = translationMap.get(pt.slug);
+      if (translated) {
+        return {
+          ...pt,
+          nameHe: translated,
+          labels: { en: pt.name, [targetLocale]: translated },
+        };
+      }
+      return pt;
+    });
+  } catch (e) {
+    console.error('[Scan] AI translation failed, using fallback names:', e.message);
+    return postTypes; // Return untranslated on failure
+  }
 }
 
 // ============================================
@@ -1235,9 +1667,10 @@ async function discoverPostTypes(site, customSitemapUrl = null, userId = null) {
  */
 async function fetchSitemapUrls(sitemapUrl) {
   try {
+    // Use generous timeout — dynamic sitemaps (e.g. 3000+ entries) can take 30-60s to generate
     const response = await fetch(sitemapUrl, {
       headers: { 'User-Agent': 'GhostPost-Platform/1.0' },
-      signal: AbortSignal.timeout(15000),
+      signal: AbortSignal.timeout(60000),
       cache: 'no-store',
     });
 
@@ -1359,7 +1792,7 @@ async function fetchWpRestPosts(siteUrl, restEndpoint, page = 1, perPage = 100) 
 /**
  * Phase 2: Populate entities for selected post types
  */
-async function populateEntities(site, entityTypes, options = {}) {
+async function populateEntities(site, entityTypes, options = {}, msg = SCAN_MESSAGES.en) {
   console.log('[Scan] Phase 2: Starting entity population');
   console.log('[Scan] Entity types to populate:', entityTypes.map(t => t.slug));
   
@@ -1391,7 +1824,7 @@ async function populateEntities(site, entityTypes, options = {}) {
     console.log(`[Scan] Processing type: ${entityType.slug} (${entityType.name})`);
     const typeStats = { created: 0, updated: 0, skipped: 0 };
     const progressBase = Math.floor((typeIndex / entityTypes.length) * 80);
-    await updateProgress(progressBase + 10, `Populating ${entityType.name}...`);
+    await updateProgress(progressBase + 10, msg.populating(entityType.name));
 
     // First, try WP REST API if available (richer data)
     let entities = [];
@@ -1479,35 +1912,53 @@ async function populateEntities(site, entityTypes, options = {}) {
           if (maxEntitiesPerType && entities.length >= maxEntitiesPerType) break;
         }
       } else {
-        // For sites with a single flat sitemap (non-WordPress), re-fetch and filter
+        // No stored sitemaps — re-fetch main sitemap and extract URLs by type
         console.log(`[Scan] No stored sitemaps, re-fetching main sitemap for ${entityType.slug}`);
         const sitemap = await fetchMainSitemap(siteUrl);
         
-        if (sitemap && !sitemap.isIndex) {
-          // Parse sitemap and get URLs categorized by type
+        let typeUrls = [];
+        
+        if (sitemap && sitemap.isIndex) {
+          // Sitemap index — find child sitemaps matching this entity type's slug
+          const childRefs = extractSitemapRefs(sitemap.content);
+          for (const childUrl of childRefs) {
+            if (childUrl.includes(entityType.slug) || (entityType.slug === 'posts' && childUrl.includes('post'))) {
+              const sitemapUrls = await fetchSitemapUrls(childUrl);
+              for (const urlData of sitemapUrls) {
+                const slug = extractSlugFromUrl(urlData.url);
+                if (slug === null) continue;
+                if (entityType.slug !== 'pages' && isArchivePage(urlData.url, entityType.slug)) continue;
+                const title = slug === '' ? 'עמוד הבית' : (urlData.imageTitle || slugToTitle(slug));
+                entities.push({
+                  externalId: null,
+                  slug: slug || 'homepage',
+                  title,
+                  url: urlData.url,
+                  excerpt: null,
+                  publishedAt: urlData.lastmod ? new Date(urlData.lastmod) : null,
+                  modifiedAt: null,
+                  featuredImage: urlData.image || null,
+                });
+                if (maxEntitiesPerType && entities.length >= maxEntitiesPerType) break;
+              }
+              if (maxEntitiesPerType && entities.length >= maxEntitiesPerType) break;
+            }
+          }
+        } else if (sitemap && !sitemap.isIndex) {
+          // Single flat sitemap — parse URLs and categorize by type
           const categorizedUrls = await parseUrlsFromSingleSitemap(sitemap.content, siteUrl);
-          const typeUrls = categorizedUrls[entityType.slug]?.urls || [];
+          typeUrls = categorizedUrls[entityType.slug]?.urls || [];
           
           console.log(`[Scan] Found ${typeUrls.length} URLs for ${entityType.slug} from sitemap`);
           
           for (const url of typeUrls) {
             const slug = extractSlugFromUrl(url);
-            if (slug === null) continue; // Skip only invalid URLs, not homepage (empty slug)
-
-            // Skip archive pages
-            if (entityType.slug !== 'pages' && isArchivePage(url, entityType.slug)) {
-              console.log(`[Scan] Skipping archive page for ${entityType.slug}: ${url}`);
-              continue;
-            }
-
-            // Determine title - use 'Homepage' for empty slug
-            const title = slug === '' 
-              ? 'עמוד הבית' 
-              : slugToTitle(slug);
-
+            if (slug === null) continue;
+            if (entityType.slug !== 'pages' && isArchivePage(url, entityType.slug)) continue;
+            const title = slug === '' ? 'עמוד הבית' : slugToTitle(slug);
             entities.push({
               externalId: null,
-              slug: slug || 'homepage', // Use 'homepage' as slug for the root page
+              slug: slug || 'homepage',
               title,
               url: url,
               excerpt: null,
@@ -1515,8 +1966,6 @@ async function populateEntities(site, entityTypes, options = {}) {
               modifiedAt: null,
               featuredImage: null,
             });
-
-            // Check limit
             if (maxEntitiesPerType && entities.length >= maxEntitiesPerType) break;
           }
         }
@@ -1593,7 +2042,7 @@ async function populateEntities(site, entityTypes, options = {}) {
   }
 
   console.log('[Scan] Phase 2 complete. Total stats:', stats);
-  await updateProgress(90, 'Finalizing...');
+  await updateProgress(90, msg.finalizing);
   return stats;
 }
 
@@ -1994,7 +2443,7 @@ Extract:
  * @param {boolean} options.createFromSitemap - If true, create entities from sitemap URLs while crawling
  * @param {string} options.entityTypeId - If provided, only crawl entities of this type
  */
-async function deepCrawlEntities(site, options = {}) {
+async function deepCrawlEntities(site, options = {}, msg = SCAN_MESSAGES.en) {
   const createFromSitemap = options.createFromSitemap || false;
   const entityTypeId = options.entityTypeId || null;
   console.log('[Scan] Phase 3: Starting deep crawl', { forceRescan: options.forceRescan, createFromSitemap, entityTypeId });
@@ -2027,7 +2476,7 @@ async function deepCrawlEntities(site, options = {}) {
   // If createFromSitemap is true and no entities exist, create them from sitemap while crawling
   if (createFromSitemap) {
     console.log('[Scan] createFromSitemap mode: Creating entities from sitemap while crawling');
-    await updateProgress(5, 'Fetching sitemap URLs...');
+    await updateProgress(5, msg.fetchingSitemapUrls);
     
     // Get enabled entity types - filter by entityTypeId if provided
     const entityTypesWhere = { siteId: site.id, isEnabled: true };
@@ -2062,18 +2511,30 @@ async function deepCrawlEntities(site, options = {}) {
         }
       }
       
-      // If no sitemap URLs, try to guess from site URL
+      // If no sitemap URLs, try to re-fetch main sitemap and match child sitemaps by slug
       if (typeUrls.length === 0) {
+        console.log(`[Scan] No URLs from stored sitemaps for ${entityType.slug}, re-fetching main sitemap`);
         const mainSitemap = await fetchMainSitemap(site.url);
-        if (mainSitemap?.sitemaps) {
-          for (const sm of mainSitemap.sitemaps) {
-            if (sm.includes(entityType.slug) || (entityType.slug === 'posts' && sm.includes('post'))) {
-              try {
-                const urls = await fetchSitemapUrls(sm);
-                typeUrls.push(...urls);
-              } catch (e) {
-                console.error(`[Scan] Error fetching sitemap ${sm}:`, e.message);
+        if (mainSitemap) {
+          if (mainSitemap.isIndex) {
+            // Extract child sitemap refs from the index content
+            const childRefs = extractSitemapRefs(mainSitemap.content);
+            for (const sm of childRefs) {
+              if (sm.includes(entityType.slug) || (entityType.slug === 'posts' && sm.includes('post'))) {
+                try {
+                  const urls = await fetchSitemapUrls(sm);
+                  typeUrls.push(...urls);
+                } catch (e) {
+                  console.error(`[Scan] Error fetching sitemap ${sm}:`, e.message);
+                }
               }
+            }
+          } else {
+            // Single flat sitemap — categorize URLs and match by slug
+            const categorizedUrls = await parseUrlsFromSingleSitemap(mainSitemap.content, site.url);
+            const matchedUrls = categorizedUrls[entityType.slug]?.urls || [];
+            for (const url of matchedUrls) {
+              typeUrls.push({ url, lastmod: null, image: null, imageTitle: null });
             }
           }
         }
@@ -2103,7 +2564,7 @@ async function deepCrawlEntities(site, options = {}) {
         for (const { url, entityType } of batch) {
           processedCount++;
         const progress = Math.floor((processedCount / urlsToProcess.length) * 100);
-        await updateProgress(progress, `Crawling (${processedCount}/${urlsToProcess.length}): ${url.substring(0, 50)}...`);
+        await updateProgress(progress, msg.crawling(processedCount, urlsToProcess.length, url.substring(0, 50)));
         
         // Extract slug from URL
         const urlPath = new URL(url).pathname;
@@ -2327,7 +2788,7 @@ async function deepCrawlEntities(site, options = {}) {
       }
 
       const progress = Math.floor((processedCount / totalCount) * 100);
-      await updateProgress(progress, `Crawling (${processedCount + 1}/${totalCount}): ${entity.title?.substring(0, 30)}...`);
+      await updateProgress(progress, msg.crawling(processedCount + 1, totalCount, entity.title?.substring(0, 30) || ''));
 
       const metadata = await extractPageMetadata(entity.url);
       stats.crawled++;
@@ -2548,7 +3009,7 @@ async function deepCrawlEntities(site, options = {}) {
     offset += batchSize;
   }
 
-  await updateProgress(100, 'Deep crawl complete');
+  await updateProgress(100, msg.deepCrawlComplete);
   console.log('[Scan] Phase 3 complete. Stats:', stats);
   return stats;
 }
@@ -2610,6 +3071,7 @@ export async function GET(request) {
         connectionStatus: true,
         siteKey: true,
         siteSecret: true,
+        contentLanguage: true,
       },
     });
 
@@ -2626,8 +3088,11 @@ export async function GET(request) {
       console.log('[Scan] Using custom sitemap URL:', customSitemapUrl);
     }
 
+    // Get user's locale for AI translation of post type names
+    const userLocale = cookieStore.get('ghost-post-locale')?.value || 'he';
+
     // Perform quick discovery (pass userId to save who triggered the scan)
-    const result = await discoverPostTypes(site, customSitemapUrl, userId);
+    const result = await discoverPostTypes(site, customSitemapUrl, userId, userLocale);
 
     console.log('[Scan] Discovery complete. Found', result.postTypes.length, 'post types:');
     result.postTypes.forEach(pt => {
@@ -2659,6 +3124,8 @@ export async function POST(request) {
 
     const body = await request.json();
     const { siteId, phase, entityTypeId, options = {} } = body;
+    const locale = cookieStore.get('ghost-post-locale')?.value || 'he';
+    const msg = getScanMessages(locale);
 
     if (!siteId) {
       return NextResponse.json({ error: 'Site ID is required' }, { status: 400 });
@@ -2761,7 +3228,7 @@ export async function POST(request) {
       data: {
         entitySyncStatus: 'SYNCING',
         entitySyncProgress: 0,
-        entitySyncMessage: phase === 'populate' ? 'Starting entity population...' : 'Starting deep crawl...',
+        entitySyncMessage: phase === 'populate' ? msg.startingPopulation : msg.startingDeepCrawl,
         entitySyncError: null,
       },
     });
@@ -2771,7 +3238,7 @@ export async function POST(request) {
     try {
       if (phase === 'populate') {
         // Phase 2: Populate entities
-        result = await populateEntities(site, site.entityTypes, options);
+        result = await populateEntities(site, site.entityTypes, options, msg);
         
         // Always run Phase 3 (deep crawl) to get real titles and metadata
         // This ensures entities get proper titles from page content, not just slugs
@@ -2781,14 +3248,14 @@ export async function POST(request) {
             where: { id: siteId },
             data: {
               entitySyncProgress: 50,
-              entitySyncMessage: 'Fetching page content and metadata...',
+              entitySyncMessage: msg.fetchingContent,
             },
           });
           
           const crawlResult = await deepCrawlEntities(site, { 
             forceRescan: true,
             batchSize: 20, // Smaller batches for faster feedback
-          });
+          }, msg);
           
           // Merge results
           result.crawled = crawlResult.crawled;
@@ -2799,7 +3266,7 @@ export async function POST(request) {
       } else if (phase === 'crawl') {
         // Phase 3: Deep crawl only
         // Pass entityTypeId if provided to filter by specific entity type
-        result = await deepCrawlEntities(site, { ...options, entityTypeId });
+        result = await deepCrawlEntities(site, { ...options, entityTypeId }, msg);
       }
 
       // Update sync status to completed

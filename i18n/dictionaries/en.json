@@ -94,7 +94,9 @@
     "refresh": "Refresh",
     "linksPerThousand": "links / 1000 words",
     "seconds": "seconds",
-    "clear": "Clear"
+    "clear": "Clear",
+    "showMore": "Show More",
+    "showLess": "Show Less"
   },
   "backgroundTasks": {
     "entityPopulation": {
@@ -321,6 +323,7 @@
     "title": "Dashboard",
     "commandCenter": "Command Center",
     "subtitle": "Your AI-powered SEO dashboard overview",
+    "welcomeTo": "Welcome to {siteName} Dashboard",
     "welcome": "Welcome back",
     "overview": "Overview",
     "recentActivity": "Recent Activity",
@@ -481,6 +484,7 @@
       "totalAiSessions": "AI Sessions",
       "aiTrafficShare": "AI Traffic Share",
       "engineBreakdown": "Traffic by AI Engine",
+      "homePage": "Homepage",
       "topAiLandingPages": "Top AI Landing Pages",
       "topPages": "Top Pages",
       "query": "Query",
@@ -1645,6 +1649,9 @@
       "syncing": "Syncing...",
       "resync": "Re-sync Content",
       "stop": "Stop Syncing",
+      "etaSeconds": "~{seconds}s left",
+      "etaMinutes": "~{minutes}m {seconds}s left",
+      "etaHours": "~{hours}h {minutes}m left",
       "starting": "Starting sync...",
       "fetchingTypes": "Fetching content types...",
       "fetchingEntities": "Fetching {type}...",
@@ -1685,6 +1692,7 @@
     "draftWithName": "{entityName} in Draft",
     "scheduledWithName": "{entityName} Scheduled",
     "pendingWithName": "{entityName} Pending",
+    "editTypeName": "Click to rename",
     "syncFailed": "Sync failed",
     "syncSuccess": "Website synced successfully",
     "noSiteSelected": "No Site Selected",
@@ -1754,6 +1762,7 @@
       "detectHint": "Detect your website platform to enable the best integration options.",
       "detecting": "Detecting...",
       "detectPlatform": "Detect Platform",
+      "redetect": "Re-detect",
       "nonWordPressTitle": "Non-WordPress Site Detected",
       "nonWordPressDesc": "We'll use sitemap crawling to import your content. Some advanced features may be limited."
     },
@@ -2666,9 +2675,14 @@
         "canceled": "Cancelled",
         "expired": "Expired",
         "trialing": "Trialing",
-        "past_due": "Past Due"
+        "past_due": "Past Due",
+        "depleted": "Depleted"
       },
-      "purchasedAddons": "Purchased Add-ons"
+      "temporary": "one-time",
+      "purchasedAddons": "Purchased Add-ons",
+      "cancelAddon": "Cancel",
+      "cancelAddonConfirm": "Are you sure you want to cancel this add-on? It will remain active until your next billing period renewal.",
+      "cancelsAtRenewal": "Cancels at renewal"
     },
     "creditsSection": {
       "title": "AI Credits",
@@ -2700,7 +2714,27 @@
         "INTERVIEW_CHAT": "Interview Chat",
         "GENERIC": "AI Operation",
         "IMAGE_ALT_OPTIMIZATION": "Image Optimization",
-        "ENTITY_REFRESH": "Content Refresh"
+        "ENTITY_REFRESH": "Content Refresh",
+        "REWRITE_PARAGRAPH": "Rewrite Content",
+        "COMPETITOR_ANALYSIS": "Competitor Analysis",
+        "CANNIBALIZATION_FIX": "Cannibalization Fix",
+        "FULL_ARTICLE": "Full Article Writing",
+        "COMPETITOR_SCAN": "Competitor Page Scan",
+        "COMPETITOR_GAP_ANALYSIS": "Content Gap Analysis",
+        "SKYSCRAPER_OUTLINE": "Skyscraper Outline",
+        "ADDON_PURCHASE": "Add-on Purchase",
+        "ADDON_PURCHASE_WEBHOOK": "Add-on Purchase",
+        "PLAN_RENEWAL": "Plan Renewal",
+        "PLAN_ACTIVATION": "Plan Activation",
+        "BACKLINK_PURCHASE": "Backlink Purchase",
+        "BACKLINK_SALE": "Backlink Sale",
+        "MANUAL": "Manual Adjustment",
+        "AUDIT_RESCAN": "Page Rescan",
+        "AUDIT_QUICK_FIX": "AI Quick Fix",
+        "AI_TITLE_FIX": "AI Title Fix",
+        "A11Y_ALT_FIX": "AI Alt Text Fix",
+        "TRANSLATE_POST_TYPES": "Content Type Translation",
+        "CONTENT_GENERATION": "Content Generation"
       },
       "descriptions": {
         "crawledWebsite": "Crawled: {url}",
@@ -2714,9 +2748,32 @@
         "optimizedImageAlt": "Optimized image alt for {url}",
         "entityEnrichment": "Content enrichment for {url}",
         "websiteAnalysis": "Analyzed {url}",
-        "discoveredEntityTypes": "Discovered content types for {url}"
+        "discoveredEntityTypes": "Discovered content types for {url}",
+        "addonPurchase": "Purchased {description}",
+        "planRenewal": "Plan credits renewed",
+        "rewriteParagraph": "Rewrote content for {url}",
+        "competitorAnalysis": "Competitor analysis for {url}",
+        "cannibalizationFix": "Fixed cannibalization for {url}",
+        "fullArticle": "Generated full article for {url}",
+        "interviewChat": "Interview chat for {url}",
+        "competitorScan": "Scanned competitor page: {url}",
+        "competitorGapAnalysis": "Content gap analysis for {url}",
+        "skyscraperOutline": "Generated skyscraper outline for {url}",
+        "suggestedSiteName": "Suggested site name for {url}",
+        "backlinkPurchase": "Purchased backlink: {url}",
+        "backlinkSale": "Backlink sale: {url}",
+        "planActivation": "Initial credits from plan",
+        "manualAdjustment": "Manual credit adjustment",
+        "genericOperation": "AI operation for {url}",
+        "auditRescan": "Rescanned page: {url}",
+        "auditQuickFix": "AI Quick Fix on {url}",
+        "aiTitleFix": "AI Title Fix: {count} page(s)",
+        "a11yAltFix": "AI alt text fix for {url}",
+        "translatePostTypes": "Translated content types",
+        "contentGeneration": "Generated content for {url}"
       },
-      "purchasedPacks": "Purchased Credit Packs"
+      "purchasedPacks": "Purchased Credit Packs",
+      "remaining": "remaining"
     },
     "addonsSection": {
       "title": "Available Add-ons",
@@ -2732,6 +2789,7 @@
       "noAddons": "No add-ons available at the moment.",
       "alreadyPurchased": "You have already purchased this add-on",
       "alreadyPurchasedCount": "You have purchased this add-on {count} times",
+      "addonFallback": "Add-on",
       "items": {
         "advancedAnalytics": {
           "name": "Advanced Analytics",
@@ -2781,6 +2839,14 @@
         "members": "Members",
         "type": "Type",
         "actions": "Actions"
+      },
+      "roleDescriptions": {
+        "owner": "Account owner with full access (unchangeable)",
+        "ceo": "Chief Executive Officer - Full access to everything",
+        "cfo": "Chief Financial Officer - Financial and billing oversight",
+        "manager": "Team manager - Content and team oversight",
+        "team_lead": "Team lead - Content management and team coordination",
+        "employee": "Standard employee - Basic content access"
       }
     },
     "permissionsSection": {

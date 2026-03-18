@@ -94,7 +94,9 @@
     "refresh": "רענן",
     "linksPerThousand": "קישורים / 1000 מילים",
     "seconds": "שניות",
-    "clear": "נקה"
+    "clear": "נקה",
+    "showMore": "הצג עוד",
+    "showLess": "הצג פחות"
   },
   "backgroundTasks": {
     "entityPopulation": {
@@ -321,6 +323,7 @@
     "title": "לוח הבקרה",
     "commandCenter": "מרכז פיקוד",
     "subtitle": "סקירת לוח הבקרה מונעת ה-AI שלך",
+    "welcomeTo": "ברוכים הבאים ללוח הבקרה של {siteName}",
     "welcome": "ברוך שובך",
     "overview": "סקירה כללית",
     "recentActivity": "פעילות אחרונה",
@@ -481,6 +484,7 @@
       "totalAiSessions": "סשנים מ-AI",
       "aiTrafficShare": "נתח תנועת AI",
       "engineBreakdown": "תנועה לפי מנוע AI",
+      "homePage": "עמוד הבית",
       "topAiLandingPages": "דפי נחיתה מובילים מ-AI",
       "topPages": "דפים מובילים",
       "query": "שאילתה",
@@ -1645,6 +1649,9 @@
       "syncing": "מסנכרן...",
       "resync": "סנכרן מחדש",
       "stop": "עצור סנכרון",
+      "etaSeconds": "~{seconds} שניות נותרו",
+      "etaMinutes": "~{minutes} דק׳ {seconds} שנ׳ נותרו",
+      "etaHours": "~{hours} שע׳ {minutes} דק׳ נותרו",
       "starting": "מתחיל סנכרון...",
       "fetchingTypes": "מביא סוגי תוכן...",
       "fetchingEntities": "מביא {type}...",
@@ -1685,6 +1692,7 @@
     "draftWithName": "{entityName} בטיוטה",
     "scheduledWithName": "{entityName} מתוזמנים",
     "pendingWithName": "{entityName} ממתינים",
+    "editTypeName": "לחץ לשנות שם",
     "syncFailed": "הסנכרון נכשל",
     "syncSuccess": "האתר סונכרן בהצלחה",
     "noSiteSelected": "לא נבחר אתר",
@@ -1754,6 +1762,7 @@
       "detectHint": "זהה את פלטפורמת האתר שלך כדי לאפשר את אפשרויות החיבור הטובות ביותר.",
       "detecting": "מזהה...",
       "detectPlatform": "זהה פלטפורמה",
+      "redetect": "זהה מחדש",
       "nonWordPressTitle": "זוהה אתר שאינו WordPress",
       "nonWordPressDesc": "נשתמש בסריקת מפת אתר כדי לייבא את התוכן שלך. חלק מהתכונות המתקדמות עשויות להיות מוגבלות."
     },
@@ -2672,9 +2681,14 @@
         "canceled": "בוטל",
         "expired": "פג תוקף",
         "trialing": "בניסיון",
-        "past_due": "חוב בפיגור"
+        "past_due": "חוב בפיגור",
+        "depleted": "נוצל"
       },
-      "purchasedAddons": "תוספות שנרכשו"
+      "temporary": "זמני",
+      "purchasedAddons": "תוספות שנרכשו",
+      "cancelAddon": "בטל",
+      "cancelAddonConfirm": "האם אתה בטוח שברצונך לבטל תוספת זו? היא תישאר פעילה עד לחידוש תקופת החיוב הבאה.",
+      "cancelsAtRenewal": "מתבטל בחידוש"
     },
     "creditsSection": {
       "title": "קרדיטים AI",
@@ -2706,7 +2720,27 @@
         "INTERVIEW_CHAT": "צ'אט ראיון",
         "GENERIC": "פעולת AI",
         "IMAGE_ALT_OPTIMIZATION": "אופטימיזציית תמונה",
-        "ENTITY_REFRESH": "רענון תוכן"
+        "ENTITY_REFRESH": "רענון תוכן",
+        "REWRITE_PARAGRAPH": "שכתוב תוכן",
+        "COMPETITOR_ANALYSIS": "ניתוח מתחרים",
+        "CANNIBALIZATION_FIX": "תיקון קניבליזציה",
+        "FULL_ARTICLE": "כתיבת מאמר מלא",
+        "COMPETITOR_SCAN": "סריקת עמוד מתחרה",
+        "COMPETITOR_GAP_ANALYSIS": "ניתוח פערי תוכן",
+        "SKYSCRAPER_OUTLINE": "מתווה Skyscraper",
+        "ADDON_PURCHASE": "רכישת תוספת",
+        "ADDON_PURCHASE_WEBHOOK": "רכישת תוספת",
+        "PLAN_RENEWAL": "חידוש תוכנית",
+        "PLAN_ACTIVATION": "הפעלת תוכנית",
+        "BACKLINK_PURCHASE": "רכישת בקלינק",
+        "BACKLINK_SALE": "מכירת בקלינק",
+        "MANUAL": "התאמה ידנית",
+        "AUDIT_RESCAN": "סריקה מחדש",
+        "AUDIT_QUICK_FIX": "תיקון מהיר AI",
+        "AI_TITLE_FIX": "תיקון כותרת AI",
+        "A11Y_ALT_FIX": "תיקון טקסט חלופי AI",
+        "TRANSLATE_POST_TYPES": "תרגום סוגי תוכן",
+        "CONTENT_GENERATION": "יצירת תוכן"
       },
       "descriptions": {
         "crawledWebsite": "סריקה: {url}",
@@ -2720,9 +2754,32 @@
         "optimizedImageAlt": "אופטימיזצית Alt לתמונה ב {url}",
         "entityEnrichment": "העשרת תוכן עבור {url}",
         "websiteAnalysis": "ניתוח {url}",
-        "discoveredEntityTypes": "גילוי סוגי תוכן עבור {url}"
+        "discoveredEntityTypes": "גילוי סוגי תוכן עבור {url}",
+        "addonPurchase": "נרכשה {description}",
+        "planRenewal": "קרדיטים חודשו",
+        "rewriteParagraph": "שכתוב תוכן עבור {url}",
+        "competitorAnalysis": "ניתוח מתחרה עבור {url}",
+        "cannibalizationFix": "תיקון קניבליזציה עבור {url}",
+        "fullArticle": "יצירת מאמר מלא עבור {url}",
+        "interviewChat": "צ'אט ראיון עבור {url}",
+        "competitorScan": "סריקת עמוד מתחרה: {url}",
+        "competitorGapAnalysis": "ניתוח פערי תוכן עבור {url}",
+        "skyscraperOutline": "יצירת מתווה Skyscraper עבור {url}",
+        "suggestedSiteName": "הצעת שם אתר עבור {url}",
+        "backlinkPurchase": "רכישת בקלינק: {url}",
+        "backlinkSale": "מכירת בקלינק: {url}",
+        "planActivation": "קרדיטים ראשוניים מתוכנית",
+        "manualAdjustment": "התאמת קרדיטים ידנית",
+        "genericOperation": "פעולת AI עבור {url}",
+        "auditRescan": "סריקה מחדש של עמוד: {url}",
+        "auditQuickFix": "תיקון מהיר ב {url}",
+        "aiTitleFix": "תיקון כותרת: {count} עמודים",
+        "a11yAltFix": "תיקון טקסט חלופי עבור {url}",
+        "translatePostTypes": "תרגום סוגי תוכן",
+        "contentGeneration": "יצירת תוכן עבור {url}"
       },
-      "purchasedPacks": "חבילות קרדיטים שנרכשו"
+      "purchasedPacks": "חבילות קרדיטים שנרכשו",
+      "remaining": "נותרו"
     },
     "addonsSection": {
       "title": "תוספות זמינות",
@@ -2738,6 +2795,7 @@
       "noAddons": "אין תוספות זמינות כרגע.",
       "alreadyPurchased": "כבר רכשת תוספת זו",
       "alreadyPurchasedCount": "רכשת תוספת זו {count} פעמים",
+      "addonFallback": "תוספת",
       "items": {
         "advancedAnalytics": {
           "name": "אנליטיקה מתקדמת",
@@ -2787,6 +2845,14 @@
         "members": "חברי צוות",
         "type": "סוג",
         "actions": "פעולות"
+      },
+      "roleDescriptions": {
+        "owner": "בעל החשבון עם גישה מלאה (לא ניתן לשינוי)",
+        "ceo": "מנכ\"ל - גישה מלאה לכל המערכת",
+        "cfo": "סמנכ\"ל - פיקוח פיננסי וחיובים",
+        "manager": "מנהל צוות - פיקוח על תוכן וצוות",
+        "team_lead": "ראש צוות - ניהול תוכן ותיאום צוות",
+        "employee": "עובד - גישה בסיסית לתוכן"
       }
     },
     "permissionsSection": {

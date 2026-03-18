@@ -1124,7 +1124,7 @@ export default function SiteAuditPage() {
             </div>
             <h3 className={styles.pageDetailTitle}>
               <FileSearch size={18} />
-              {shortenUrl(pageDetail.url)}
+              <bdi dir="ltr">{shortenUrl(pageDetail.url)}</bdi>
             </h3>
 
             {/* Page metrics */}

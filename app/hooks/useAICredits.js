@@ -55,13 +55,16 @@ export function useAICredits() {
   }, []);
 
   /**
-   * Get current credits info
+   * Get current credits info (uses addon-aware values from balance polling)
    */
   const getCreditsInfo = useCallback(() => {
     if (!user) return { used: 0, limit: 0, remaining: 0 };
     
     const used = user.aiCreditsUsed || 0;
-    const limit = user.subscription?.plan?.limitations?.find(l => l.key === 'aiCredits')?.value || 0;
+    // Prefer addon-aware limit from balance polling, fall back to plan base
+    const limit = user.aiCreditsLimit != null
+      ? user.aiCreditsLimit
+      : (user.subscription?.plan?.limitations?.find(l => l.key === 'aiCredits')?.value || 0);
     const remaining = Math.max(0, limit - used);
     
     return { used, limit, remaining };

@@ -153,7 +153,7 @@ export function SEOFields({ seoData, onChange, siteUrl, slug, entityType, entity
             <div className={styles.seoPreviewTitle}>
               {seoData.title || t('entities.edit.seo.noTitle')}
             </div>
-            <div className={styles.seoPreviewUrl}>
+            <div className={styles.seoPreviewUrl} dir="ltr">
               {getPreviewUrl()}
             </div>
             <div className={styles.seoPreviewDescription}>

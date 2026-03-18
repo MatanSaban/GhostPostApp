@@ -415,7 +415,7 @@ export default function KeywordsStep({ state, dispatch, translations }) {
                       <div className={styles.gscPickerItemInfo}>
                         <div className={styles.gscPickerItemName}>
                           <Globe size={14} style={{ opacity: 0.5, flexShrink: 0 }} />
-                          {cleanUrl}
+                          <bdi dir="ltr">{cleanUrl}</bdi>
                         </div>
                         <div className={styles.gscPickerItemMeta}>
                           <span className={`${styles.gscPermBadge} ${isOwner ? styles.gscPermOwner : styles.gscPermOther}`}>

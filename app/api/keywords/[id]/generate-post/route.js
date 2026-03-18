@@ -12,6 +12,7 @@ import prisma from '@/lib/prisma';
 import { generateTextResponse, generateStructuredResponse, generateImage, MODELS } from '@/lib/ai/gemini';
 import { gatherImageContext, buildImagePrompt } from '@/lib/ai/image-context';
 import { z } from 'zod';
+import { uploadBase64ToCloudinary } from '@/lib/cloudinary-upload';
 
 const SESSION_COOKIE = 'user_session';
 
@@ -20,6 +21,7 @@ const PICSUM_URL = 'https://picsum.photos';
 
 /**
  * Generate a single AI image using Nano Banana 2, with Picsum fallback
+ * Images are uploaded to Cloudinary to avoid embedding large base64 data in HTML
  * @param {string} prompt - Image description
  * @param {string} aspectRatio - Aspect ratio (e.g. '16:9', '3:2')
  * @param {string} fallbackSeed - Seed for Picsum fallback
@@ -39,9 +41,19 @@ async function generateSingleImage(prompt, aspectRatio, fallbackSeed, fallbackSi
 
     if (images && images.length > 0 && images[0].base64) {
       console.log(`[generate-post] Image generated successfully (${Math.round(images[0].base64.length / 1024)}KB)`);
-      const mimeType = images[0].mimeType || 'image/png';
-      const dataUrl = `data:${mimeType};base64,${images[0].base64}`;
-      return { url: dataUrl, alt: prompt, isAI: true };
+      
+      // Upload to Cloudinary instead of embedding base64 in HTML
+      const slug = fallbackSeed.replace(/\s+/g, '-').toLowerCase().replace(/[^a-z0-9-]/g, '').slice(0, 60);
+      const publicId = `${slug}-${Date.now()}`;
+      try {
+        const cdnUrl = await uploadBase64ToCloudinary(images[0].base64, 'ghostpost/posts', publicId);
+        console.log(`[generate-post] Image uploaded to Cloudinary: ${cdnUrl.substring(0, 80)}`);
+        return { url: cdnUrl, alt: prompt, isAI: true };
+      } catch (uploadErr) {
+        console.warn('[generate-post] Cloudinary upload failed, using base64 fallback:', uploadErr.message);
+        const mimeType = images[0].mimeType || 'image/png';
+        return { url: `data:${mimeType};base64,${images[0].base64}`, alt: prompt, isAI: true };
+      }
     }
     throw new Error('No image data returned from Imagen');
   } catch (error) {

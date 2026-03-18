@@ -26,6 +26,7 @@ import { usePermissions } from '@/app/hooks/usePermissions';
 import { EmptyState, MyWebsitesCardsSkeleton } from '@/app/dashboard/components';
 import { Skeleton } from '@/app/dashboard/components/Skeleton';
 import { AddSiteModal } from '@/app/components/ui/AddSiteModal';
+import { decodeDisplayUrl } from '@/lib/urlDisplay';
 import styles from './MyWebsitesContent.module.css';
 
 // Platform display labels
@@ -328,7 +329,7 @@ export function MyWebsitesContent() {
                       rel="noopener noreferrer"
                       className={styles.siteUrl}
                     >
-                      {site.url.replace(/^https?:\/\//, '')}
+                      <bdi dir="ltr">{decodeDisplayUrl(site.url.replace(/^https?:\/\//, ''))}</bdi>
                       <ExternalLink size={12} />
                     </a>
                   </td>
@@ -401,7 +402,7 @@ export function MyWebsitesContent() {
                   rel="noopener noreferrer"
                   className={styles.cardUrl}
                 >
-                  {site.url.replace(/^https?:\/\//, '')}
+                  <bdi dir="ltr">{decodeDisplayUrl(site.url.replace(/^https?:\/\//, ''))}</bdi>
                   <ExternalLink size={12} />
                 </a>
 
