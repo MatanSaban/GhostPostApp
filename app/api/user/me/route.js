@@ -37,7 +37,6 @@ export async function GET() {
               select: {
                 id: true,
                 name: true,
-                aiCreditsUsedTotal: true,
                 subscription: {
                   select: {
                     id: true,
@@ -150,7 +149,6 @@ export async function GET() {
         // Account data
         accountId: currentAccount?.id || null,
         accountName: currentAccount?.name || null,
-        aiCreditsUsed: currentAccount?.aiCreditsUsedTotal || 0,
         role: currentMembership?.role || null,
         isOwner: currentMembership?.isOwner || false,
         // Usage stats

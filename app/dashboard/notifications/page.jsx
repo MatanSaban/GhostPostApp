@@ -334,6 +334,10 @@ export default function NotificationsPage() {
                         const action = notifData.action ? (t(`notifications.entityWebhook.actions.${notifData.action}`) || notifData.action) : '';
                         interpolationData = { ...notifData, entityType, action };
                       }
+                      if (notification.type === 'audit_complete' && notifData.deviceType) {
+                        const deviceLabel = t(`notifications.auditComplete.deviceTypes.${notifData.deviceType}`) || notifData.deviceType;
+                        interpolationData = { ...interpolationData, deviceLabel };
+                      }
                       const messageText = notification.message?.startsWith('notifications.')
                         ? t(notification.message, interpolationData)
                         : notification.message;

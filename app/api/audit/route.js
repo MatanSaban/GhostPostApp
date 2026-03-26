@@ -4,6 +4,51 @@ import prisma from '@/lib/prisma';
 import { runSiteAudit } from '@/lib/audit/site-auditor';
 import { enforceResourceLimit } from '@/lib/account-limits';
 
+/**
+ * Retry a Prisma query on transient MongoDB connection errors.
+ */
+async function withRetry(fn, retries = 2) {
+  try {
+    return await fn();
+  } catch (err) {
+    const isTransient =
+      err?.code === 'P2010' ||
+      err?.code === 'P2034' ||
+      err?.message?.includes('forcibly closed') ||
+      err?.message?.includes('ECONNRESET') ||
+      err?.message?.includes('write conflict') ||
+      err?.message?.includes('deadlock');
+    if (isTransient && retries > 0) {
+      const delay = 300 * (3 - retries);
+      console.warn(`[API/audit] Transient DB error — retrying in ${delay}ms (${retries} left)…`);
+      await new Promise(r => setTimeout(r, delay));
+      return withRetry(fn, retries - 1);
+    }
+    throw err;
+  }
+}
+
+// Fields sufficient for list view + polling (skips huge issues/pageResults)
+const LIGHT_SELECT = {
+  id: true,
+  siteId: true,
+  status: true,
+  deviceType: true,
+  score: true,
+  categoryScores: true,
+  pagesScanned: true,
+  pagesFound: true,
+  discoveryMethod: true,
+  progress: true,
+  screenshots: true,
+  summary: true,
+  summaryTranslations: true,
+  startedAt: true,
+  completedAt: true,
+  createdAt: true,
+  updatedAt: true,
+};
+
 const SESSION_COOKIE = 'user_session';
 
 async function getAuthenticatedUser() {
@@ -68,11 +113,11 @@ export async function GET(request) {
       return NextResponse.json({ error: 'Site not found' }, { status: 404 });
     }
 
-    // If specific audit requested
+    // If specific audit requested — return full document (with issues + pageResults)
     if (auditId) {
-      const audit = await prisma.siteAudit.findFirst({
-        where: { id: auditId, siteId },
-      });
+      const audit = await withRetry(() =>
+        prisma.siteAudit.findFirst({ where: { id: auditId, siteId } })
+      );
       if (!audit) {
         return NextResponse.json({ error: 'Audit not found' }, { status: 404 });
       }
@@ -85,12 +130,47 @@ export async function GET(request) {
       where.deviceType = deviceType;
     }
 
-    // Get all audits for the site, most recent first
-    const audits = await prisma.siteAudit.findMany({
-      where,
-      orderBy: { createdAt: 'desc' },
-      take: 20,
-    });
+    // Get audits for the site — LIGHT query (no issues/pageResults) for fast polling
+    const audits = await withRetry(() =>
+      prisma.siteAudit.findMany({
+        where,
+        select: LIGHT_SELECT,
+        orderBy: { createdAt: 'desc' },
+        take: 20,
+      })
+    );
+
+    // Auto-fail audits stuck in PENDING/RUNNING for >15 min
+    // (e.g. background process died after server restart)
+    const STALE_MS = 15 * 60 * 1000;
+    const now = Date.now();
+    for (const audit of audits) {
+      if (audit.status === 'PENDING' || audit.status === 'RUNNING') {
+        const started = audit.startedAt || audit.createdAt;
+        if (now - new Date(started).getTime() > STALE_MS) {
+          console.warn(`[API/audit] GET: marking stale audit ${audit.id} as FAILED`);
+          audit.status = 'FAILED';
+          audit.completedAt = new Date();
+          audit.score = 0;
+          // Fire-and-forget DB update
+          prisma.siteAudit.update({
+            where: { id: audit.id },
+            data: {
+              status: 'FAILED',
+              completedAt: new Date(),
+              score: 0,
+              issues: [{
+                type: 'technical',
+                severity: 'error',
+                message: 'audit.issues.auditTimedOut',
+                suggestion: 'audit.suggestions.retryAudit',
+                source: 'system',
+              }],
+            },
+          }).catch(() => {});
+        }
+      }
+    }
 
     // Also get the latest (for quick access)
     const latest = audits.length > 0 ? audits[0] : null;
@@ -136,16 +216,45 @@ export async function POST(request) {
     }
 
     // Check if there's already a running audit for this site
-    const runningAudit = await prisma.siteAudit.findFirst({
+    const runningAudits = await prisma.siteAudit.findMany({
       where: {
         siteId,
         status: { in: ['PENDING', 'RUNNING'] },
       },
     });
 
-    if (runningAudit) {
+    // Mark audits stuck for >15 min as FAILED so we don't block new scans
+    const STALE_MS = 15 * 60 * 1000;
+    const now = Date.now();
+    const stillRunning = [];
+
+    for (const audit of runningAudits) {
+      const started = audit.startedAt || audit.createdAt;
+      if (now - new Date(started).getTime() > STALE_MS) {
+        console.warn(`[API/audit] Marking stale audit ${audit.id} as FAILED (stuck since ${started})`);
+        await prisma.siteAudit.update({
+          where: { id: audit.id },
+          data: {
+            status: 'FAILED',
+            completedAt: new Date(),
+            score: 0,
+            issues: [{
+              type: 'technical',
+              severity: 'error',
+              message: 'audit.issues.auditTimedOut',
+              suggestion: 'audit.suggestions.retryAudit',
+              source: 'system',
+            }],
+          },
+        }).catch(() => {});
+      } else {
+        stillRunning.push(audit);
+      }
+    }
+
+    if (stillRunning.length > 0) {
       return NextResponse.json({ 
-        audits: [runningAudit],
+        audits: stillRunning,
         message: 'An audit is already running for this site',
       });
     }

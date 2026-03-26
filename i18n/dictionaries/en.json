@@ -648,7 +648,54 @@
       "ttfb": "TTFB",
       "psi": "PSI",
       "lcp": "LCP",
-      "cls": "CLS"
+      "cls": "CLS",
+      "tooltips": {
+        "url": "The page address that was scanned",
+        "status": "HTTP response status code",
+        "ttfb": "Time To First Byte — server response time",
+        "psi": "Google PageSpeed Insights performance score",
+        "lcp": "Largest Contentful Paint — main content load time",
+        "cls": "Cumulative Layout Shift — visual stability score",
+        "issues": "Number of issues found on this page"
+      },
+      "info": {
+        "url": {
+          "title": "Page URL",
+          "description": "The full address of the scanned page on your website.",
+          "details": "Each page on your site is scanned individually. The URL helps you identify which page has issues and navigate directly to it. Pages are discovered from your sitemap, WordPress API, or by crawling internal links."
+        },
+        "status": {
+          "title": "HTTP Status Code",
+          "description": "The server's response code when the page was requested.",
+          "details": "200 means the page loaded successfully. 301/302 indicate redirects. 404 means the page was not found. 500+ codes indicate server errors. Search engines use status codes to understand page availability — non-200 pages may be dropped from the index."
+        },
+        "ttfb": {
+          "title": "Time To First Byte (TTFB)",
+          "description": "How long it takes for the server to send the first byte of data.",
+          "details": "TTFB measures server responsiveness. A good TTFB is under 200ms. High TTFB can indicate slow hosting, unoptimized server code, or missing caching. It directly impacts all other loading metrics since the browser can't start rendering until data arrives."
+        },
+        "psi": {
+          "title": "PageSpeed Insights Score",
+          "description": "Google's overall performance score for this page (0-100).",
+          "details": "This score comes from Google PageSpeed Insights and reflects real-world loading performance. Scores 90+ are considered good, 50-89 need improvement, and below 50 are poor. The score factors in multiple metrics including LCP, CLS, FCP, and Total Blocking Time."
+        },
+        "lcp": {
+          "title": "Largest Contentful Paint (LCP)",
+          "description": "How long it takes for the largest visible element to fully render.",
+          "details": "LCP measures perceived load speed — when users see the main content appear. Google considers under 2.5 seconds good, 2.5-4.0 seconds needs improvement, and over 4.0 seconds poor. Common causes of slow LCP include unoptimized images, slow server response, and render-blocking resources."
+        },
+        "cls": {
+          "title": "Cumulative Layout Shift (CLS)",
+          "description": "How much the page layout shifts unexpectedly during loading.",
+          "details": "CLS measures visual stability. A score under 0.1 is good, 0.1-0.25 needs improvement, and above 0.25 is poor. Layout shifts happen when images load without dimensions, fonts swap, or ads inject content. High CLS frustrates users as they may accidentally click the wrong element."
+        },
+        "issues": {
+          "title": "Issues Count",
+          "description": "The total number of SEO and performance issues detected on this page.",
+          "details": "Issues include missing meta tags, heading problems, image optimization opportunities, security headers, and more. Each issue is categorized by severity — errors need immediate attention, warnings should be addressed soon, and info items are suggestions for improvement."
+        },
+        "gotIt": "Got it"
+      }
     },
     "na": "N/A",
     "jsErrors": "JS Errors",
@@ -728,6 +775,8 @@
       "serious": "Serious",
       "moderate": "Moderate",
       "minor": "Minor",
+      "passed": "Passed",
+      "passedChecks": "Passed Checks",
       "criticalSerious": "Critical / Serious",
       "totalElements": "total elements",
       "noMatchFilter": "No issues match the selected filter.",
@@ -1059,6 +1108,9 @@
     "volume": "Volume",
     "cpc": "CPC",
     "position": "Position",
+    "clicks": "Clicks",
+    "impressions": "Impressions",
+    "ctr": "CTR",
     "traffic": "Traffic",
     "trend": "Trend",
     "difficulty": "Difficulty",
@@ -1127,7 +1179,24 @@
       "medium": "Medium",
       "hard": "Hard"
     },
-    "generatePost": "Generate AI Post"
+    "generatePost": "Generate AI Post",
+    "tooltips": {
+      "keyword": "The keyword you are tracking",
+      "position": "Average position in Google results for the selected period",
+      "volume": "Impressions in Google for the selected period",
+      "clicks": "Number of clicks from Google for the selected period",
+      "impressions": "Number of times the site appeared in Google results",
+      "ctr": "Click-through rate from impressions",
+      "intent": "Search intent type (informational, commercial, etc.)",
+      "relatedPost": "Post on the site linked to this keyword",
+      "status": "Tracking status of the keyword",
+      "noChange": "{value} {metric} — no change from {period}",
+      "moreFromPrev": "{value} {metric} — {percent}% more than {period}",
+      "lessFromPrev": "{value} {metric} — {percent}% less than {period}",
+      "positionNoChange": "Position unchanged from {period}",
+      "positionUp": "Position improved by {percent}% from {period}",
+      "positionDown": "Position dropped by {percent}% from {period}"
+    }
   },
   "generatePost": {
     "title": "Generate AI Post",
@@ -1431,6 +1500,12 @@
       "internalLinksGood": "Good number of internal links found",
       "noFavicon": "No favicon detected",
       "faviconGood": "Favicon is present",
+      "metaRobotsNoindex": "Page is marked as noindex — search engines will not index this page",
+      "metaRobotsNofollow": "Page is marked as nofollow — search engines will not follow links on this page",
+      "metaRobotsGood": "No blocking robots directives found",
+      "robotsTxtBlocksAll": "robots.txt blocks all search engine crawlers (Disallow: /)",
+      "wpSearchEngineDiscouraged": "WordPress 'Discourage search engines from indexing this site' is enabled — this prevents all pages from being indexed",
+      "wpSearchEngineVisible": "WordPress search engine visibility is set to allow indexing",
       "robotsTxtFound": "robots.txt file found",
       "noRobotsTxt": "No robots.txt file found",
       "robotsTxtError": "Could not check robots.txt",
@@ -1511,6 +1586,10 @@
       "addLangAttribute": "Add a lang attribute to the HTML tag (e.g., lang=\"en\")",
       "addInternalLinks": "Add more internal links to improve site navigation and SEO",
       "addFavicon": "Add a favicon to improve brand recognition in browser tabs",
+      "removeNoindex": "Remove the noindex directive to allow search engines to index this page. If intentional, you can ignore this warning.",
+      "removeNofollow": "Remove the nofollow directive to allow search engines to follow links. If intentional, you can ignore this warning.",
+      "fixRobotsTxt": "Update robots.txt to allow search engine access — change 'Disallow: /' to allow crawling",
+      "fixWpSearchVisibility": "Go to WordPress Settings > Reading and uncheck 'Discourage search engines from indexing this site', or use the Fix button to change it from here",
       "addRobotsTxt": "Create a robots.txt file to guide search engine crawlers",
       "addSitemap": "Create an XML sitemap and submit it to search engines",
       "fixSitemap": "Verify your sitemap format follows the XML sitemap standard",
@@ -1536,6 +1615,9 @@
       "improveLcp": "Optimize the largest visible element — preload hero images, use CDN, reduce server response time",
       "improveCls": "Set explicit width/height on images and ads, avoid inserting content above existing content",
       "improveInp": "Reduce JavaScript execution time, break up long tasks, and use web workers for heavy processing"
+    },
+    "errors": {
+      "pluginUpdateRequired": "The WordPress plugin needs to be updated to support per-page noindex fixes. Please update the Ghost Post plugin on your WordPress site."
     }
   },
   "entities": {
@@ -3053,7 +3135,11 @@
     },
     "auditComplete": {
       "title": "Site Audit Complete",
-      "message": "{siteName} scored {score}/100"
+      "message": "{siteName} scored {score}/100 ({deviceLabel})",
+      "deviceTypes": {
+        "desktop": "Desktop",
+        "mobile": "Mobile"
+      }
     },
     "auditFailed": {
       "title": "Site Audit Failed",
@@ -5632,6 +5718,22 @@
       "noindexDetected": {
         "title": "Pages Marked as Noindex",
         "description": "{count} published pages are set to noindex and won't appear in search results. Verify this is intentional."
+      },
+      "cannibalization": {
+        "title": "Keyword Cannibalization Detected",
+        "description": "{count} keywords are ranking with multiple pages, diluting your ranking power. Consolidate content to avoid competing with yourself."
+      },
+      "newKeywordOpportunities": {
+        "title": "Untracked Keywords Driving Traffic",
+        "description": "{count} search queries are bringing traffic but aren't in your keyword tracking. Add them to monitor and optimize."
+      },
+      "lowCtrForPosition": {
+        "title": "Underperforming Click-Through Rates",
+        "description": "{count} pages have CTR significantly below expected for their ranking position. Improving titles and descriptions could increase clicks."
+      },
+      "contentWithoutTraffic": {
+        "title": "Published Content With No Organic Traffic",
+        "description": "{count} published pages have received zero organic impressions in the last 30 days. They may need SEO optimization or internal linking."
       }
     },
     "detailLabels": {
@@ -5655,7 +5757,12 @@
       "andMore": "and {count} more...",
       "entity": "Entity",
       "viewEntity": "View",
-      "seoPriority": "Priority"
+      "seoPriority": "Priority",
+      "pageCount": "Pages Competing",
+      "actualCtr": "Actual CTR",
+      "expectedCtr": "Expected CTR",
+      "ctr": "CTR",
+      "publishedAt": "Published"
     },
     "seoPriorities": {
       "high": "High",

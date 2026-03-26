@@ -58,6 +58,35 @@ export default function DashboardContent({ translations }) {
     }
   };
 
+  // GSC data has a 2–3 day reporting delay — offset end date so we only
+  // query finalised data. Start date is relative to the offset end so the
+  // window is the full requested duration of complete data.
+  const GSC_DELAY_DAYS = 3;
+  const getGscDateRange = (preset) => {
+    const end = new Date();
+    end.setDate(end.getDate() - GSC_DELAY_DAYS);
+    const start = new Date(end);
+    switch (preset) {
+      case '7d':
+        start.setDate(start.getDate() - 7);
+        return { start: fmtDate(start), end: fmtDate(end) };
+      case '30d':
+        start.setDate(start.getDate() - 30);
+        return { start: fmtDate(start), end: fmtDate(end) };
+      case '90d':
+        start.setDate(start.getDate() - 90);
+        return { start: fmtDate(start), end: fmtDate(end) };
+      case '180d':
+        start.setDate(start.getDate() - 180);
+        return { start: fmtDate(start), end: fmtDate(end) };
+      case '365d':
+        start.setDate(start.getDate() - 365);
+        return { start: fmtDate(start), end: fmtDate(end) };
+      default:
+        return null;
+    }
+  };
+
   /**
    * Compute the previous comparison period for a given date range.
    * - Presets: same duration immediately before (e.g. 7d → previous 7 days)
@@ -100,7 +129,7 @@ export default function DashboardContent({ translations }) {
 
   // GSC KPIs date range
   const [gscPreset, setGscPreset] = useState('30d');
-  const gscDefault = getDateRange('30d');
+  const gscDefault = getGscDateRange('30d');
   const [gscStartDate, setGscStartDate] = useState(gscDefault.start);
   const [gscEndDate, setGscEndDate] = useState(gscDefault.end);
   const [gscLoading, setGscLoading] = useState(false);
@@ -108,7 +137,7 @@ export default function DashboardContent({ translations }) {
 
   // Top Keywords date range
   const [keywordsPreset, setKeywordsPreset] = useState('30d');
-  const keywordsDefault = getDateRange('30d');
+  const keywordsDefault = getGscDateRange('30d');
   const [keywordsStartDate, setKeywordsStartDate] = useState(keywordsDefault.start);
   const [keywordsEndDate, setKeywordsEndDate] = useState(keywordsDefault.end);
   const [keywordsLoading, setKeywordsLoading] = useState(false);
@@ -116,7 +145,7 @@ export default function DashboardContent({ translations }) {
 
   // Top Pages date range
   const [pagesPreset, setPagesPreset] = useState('30d');
-  const pagesDefault = getDateRange('30d');
+  const pagesDefault = getGscDateRange('30d');
   const [pagesStartDate, setPagesStartDate] = useState(pagesDefault.start);
   const [pagesEndDate, setPagesEndDate] = useState(pagesDefault.end);
   const [pagesLoading, setPagesLoading] = useState(false);
@@ -224,11 +253,11 @@ export default function DashboardContent({ translations }) {
   }, [chartStartDate, chartEndDate, data?.gaConnected, selectedSite?.id]);
 
   // ─── Generic preset handler factory ───
-  const makePresetHandler = (setPreset, setStart, setEnd) => (e) => {
+  const makePresetHandler = (setPreset, setStart, setEnd, rangeFn = getDateRange) => (e) => {
     const value = e.target.value;
     setPreset(value);
     if (value !== 'custom') {
-      const range = getDateRange(value);
+      const range = rangeFn(value);
       if (range) {
         setStart(range.start);
         setEnd(range.end);
@@ -1837,7 +1866,7 @@ export default function DashboardContent({ translations }) {
                     <span className={styles.iconTooltip} data-tooltip={t.dataFromGSC}><GSCIcon /></span>
                     <DateRangeSelect
                       preset={gscPreset}
-                      onPresetChange={makePresetHandler(setGscPreset, setGscStartDate, setGscEndDate)}
+                      onPresetChange={makePresetHandler(setGscPreset, setGscStartDate, setGscEndDate, getGscDateRange)}
                       startDate={gscStartDate}
                       endDate={gscEndDate}
                       onStartChange={setGscStartDate}
@@ -1939,7 +1968,7 @@ export default function DashboardContent({ translations }) {
               headerRight={!data?.tokenError ?
                 <DateRangeSelect
                   preset={keywordsPreset}
-                  onPresetChange={makePresetHandler(setKeywordsPreset, setKeywordsStartDate, setKeywordsEndDate)}
+                  onPresetChange={makePresetHandler(setKeywordsPreset, setKeywordsStartDate, setKeywordsEndDate, getGscDateRange)}
                   startDate={keywordsStartDate}
                   endDate={keywordsEndDate}
                   onStartChange={setKeywordsStartDate}
@@ -1994,7 +2023,7 @@ export default function DashboardContent({ translations }) {
               headerRight={!data?.tokenError ?
                 <DateRangeSelect
                   preset={pagesPreset}
-                  onPresetChange={makePresetHandler(setPagesPreset, setPagesStartDate, setPagesEndDate)}
+                  onPresetChange={makePresetHandler(setPagesPreset, setPagesStartDate, setPagesEndDate, getGscDateRange)}
                   startDate={pagesStartDate}
                   endDate={pagesEndDate}
                   onStartChange={setPagesStartDate}

@@ -39,6 +39,10 @@
   border-inline-start: 4px solid var(--info-color, #3b82f6);
 }
 
+.card.impact_passed {
+  border-inline-start: 4px solid var(--success-color, #22c55e);
+}
+
 .cardIcon {
   flex-shrink: 0;
   display: flex;
@@ -63,6 +67,11 @@
 .impact_minor .cardIcon {
   color: var(--info-color, #3b82f6);
   background: rgba(59, 130, 246, 0.1);
+}
+
+.impact_passed .cardIcon {
+  color: var(--success-color, #22c55e);
+  background: rgba(34, 197, 94, 0.1);
 }
 
 .cardContent {
@@ -116,6 +125,11 @@
 .impactBadge.impact_minor {
   background: rgba(59, 130, 246, 0.12);
   color: var(--info-color);
+}
+
+.impactBadge.impact_passed {
+  background: rgba(34, 197, 94, 0.12);
+  color: var(--success-color, #22c55e);
 }
 
 .nodeCount {

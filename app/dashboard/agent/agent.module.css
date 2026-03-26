@@ -469,6 +469,23 @@
   margin: 0.75rem 0;
 }
 
+.detailSubSection {
+  margin-bottom: 1rem;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+.detailSubTitle {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--foreground);
+  margin-bottom: 0.4rem;
+  padding-bottom: 0.25rem;
+  border-bottom: 1px solid var(--border-light);
+}
+
 .detailStats {
   display: flex;
   gap: 1.25rem;

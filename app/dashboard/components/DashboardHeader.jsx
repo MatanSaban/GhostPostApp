@@ -207,6 +207,7 @@ export function DashboardHeader() {
       planName: planName,
       aiCreditsUsed: contextUser.aiCreditsUsed || 0,
       aiCreditsLimit: aiCreditsLimit,
+      creditsLoaded: contextUser.aiCreditsUsed !== undefined,
     };
   }, [contextUser, locale]);
 
@@ -439,6 +440,10 @@ export function DashboardHeader() {
                       const action = notifData.action ? (t(`notifications.entityWebhook.actions.${notifData.action}`) || notifData.action) : '';
                       interpolationData = { ...notifData, entityType, action };
                     }
+                    if (notification.type === 'audit_complete' && notifData.deviceType) {
+                      const deviceLabel = t(`notifications.auditComplete.deviceTypes.${notifData.deviceType}`) || notifData.deviceType;
+                      interpolationData = { ...interpolationData, deviceLabel };
+                    }
                     const messageText = notification.message?.startsWith('notifications.')
                       ? t(notification.message, interpolationData)
                       : notification.message;
@@ -556,7 +561,7 @@ export function DashboardHeader() {
                     <span>{user.planName || t(`user.plans.${user.plan}`)}</span>
                   </div>
                 </div>
-                {user.aiCreditsLimit > 0 && (
+                {user.aiCreditsLimit > 0 && user.creditsLoaded && (
                   <div className={styles.creditsProgressBar}>
                     <div 
                       className={styles.creditsProgressFill} 

@@ -961,28 +961,217 @@
   overflow-x: auto;
 }
 
-.pagesHeader {
-  display: grid;
-  grid-template-columns: 1fr 60px 70px 50px 60px 60px 55px 90px;
-  gap: 8px;
-  padding: 10px 16px;
-  background: rgba(0, 0, 0, 0.02);
-  border-bottom: 1px solid var(--border);
-  font-size: 0.625rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  color: var(--muted-foreground);
+.pagesTable {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
 }
 
-.phUrl { text-align: start; }
-.phStatus { text-align: center; }
-.phTtfb { text-align: center; }
-.phPsi { text-align: center; }
-.phLcp { text-align: center; }
-.phCls { text-align: center; }
-.phIssues { text-align: center; }
-.phActions { text-align: end; }
+.pagesHeader {
+  background: rgba(0, 0, 0, 0.02);
+  border-bottom: 1px solid var(--border);
+
+  th {
+    padding: 10px 12px;
+    font-size: 0.625rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--muted-foreground);
+    white-space: nowrap;
+  }
+}
+
+.thLabel {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  cursor: pointer;
+  transition: color 0.15s;
+
+  &:hover {
+    color: var(--primary, #7b2cbf);
+    z-index: 10;
+
+    &::after {
+      opacity: 1;
+      visibility: visible;
+    }
+  }
+
+  &::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--popover, #1f2937);
+    color: var(--popover-foreground, #f9fafb);
+    font-size: 0.625rem;
+    font-weight: 400;
+    line-height: 1.4;
+    text-transform: none;
+    letter-spacing: normal;
+    padding: 0.4rem 0.6rem;
+    border-radius: 6px;
+    white-space: normal;
+    width: max-content;
+    max-width: 220px;
+    text-align: center;
+    pointer-events: none;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.15s, visibility 0.15s;
+    z-index: 9999;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
+  }
+}
+
+.thInfoIcon {
+  opacity: 0.4;
+  flex-shrink: 0;
+  transition: opacity 0.15s;
+
+  .thLabel:hover & {
+    opacity: 1;
+  }
+}
+
+.phUrl { text-align: start; width: auto; }
+.phStatus { text-align: center; width: 60px; }
+.phTtfb { text-align: center; width: 70px; }
+.phPsi { text-align: center; width: 50px; }
+.phLcp { text-align: center; width: 60px; }
+.phCls { text-align: center; width: 60px; }
+.phIssues { text-align: center; width: 55px; }
+.phActions { text-align: end; width: 90px; }
+
+/* ─── Column Info Popup ────────────────────────────────────── */
+
+.columnPopupOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: columnFadeIn 0.15s ease;
+}
+
+@keyframes columnFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes columnSlideUp {
+  from { opacity: 0; transform: translateY(16px) scale(0.97); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.columnPopup {
+  background: var(--card);
+  border-radius: var(--radius-xl);
+  padding: 1.75rem;
+  max-width: 440px;
+  width: 90%;
+  position: relative;
+  animation: columnSlideUp 0.2s ease;
+  box-shadow: var(--shadow-lg);
+  border: 1px solid var(--border);
+}
+
+.columnPopupClose {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-sm);
+  border: none;
+  background: transparent;
+  color: var(--muted-foreground);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+
+  :global([dir="rtl"]) & {
+    right: auto;
+    left: 0.75rem;
+  }
+
+  &:hover {
+    background: var(--muted);
+    color: var(--foreground);
+  }
+}
+
+.columnPopupHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+}
+
+.columnPopupIconBadge {
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  color: #fff;
+}
+
+.columnPopupTitle {
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: var(--foreground);
+}
+
+.columnPopupSection {
+  margin-bottom: 1rem;
+}
+
+.columnPopupDescription {
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--foreground);
+  line-height: 1.5;
+  margin: 0;
+}
+
+.columnPopupDetails {
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+  line-height: 1.6;
+  margin: 0;
+}
+
+.columnPopupDismiss {
+  display: block;
+  width: 100%;
+  padding: 0.65rem;
+  margin-top: 0.5rem;
+  background: var(--primary);
+  color: var(--primary-foreground);
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.2s;
+
+  &:hover {
+    opacity: 0.9;
+  }
+}
 
 /* ─── Page Detail Modal ────────────────────────────────────── */
 
@@ -999,6 +1188,35 @@
   position: relative;
   cursor: default;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+}
+
+.pageDetailActions {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  position: absolute;
+  top: 1rem;
+  left: 1rem;
+  z-index: 1;
+}
+
+.pageDetailActionBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--muted, rgba(0, 0, 0, 0.08));
+  color: var(--foreground);
+  border: none;
+  cursor: pointer;
+  transition: background 0.2s;
+
+  &:hover {
+    background: var(--muted-foreground, rgba(0, 0, 0, 0.15));
+    color: var(--foreground);
+  }
 }
 
 .pageDetailTitle {
@@ -1050,6 +1268,10 @@
   font-weight: 600;
   color: var(--foreground);
   margin: 0 0 10px 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  justify-content: flex-start;
   padding-top: 16px;
   border-top: 1px solid var(--border);
 }
@@ -1432,7 +1654,7 @@
   }
 
   .pagesHeader {
-    grid-template-columns: 1fr 50px 40px 55px 90px;
+    th { padding: 10px 8px; }
   }
 
   .phLcp,

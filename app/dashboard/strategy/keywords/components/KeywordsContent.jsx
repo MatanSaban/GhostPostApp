@@ -2,9 +2,10 @@
 
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
-import { TrendingUp, TrendingDown, Minus, Search, Loader2, Tag, Trash2, Plus, X, Sparkles, BarChart3, Crosshair, Trophy, ChevronDown, Info, Navigation, ShoppingCart, DollarSign, ExternalLink, FileText, Wand2 } from 'lucide-react';
+import { TrendingUp, TrendingDown, Minus, Search, Loader2, Tag, Trash2, Plus, X, Sparkles, BarChart3, Crosshair, Trophy, ChevronDown, Info, Navigation, ShoppingCart, DollarSign, ExternalLink, FileText, Wand2, Calendar } from 'lucide-react';
 import { useSite } from '@/app/context/site-context';
 import { useTranslation } from '@/app/context/locale-context';
+import { emitCreditsUpdated } from '@/app/context/user-context';
 import { usePermissions } from '@/app/hooks/usePermissions';
 import { Skeleton } from '@/app/dashboard/components/Skeleton';
 import GeneratePostModal from './GeneratePostModal';
@@ -25,9 +26,63 @@ const getDifficultyLevel = (difficulty) => {
   return 'hard';
 };
 
+const fmtDate = (d) => d.toISOString().split('T')[0];
+
+const getDateRange = (preset) => {
+  const end = new Date();
+  end.setDate(end.getDate() - 3); // GSC has 2-3 day delay
+  const start = new Date(end);
+  switch (preset) {
+    case '7d':
+      start.setDate(start.getDate() - 7);
+      return { start: fmtDate(start), end: fmtDate(end) };
+    case '30d':
+      start.setDate(start.getDate() - 30);
+      return { start: fmtDate(start), end: fmtDate(end) };
+    case '90d':
+      start.setDate(start.getDate() - 90);
+      return { start: fmtDate(start), end: fmtDate(end) };
+    case '180d':
+      start.setDate(start.getDate() - 180);
+      return { start: fmtDate(start), end: fmtDate(end) };
+    case '365d':
+      start.setDate(start.getDate() - 365);
+      return { start: fmtDate(start), end: fmtDate(end) };
+    default:
+      return null;
+  }
+};
+
+const getPreviousPeriod = (startStr, endStr, preset) => {
+  const s = new Date(startStr + 'T00:00:00');
+  const e = new Date(endStr + 'T00:00:00');
+  if (preset === 'custom') {
+    const ps = new Date(s);
+    ps.setFullYear(ps.getFullYear() - 1);
+    const pe = new Date(e);
+    pe.setFullYear(pe.getFullYear() - 1);
+    return { start: fmtDate(ps), end: fmtDate(pe) };
+  }
+  const diffMs = e.getTime() - s.getTime();
+  const pe = new Date(s);
+  pe.setDate(pe.getDate() - 1);
+  const ps = new Date(pe.getTime() - diffMs);
+  return { start: fmtDate(ps), end: fmtDate(pe) };
+};
+
 function KeywordsPageSkeleton() {
   return (
     <>
+      {/* Filter Tabs Skeleton */}
+      <div className={styles.filterTabs}>
+        <div className={styles.filterButtons}>
+          {Array.from({ length: 5 }).map((_, i) => (
+            <Skeleton key={i} width={`${60 + i * 8}px`} height="2rem" borderRadius="full" />
+          ))}
+        </div>
+        <Skeleton width="7rem" height="1.75rem" borderRadius="md" />
+      </div>
+
       {/* Stat Cards Skeleton */}
       <div className={styles.statsRow}>
         {['purple', 'blue', 'green', 'orange'].map((color) => (
@@ -47,13 +102,6 @@ function KeywordsPageSkeleton() {
       {/* Add Keyword Button Skeleton */}
       <Skeleton width="9rem" height="2.25rem" borderRadius="md" className={styles.skeletonAddBtn} />
 
-      {/* Filter Tabs Skeleton */}
-      <div className={styles.filterTabs}>
-        {Array.from({ length: 5 }).map((_, i) => (
-          <Skeleton key={i} width={`${60 + i * 8}px`} height="2rem" borderRadius="full" />
-        ))}
-      </div>
-
       {/* Table Skeleton */}
       <div className={styles.card}>
         <div className={styles.cardHeader}>
@@ -66,6 +114,9 @@ function KeywordsPageSkeleton() {
           <Skeleton width="4rem" height="0.75rem" borderRadius="sm" />
           <Skeleton width="3rem" height="0.75rem" borderRadius="sm" />
           <Skeleton width="3rem" height="0.75rem" borderRadius="sm" />
+          <Skeleton width="3rem" height="0.75rem" borderRadius="sm" />
+          <Skeleton width="3rem" height="0.75rem" borderRadius="sm" />
+          <Skeleton width="2rem" height="0.75rem" borderRadius="sm" />
           <Skeleton width="3rem" height="0.75rem" borderRadius="sm" />
           <Skeleton width="4rem" height="0.75rem" borderRadius="sm" />
           <Skeleton width="3rem" height="0.75rem" borderRadius="sm" />
@@ -82,6 +133,15 @@ function KeywordsPageSkeleton() {
               </div>
               <div className={`${styles.cell} ${styles.volumeCell}`}>
                 <Skeleton width="3rem" height="0.875rem" borderRadius="sm" />
+              </div>
+              <div className={`${styles.cell} ${styles.gscMetricCell}`}>
+                <Skeleton width="2.5rem" height="0.875rem" borderRadius="sm" />
+              </div>
+              <div className={`${styles.cell} ${styles.gscMetricCell}`}>
+                <Skeleton width="3rem" height="0.875rem" borderRadius="sm" />
+              </div>
+              <div className={`${styles.cell} ${styles.gscMetricCell}`}>
+                <Skeleton width="2rem" height="0.875rem" borderRadius="sm" />
               </div>
               <div className={`${styles.cell} ${styles.intentCell}`}>
                 <Skeleton width="4rem" height="1.4rem" borderRadius="full" />
@@ -122,8 +182,13 @@ export function KeywordsContent() {
   const [addError, setAddError] = useState('');
   const [editingStatus, setEditingStatus] = useState(null); // keywordId being edited
   const [editingIntent, setEditingIntent] = useState(null); // keywordId being edited
-  const [updatingKeyword, setUpdatingKeyword] = useState(null); // keywordId being updated
+  const [updatingKeywords, setUpdatingKeywords] = useState(new Set()); // keywordIds being updated
   const [generatePostKeyword, setGeneratePostKeyword] = useState(null); // keyword for post generation modal
+  const [gscData, setGscData] = useState(null); // GSC metrics keyed by query
+  const [gscLoading, setGscLoading] = useState(false);
+  const [gscPreset, setGscPreset] = useState('30d');
+  const [gscCustomStart, setGscCustomStart] = useState('');
+  const [gscCustomEnd, setGscCustomEnd] = useState('');
   const dropdownRef = useRef(null);
 
   // Close dropdowns when clicking outside
@@ -138,16 +203,45 @@ export function KeywordsContent() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  // Stop loading if site context resolved with no sites
   useEffect(() => {
-    if (!selectedSite?.id) {
-      // Only stop loading if site context finished resolving and there's truly no site
-      if (!isSiteLoading) {
-        setIsLoading(false);
-      }
-      return;
+    if (!isSiteLoading && !selectedSite?.id) {
+      setIsLoading(false);
     }
+  }, [isSiteLoading, selectedSite?.id]);
+
+  useEffect(() => {
+    if (!selectedSite?.id) return;
     fetchKeywords(selectedSite.id);
-  }, [selectedSite?.id, isSiteLoading]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedSite?.id]);
+
+  // Re-fetch GSC data when date range changes
+  useEffect(() => {
+    if (!selectedSite?.id || keywords.length === 0) return;
+    if (gscPreset === 'custom' && (!gscCustomStart || !gscCustomEnd)) return;
+    fetchGSCData(selectedSite.id, keywords.map(k => k.keyword));
+  }, [gscPreset, gscCustomStart, gscCustomEnd]);
+
+  const getPeriodName = () => {
+    const names = {
+      '7d': t('dashboard.comparison.vsPrev7'),
+      '30d': t('dashboard.comparison.vsPrev30'),
+      '90d': t('dashboard.comparison.vsPrev90'),
+      '180d': t('dashboard.comparison.vsPrev180'),
+      '365d': t('dashboard.comparison.vsPrev365'),
+    };
+    if (gscPreset !== 'custom') {
+      const name = names[gscPreset] || '';
+      return name.replace(/^(vs |מול )/, '');
+    }
+    const s = new Date(gscCustomStart + 'T00:00:00');
+    const e = new Date(gscCustomEnd + 'T00:00:00');
+    s.setFullYear(s.getFullYear() - 1);
+    e.setFullYear(e.getFullYear() - 1);
+    const fmt = (d) => d.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+    return `${fmt(s)} – ${fmt(e)}`;
+  };
 
   const fetchKeywords = async (siteId) => {
     try {
@@ -155,12 +249,51 @@ export function KeywordsContent() {
       const res = await fetch(`/api/keywords?siteId=${siteId}`);
       if (res.ok) {
         const data = await res.json();
-        setKeywords(data.keywords || []);
+        const kws = data.keywords || [];
+        setKeywords(kws);
+        // Fetch GSC data for all tracked keywords
+        if (kws.length > 0) {
+          fetchGSCData(siteId, kws.map(k => k.keyword));
+        }
       }
     } catch (err) {
       console.error('Error fetching keywords:', err);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const fetchGSCData = async (siteId, keywordList) => {
+    setGscLoading(true);
+    try {
+      let start, end;
+      if (gscPreset === 'custom' && gscCustomStart && gscCustomEnd) {
+        start = gscCustomStart;
+        end = gscCustomEnd;
+      } else {
+        const range = getDateRange(gscPreset);
+        if (!range) return;
+        start = range.start;
+        end = range.end;
+      }
+      const prev = getPreviousPeriod(start, end, gscPreset);
+
+      const keywordsParam = encodeURIComponent(keywordList.join(','));
+      const res = await fetch(
+        `/api/dashboard/stats/gsc?siteId=${siteId}&section=trackedKeywords&keywords=${keywordsParam}&startDate=${start}&endDate=${end}&compareStartDate=${prev.start}&compareEndDate=${prev.end}`
+      );
+      if (res.ok) {
+        const json = await res.json();
+        const map = new Map();
+        for (const q of (json.trackedQueries || [])) {
+          map.set(q.query.toLowerCase().trim(), q);
+        }
+        setGscData(map);
+      }
+    } catch (err) {
+      console.error('Error fetching GSC data:', err);
+    } finally {
+      setGscLoading(false);
     }
   };
 
@@ -198,7 +331,7 @@ export function KeywordsContent() {
   };
 
   const handleUpdateStatus = async (keywordId, newStatus) => {
-    setUpdatingKeyword(keywordId);
+    setUpdatingKeywords(prev => new Set(prev).add(keywordId));
     try {
       const res = await fetch('/api/keywords', {
         method: 'PATCH',
@@ -214,7 +347,7 @@ export function KeywordsContent() {
     } catch (err) {
       console.error('Error updating status:', err);
     } finally {
-      setUpdatingKeyword(null);
+      setUpdatingKeywords(prev => { const s = new Set(prev); s.delete(keywordId); return s; });
       setEditingStatus(null);
     }
   };
@@ -223,7 +356,7 @@ export function KeywordsContent() {
     const keyword = keywords.find(kw => kw.id === keywordId);
     if (!keyword) return;
 
-    setUpdatingKeyword(keywordId);
+    setUpdatingKeywords(prev => new Set(prev).add(keywordId));
     
     // Get current intents array (or empty)
     const currentIntents = keyword.intents || [];
@@ -253,12 +386,12 @@ export function KeywordsContent() {
     } catch (err) {
       console.error('Error updating intents:', err);
     } finally {
-      setUpdatingKeyword(null);
+      setUpdatingKeywords(prev => { const s = new Set(prev); s.delete(keywordId); return s; });
     }
   };
 
   const handleClearIntents = async (keywordId) => {
-    setUpdatingKeyword(keywordId);
+    setUpdatingKeywords(prev => new Set(prev).add(keywordId));
     try {
       const res = await fetch('/api/keywords', {
         method: 'PATCH',
@@ -273,13 +406,13 @@ export function KeywordsContent() {
     } catch (err) {
       console.error('Error clearing intents:', err);
     } finally {
-      setUpdatingKeyword(null);
+      setUpdatingKeywords(prev => { const s = new Set(prev); s.delete(keywordId); return s; });
       setEditingIntent(null);
     }
   };
 
   const handleAnalyzeIntent = async (keywordId) => {
-    setUpdatingKeyword(keywordId);
+    setUpdatingKeywords(prev => new Set(prev).add(keywordId));
     try {
       const res = await fetch('/api/keywords', {
         method: 'PATCH',
@@ -291,11 +424,14 @@ export function KeywordsContent() {
         setKeywords(prev => prev.map(kw => 
           kw.id === keywordId ? { ...kw, intents: data.keyword.intents } : kw
         ));
+        if (data.creditsUsed) {
+          emitCreditsUpdated();
+        }
       }
     } catch (err) {
       console.error('Error analyzing intent:', err);
     } finally {
-      setUpdatingKeyword(null);
+      setUpdatingKeywords(prev => { const s = new Set(prev); s.delete(keywordId); return s; });
     }
   };
 
@@ -344,13 +480,26 @@ export function KeywordsContent() {
     ? keywords
     : keywords.filter(kw => kw.status === filter.toUpperCase());
 
-  // Stats
+  // Stats — aggregate from GSC data for the selected date range
   const totalKeywords = keywords.length;
-  const trackingCount = keywords.filter(kw => kw.status === 'TRACKING').length;
-  const targetingCount = keywords.filter(kw => kw.status === 'TARGETING').length;
-  const rankingCount = keywords.filter(kw => kw.status === 'RANKING').length;
-  const withPosition = keywords.filter(kw => kw.position);
-  const top10Count = withPosition.filter(kw => kw.position <= 10).length;
+  const gscStats = (() => {
+    if (!gscData) return { clicks: 0, impressions: 0, avgPosition: 0, top10: 0 };
+    let clicks = 0, impressions = 0, posSum = 0, posCount = 0, top10 = 0;
+    for (const kw of keywords) {
+      const g = gscData.get(kw.keyword.toLowerCase().trim());
+      if (!g) continue;
+      clicks += g.clicks || 0;
+      impressions += g.impressions || 0;
+      const pos = parseFloat(g.position);
+      if (pos) { posSum += pos; posCount++; if (pos <= 10) top10++; }
+    }
+    return {
+      clicks,
+      impressions,
+      avgPosition: posCount ? (posSum / posCount).toFixed(1) : 0,
+      top10,
+    };
+  })();
 
   const getDifficultyText = (level) => {
     switch (level) {
@@ -359,6 +508,49 @@ export function KeywordsContent() {
       case 'hard': return t('keywordStrategy.hard');
       default: return '';
     }
+  };
+
+  const getGSCMetrics = (keyword) => {
+    if (!gscData) return null;
+    return gscData.get(keyword.toLowerCase().trim()) || null;
+  };
+
+  const changeTip = (change, value, metric) => {
+    if (change == null) return undefined;
+    const period = getPeriodName();
+    if (change === 0) return t('keywordStrategy.tooltips.noChange', { value, metric, period });
+    return change > 0
+      ? t('keywordStrategy.tooltips.moreFromPrev', { value, metric, percent: Math.abs(change), period })
+      : t('keywordStrategy.tooltips.lessFromPrev', { value, metric, percent: Math.abs(change), period });
+  };
+
+  const positionTip = (change) => {
+    if (change == null) return undefined;
+    const period = getPeriodName();
+    if (change === 0) return t('keywordStrategy.tooltips.positionNoChange', { period });
+    return change > 0
+      ? t('keywordStrategy.tooltips.positionUp', { percent: Math.abs(change), period })
+      : t('keywordStrategy.tooltips.positionDown', { percent: Math.abs(change), period });
+  };
+
+  const ChangeBadge = ({ value, tooltip }) => {
+    if (value == null) return null;
+    const isZero = value === 0;
+    const isUp = value > 0;
+    const cls = isZero ? styles.changeBadgeNeutral : isUp ? styles.changeBadgeUp : styles.changeBadgeDown;
+    return (
+      <span
+        className={`${styles.changeBadge} ${cls} ${tooltip ? styles.hasTooltip : ''}`}
+        data-tooltip={tooltip || undefined}
+      >
+        {isZero ? '0% —' : <>{isUp ? '↑' : '↓'}{Math.abs(value)}%</>}
+      </span>
+    );
+  };
+
+  const fmtNum = (n) => {
+    if (n == null) return '—';
+    return n.toLocaleString();
   };
 
   if (isSiteLoading || isLoading) {
@@ -376,6 +568,65 @@ export function KeywordsContent() {
 
   return (
     <>
+      {/* Filter Tabs */}
+      <div className={styles.filterTabs}>
+        <div className={styles.filterButtons}>
+          {['all', 'tracking', 'targeting', 'ranking', 'archived'].map((f) => (
+            <button
+              key={f}
+              className={`${styles.filterTab} ${filter === f ? styles.active : ''}`}
+              onClick={() => setFilter(f)}
+            >
+              {t(`keywordStrategy.filter.${f}`)}
+              <span className={styles.filterCount}>
+                {f === 'all' ? keywords.length : keywords.filter(kw => kw.status === f.toUpperCase()).length}
+              </span>
+            </button>
+          ))}
+        </div>
+        <div className={styles.dateRangeSelect}>
+          <select
+            className={styles.chartDateSelect}
+            value={gscPreset}
+            onChange={(e) => setGscPreset(e.target.value)}
+            disabled={gscLoading}
+          >
+            <option value="7d">{t('dashboard.dateRange.last7')}</option>
+            <option value="30d">{t('dashboard.dateRange.last30')}</option>
+            <option value="90d">{t('dashboard.dateRange.last90')}</option>
+            <option value="180d">{t('dashboard.dateRange.last180')}</option>
+            <option value="365d">{t('dashboard.dateRange.last365')}</option>
+            <option value="custom">{t('dashboard.dateRange.custom')}</option>
+          </select>
+          {gscPreset === 'custom' && (
+            <>
+              <label className={styles.chartDateLabel}>
+                <span className={styles.chartDateLabelText}>{t('common.from')}</span>
+                <input
+                  type="date"
+                  className={styles.chartDateInput}
+                  value={gscCustomStart}
+                  onChange={(e) => setGscCustomStart(e.target.value)}
+                  max={gscCustomEnd || fmtDate(new Date())}
+                />
+              </label>
+              <span className={styles.chartDateSeparator}>—</span>
+              <label className={styles.chartDateLabel}>
+                <span className={styles.chartDateLabelText}>{t('common.to')}</span>
+                <input
+                  type="date"
+                  className={styles.chartDateInput}
+                  value={gscCustomEnd}
+                  onChange={(e) => setGscCustomEnd(e.target.value)}
+                  min={gscCustomStart}
+                  max={fmtDate(new Date())}
+                />
+              </label>
+            </>
+          )}
+        </div>
+      </div>
+
       {/* Stats Row */}
       <div className={styles.statsRow}>
         <div className={styles.statCard}>
@@ -399,8 +650,8 @@ export function KeywordsContent() {
                 <BarChart3 className={styles.statIcon} />
               </div>
             </div>
-            <span className={styles.statLabel}>{t('keywordStrategy.tracking')}</span>
-            <span className={styles.statValue}>{trackingCount}</span>
+            <span className={styles.statLabel}>{t('keywordStrategy.clicks')}</span>
+            {gscLoading ? <Skeleton width="3rem" height="1.4rem" borderRadius="sm" /> : <span className={styles.statValue}>{gscStats.clicks.toLocaleString()}</span>}
           </div>
         </div>
 
@@ -413,7 +664,7 @@ export function KeywordsContent() {
               </div>
             </div>
             <span className={styles.statLabel}>{t('keywordStrategy.topRankings')}</span>
-            <span className={styles.statValue}>{top10Count}</span>
+            {gscLoading ? <Skeleton width="3rem" height="1.4rem" borderRadius="sm" /> : <span className={styles.statValue}>{gscStats.top10}</span>}
           </div>
         </div>
 
@@ -425,8 +676,8 @@ export function KeywordsContent() {
                 <Crosshair className={styles.statIcon} />
               </div>
             </div>
-            <span className={styles.statLabel}>{t('keywordStrategy.targeting')}</span>
-            <span className={styles.statValue}>{targetingCount}</span>
+            <span className={styles.statLabel}>{t('keywordStrategy.impressions')}</span>
+            {gscLoading ? <Skeleton width="3rem" height="1.4rem" borderRadius="sm" /> : <span className={styles.statValue}>{gscStats.impressions.toLocaleString()}</span>}
           </div>
         </div>
       </div>
@@ -474,22 +725,6 @@ export function KeywordsContent() {
         )
       )}
 
-      {/* Filter Tabs */}
-      <div className={styles.filterTabs}>
-        {['all', 'tracking', 'targeting', 'ranking', 'archived'].map((f) => (
-          <button
-            key={f}
-            className={`${styles.filterTab} ${filter === f ? styles.active : ''}`}
-            onClick={() => setFilter(f)}
-          >
-            {t(`keywordStrategy.filter.${f}`)}
-            <span className={styles.filterCount}>
-              {f === 'all' ? keywords.length : keywords.filter(kw => kw.status === f.toUpperCase()).length}
-            </span>
-          </button>
-        ))}
-      </div>
-
       {/* Keywords Table */}
       <div className={styles.card}>
         <div className={styles.cardHeader}>
@@ -514,18 +749,24 @@ export function KeywordsContent() {
         ) : (
           <>
             <div className={styles.tableHeader}>
-              <span>{t('keywordStrategy.keyword')}</span>
-              <span>{t('keywordStrategy.position')}</span>
-              <span>{t('keywordStrategy.volume')}</span>
-              <span>{t('keywordStrategy.intent.label')}</span>
-              <span>{t('keywordStrategy.columns.relatedPost')}</span>
-              <span>{t('keywordStrategy.status')}</span>
+              <span className={styles.hasTooltip} data-tooltip={t('keywordStrategy.tooltips.keyword')}>{t('keywordStrategy.keyword')}</span>
+              <span className={styles.hasTooltip} data-tooltip={t('keywordStrategy.tooltips.position')}>{t('keywordStrategy.position')}</span>
+              <span className={styles.hasTooltip} data-tooltip={t('keywordStrategy.tooltips.volume')}>{t('keywordStrategy.volume')}</span>
+              <span className={styles.hasTooltip} data-tooltip={t('keywordStrategy.tooltips.clicks')}>{t('keywordStrategy.clicks')}</span>
+              <span className={styles.hasTooltip} data-tooltip={t('keywordStrategy.tooltips.impressions')}>{t('keywordStrategy.impressions')}</span>
+              <span className={styles.hasTooltip} data-tooltip={t('keywordStrategy.tooltips.ctr')}>{t('keywordStrategy.ctr')}</span>
+              <span className={styles.hasTooltip} data-tooltip={t('keywordStrategy.tooltips.intent')}>{t('keywordStrategy.intent.label')}</span>
+              <span className={styles.hasTooltip} data-tooltip={t('keywordStrategy.tooltips.relatedPost')}>{t('keywordStrategy.columns.relatedPost')}</span>
+              <span className={styles.hasTooltip} data-tooltip={t('keywordStrategy.tooltips.status')}>{t('keywordStrategy.status')}</span>
               <span></span>
             </div>
             <div className={styles.tableBody}>
               {filteredKeywords.map((kw) => {
                 const diffLevel = getDifficultyLevel(kw.difficulty);
-                const isUpdating = updatingKeyword === kw.id;
+                const isUpdating = updatingKeywords.has(kw.id);
+                const gsc = getGSCMetrics(kw.keyword);
+                const position = gsc?.position ?? kw.position;
+                const volume = gsc?.impressions ?? kw.searchVolume;
                 return (
                   <div key={kw.id} className={styles.tableRow}>
                     <div className={styles.keywordCell}>
@@ -545,16 +786,51 @@ export function KeywordsContent() {
                       )}
                     </div>
                     <div className={`${styles.cell} ${styles.positionCell}`}>
-                      {kw.position ? (
-                        <span className={`${styles.positionBadge} ${styles[getPositionClass(kw.position)]}`}>
-                          #{kw.position}
-                        </span>
+                      {gscLoading ? (
+                        <Skeleton width="2.5rem" height="1.5rem" borderRadius="full" />
+                      ) : position ? (
+                        <>
+                          <span className={`${styles.positionBadge} ${styles[getPositionClass(position)]}`}>
+                            #{Math.round(position)}
+                          </span>
+                          {gsc && <ChangeBadge value={gsc.positionChange} tooltip={positionTip(gsc.positionChange)} />}
+                        </>
                       ) : (
                         <span className={styles.noData}>—</span>
                       )}
                     </div>
                     <div className={`${styles.cell} ${styles.volumeCell}`}>
-                      {kw.searchVolume ? kw.searchVolume.toLocaleString() : '—'}
+                      {gscLoading ? <Skeleton width="3rem" height="0.875rem" borderRadius="sm" /> : volume ? fmtNum(volume) : '—'}
+                    </div>
+                    <div className={`${styles.cell} ${styles.gscMetricCell}`}>
+                      {gscLoading ? (
+                        <Skeleton width="2.5rem" height="0.875rem" borderRadius="sm" />
+                      ) : (
+                        <>
+                          {gsc ? fmtNum(gsc.clicks) : '—'}
+                          {gsc && <ChangeBadge value={gsc.clicksChange} tooltip={changeTip(gsc.clicksChange, fmtNum(gsc.clicks), t('keywordStrategy.clicks'))} />}
+                        </>
+                      )}
+                    </div>
+                    <div className={`${styles.cell} ${styles.gscMetricCell}`}>
+                      {gscLoading ? (
+                        <Skeleton width="3rem" height="0.875rem" borderRadius="sm" />
+                      ) : (
+                        <>
+                          {gsc ? fmtNum(gsc.impressions) : '—'}
+                          {gsc && <ChangeBadge value={gsc.impressionsChange} tooltip={changeTip(gsc.impressionsChange, fmtNum(gsc.impressions), t('keywordStrategy.impressions'))} />}
+                        </>
+                      )}
+                    </div>
+                    <div className={`${styles.cell} ${styles.gscMetricCell}`}>
+                      {gscLoading ? (
+                        <Skeleton width="2rem" height="0.875rem" borderRadius="sm" />
+                      ) : (
+                        <>
+                          {gsc ? `${gsc.ctr}%` : '—'}
+                          {gsc && <ChangeBadge value={gsc.ctrChange} tooltip={changeTip(gsc.ctrChange, `${gsc.ctr}%`, t('keywordStrategy.ctr'))} />}
+                        </>
+                      )}
                     </div>
                     {/* Intent Column */}
                     <div className={`${styles.cell} ${styles.intentCell}`} ref={editingIntent === kw.id ? dropdownRef : null}>

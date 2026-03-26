@@ -415,6 +415,83 @@ function InsightDetails({ insight, translations }) {
     );
   }
 
+  if (type === 'cannibalization' && d.queries?.length > 0) {
+    return (
+      <div className={styles.detailSection}>
+        {d.queries.slice(0, 3).map((c, i) => (
+          <div key={i} style={{ marginBottom: '0.5rem' }}>
+            <div style={{ fontWeight: 600, fontSize: '0.85rem', marginBottom: '0.25rem' }}>&quot;{c.query}&quot; — {c.pageCount} {labels.pageCount || 'pages competing'}</div>
+            <table className={styles.detailTable}>
+              <thead><tr><th>{labels.page || 'Page'}</th><th>{labels.position || 'Position'}</th><th>{labels.clicks || 'Clicks'}</th></tr></thead>
+              <tbody>
+                {c.pages.slice(0, 3).map((p, j) => (
+                  <tr key={j}>
+                    <td><bdi dir="ltr">{p.page ? formatPageUrl(p.page) : '—'}</bdi></td>
+                    <td>{p.position ? Math.round(parseFloat(p.position)) : '—'}</td>
+                    <td>{p.clicks?.toLocaleString()}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ))}
+      </div>
+    );
+  }
+
+  if (type === 'newKeywordOpportunities' && d.queries?.length > 0) {
+    return (
+      <div className={styles.detailSection}>
+        <table className={styles.detailTable}>
+          <thead><tr><th>{labels.query || 'Query'}</th><th>{labels.clicks || 'Clicks'}</th><th>{labels.impressions || 'Impressions'}</th><th>{labels.position || 'Position'}</th></tr></thead>
+          <tbody>
+            {d.queries.slice(0, 5).map((q, i) => (
+              <tr key={i}><td>{q.query}</td><td>{q.clicks?.toLocaleString()}</td><td>{q.impressions?.toLocaleString()}</td><td>{q.position ? Math.round(parseFloat(q.position)) : '—'}</td></tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    );
+  }
+
+  if (type === 'lowCtrForPosition' && d.pages?.length > 0) {
+    return (
+      <div className={styles.detailSection}>
+        <table className={styles.detailTable}>
+          <thead><tr><th>{labels.page || 'Page'}</th><th>{labels.position || 'Position'}</th><th>{labels.actualCtr || 'Actual CTR'}</th><th>{labels.expectedCtr || 'Expected CTR'}</th></tr></thead>
+          <tbody>
+            {d.pages.slice(0, 5).map((p, i) => (
+              <tr key={i}>
+                <td><bdi dir="ltr">{p.page ? formatPageUrl(p.page) : '—'}</bdi></td>
+                <td>{p.position ? Math.round(parseFloat(p.position)) : '—'}</td>
+                <td className={styles.detailNegative}>{p.actualCtr}%</td>
+                <td>{p.expectedCtr}%</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    );
+  }
+
+  if (type === 'contentWithoutTraffic' && d.pages?.length > 0) {
+    return (
+      <div className={styles.detailSection}>
+        <table className={styles.detailTable}>
+          <thead><tr><th>{labels.page || 'Page'}</th><th>{labels.publishedAt || 'Published'}</th></tr></thead>
+          <tbody>
+            {d.pages.slice(0, 5).map((p, i) => (
+              <tr key={i}>
+                <td>{p.title}</td>
+                <td>{p.publishedAt ? new Date(p.publishedAt).toLocaleDateString() : '—'}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    );
+  }
+
   return null;
 }
 

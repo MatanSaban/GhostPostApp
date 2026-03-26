@@ -106,7 +106,10 @@ export default function AccessibilityIssueCard({
     ? translateIssueMsg(rule.suggestion || rule.description, 'suggestion', rule.translationKey)
     : (rule.suggestion || '');
 
-  const SeverityIcon = rule.severity === 'error'
+  const isPassed = rule.severity === 'passed';
+  const SeverityIcon = isPassed
+    ? CheckCircle2
+    : rule.severity === 'error'
     ? XCircle
     : rule.severity === 'warning'
     ? AlertTriangle
@@ -126,11 +129,13 @@ export default function AccessibilityIssueCard({
           <span className={styles.cardTitle}>{translatedDescription}</span>
           <span className={styles.cardMeta}>
             <span className={`${styles.impactBadge} ${styles[`impact_${rule.impact}`]}`}>
-              {rule.impact}
+              {t(`siteAudit.a11y.${rule.impact}`)}
             </span>
-            <span className={styles.nodeCount}>
-              {nodes.length} {nodes.length === 1 ? t('siteAudit.a11y.element') : t('siteAudit.a11y.elements')}
-            </span>
+            {!isPassed && (
+              <span className={styles.nodeCount}>
+                {nodes.length} {nodes.length === 1 ? t('siteAudit.a11y.element') : t('siteAudit.a11y.elements')}
+              </span>
+            )}
             {rule.urls?.length > 0 && (
               <span className={styles.pageCount}>
                 {rule.urls.length} {rule.urls.length === 1 ? t('siteAudit.page') : t('siteAudit.pages')}

@@ -69,6 +69,7 @@ function getStatusColor(code) {
  * - onRescanComplete: callback after rescan finishes
  * - onViewDetails: callback to show issue details for this page
  * - compact: if true, show less columns (for drill-down view)
+ * - asTableRow: if true, render as <tr> with <td> cells (for pages tab table)
  * - pageIssues: Array<AuditIssue> — issues for this specific page (for Quick Fix)
  * - onFixComplete: callback after AI fix completes
  * - isPluginConnected: boolean — whether the WP plugin is connected
@@ -81,6 +82,7 @@ export default function ScannedPageRow({
   onRescanComplete,
   onViewDetails,
   compact = false,
+  asTableRow = false,
   pageIssues = [],
   onFixComplete,
   isPluginConnected = false,
@@ -186,24 +188,126 @@ export default function ScannedPageRow({
     }
   };
 
+  // Shared content builders
+  const urlCell = (
+    <div className={styles.pageInfo}>
+      <a
+        href={pr.url}
+        target="_blank"
+        rel="noopener noreferrer"
+        className={styles.pageUrl}
+      >
+        <bdi dir="ltr">{shortenUrl(pr.url)}</bdi>
+      </a>
+      {pr.title && (
+        <span className={styles.pageTitle}>{pr.title}</span>
+      )}
+    </div>
+  );
+
+  const actionsContent = (
+    <div className={styles.actions}>
+      <button
+        className={`${styles.actionBtn} ${styles.creditBtn}`}
+        onClick={handleRescan}
+        disabled={isRescanning}
+        title={`${t('siteAudit.actions.rescan')} (1 ${t('siteAudit.credit')})`}
+      >
+        {isRescanning ? (
+          <Loader2 size={14} className={styles.spinning} />
+        ) : (
+          <>
+            <RefreshCw size={13} />
+            <Coins size={10} className={styles.creditIcon} />
+          </>
+        )}
+      </button>
+      {hasFixableIssues && (
+        <button
+          className={`${styles.actionBtn} ${styles.fixBtn}`}
+          onClick={handleQuickFix}
+          disabled={isFixing}
+          title={`${t('siteAudit.actions.quickFix')} (2 ${t('siteAudit.credits')})`}
+        >
+          {isFixing ? (
+            <Loader2 size={14} className={styles.spinning} />
+          ) : (
+            <>
+              <Wand2 size={13} />
+              <Coins size={10} className={styles.creditIcon} />
+            </>
+          )}
+        </button>
+      )}
+      <a
+        href={pr.url}
+        target="_blank"
+        rel="noopener noreferrer"
+        className={styles.actionBtn}
+        title={t('siteAudit.actions.viewLive')}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <ExternalLink size={14} />
+      </a>
+      {onViewDetails && (
+        <button
+          className={styles.actionBtn}
+          onClick={(e) => { e.stopPropagation(); onViewDetails(pr); }}
+          title={t('siteAudit.actions.viewDetails')}
+        >
+          <FileText size={14} />
+        </button>
+      )}
+    </div>
+  );
+
+  const fixBanner = fixResult?.explanation ? (
+    <div className={styles.fixResultBanner}>
+      <Sparkles size={12} />
+      <span>{fixResult.explanation}</span>
+    </div>
+  ) : null;
+
+  // ─── Table Row Mode (for pages tab) ───
+  if (asTableRow) {
+    return (
+      <>
+        <tr className={styles.tableRow}>
+          <td className={styles.tdUrl}>{urlCell}</td>
+          <td className={`${styles.tdCenter} ${styles[getStatusColor(pr.statusCode)]}`}>
+            {pr.statusCode || '—'}
+          </td>
+          <td className={`${styles.tdCenter} ${styles.mono}`}>
+            {pr.ttfb ? `${pr.ttfb}ms` : '—'}
+          </td>
+          <td className={`${styles.tdCenter} ${pr.performanceScore ? styles[getScoreColor(pr.performanceScore)] : ''}`}>
+            {pr.performanceScore != null ? pr.performanceScore : t('siteAudit.na')}
+          </td>
+          <td className={`${styles.tdCenter} ${styles.mono}`}>
+            {pr.lcp != null ? `${pr.lcp.toFixed(1)}s` : t('siteAudit.na')}
+          </td>
+          <td className={`${styles.tdCenter} ${styles.mono}`}>
+            {pr.cls != null ? pr.cls.toFixed(3) : t('siteAudit.na')}
+          </td>
+          <td className={styles.tdCenter}>
+            {pr.issueCount ?? 0}
+          </td>
+          <td className={styles.tdActions}>{actionsContent}</td>
+        </tr>
+        {fixBanner && (
+          <tr className={styles.fixBannerRow}>
+            <td colSpan={8}>{fixBanner}</td>
+          </tr>
+        )}
+      </>
+    );
+  }
+
+  // ─── Div Row Mode (compact / drill-down) ───
   return (
     <div className={styles.row}>
-      {/* Page URL + Title */}
-      <div className={styles.pageInfo}>
-        <a
-          href={pr.url}
-          target="_blank"
-          rel="noopener noreferrer"
-          className={styles.pageUrl}
-        >
-          <bdi dir="ltr">{shortenUrl(pr.url)}</bdi>
-        </a>
-        {pr.title && (
-          <span className={styles.pageTitle}>{pr.title}</span>
-        )}
-      </div>
+      {urlCell}
 
-      {/* Metrics (hidden in compact mode) */}
       {!compact && (
         <div className={styles.metrics}>
           <span className={`${styles.metric} ${styles[getStatusColor(pr.statusCode)]}`}>
@@ -227,7 +331,6 @@ export default function ScannedPageRow({
         </div>
       )}
 
-      {/* Compact metrics */}
       {compact && (
         <div className={styles.compactMetrics}>
           <span className={`${styles.metric} ${styles[getStatusColor(pr.statusCode)]}`}>
@@ -239,72 +342,8 @@ export default function ScannedPageRow({
         </div>
       )}
 
-      {/* Actions */}
-      <div className={styles.actions}>
-        {/* Rescan (1 Credit) */}
-        <button
-          className={`${styles.actionBtn} ${styles.creditBtn}`}
-          onClick={handleRescan}
-          disabled={isRescanning}
-          title={`${t('siteAudit.actions.rescan')} (1 ${t('siteAudit.credit')})`}
-        >
-          {isRescanning ? (
-            <Loader2 size={14} className={styles.spinning} />
-          ) : (
-            <>
-              <RefreshCw size={13} />
-              <Coins size={10} className={styles.creditIcon} />
-            </>
-          )}
-        </button>
-
-        {/* AI Quick Fix (2 Credits) — only shown for fixable issues */}
-        {hasFixableIssues && (
-          <button
-            className={`${styles.actionBtn} ${styles.fixBtn}`}
-            onClick={handleQuickFix}
-            disabled={isFixing}
-            title={`${t('siteAudit.actions.quickFix')} (2 ${t('siteAudit.credits')})`}
-          >
-            {isFixing ? (
-              <Loader2 size={14} className={styles.spinning} />
-            ) : (
-              <>
-                <Wand2 size={13} />
-                <Coins size={10} className={styles.creditIcon} />
-              </>
-            )}
-          </button>
-        )}
-
-        <a
-          href={pr.url}
-          target="_blank"
-          rel="noopener noreferrer"
-          className={styles.actionBtn}
-          title={t('siteAudit.actions.viewLive')}
-          onClick={(e) => e.stopPropagation()}
-        >
-          <ExternalLink size={14} />
-        </a>
-        {onViewDetails && (
-          <button
-            className={styles.actionBtn}
-            onClick={(e) => { e.stopPropagation(); onViewDetails(pr); }}
-            title={t('siteAudit.actions.viewDetails')}
-          >
-            <FileText size={14} />
-          </button>
-        )}
-      </div>
-
-      {/* Fix result tooltip */}
-      {fixResult?.explanation && (
-        <div className={styles.fixResultBanner}>
-          <Sparkles size={12} />
-          <span>{fixResult.explanation}</span>
-        </div>
-      )}
+      {actionsContent}
+      {fixBanner}
     </div>
   );
 }

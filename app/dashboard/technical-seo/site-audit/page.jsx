@@ -71,6 +71,9 @@ const AI_FIXABLE_ISSUES = new Set([
 /** Issue message keys that support free Fix via the WP plugin (no credits) */
 const FREE_FIXABLE_ISSUES = new Set([
   'audit.issues.noFavicon',
+  'audit.issues.metaRobotsNoindex',
+  'audit.issues.metaRobotsNofollow',
+  'audit.issues.wpSearchEngineDiscouraged',
 ]);
 
 const TABS = [
@@ -148,19 +151,35 @@ function shortenUrl(url) {
 }
 
 function calculateCategoryScores(issues = []) {
+  const RATIO_CATS = new Set(['technical', 'performance', 'accessibility']);
   const categories = ['technical', 'performance', 'visual', 'accessibility'];
   const scores = {};
-  for (const category of categories) {
-    const ci = issues.filter(i => i.type === category);
-    const passed = ci.filter(i => i.severity === 'passed').length;
+
+  for (const cat of categories) {
+    const ci = issues.filter(i => i.type === cat);
+    const errors   = ci.filter(i => i.severity === 'error').length;
     const warnings = ci.filter(i => i.severity === 'warning').length;
-    const errors = ci.filter(i => i.severity === 'error').length;
-    const info = ci.filter(i => i.severity === 'info').length;
-    const total = passed + warnings + errors;
-    if (total === 0) { scores[category] = 100; continue; }
-    const maxPts = total * 100;
-    const earned = (passed * 100) + (warnings * 50) + (info * 75);
-    scores[category] = Math.round(Math.min(100, (earned / maxPts) * 100));
+    const passed   = ci.filter(i => i.severity === 'passed').length;
+    const info     = ci.filter(i => i.severity === 'info' || i.severity === 'notice').length;
+    const total = errors + warnings + passed + info;
+
+    if (total === 0) {
+      // No issues: ratio-based = 0 (no data), deduction-based = 100 (no violations)
+      scores[cat] = RATIO_CATS.has(cat) ? 0 : 100;
+      continue;
+    }
+
+    if (RATIO_CATS.has(cat)) {
+      const checkCount = passed + warnings + errors;
+      if (checkCount === 0) { scores[cat] = 0; continue; }
+      const maxPts = checkCount * 100;
+      const earned = (passed * 100) + (warnings * 30);
+      scores[cat] = Math.round(Math.min(100, (earned / maxPts) * 100));
+    } else {
+      // Deduction-based (visual, accessibility): diminishing returns
+      const penalty = errors * 0.3 + warnings * 0.1 + info * 0.03;
+      scores[cat] = Math.round(100 / (1 + penalty));
+    }
   }
   return scores;
 }
@@ -216,8 +235,15 @@ export default function SiteAuditPage() {
   // Segmented screenshot viewer index
   const [segmentIndex, setSegmentIndex] = useState(0);
 
+  // Column info popup for pages table headers
+  const [columnInfoPopup, setColumnInfoPopup] = useState(null); // column key string or null
+
   const pollRef = useRef(null);
   const stepIntervalRef = useRef(null);
+
+  // Cache audit data per device to avoid re-fetching on tab switch
+  // Shape: { desktop: { latest, history, translations }, mobile: { ... } }
+  const auditCacheRef = useRef({});
 
   // ─── Data Fetching ──────────────────────────────────────────
 
@@ -226,9 +252,27 @@ export default function SiteAuditPage() {
       const res = await fetch(`/api/audit?siteId=${siteId}&deviceType=${device || 'desktop'}`);
       if (!res.ok) throw new Error('Failed to fetch audits');
       const data = await res.json();
-      setLatestAudit(data.latest);
+
+      let latest = data.latest;
+
+      // If audit is completed, fetch full document (with issues + pageResults)
+      if (latest && (latest.status === 'COMPLETED' || latest.status === 'FAILED') && !latest.issues) {
+        const fullRes = await fetch(`/api/audit?siteId=${siteId}&auditId=${latest.id}`);
+        if (fullRes.ok) {
+          const fullData = await fullRes.json();
+          if (fullData.audit) latest = fullData.audit;
+        }
+      }
+
+      setLatestAudit(latest);
       setAuditHistory(data.audits || []);
-      return data.latest;
+      // Store in cache
+      auditCacheRef.current[device] = {
+        latest,
+        history: data.audits || [],
+        translations: {},
+      };
+      return latest;
     } catch (err) {
       console.error('[SiteAudit] Fetch error:', err);
       setError(err.message);
@@ -238,6 +282,25 @@ export default function SiteAuditPage() {
 
   useEffect(() => {
     if (!selectedSite?.id) return;
+
+    // Check cache first — restore instantly if we already have data for this device
+    const cached = auditCacheRef.current[activeDevice];
+    if (cached) {
+      setLatestAudit(cached.latest);
+      setAuditHistory(cached.history);
+      setIssueTranslations(cached.translations || {});
+      setIsLoadingAudits(false);
+      setError(null);
+      setDrillDown(null);
+      setPageDetail(null);
+      // If cached audit is still running, resume polling
+      if (cached.latest && (cached.latest.status === 'PENDING' || cached.latest.status === 'RUNNING')) {
+        startPolling(selectedSite.id, activeDevice);
+      }
+      return () => stopPolling();
+    }
+
+    // No cache — fetch from DB
     setIsLoadingAudits(true);
     setError(null);
     setLatestAudit(null);
@@ -259,14 +322,26 @@ export default function SiteAuditPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedSite?.id, activeDevice]);
 
+  // Clear cache when site changes
+  const prevSiteIdRef = useRef(selectedSite?.id);
+  useEffect(() => {
+    if (selectedSite?.id !== prevSiteIdRef.current) {
+      auditCacheRef.current = {};
+      prevSiteIdRef.current = selectedSite?.id;
+    }
+  }, [selectedSite?.id]);
+
   // ─── Device Toggle Handler ─────────────────────────────────
 
   const handleDeviceChange = (device) => {
     if (device === activeDevice) return;
+    // Save current translations to cache before switching
+    if (auditCacheRef.current[activeDevice]) {
+      auditCacheRef.current[activeDevice].translations = issueTranslations;
+    }
     setActiveDevice(device);
     setDrillDown(null);
     setPageDetail(null);
-    setIssueTranslations({});
   };
 
   // ─── Polling ──────────────────────────────────────────────────
@@ -301,6 +376,8 @@ export default function SiteAuditPage() {
 
   const handleStartAudit = async () => {
     if (!selectedSite?.id || isStarting || isPolling) return;
+    // Invalidate cache for both devices since POST creates both audits
+    auditCacheRef.current = {};
     setIsStarting(true);
     setError(null);
 
@@ -328,6 +405,8 @@ export default function SiteAuditPage() {
   };
 
   const handleRescanComplete = () => {
+    // Invalidate cache for current device so fresh data is fetched
+    delete auditCacheRef.current[activeDevice];
     if (selectedSite?.id) fetchAudits(selectedSite.id, activeDevice);
   };
 
@@ -337,8 +416,22 @@ export default function SiteAuditPage() {
   const isCompleted = latestAudit?.status === 'COMPLETED';
   const isFailed = latestAudit?.status === 'FAILED';
   const categoryScores = isCompleted
-    ? (latestAudit.categoryScores || calculateCategoryScores(latestAudit.issues))
+    ? calculateCategoryScores(latestAudit.issues)
     : {};
+
+  // Use the DB score (same value the AI summary receives) to avoid rounding discrepancies
+  const overallScore = isCompleted && latestAudit?.score != null
+    ? latestAudit.score
+    : (() => {
+        const weights = { technical: 0.35, performance: 0.30, visual: 0.15, accessibility: 0.20 };
+        let wSum = 0, wTotal = 0;
+        for (const [cat, w] of Object.entries(weights)) {
+          const s = categoryScores[cat];
+          if (s != null && s !== 0) { wSum += s * w; wTotal += w; }
+        }
+        return wTotal > 0 ? Math.round(wSum / wTotal) : 0;
+      })();
+
   const allIssues = isCompleted ? (latestAudit.issues || []) : [];
   const allCounts = isCompleted ? countBySeverity(allIssues) : { passed: 0, warnings: 0, errors: 0, info: 0 };
   const pageResults = isCompleted ? (latestAudit.pageResults || []) : [];
@@ -502,7 +595,7 @@ export default function SiteAuditPage() {
   };
 
   /** Handle free Fix click (non-AI fixes that cost nothing) */
-  const handleFix = (issueKey) => {
+  const handleFix = async (issueKey, issueData) => {
     if (!isPluginConnected) {
       setShowPluginModal(true);
       return;
@@ -512,6 +605,82 @@ export default function SiteAuditPage() {
       case 'audit.issues.noFavicon':
         setShowFaviconMediaModal(true);
         break;
+      case 'audit.issues.metaRobotsNoindex':
+      case 'audit.issues.metaRobotsNofollow': {
+        const urls = issueData?.urls || (issueData?.url ? [issueData.url] : []);
+        if (urls.length === 0) return;
+        const isNoindex = issueKey === 'audit.issues.metaRobotsNoindex';
+
+        // Check if site-wide "Discourage search engines" is the root cause
+        const hasSiteWideNoindex = allIssues.some(
+          i => i.message === 'audit.issues.wpSearchEngineDiscouraged'
+            && i.severity !== 'passed'
+        );
+
+        try {
+          setError(null);
+          const res = await fetch('/api/audit/fix-noindex', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              siteId: selectedSite?.id,
+              auditId: latestAudit?.id,
+              fixes: urls.map(url => ({
+                url,
+                removeNoindex: isNoindex,
+                removeNofollow: !isNoindex,
+              })),
+              // Also fix site-wide setting if it's the root cause
+              ...(hasSiteWideNoindex && isNoindex ? { fixSiteWide: true } : {}),
+            }),
+          });
+          const data = await res.json();
+          if (!res.ok) {
+            if (data.error === 'pluginUpdateRequired') {
+              setError(t('audit.errors.pluginUpdateRequired') || 'The WordPress plugin needs to be updated to support this fix. Please update the Ghost Post plugin.');
+            } else {
+              setError(data.message || data.error || 'Fix failed');
+            }
+            console.error('[FixNoindex] Failed:', data.error);
+            return;
+          }
+          if (data.auditUpdated) {
+            fetchAudits(selectedSite?.id, activeDevice);
+          }
+        } catch (err) {
+          setError(err.message);
+          console.error('[FixNoindex] Error:', err);
+        }
+        break;
+      }
+      case 'audit.issues.wpSearchEngineDiscouraged': {
+        try {
+          setError(null);
+          const res = await fetch('/api/audit/fix-noindex', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              siteId: selectedSite?.id,
+              auditId: latestAudit?.id,
+              fixes: [],
+              fixSiteWide: true,
+            }),
+          });
+          const data = await res.json();
+          if (!res.ok) {
+            setError(data.message || data.error || 'Fix failed');
+            console.error('[FixSiteWide] Failed:', data.error);
+            return;
+          }
+          if (data.auditUpdated) {
+            fetchAudits(selectedSite?.id, activeDevice);
+          }
+        } catch (err) {
+          setError(err.message);
+          console.error('[FixSiteWide] Error:', err);
+        }
+        break;
+      }
       default:
         console.log('[Fix] No handler yet for:', issueKey);
         break;
@@ -762,9 +931,12 @@ export default function SiteAuditPage() {
               {activeTab === 'overview' && (
                 <AuditOverviewTab
                   audit={latestAudit}
+                  overallScore={overallScore}
                   allCounts={allCounts}
                   categoryScores={categoryScores}
                   onLightbox={setLightboxImg}
+                  pageResults={pageResults}
+                  activeDevice={activeDevice}
                 />
               )}
 
@@ -810,7 +982,7 @@ export default function SiteAuditPage() {
                               {agg.suggestion && (
                                 <span className={styles.aggSuggestion}>
                                   {agg.source === 'ai-vision'
-                                    ? translateIssueMsg(agg.suggestion, 'suggestion')
+                                    ? translateIssueMsg(agg.suggestion, 'suggestion', agg.message)
                                     : (agg.suggestion?.startsWith('audit.') ? t(agg.suggestion) : agg.suggestion)}
                                 </span>
                               )}
@@ -874,8 +1046,8 @@ export default function SiteAuditPage() {
                                   role="button"
                                   tabIndex={0}
                                   className={styles.fixBtn}
-                                  onClick={(e) => { e.stopPropagation(); handleFix(agg.key); }}
-                                  onKeyDown={(e) => { if (e.key === 'Enter') { e.stopPropagation(); handleFix(agg.key); } }}
+                                  onClick={(e) => { e.stopPropagation(); handleFix(agg.key, agg); }}
+                                  onKeyDown={(e) => { if (e.key === 'Enter') { e.stopPropagation(); handleFix(agg.key, agg); } }}
                                   title={t('siteAudit.fix.title')}
                                 >
                                   <Wrench size={13} />
@@ -919,11 +1091,15 @@ export default function SiteAuditPage() {
                       </div>
                       <div className={styles.drillDownInfo}>
                         <h3 className={styles.drillDownTitle}>
-                          {drillDownAgg.message?.startsWith('audit.') ? t(drillDownAgg.message) : drillDownAgg.message}
+                          {drillDownAgg.source === 'ai-vision'
+                            ? translateIssueMsg(drillDownAgg.message, 'message')
+                            : (drillDownAgg.message?.startsWith('audit.') ? t(drillDownAgg.message) : drillDownAgg.message)}
                         </h3>
                         {drillDownAgg.suggestion && (
                           <p className={styles.drillDownSuggestion}>
-                            {drillDownAgg.suggestion?.startsWith('audit.') ? t(drillDownAgg.suggestion) : drillDownAgg.suggestion}
+                            {drillDownAgg.source === 'ai-vision'
+                              ? translateIssueMsg(drillDownAgg.suggestion, 'suggestion', drillDownAgg.message)
+                              : (drillDownAgg.suggestion?.startsWith('audit.') ? t(drillDownAgg.suggestion) : drillDownAgg.suggestion)}
                           </p>
                         )}
                         <div className={styles.drillDownMeta}>
@@ -947,7 +1123,7 @@ export default function SiteAuditPage() {
                           {FREE_FIXABLE_ISSUES.has(drillDownAgg.key) && (
                             <button
                               className={styles.fixBtn}
-                              onClick={() => handleFix(drillDownAgg.key)}
+                              onClick={() => handleFix(drillDownAgg.key, drillDownAgg)}
                             >
                               <Wrench size={13} />
                               <span>{t('siteAudit.fix.label')}</span>
@@ -1012,36 +1188,90 @@ export default function SiteAuditPage() {
               {/* ─── Pages Tab ─── */}
               {activeTab === 'pages' && (
                 <div className={styles.pagesTab}>
-                  {/* Column Headers */}
-                  <div className={styles.pagesHeader}>
-                    <span className={styles.phUrl}>{t('siteAudit.pr.url')}</span>
-                    <span className={styles.phStatus}>{t('siteAudit.pr.status')}</span>
-                    <span className={styles.phTtfb}>{t('siteAudit.pr.ttfb')}</span>
-                    <span className={styles.phPsi}>{t('siteAudit.pr.psi')}</span>
-                    <span className={styles.phLcp}>{t('siteAudit.pr.lcp')}</span>
-                    <span className={styles.phCls}>{t('siteAudit.pr.cls')}</span>
-                    <span className={styles.phIssues}>{t('siteAudit.pr.issues')}</span>
-                    <span className={styles.phActions}></span>
-                  </div>
-                  {pageResults.length === 0 ? (
-                    <div className={styles.tabEmpty}>
-                      <p>{t('siteAudit.noPagesScanned')}</p>
-                    </div>
-                  ) : (
-                    pageResults.map((pr, idx) => (
-                      <ScannedPageRow
-                        key={idx}
-                        pageResult={pr}
-                        auditId={latestAudit.id}
-                        siteId={selectedSite.id}
-                        onRescanComplete={handleRescanComplete}
-                        onViewDetails={(p) => setPageDetail(p)}
-                        pageIssues={allIssues.filter(i => i.url === pr.url)}
-                        onFixComplete={() => handleRescanComplete()}
-                        isPluginConnected={isPluginConnected}
-                        onPluginRequired={() => setShowPluginModal(true)}
-                      />
-                    ))
+                  <table className={styles.pagesTable}>
+                    <thead>
+                      <tr className={styles.pagesHeader}>
+                        {[
+                          { key: 'url', cls: styles.phUrl },
+                          { key: 'status', cls: styles.phStatus },
+                          { key: 'ttfb', cls: styles.phTtfb },
+                          { key: 'psi', cls: styles.phPsi },
+                          { key: 'lcp', cls: styles.phLcp },
+                          { key: 'cls', cls: styles.phCls },
+                          { key: 'issues', cls: styles.phIssues },
+                        ].map(col => (
+                          <th key={col.key} className={col.cls}>
+                            <span
+                              className={styles.thLabel}
+                              data-tooltip={t(`siteAudit.pr.tooltips.${col.key}`)}
+                              onClick={() => setColumnInfoPopup(col.key)}
+                            >
+                              {t(`siteAudit.pr.${col.key}`)}
+                              <Info size={11} className={styles.thInfoIcon} />
+                            </span>
+                          </th>
+                        ))}
+                        <th className={styles.phActions}></th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {pageResults.length === 0 ? (
+                        <tr>
+                          <td colSpan={8} className={styles.tabEmpty}>
+                            <p>{t('siteAudit.noPagesScanned')}</p>
+                          </td>
+                        </tr>
+                      ) : (
+                        pageResults.map((pr, idx) => (
+                          <ScannedPageRow
+                            key={idx}
+                            pageResult={pr}
+                            auditId={latestAudit.id}
+                            siteId={selectedSite.id}
+                            onRescanComplete={handleRescanComplete}
+                            onViewDetails={(p) => setPageDetail(p)}
+                            pageIssues={allIssues.filter(i => i.url === pr.url)}
+                            onFixComplete={() => handleRescanComplete()}
+                            isPluginConnected={isPluginConnected}
+                            onPluginRequired={() => setShowPluginModal(true)}
+                            asTableRow
+                          />
+                        ))
+                      )}
+                    </tbody>
+                  </table>
+
+                  {/* Column Info Popup */}
+                  {columnInfoPopup && typeof document !== 'undefined' && createPortal(
+                    <div className={styles.columnPopupOverlay} onClick={() => setColumnInfoPopup(null)}>
+                      <div className={styles.columnPopup} onClick={(e) => e.stopPropagation()}>
+                        <button className={styles.columnPopupClose} onClick={() => setColumnInfoPopup(null)}>
+                          <X size={18} />
+                        </button>
+                        <div className={styles.columnPopupHeader}>
+                          <div className={styles.columnPopupIconBadge}>
+                            <Info size={22} />
+                          </div>
+                          <h3 className={styles.columnPopupTitle}>
+                            {t(`siteAudit.pr.info.${columnInfoPopup}.title`)}
+                          </h3>
+                        </div>
+                        <div className={styles.columnPopupSection}>
+                          <p className={styles.columnPopupDescription}>
+                            {t(`siteAudit.pr.info.${columnInfoPopup}.description`)}
+                          </p>
+                        </div>
+                        <div className={styles.columnPopupSection}>
+                          <p className={styles.columnPopupDetails}>
+                            {t(`siteAudit.pr.info.${columnInfoPopup}.details`)}
+                          </p>
+                        </div>
+                        <button className={styles.columnPopupDismiss} onClick={() => setColumnInfoPopup(null)}>
+                          {t('siteAudit.pr.info.gotIt')}
+                        </button>
+                      </div>
+                    </div>,
+                    document.body
                   )}
                 </div>
               )}
@@ -1116,9 +1346,9 @@ export default function SiteAuditPage() {
       {pageDetail && createPortal(
         <div className={styles.lightbox} onClick={() => setPageDetail(null)}>
           <div className={`${styles.pageDetailModal} ${isPageDetailMaximized ? 'modal-maximized' : ''}`} onClick={(e) => e.stopPropagation()}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', position: 'absolute', top: '1rem', right: '1rem', zIndex: 1 }}>
-              <ModalResizeButton isMaximized={isPageDetailMaximized} onToggle={togglePageDetailMaximize} className={styles.lightboxClose} />
-              <button className={styles.lightboxClose} onClick={() => setPageDetail(null)}>
+            <div className={styles.pageDetailActions}>
+              <ModalResizeButton isMaximized={isPageDetailMaximized} onToggle={togglePageDetailMaximize} className={styles.pageDetailActionBtn} />
+              <button className={styles.pageDetailActionBtn} onClick={() => setPageDetail(null)}>
                 <X size={20} />
               </button>
             </div>
@@ -1209,7 +1439,7 @@ export default function SiteAuditPage() {
                       {FREE_FIXABLE_ISSUES.has(issue.message) && (
                         <button
                           className={styles.fixBtnSmall}
-                          onClick={() => handleFix(issue.message)}
+                          onClick={() => handleFix(issue.message, issue)}
                           title={t('siteAudit.fix.title')}
                         >
                           <Wrench size={12} />

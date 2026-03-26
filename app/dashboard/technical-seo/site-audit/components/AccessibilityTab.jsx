@@ -38,7 +38,7 @@ export default function AccessibilityTab({
   const [impactFilter, setImpactFilter] = useState('all');
 
   // Parse structured details from each issue, then GROUP by ruleId
-  const parsedRules = useMemo(() => {
+  const { violationRules, passedRules } = useMemo(() => {
     const ruleMap = new Map();
 
     for (const issue of issues) {
@@ -50,11 +50,12 @@ export default function AccessibilityTab({
       }
 
       const ruleId = details.ruleId || issue.message?.replace('a11y.', '') || 'unknown';
+      const isPassed = issue.severity === 'passed';
 
       if (!ruleMap.has(ruleId)) {
         ruleMap.set(ruleId, {
           ruleId,
-          impact: details.impact || 'moderate',
+          impact: isPassed ? 'passed' : (details.impact || 'moderate'),
           description: details.description || issue.suggestion || issue.message || '',
           helpUrl: details.helpUrl || '',
           tags: details.tags || [],
@@ -82,44 +83,62 @@ export default function AccessibilityTab({
         pageUrl: issue.url || '',
       }));
       group.nodes.push(...issueNodes);
-      group.nodeCount += details.nodeCount || issueNodes.length || 1;
+      group.nodeCount += details.nodeCount || issueNodes.length || (isPassed ? 0 : 1);
 
       // Keep the worst severity
       const severityRank = { error: 0, warning: 1, info: 2, passed: 3 };
       if ((severityRank[issue.severity] ?? 4) < (severityRank[group.severity] ?? 4)) {
         group.severity = issue.severity;
       }
-      // Keep the worst impact
-      const impactRank = { critical: 0, serious: 1, moderate: 2, minor: 3 };
-      if ((impactRank[details.impact] ?? 4) < (impactRank[group.impact] ?? 4)) {
-        group.impact = details.impact;
+      // Keep the worst impact (only for non-passed)
+      if (!isPassed) {
+        const impactRank = { critical: 0, serious: 1, moderate: 2, minor: 3 };
+        if ((impactRank[details.impact] ?? 4) < (impactRank[group.impact] ?? 4)) {
+          group.impact = details.impact;
+        }
       }
     }
 
-    // Sort: critical → serious → moderate → minor
-    const impactOrder = { critical: 0, serious: 1, moderate: 2, minor: 3 };
-    const result = Array.from(ruleMap.values());
-    result.sort((a, b) => (impactOrder[a.impact] ?? 4) - (impactOrder[b.impact] ?? 4));
+    // Split into violations vs passed
+    const violations = [];
+    const passed = [];
+    for (const rule of ruleMap.values()) {
+      if (rule.severity === 'passed') {
+        passed.push(rule);
+      } else {
+        violations.push(rule);
+      }
+    }
 
-    return result;
+    // Sort violations: critical → serious → moderate → minor
+    const impactOrder = { critical: 0, serious: 1, moderate: 2, minor: 3 };
+    violations.sort((a, b) => (impactOrder[a.impact] ?? 4) - (impactOrder[b.impact] ?? 4));
+
+    // Sort passed alphabetically by description
+    passed.sort((a, b) => a.description.localeCompare(b.description));
+
+    return { violationRules: violations, passedRules: passed };
   }, [issues]);
 
-  // Impact counts
+  // Impact counts (only violations)
   const impactCounts = useMemo(() => {
-    const counts = { critical: 0, serious: 0, moderate: 0, minor: 0 };
-    for (const r of parsedRules) {
+    const counts = { critical: 0, serious: 0, moderate: 0, minor: 0, passed: 0 };
+    for (const r of violationRules) {
       counts[r.impact] = (counts[r.impact] || 0) + 1;
     }
+    counts.passed = passedRules.length;
     return counts;
-  }, [parsedRules]);
+  }, [violationRules, passedRules]);
 
   // Filtered rules
   const filteredRules = impactFilter === 'all'
-    ? parsedRules
-    : parsedRules.filter((r) => r.impact === impactFilter);
+    ? violationRules
+    : impactFilter === 'passed'
+    ? passedRules
+    : violationRules.filter((r) => r.impact === impactFilter);
 
-  // Total element count
-  const totalElements = parsedRules.reduce((sum, r) => sum + r.nodeCount, 0);
+  // Total element count (only violations)
+  const totalElements = violationRules.reduce((sum, r) => sum + r.nodeCount, 0);
 
   if (issues.length === 0) {
     return (
@@ -155,6 +174,10 @@ export default function AccessibilityTab({
             <Info size={14} className={styles.statMinor} />
             {impactCounts.minor} {t('siteAudit.a11y.minor')}
           </span>
+          <span className={styles.stat}>
+            <CheckCircle2 size={14} className={styles.statPassed} />
+            {passedRules.length} {t('siteAudit.a11y.passed')}
+          </span>
           <span className={styles.statTotal}>
             {totalElements} {t('siteAudit.a11y.totalElements')}
           </span>
@@ -164,7 +187,7 @@ export default function AccessibilityTab({
       {/* Impact Filter Chips */}
       <div className={styles.filters}>
         <Filter size={14} />
-        {['all', 'critical', 'serious', 'moderate', 'minor'].map((level) => (
+        {['all', 'critical', 'serious', 'moderate', 'minor', 'passed'].map((level) => (
           <button
             key={level}
             className={`${styles.filterChip} ${impactFilter === level ? styles.filterActive : ''} ${level !== 'all' ? styles[`filter_${level}`] : ''}`}
@@ -202,6 +225,29 @@ export default function AccessibilityTab({
           </div>
         )}
       </div>
+
+      {/* Passed Checks Section (shown when filter is 'all') */}
+      {impactFilter === 'all' && passedRules.length > 0 && (
+        <>
+          <h3 className={styles.passedHeading}>
+            <CheckCircle2 size={16} />
+            {t('siteAudit.a11y.passedChecks')} ({passedRules.length})
+          </h3>
+          <div className={styles.ruleList}>
+            {passedRules.map((rule, idx) => (
+              <AccessibilityIssueCard
+                key={`passed-${rule.ruleId}-${idx}`}
+                rule={rule}
+                auditId={auditId}
+                siteId={siteId}
+                onFixComplete={onFixComplete}
+                translateIssueMsg={translateIssueMsg}
+                locale={locale}
+              />
+            ))}
+          </div>
+        </>
+      )}
     </div>
   );
 }

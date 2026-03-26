@@ -819,6 +819,7 @@ model Site {
   competitors     Competitor[]
   googleIntegration GoogleIntegration?
   members         SiteMember[]
+  gscKeywordCaches GscKeywordCache[]
 
   @@index([siteKey])
 }
@@ -1230,6 +1231,26 @@ enum KeywordStatus {
   ARCHIVED
 }
 
+// ==========================================
+// GSC KEYWORD DATA CACHE
+// ==========================================
+// Caches GSC keyword metrics to avoid excessive API calls.
+// Each record holds data for a site + date-range key (preset or custom dates).
+// Fresh for 12 hours; after that the API re-fetches from GSC.
+
+model GscKeywordCache {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  siteId      String   @db.ObjectId
+  rangeKey    String   // e.g. "7d", "30d", "90d", "180d", "365d", or "custom:2025-01-01:2025-03-01"
+  data        Json     // Array of tracked query results
+  fetchedAt   DateTime @default(now())
+
+  site        Site     @relation(fields: [siteId], references: [id], onDelete: Cascade)
+
+  @@unique([siteId, rangeKey])
+  @@map("gsc_keyword_caches")
+}
+
 model Content {
   id              String        @id @default(auto()) @map("_id") @db.ObjectId
   siteId          String        @db.ObjectId
@@ -1239,6 +1260,7 @@ model Content {
   slug            String?
   content         String?
   excerpt         String?
+  featuredImage   String?       // Cloudinary URL of the featured image
   status          ContentStatus @default(DRAFT)
   type            ContentType   @default(BLOG_POST)
   publishedAt     DateTime?
@@ -1252,7 +1274,7 @@ model Content {
   processingAttempts Int        @default(0)      // Retry counter for AI generation
   publishAttempts    Int        @default(0)      // Retry counter for WordPress publishing
   lastAttemptAt      DateTime?                   // Timestamp of last worker attempt
-  errorMessage       String?                     // Error stack/message when FAILED
+  errorMessage       String?                     // Short error summary when FAILED (for UI display)
   aiResult           Json?                       // Generated HTML/title before push (failsafe)
 
   createdAt       DateTime      @default(now())
@@ -1261,8 +1283,53 @@ model Content {
   site     Site      @relation(fields: [siteId], references: [id], onDelete: Cascade)
   campaign Campaign? @relation(fields: [campaignId], references: [id])
   keyword  Keyword?  @relation(fields: [keywordId], references: [id])
+  body     ContentBody?
 
   @@index([campaignId])
+  @@index([siteId, status])       // Fan-out dispatcher: filter by site + status
+  @@index([status, scheduledAt])  // Cron queries: find due items by status
+}
+
+// Heavy payload separated from Content for lean dashboard queries.
+// Only loaded when editing a single post or during AI generation / publishing.
+model ContentBody {
+  id              String   @id @default(auto()) @map("_id") @db.ObjectId
+  contentId       String   @unique @db.ObjectId
+  generatedHtml   String?  // Full AI-generated HTML body
+  aiPrompt        String?  // The exact prompt sent to the AI model
+  rawAiResponse   String?  // Raw AI response text before parsing
+  featuredImageAlt String? // AI-suggested alt-text for featured image
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  content Content @relation(fields: [contentId], references: [id], onDelete: Cascade)
+}
+
+// Structured log for worker errors, cron failures, and system events.
+// Keeps error details out of the Content table.
+model SystemLog {
+  id          String         @id @default(auto()) @map("_id") @db.ObjectId
+  level       SystemLogLevel @default(ERROR)
+  source      String         // e.g. "worker:generate-article", "worker:publish-article", "cron:process-content"
+  contentId   String?        @db.ObjectId
+  siteId      String?        @db.ObjectId
+  accountId   String?        @db.ObjectId
+  message     String         // Short human-readable error message
+  stack       String?        // Full error stack trace
+  metadata    Json?          // Arbitrary context (attempt number, request/response snippets, etc.)
+  createdAt   DateTime       @default(now())
+
+  @@index([source, createdAt])
+  @@index([contentId])
+  @@index([siteId])
+}
+
+enum SystemLogLevel {
+  DEBUG
+  INFO
+  WARN
+  ERROR
+  FATAL
 }
 
 enum ContentStatus {
@@ -1363,6 +1430,7 @@ type AuditPageResult {
   statusCode         Int?
   title              String?
   metaDescription    String?
+  robotsMeta         String?   // Content of <meta name="robots"> tag (e.g. "noindex, nofollow")
   ttfb               Int?
   performanceScore   Int?
   lcp                Float?

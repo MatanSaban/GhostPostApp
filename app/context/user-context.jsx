@@ -52,6 +52,7 @@ export function UserProvider({ children }) {
     } finally {
       // Clear client-side data
       localStorage.removeItem('user');
+      localStorage.removeItem('selectedSite');
       setUser(null);
       setIsVerified(false);
       isVerifiedRef.current = false;
@@ -89,6 +90,14 @@ export function UserProvider({ children }) {
 
     // Fetch user after interceptor is ready (verify with server)
     async function fetchUser() {
+      // Skip API verification only on auth pages with no stored user — 
+      // avoids 401 spam. On other pages (e.g. /dashboard after OAuth redirect),
+      // always try because a valid session cookie may exist without localStorage.
+      if (!initialUser && window.location.pathname.startsWith('/auth')) {
+        setIsLoading(false);
+        return;
+      }
+
       try {
         console.log('Fetching user from API...');
         const response = await fetch('/api/user/me');
@@ -97,10 +106,21 @@ export function UserProvider({ children }) {
         if (response.ok) {
           const data = await response.json();
           console.log('User verified from API:', data.user.email);
-          setUser(data.user);
+          // Merge with previous state to preserve credit data until
+          // /api/credits/balance provides the authoritative values.
+          setUser(prev => {
+            const merged = { ...data.user };
+            if (prev?.aiCreditsUsed !== undefined) {
+              merged.aiCreditsUsed = prev.aiCreditsUsed;
+            }
+            if (prev?.aiCreditsLimit !== undefined) {
+              merged.aiCreditsLimit = prev.aiCreditsLimit;
+            }
+            localStorage.setItem('user', JSON.stringify(merged));
+            return merged;
+          });
           setIsVerified(true);
-          localStorage.setItem('user', JSON.stringify(data.user));
-          // Immediately fetch addon-aware credit balance
+          // Fetch addon-aware credit balance (authoritative source)
           try {
             const creditsRes = await fetch('/api/credits/balance');
             if (creditsRes.ok) {
@@ -165,6 +185,7 @@ const updateUser = useCallback((userData) => {
 // Clear user data (logout)
 const clearUser = useCallback(() => {
   localStorage.removeItem('user');
+  localStorage.removeItem('selectedSite');
   setUser(null);
 }, []);
 

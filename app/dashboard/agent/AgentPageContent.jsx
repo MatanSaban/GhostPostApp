@@ -648,6 +648,156 @@ function InsightDetails({ insight, translations, siteId, pluginConnected, onItem
     );
   }
 
+  // Keyword Cannibalization — queries ranking with multiple pages
+  if (type === 'cannibalization' && d.queries?.length > 0) {
+    return (
+      <div className={styles.detailSection}>
+        {d.queries.map((c, i) => (
+          <div key={i} className={styles.detailSubSection}>
+            <div className={styles.detailSubTitle}>&quot;{c.query}&quot; — {c.pageCount} {labels.pageCount || 'pages competing'}</div>
+            <table className={styles.detailTable}>
+              <thead>
+                <tr>
+                  <th>{labels.page || 'Page'}</th>
+                  <th>{labels.position || 'Position'}</th>
+                  <th>{labels.clicks || 'Clicks'}</th>
+                  <th>{labels.impressions || 'Impressions'}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {c.pages.map((p, j) => (
+                  <tr key={j}>
+                    <td className={styles.detailPageTitle}>
+                      <a href={p.page} target="_blank" rel="noopener noreferrer" className={styles.detailLink}>
+                        <bdi dir="ltr">{formatPageUrl(p.page)}</bdi> <ExternalLink size={12} />
+                      </a>
+                    </td>
+                    <td>{p.position ? Math.round(parseFloat(p.position)) : '—'}</td>
+                    <td>{p.clicks?.toLocaleString()}</td>
+                    <td>{p.impressions?.toLocaleString()}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ))}
+        {d.count > d.queries.length && (
+          <p className={styles.detailMore}>
+            {(labels.andMore || 'and {count} more...').replace('{count}', d.count - d.queries.length)}
+          </p>
+        )}
+      </div>
+    );
+  }
+
+  // New Keyword Opportunities — untracked queries from GSC
+  if (type === 'newKeywordOpportunities' && d.queries?.length > 0) {
+    return (
+      <div className={styles.detailSection}>
+        <table className={styles.detailTable}>
+          <thead>
+            <tr>
+              <th>{labels.query || 'Query'}</th>
+              <th>{labels.clicks || 'Clicks'}</th>
+              <th>{labels.impressions || 'Impressions'}</th>
+              <th>{labels.ctr || 'CTR'}</th>
+              <th>{labels.position || 'Position'}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {d.queries.map((q, i) => (
+              <tr key={i}>
+                <td>{q.query}</td>
+                <td>{q.clicks?.toLocaleString()}</td>
+                <td>{q.impressions?.toLocaleString()}</td>
+                <td>{q.ctr}%</td>
+                <td>{q.position ? Math.round(parseFloat(q.position)) : '—'}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        {d.count > d.queries.length && (
+          <p className={styles.detailMore}>
+            {(labels.andMore || 'and {count} more...').replace('{count}', d.count - d.queries.length)}
+          </p>
+        )}
+      </div>
+    );
+  }
+
+  // Low CTR for Position — pages with CTR below expected for their ranking
+  if (type === 'lowCtrForPosition' && d.pages?.length > 0) {
+    return (
+      <div className={styles.detailSection}>
+        <table className={styles.detailTable}>
+          <thead>
+            <tr>
+              <th>{labels.page || 'Page'}</th>
+              <th>{labels.position || 'Position'}</th>
+              <th>{labels.actualCtr || 'Actual CTR'}</th>
+              <th>{labels.expectedCtr || 'Expected CTR'}</th>
+              <th>{labels.impressions || 'Impressions'}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {d.pages.map((p, i) => (
+              <tr key={i}>
+                <td className={styles.detailPageTitle}>
+                  <a href={p.page} target="_blank" rel="noopener noreferrer" className={styles.detailLink}>
+                    <bdi dir="ltr">{formatPageUrl(p.page)}</bdi> <ExternalLink size={12} />
+                  </a>
+                </td>
+                <td>{p.position ? Math.round(parseFloat(p.position)) : '—'}</td>
+                <td className={styles.detailNegative}>{p.actualCtr}%</td>
+                <td>{p.expectedCtr}%</td>
+                <td>{p.impressions?.toLocaleString()}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    );
+  }
+
+  // Content Without Organic Traffic — published pages with no GSC visibility
+  if (type === 'contentWithoutTraffic' && d.pages?.length > 0) {
+    return (
+      <div className={styles.detailSection}>
+        <table className={styles.detailTable}>
+          <thead>
+            <tr>
+              <th>{labels.page || 'Page'}</th>
+              <th>{labels.url || 'URL'}</th>
+              <th>{labels.publishedAt || 'Published'}</th>
+              <th>{entityLabel}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {d.pages.map((p, i) => (
+              <tr key={i}>
+                <td className={styles.detailPageTitle}>{p.title}</td>
+                <td>
+                  {p.url && (
+                    <a href={p.url} target="_blank" rel="noopener noreferrer" className={styles.detailLink}>
+                      <bdi dir="ltr">{formatPageUrl(p.url)}</bdi> <ExternalLink size={12} />
+                    </a>
+                  )}
+                </td>
+                <td>{p.publishedAt ? new Date(p.publishedAt).toLocaleDateString() : '—'}</td>
+                <td><EntityLinkCell url={p.url} siteId={siteId} translations={translations} /></td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        {d.count > d.pages.length && (
+          <p className={styles.detailMore}>
+            {(labels.andMore || 'and {count} more...').replace('{count}', d.count - d.pages.length)}
+          </p>
+        )}
+      </div>
+    );
+  }
+
   return null;
 }
 

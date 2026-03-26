@@ -2,6 +2,9 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import prisma from '@/lib/prisma';
 import { analyzeKeywordIntentsBatch } from '@/lib/ai/keyword-intent.js';
+import { enforceCredits } from '@/lib/account-limits';
+import { deductAiCredits } from '@/lib/account-utils';
+import { AI_OPERATIONS } from '@/lib/ai/credits';
 
 const SESSION_COOKIE = 'user_session';
 
@@ -235,7 +238,7 @@ export async function PATCH(request) {
           },
         },
       },
-      select: { id: true, siteId: true, keyword: true },
+      select: { id: true, siteId: true, keyword: true, site: { select: { accountId: true } } },
     });
 
     if (!keyword) {
@@ -255,11 +258,31 @@ export async function PATCH(request) {
 
     // AI Intent Analysis
     if (analyzeIntent === true) {
+      const creditCost = AI_OPERATIONS.KEYWORD_INTENT_ANALYSIS.credits;
+      const creditCheck = await enforceCredits(keyword.site.accountId, creditCost);
+      if (!creditCheck.allowed) {
+        return NextResponse.json(
+          { error: creditCheck.error, code: 'INSUFFICIENT_CREDITS' },
+          { status: 402 }
+        );
+      }
+
       try {
         const intentResults = await analyzeKeywordIntentsBatch([keyword.keyword]);
         const result = intentResults.get(keyword.keyword);
         if (result?.intents?.length > 0) {
           updateData.intents = result.intents;
+        }
+
+        // Deduct credits after successful analysis
+        const deductResult = await deductAiCredits(keyword.site.accountId, creditCost, {
+          userId: user.id,
+          siteId: keyword.siteId,
+          source: 'KEYWORD_INTENT_ANALYSIS',
+          description: `Keyword intent analysis: "${keyword.keyword}"`,
+        });
+        if (!deductResult.success) {
+          console.error('[Keywords API] Credit deduction failed after AI analysis:', deductResult.error, '| keyword:', keyword.keyword);
         }
       } catch (aiError) {
         console.error('[Keywords API] AI analysis failed:', aiError.message);
@@ -285,7 +308,12 @@ export async function PATCH(request) {
       data: updateData,
     });
 
-    return NextResponse.json({ keyword: updated });
+    const response = { keyword: updated };
+    if (analyzeIntent === true) {
+      response.creditsUsed = AI_OPERATIONS.KEYWORD_INTENT_ANALYSIS.credits;
+    }
+
+    return NextResponse.json(response);
   } catch (error) {
     console.error('[Keywords API] PATCH Error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });

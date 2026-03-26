@@ -1,5 +1,51 @@
 /* ScannedPageRow Styles */
 
+/* ─── Table Row Mode ───────────────────────────────────────── */
+
+.tableRow {
+  border-bottom: 1px solid var(--border);
+  transition: background 0.15s;
+
+  &:last-child {
+    border-bottom: none;
+  }
+
+  &:hover {
+    background: rgba(0, 0, 0, 0.015);
+  }
+
+  td {
+    padding: 10px 12px;
+    font-size: 0.8125rem;
+    vertical-align: middle;
+  }
+}
+
+.tdUrl {
+  max-width: 0;
+}
+
+.tdCenter {
+  text-align: center;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.tdActions {
+  text-align: end;
+}
+
+.mono {
+  font-family: ui-monospace, SFMono-Regular, monospace;
+  color: var(--muted-foreground);
+}
+
+.fixBannerRow td {
+  padding: 0;
+}
+
+/* ─── Div Row Mode (compact / drill-down) ──────────────────── */
+
 .row {
   display: flex;
   align-items: center;
@@ -192,5 +238,12 @@
   .actionBtn {
     width: 28px;
     height: 28px;
+  }
+
+  /* Hide TTFB, LCP, CLS columns on mobile in table mode */
+  .tableRow td:nth-child(3),
+  .tableRow td:nth-child(5),
+  .tableRow td:nth-child(6) {
+    display: none;
   }
 }

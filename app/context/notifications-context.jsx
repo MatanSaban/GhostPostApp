@@ -1,6 +1,7 @@
 'use client';
 
 import { createContext, useContext, useState, useCallback, useEffect, useRef } from 'react';
+import { useUser } from '@/app/context/user-context';
 
 /**
  * Notifications Context
@@ -32,6 +33,7 @@ const NOTIFICATION_POLL_INTERVAL = 30_000;
 const PAGE_SIZE = 20;
 
 export function NotificationsProvider({ children }) {
+  const { user, isLoading: isUserLoading } = useUser();
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [totalCount, setTotalCount] = useState(0);
@@ -242,9 +244,14 @@ export function NotificationsProvider({ children }) {
     return fetchNotifications(filter, null, false);
   }, [fetchNotifications]);
 
-  // Initial fetch + polling
+  // Initial fetch + polling — only when user is logged in
   useEffect(() => {
     isMountedRef.current = true;
+
+    // Don't poll if user isn't loaded yet or not logged in
+    if (isUserLoading || !user) {
+      return () => { isMountedRef.current = false; };
+    }
     
     // Initial fetch
     fetchNotifications('all', null, false);
@@ -260,7 +267,7 @@ export function NotificationsProvider({ children }) {
         clearInterval(pollIntervalRef.current);
       }
     };
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [user, isUserLoading]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const value = {
     notifications,

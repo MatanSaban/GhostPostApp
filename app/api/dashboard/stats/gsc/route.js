@@ -6,6 +6,7 @@ import {
   fetchGSCReport,
   fetchGSCTopPages,
   fetchGSCTopQueries,
+  fetchGSCForKeywords,
 } from '@/lib/google-integration';
 
 const SESSION_COOKIE = 'user_session';
@@ -42,7 +43,8 @@ export async function GET(request) {
     const endDate = searchParams.get('endDate');
     const compareStartDate = searchParams.get('compareStartDate');
     const compareEndDate = searchParams.get('compareEndDate');
-    const section = searchParams.get('section'); // 'kpis', 'topPages', 'topKeywords'
+    const section = searchParams.get('section'); // 'kpis', 'topPages', 'topKeywords', 'trackedKeywords'
+    const keywordsParam = searchParams.get('keywords'); // comma-separated keywords for trackedKeywords section
 
     if (!siteId) {
       return NextResponse.json({ error: 'siteId required' }, { status: 400 });
@@ -123,7 +125,54 @@ export async function GET(request) {
       });
     }
 
-    const hasTokenError = isAuthError(errors.gsc) || isAuthError(errors.topPages) || isAuthError(errors.topQueries);
+    if (section === 'trackedKeywords' && keywordsParam) {
+      const keywords = keywordsParam.split(',').map(k => k.trim()).filter(Boolean);
+      if (keywords.length > 0) {
+        // Determine cache key from the date span (maps to preset or custom dates)
+        const cacheKey = (() => {
+          if (!startDate || !endDate) return '30d';
+          const s = new Date(startDate + 'T00:00:00');
+          const e = new Date(endDate + 'T00:00:00');
+          const days = Math.round((e - s) / 86400000);
+          const presetMap = { 7: '7d', 30: '30d', 90: '90d', 180: '180d', 365: '365d' };
+          return presetMap[days] || `custom:${startDate}:${endDate}`;
+        })();
+
+        const TWELVE_HOURS = 12 * 60 * 60 * 1000;
+
+        // Check cache
+        const cached = await prisma.gscKeywordCache.findUnique({
+          where: { siteId_rangeKey: { siteId, rangeKey: cacheKey } },
+        });
+
+        if (cached && (Date.now() - new Date(cached.fetchedAt).getTime()) < TWELVE_HOURS) {
+          const ageMin = Math.round((Date.now() - new Date(cached.fetchedAt).getTime()) / 60000);
+          console.log(`[GSC] trackedKeywords served from DB cache (key: ${cacheKey}, age: ${ageMin}min, next refresh in ${Math.round(12 * 60 - ageMin)}min)`);
+          result.trackedQueries = cached.data;
+          result.cached = true;
+        } else {
+          console.log(`[GSC] trackedKeywords fetching FRESH from Google Search Console (key: ${cacheKey}${cached ? ', cache expired' : ', no cache'})`);
+          result.trackedQueries = await fetchGSCForKeywords(accessToken, integration.gscSiteUrl, keywords, range, compareRange).catch(err => {
+            console.error('[GSC] fetchGSCForKeywords error:', err.message);
+            errors.trackedKeywords = err.message;
+            return [];
+          });
+
+          // Save to cache (only if we got data)
+          if (result.trackedQueries && result.trackedQueries.length > 0) {
+            await prisma.gscKeywordCache.upsert({
+              where: { siteId_rangeKey: { siteId, rangeKey: cacheKey } },
+              update: { data: result.trackedQueries, fetchedAt: new Date() },
+              create: { siteId, rangeKey: cacheKey, data: result.trackedQueries },
+            }).catch(err => console.error('[GSC] Cache write error:', err.message));
+          }
+        }
+      } else {
+        result.trackedQueries = [];
+      }
+    }
+
+    const hasTokenError = isAuthError(errors.gsc) || isAuthError(errors.topPages) || isAuthError(errors.topQueries) || isAuthError(errors.trackedKeywords);
     if (hasTokenError) result.tokenError = true;
 
     return NextResponse.json(result);
