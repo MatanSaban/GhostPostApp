@@ -10,10 +10,15 @@
  */
 
 // Current plugin version - increment this when making updates
-export const PLUGIN_VERSION = "1.8.9";
+export const PLUGIN_VERSION = "1.9.0";
 
 // Changelog for the current version
 export const PLUGIN_CHANGELOG = `
+= 1.9.0 =
+* NEW: Resolve URL to WordPress post ID endpoint (/resolve-url) for per-page SEO fixes
+* NEW: Search engine visibility endpoint (/search-engine-visibility) to detect and fix "Discourage search engines" setting
+* NEW: Per-page noindex/nofollow fix support via SEO manager integration
+
 = 1.8.9 =
 * FIXED: Plugin connection not detected after upload/replace (activation hook not firing)
 * Auto-verify connection on admin page load if not yet connected (throttled to 5 min)
