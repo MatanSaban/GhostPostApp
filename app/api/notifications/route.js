@@ -23,7 +23,7 @@ async function getAuthenticatedUser() {
 }
 
 /**
- * GET /api/notifications — fetch notifications for the current user
+ * GET /api/notifications - fetch notifications for the current user
  * Query params: ?limit=20&unreadOnly=false&cursor=<id>&type=audit_complete
  */
 export async function GET(request) {
@@ -76,7 +76,7 @@ export async function GET(request) {
 }
 
 /**
- * PATCH /api/notifications — mark notification(s) as read/unread
+ * PATCH /api/notifications - mark notification(s) as read/unread
  * Body: { id: "single_id", read?: boolean } or { all: true }
  * If `read` is omitted, defaults to true (mark as read)
  */
@@ -116,7 +116,7 @@ export async function PATCH(request) {
 }
 
 /**
- * DELETE /api/notifications — dismiss/delete notification(s)
+ * DELETE /api/notifications - dismiss/delete notification(s)
  * Body: { id: "single_id" } or { all: true }
  */
 export async function DELETE(request) {

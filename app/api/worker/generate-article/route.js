@@ -51,19 +51,19 @@ async function generateAiArticle(content, site) {
 Rules:
 1. Write approximately ${targetWordCount} words.
 2. Format the output as clean HTML. Use <h2>, <h3>, <p>, <ul>/<ol>, <strong>, <em> as needed.
-3. Do NOT include <html>, <head>, <body>, or <h1> tags — return the article body only.
+3. Do NOT include <html>, <head>, <body>, or <h1> tags - return the article body only.
 4. The <h1> title will be set separately. Use ONLY <h2> tags for main section titles and <h3> for sub-sections. Never use <h1> inside the content.
 5. Write naturally and engagingly. Avoid filler sentences.
-6. The article type is "${typeLabel}" — match the tone and structure accordingly.
+6. The article type is "${typeLabel}" - match the tone and structure accordingly.
 7. Include a compelling meta title (max 60 chars) and meta description (max 155 chars).
 8. Include a short excerpt (1-2 sentences) summarizing the article.
-9. The "slug" field MUST be a short, descriptive, SEO-friendly English slug — even if the article is written in another language. Use lowercase, hyphens, no special chars, max 5-6 words.
+9. The "slug" field MUST be a short, descriptive, SEO-friendly English slug - even if the article is written in another language. Use lowercase, hyphens, no special chars, max 5-6 words.
 ${keywordText ? `10. Target keyword: "${keywordText}". This is the main focus keyword. Work it naturally into the first <h2>, the first paragraph, and sprinkle throughout. Return it in the "focusKeyword" field.` : '10. Identify the most important keyword/phrase from the article and return it in "focusKeyword".'}
 ${includeFeaturedImage ? '11. Write a vivid, descriptive alt-text for the featured image in "featuredImageAlt". Describe what the ideal image should depict.' : ''}
 ${includeContentImages ? `12. Add exactly ${contentImageCount} inline image placeholders using <!-- IMAGE: detailed description of what this image should show --> format. Spread them evenly through the article. Each description should be specific and detailed (20-40 words).` : ''}
 13. Generate Open Graph and Twitter Card metadata:
     - "ogTitle": compelling social share title (max 70 chars)
-    - "ogDescription": engaging social description (max 200 chars) — make it shareable
+    - "ogDescription": engaging social description (max 200 chars) - make it shareable
     - "twitterTitle": same as ogTitle or slightly different for Twitter
     - "twitterDescription": same as ogDescription or slightly different for Twitter
 ${siteUrl ? `14. The canonical URL should be: "${siteUrl}/" followed by the slug. Return it in "canonicalUrl".` : ''}

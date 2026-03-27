@@ -41,7 +41,7 @@ async function acquireBatch() {
 
   const ids = candidates.map((c) => c.id);
 
-  // 2. Atomic lock — only flip to PROCESSING if still SCHEDULED
+  // 2. Atomic lock - only flip to PROCESSING if still SCHEDULED
   await prisma.content.updateMany({
     where: {
       id: { in: ids },
@@ -68,7 +68,7 @@ async function acquireBatch() {
 // ─── Worker Dispatch ─────────────────────────────────────────────────
 /**
  * Dispatch a single worker invocation via fetch.
- * Returns a promise — callers must await all dispatches before
+ * Returns a promise - callers must await all dispatches before
  * the route handler returns (serverless runtimes kill unawaited promises).
  */
 function dispatchWorker(contentId) {

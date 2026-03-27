@@ -89,7 +89,7 @@ export async function POST(request, { params }) {
       return NextResponse.json({ error: 'Only recurring add-ons can be canceled' }, { status: 400 });
     }
 
-    // Set canceledAt — the addon remains active until the next billing period
+    // Set canceledAt - the addon remains active until the next billing period
     await prisma.addOnPurchase.update({
       where: { id: purchaseId },
       data: { canceledAt: new Date() },

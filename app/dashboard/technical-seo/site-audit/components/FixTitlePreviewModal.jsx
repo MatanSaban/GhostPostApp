@@ -23,7 +23,7 @@ import { useModalResize, ModalResizeButton } from '@/app/components/ui/ModalResi
 import styles from './FixTitlePreviewModal.module.css';
 
 /**
- * FixTitlePreviewModal — Shows AI-generated title suggestions with Preview → Confirm → Execute flow
+ * FixTitlePreviewModal - Shows AI-generated title suggestions with Preview → Confirm → Execute flow
  *
  * Props:
  * - open: boolean
@@ -230,7 +230,7 @@ export default function FixTitlePreviewModal({ open, onClose, auditId, siteId, o
   const pendingCount = Object.values(fixStatus).filter((s) => s === 'idle').length;
   const allDone = suggestions.length > 0 && pendingCount === 0;
 
-  // Close handler — refresh audit if fixes were applied
+  // Close handler - refresh audit if fixes were applied
   const handleClose = useCallback(() => {
     if (hasAppliedFixes && onAuditUpdated) {
       onAuditUpdated();
@@ -361,12 +361,12 @@ export default function FixTitlePreviewModal({ open, onClose, auditId, siteId, o
                         {t('siteAudit.titleFix.oldLabel')}
                       </span>
                       <span className={`${styles.titleText} ${styles.oldTitleText}`}>
-                        {s.oldTitle || '—'}
+                        {s.oldTitle || '-'}
                         <span className={styles.charCount}>({(s.oldTitle || '').length})</span>
                       </span>
                     </div>
 
-                    {/* New title — editable */}
+                    {/* New title - editable */}
                     <div className={styles.titleRow}>
                       <span className={`${styles.titleLabel} ${styles.labelNew}`}>
                         {t('siteAudit.titleFix.newLabel')}

@@ -17,7 +17,7 @@ async function detectPlatformFromHTML(html, siteUrl) {
     signals: [],
   };
 
-  // WordPress signals — only structural patterns to avoid false positives
+  // WordPress signals - only structural patterns to avoid false positives
   const wpSignals = [
     { pattern: /(?:src|href)=["'][^"']*\/wp-content\//i, weight: 3, name: 'wp-content path' },
     { pattern: /(?:src|href)=["'][^"']*\/wp-includes\//i, weight: 3, name: 'wp-includes path' },

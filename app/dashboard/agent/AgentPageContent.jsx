@@ -105,7 +105,7 @@ function getInsightType(titleKey) {
 }
 
 /**
- * Check if an insight is "fully fixed" — all fixable items have been applied.
+ * Check if an insight is "fully fixed" - all fixable items have been applied.
  * For non-fixable insights, checks if status is resolved (not PENDING/FAILED).
  */
 function isInsightFullyFixed(insight) {
@@ -125,7 +125,7 @@ function isInsightFullyFixed(insight) {
     return results.some(r => r.status === 'fixed');
   }
 
-  // missingSeo — check if all pages have been fixed
+  // missingSeo - check if all pages have been fixed
   const pages = insight.data?.pages || [];
   if (pages.length === 0) return false;
 
@@ -187,11 +187,11 @@ function EntityLinkCell({ url, siteId, translations }) {
       </span>
     );
   }
-  return <span className={styles.entityNone}>—</span>;
+  return <span className={styles.entityNone}>-</span>;
 }
 
 /**
- * Per-item fix button — generates AI SEO + applies for a single item.
+ * Per-item fix button - generates AI SEO + applies for a single item.
  * Shows: idle → generating → applying → done/error
  */
 function ItemFixButton({ insightId, itemIndex, translations, onItemFixed }) {
@@ -278,7 +278,7 @@ function InsightDetails({ insight, translations, siteId, pluginConnected, onItem
     (insight.executionResult?.results || []).filter(r => r.status === 'fixed').map(r => r.postId)
   );
 
-  // Keyword Strike Zone — single keyword info
+  // Keyword Strike Zone - single keyword info
   if (type === 'keywordStrikeZone') {
     const isFixed = fixedPostIds.size > 0;
     return (
@@ -316,7 +316,7 @@ function InsightDetails({ insight, translations, siteId, pluginConnected, onItem
     );
   }
 
-  // Unlinked Keywords — list of keywords with search volume
+  // Unlinked Keywords - list of keywords with search volume
   if (type === 'unlinkedKeywords' && d.keywords?.length > 0) {
     return (
       <div className={styles.detailSection}>
@@ -340,7 +340,7 @@ function InsightDetails({ insight, translations, siteId, pluginConnected, onItem
     );
   }
 
-  // Stale Content — list of pages with last update date
+  // Stale Content - list of pages with last update date
   if (type === 'staleContent' && d.oldestPages?.length > 0) {
     return (
       <div className={styles.detailSection}>
@@ -355,7 +355,7 @@ function InsightDetails({ insight, translations, siteId, pluginConnected, onItem
             {d.oldestPages.map((p, i) => (
               <tr key={i}>
                 <td className={styles.detailPageTitle}>{p.title}</td>
-                <td>{p.updatedAt ? new Date(p.updatedAt).toLocaleDateString() : '—'}</td>
+                <td>{p.updatedAt ? new Date(p.updatedAt).toLocaleDateString() : '-'}</td>
               </tr>
             ))}
           </tbody>
@@ -364,7 +364,7 @@ function InsightDetails({ insight, translations, siteId, pluginConnected, onItem
     );
   }
 
-  // Missing SEO — list of pages
+  // Missing SEO - list of pages
   if (type === 'missingSeo' && d.pages?.length > 0) {
     // Deduplicate pages by normalized URL
     const seen = new Set();
@@ -430,7 +430,7 @@ function InsightDetails({ insight, translations, siteId, pluginConnected, onItem
     );
   }
 
-  // Noindex Detected — list of pages marked noindex
+  // Noindex Detected - list of pages marked noindex
   if (type === 'noindexDetected' && d.pages?.length > 0) {
     return (
       <div className={styles.detailSection}>
@@ -467,7 +467,7 @@ function InsightDetails({ insight, translations, siteId, pluginConnected, onItem
     );
   }
 
-  // Traffic Drop — stats overview
+  // Traffic Drop - stats overview
   if (type === 'trafficDrop') {
     const changeVal = resolveChangePercent(d);
     return (
@@ -492,7 +492,7 @@ function InsightDetails({ insight, translations, siteId, pluginConnected, onItem
     );
   }
 
-  // Low CTR Queries — table of queries
+  // Low CTR Queries - table of queries
   if (type === 'lowCtrQueries' && d.queries?.length > 0) {
     return (
       <div className={styles.detailSection}>
@@ -511,7 +511,7 @@ function InsightDetails({ insight, translations, siteId, pluginConnected, onItem
                 <td>{q.query}</td>
                 <td>{q.impressions?.toLocaleString()}</td>
                 <td>{q.ctr}%</td>
-                <td>{q.position ? Math.round(parseFloat(q.position)) : '—'}</td>
+                <td>{q.position ? Math.round(parseFloat(q.position)) : '-'}</td>
               </tr>
             ))}
           </tbody>
@@ -520,7 +520,7 @@ function InsightDetails({ insight, translations, siteId, pluginConnected, onItem
     );
   }
 
-  // Declining Pages — table of pages with change
+  // Declining Pages - table of pages with change
   if (type === 'decliningPages' && d.pages?.length > 0) {
     return (
       <div className={styles.detailSection}>
@@ -537,7 +537,7 @@ function InsightDetails({ insight, translations, siteId, pluginConnected, onItem
             {d.pages.map((p, i) => (
               <tr key={i}>
                 <td className={styles.detailPageTitle}>
-                  <bdi dir="ltr">{p.page ? formatPageUrl(p.page) : '—'}</bdi>
+                  <bdi dir="ltr">{p.page ? formatPageUrl(p.page) : '-'}</bdi>
                 </td>
                 <td>{p.clicks?.toLocaleString()}</td>
                 <td className={styles.detailNegative}>{p.clicksChange}%</td>
@@ -550,7 +550,7 @@ function InsightDetails({ insight, translations, siteId, pluginConnected, onItem
     );
   }
 
-  // Visitors Drop — stats overview
+  // Visitors Drop - stats overview
   if (type === 'visitorsDrop') {
     const changeVal = resolveChangePercent(d);
     return (
@@ -575,7 +575,7 @@ function InsightDetails({ insight, translations, siteId, pluginConnected, onItem
     );
   }
 
-  // Traffic Growth — stats overview
+  // Traffic Growth - stats overview
   if (type === 'trafficGrowth') {
     const changeVal = resolveChangePercent(d);
     return (
@@ -600,7 +600,7 @@ function InsightDetails({ insight, translations, siteId, pluginConnected, onItem
     );
   }
 
-  // Content Gaps — list of gaps
+  // Content Gaps - list of gaps
   if (type === 'contentGaps' && d.topGaps?.length > 0) {
     return (
       <div className={styles.detailSection}>
@@ -624,7 +624,7 @@ function InsightDetails({ insight, translations, siteId, pluginConnected, onItem
     );
   }
 
-  // Stale Competitor Scans — list of competitors
+  // Stale Competitor Scans - list of competitors
   if (type === 'staleCompetitorScans' && d.competitors?.length > 0) {
     return (
       <div className={styles.detailSection}>
@@ -639,7 +639,7 @@ function InsightDetails({ insight, translations, siteId, pluginConnected, onItem
             {d.competitors.map((c, i) => (
               <tr key={i}>
                 <td>{c.domain}</td>
-                <td>{c.lastScannedAt ? new Date(c.lastScannedAt).toLocaleDateString() : '—'}</td>
+                <td>{c.lastScannedAt ? new Date(c.lastScannedAt).toLocaleDateString() : '-'}</td>
               </tr>
             ))}
           </tbody>
@@ -648,13 +648,13 @@ function InsightDetails({ insight, translations, siteId, pluginConnected, onItem
     );
   }
 
-  // Keyword Cannibalization — queries ranking with multiple pages
+  // Keyword Cannibalization - queries ranking with multiple pages
   if (type === 'cannibalization' && d.queries?.length > 0) {
     return (
       <div className={styles.detailSection}>
         {d.queries.map((c, i) => (
           <div key={i} className={styles.detailSubSection}>
-            <div className={styles.detailSubTitle}>&quot;{c.query}&quot; — {c.pageCount} {labels.pageCount || 'pages competing'}</div>
+            <div className={styles.detailSubTitle}>&quot;{c.query}&quot; - {c.pageCount} {labels.pageCount || 'pages competing'}</div>
             <table className={styles.detailTable}>
               <thead>
                 <tr>
@@ -672,7 +672,7 @@ function InsightDetails({ insight, translations, siteId, pluginConnected, onItem
                         <bdi dir="ltr">{formatPageUrl(p.page)}</bdi> <ExternalLink size={12} />
                       </a>
                     </td>
-                    <td>{p.position ? Math.round(parseFloat(p.position)) : '—'}</td>
+                    <td>{p.position ? Math.round(parseFloat(p.position)) : '-'}</td>
                     <td>{p.clicks?.toLocaleString()}</td>
                     <td>{p.impressions?.toLocaleString()}</td>
                   </tr>
@@ -690,7 +690,7 @@ function InsightDetails({ insight, translations, siteId, pluginConnected, onItem
     );
   }
 
-  // New Keyword Opportunities — untracked queries from GSC
+  // New Keyword Opportunities - untracked queries from GSC
   if (type === 'newKeywordOpportunities' && d.queries?.length > 0) {
     return (
       <div className={styles.detailSection}>
@@ -711,7 +711,7 @@ function InsightDetails({ insight, translations, siteId, pluginConnected, onItem
                 <td>{q.clicks?.toLocaleString()}</td>
                 <td>{q.impressions?.toLocaleString()}</td>
                 <td>{q.ctr}%</td>
-                <td>{q.position ? Math.round(parseFloat(q.position)) : '—'}</td>
+                <td>{q.position ? Math.round(parseFloat(q.position)) : '-'}</td>
               </tr>
             ))}
           </tbody>
@@ -725,7 +725,7 @@ function InsightDetails({ insight, translations, siteId, pluginConnected, onItem
     );
   }
 
-  // Low CTR for Position — pages with CTR below expected for their ranking
+  // Low CTR for Position - pages with CTR below expected for their ranking
   if (type === 'lowCtrForPosition' && d.pages?.length > 0) {
     return (
       <div className={styles.detailSection}>
@@ -747,7 +747,7 @@ function InsightDetails({ insight, translations, siteId, pluginConnected, onItem
                     <bdi dir="ltr">{formatPageUrl(p.page)}</bdi> <ExternalLink size={12} />
                   </a>
                 </td>
-                <td>{p.position ? Math.round(parseFloat(p.position)) : '—'}</td>
+                <td>{p.position ? Math.round(parseFloat(p.position)) : '-'}</td>
                 <td className={styles.detailNegative}>{p.actualCtr}%</td>
                 <td>{p.expectedCtr}%</td>
                 <td>{p.impressions?.toLocaleString()}</td>
@@ -759,7 +759,7 @@ function InsightDetails({ insight, translations, siteId, pluginConnected, onItem
     );
   }
 
-  // Content Without Organic Traffic — published pages with no GSC visibility
+  // Content Without Organic Traffic - published pages with no GSC visibility
   if (type === 'contentWithoutTraffic' && d.pages?.length > 0) {
     return (
       <div className={styles.detailSection}>
@@ -783,7 +783,7 @@ function InsightDetails({ insight, translations, siteId, pluginConnected, onItem
                     </a>
                   )}
                 </td>
-                <td>{p.publishedAt ? new Date(p.publishedAt).toLocaleDateString() : '—'}</td>
+                <td>{p.publishedAt ? new Date(p.publishedAt).toLocaleDateString() : '-'}</td>
                 <td><EntityLinkCell url={p.url} siteId={siteId} translations={translations} /></td>
               </tr>
             ))}
@@ -1085,7 +1085,7 @@ export default function AgentPageContent({ translations }) {
     <>
       <PageHeader
         title={t.title || 'AI Agent'}
-        subtitle={lastRun ? (t.lastRun || 'Last run: {time}').replace('{time}', `${getTimeAgo(lastRun.startedAt, t)} — ${lastRun.insightsCount} ${t.agent?.insightsCountLabel || 'insights'}`) : null}
+        subtitle={lastRun ? (t.lastRun || 'Last run: {time}').replace('{time}', `${getTimeAgo(lastRun.startedAt, t)} - ${lastRun.insightsCount} ${t.agent?.insightsCountLabel || 'insights'}`) : null}
       >
         <button
           className={styles.runButton}

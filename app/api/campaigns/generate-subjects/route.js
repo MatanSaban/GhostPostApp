@@ -84,7 +84,7 @@ export async function POST(request) {
     const selectedTypeIds = articleTypes.map(at => at.id);
     const selectedTypeLabels = selectedTypeIds.map(id => articleTypeLabels[id] || id).join(', ');
 
-    // 4. Fetch existing content titles + slugs for anti-cannibalization (TITLES ONLY — no body)
+    // 4. Fetch existing content titles + slugs for anti-cannibalization (TITLES ONLY - no body)
     const existingEntities = await prisma.siteEntity.findMany({
       where: { siteId, status: 'PUBLISHED' },
       select: { title: true, slug: true },

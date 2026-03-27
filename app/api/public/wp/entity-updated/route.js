@@ -45,7 +45,7 @@ import {
  *     menu_order: number,
  *     parent: number|null,
  *   }
- *   source: "wordpress" — identifies this came from WordPress (not gp-platform)
+ *   source: "wordpress" - identifies this came from WordPress (not gp-platform)
  */
 export async function POST(request) {
   try {
@@ -107,14 +107,14 @@ export async function POST(request) {
     // Skip if this update originated from gp-platform (conflict prevention)
     // The publish-content cron sets source='gp-platform' when pushing to WordPress
     if (source === 'gp-platform') {
-      console.log(`[WPWebhook] Skipping update for post ${post.id} — originated from gp-platform`);
+      console.log(`[WPWebhook] Skipping update for post ${post.id} - originated from gp-platform`);
       return NextResponse.json({ success: true, skipped: true, reason: 'gp-platform-origin' });
     }
 
     // If site is currently doing a full sync, skip the webhook update
     // to avoid conflicts with the batch sync process
     if (site.entitySyncStatus === 'SYNCING') {
-      console.log(`[WPWebhook] Skipping update for post ${post.id} — full sync in progress`);
+      console.log(`[WPWebhook] Skipping update for post ${post.id} - full sync in progress`);
       return NextResponse.json({ success: true, skipped: true, reason: 'sync_in_progress' });
     }
 
@@ -132,7 +132,7 @@ export async function POST(request) {
 
     // Send notification to account members
     if (result) {
-      // Don't await — fire and forget to keep response fast
+      // Don't await - fire and forget to keep response fast
       notifyEntityWebhookUpdate(site, result, action, post_type).catch(() => {});
     }
 

@@ -53,7 +53,7 @@ export async function PATCH(request, { params }) {
       return NextResponse.json({ error: 'No access' }, { status: 404 });
     }
 
-    // Build update — only safe fields
+    // Build update - only safe fields
     const updateData = {};
     const allowedFields = [
       'scheduledAt',

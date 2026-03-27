@@ -244,7 +244,7 @@ export function NotificationsProvider({ children }) {
     return fetchNotifications(filter, null, false);
   }, [fetchNotifications]);
 
-  // Initial fetch + polling — only when user is logged in
+  // Initial fetch + polling - only when user is logged in
   useEffect(() => {
     isMountedRef.current = true;
 

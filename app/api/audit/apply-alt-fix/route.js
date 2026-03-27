@@ -37,7 +37,7 @@ async function getAuthenticatedUser() {
  */
 
 /**
- * Normalize a URL for comparison — strip protocol and www prefix.
+ * Normalize a URL for comparison - strip protocol and www prefix.
  */
 function normalizeUrlForCompare(url) {
   return url
@@ -48,7 +48,7 @@ function normalizeUrlForCompare(url) {
 
 /**
 /**
- * Clean a filename for WP media search — strip extension, size suffix, and edit hash.
+ * Clean a filename for WP media search - strip extension, size suffix, and edit hash.
  * WP stores attachments by title (e.g. "unnamed-10"), but the URL may contain
  * size suffixes (-300x200) and edit hashes (-e1770978330939) that WP_Query won't match.
  * Returns an array of progressively simpler search terms to try.
@@ -138,7 +138,7 @@ async function resolveMediaBySearch(site, imageUrls) {
       const cleanImageUrl = imageUrl.replace(/-\d+x\d+(?=\.[a-z]+$)/i, '');
       const normalizedCleanUrl = normalizeUrlForCompare(cleanImageUrl);
 
-      // Try exact URL match (normalized — ignore http/https, www)
+      // Try exact URL match (normalized - ignore http/https, www)
       let match = items.find(
         (item) => normalizeUrlForCompare(item.url) === normalizedImageUrl
       );
@@ -161,7 +161,7 @@ async function resolveMediaBySearch(site, imageUrls) {
         });
       }
 
-      // Try matching by filename only (most flexible — strip edit hash and size from both sides)
+      // Try matching by filename only (most flexible - strip edit hash and size from both sides)
       if (!match) {
         const stripWpSuffixes = (f) =>
           f.replace(/-\d+x\d+/g, '').replace(/-e\d{10,13}/g, '').toLowerCase();
@@ -336,7 +336,7 @@ export async function POST(request) {
               };
             }
 
-            // Some images still missing alt — update the count
+            // Some images still missing alt - update the count
             const totalMatch = issue.details?.match(/\d+\/(\d+)/);
             const totalImages = totalMatch ? parseInt(totalMatch[1]) : remaining.length;
             return {

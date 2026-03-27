@@ -1195,7 +1195,7 @@ export const InterviewWizard = forwardRef(function InterviewWizard({ onClose, on
     const submittedValue = value ?? inputValue;
     
     // Immediately clear keyword selection UI on submit
-    // NOTE: Do NOT clear competitorSuggestions here — it causes the competitor useEffect
+    // NOTE: Do NOT clear competitorSuggestions here - it causes the competitor useEffect
     // to re-trigger a search (the guard checks competitorSuggestions.length > 0).
     // Competitors are cleared in moveToNextQuestion instead.
     if (currentQuestion.questionType === 'AI_SUGGESTION') {
@@ -1341,7 +1341,7 @@ export const InterviewWizard = forwardRef(function InterviewWizard({ onClose, on
     
     setTimeout(async () => {
       // Clear competitor UI state inside setTimeout, AFTER the index advances.
-      // NOTE: Do NOT reset competitorSearchInProgress.current here — keeping it true
+      // NOTE: Do NOT reset competitorSearchInProgress.current here - keeping it true
       // prevents the competitor useEffect from re-triggering a search when we move
       // past the competitor question. It stays true until a new interview starts.
       setCompetitorSuggestions([]);
@@ -1390,7 +1390,7 @@ export const InterviewWizard = forwardRef(function InterviewWizard({ onClose, on
         const nextQuestion = questions[nextIndex];
         const questionText = t(nextQuestion.translationKey);
         
-        // For AUTO_ACTION, skip adding a chat message — just advance the index
+        // For AUTO_ACTION, skip adding a chat message - just advance the index
         // The AUTO_ACTION useEffect will handle running the action and showing progress
         if (nextQuestion.questionType === 'AUTO_ACTION') {
           setCurrentQuestionIndex(nextIndex);
@@ -1985,7 +1985,7 @@ export const InterviewWizard = forwardRef(function InterviewWizard({ onClose, on
             </div>
           );
         }
-        // If no error and not running, auto-action hasn't started yet — return loading
+        // If no error and not running, auto-action hasn't started yet - return loading
         return (
           <div className={styles.autoActionLoading}>
             <Loader2 size={20} className={styles.spinIcon} />
@@ -2800,7 +2800,7 @@ export const InterviewWizard = forwardRef(function InterviewWizard({ onClose, on
         // Map field keys to sourceData properties (handles naming differences)
         const getFieldValue = (fieldKey) => {
           // First check editableData (user edits take priority)
-          // For businessName: never allow empty — fall through to sourceData
+          // For businessName: never allow empty - fall through to sourceData
           // For all other fields: if user explicitly set a value (even empty), use it
           if (fieldKey !== 'businessName' && editableData[fieldKey] !== undefined) {
             return editableData[fieldKey];
@@ -3171,7 +3171,7 @@ export const InterviewWizard = forwardRef(function InterviewWizard({ onClose, on
                       disabled={isProcessing}
                     >
                       <CheckCircle2 size={16} />
-                      {t('interviewWizard.wordpressPlugin.checkConnection') || 'I installed & activated it — Check Connection'}
+                      {t('interviewWizard.wordpressPlugin.checkConnection') || 'I installed & activated it - Check Connection'}
                     </button>
                   )}
                 </>
@@ -3195,7 +3195,7 @@ export const InterviewWizard = forwardRef(function InterviewWizard({ onClose, on
                   className={styles.skipLink}
                   disabled={isProcessing || wpPluginStatus === 'checking'}
                 >
-                  {t('interviewWizard.wordpressPlugin.skipText') || "Skip — I'll install it later"}
+                  {t('interviewWizard.wordpressPlugin.skipText') || "Skip - I'll install it later"}
                 </button>
               )}
             </div>
@@ -3377,7 +3377,7 @@ export const InterviewWizard = forwardRef(function InterviewWizard({ onClose, on
                   className={styles.skipLink}
                   disabled={isProcessing || googleIntegrationStatus === 'connecting'}
                 >
-                  {t('interviewWizard.googleIntegration.skipText') || 'Skip — I\'ll set this up later in Settings'}
+                  {t('interviewWizard.googleIntegration.skipText') || 'Skip - I\'ll set this up later in Settings'}
                 </button>
               )}
             </div>

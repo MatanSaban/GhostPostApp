@@ -60,7 +60,7 @@ function getStatusColor(code) {
 }
 
 /**
- * ScannedPageRow — reusable row for a scanned page
+ * ScannedPageRow - reusable row for a scanned page
  *
  * Props:
  * - pageResult: AuditPageResult object
@@ -70,9 +70,9 @@ function getStatusColor(code) {
  * - onViewDetails: callback to show issue details for this page
  * - compact: if true, show less columns (for drill-down view)
  * - asTableRow: if true, render as <tr> with <td> cells (for pages tab table)
- * - pageIssues: Array<AuditIssue> — issues for this specific page (for Quick Fix)
+ * - pageIssues: Array<AuditIssue> - issues for this specific page (for Quick Fix)
  * - onFixComplete: callback after AI fix completes
- * - isPluginConnected: boolean — whether the WP plugin is connected
+ * - isPluginConnected: boolean - whether the WP plugin is connected
  * - onPluginRequired: callback when fix attempted without plugin
  */
 export default function ScannedPageRow({
@@ -275,10 +275,10 @@ export default function ScannedPageRow({
         <tr className={styles.tableRow}>
           <td className={styles.tdUrl}>{urlCell}</td>
           <td className={`${styles.tdCenter} ${styles[getStatusColor(pr.statusCode)]}`}>
-            {pr.statusCode || '—'}
+            {pr.statusCode || '-'}
           </td>
           <td className={`${styles.tdCenter} ${styles.mono}`}>
-            {pr.ttfb ? `${pr.ttfb}ms` : '—'}
+            {pr.ttfb ? `${pr.ttfb}ms` : '-'}
           </td>
           <td className={`${styles.tdCenter} ${pr.performanceScore ? styles[getScoreColor(pr.performanceScore)] : ''}`}>
             {pr.performanceScore != null ? pr.performanceScore : t('siteAudit.na')}
@@ -311,10 +311,10 @@ export default function ScannedPageRow({
       {!compact && (
         <div className={styles.metrics}>
           <span className={`${styles.metric} ${styles[getStatusColor(pr.statusCode)]}`}>
-            {pr.statusCode || '—'}
+            {pr.statusCode || '-'}
           </span>
           <span className={styles.metricMono}>
-            {pr.ttfb ? `${pr.ttfb}ms` : '—'}
+            {pr.ttfb ? `${pr.ttfb}ms` : '-'}
           </span>
           <span className={`${styles.metric} ${pr.performanceScore ? styles[getScoreColor(pr.performanceScore)] : ''}`}>
             {pr.performanceScore != null ? pr.performanceScore : t('siteAudit.na')}
@@ -334,7 +334,7 @@ export default function ScannedPageRow({
       {compact && (
         <div className={styles.compactMetrics}>
           <span className={`${styles.metric} ${styles[getStatusColor(pr.statusCode)]}`}>
-            {pr.statusCode || '—'}
+            {pr.statusCode || '-'}
           </span>
           <span className={`${styles.metric} ${pr.performanceScore ? styles[getScoreColor(pr.performanceScore)] : ''}`}>
             {pr.performanceScore != null ? `${t('siteAudit.pr.psi')} ${pr.performanceScore}` : `${t('siteAudit.pr.psi')} ${t('siteAudit.na')}`}

@@ -480,7 +480,7 @@ export function KeywordsContent() {
     ? keywords
     : keywords.filter(kw => kw.status === filter.toUpperCase());
 
-  // Stats — aggregate from GSC data for the selected date range
+  // Stats - aggregate from GSC data for the selected date range
   const totalKeywords = keywords.length;
   const gscStats = (() => {
     if (!gscData) return { clicks: 0, impressions: 0, avgPosition: 0, top10: 0 };
@@ -543,13 +543,13 @@ export function KeywordsContent() {
         className={`${styles.changeBadge} ${cls} ${tooltip ? styles.hasTooltip : ''}`}
         data-tooltip={tooltip || undefined}
       >
-        {isZero ? '0% —' : <>{isUp ? '↑' : '↓'}{Math.abs(value)}%</>}
+        {isZero ? '0% -' : <>{isUp ? '↑' : '↓'}{Math.abs(value)}%</>}
       </span>
     );
   };
 
   const fmtNum = (n) => {
-    if (n == null) return '—';
+    if (n == null) return '-';
     return n.toLocaleString();
   };
 
@@ -610,7 +610,7 @@ export function KeywordsContent() {
                   max={gscCustomEnd || fmtDate(new Date())}
                 />
               </label>
-              <span className={styles.chartDateSeparator}>—</span>
+              <span className={styles.chartDateSeparator}>-</span>
               <label className={styles.chartDateLabel}>
                 <span className={styles.chartDateLabelText}>{t('common.to')}</span>
                 <input
@@ -796,18 +796,18 @@ export function KeywordsContent() {
                           {gsc && <ChangeBadge value={gsc.positionChange} tooltip={positionTip(gsc.positionChange)} />}
                         </>
                       ) : (
-                        <span className={styles.noData}>—</span>
+                        <span className={styles.noData}>-</span>
                       )}
                     </div>
                     <div className={`${styles.cell} ${styles.volumeCell}`}>
-                      {gscLoading ? <Skeleton width="3rem" height="0.875rem" borderRadius="sm" /> : volume ? fmtNum(volume) : '—'}
+                      {gscLoading ? <Skeleton width="3rem" height="0.875rem" borderRadius="sm" /> : volume ? fmtNum(volume) : '-'}
                     </div>
                     <div className={`${styles.cell} ${styles.gscMetricCell}`}>
                       {gscLoading ? (
                         <Skeleton width="2.5rem" height="0.875rem" borderRadius="sm" />
                       ) : (
                         <>
-                          {gsc ? fmtNum(gsc.clicks) : '—'}
+                          {gsc ? fmtNum(gsc.clicks) : '-'}
                           {gsc && <ChangeBadge value={gsc.clicksChange} tooltip={changeTip(gsc.clicksChange, fmtNum(gsc.clicks), t('keywordStrategy.clicks'))} />}
                         </>
                       )}
@@ -817,7 +817,7 @@ export function KeywordsContent() {
                         <Skeleton width="3rem" height="0.875rem" borderRadius="sm" />
                       ) : (
                         <>
-                          {gsc ? fmtNum(gsc.impressions) : '—'}
+                          {gsc ? fmtNum(gsc.impressions) : '-'}
                           {gsc && <ChangeBadge value={gsc.impressionsChange} tooltip={changeTip(gsc.impressionsChange, fmtNum(gsc.impressions), t('keywordStrategy.impressions'))} />}
                         </>
                       )}
@@ -827,7 +827,7 @@ export function KeywordsContent() {
                         <Skeleton width="2rem" height="0.875rem" borderRadius="sm" />
                       ) : (
                         <>
-                          {gsc ? `${gsc.ctr}%` : '—'}
+                          {gsc ? `${gsc.ctr}%` : '-'}
                           {gsc && <ChangeBadge value={gsc.ctrChange} tooltip={changeTip(gsc.ctrChange, `${gsc.ctr}%`, t('keywordStrategy.ctr'))} />}
                         </>
                       )}
@@ -865,7 +865,7 @@ export function KeywordsContent() {
                             {t('keywordStrategy.setIntent')}
                           </button>
                         ) : (
-                          <span className={styles.noPermission}>—</span>
+                          <span className={styles.noPermission}>-</span>
                         )}
                         {canEditKeywords && editingIntent === kw.id && (
                           <div className={styles.dropdown}>

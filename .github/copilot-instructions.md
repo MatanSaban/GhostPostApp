@@ -15,10 +15,10 @@ The AI model configuration is centralized in `lib/ai/gemini.js`:
 
 ```javascript
 // Model configurations - Change these to update AI models across the entire platform
-// IMAGE uses Nano Banana 2 (gemini-3.1-flash-image-preview) — the latest Gemini native image model
+// IMAGE uses Nano Banana 2 (gemini-3.1-flash-image-preview) - the latest Gemini native image model
 export const MODELS = {
   TEXT: 'gemini-2.0-flash',
-  IMAGE: 'gemini-3.1-flash-image-preview',  // Nano Banana 2 — ALWAYS use the latest version
+  IMAGE: 'gemini-3.1-flash-image-preview',  // Nano Banana 2 - ALWAYS use the latest version
 };
 ```
 

@@ -90,7 +90,7 @@ export function UserProvider({ children }) {
 
     // Fetch user after interceptor is ready (verify with server)
     async function fetchUser() {
-      // Skip API verification only on auth pages with no stored user — 
+      // Skip API verification only on auth pages with no stored user - 
       // avoids 401 spam. On other pages (e.g. /dashboard after OAuth redirect),
       // always try because a valid session cookie may exist without localStorage.
       if (!initialUser && window.location.pathname.startsWith('/auth')) {
@@ -135,7 +135,7 @@ export function UserProvider({ children }) {
               }
             }
           } catch {
-            // Non-critical — will be corrected by polling
+            // Non-critical - will be corrected by polling
           }
         } else if (response.status === 401 || response.status === 403) {
           // Only trigger logout if we don't have a localStorage user
@@ -252,7 +252,7 @@ useEffect(() => {
         }
       }
     } catch {
-      // Silently ignore — next poll will retry
+      // Silently ignore - next poll will retry
     }
   };
 

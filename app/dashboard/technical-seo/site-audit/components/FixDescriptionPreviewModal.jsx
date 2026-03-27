@@ -23,7 +23,7 @@ import { useModalResize, ModalResizeButton } from '@/app/components/ui/ModalResi
 import styles from './FixTitlePreviewModal.module.css';
 
 /**
- * FixDescriptionPreviewModal — Shows AI-generated meta description suggestions
+ * FixDescriptionPreviewModal - Shows AI-generated meta description suggestions
  *
  * Props:
  * - open: boolean
@@ -344,12 +344,12 @@ export default function FixDescriptionPreviewModal({ open, onClose, auditId, sit
                         {t('siteAudit.descFix.oldLabel')}
                       </span>
                       <span className={`${styles.titleText} ${styles.oldTitleText}`}>
-                        {s.oldDescription || '—'}
+                        {s.oldDescription || '-'}
                         <span className={styles.charCount}>({(s.oldDescription || '').length})</span>
                       </span>
                     </div>
 
-                    {/* New description — editable */}
+                    {/* New description - editable */}
                     <div className={styles.titleRow}>
                       <span className={`${styles.titleLabel} ${styles.labelNew}`}>
                         {t('siteAudit.descFix.newLabel')}

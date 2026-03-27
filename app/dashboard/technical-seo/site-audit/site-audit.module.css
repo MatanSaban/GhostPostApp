@@ -773,7 +773,53 @@
   flex-shrink: 0;
 }
 
-/* AI Fix button — shown in aggregated rows and drill-down header */
+/* Info buttons - "What is it?" and "How to fix?" */
+.infoBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--muted-foreground);
+  font-size: 0.75rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+  white-space: nowrap;
+
+  &:hover {
+    background: var(--muted);
+    border-color: var(--muted-foreground);
+    color: var(--foreground);
+  }
+}
+
+.infoBtnSmall {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 2px 6px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--muted-foreground);
+  font-size: 0.6875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+  white-space: nowrap;
+  flex-shrink: 0;
+
+  &:hover {
+    background: var(--muted);
+    border-color: var(--muted-foreground);
+    color: var(--foreground);
+  }
+}
+
+/* AI Fix button - shown in aggregated rows and drill-down header */
 .aiFixBtn {
   display: inline-flex;
   align-items: center;
@@ -795,7 +841,7 @@
   color: white;
 }
 
-/* Smaller AI Fix button — inside page detail modal */
+/* Smaller AI Fix button - inside page detail modal */
 .aiFixBtnSmall {
   display: inline-flex;
   align-items: center;
@@ -840,7 +886,7 @@
   color: white;
 }
 
-/* Smaller Fix button — inside page detail modal */
+/* Smaller Fix button - inside page detail modal */
 .fixBtnSmall {
   display: inline-flex;
   align-items: center;
@@ -1453,6 +1499,7 @@
   color: #6366f1;
   border-radius: 4px;
   font-size: 0.8125rem;
+  width: fit-content;
   font-weight: 600;
   font-family: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, monospace;
   white-space: nowrap;

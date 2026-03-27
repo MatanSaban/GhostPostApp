@@ -192,7 +192,7 @@ export default function ScheduleStep({ state, dispatch, translations }) {
   // On mount: clear past dates, or set defaults (today → +1 month)
   useEffect(() => {
     if (state.startDate && state.startDate < todayStr) {
-      // Past dates — reset to defaults
+      // Past dates - reset to defaults
       const oneMonthLater = new Date(today);
       oneMonthLater.setMonth(oneMonthLater.getMonth() + 1);
       dispatch({ type: 'SET_FIELD', field: 'startDate', value: todayStr });
@@ -200,7 +200,7 @@ export default function ScheduleStep({ state, dispatch, translations }) {
     } else if (state.endDate && state.endDate < todayStr) {
       dispatch({ type: 'SET_FIELD', field: 'endDate', value: '' });
     } else if (!state.startDate) {
-      // No dates set — auto-fill defaults
+      // No dates set - auto-fill defaults
       const oneMonthLater = new Date(today);
       oneMonthLater.setMonth(oneMonthLater.getMonth() + 1);
       dispatch({ type: 'SET_FIELD', field: 'startDate', value: todayStr });

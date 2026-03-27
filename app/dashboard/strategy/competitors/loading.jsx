@@ -16,7 +16,7 @@ export default function CompetitorsLoading() {
         </div>
       </div>
 
-      {/* Skeleton Stats — uses the same StatsGrid skeleton styles */}
+      {/* Skeleton Stats - uses the same StatsGrid skeleton styles */}
       <div className={`${sharedStyles.statsGrid} ${sharedStyles.statsGridCols3}`}>
         {[1, 2, 3].map((i) => (
           <div key={i} className={sharedStyles.statsCardSkeleton}>

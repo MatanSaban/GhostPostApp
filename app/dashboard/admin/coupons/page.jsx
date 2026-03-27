@@ -470,7 +470,7 @@ export default function CouponsPage() {
                           ? coupon.discountType === 'PERCENTAGE'
                             ? `${coupon.discountValue}%`
                             : `$${coupon.discountValue}`
-                          : '—'}
+                          : '-'}
                       </span>
                     </div>
                   </td>
@@ -488,7 +488,7 @@ export default function CouponsPage() {
                           {coupon.extraFeatures.length} feature{coupon.extraFeatures.length > 1 ? 's' : ''}
                         </span>
                       )}
-                      {(!coupon.limitationOverrides?.length && !coupon.extraFeatures?.length) && '—'}
+                      {(!coupon.limitationOverrides?.length && !coupon.extraFeatures?.length) && '-'}
                     </div>
                   </td>
                   <td>

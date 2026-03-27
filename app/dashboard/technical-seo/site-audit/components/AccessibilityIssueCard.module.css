@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════
-   AccessibilityIssueCard — Expandable Rule Card + Evidence
+   AccessibilityIssueCard - Expandable Rule Card + Evidence
    ═══════════════════════════════════════════════════════ */
 
 /* ─── Card Header (rule-level) ─── */
@@ -177,6 +177,36 @@
 .cardChevron {
   flex-shrink: 0;
   color: var(--text-secondary);
+}
+
+/* Info buttons - "What is it?" and "How to fix?" */
+.cardActions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.infoBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--muted-foreground);
+  font-size: 0.75rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+  white-space: nowrap;
+
+  &:hover {
+    background: var(--muted);
+    border-color: var(--muted-foreground);
+    color: var(--foreground);
+  }
 }
 
 /* ─── Node List (expanded) ─── */

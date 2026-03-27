@@ -42,7 +42,7 @@ const suggestionsSchema = z.object({
  *
  * Body: { auditId, siteId, locale? }
  *
- * Cost: FREE (preview only — credits charged on apply)
+ * Cost: FREE (preview only - credits charged on apply)
  * Returns: { suggestions: [{ url, ogTitle, ogDescription, currentOgTitle, currentOgDesc, currentOgImage, reason }] }
  */
 export async function POST(request) {
@@ -126,9 +126,9 @@ export async function POST(request) {
 Requirements:
 - Generate an og:title for each page (15-60 characters, compelling for social sharing)
 - Generate an og:description for each page (50-160 characters, engaging preview text)
-- The og:title should be catchy and relevant — it can differ from the page title
+- The og:title should be catchy and relevant - it can differ from the page title
 - The og:description should be a compelling summary that encourages clicks when shared on social media
-- Maintain the original language — if the page title is in Hebrew, write in Hebrew; if in English, write in English, etc.
+- Maintain the original language - if the page title is in Hebrew, write in Hebrew; if in English, write in English, etc.
 - Write the "reason" field in ${reasonLang}.
 - Note: og:image will be handled separately (using the page's featured image), so you only need to generate og:title and og:description.
 

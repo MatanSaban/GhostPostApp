@@ -27,7 +27,7 @@ async function getAuthenticatedUser() {
  * Body: { insightId: string }
  * 
  * Execute an approved agent action.
- * Currently read-only phase — only certain action types are supported.
+ * Currently read-only phase - only certain action types are supported.
  */
 export async function POST(request) {
   try {
@@ -106,19 +106,19 @@ export async function POST(request) {
 async function executeAction(insight) {
   switch (insight.actionType) {
     case 'generate_meta':
-      // TODO: Phase 2 — generate meta titles/descriptions using AI
+      // TODO: Phase 2 - generate meta titles/descriptions using AI
       return { message: 'Meta generation is not yet implemented. Coming soon.' };
 
     case 'update_meta':
-      // TODO: Phase 2 — push meta updates to WordPress
+      // TODO: Phase 2 - push meta updates to WordPress
       return { message: 'Meta update push is not yet implemented. Coming soon.' };
 
     case 'add_internal_link':
-      // TODO: Phase 2 — suggest internal links
+      // TODO: Phase 2 - suggest internal links
       return { message: 'Internal link suggestions coming soon.' };
 
     case 'push_to_wp':
-      // TODO: Phase 2 — push content changes to WordPress
+      // TODO: Phase 2 - push content changes to WordPress
       return { message: 'WordPress push is not yet implemented. Coming soon.' };
 
     default:

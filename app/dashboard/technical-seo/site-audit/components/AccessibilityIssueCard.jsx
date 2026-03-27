@@ -18,15 +18,18 @@ import {
   CheckCircle2,
   Copy,
   Check,
+  HelpCircle,
+  Lightbulb,
 } from 'lucide-react';
 import { useLocale } from '@/app/context/locale-context';
 import { emitCreditsUpdated } from '@/app/context/user-context';
 import { handleLimitError } from '@/app/context/limit-guard-context';
 import { toImgSrc } from '../lib/img-src';
+import IssueInfoPopup from './IssueInfoPopup';
 import styles from './AccessibilityIssueCard.module.css';
 
 /**
- * AccessibilityIssueCard — Expandable rule-level card with per-element evidence
+ * AccessibilityIssueCard - Expandable rule-level card with per-element evidence
  *
  * Props:
  * - rule: aggregated rule object { ruleId, impact, description, helpUrl, message, severity, urls[], nodes[] }
@@ -47,6 +50,7 @@ export default function AccessibilityIssueCard({
   const [fixResults, setFixResults] = useState({}); // nodeIndex -> altText
   const [copiedIndex, setCopiedIndex] = useState(-1);
   const [lightboxImg, setLightboxImg] = useState(null);
+  const [issueInfoPopup, setIssueInfoPopup] = useState(null); // { type } or null
 
   const nodes = rule.nodes || [];
   const isImageAltRule = ['image-alt', 'input-image-alt', 'area-alt'].includes(rule.ruleId);
@@ -98,6 +102,15 @@ export default function AccessibilityIssueCard({
     });
   };
 
+  /** Resolve "What is it?" or "How to fix?" content for a11y rules */
+  const getA11yInfoContent = (type) => {
+    const camelKey = 'a11y' + rule.ruleId.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join('');
+    const i18nKey = `audit.${type}.${camelKey}`;
+    const translated = t(i18nKey);
+    if (translated && translated !== i18nKey) return translated;
+    return type === 'whatIsIt' ? t('siteAudit.whatIsItFallback') : t('siteAudit.howToFixFallback');
+  };
+
   // Translated texts (falls back to English originals)
   const translatedDescription = translateIssueMsg
     ? translateIssueMsg(rule.description, 'message', rule.translationKey)
@@ -117,7 +130,7 @@ export default function AccessibilityIssueCard({
 
   return (
     <>
-      {/* Rule Header — always visible */}
+      {/* Rule Header - always visible */}
       <button
         className={`${styles.card} ${styles[`impact_${rule.impact}`]}`}
         onClick={() => setExpanded(!expanded)}
@@ -154,6 +167,32 @@ export default function AccessibilityIssueCard({
               </a>
             )}
           </span>
+        </div>
+        <div className={styles.cardActions}>
+          <span
+            role="button"
+            tabIndex={0}
+            className={styles.infoBtn}
+            onClick={(e) => { e.stopPropagation(); setIssueInfoPopup({ type: 'whatIsIt' }); }}
+            onKeyDown={(e) => { if (e.key === 'Enter') { e.stopPropagation(); setIssueInfoPopup({ type: 'whatIsIt' }); } }}
+            title={t('siteAudit.whatIsIt')}
+          >
+            <HelpCircle size={13} />
+            <span>{t('siteAudit.whatIsIt')}</span>
+          </span>
+          {!isPassed && (
+            <span
+              role="button"
+              tabIndex={0}
+              className={styles.infoBtn}
+              onClick={(e) => { e.stopPropagation(); setIssueInfoPopup({ type: 'howToFix' }); }}
+              onKeyDown={(e) => { if (e.key === 'Enter') { e.stopPropagation(); setIssueInfoPopup({ type: 'howToFix' }); } }}
+              title={t('siteAudit.howToFix')}
+            >
+              <Lightbulb size={13} />
+              <span>{t('siteAudit.howToFix')}</span>
+            </span>
+          )}
         </div>
         <div className={styles.cardChevron}>
           {expanded ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
@@ -237,7 +276,7 @@ export default function AccessibilityIssueCard({
                     <div className={styles.metaRow}>
                       <ImageIcon size={14} />
                       <span className={styles.metaLabel}>{t('siteAudit.a11y.fileName')}:</span>
-                      <span className={styles.metaValue}>{meta.imageFileName || '—'}</span>
+                      <span className={styles.metaValue}>{meta.imageFileName || '-'}</span>
                       <a
                         href={meta.imageSrc}
                         target="_blank"
@@ -333,6 +372,16 @@ export default function AccessibilityIssueCard({
           <img src={lightboxImg} alt="" className={styles.lightboxImg} />
         </div>,
         document.body
+      )}
+
+      {/* Issue Info Popup */}
+      {issueInfoPopup && (
+        <IssueInfoPopup
+          type={issueInfoPopup.type}
+          issueTitle={translatedDescription}
+          content={getA11yInfoContent(issueInfoPopup.type)}
+          onClose={() => setIssueInfoPopup(null)}
+        />
       )}
     </>
   );

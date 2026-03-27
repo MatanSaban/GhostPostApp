@@ -5,7 +5,7 @@
  * Old audits store raw base64 strings.
  * This helper handles both transparently.
  *
- * @param {string|null|undefined} val — Cloudinary URL or base64 string
+ * @param {string|null|undefined} val - Cloudinary URL or base64 string
  * @returns {string|null}
  */
 export function toImgSrc(val) {

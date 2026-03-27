@@ -23,12 +23,12 @@ async function getAuthenticatedUser() {
  * POST /api/payment/downgrade
  *
  * Handles plan downgrade where there's a surplus (unused credit > new plan cost).
- * No refund is given — the user acknowledged forfeiting the difference.
+ * No refund is given - the user acknowledged forfeiting the difference.
  *
  * Body:
  *  - planSlug: string (required)
  *  - planId: string (required)
- *  - unusedCredit: number — amount being forfeited (for record-keeping)
+ *  - unusedCredit: number - amount being forfeited (for record-keeping)
  */
 export async function POST(request) {
   try {

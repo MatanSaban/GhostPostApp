@@ -94,7 +94,7 @@ export async function GET(request) {
         });
       } catch (err) {
         console.error('[Dashboard Stats] Token refresh failed:', err);
-        // Don't wipe GA/GSC configuration — just report the error.
+        // Don't wipe GA/GSC configuration - just report the error.
         // The settings page handles cleanup when the user visits it.
         return NextResponse.json({
           gaConnected: integration.gaConnected,

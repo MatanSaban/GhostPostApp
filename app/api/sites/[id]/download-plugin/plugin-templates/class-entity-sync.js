@@ -86,7 +86,7 @@ class GP_Entity_Sync {
      * All save_post/trash/delete hooks will be skipped while this flag is set.
      * Called by the API handler / content manager before creating/updating posts.
      * 
-     * @param int $post_id  (unused — kept for backward compat, flag is global)
+     * @param int $post_id  (unused - kept for backward compat, flag is global)
      */
     public static function mark_gp_origin($post_id = 0) {
         self::$is_gp_api_request = true;

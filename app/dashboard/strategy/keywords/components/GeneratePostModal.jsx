@@ -1235,7 +1235,7 @@ function SettingsStep({ formData, onChange, siteDefaults, isLoadingDefaults, key
   );
 }
 
-// Keywords Step Component — finds similar keywords to avoid cannibalization
+// Keywords Step Component - finds similar keywords to avoid cannibalization
 function KeywordsStep({ keyword, formData, onChange, siteId, t, locale }) {
   const [allKeywords, setAllKeywords] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -1276,7 +1276,7 @@ function KeywordsStep({ keyword, formData, onChange, siteId, t, locale }) {
         // Also exclude the main keyword itself
         platformTexts.add(mainKeywordText.toLowerCase().trim());
 
-        // Process GSC keywords — only add those not already in the platform
+        // Process GSC keywords - only add those not already in the platform
         let gscOnlyKws = [];
         if (gscRes?.ok) {
           const gscData = await gscRes.json();

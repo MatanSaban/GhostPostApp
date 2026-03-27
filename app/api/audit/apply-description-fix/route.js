@@ -117,7 +117,7 @@ export async function POST(request) {
 
       if (isPluginConnected) {
         try {
-          // Archive/taxonomy pages have no WP post ID — skip them
+          // Archive/taxonomy pages have no WP post ID - skip them
           const archivePatterns = [/\/category\//, /\/tag\//, /\/author\//, /\/page\/\d/];
           if (archivePatterns.some(p => p.test(url))) {
             pushError = 'Archive/taxonomy pages cannot be updated via the plugin';
@@ -171,7 +171,7 @@ export async function POST(request) {
               await updateSeoData(site, resolved.postId, { description: newDescription });
               pushed = true;
             } else {
-              throw new Error(`WordPress post ID not found for "${isHomepage ? '(homepage)' : slug}" — URL: ${url}`);
+              throw new Error(`WordPress post ID not found for "${isHomepage ? '(homepage)' : slug}" - URL: ${url}`);
             }
           } else {
             await updateSeoData(site, entity.externalId, { description: newDescription });

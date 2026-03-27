@@ -16,7 +16,7 @@ const STATUS_ICON = {
 };
 
 /**
- * Portal-based tooltip — avoids overflow:hidden clipping from day cells.
+ * Portal-based tooltip - avoids overflow:hidden clipping from day cells.
  */
 function PortalTooltip({ text, rect }) {
   if (!text || !rect) return null;
@@ -37,16 +37,16 @@ function PortalTooltip({ text, rect }) {
 /**
  * Shared calendar grid used by content-planner and ai-content-wizard.
  *
- * @param {string}   monthLabel    — e.g. "March 2026"
- * @param {string[]} dayNames      — e.g. ['Sun','Mon',…]
- * @param {Array}    calendarDays  — 42 cells: { day, month?, today?, inRange?, posts?[] }
- * @param {Function} onPrevMonth   — navigate to previous month
- * @param {Function} onNextMonth   — navigate to next month
- * @param {Function} onPostClick   — (post, event) when a post is clicked
- * @param {Function} [onDrop]      — (draggedPost, targetCell) when a post is dropped; enables DnD
- * @param {Array}    legendItems   — [{ icon, alt, label }]
- * @param {Object}   statusLabels  — { published:'Published', scheduled:'Scheduled', … }
- * @param {string}   [cardClassName] — extra CSS class for the wrapper card
+ * @param {string}   monthLabel    - e.g. "March 2026"
+ * @param {string[]} dayNames      - e.g. ['Sun','Mon',…]
+ * @param {Array}    calendarDays  - 42 cells: { day, month?, today?, inRange?, posts?[] }
+ * @param {Function} onPrevMonth   - navigate to previous month
+ * @param {Function} onNextMonth   - navigate to next month
+ * @param {Function} onPostClick   - (post, event) when a post is clicked
+ * @param {Function} [onDrop]      - (draggedPost, targetCell) when a post is dropped; enables DnD
+ * @param {Array}    legendItems   - [{ icon, alt, label }]
+ * @param {Object}   statusLabels  - { published:'Published', scheduled:'Scheduled', … }
+ * @param {string}   [cardClassName] - extra CSS class for the wrapper card
  */
 export default function CalendarGrid({
   monthLabel,

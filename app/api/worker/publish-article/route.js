@@ -211,7 +211,7 @@ export async function POST(request) {
   try {
     if (isConnected) {
       if (!aiResult) {
-        throw new Error('aiResult is missing — nothing to publish');
+        throw new Error('aiResult is missing - nothing to publish');
       }
       await pushToWordPress(site, aiResult, content);
     }

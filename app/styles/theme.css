@@ -30,7 +30,7 @@
   --border: rgba(0, 0, 0, 0.1);
   --border-light: rgba(0, 0, 0, 0.05);
 
-  /* Semantic aliases — used by audit/accessibility and shared components */
+  /* Semantic aliases - used by audit/accessibility and shared components */
   --bg-card: var(--card);
   --bg-subtle: rgba(0, 0, 0, 0.02);
   --bg-hover: rgba(0, 0, 0, 0.04);
@@ -117,7 +117,7 @@
   --border: rgba(123, 44, 191, 0.2);
   --border-light: rgba(123, 44, 191, 0.1);
 
-  /* Semantic aliases — dark overrides */
+  /* Semantic aliases - dark overrides */
   --bg-card: var(--card);
   --bg-subtle: rgba(255, 255, 255, 0.03);
   --bg-hover: rgba(255, 255, 255, 0.06);

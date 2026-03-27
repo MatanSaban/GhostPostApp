@@ -13,8 +13,8 @@ import styles from './PostPopover.module.css';
  * @param {DOMRect} rect - Position rect from click target
  * @param {Function} onClose - Close handler
  * @param {Object} translations - Translation labels
- * @param {Function} [onDateChange] - (newDate: string) => void — if provided, shows editable date input
- * @param {Function} [onTimeChange] - (newTime: string) => void — if provided, shows editable time input
+ * @param {Function} [onDateChange] - (newDate: string) => void - if provided, shows editable date input
+ * @param {Function} [onTimeChange] - (newTime: string) => void - if provided, shows editable time input
  * @param {Function} [onRetrySuccess] - Called when retry is successful
  */
 export default function PostPopover({
@@ -174,7 +174,7 @@ export default function PostPopover({
             </div>
           )}
 
-          {/* Date — editable or read-only */}
+          {/* Date - editable or read-only */}
           {postDate && (
             <div className={styles.row}>
               <Calendar size={14} />
@@ -194,7 +194,7 @@ export default function PostPopover({
             </div>
           )}
 
-          {/* Time — editable or read-only */}
+          {/* Time - editable or read-only */}
           {postDate && timeStr && (
             <div className={styles.row}>
               <Clock size={14} />

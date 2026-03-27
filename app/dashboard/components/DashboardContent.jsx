@@ -58,7 +58,7 @@ export default function DashboardContent({ translations }) {
     }
   };
 
-  // GSC data has a 2–3 day reporting delay — offset end date so we only
+  // GSC data has a 2–3 day reporting delay - offset end date so we only
   // query finalised data. Start date is relative to the offset end so the
   // window is the full requested duration of complete data.
   const GSC_DELAY_DAYS = 3;
@@ -450,7 +450,7 @@ export default function DashboardContent({ translations }) {
               max={endDate}
             />
           </label>
-          <span className={styles.chartDateSeparator}>—</span>
+          <span className={styles.chartDateSeparator}>-</span>
           <label className={styles.chartDateLabel}>
             <span className={styles.chartDateLabelText}>{t.dateTo || 'To'}</span>
             <input
@@ -516,7 +516,7 @@ export default function DashboardContent({ translations }) {
 
   // Format number with locale separator
   const fmtNum = (n) => {
-    if (n == null) return '—';
+    if (n == null) return '-';
     return Number(n).toLocaleString();
   };
 
@@ -541,7 +541,7 @@ export default function DashboardContent({ translations }) {
         className={`${styles.changeBadge} ${badgeClass} ${tooltip ? styles.hasTooltip : ''}`}
         data-tooltip={tooltip || undefined}
       >
-        {isZero ? '0% —' : <>{isUp ? '↑' : '↓'}{Math.abs(value)}%</>}
+        {isZero ? '0% -' : <>{isUp ? '↑' : '↓'}{Math.abs(value)}%</>}
       </span>
     );
   };
@@ -550,13 +550,13 @@ export default function DashboardContent({ translations }) {
   const activeComparison = chartComparison ?? data?.trafficComparison;
   const chartPeriod = getPeriodName(chartStartDate, chartEndDate, chartPreset);
 
-  // GA KPI cards — use section-specific data if available
+  // GA KPI cards - use section-specific data if available
   const activeGa = gaData ?? data?.ga;
   const gaCompareLabel = getComparisonLabel(gaStartDate, gaEndDate, gaPreset);
   const gaPeriod = getPeriodName(gaStartDate, gaEndDate, gaPreset);
   const cardTip = (label, change, period) => {
     if (change == null) return undefined;
-    if (change === 0) return tpl(t.tipCardNoChange || '{label} — no change compared to {period}', { label, period });
+    if (change === 0) return tpl(t.tipCardNoChange || '{label} - no change compared to {period}', { label, period });
     const tmpl = change > 0
       ? (t.tipCardUp || '{label} is up {percent}% compared to {period}')
       : (t.tipCardDown || '{label} is down {percent}% compared to {period}');
@@ -566,10 +566,10 @@ export default function DashboardContent({ translations }) {
   // Inline change tooltip helper (for ChangeBadge in tables/chart)
   const changeTip = (change, { value, metric, period } = {}) => {
     if (change == null) return undefined;
-    if (change === 0) return tpl(t.tipNoChange || '{value} {metric} — no change from {period}', { value, metric, period });
+    if (change === 0) return tpl(t.tipNoChange || '{value} {metric} - no change from {period}', { value, metric, period });
     const tmpl = change > 0
-      ? (t.tipMoreFromPrev || '{value} {metric} — {percent}% more than {period}')
-      : (t.tipLessFromPrev || '{value} {metric} — {percent}% less than {period}');
+      ? (t.tipMoreFromPrev || '{value} {metric} - {percent}% more than {period}')
+      : (t.tipLessFromPrev || '{value} {metric} - {percent}% less than {period}');
     return tpl(tmpl, { value, metric, percent: Math.abs(change), period });
   };
 
@@ -641,7 +641,7 @@ export default function DashboardContent({ translations }) {
     },
     {
       iconName: 'Clock',
-      value: activeGa.avgSessionDuration || '—',
+      value: activeGa.avgSessionDuration || '-',
       label: t.avgSessionDuration,
       ...trendOf(activeGa.avgSessionDurationChange),
       trendLabel: gaCompareLabel,
@@ -669,7 +669,7 @@ export default function DashboardContent({ translations }) {
     },
   ] : null;
 
-  // GSC KPI cards — use section-specific data if available
+  // GSC KPI cards - use section-specific data if available
   const activeGsc = gscData ?? data?.gsc;
   const gscCompareLabel = getComparisonLabel(gscStartDate, gscEndDate, gscPreset);
   const gscPeriod = getPeriodName(gscStartDate, gscEndDate, gscPreset);
@@ -1216,7 +1216,7 @@ export default function DashboardContent({ translations }) {
         kw = data.keywords[0];
         setTrackedKeywords(prev => new Map([...prev, [query.toLowerCase().trim(), kw]]));
       } else if (res.status === 409) {
-        // Already exists — use from map or fetch
+        // Already exists - use from map or fetch
         kw = trackedKeywords.get(query.toLowerCase().trim());
         if (!kw) {
           const fetchRes = await fetch(`/api/keywords?siteId=${selectedSite.id}`);
@@ -1841,7 +1841,7 @@ export default function DashboardContent({ translations }) {
       <div className={styles.mainGrid}>
         {/* Start Column */}
         <div className={styles.startColumn}>
-          {/* GA4 + GSC KPIs — unified slider */}
+          {/* GA4 + GSC KPIs - unified slider */}
           {loading ? (
             <KpiSkeleton count={3} />
           ) : (data?.gaConnected || data?.gscConnected) && (gaCards || gscCards) ? (
@@ -2061,7 +2061,7 @@ export default function DashboardContent({ translations }) {
 
         {/* End Column */}
         <div className={styles.endColumn}>
-          {/* AI Agent Activity — show first if it has insights */}
+          {/* AI Agent Activity - show first if it has insights */}
           {hasAgentInsights && <AgentActivity translations={t} onInsightsLoaded={setHasAgentInsights} />}
 
           {/* AI Traffic Overview */}
@@ -2110,7 +2110,7 @@ export default function DashboardContent({ translations }) {
                       <div className={styles.aiKpiLabel}>{t.aiTrafficShare || 'AI Traffic Share'}</div>
                       {aiData.aiShareChange != null && (
                         <span className={`${styles.changeBadge} ${aiData.aiShareChange === 0 ? styles.changeBadgeNeutral : aiData.aiShareChange > 0 ? styles.changeBadgeUp : styles.changeBadgeDown}`}>
-                          {aiData.aiShareChange === 0 ? '0% —' : <>{aiData.aiShareChange >= 0 ? '↑' : '↓'}{Math.abs(aiData.aiShareChange)}pp</>}
+                          {aiData.aiShareChange === 0 ? '0% -' : <>{aiData.aiShareChange >= 0 ? '↑' : '↓'}{Math.abs(aiData.aiShareChange)}pp</>}
                         </span>
                       )}
                     </div>
@@ -2121,9 +2121,9 @@ export default function DashboardContent({ translations }) {
                     {renderEngineBreakdown(aiData.engines, aiData.enginePages)}
                   </DashboardCard>
 
-                  {/* Row 3: AI Keywords — disabled for now
+                  {/* Row 3: AI Keywords - disabled for now
                   {(aiKeywords.length > 0 || data?.gscConnected) && (
-                    <DashboardCard title={t.aiKeywordsTitle || 'AI Traffic — Keywords'}>
+                    <DashboardCard title={t.aiKeywordsTitle || 'AI Traffic - Keywords'}>
                       {renderAiKeywords(aiKeywords)}
                     </DashboardCard>
                   )}
@@ -2143,7 +2143,7 @@ export default function DashboardContent({ translations }) {
             </>
           ) : null}
 
-          {/* AI Agent Activity — show after AI Traffic if no insights */}
+          {/* AI Agent Activity - show after AI Traffic if no insights */}
           {!hasAgentInsights && <AgentActivity translations={t} onInsightsLoaded={setHasAgentInsights} />}
 
           {/* Quick Actions */}

@@ -57,11 +57,11 @@ async function fetchAndUploadFavicon(siteUrl, siteId) {
   }
 
   const contentType = response.headers.get('content-type') || '';
-  // Google returns a default blank/globe icon for missing favicons — skip those
+  // Google returns a default blank/globe icon for missing favicons - skip those
   // by checking if the content type is valid image (not the 1x1 default)
   const buffer = Buffer.from(await response.arrayBuffer());
   if (buffer.length < 100) {
-    console.log(`[Favicon] Image too small (${buffer.length}b) for ${domain} — likely placeholder`);
+    console.log(`[Favicon] Image too small (${buffer.length}b) for ${domain} - likely placeholder`);
     return null;
   }
 

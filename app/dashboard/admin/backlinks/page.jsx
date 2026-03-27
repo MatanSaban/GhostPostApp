@@ -653,10 +653,10 @@ export default function AdminBacklinksPage() {
                         {listing.linkType}
                       </span>
                     </td>
-                    <td>{listing.domainAuthority ?? '—'}</td>
-                    <td>{listing.domainRating ?? '—'}</td>
+                    <td>{listing.domainAuthority ?? '-'}</td>
+                    <td>{listing.domainRating ?? '-'}</td>
                     <td>
-                      {listing.price != null ? `$${listing.price}` : '—'}
+                      {listing.price != null ? `$${listing.price}` : '-'}
                       {listing.aiCreditsPrice != null && (
                         <span style={{ display: 'block', fontSize: '0.75rem', color: 'var(--muted-foreground)' }}>
                           {listing.aiCreditsPrice} credits
@@ -700,7 +700,7 @@ export default function AdminBacklinksPage() {
             {listingTotalPages > 1 && (
               <div className={styles.pagination}>
                 <span className={styles.paginationInfo}>
-                  {t('admin.backlinks.tabs.listings')} — {listingPage} / {listingTotalPages}
+                  {t('admin.backlinks.tabs.listings')} - {listingPage} / {listingTotalPages}
                 </span>
                 <div className={styles.paginationButtons}>
                   <button
@@ -795,16 +795,16 @@ export default function AdminBacklinksPage() {
                   <tr key={purchase.id}>
                     <td>
                       <span style={{ direction: 'ltr', display: 'inline-block' }}>
-                        {purchase.listing?.domain || '—'}
+                        {purchase.listing?.domain || '-'}
                       </span>
                     </td>
-                    <td>{purchase.buyerAccountId?.slice(-6) || '—'}</td>
+                    <td>{purchase.buyerAccountId?.slice(-6) || '-'}</td>
                     <td>
                       <span style={{ direction: 'ltr', display: 'inline-block', maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                         {purchase.targetUrl}
                       </span>
                     </td>
-                    <td>{purchase.anchorText || '—'}</td>
+                    <td>{purchase.anchorText || '-'}</td>
                     <td>
                       {purchase.paymentMethod === 'DIRECT' && purchase.amountPaid != null
                         ? `$${purchase.amountPaid}`
@@ -849,7 +849,7 @@ export default function AdminBacklinksPage() {
             {purchaseTotalPages > 1 && (
               <div className={styles.pagination}>
                 <span className={styles.paginationInfo}>
-                  {t('admin.backlinks.tabs.purchases')} — {purchasePage} / {purchaseTotalPages}
+                  {t('admin.backlinks.tabs.purchases')} - {purchasePage} / {purchaseTotalPages}
                 </span>
                 <div className={styles.paginationButtons}>
                   <button

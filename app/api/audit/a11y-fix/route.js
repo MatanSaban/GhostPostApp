@@ -29,7 +29,7 @@ async function getAuthenticatedUser() {
 }
 
 /**
- * POST: AI accessibility fix — generate alt text from element screenshot
+ * POST: AI accessibility fix - generate alt text from element screenshot
  *
  * Body: { auditId, siteId, pageUrl, selector, elementScreenshot (base64), imageSrc }
  *

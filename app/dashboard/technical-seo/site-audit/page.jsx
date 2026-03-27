@@ -32,6 +32,8 @@ import {
   Accessibility,
   Wand2,
   Wrench,
+  HelpCircle,
+  Lightbulb,
 } from 'lucide-react';
 import { useLocale } from '@/app/context/locale-context';
 import { useSite } from '@/app/context/site-context';
@@ -55,7 +57,9 @@ import FixTitlePreviewModal from './components/FixTitlePreviewModal';
 import FixDescriptionPreviewModal from './components/FixDescriptionPreviewModal';
 import FixOGPreviewModal from './components/FixOGPreviewModal';
 import FixAltTextPreviewModal from './components/FixAltTextPreviewModal';
+import FixImageFormatPreviewModal from './components/FixImageFormatPreviewModal';
 import SecurityHeadersModal from './components/SecurityHeadersModal';
+import IssueInfoPopup from './components/IssueInfoPopup';
 import { MediaModal } from '@/app/dashboard/components/MediaModal/MediaModal';
 import { useModalResize, ModalResizeButton } from '@/app/components/ui/ModalResizeButton';
 import styles from './site-audit.module.css';
@@ -71,9 +75,12 @@ const AI_FIXABLE_ISSUES = new Set([
   'audit.issues.titleTooShort',
   'audit.issues.missingOG',
   'audit.issues.imagesNoAlt',
+  'audit.issues.imagesNotNextGen',
+  'audit.issues.imagesTooLarge',
+  'audit.issues.imagesLargeWarning',
 ]);
 
-/** Issue keys for missing security headers — fixable via plugin */
+/** Issue keys for missing security headers - fixable via plugin */
 const SECURITY_HEADER_ISSUES = new Set([
   'audit.issues.noHsts',
   'audit.issues.noXFrameOptions',
@@ -224,16 +231,16 @@ export default function SiteAuditPage() {
   const [error, setError] = useState(null);
   const [isLoadingAudits, setIsLoadingAudits] = useState(true);
 
-  // Device toggle state — "desktop" or "mobile"
+  // Device toggle state - "desktop" or "mobile"
   const [activeDevice, setActiveDevice] = useState('desktop');
 
   // Tab state
   const [activeTab, setActiveTab] = useState('overview');
 
-  // Drill-down state — when user clicks an aggregated issue
+  // Drill-down state - when user clicks an aggregated issue
   const [drillDown, setDrillDown] = useState(null); // { issueKey, category }
 
-  // Page detail modal — viewing issues for a specific page result
+  // Page detail modal - viewing issues for a specific page result
   const [pageDetail, setPageDetail] = useState(null); // AuditPageResult
 
   const [showHistory, setShowHistory] = useState(false);
@@ -244,6 +251,7 @@ export default function SiteAuditPage() {
   const [showDescFixModal, setShowDescFixModal] = useState(false);
   const [showOGFixModal, setShowOGFixModal] = useState(false);
   const [showAltFixModal, setShowAltFixModal] = useState(false);
+  const [showImageFormatFixModal, setShowImageFormatFixModal] = useState(false);
   const [showSecHeadersModal, setShowSecHeadersModal] = useState(false);
   const [showFaviconMediaModal, setShowFaviconMediaModal] = useState(false);
   const [isSettingFavicon, setIsSettingFavicon] = useState(false);
@@ -259,6 +267,9 @@ export default function SiteAuditPage() {
 
   // Column info popup for pages table headers
   const [columnInfoPopup, setColumnInfoPopup] = useState(null); // column key string or null
+
+  // Issue info popup for "What is it?" and "How to fix?" buttons
+  const [issueInfoPopup, setIssueInfoPopup] = useState(null); // { type, key, title } or null
 
   const pollRef = useRef(null);
   const stepIntervalRef = useRef(null);
@@ -305,7 +316,7 @@ export default function SiteAuditPage() {
   useEffect(() => {
     if (!selectedSite?.id) return;
 
-    // Check cache first — restore instantly if we already have data for this device
+    // Check cache first - restore instantly if we already have data for this device
     const cached = auditCacheRef.current[activeDevice];
     if (cached) {
       setLatestAudit(cached.latest);
@@ -322,7 +333,7 @@ export default function SiteAuditPage() {
       return () => stopPolling();
     }
 
-    // No cache — fetch from DB
+    // No cache - fetch from DB
     setIsLoadingAudits(true);
     setError(null);
     setLatestAudit(null);
@@ -415,7 +426,7 @@ export default function SiteAuditPage() {
         throw new Error(data.error || 'Failed to start audit');
       }
       const data = await res.json();
-      // POST now returns { audits: [...] } — pick the one matching active device
+      // POST now returns { audits: [...] } - pick the one matching active device
       const deviceAudit = data.audits?.find(a => a.deviceType === activeDevice) || data.audits?.[0];
       setLatestAudit(deviceAudit);
       startPolling(selectedSite.id, activeDevice);
@@ -496,7 +507,7 @@ export default function SiteAuditPage() {
       i => i.source === 'ai-vision' && i.message && !i.message.startsWith('audit.')
     );
 
-    // Find accessibility issues (axe-core) — description + suggestion need translation
+    // Find accessibility issues (axe-core) - description + suggestion need translation
     const a11yIssues = allIssues.filter(i => i.source === 'axe' && i.type === 'accessibility');
 
     if (aiIssues.length === 0 && a11yIssues.length === 0) return;
@@ -566,9 +577,9 @@ export default function SiteAuditPage() {
   /**
    * Get the translated message for an issue (AI-generated or axe a11y).
    * Falls back to the original message.
-   * @param {string} msg — the original text (also used as key for ai-vision)
-   * @param {string} field — 'message' or 'suggestion'
-   * @param {string} [translationKey] — optional explicit key (e.g. "a11y:image-alt")
+   * @param {string} msg - the original text (also used as key for ai-vision)
+   * @param {string} field - 'message' or 'suggestion'
+   * @param {string} [translationKey] - optional explicit key (e.g. "a11y:image-alt")
    */
   const translateIssueMsg = (msg, field = 'message', translationKey) => {
     if (!msg || msg.startsWith('audit.')) return msg?.startsWith('audit.') ? t(msg) : msg;
@@ -577,6 +588,23 @@ export default function SiteAuditPage() {
     const tr = issueTranslations[key];
     if (tr && tr[field]) return tr[field];
     return msg;
+  };
+
+  /** Resolve the translated issue title for popup display */
+  const getIssueTitle = (agg) => {
+    if (agg.source === 'ai-vision') return translateIssueMsg(agg.message, 'message');
+    return agg.message?.startsWith('audit.') ? t(agg.message) : agg.message;
+  };
+
+  /** Resolve "What is it?" or "How to fix?" popup content from i18n */
+  const getIssueInfoContent = (issueKey, type) => {
+    const shortKey = issueKey?.startsWith('audit.issues.')
+      ? issueKey.replace('audit.issues.', '')
+      : issueKey;
+    const i18nKey = `audit.${type}.${shortKey}`;
+    const translated = t(i18nKey);
+    if (translated && translated !== i18nKey) return translated;
+    return type === 'whatIsIt' ? t('siteAudit.whatIsItFallback') : t('siteAudit.howToFixFallback');
   };
 
   /**
@@ -618,6 +646,11 @@ export default function SiteAuditPage() {
         break;
       case 'audit.issues.imagesNoAlt':
         setShowAltFixModal(true);
+        break;
+      case 'audit.issues.imagesNotNextGen':
+      case 'audit.issues.imagesTooLarge':
+      case 'audit.issues.imagesLargeWarning':
+        setShowImageFormatFixModal(true);
         break;
       default:
         // Future: handle other AI-fixable issues
@@ -818,7 +851,7 @@ export default function SiteAuditPage() {
         </div>
       </div>
 
-      {/* Device Toggle — only when not running and there's at least one audit */}
+      {/* Device Toggle - only when not running and there's at least one audit */}
       {!isRunning && auditHistory.length > 0 && (
         <div className={styles.deviceToggle}>
           <button
@@ -885,7 +918,7 @@ export default function SiteAuditPage() {
         );
       })()}
 
-      {/* Failed State — No Sitemap */}
+      {/* Failed State - No Sitemap */}
       {isFailed && !isRunning && latestAudit?.progress?.failureReason === 'NO_SITEMAP' && (
         <div className={styles.failedCard}>
           <XCircle className={styles.failedIcon} />
@@ -903,7 +936,7 @@ export default function SiteAuditPage() {
         </div>
       )}
 
-      {/* Failed State — Generic */}
+      {/* Failed State - Generic */}
       {isFailed && !isRunning && latestAudit?.progress?.failureReason !== 'NO_SITEMAP' && (
         <div className={styles.failedCard}>
           <XCircle className={styles.failedIcon} />
@@ -1139,6 +1172,30 @@ export default function SiteAuditPage() {
                               </div>
                             )}
                             <div className={styles.aggRight}>
+                              <span
+                                role="button"
+                                tabIndex={0}
+                                className={styles.infoBtn}
+                                onClick={(e) => { e.stopPropagation(); setIssueInfoPopup({ type: 'whatIsIt', key: agg.key, title: getIssueTitle(agg) }); }}
+                                onKeyDown={(e) => { if (e.key === 'Enter') { e.stopPropagation(); setIssueInfoPopup({ type: 'whatIsIt', key: agg.key, title: getIssueTitle(agg) }); } }}
+                                title={t('siteAudit.whatIsIt')}
+                              >
+                                <HelpCircle size={13} />
+                                <span>{t('siteAudit.whatIsIt')}</span>
+                              </span>
+                              {agg.severity !== 'passed' && (
+                                <span
+                                  role="button"
+                                  tabIndex={0}
+                                  className={styles.infoBtn}
+                                  onClick={(e) => { e.stopPropagation(); setIssueInfoPopup({ type: 'howToFix', key: agg.key, title: getIssueTitle(agg) }); }}
+                                  onKeyDown={(e) => { if (e.key === 'Enter') { e.stopPropagation(); setIssueInfoPopup({ type: 'howToFix', key: agg.key, title: getIssueTitle(agg) }); } }}
+                                  title={t('siteAudit.howToFix')}
+                                >
+                                  <Lightbulb size={13} />
+                                  <span>{t('siteAudit.howToFix')}</span>
+                                </span>
+                              )}
                               {AI_FIXABLE_ISSUES.has(agg.key) && (
                                 <span
                                   role="button"
@@ -1240,6 +1297,24 @@ export default function SiteAuditPage() {
                             >
                               {fixingIssueKey === drillDownAgg.key ? <Loader2 size={13} className={styles.spinning} /> : <Wrench size={13} />}
                               <span>{fixingIssueKey === drillDownAgg.key ? t('siteAudit.fix.fixing') || 'Fixing...' : t('siteAudit.fix.label')}</span>
+                            </button>
+                          )}
+                          <button
+                            className={styles.infoBtn}
+                            onClick={() => setIssueInfoPopup({ type: 'whatIsIt', key: drillDownAgg.key, title: getIssueTitle(drillDownAgg) })}
+                            title={t('siteAudit.whatIsIt')}
+                          >
+                            <HelpCircle size={13} />
+                            <span>{t('siteAudit.whatIsIt')}</span>
+                          </button>
+                          {drillDownAgg.severity !== 'passed' && (
+                            <button
+                              className={styles.infoBtn}
+                              onClick={() => setIssueInfoPopup({ type: 'howToFix', key: drillDownAgg.key, title: getIssueTitle(drillDownAgg) })}
+                              title={t('siteAudit.howToFix')}
+                            >
+                              <Lightbulb size={13} />
+                              <span>{t('siteAudit.howToFix')}</span>
                             </button>
                           )}
                         </div>
@@ -1474,7 +1549,7 @@ export default function SiteAuditPage() {
             <div className={styles.pageDetailMetrics}>
               <div className={styles.pdMetric}>
                 <span className={styles.pdMetricLabel}>{t('siteAudit.pr.status')}</span>
-                <span className={styles.pdMetricValue}>{pageDetail.statusCode || '—'}</span>
+                <span className={styles.pdMetricValue}>{pageDetail.statusCode || '-'}</span>
               </div>
               <div className={styles.pdMetric}>
                 <span className={styles.pdMetricLabel}>{t('siteAudit.pr.ttfb')}</span>
@@ -1558,6 +1633,22 @@ export default function SiteAuditPage() {
                         >
                           {fixingIssueKey === issue.message ? <Loader2 size={12} className={styles.spinning} /> : <Wrench size={12} />}
                           <span>{fixingIssueKey === issue.message ? t('siteAudit.fix.fixing') || 'Fixing...' : t('siteAudit.fix.label')}</span>
+                        </button>
+                      )}
+                      <button
+                        className={styles.infoBtnSmall}
+                        onClick={() => setIssueInfoPopup({ type: 'whatIsIt', key: issue.message, title: issue.source === 'ai-vision' ? translateIssueMsg(issue.message, 'message') : (issue.message?.startsWith('audit.') ? t(issue.message) : issue.message) })}
+                        title={t('siteAudit.whatIsIt')}
+                      >
+                        <HelpCircle size={12} />
+                      </button>
+                      {issue.severity !== 'passed' && (
+                        <button
+                          className={styles.infoBtnSmall}
+                          onClick={() => setIssueInfoPopup({ type: 'howToFix', key: issue.message, title: issue.source === 'ai-vision' ? translateIssueMsg(issue.message, 'message') : (issue.message?.startsWith('audit.') ? t(issue.message) : issue.message) })}
+                          title={t('siteAudit.howToFix')}
+                        >
+                          <Lightbulb size={12} />
                         </button>
                       )}
                     </div>
@@ -1650,7 +1741,7 @@ export default function SiteAuditPage() {
                       {hasSegDesktop && (
                         <div className={styles.segmentedGroup}>
                           <span className={styles.pdScreenshotLabel}>
-                            <Monitor size={12} /> {t('siteAudit.desktop')} — {pageDetail.screenshotsDesktop.length} {t('siteAudit.segments')}
+                            <Monitor size={12} /> {t('siteAudit.desktop')} - {pageDetail.screenshotsDesktop.length} {t('siteAudit.segments')}
                           </span>
                           <div className={styles.segmentedGrid}>
                             {pageDetail.screenshotsDesktop.map((seg, idx) => (
@@ -1673,7 +1764,7 @@ export default function SiteAuditPage() {
                       {hasSegMobile && (
                         <div className={styles.segmentedGroup}>
                           <span className={styles.pdScreenshotLabel}>
-                            <Smartphone size={12} /> {t('siteAudit.mobile')} — {pageDetail.screenshotsMobile.length} {t('siteAudit.segments')}
+                            <Smartphone size={12} /> {t('siteAudit.mobile')} - {pageDetail.screenshotsMobile.length} {t('siteAudit.segments')}
                           </span>
                           <div className={styles.segmentedGrid}>
                             {pageDetail.screenshotsMobile.map((seg, idx) => (
@@ -1807,6 +1898,15 @@ export default function SiteAuditPage() {
         onAuditUpdated={() => fetchAudits(selectedSite?.id, activeDevice)}
       />
 
+      {/* AI Image Format Fix Preview Modal */}
+      <FixImageFormatPreviewModal
+        open={showImageFormatFixModal}
+        onClose={() => setShowImageFormatFixModal(false)}
+        auditId={latestAudit?.id}
+        siteId={selectedSite?.id}
+        onAuditUpdated={() => fetchAudits(selectedSite?.id, activeDevice)}
+      />
+
       {/* Security Headers Modal */}
       <SecurityHeadersModal
         open={showSecHeadersModal}
@@ -1830,6 +1930,16 @@ export default function SiteAuditPage() {
         allowedTypes={['image']}
         title={t('siteAudit.fix.faviconModalTitle')}
       />
+
+      {/* Issue Info Popup ("What is it?" / "How to fix?") */}
+      {issueInfoPopup && (
+        <IssueInfoPopup
+          type={issueInfoPopup.type}
+          issueTitle={issueInfoPopup.title}
+          content={getIssueInfoContent(issueInfoPopup.key, issueInfoPopup.type)}
+          onClose={() => setIssueInfoPopup(null)}
+        />
+      )}
     </div>
   );
 }

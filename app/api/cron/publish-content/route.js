@@ -22,7 +22,7 @@ function verifyAuth(request) {
 async function fetchThrottledContent() {
   const now = new Date();
 
-  // Fetch a generous batch — we'll filter down per-site
+  // Fetch a generous batch - we'll filter down per-site
   const candidates = await prisma.content.findMany({
     where: {
       status: 'READY_TO_PUBLISH',
@@ -90,7 +90,7 @@ function dispatchPublishWorker(contentId) {
 // ─── Stale Lock Recovery ─────────────────────────────────────────────
 /**
  * Content stuck in READY_TO_PUBLISH with a recent lastAttemptAt but
- * no status change doesn't need recovery — it stays READY_TO_PUBLISH
+ * no status change doesn't need recovery - it stays READY_TO_PUBLISH
  * and the next cron run will retry it. This is already safe by design.
  *
  * However, we do recover items that got stuck in limbo (e.g., worker

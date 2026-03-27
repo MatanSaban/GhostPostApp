@@ -138,7 +138,7 @@ export async function DELETE(request, { params }) {
       where: { siteId: id },
     });
 
-    // 5. Hard delete the site — Prisma onDelete: Cascade handles:
+    // 5. Hard delete the site - Prisma onDelete: Cascade handles:
     //    Interview, GoogleIntegration, Competitor, UserSitePreference,
     //    SiteEntityType, SiteEntity, SiteMenu,
     //    Keyword, Content, Redirection, SiteAudit

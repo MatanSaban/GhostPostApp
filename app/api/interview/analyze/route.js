@@ -303,7 +303,7 @@ async function fetchAndParsePage(url) {
 function detectPlatform(html, headers) {
   const platforms = [];
   
-  // WordPress indicators — match structural paths only to avoid false positives
+  // WordPress indicators - match structural paths only to avoid false positives
   if (
     /(?:src|href)=["'][^"']*\/wp-content\//i.test(html) ||
     /(?:src|href)=["'][^"']*\/wp-includes\//i.test(html) ||

@@ -163,7 +163,7 @@ export async function POST(request) {
         issues.push(...(psi.issues || []));
       }
     } catch {
-      // PSI failed — graceful skip
+      // PSI failed - graceful skip
     }
 
     pageResult.issueCount = issues.length;

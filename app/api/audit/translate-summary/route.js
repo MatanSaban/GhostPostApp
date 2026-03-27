@@ -100,7 +100,7 @@ export async function POST(request) {
       system: `You are a professional translator. Translate the following website audit summary to ${langName}. 
 Maintain the same formatting (markdown bullets, bold, etc.). 
 Keep technical terms like SEO, TTFB, LCP, CLS, PSI in English.
-Only output the translated text — no preamble or explanation.`,
+Only output the translated text - no preamble or explanation.`,
       prompt: audit.summary,
       temperature: 0.1,
       maxTokens: 800,

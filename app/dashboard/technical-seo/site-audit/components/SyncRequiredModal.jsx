@@ -11,7 +11,7 @@ import { useLocale } from '@/app/context/locale-context';
 import styles from './SyncRequiredModal.module.css';
 
 /**
- * SyncRequiredModal — Shown when AI Fix requires synced entities
+ * SyncRequiredModal - Shown when AI Fix requires synced entities
  *
  * Props:
  * - open: boolean

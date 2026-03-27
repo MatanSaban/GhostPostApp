@@ -285,7 +285,7 @@ async function fetchMainSitemap(siteUrl, customSitemapUrl = null, gscSitemapUrls
     return mainSitemap;
   }
   
-  // No sitemap index found — if we have multiple individual sitemaps, 
+  // No sitemap index found - if we have multiple individual sitemaps, 
   // create a synthetic sitemap index to wrap them all
   if (allValidSitemaps.length > 1) {
     console.log(`[Scan] Found ${allValidSitemaps.length} individual sitemaps, creating synthetic index`);
@@ -328,7 +328,7 @@ async function fetchMainSitemap(siteUrl, customSitemapUrl = null, gscSitemapUrls
     if (lastResortResults.length === 1) {
       return lastResortResults[0];
     }
-    // Multiple found — wrap in synthetic index
+    // Multiple found - wrap in synthetic index
     const sitemapRefs = lastResortResults.map(s => `<sitemap><loc>${s.url}</loc></sitemap>`);
     const syntheticContent = `<?xml version="1.0" encoding="UTF-8"?>\n<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${sitemapRefs.join('\n')}\n</sitemapindex>`;
     
@@ -1584,7 +1584,7 @@ async function discoverPostTypes(site, customSitemapUrl = null, userId = null, u
  * Translates all untranslated names in a single AI call for efficiency.
  */
 async function translatePostTypeNames(postTypes, targetLocale = 'he') {
-  // If target is English, names are already in English — nothing to translate
+  // If target is English, names are already in English - nothing to translate
   if (targetLocale === 'en') return postTypes;
   
   // Find post types that need translation (nameHe is same as name → no real translation)
@@ -1592,7 +1592,7 @@ async function translatePostTypeNames(postTypes, targetLocale = 'he') {
     if (pt.isCore) return false; // Core types always have hardcoded translations
     const hasHardcoded = POST_TYPE_TRANSLATIONS[pt.slug] || POST_TYPE_TRANSLATIONS[pt.slug?.replace(/s$/, '')];
     if (hasHardcoded) return false;
-    // If nameHe equals name, it's just the English fallback — needs real translation
+    // If nameHe equals name, it's just the English fallback - needs real translation
     return !pt.nameHe || pt.nameHe === pt.name;
   });
   
@@ -1667,7 +1667,7 @@ async function translatePostTypeNames(postTypes, targetLocale = 'he') {
  */
 async function fetchSitemapUrls(sitemapUrl) {
   try {
-    // Use generous timeout — dynamic sitemaps (e.g. 3000+ entries) can take 30-60s to generate
+    // Use generous timeout - dynamic sitemaps (e.g. 3000+ entries) can take 30-60s to generate
     const response = await fetch(sitemapUrl, {
       headers: { 'User-Agent': 'GhostPost-Platform/1.0' },
       signal: AbortSignal.timeout(60000),
@@ -1744,7 +1744,7 @@ function cleanPageTitle(title) {
   if (!title) return null;
   
   // Common separators used between page title and site name
-  const separators = [' | ', ' - ', ' – ', ' — ', ' :: ', ' » ', ' // ', ' · '];
+  const separators = [' | ', ' - ', ' – ', ' - ', ' :: ', ' » ', ' // ', ' · '];
   
   for (const sep of separators) {
     if (title.includes(sep)) {
@@ -1912,14 +1912,14 @@ async function populateEntities(site, entityTypes, options = {}, msg = SCAN_MESS
           if (maxEntitiesPerType && entities.length >= maxEntitiesPerType) break;
         }
       } else {
-        // No stored sitemaps — re-fetch main sitemap and extract URLs by type
+        // No stored sitemaps - re-fetch main sitemap and extract URLs by type
         console.log(`[Scan] No stored sitemaps, re-fetching main sitemap for ${entityType.slug}`);
         const sitemap = await fetchMainSitemap(siteUrl);
         
         let typeUrls = [];
         
         if (sitemap && sitemap.isIndex) {
-          // Sitemap index — find child sitemaps matching this entity type's slug
+          // Sitemap index - find child sitemaps matching this entity type's slug
           const childRefs = extractSitemapRefs(sitemap.content);
           for (const childUrl of childRefs) {
             if (childUrl.includes(entityType.slug) || (entityType.slug === 'posts' && childUrl.includes('post'))) {
@@ -1945,7 +1945,7 @@ async function populateEntities(site, entityTypes, options = {}, msg = SCAN_MESS
             }
           }
         } else if (sitemap && !sitemap.isIndex) {
-          // Single flat sitemap — parse URLs and categorize by type
+          // Single flat sitemap - parse URLs and categorize by type
           const categorizedUrls = await parseUrlsFromSingleSitemap(sitemap.content, siteUrl);
           typeUrls = categorizedUrls[entityType.slug]?.urls || [];
           
@@ -2005,7 +2005,7 @@ async function populateEntities(site, entityTypes, options = {}, msg = SCAN_MESS
         };
 
         if (existing) {
-          // Don't overwrite status — entity sync has the authoritative status from WP
+          // Don't overwrite status - entity sync has the authoritative status from WP
           await prisma.siteEntity.update({
             where: { id: existing.id },
             data: entityData,
@@ -2530,7 +2530,7 @@ async function deepCrawlEntities(site, options = {}, msg = SCAN_MESSAGES.en) {
               }
             }
           } else {
-            // Single flat sitemap — categorize URLs and match by slug
+            // Single flat sitemap - categorize URLs and match by slug
             const categorizedUrls = await parseUrlsFromSingleSitemap(mainSitemap.content, site.url);
             const matchedUrls = categorizedUrls[entityType.slug]?.urls || [];
             for (const url of matchedUrls) {
@@ -2675,7 +2675,7 @@ async function deepCrawlEntities(site, options = {}, msg = SCAN_MESSAGES.en) {
           };
           
           if (existing) {
-            // Don't overwrite status — entity sync has the authoritative status from WP
+            // Don't overwrite status - entity sync has the authoritative status from WP
             await prisma.siteEntity.update({
               where: { id: existing.id },
               data: entityData,

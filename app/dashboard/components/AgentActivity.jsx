@@ -40,7 +40,7 @@ const TYPE_COLORS = {
 
 const PRIORITY_ORDER = { CRITICAL: 0, HIGH: 1, MEDIUM: 2, LOW: 3 };
 
-// Positive insight types (trafficGrowth etc.) — direction is "up"
+// Positive insight types (trafficGrowth etc.) - direction is "up"
 const POSITIVE_INSIGHT_TYPES = new Set(['trafficGrowth']);
 const NEGATIVE_INSIGHT_TYPES = new Set(['trafficDrop', 'visitorsDrop', 'decliningPages']);
 
@@ -220,7 +220,7 @@ function InsightDetails({ insight, translations }) {
           <thead><tr><th>{labels.page || 'Page'}</th><th>{labels.lastUpdated || 'Last Updated'}</th></tr></thead>
           <tbody>
             {d.oldestPages.slice(0, 5).map((p, i) => (
-              <tr key={i}><td>{p.title}</td><td>{p.updatedAt ? new Date(p.updatedAt).toLocaleDateString() : '—'}</td></tr>
+              <tr key={i}><td>{p.title}</td><td>{p.updatedAt ? new Date(p.updatedAt).toLocaleDateString() : '-'}</td></tr>
             ))}
           </tbody>
         </table>
@@ -310,7 +310,7 @@ function InsightDetails({ insight, translations }) {
           <thead><tr><th>{labels.query || 'Query'}</th><th>{labels.impressions || 'Impressions'}</th><th>CTR</th><th>{labels.position || 'Position'}</th></tr></thead>
           <tbody>
             {d.queries.slice(0, 5).map((q, i) => (
-              <tr key={i}><td>{q.query}</td><td>{q.impressions?.toLocaleString()}</td><td>{q.ctr}%</td><td>{q.position ? Math.round(parseFloat(q.position)) : '—'}</td></tr>
+              <tr key={i}><td>{q.query}</td><td>{q.impressions?.toLocaleString()}</td><td>{q.ctr}%</td><td>{q.position ? Math.round(parseFloat(q.position)) : '-'}</td></tr>
             ))}
           </tbody>
         </table>
@@ -326,7 +326,7 @@ function InsightDetails({ insight, translations }) {
           <tbody>
             {d.pages.slice(0, 5).map((p, i) => (
               <tr key={i}>
-                <td><bdi dir="ltr">{p.page ? formatPageUrl(p.page) : '—'}</bdi></td>
+                <td><bdi dir="ltr">{p.page ? formatPageUrl(p.page) : '-'}</bdi></td>
                 <td>{p.clicks?.toLocaleString()}</td>
                 <td className={styles.detailNegative}>{p.clicksChange}%</td>
               </tr>
@@ -407,7 +407,7 @@ function InsightDetails({ insight, translations }) {
           <thead><tr><th>{labels.competitor || 'Competitor'}</th><th>{labels.lastScanned || 'Last Scanned'}</th></tr></thead>
           <tbody>
             {d.competitors.slice(0, 5).map((c, i) => (
-              <tr key={i}><td>{c.domain}</td><td>{c.lastScannedAt ? new Date(c.lastScannedAt).toLocaleDateString() : '—'}</td></tr>
+              <tr key={i}><td>{c.domain}</td><td>{c.lastScannedAt ? new Date(c.lastScannedAt).toLocaleDateString() : '-'}</td></tr>
             ))}
           </tbody>
         </table>
@@ -420,14 +420,14 @@ function InsightDetails({ insight, translations }) {
       <div className={styles.detailSection}>
         {d.queries.slice(0, 3).map((c, i) => (
           <div key={i} style={{ marginBottom: '0.5rem' }}>
-            <div style={{ fontWeight: 600, fontSize: '0.85rem', marginBottom: '0.25rem' }}>&quot;{c.query}&quot; — {c.pageCount} {labels.pageCount || 'pages competing'}</div>
+            <div style={{ fontWeight: 600, fontSize: '0.85rem', marginBottom: '0.25rem' }}>&quot;{c.query}&quot; - {c.pageCount} {labels.pageCount || 'pages competing'}</div>
             <table className={styles.detailTable}>
               <thead><tr><th>{labels.page || 'Page'}</th><th>{labels.position || 'Position'}</th><th>{labels.clicks || 'Clicks'}</th></tr></thead>
               <tbody>
                 {c.pages.slice(0, 3).map((p, j) => (
                   <tr key={j}>
-                    <td><bdi dir="ltr">{p.page ? formatPageUrl(p.page) : '—'}</bdi></td>
-                    <td>{p.position ? Math.round(parseFloat(p.position)) : '—'}</td>
+                    <td><bdi dir="ltr">{p.page ? formatPageUrl(p.page) : '-'}</bdi></td>
+                    <td>{p.position ? Math.round(parseFloat(p.position)) : '-'}</td>
                     <td>{p.clicks?.toLocaleString()}</td>
                   </tr>
                 ))}
@@ -446,7 +446,7 @@ function InsightDetails({ insight, translations }) {
           <thead><tr><th>{labels.query || 'Query'}</th><th>{labels.clicks || 'Clicks'}</th><th>{labels.impressions || 'Impressions'}</th><th>{labels.position || 'Position'}</th></tr></thead>
           <tbody>
             {d.queries.slice(0, 5).map((q, i) => (
-              <tr key={i}><td>{q.query}</td><td>{q.clicks?.toLocaleString()}</td><td>{q.impressions?.toLocaleString()}</td><td>{q.position ? Math.round(parseFloat(q.position)) : '—'}</td></tr>
+              <tr key={i}><td>{q.query}</td><td>{q.clicks?.toLocaleString()}</td><td>{q.impressions?.toLocaleString()}</td><td>{q.position ? Math.round(parseFloat(q.position)) : '-'}</td></tr>
             ))}
           </tbody>
         </table>
@@ -462,8 +462,8 @@ function InsightDetails({ insight, translations }) {
           <tbody>
             {d.pages.slice(0, 5).map((p, i) => (
               <tr key={i}>
-                <td><bdi dir="ltr">{p.page ? formatPageUrl(p.page) : '—'}</bdi></td>
-                <td>{p.position ? Math.round(parseFloat(p.position)) : '—'}</td>
+                <td><bdi dir="ltr">{p.page ? formatPageUrl(p.page) : '-'}</bdi></td>
+                <td>{p.position ? Math.round(parseFloat(p.position)) : '-'}</td>
                 <td className={styles.detailNegative}>{p.actualCtr}%</td>
                 <td>{p.expectedCtr}%</td>
               </tr>
@@ -483,7 +483,7 @@ function InsightDetails({ insight, translations }) {
             {d.pages.slice(0, 5).map((p, i) => (
               <tr key={i}>
                 <td>{p.title}</td>
-                <td>{p.publishedAt ? new Date(p.publishedAt).toLocaleDateString() : '—'}</td>
+                <td>{p.publishedAt ? new Date(p.publishedAt).toLocaleDateString() : '-'}</td>
               </tr>
             ))}
           </tbody>

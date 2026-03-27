@@ -98,7 +98,7 @@ export async function GET(request) {
       return null;
     });
 
-    // AI Keywords — disabled for now
+    // AI Keywords - disabled for now
     // let aiKeywords = [];
     // if (integration.gscConnected && integration.gscSiteUrl && aiTraffic?.topLandingPages?.length) {
     //   const aiPagePaths = aiTraffic.topLandingPages.map(p => p.page);

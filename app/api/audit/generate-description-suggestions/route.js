@@ -42,7 +42,7 @@ const suggestionsSchema = z.object({
  *
  * Body: { auditId, siteId, locale? }
  *
- * Cost: FREE (preview only — credits charged on apply)
+ * Cost: FREE (preview only - credits charged on apply)
  * Returns: { suggestions: [{ url, oldDescription, newDescription, reason }] }
  */
 export async function POST(request) {
@@ -125,7 +125,7 @@ Requirements:
 - Include relevant keywords naturally
 - Summarize the page content compellingly to increase click-through rates
 - Use action-oriented language when appropriate
-- Maintain the original language — if the page title is in Hebrew, write the description in Hebrew too; if in English, write in English, etc.
+- Maintain the original language - if the page title is in Hebrew, write the description in Hebrew too; if in English, write in English, etc.
 - Write the "reason" field in ${reasonLang}.
 
 Pages to fix:

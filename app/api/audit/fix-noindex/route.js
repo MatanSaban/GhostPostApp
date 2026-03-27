@@ -190,7 +190,7 @@ export async function POST(request) {
                 severity: 'passed',
                 message: 'audit.issues.wpSearchEngineVisible',
                 suggestion: null,
-                details: 'Fixed via plugin — search engines can now index the site',
+                details: 'Fixed via plugin - search engines can now index the site',
               };
             }
 
@@ -198,7 +198,7 @@ export async function POST(request) {
               return {
                 ...issue,
                 severity: 'info',
-                details: (issue.details || '') + ' (site-wide setting was fixed — re-run audit to verify)',
+                details: (issue.details || '') + ' (site-wide setting was fixed - re-run audit to verify)',
               };
             }
 

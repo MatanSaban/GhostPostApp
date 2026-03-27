@@ -1,4 +1,4 @@
-/* SecurityHeadersModal — Explain & fix missing security headers */
+/* SecurityHeadersModal - Explain & fix missing security headers */
 
 .overlay {
   position: fixed;
@@ -165,7 +165,7 @@
   line-height: 1.4;
 }
 
-/* Per-item fix button — matches FixTitlePreviewModal .fixOneBtn pattern */
+/* Per-item fix button - matches FixTitlePreviewModal .fixOneBtn pattern */
 .fixOneBtn {
   display: inline-flex;
   align-items: center;
@@ -194,7 +194,7 @@
   }
 }
 
-/* Fixed badge — shown after individual header is fixed */
+/* Fixed badge - shown after individual header is fixed */
 .fixedBadge {
   display: inline-flex;
   align-items: center;

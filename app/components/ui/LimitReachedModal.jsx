@@ -170,8 +170,8 @@ export default function LimitReachedModal({
           {canManageBilling
             ? t('limits.limitReachedBody', {
                 resource: resourceLabel,
-                used: usage?.used ?? '—',
-                limit: usage?.limit ?? '—',
+                used: usage?.used ?? '-',
+                limit: usage?.limit ?? '-',
               })
             : t('limits.limitReachedNoPermBody', { resource: resourceLabel })}
         </p>

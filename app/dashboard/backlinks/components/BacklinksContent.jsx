@@ -475,7 +475,7 @@ function PurchaseModal({ listing, sites, stats, t, onClose, onPurchase }) {
                 <span className={styles.paymentDesc}>
                   {t('backlinks.purchase.aiCreditsDesc')
                     .replace('{credits}', listing.aiCreditsPrice)
-                    .replace('{balance}', '—')}
+                    .replace('{balance}', '-')}
                 </span>
               </div>
             </div>
@@ -789,7 +789,7 @@ export function BacklinksContent() {
               </div>
             </div>
             <span className={styles.statLabel}>{t('backlinks.stats.totalAvailable')}</span>
-            <span className={styles.statValue}>{stats?.totalAvailable ?? '—'}</span>
+            <span className={styles.statValue}>{stats?.totalAvailable ?? '-'}</span>
           </div>
         </div>
 
@@ -803,7 +803,7 @@ export function BacklinksContent() {
             </div>
             <span className={styles.statLabel}>{t('backlinks.stats.planQuota')}</span>
             <span className={styles.statValue}>
-              {stats?.planQuota ? `${stats.planQuota.used}/${stats.planQuota.limit}` : '—'}
+              {stats?.planQuota ? `${stats.planQuota.used}/${stats.planQuota.limit}` : '-'}
             </span>
             <span className={styles.statSub}>{t('backlinks.purchase.planAllocation')}</span>
           </div>
@@ -818,7 +818,7 @@ export function BacklinksContent() {
               </div>
             </div>
             <span className={styles.statLabel}>{t('backlinks.stats.purchased')}</span>
-            <span className={styles.statValue}>{stats?.totalPurchased ?? '—'}</span>
+            <span className={styles.statValue}>{stats?.totalPurchased ?? '-'}</span>
           </div>
         </div>
 
@@ -832,7 +832,7 @@ export function BacklinksContent() {
             </div>
             <span className={styles.statLabel}>{t('backlinks.stats.spent')}</span>
             <span className={styles.statValue}>
-              {stats?.totalSpent != null ? `$${stats.totalSpent.toLocaleString()}` : '—'}
+              {stats?.totalSpent != null ? `$${stats.totalSpent.toLocaleString()}` : '-'}
             </span>
           </div>
         </div>

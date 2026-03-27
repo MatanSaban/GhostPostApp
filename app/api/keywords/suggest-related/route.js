@@ -19,7 +19,7 @@ const SESSION_COOKIE = 'user_session';
 
 const RelatedKeywordsSchema = z.object({
   relatedKeywordIds: z.array(z.string()).describe(
-    'Array of keyword IDs from the candidates list that should be grouped with the main keyword article. Only include keywords that would create cannibalization if published as separate articles — i.e. they target essentially the same search intent and topic.'
+    'Array of keyword IDs from the candidates list that should be grouped with the main keyword article. Only include keywords that would create cannibalization if published as separate articles - i.e. they target essentially the same search intent and topic.'
   ),
 });
 
@@ -74,7 +74,7 @@ export async function POST(request) {
 Your task: Given a MAIN keyword and a list of CANDIDATE keywords, determine which candidates should be targeted in the SAME article as the main keyword to avoid cannibalization.
 
 Two keywords should be grouped together when:
-1. They target essentially the same topic/search intent (e.g., "גני ילדים בחיפה" and "גן ילדים בחיפה" — plural vs singular)
+1. They target essentially the same topic/search intent (e.g., "גני ילדים בחיפה" and "גן ילדים בחיפה" - plural vs singular)
 2. A user searching either keyword would expect the same type of content
 3. Publishing separate articles for them would cause Google to split rankings between the two pages
 4. They are variations (singular/plural, word order changes, with/without prepositions, synonyms for the same concept)
@@ -84,7 +84,7 @@ Two keywords should NOT be grouped when:
 2. They have fundamentally different search intents
 3. They deserve their own dedicated articles
 
-Be conservative — only group keywords that would clearly cannibalize each other. The keywords are in ${userLanguage}.`,
+Be conservative - only group keywords that would clearly cannibalize each other. The keywords are in ${userLanguage}.`,
       prompt: `Main keyword: "${mainKeyword}"
 Main intent: ${mainIntent || 'unknown'}
 

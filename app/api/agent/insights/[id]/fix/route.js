@@ -27,9 +27,9 @@ async function getAuthenticatedUser() {
  * POST /api/agent/insights/[id]/fix
  * 
  * Modes:
- * - { mode: 'preview' } — Generate AI proposals without applying
- * - { mode: 'apply', proposals: [...] } — Apply user-approved proposals
- * - { mode: 'regenerate', itemIndex: number } — Regenerate one item
+ * - { mode: 'preview' } - Generate AI proposals without applying
+ * - { mode: 'apply', proposals: [...] } - Apply user-approved proposals
+ * - { mode: 'regenerate', itemIndex: number } - Regenerate one item
  */
 export async function POST(request, { params }) {
   try {

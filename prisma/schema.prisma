@@ -1335,7 +1335,7 @@ enum SystemLogLevel {
 enum ContentStatus {
   DRAFT
   SCHEDULED        // Waiting in the queue for its scheduled time
-  PROCESSING       // Locked by a worker — AI is currently generating
+  PROCESSING       // Locked by a worker - AI is currently generating
   READY_TO_PUBLISH // AI generation complete, waiting to push to target site
   PUBLISHED        // Successfully pushed to WordPress/client site
   FAILED           // Error during generation or publishing
@@ -1390,7 +1390,7 @@ model SiteAudit {
   siteId                String            @db.ObjectId
   status                AuditStatus       @default(PENDING)
   score                 Int?
-  deviceType            String?           // "desktop" | "mobile" — separates audits by device
+  deviceType            String?           // "desktop" | "mobile" - separates audits by device
   issues                AuditIssue[]
   categoryScores        Json?             // { technical: 80, performance: 75, visual: 90 }
   pagesScanned          Int?
@@ -1421,8 +1421,8 @@ type AuditIssue {
   source          String?   // "html" | "playwright" | "psi" | "ai-vision" | "system"
   details         String?   // concrete metric value (e.g. "4.2s", "312KB", "5 images")
   detailedSources Json?     // Array of concrete source items: scripts[], images[], errors[]
-  device          String?   // "desktop" | "mobile" | "both" — which device the issue was found on
-  boundingBox     Json?     // { x, y, width, height } — AI Vision region marker
+  device          String?   // "desktop" | "mobile" | "both" - which device the issue was found on
+  boundingBox     Json?     // { x, y, width, height } - AI Vision region marker
 }
 
 type AuditPageResult {
@@ -1439,12 +1439,12 @@ type AuditPageResult {
   jsErrors           String[]
   brokenResources    String[]
   issueCount         Int?
-  screenshotDesktop  String?   // Cloudinary URL — desktop screenshot (or legacy base64)
-  screenshotMobile   String?   // Cloudinary URL — mobile screenshot (or legacy base64)
-  screenshotsDesktop String[]  // Cloudinary URLs — viewport-height segment captures
-  screenshotsMobile  String[]  // Cloudinary URLs — viewport-height segment captures
-  filmstripDesktop   Json?     // [{ stage, url }] — Cloudinary URLs (or legacy [{ stage, base64 }])
-  filmstripMobile    Json?     // [{ stage, url }] — Cloudinary URLs (or legacy [{ stage, base64 }])
+  screenshotDesktop  String?   // Cloudinary URL - desktop screenshot (or legacy base64)
+  screenshotMobile   String?   // Cloudinary URL - mobile screenshot (or legacy base64)
+  screenshotsDesktop String[]  // Cloudinary URLs - viewport-height segment captures
+  screenshotsMobile  String[]  // Cloudinary URLs - viewport-height segment captures
+  filmstripDesktop   Json?     // [{ stage, url }] - Cloudinary URLs (or legacy [{ stage, base64 }])
+  filmstripMobile    Json?     // [{ stage, url }] - Cloudinary URLs (or legacy [{ stage, base64 }])
 }
 
 enum AuditStatus {
@@ -2006,7 +2006,7 @@ model AgentInsight {
   @@map("agent_insights")
 }
 
-// Overall agent run log — one per cron/manual run per site.
+// Overall agent run log - one per cron/manual run per site.
 model AgentRun {
   id            String          @id @default(auto()) @map("_id") @db.ObjectId
   siteId        String          @db.ObjectId

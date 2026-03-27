@@ -42,7 +42,7 @@ const suggestionsSchema = z.object({
  *
  * Body: { auditId, siteId }
  *
- * Cost: FREE (preview only — credits charged on apply)
+ * Cost: FREE (preview only - credits charged on apply)
  * Returns: { suggestions: [{ url, oldTitle, newTitle, reason }] }
  */
 export async function POST(request) {
@@ -125,7 +125,7 @@ Requirements:
 - Include relevant keywords naturally
 - Include the brand name "${site.name || new URL(site.url).hostname}" when appropriate
 - Make titles compelling and descriptive
-- Maintain the original language of each title — if the current title is in Hebrew, write the new title in Hebrew too; if in English, write in English, etc.
+- Maintain the original language of each title - if the current title is in Hebrew, write the new title in Hebrew too; if in English, write in English, etc.
 - Write the "reason" field in ${reasonLang}.
 
 Pages to fix:

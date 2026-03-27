@@ -157,7 +157,7 @@ export function ContentPlannerView({ translations }) {
     const oldDate = new Date(draggedPost.scheduledAt);
     const newDate = new Date(year, month, targetDay, oldDate.getHours(), oldDate.getMinutes(), oldDate.getSeconds());
 
-    // Same day — no-op
+    // Same day - no-op
     if (oldDate.getDate() === targetDay && oldDate.getMonth() === month && oldDate.getFullYear() === year) return;
 
     const newScheduledAt = newDate.toISOString();
@@ -234,7 +234,7 @@ export function ContentPlannerView({ translations }) {
       .finally(() => setLoadingPosts(false));
   }, [selectedSite?.id]);
 
-  // Fetch Content pipeline records (always fetch ALL — filter locally for view)
+  // Fetch Content pipeline records (always fetch ALL - filter locally for view)
   const fetchPipeline = useCallback(() => {
     if (!selectedSite?.id) return;
     fetch(`/api/contents?siteId=${selectedSite.id}`)
@@ -356,7 +356,7 @@ export function ContentPlannerView({ translations }) {
       map[day].push({ ...post, title: post.title || translations.untitled, dotStatus: status, source: 'entity' });
     });
 
-    // Add pipeline content (from Content records) — only filtered ones
+    // Add pipeline content (from Content records) - only filtered ones
     filteredPipelineContents.forEach(content => {
       const dateStr = content.publishedAt || content.scheduledAt;
       if (!dateStr) return;

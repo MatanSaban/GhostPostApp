@@ -225,7 +225,7 @@ export default function UpgradePlanModal({ isOpen, onClose }) {
               <Loader2 size={24} className={styles.spinning} />
             </div>
           ) : isDowngradeWithSurplus ? (
-            // Downgrade confirmation view — user forfeits surplus credit
+            // Downgrade confirmation view - user forfeits surplus credit
             <>
               <div className={styles.header}>
                 <div className={styles.iconWrapper} style={{ background: 'rgba(245, 158, 11, 0.12)', color: '#f59e0b' }}>
@@ -235,7 +235,7 @@ export default function UpgradePlanModal({ isOpen, onClose }) {
                   {t('downgrade.title') || 'Downgrade Plan'}
                 </h2>
                 <p className={styles.subtitle}>
-                  {selectedPlan.name} — {formatPrice(selectedPlan)}{selectedPlan.period || '/month'}
+                  {selectedPlan.name} - {formatPrice(selectedPlan)}{selectedPlan.period || '/month'}
                 </p>
               </div>
 
@@ -267,7 +267,7 @@ export default function UpgradePlanModal({ isOpen, onClose }) {
                   <span style={{ color: '#ef4444' }}>{formatAmount(prorationData.unusedCredit, selectedPlan.currency || 'USD')}</span>
                 </div>
                 <div className={styles.prorationNote}>
-                  {t('proration.nextBillingNote') || 'Next billing on'} {new Date(prorationData.nextBillingDate).toLocaleDateString(locale, { day: 'numeric', month: 'long', year: 'numeric' })} — {formatAmount(prorationData.newMonthlyPrice, selectedPlan.currency || 'USD')}
+                  {t('proration.nextBillingNote') || 'Next billing on'} {new Date(prorationData.nextBillingDate).toLocaleDateString(locale, { day: 'numeric', month: 'long', year: 'numeric' })} - {formatAmount(prorationData.newMonthlyPrice, selectedPlan.currency || 'USD')}
                 </div>
               </div>
 
@@ -321,7 +321,7 @@ export default function UpgradePlanModal({ isOpen, onClose }) {
                   {t('payment.payNow') || 'Pay Now'}
                 </h2>
                 <p className={styles.subtitle}>
-                  {selectedPlan.name} — {formatPrice(selectedPlan)}{selectedPlan.period || '/month'}
+                  {selectedPlan.name} - {formatPrice(selectedPlan)}{selectedPlan.period || '/month'}
                 </p>
               </div>
               <CardComPaymentForm
@@ -364,7 +364,7 @@ export default function UpgradePlanModal({ isOpen, onClose }) {
                           <span>{formatAmount(prorationData.proratedAmount, selectedPlan.currency || 'USD')}</span>
                         </div>
                         <div className={styles.prorationNote}>
-                          {t('proration.nextBillingNote') || 'Next billing on'} {new Date(prorationData.nextBillingDate).toLocaleDateString(locale, { day: 'numeric', month: 'long', year: 'numeric' })} — {formatAmount(prorationData.fullMonthlyPrice, selectedPlan.currency || 'USD')}
+                          {t('proration.nextBillingNote') || 'Next billing on'} {new Date(prorationData.nextBillingDate).toLocaleDateString(locale, { day: 'numeric', month: 'long', year: 'numeric' })} - {formatAmount(prorationData.fullMonthlyPrice, selectedPlan.currency || 'USD')}
                         </div>
                       </>
                     ) : (
@@ -395,7 +395,7 @@ export default function UpgradePlanModal({ isOpen, onClose }) {
                           <span>{formatAmount(prorationData.netAmount, selectedPlan.currency || 'USD')}</span>
                         </div>
                         <div className={styles.prorationNote}>
-                          {t('proration.nextBillingNote') || 'Next billing on'} {new Date(prorationData.nextBillingDate).toLocaleDateString(locale, { day: 'numeric', month: 'long', year: 'numeric' })} — {formatAmount(prorationData.newMonthlyPrice, selectedPlan.currency || 'USD')}
+                          {t('proration.nextBillingNote') || 'Next billing on'} {new Date(prorationData.nextBillingDate).toLocaleDateString(locale, { day: 'numeric', month: 'long', year: 'numeric' })} - {formatAmount(prorationData.newMonthlyPrice, selectedPlan.currency || 'USD')}
                         </div>
                       </>
                     )}

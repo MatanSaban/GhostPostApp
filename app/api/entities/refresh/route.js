@@ -54,7 +54,7 @@ function cleanPageTitle(title) {
   if (!title) return null;
   
   // Common separators used between page title and site name
-  const separators = [' | ', ' - ', ' – ', ' — ', ' :: ', ' » ', ' // ', ' · '];
+  const separators = [' | ', ' - ', ' – ', ' - ', ' :: ', ' » ', ' // ', ' · '];
   
   for (const sep of separators) {
     if (title.includes(sep)) {

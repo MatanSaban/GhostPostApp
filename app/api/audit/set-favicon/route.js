@@ -30,7 +30,7 @@ async function getAuthenticatedUser() {
  *
  * Body: { siteId, auditId?, attachmentId }
  *
- * Cost: FREE — no credits charged
+ * Cost: FREE - no credits charged
  * Pushes the selected media attachment as the site icon via the WP plugin.
  * If auditId is provided, updates the audit issues in-place (noFavicon → faviconGood).
  */

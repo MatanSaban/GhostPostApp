@@ -63,7 +63,7 @@ const altTextSchema = z.object({
  *
  * Body: { auditId, siteId, locale? }
  *
- * Cost: FREE (preview only — credits charged on apply)
+ * Cost: FREE (preview only - credits charged on apply)
  * Returns: { suggestions: [{ pageUrl, imageUrl, fileName, altText, reason }] }
  */
 export async function POST(request) {
@@ -183,9 +183,9 @@ export async function POST(request) {
 ${langHint}
 
 First, determine the TYPE of this visual element:
-1. **Logo** — a brand/company logo or wordmark → describe it as "[Brand name] logo" (e.g. "Ghost Post logo", "לוגו גוסט פוסט")
-2. **Icon** — a small UI icon, symbol, or pictogram → describe its meaning/action briefly (e.g. "Search icon", "אייקון חיפוש")
-3. **Image** — a photo, illustration, graphic, or banner → describe the actual content in detail
+1. **Logo** - a brand/company logo or wordmark → describe it as "[Brand name] logo" (e.g. "Ghost Post logo", "לוגו גוסט פוסט")
+2. **Icon** - a small UI icon, symbol, or pictogram → describe its meaning/action briefly (e.g. "Search icon", "אייקון חיפוש")
+3. **Image** - a photo, illustration, graphic, or banner → describe the actual content in detail
 
 Rules:
 - Write alt text ONLY in the website's detected language (never mix languages)
@@ -193,7 +193,7 @@ Rules:
 - For icons: describe the function/meaning, not appearance (5-30 chars)
 - For images: describe what is visible concisely (10-125 chars)
 - Be specific: mention objects, people, actions, colors when relevant
-- Don't start with "Image of", "Picture of", "Photo of" — just describe the content
+- Don't start with "Image of", "Picture of", "Photo of" - just describe the content
 - If the image contains meaningful text, include it in the alt text
 - The filename is: "${img.fileName}" (use as a context hint only, not as the alt text)
 

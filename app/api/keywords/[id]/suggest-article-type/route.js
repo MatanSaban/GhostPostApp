@@ -96,7 +96,7 @@ Important guidelines:
 - Keywords about new things, trends, updates, or emerging topics → usually NEWS
 - Keywords about overviews or general topics without a clear how-to angle → usually REVIEW or BLOG_POST
 - Keywords asking "how to" or implying a process → HOW_TO or TUTORIAL
-- Broad informational keywords don't always mean GUIDE — choose the type that best matches what readers expect
+- Broad informational keywords don't always mean GUIDE - choose the type that best matches what readers expect
 
 CRITICAL LANGUAGE REQUIREMENT: ALL text output (reasoning AND briefPlan) MUST be written entirely in ${userLanguage}. Do NOT mix languages. Do NOT write reasoning in English if the required language is Hebrew.`,
       prompt: `Keyword: "${keyword.keyword}"

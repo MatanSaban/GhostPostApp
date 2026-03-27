@@ -88,7 +88,7 @@ export async function POST(request, { params }) {
       );
     }
 
-    // Prevent duplicate activation — if Content records already exist, skip creation
+    // Prevent duplicate activation - if Content records already exist, skip creation
     if (campaign._count.contents > 0) {
       const updated = await prisma.campaign.update({
         where: { id },

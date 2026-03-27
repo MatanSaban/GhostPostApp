@@ -74,7 +74,7 @@ export async function GET(request) {
     if (integration?.refreshToken) {
       try {
         const refreshed = await refreshAccessToken(integration.refreshToken);
-        // Token is valid — update it in DB
+        // Token is valid - update it in DB
         await prisma.googleIntegration.update({
           where: { id: integration.id },
           data: {
@@ -168,7 +168,7 @@ export async function GET(request) {
           console.log('[API/integrations/google] Auto-connected Google from auth provider for site:', siteId);
         } catch (err) {
           console.error('[API/integrations/google] Auto-connect failed:', err.message);
-          // Not fatal — user can still manually connect
+          // Not fatal - user can still manually connect
         }
       }
     }
@@ -279,7 +279,7 @@ export async function POST(request) {
           const properties = await listGAProperties(accessToken);
           return NextResponse.json({ properties });
         } catch (err) {
-          // Auth error or token refresh failed — tell client to re-auth
+          // Auth error or token refresh failed - tell client to re-auth
           console.error('[API/integrations/google] list-properties failed:', err.message);
           return NextResponse.json({ properties: [], needsScopes: true });
         }

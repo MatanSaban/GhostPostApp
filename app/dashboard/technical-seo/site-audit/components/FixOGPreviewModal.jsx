@@ -24,7 +24,7 @@ import { useModalResize, ModalResizeButton } from '@/app/components/ui/ModalResi
 import styles from './FixTitlePreviewModal.module.css';
 
 /**
- * FixOGPreviewModal — Shows AI-generated Open Graph tag suggestions
+ * FixOGPreviewModal - Shows AI-generated Open Graph tag suggestions
  *
  * Props:
  * - open: boolean

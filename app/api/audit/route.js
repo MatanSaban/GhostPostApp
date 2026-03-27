@@ -20,7 +20,7 @@ async function withRetry(fn, retries = 2) {
       err?.message?.includes('deadlock');
     if (isTransient && retries > 0) {
       const delay = 300 * (3 - retries);
-      console.warn(`[API/audit] Transient DB error — retrying in ${delay}ms (${retries} left)…`);
+      console.warn(`[API/audit] Transient DB error - retrying in ${delay}ms (${retries} left)…`);
       await new Promise(r => setTimeout(r, delay));
       return withRetry(fn, retries - 1);
     }
@@ -113,7 +113,7 @@ export async function GET(request) {
       return NextResponse.json({ error: 'Site not found' }, { status: 404 });
     }
 
-    // If specific audit requested — return full document (with issues + pageResults)
+    // If specific audit requested - return full document (with issues + pageResults)
     if (auditId) {
       const audit = await withRetry(() =>
         prisma.siteAudit.findFirst({ where: { id: auditId, siteId } })
@@ -124,13 +124,13 @@ export async function GET(request) {
       return NextResponse.json({ audit });
     }
 
-    // Build filter — if deviceType is specified, filter by it
+    // Build filter - if deviceType is specified, filter by it
     const where = { siteId };
     if (deviceType) {
       where.deviceType = deviceType;
     }
 
-    // Get audits for the site — LIGHT query (no issues/pageResults) for fast polling
+    // Get audits for the site - LIGHT query (no issues/pageResults) for fast polling
     const audits = await withRetry(() =>
       prisma.siteAudit.findMany({
         where,
@@ -259,7 +259,7 @@ export async function POST(request) {
       });
     }
 
-    // Create TWO separate audit records — one for desktop, one for mobile
+    // Create TWO separate audit records - one for desktop, one for mobile
     const desktopAudit = await prisma.siteAudit.create({
       data: {
         siteId,

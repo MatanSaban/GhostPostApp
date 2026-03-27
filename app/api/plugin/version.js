@@ -1,5 +1,5 @@
 /**
- * Plugin Version Configuration — SINGLE SOURCE OF TRUTH
+ * Plugin Version Configuration - SINGLE SOURCE OF TRUTH
  *
  * To release a new plugin version:
  * 1. Update PLUGIN_VERSION below
@@ -10,13 +10,19 @@
  */
 
 // Current plugin version - increment this when making updates
-export const PLUGIN_VERSION = "1.10.0";
+export const PLUGIN_VERSION = "1.11.0";
 
 // Changelog for the current version
 export const PLUGIN_CHANGELOG = `
+= 1.11.0 =
+* NEW: Multi-format image conversion - convert images to WebP or AVIF via /media/convert-image-format endpoint
+* NEW: AVIF support using Imagick or GD (PHP 8.1+) with quality control and backup system
+* NEW: Per-image format specification for AI-driven conversions (each image can target a different format)
+* Renamed "WebP Converter" to "Images Converter" in navigation
+
 = 1.10.0 =
-* NEW: Security headers endpoint (/security-headers) — enable/disable individual HTTP security headers via the plugin
-* NEW: Automatic send_headers hook — injects enabled security headers (HSTS, X-Frame-Options, X-Content-Type-Options, CSP, Referrer-Policy, Permissions-Policy) on every page load
+* NEW: Security headers endpoint (/security-headers) - enable/disable individual HTTP security headers via the plugin
+* NEW: Automatic send_headers hook - injects enabled security headers (HSTS, X-Frame-Options, X-Content-Type-Options, CSP, Referrer-Policy, Permissions-Policy) on every page load
 * Supports enabling all headers at once or individually with safe defaults
 
 = 1.9.0 =

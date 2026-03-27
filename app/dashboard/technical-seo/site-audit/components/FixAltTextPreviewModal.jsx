@@ -21,7 +21,7 @@ import { useModalResize, ModalResizeButton } from '@/app/components/ui/ModalResi
 import styles from './FixTitlePreviewModal.module.css';
 
 /**
- * FixAltTextPreviewModal — Shows AI-generated alt text suggestions for images
+ * FixAltTextPreviewModal - Shows AI-generated alt text suggestions for images
  *
  * Props:
  * - open: boolean

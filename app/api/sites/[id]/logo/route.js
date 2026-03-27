@@ -188,7 +188,7 @@ function extractLogoCandidates(html, baseUrl) {
     }
   }
 
-  // Strategy 4: Open Graph image (og:image meta tag) — often a branded/logo image
+  // Strategy 4: Open Graph image (og:image meta tag) - often a branded/logo image
   const ogImageRe = /<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/gi;
   const ogImageRe2 = /<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:image["']/gi;
   for (const re of [ogImageRe, ogImageRe2]) {
@@ -198,7 +198,7 @@ function extractLogoCandidates(html, baseUrl) {
     }
   }
 
-  // Strategy 5: Apple touch icon / large favicon — often a high-res logo
+  // Strategy 5: Apple touch icon / large favicon - often a high-res logo
   const touchIconRe = /<link[^>]+rel=["']apple-touch-icon[^"']*["'][^>]+href=["']([^"']+)["']/gi;
   const touchIconRe2 = /<link[^>]+href=["']([^"']+)["'][^>]+rel=["']apple-touch-icon[^"']*["']/gi;
   for (const re of [touchIconRe, touchIconRe2]) {
@@ -252,7 +252,7 @@ async function downloadImage(url) {
     console.log(`  [Logo]   Downloaded OK (${(buffer.length / 1024).toFixed(1)}KB, ${mimeType}${isSvg ? ' [SVG]' : ''}): ${url}`);
     return { buffer, mimeType, isSvg };
   } catch (err) {
-    console.log(`  [Logo]   Download ERROR: ${url} — ${err.message}`);
+    console.log(`  [Logo]   Download ERROR: ${url} - ${err.message}`);
     return null;
   }
 }
@@ -287,7 +287,7 @@ function scoreSvgCandidate(candidate, html) {
   // Source is from og:image or apple-touch-icon (strong signal)
   if (candidate.reason === 'og-image' || candidate.reason === 'apple-touch-icon') score += 3;
 
-  // Position in HTML — earlier = likely header logo
+  // Position in HTML - earlier = likely header logo
   const pos = html.indexOf(url);
   if (pos >= 0) {
     const ratio = pos / html.length;
@@ -373,7 +373,7 @@ async function aiDetermineLogoBg(chosenImage, domain) {
     let imageBuffer = chosenImage.buffer;
     let imageMimeType = chosenImage.mimeType;
 
-    // SVGs can't be analyzed by Gemini Vision — convert to PNG via re-download from Cloudinary
+    // SVGs can't be analyzed by Gemini Vision - convert to PNG via re-download from Cloudinary
     if (chosenImage.isSvg) {
       // Upload temporarily if not already, or use the already-uploaded Cloudinary URL
       // We use the original SVG buffer and wrap it as a data URI for conversion

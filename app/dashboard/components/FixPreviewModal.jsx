@@ -10,7 +10,7 @@ import { useModalResize, ModalResizeButton } from '@/app/components/ui/ModalResi
 import styles from './FixPreviewModal.module.css';
 
 /**
- * FixPreviewModal — Shows AI-generated SEO fix proposals with Preview → Approve → Apply flow.
+ * FixPreviewModal - Shows AI-generated SEO fix proposals with Preview → Approve → Apply flow.
  *
  * Props:
  * - open: boolean
@@ -283,7 +283,7 @@ export default function FixPreviewModal({ open, onClose, insight, translations, 
           <p className={styles.subtitle}>{t.fixPreviewSubtitle || 'Review the proposed changes before applying them to your site.'}</p>
         </div>
 
-        {/* Loading — only show generic spinner when no skeleton proposals */}
+        {/* Loading - only show generic spinner when no skeleton proposals */}
         {isLoading && proposals.length === 0 && (
           <div className={styles.loadingState}>
             <Loader2 size={28} className={styles.spinning} />
@@ -541,7 +541,7 @@ export default function FixPreviewModal({ open, onClose, insight, translations, 
           </>
         )}
 
-        {/* Empty state — no proposals */}
+        {/* Empty state - no proposals */}
         {!isLoading && !error && proposals.length === 0 && (
           <div className={styles.loadingState}>
             <CheckCircle2 size={32} color="var(--success, #22c55e)" />

@@ -133,7 +133,7 @@ export async function POST(request) {
       let extractedName = null;
       if (!competitor.name && data.title) {
         // Try to extract the business name from common title formats
-        const titleParts = data.title.split(/\s*[\|\-–—]\s*/);
+        const titleParts = data.title.split(/\s*[\|\-–-]\s*/);
         if (titleParts.length > 0) {
           extractedName = titleParts[0].trim();
           // If the first part is too long, it's probably not a name

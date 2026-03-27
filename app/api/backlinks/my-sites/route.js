@@ -7,7 +7,7 @@ const SESSION_COOKIE = 'user_session';
 
 /**
  * GET /api/backlinks/my-sites
- * Returns all sites the user can list as backlinks — across ALL accounts
+ * Returns all sites the user can list as backlinks - across ALL accounts
  * where the user has SITES_CREATE permission (or is owner/superadmin).
  * Each site includes accountId and accountName for context.
  */

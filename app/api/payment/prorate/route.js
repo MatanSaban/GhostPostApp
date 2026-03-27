@@ -99,7 +99,7 @@ export async function POST(request) {
       });
     }
 
-    // CASE 2: Existing subscription — plan change (upgrade or downgrade)
+    // CASE 2: Existing subscription - plan change (upgrade or downgrade)
     const currentPlan = subscription.plan;
 
     if (currentPlan.id === newPlan.id) {

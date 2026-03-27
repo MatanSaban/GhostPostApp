@@ -66,7 +66,7 @@ export default function ArticleTypesStep({ state, dispatch, translations }) {
     }
 
     if (selectedIds.has(typeId)) {
-      // Deselect — must keep at least one
+      // Deselect - must keep at least one
       if (state.articleTypes.length <= 1) return;
 
       const remaining = state.articleTypes.filter(at => at.id !== typeId);
@@ -85,7 +85,7 @@ export default function ArticleTypesStep({ state, dispatch, translations }) {
         return;
       }
 
-      // Select new type — redistribute postsCount evenly among all types
+      // Select new type - redistribute postsCount evenly among all types
       const newTypes = [...state.articleTypes, { id: typeId, count: 0 }];
       const perType = Math.floor(state.postsCount / newTypes.length);
       const remainder = state.postsCount % newTypes.length;

@@ -133,7 +133,7 @@ export default function NotificationsPage() {
     return () => observerRef.current?.disconnect();
   }, [hasMore, isLoading, contextLoadMore]);
 
-  // Click on notification row — navigate to link and mark as read
+  // Click on notification row - navigate to link and mark as read
   const handleNotificationClick = async (notification) => {
     if (!notification.read) {
       setActionInProgress(notification.id);

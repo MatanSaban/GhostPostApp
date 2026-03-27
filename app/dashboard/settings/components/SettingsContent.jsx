@@ -1357,7 +1357,7 @@ function IntegrationsSettings({ translations, canEdit = true }) {
       });
       const data = await res.json();
       if (data.needsScopes) {
-        // Scopes insufficient — redirect to grant GA/GSC permissions
+        // Scopes insufficient - redirect to grant GA/GSC permissions
         setGaPickerOpen(false);
         handleConnect();
         return;
@@ -3470,7 +3470,7 @@ function CreditsSettings({ subscription, translations, canEdit = true, isLoading
         // For older logs without descriptionParams, try to extract from metadata or description
         let effectiveParams = params;
         if (Object.keys(params).length === 0) {
-          // Extract URL from description if not in metadata — prefer explicit protocol URLs first
+          // Extract URL from description if not in metadata - prefer explicit protocol URLs first
           const descUrlMatch = log.description?.match(/https?:\/\/[^\s]+/) || log.description?.match(/(?:^|\s)((?:[a-zA-Z0-9][-a-zA-Z0-9]*\.)+(?:com|co\.il|org|net|io|dev|me|info|biz)[^\s]*)/);
           const descCountMatch = log.description?.match(/(\d+)\s*page/);
           effectiveParams = {
@@ -3759,11 +3759,11 @@ function CreditsSettings({ subscription, translations, canEdit = true, isLoading
                             <span>{log.siteName}</span>
                           )
                         ) : (
-                          <span className={styles.usageLogEmptyCell}>—</span>
+                          <span className={styles.usageLogEmptyCell}>-</span>
                         )}
                       </td>
                       <td className={styles.usageLogCell}>
-                        {log.userName || <span className={styles.usageLogEmptyCell}>—</span>}
+                        {log.userName || <span className={styles.usageLogEmptyCell}>-</span>}
                       </td>
                       <td className={styles.usageLogCellCenter}>
                         <span className={log.type === 'CREDIT' ? styles.usageLogCreditsCredit : styles.usageLogCreditsDebit}>

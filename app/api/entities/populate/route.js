@@ -96,7 +96,7 @@ export async function POST(request) {
       }, { status: 400 });
     }
 
-    // Acquire sync lock — prevents conflicts with cron sync and webhook updates
+    // Acquire sync lock - prevents conflicts with cron sync and webhook updates
     const lockAcquired = await acquireSyncLock(siteId, 'manual');
     if (!lockAcquired) {
       return NextResponse.json({

@@ -116,7 +116,7 @@ export async function POST(request) {
 
       if (isPluginConnected) {
         try {
-          // Archive/taxonomy pages have no WP post ID — skip them
+          // Archive/taxonomy pages have no WP post ID - skip them
           const archivePatterns = [/\/category\//, /\/tag\//, /\/author\//, /\/page\/\d/];
           if (archivePatterns.some(p => p.test(url))) {
             pushError = 'Archive/taxonomy pages cannot be updated via the plugin';
@@ -142,7 +142,7 @@ export async function POST(request) {
             select: { externalId: true },
           });
 
-          // Fallback: try by slug (skip if homepage — slug would be empty)
+          // Fallback: try by slug (skip if homepage - slug would be empty)
           if (!entity && slug) {
             entity = await prisma.siteEntity.findFirst({
               where: { siteId, slug },
@@ -176,7 +176,7 @@ export async function POST(request) {
               await updateSeoData(site, resolved.postId, { title: newTitle });
               pushed = true;
             } else {
-              throw new Error(`WordPress post ID not found for "${isHomepage ? '(homepage)' : slug}" — URL: ${url}`);
+              throw new Error(`WordPress post ID not found for "${isHomepage ? '(homepage)' : slug}" - URL: ${url}`);
             }
           } else {
             // Update SEO title via the /seo/{id} endpoint (Yoast/RankMath)
@@ -220,12 +220,12 @@ export async function POST(request) {
                   severity: 'warning',
                   message: 'audit.issues.titleTooLong',
                   suggestion: 'audit.suggestions.titleLength',
-                  details: `${newTitle.length} chars — "${newTitle.slice(0, 50)}..." (AI fixed)`,
+                  details: `${newTitle.length} chars - "${newTitle.slice(0, 50)}..." (AI fixed)`,
                 };
               }
               return {
                 ...issue,
-                details: `${newTitle.length} chars — "${newTitle.slice(0, 50)}" (AI fixed)`,
+                details: `${newTitle.length} chars - "${newTitle.slice(0, 50)}" (AI fixed)`,
               };
             }
             return issue;

@@ -15,7 +15,7 @@ import { useLocale } from '@/app/context/locale-context';
 import styles from './SecurityHeadersModal.module.css';
 
 /**
- * SECURITY_HEADERS — the 6 headers we can fix, with their audit issue keys.
+ * SECURITY_HEADERS - the 6 headers we can fix, with their audit issue keys.
  */
 const SECURITY_HEADERS = [
   {
@@ -57,7 +57,7 @@ const SECURITY_HEADERS = [
 ];
 
 /**
- * SecurityHeadersModal — Shows explanation of missing security headers and a
+ * SecurityHeadersModal - Shows explanation of missing security headers and a
  * single "Fix All" button that enables all headers via the WordPress plugin.
  *
  * Props:
@@ -65,7 +65,7 @@ const SECURITY_HEADERS = [
  * - onClose: () => void
  * - siteId: string
  * - auditId: string
- * - missingHeaders: string[] — array of issue keys that are missing (e.g. 'audit.issues.noHsts')
+ * - missingHeaders: string[] - array of issue keys that are missing (e.g. 'audit.issues.noHsts')
  * - onAuditUpdated: () => void
  */
 export default function SecurityHeadersModal({

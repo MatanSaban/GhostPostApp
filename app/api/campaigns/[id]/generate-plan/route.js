@@ -140,7 +140,7 @@ export async function POST(request, { params }) {
     const typeAssignments = distributeArticleTypes(articleTypes, campaign.postsCount);
 
     // Distribute subjects and keywords round-robin
-    // Subjects are stored as JSON strings in a String[] field — parse them back
+    // Subjects are stored as JSON strings in a String[] field - parse them back
     const subjects = (campaign.subjects || []).map((s) => {
       try { return typeof s === 'string' ? JSON.parse(s) : s; } catch { return s; }
     });

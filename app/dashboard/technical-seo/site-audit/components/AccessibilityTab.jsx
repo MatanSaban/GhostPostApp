@@ -14,15 +14,15 @@ import AccessibilityIssueCard from './AccessibilityIssueCard';
 import styles from './AccessibilityTab.module.css';
 
 /**
- * AccessibilityTab — Dedicated tab for Axe-core accessibility results
+ * AccessibilityTab - Dedicated tab for Axe-core accessibility results
  *
  * Groups violations by rule, shows impact filter, score summary,
  * and renders each rule as an expandable AccessibilityIssueCard.
  *
  * Props:
- * - issues: AuditIssue[] — all issues with type === 'accessibility'
+ * - issues: AuditIssue[] - all issues with type === 'accessibility'
  * - auditId, siteId: for API calls
- * - score: number (0-100) — accessibility category score
+ * - score: number (0-100) - accessibility category score
  * - onFixComplete: callback after fix
  */
 export default function AccessibilityTab({
@@ -158,7 +158,7 @@ export default function AccessibilityTab({
           <Accessibility size={20} />
           <span className={styles.summaryScoreLabel}>{t('siteAudit.a11y.score')}</span>
           <span className={`${styles.summaryScoreValue} ${styles[getScoreColor(score)]}`}>
-            {score ?? '—'}
+            {score ?? '-'}
           </span>
         </div>
         <div className={styles.summaryStats}>

@@ -206,7 +206,7 @@ async function handlePlanUpgrade(payment, action, user) {
   // Store proration details from the payment metadata
   const prorationData = action.proration || null;
 
-  // Update subscription to new plan — align to 1st of month
+  // Update subscription to new plan - align to 1st of month
   await prisma.subscription.update({
     where: { id: subscription.id },
     data: {

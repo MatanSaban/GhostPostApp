@@ -1478,7 +1478,7 @@
   padding-left: 2.75rem !important;
 }
 
-/* CardCom iframe wrappers — border/focus handled inside the iframe CSS */
+/* CardCom iframe wrappers - border/focus handled inside the iframe CSS */
 .iframeWrapper {
   border-radius: 0.5rem;
   overflow: hidden;

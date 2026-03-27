@@ -62,7 +62,7 @@ export async function GET(request) {
 
     for (const site of sites) {
       try {
-        // Acquire sync lock — skip if already syncing
+        // Acquire sync lock - skip if already syncing
         const lockAcquired = await acquireSyncLock(site.id, 'cron');
         if (!lockAcquired) {
           results.push({ siteId: site.id, url: site.url, status: 'skipped', reason: 'already_syncing' });

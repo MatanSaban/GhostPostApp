@@ -331,7 +331,7 @@ export default function SummaryStep({ state, dispatch, translations }) {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    // Build planned posts map by date key (YYYY-MM-DD) — include plan index
+    // Build planned posts map by date key (YYYY-MM-DD) - include plan index
     const plannedByKey = {};
     (state.generatedPlan || []).forEach((post, idx) => {
       const d = new Date(post.scheduledAt);
@@ -370,7 +370,7 @@ export default function SummaryStep({ state, dispatch, translations }) {
       const isToday = cellDate.getTime() === today.getTime();
       const inRange = campaignStart && campaignEnd && cellDate >= campaignStart && cellDate <= campaignEnd;
 
-      // Build flat posts array — same shape CalendarGrid expects
+      // Build flat posts array - same shape CalendarGrid expects
       const posts = [];
       (existingByKey[key] || []).forEach(post => {
         posts.push({
@@ -425,7 +425,7 @@ export default function SummaryStep({ state, dispatch, translations }) {
       days.push(buildCell(new Date(year, month, i), false));
     }
 
-    // Next month padding — always fill to exactly 42 cells (6 full rows)
+    // Next month padding - always fill to exactly 42 cells (6 full rows)
     let nextDay = 1;
     while (days.length < 42) {
       days.push(buildCell(new Date(year, month + 1, nextDay++), true));
@@ -453,7 +453,7 @@ export default function SummaryStep({ state, dispatch, translations }) {
             <span className={styles.summaryLabel}>{t.campaignName}</span>
             <span className={styles.summaryValue}>
               <span className={styles.summaryColorDot} style={{ backgroundColor: state.campaignColor }} />
-              {state.campaignName || '—'}
+              {state.campaignName || '-'}
             </span>
           </div>
           <div className={styles.summaryRow}>

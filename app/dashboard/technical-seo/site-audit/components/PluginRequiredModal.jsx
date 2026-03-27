@@ -15,7 +15,7 @@ import { useSite } from '@/app/context/site-context';
 import styles from './PluginRequiredModal.module.css';
 
 /**
- * PluginRequiredModal — Shown when AI Fix requires a connected WP plugin
+ * PluginRequiredModal - Shown when AI Fix requires a connected WP plugin
  *
  * Props:
  * - open: boolean

@@ -21,7 +21,7 @@ import { toImgSrc } from '../lib/img-src';
 import styles from './AuditOverviewTab.module.css';
 
 /* ───────────────────────────────────────────────────────────
-   Color gradient by score — smooth interpolation
+   Color gradient by score - smooth interpolation
    0 red → 30 orange → 60 yellow → 85 green
    ─────────────────────────────────────────────────────────── */
 
@@ -64,7 +64,7 @@ function getPalette(score) {
 }
 
 /* ───────────────────────────────────────────────────────────
-   useAnimatedScore — counts from 0 → target over ~1.2s
+   useAnimatedScore - counts from 0 → target over ~1.2s
    ─────────────────────────────────────────────────────────── */
 
 function useAnimatedScore(target, duration = 4000) {
@@ -97,7 +97,7 @@ function useAnimatedScore(target, duration = 4000) {
 }
 
 /* ───────────────────────────────────────────────────────────
-   WaveSVG — reusable SVG wave-fill circle (no wrapper div)
+   WaveSVG - reusable SVG wave-fill circle (no wrapper div)
    ─────────────────────────────────────────────────────────── */
 
 function WaveSVG({ animatedScore, size }) {
@@ -123,7 +123,7 @@ function WaveSVG({ animatedScore, size }) {
       {/* Background circle */}
       <circle cx={cx} cy={cy} r={circleR} className={styles.waveBg} />
 
-      {/* Wave fill — clipped to circle */}
+      {/* Wave fill - clipped to circle */}
       {fillPct > 0 && (
         <g clipPath={`url(#${clipId})`}>
           <rect x="0" y={baseY} width={size} height={size} fill={palette.fill} />
@@ -173,7 +173,7 @@ function WaveSVG({ animatedScore, size }) {
 }
 
 /* ───────────────────────────────────────────────────────────
-   WaveCircle — small category circle with label
+   WaveCircle - small category circle with label
    ─────────────────────────────────────────────────────────── */
 
 function WaveCircle({ score, label, size = 90 }) {
@@ -215,7 +215,7 @@ function isHomepage(url) {
    ─────────────────────────────────────────────────────────── */
 
 /**
- * AuditOverviewTab — Redesigned "Overview" tab for the Site Audit page.
+ * AuditOverviewTab - Redesigned "Overview" tab for the Site Audit page.
  *
  * Two-column layout:
  * - Start column: meta row, health score, stats grid, category wave circles
@@ -365,7 +365,7 @@ export default function AuditOverviewTab({
           )}
         </div>
 
-        {/* Health Score — animated wave circle */}
+        {/* Health Score - animated wave circle */}
         <div className={styles.scoreSection}>
           <div className={styles.scoreCircleWrap}>
             <WaveSVG animatedScore={animatedHealthScore} size={130} />
@@ -397,7 +397,7 @@ export default function AuditOverviewTab({
           </div>
         </div>
 
-        {/* Category Scores — Wave Circles */}
+        {/* Category Scores - Wave Circles */}
         <div className={styles.categoryCircles}>
           {['technical', 'performance', 'visual', 'accessibility'].map(cat => (
             <WaveCircle

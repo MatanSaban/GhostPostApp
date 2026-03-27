@@ -5,7 +5,7 @@ import { useState } from 'react';
 import styles from './ErrorLog.module.css';
 
 /**
- * ErrorLog — Formatted display for JS errors, broken resources, and other
+ * ErrorLog - Formatted display for JS errors, broken resources, and other
  * technical log data. Shows each entry on a separate line with line numbers
  * and optional expand/collapse for long entries.
  *

@@ -353,11 +353,11 @@ export async function POST(request, { params }) {
         // Get nearby content for this image's position (larger context window)
         let nearbyContent = '';
         if (i === 0 && ctxParagraphs.length > 0) {
-          // First image: after intro — extract first paragraph + start of next section
+          // First image: after intro - extract first paragraph + start of next section
           const end = Math.min(ctxParagraphs[0].index + ctxParagraphs[0][0].length + 300, processedHtml.length);
           nearbyContent = processedHtml.slice(0, end);
         } else if (ctxH2s.length > 0) {
-          // Near an h2 — extract h2, its paragraphs, and some surrounding context
+          // Near an h2 - extract h2, its paragraphs, and some surrounding context
           const h2Idx = Math.min(i, ctxH2s.length - 1);
           const h2Start = ctxH2s[h2Idx].index;
           // Find the next h2 boundary or end of content
@@ -489,7 +489,7 @@ export async function POST(request, { params }) {
       processedHtml = processedHtml.replace(
         /(<p[^>]*>)([\s\S]*?)(<figure[\s\S]*?<\/figure>)/gi,
         (match, openP, before, figure) => {
-          // Figure was inside a paragraph — move it after the paragraph close
+          // Figure was inside a paragraph - move it after the paragraph close
           return `${openP}${before}</p>\n${figure}\n<p>`;
         }
       );
@@ -544,7 +544,7 @@ function buildSystemPrompt({
   let prompt = `You are an expert SEO content writer creating a publish-ready ${typeConfig.label}.
 
 TARGET KEYWORD: "${keyword}"
-WORD COUNT: STRICTLY ${wordCount} words. This is a hard requirement — the article MUST contain at least ${Math.floor(wordCount * 0.9)} words and ideally reach ${wordCount} words. Write comprehensive, detailed content to fill the full word count. Do NOT write a shorter article.
+WORD COUNT: STRICTLY ${wordCount} words. This is a hard requirement - the article MUST contain at least ${Math.floor(wordCount * 0.9)} words and ideally reach ${wordCount} words. Write comprehensive, detailed content to fill the full word count. Do NOT write a shorter article.
 CONTENT LANGUAGE: ${siteLanguage === 'he' ? 'Hebrew' : 'English'}`;
 
   // Inject rich business context so AI understands what kind of website this is
