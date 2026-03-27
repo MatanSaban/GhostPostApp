@@ -1051,8 +1051,10 @@ class GP_API_Handler {
             return new WP_REST_Response(array('error' => 'Permission denied'), 403);
         }
         
+        GP_Redirections_Manager::mark_gp_origin();
         $data = $request->get_json_params();
         $result = $this->redirections_manager->create_redirect($data);
+        GP_Redirections_Manager::clear_gp_origin();
         
         if (is_wp_error($result)) {
             return new WP_REST_Response(array('error' => $result->get_error_message()), 400);
@@ -1066,8 +1068,10 @@ class GP_API_Handler {
             return new WP_REST_Response(array('error' => 'Permission denied'), 403);
         }
         
+        GP_Redirections_Manager::mark_gp_origin();
         $data = $request->get_json_params();
         $result = $this->redirections_manager->update_redirect($request['id'], $data);
+        GP_Redirections_Manager::clear_gp_origin();
         
         if (is_wp_error($result)) {
             return new WP_REST_Response(array('error' => $result->get_error_message()), 400);
@@ -1081,7 +1085,9 @@ class GP_API_Handler {
             return new WP_REST_Response(array('error' => 'Permission denied'), 403);
         }
         
+        GP_Redirections_Manager::mark_gp_origin();
         $result = $this->redirections_manager->delete_redirect($request['id']);
+        GP_Redirections_Manager::clear_gp_origin();
         
         if (is_wp_error($result)) {
             return new WP_REST_Response(array('error' => $result->get_error_message()), 400);
@@ -1095,9 +1101,11 @@ class GP_API_Handler {
             return new WP_REST_Response(array('error' => 'Permission denied'), 403);
         }
         
+        GP_Redirections_Manager::mark_gp_origin();
         $data = $request->get_json_params();
         $redirects = isset($data['redirects']) ? $data['redirects'] : array();
         $result = $this->redirections_manager->bulk_sync($redirects);
+        GP_Redirections_Manager::clear_gp_origin();
         
         return new WP_REST_Response($result, 200);
     }

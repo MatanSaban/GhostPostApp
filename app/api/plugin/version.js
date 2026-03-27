@@ -10,10 +10,17 @@
  */
 
 // Current plugin version - increment this when making updates
-export const PLUGIN_VERSION = "2.1.0";
+export const PLUGIN_VERSION = "2.2.0";
 
 // Changelog for the current version
 export const PLUGIN_CHANGELOG = `
+= 2.2.0 =
+* NEW: Automatic bidirectional redirect sync between WordPress and Ghost Post platform
+* NEW: WP admin redirect changes (create/update/delete) auto-push to platform via webhook
+* NEW: Platform redirect changes (update/delete) auto-push to WordPress via bulk sync
+* NEW: Conflict prevention using origin flags to avoid infinite sync loops
+* NEW: /api/public/wp/redirect-updated webhook endpoint for real-time WP→Platform sync
+
 = 2.1.0 =
 * NEW: Internationalization (i18n) support with English and Hebrew translations
 * NEW: RTL layout support for Hebrew language

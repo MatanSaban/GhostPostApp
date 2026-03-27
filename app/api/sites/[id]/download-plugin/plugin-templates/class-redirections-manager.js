@@ -18,6 +18,30 @@ if (!defined('ABSPATH')) {
 class GP_Redirections_Manager {
 
     /**
+     * Flag to prevent webhook loops.
+     * When true, redirect changes will NOT push a webhook back to the platform
+     * (because the change originated from the platform via REST API).
+     * 
+     * @var bool
+     */
+    private static $is_gp_api_request = false;
+
+    /**
+     * Mark that the current operation originated from gp-platform.
+     * Prevents redirect webhooks from being sent back to the platform.
+     */
+    public static function mark_gp_origin() {
+        self::$is_gp_api_request = true;
+    }
+
+    /**
+     * Clear the gp-platform origin flag.
+     */
+    public static function clear_gp_origin() {
+        self::$is_gp_api_request = false;
+    }
+
+    /**
      * Known redirection plugins and their detection constants/classes.
      */
     private static $known_plugins = array(
@@ -202,12 +226,16 @@ class GP_Redirections_Manager {
         $redirects[] = $new_redirect;
         update_option('gp_connector_redirects', $redirects);
 
-        return array(
+        $result = array(
             'id'     => 'gp_' . (count($redirects) - 1),
             'source' => $source,
             'target' => $target,
             'type'   => $type,
         );
+
+        $this->push_redirect_webhook('created', $new_redirect);
+
+        return $result;
     }
 
     /**
@@ -242,6 +270,7 @@ class GP_Redirections_Manager {
         }
 
         update_option('gp_connector_redirects', $redirects);
+        $this->push_redirect_webhook('updated', $redirects[$index]);
         return $redirects[$index];
     }
 
@@ -256,8 +285,10 @@ class GP_Redirections_Manager {
             return new WP_Error('not_found', 'Redirect not found', array('status' => 404));
         }
 
+        $deleted_redirect = $redirects[$index];
         array_splice($redirects, $index, 1);
         update_option('gp_connector_redirects', $redirects);
+        $this->push_redirect_webhook('deleted', $deleted_redirect);
         return true;
     }
 
@@ -526,6 +557,54 @@ class GP_Redirections_Manager {
             );
         }
         return $result;
+    }
+
+    /**
+     * Push a redirect change to the Ghost Post platform via webhook.
+     * Skipped when the change originated from the platform (prevents loops).
+     *
+     * @param string $action   "created" | "updated" | "deleted"
+     * @param array  $redirect The redirect data (source, target, type, is_active, hit_count)
+     */
+    private function push_redirect_webhook($action, $redirect) {
+        // Skip if this change originated from gp-platform (REST API)
+        if (self::$is_gp_api_request) {
+            return;
+        }
+
+        if (!defined('GP_API_URL') || !defined('GP_SITE_KEY') || !defined('GP_SITE_SECRET')) {
+            return;
+        }
+
+        $endpoint = GP_API_URL . '/api/public/wp/redirect-updated';
+        $timestamp = time();
+
+        $payload = array(
+            'action'   => $action,
+            'redirect' => array(
+                'source'    => $redirect['source'] ?? '',
+                'target'    => $redirect['target'] ?? '',
+                'type'      => intval($redirect['type'] ?? 301),
+                'is_active' => isset($redirect['is_active']) ? (bool) $redirect['is_active'] : true,
+                'hit_count' => intval($redirect['hit_count'] ?? 0),
+            ),
+            'source' => 'wordpress',
+        );
+
+        $body = wp_json_encode($payload);
+        $signature = hash_hmac('sha256', $timestamp . '.' . $body, GP_SITE_SECRET);
+
+        wp_remote_post($endpoint, array(
+            'timeout'  => 5,
+            'blocking' => false,
+            'headers'  => array(
+                'Content-Type'   => 'application/json',
+                'X-GP-Site-Key'  => GP_SITE_KEY,
+                'X-GP-Timestamp' => (string) $timestamp,
+                'X-GP-Signature' => $signature,
+            ),
+            'body' => $body,
+        ));
     }
 
     /**
