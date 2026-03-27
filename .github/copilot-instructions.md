@@ -5,12 +5,14 @@
 
 ## WordPress Plugin Version Management
 
-**CRITICAL**: Every time you modify any file under `gp-wordpress-plugin/ghost-post-connector/`, you **MUST** also:
-1. Bump `PLUGIN_VERSION` in `app/api/plugin/version.js` (patch for fixes, minor for features)
-2. Add a changelog entry to `PLUGIN_CHANGELOG` in the same file
+**CRITICAL**: Every time you modify **any** plugin code — whether in `gp-wordpress-plugin/ghost-post-connector/` OR in `gp-platform/app/api/sites/[id]/download-plugin/plugin-templates/` — you **MUST** also:
+1. Increment `PLUGIN_VERSION` in `app/api/plugin/version.js` by `0.0.1` (e.g. `2.3.1` → `2.3.2`)
+2. Add a changelog entry to `PLUGIN_CHANGELOG` in the same file describing the change
 3. Remind the user to run `node scripts/sync-plugin-version.mjs` after deployment
 
-This is how WordPress sites receive plugin updates — without a version bump, changes will never reach WordPress installations.
+**Do this in the SAME edit session as the plugin code change — never defer it.**
+
+The plugin is generated from **template JS files** in `plugin-templates/`, NOT from the source PHP files. See `/memories/repo/wp-plugin-architecture.md` for details. Without a version bump, changes will never reach WordPress installations.
 
 ## AI Service Guidelines
 

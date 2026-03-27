@@ -10,10 +10,13 @@
  */
 
 // Current plugin version - increment this when making updates
-export const PLUGIN_VERSION = "2.3.0";
+export const PLUGIN_VERSION = "2.3.1";
 
 // Changelog for the current version
 export const PLUGIN_CHANGELOG = `
+= 2.3.1 =
+* FIX: Hit count sync now works correctly (fixed in plugin template that generates deployed code)
+
 = 2.3.0 =
 * NEW: Real-time redirect hit count sync from WordPress to platform
 * FIX: Hit counts now update in platform dashboard automatically when redirects are triggered in WordPress

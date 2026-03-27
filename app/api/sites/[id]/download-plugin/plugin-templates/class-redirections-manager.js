@@ -630,6 +630,9 @@ class GP_Redirections_Manager {
                 $r['hit_count'] = intval($r['hit_count'] ?? 0) + 1;
                 update_option('gp_connector_redirects', $redirects);
 
+                // Sync updated hit count to platform
+                $this->push_redirect_webhook('updated', $r);
+
                 $type = intval($r['type'] ?? 301);
                 if (!in_array($type, array(301, 302, 307), true)) {
                     $type = 301;
