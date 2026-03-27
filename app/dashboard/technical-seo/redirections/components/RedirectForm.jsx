@@ -51,7 +51,7 @@ export function RedirectForm({ translations, onSubmit, editingRedirect, onCancel
   return (
     <div className={styles.formCard}>
       <h3 className={styles.cardTitle}>
-        {isEditing ? (translations.update || 'Edit Redirect') : translations.createNew}
+        {isEditing ? (translations.editRedirect || translations.update) : translations.createNew}
         {isEditing && (
           <button className={styles.cancelEditButton} onClick={handleCancel}>
             <X size={16} />
@@ -90,7 +90,7 @@ export function RedirectForm({ translations, onSubmit, editingRedirect, onCancel
           >
             <option value="301">{translations.permanent}</option>
             <option value="302">{translations.temporary}</option>
-            <option value="307">307 - Temporary</option>
+            <option value="307">{translations.temporaryRedirect}</option>
           </select>
         </div>
         <div className={styles.formActions}>

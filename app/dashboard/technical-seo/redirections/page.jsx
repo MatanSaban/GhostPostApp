@@ -160,11 +160,11 @@ export default function RedirectionsPage() {
       const result = await res.json();
       
       if (direction === 'from-wp') {
-        setSyncMessage(`Imported ${result.imported} redirects from WordPress (${result.skipped} skipped)`);
+        setSyncMessage(t('redirections.syncImported').replace('{imported}', result.imported).replace('{skipped}', result.skipped));
       } else if (direction === 'to-wp') {
-        setSyncMessage(`Pushed ${result.count} redirects to WordPress`);
+        setSyncMessage(t('redirections.syncPushed').replace('{count}', result.count));
       } else if (direction === 'import-external') {
-        setSyncMessage(`Imported ${result.platformImported} redirects from ${result.source}`);
+        setSyncMessage(t('redirections.syncImportedExternal').replace('{imported}', result.platformImported).replace('{source}', result.source));
       }
       
       await fetchRedirections();
@@ -233,6 +233,8 @@ export default function RedirectionsPage() {
     add: t('common.add'),
     update: t('common.save') || 'Save',
     cancel: t('common.cancel') || 'Cancel',
+    editRedirect: t('redirections.editRedirect'),
+    temporaryRedirect: t('redirections.temporaryRedirect'),
   };
 
   return (
@@ -251,7 +253,7 @@ export default function RedirectionsPage() {
               disabled={isSyncing}
             >
               <Download size={16} />
-              {isSyncing ? '...' : 'Sync from WP'}
+              {isSyncing ? '...' : t('redirections.syncFromWp')}
             </button>
             <button 
               className={styles.syncButton}
@@ -259,7 +261,7 @@ export default function RedirectionsPage() {
               disabled={isSyncing}
             >
               <ArrowUpDown size={16} />
-              {isSyncing ? '...' : 'Push to WP'}
+              {isSyncing ? '...' : t('redirections.pushToWp')}
             </button>
           </div>
         )}
@@ -289,10 +291,9 @@ export default function RedirectionsPage() {
             <AlertTriangle size={20} />
           </div>
           <div className={styles.bannerContent}>
-            <h3>{t('redirections.externalPluginDetected') || 'External Redirect Plugin Detected'}</h3>
+            <h3>{t('redirections.externalPluginDetected')}</h3>
             <p>
-              {detectedPlugins.map(p => p.name).join(', ')} found on your WordPress site. 
-              Import existing redirects into Ghost Post and deactivate the external plugin.
+              {t('redirections.externalPluginDescription').replace('{plugins}', detectedPlugins.map(p => p.name).join(', '))}
             </p>
             <button 
               className={styles.importButton}
@@ -300,7 +301,7 @@ export default function RedirectionsPage() {
               disabled={isSyncing}
             >
               <Download size={16} />
-              {isSyncing ? 'Importing...' : `Import Redirects`}
+              {isSyncing ? t('redirections.importing') : t('redirections.importRedirects')}
             </button>
           </div>
         </div>
@@ -332,7 +333,7 @@ export default function RedirectionsPage() {
           </div>
           <div className={styles.statInfo}>
             <span className={styles.statValue}>{stats.total - stats.active}</span>
-            <span className={styles.statLabel}>{t('redirections.disabled') || 'Disabled'}</span>
+            <span className={styles.statLabel}>{t('redirections.disabled')}</span>
           </div>
         </div>
         <div className={styles.statCard}>
@@ -364,7 +365,7 @@ export default function RedirectionsPage() {
         {redirections.length === 0 ? (
           <div className={styles.emptyState}>
             <ArrowUpDown size={48} />
-            <p>{t('redirections.noRedirects') || 'No redirects yet. Create your first redirect above.'}</p>
+            <p>{t('redirections.noRedirects')}</p>
           </div>
         ) : (
           <>
@@ -399,7 +400,7 @@ export default function RedirectionsPage() {
                     <button 
                       className={styles.actionButton}
                       onClick={() => handleToggle(redirect.id, redirect.isActive)}
-                      title={redirect.isActive ? 'Disable' : 'Enable'}
+                      title={redirect.isActive ? t('redirections.disable') : t('redirections.enable')}
                     >
                       {redirect.isActive ? <Power size={14} /> : <PowerOff size={14} />}
                     </button>

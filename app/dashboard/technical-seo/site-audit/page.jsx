@@ -58,6 +58,7 @@ import FixDescriptionPreviewModal from './components/FixDescriptionPreviewModal'
 import FixOGPreviewModal from './components/FixOGPreviewModal';
 import FixAltTextPreviewModal from './components/FixAltTextPreviewModal';
 import FixImageFormatPreviewModal from './components/FixImageFormatPreviewModal';
+import FixBrokenLinkModal from './components/FixBrokenLinkModal';
 import SecurityHeadersModal from './components/SecurityHeadersModal';
 import IssueInfoPopup from './components/IssueInfoPopup';
 import { MediaModal } from '@/app/dashboard/components/MediaModal/MediaModal';
@@ -78,6 +79,7 @@ const AI_FIXABLE_ISSUES = new Set([
   'audit.issues.imagesNotNextGen',
   'audit.issues.imagesTooLarge',
   'audit.issues.imagesLargeWarning',
+  'audit.issues.brokenInternalLink',
 ]);
 
 /** Issue keys for missing security headers - fixable via plugin */
@@ -252,6 +254,7 @@ export default function SiteAuditPage() {
   const [showOGFixModal, setShowOGFixModal] = useState(false);
   const [showAltFixModal, setShowAltFixModal] = useState(false);
   const [showImageFormatFixModal, setShowImageFormatFixModal] = useState(false);
+  const [showBrokenLinkFixModal, setShowBrokenLinkFixModal] = useState(false);
   const [showSecHeadersModal, setShowSecHeadersModal] = useState(false);
   const [showFaviconMediaModal, setShowFaviconMediaModal] = useState(false);
   const [isSettingFavicon, setIsSettingFavicon] = useState(false);
@@ -695,6 +698,9 @@ export default function SiteAuditPage() {
       case 'audit.issues.imagesTooLarge':
       case 'audit.issues.imagesLargeWarning':
         setShowImageFormatFixModal(true);
+        break;
+      case 'audit.issues.brokenInternalLink':
+        setShowBrokenLinkFixModal(true);
         break;
       default:
         // Future: handle other AI-fixable issues
@@ -1947,6 +1953,15 @@ export default function SiteAuditPage() {
       <FixImageFormatPreviewModal
         open={showImageFormatFixModal}
         onClose={() => setShowImageFormatFixModal(false)}
+        auditId={latestAudit?.id}
+        siteId={selectedSite?.id}
+        onAuditUpdated={() => fetchAudits(selectedSite?.id, activeDevice)}
+      />
+
+      {/* AI Broken Link Fix Modal */}
+      <FixBrokenLinkModal
+        open={showBrokenLinkFixModal}
+        onClose={() => setShowBrokenLinkFixModal(false)}
         auditId={latestAudit?.id}
         siteId={selectedSite?.id}
         onAuditUpdated={() => fetchAudits(selectedSite?.id, activeDevice)}
