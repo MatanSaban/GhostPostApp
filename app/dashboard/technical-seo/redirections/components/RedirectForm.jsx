@@ -67,6 +67,7 @@ export function RedirectForm({ translations, onSubmit, editingRedirect, onCancel
             placeholder={translations.fromUrlPlaceholder}
             value={fromUrl}
             onChange={(e) => setFromUrl(e.target.value)}
+            dir="ltr"
             required
           />
         </div>
@@ -78,6 +79,7 @@ export function RedirectForm({ translations, onSubmit, editingRedirect, onCancel
             placeholder={translations.toUrlPlaceholder}
             value={toUrl}
             onChange={(e) => setToUrl(e.target.value)}
+            dir="ltr"
             required
           />
         </div>

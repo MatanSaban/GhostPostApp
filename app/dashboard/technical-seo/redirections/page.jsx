@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import { 
   Edit,
   Trash2,
@@ -11,8 +12,8 @@ import {
   Download,
   ArrowUpDown,
   Loader2,
-  Power,
-  PowerOff,
+  Info,
+  X,
 } from 'lucide-react';
 import { useLocale } from '@/app/context/locale-context';
 import { useSite } from '@/app/context/site-context';
@@ -33,6 +34,9 @@ export default function RedirectionsPage() {
   const [syncMessage, setSyncMessage] = useState(null);
   const [editingRedirect, setEditingRedirect] = useState(null);
   const [error, setError] = useState(null);
+  const [togglingId, setTogglingId] = useState(null);
+  const [columnInfoPopup, setColumnInfoPopup] = useState(null);
+  const [toast, setToast] = useState(null);
 
   // Fetch redirections from API
   const fetchRedirections = useCallback(async () => {
@@ -61,6 +65,14 @@ export default function RedirectionsPage() {
   useEffect(() => {
     fetchRedirections();
   }, [fetchRedirections]);
+
+  // Auto-dismiss toast
+  useEffect(() => {
+    if (toast) {
+      const timer = setTimeout(() => setToast(null), 4000);
+      return () => clearTimeout(timer);
+    }
+  }, [toast]);
 
   // Create redirect
   const handleCreate = async (data) => {
@@ -124,16 +136,29 @@ export default function RedirectionsPage() {
 
   // Toggle active/inactive
   const handleToggle = async (id, isActive) => {
+    setTogglingId(id);
+    // Optimistic update
+    setRedirections(prev => prev.map(r => r.id === id ? { ...r, isActive: !isActive } : r));
+    setStats(prev => ({
+      ...prev,
+      active: isActive ? prev.active - 1 : prev.active + 1,
+    }));
     try {
       await fetch(`/api/sites/${selectedSite.id}/redirections/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ isActive: !isActive }),
       });
-      
-      await fetchRedirections();
     } catch (err) {
+      // Revert on error
+      setRedirections(prev => prev.map(r => r.id === id ? { ...r, isActive } : r));
+      setStats(prev => ({
+        ...prev,
+        active: isActive ? prev.active : prev.active - 1,
+      }));
       setError(err.message);
+    } finally {
+      setTogglingId(null);
     }
   };
 
@@ -160,11 +185,17 @@ export default function RedirectionsPage() {
       const result = await res.json();
       
       if (direction === 'from-wp') {
-        setSyncMessage(t('redirections.syncImported').replace('{imported}', result.imported).replace('{skipped}', result.skipped));
+        const msg = t('redirections.syncImported').replace('{imported}', result.imported).replace('{skipped}', result.skipped);
+        setSyncMessage(msg);
+        setToast({ type: 'success', message: msg });
       } else if (direction === 'to-wp') {
-        setSyncMessage(t('redirections.syncPushed').replace('{count}', result.count));
+        const msg = t('redirections.syncPushed').replace('{count}', result.count);
+        setSyncMessage(msg);
+        setToast({ type: 'success', message: msg });
       } else if (direction === 'import-external') {
-        setSyncMessage(t('redirections.syncImportedExternal').replace('{imported}', result.platformImported).replace('{source}', result.source));
+        const msg = t('redirections.syncImportedExternal').replace('{imported}', result.platformImported).replace('{source}', result.source);
+        setSyncMessage(msg);
+        setToast({ type: 'success', message: msg });
       }
       
       await fetchRedirections();
@@ -370,10 +401,27 @@ export default function RedirectionsPage() {
         ) : (
           <>
             <div className={styles.tableHeader}>
-              <span>{t('redirections.from')}</span>
-              <span>{t('redirections.to')}</span>
-              <span>{t('redirections.type')}</span>
-              <span>{t('redirections.hits')}</span>
+              {[
+                { key: 'status' },
+                { key: 'from' },
+                { key: 'to' },
+                { key: 'type' },
+                { key: 'hits' },
+              ].map(col => (
+                <span
+                  key={col.key}
+                  className={styles.thLabel}
+                  data-tooltip={t(`redirections.tooltips.${col.key}`)}
+                  onClick={() => setColumnInfoPopup(col.key)}
+                >
+                  {col.key === 'status' ? t('redirections.status')
+                    : col.key === 'from' ? t('redirections.from')
+                    : col.key === 'to' ? t('redirections.to')
+                    : col.key === 'type' ? t('redirections.type')
+                    : t('redirections.hits')}
+                  <Info size={11} className={styles.thInfoIcon} />
+                </span>
+              ))}
               <span>{t('common.actions')}</span>
             </div>
             <div className={styles.tableBody}>
@@ -382,11 +430,27 @@ export default function RedirectionsPage() {
                   key={redirect.id} 
                   className={`${styles.tableRow} ${!redirect.isActive ? styles.inactiveRow : ''}`}
                 >
+                  <div className={styles.statusCell}>
+                    <button
+                      className={`${styles.statusToggle} ${redirect.isActive ? styles.statusActive : styles.statusInactive}`}
+                      onClick={() => handleToggle(redirect.id, redirect.isActive)}
+                      disabled={togglingId === redirect.id}
+                    >
+                      {togglingId === redirect.id ? (
+                        <Loader2 size={12} className={styles.spinner} />
+                      ) : (
+                        <span className={styles.statusDot} />
+                      )}
+                      <span className={styles.statusLabel}>
+                        {redirect.isActive ? t('redirections.active') : t('redirections.inactive')}
+                      </span>
+                    </button>
+                  </div>
                   <div className={`${styles.urlCell} ${styles.fromUrl}`}>
-                    <span className={styles.urlPath}>{redirect.sourceUrl}</span>
+                    <span className={styles.urlPath} dir="ltr">{redirect.sourceUrl}</span>
                   </div>
                   <div className={`${styles.urlCell} ${styles.toUrl}`}>
-                    <span className={styles.urlPath}>{redirect.targetUrl}</span>
+                    <span className={styles.urlPath} dir="ltr">{redirect.targetUrl}</span>
                   </div>
                   <div className={`${styles.cell} ${styles.typeCell}`}>
                     <span className={`${styles.typeBadge} ${styles[`type${getTypeCode(redirect.type)}`]}`}>
@@ -397,13 +461,6 @@ export default function RedirectionsPage() {
                     {redirect.hitCount.toLocaleString()}
                   </div>
                   <div className={styles.actions}>
-                    <button 
-                      className={styles.actionButton}
-                      onClick={() => handleToggle(redirect.id, redirect.isActive)}
-                      title={redirect.isActive ? t('redirections.disable') : t('redirections.enable')}
-                    >
-                      {redirect.isActive ? <Power size={14} /> : <PowerOff size={14} />}
-                    </button>
                     <button 
                       className={styles.actionButton}
                       onClick={() => setEditingRedirect(redirect)}
@@ -423,6 +480,47 @@ export default function RedirectionsPage() {
           </>
         )}
       </div>
+
+      {/* Column Info Popup */}
+      {columnInfoPopup && typeof document !== 'undefined' && createPortal(
+        <div className={styles.columnPopupOverlay} onClick={() => setColumnInfoPopup(null)}>
+          <div className={styles.columnPopup} onClick={(e) => e.stopPropagation()}>
+            <button className={styles.columnPopupClose} onClick={() => setColumnInfoPopup(null)}>
+              <X size={18} />
+            </button>
+            <div className={styles.columnPopupHeader}>
+              <div className={styles.columnPopupIconBadge}>
+                <Info size={22} />
+              </div>
+              <h3 className={styles.columnPopupTitle}>
+                {t(`redirections.info.${columnInfoPopup}.title`)}
+              </h3>
+            </div>
+            <div className={styles.columnPopupSection}>
+              <p className={styles.columnPopupDescription}>
+                {t(`redirections.info.${columnInfoPopup}.description`)}
+              </p>
+            </div>
+            <div className={styles.columnPopupSection}>
+              <p className={styles.columnPopupDetails}>
+                {t(`redirections.info.${columnInfoPopup}.details`)}
+              </p>
+            </div>
+            <button className={styles.columnPopupDismiss} onClick={() => setColumnInfoPopup(null)}>
+              {t('redirections.info.gotIt')}
+            </button>
+          </div>
+        </div>,
+        document.body
+      )}
+
+      {/* Toast */}
+      {toast && (
+        <div className={`${styles.toast} ${styles[`toast_${toast.type}`]}`}>
+          <CheckCircle size={16} />
+          {toast.message}
+        </div>
+      )}
     </div>
   );
 }

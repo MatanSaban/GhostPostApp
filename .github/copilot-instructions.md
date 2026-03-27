@@ -3,6 +3,15 @@
 ## Meta Instruction
 **IMPORTANT**: When the user tells you to always do something for this project, add that instruction to this file (`.github/copilot-instructions.md`) so it's preserved for future sessions.
 
+## WordPress Plugin Version Management
+
+**CRITICAL**: Every time you modify any file under `gp-wordpress-plugin/ghost-post-connector/`, you **MUST** also:
+1. Bump `PLUGIN_VERSION` in `app/api/plugin/version.js` (patch for fixes, minor for features)
+2. Add a changelog entry to `PLUGIN_CHANGELOG` in the same file
+3. Remind the user to run `node scripts/sync-plugin-version.mjs` after deployment
+
+This is how WordPress sites receive plugin updates — without a version bump, changes will never reach WordPress installations.
+
 ## AI Service Guidelines
 
 ### Always Use Vercel AI SDK

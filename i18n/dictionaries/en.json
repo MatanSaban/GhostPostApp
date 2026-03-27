@@ -2424,7 +2424,45 @@
     "externalPluginDescription": "{plugins} found on your WordPress site. Import existing redirects into Ghost Post and deactivate the external plugin.",
     "enable": "Enable",
     "disable": "Disable",
+    "status": "Status",
+    "active": "Active",
+    "inactive": "Inactive",
     "selectSite": "Please select a site",
+    "tooltips": {
+      "status": "Active or disabled redirect",
+      "from": "Original URL path",
+      "to": "Destination URL path",
+      "type": "HTTP redirect status code",
+      "hits": "Number of times this redirect was triggered"
+    },
+    "info": {
+      "status": {
+        "title": "Redirect Status",
+        "description": "Controls whether the redirect is currently active or disabled.",
+        "details": "Active redirects will automatically redirect visitors from the source URL to the target URL. Disabled redirects are saved but won't redirect traffic. Use this to temporarily pause redirects without deleting them."
+      },
+      "from": {
+        "title": "Source URL (From)",
+        "description": "The original URL path that visitors or search engines may try to access.",
+        "details": "This is the old or broken URL that you want to redirect. It should be a relative path starting with / (e.g. /old-page). When someone visits this URL, they will be automatically redirected to the target URL."
+      },
+      "to": {
+        "title": "Target URL (To)",
+        "description": "The destination URL where visitors will be redirected to.",
+        "details": "This is the new or correct URL that visitors should reach. It can be a relative path on your site (e.g. /new-page) or a full URL. Make sure the target URL is valid and returns a 200 status."
+      },
+      "type": {
+        "title": "Redirect Type",
+        "description": "The HTTP status code used for the redirect.",
+        "details": "301 (Permanent) tells search engines the page has permanently moved — SEO value transfers to the new URL. 302 (Temporary) indicates a temporary move — search engines keep indexing the original URL. 307 (Temporary Redirect) is similar to 302 but preserves the HTTP method (POST stays POST)."
+      },
+      "hits": {
+        "title": "Hit Count",
+        "description": "The number of times this redirect has been triggered.",
+        "details": "Each time a visitor or bot accesses the source URL and gets redirected, the hit count increases. This helps you understand which redirects are most used and whether old URLs still receive traffic."
+      },
+      "gotIt": "Got it"
+    },
     "stats": {
       "activeRedirects": "Active Redirects",
       "totalHits": "Total Hits",

@@ -10,10 +10,14 @@
  */
 
 // Current plugin version - increment this when making updates
-export const PLUGIN_VERSION = "2.2.0";
+export const PLUGIN_VERSION = "2.3.0";
 
 // Changelog for the current version
 export const PLUGIN_CHANGELOG = `
+= 2.3.0 =
+* NEW: Real-time redirect hit count sync from WordPress to platform
+* FIX: Hit counts now update in platform dashboard automatically when redirects are triggered in WordPress
+
 = 2.2.0 =
 * NEW: Automatic bidirectional redirect sync between WordPress and Ghost Post platform
 * NEW: WP admin redirect changes (create/update/delete) auto-push to platform via webhook
