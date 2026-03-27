@@ -69,7 +69,7 @@ function extractSiteNameFallback(html, hostname) {
   const title = html.match(/<title[^>]*>([^<]+)<\/title>/i)?.[1]?.trim();
   if (title) {
     // Remove common suffixes
-    return title.split(/[|–-\-:]/)[0].trim();
+    return title.split(/[|–\-:]/)[0].trim();
   }
 
   // Fallback to hostname
