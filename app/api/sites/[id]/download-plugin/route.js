@@ -21,8 +21,11 @@ import { getClassCptManager } from './plugin-templates/class-cpt-manager';
 import { getClassAcfManager } from './plugin-templates/class-acf-manager';
 import { getClassUpdater } from './plugin-templates/class-updater';
 import { getClassEntitySync } from './plugin-templates/class-entity-sync';
+import { getClassRedirectionsManager } from './plugin-templates/class-redirections-manager';
 import { getAdminPage } from './plugin-templates/admin-page';
 import { getAdminCss } from './plugin-templates/admin-css';
+import { getAdminJs } from './plugin-templates/admin-js';
+import { getRedirectionsPage } from './plugin-templates/redirections-page';
 
 /**
  * GET /api/sites/[id]/download-plugin
@@ -134,10 +137,13 @@ export async function GET(request, { params }) {
     pluginFolder.file('includes/class-gp-acf-manager.php', getClassAcfManager());
     pluginFolder.file('includes/class-gp-updater.php', getClassUpdater());
     pluginFolder.file('includes/class-gp-entity-sync.php', getClassEntitySync());
+    pluginFolder.file('includes/class-gp-redirections-manager.php', getClassRedirectionsManager());
 
     // Admin folder
     pluginFolder.file('admin/views/settings-page.php', getAdminPage());
+    pluginFolder.file('admin/views/redirections-page.php', getRedirectionsPage());
     pluginFolder.file('admin/css/admin.css', getAdminCss());
+    pluginFolder.file('admin/js/admin.js', getAdminJs());
 
     // Assets folder
     // pluginFolder.file('assets/images/ghost-post-icon.png', iconBuffer);

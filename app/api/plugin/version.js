@@ -10,10 +10,16 @@
  */
 
 // Current plugin version - increment this when making updates
-export const PLUGIN_VERSION = "2.0.0";
+export const PLUGIN_VERSION = "2.0.1";
 
 // Changelog for the current version
 export const PLUGIN_CHANGELOG = `
+= 2.0.1 =
+* FIX: Plugin templates now correctly include all redirections files in generated ZIPs
+* FIX: Top-level WordPress menu with Dashboard and Redirections subpages
+* FIX: Admin JS and CSS properly bundled for redirect management UI
+* FIX: REST API endpoints for redirect CRUD, bulk-sync, import, and plugin detection
+
 = 2.0.0 =
 * NEW: Full redirections management system with CRUD operations
 * NEW: Detect popular redirection plugins (Redirection, Yoast Premium, Rank Math, Safe Redirect Manager, Simple 301 Redirects, 301 Redirects)

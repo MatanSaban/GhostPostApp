@@ -46,6 +46,11 @@ class GP_API_Handler {
     private $acf_manager;
     
     /**
+     * @var GP_Redirections_Manager
+     */
+    private $redirections_manager;
+    
+    /**
      * Constructor
      */
     public function __construct(GP_Request_Validator $validator) {
@@ -55,6 +60,7 @@ class GP_API_Handler {
         $this->seo_manager = new GP_SEO_Manager();
         $this->cpt_manager = new GP_CPT_Manager();
         $this->acf_manager = new GP_ACF_Manager();
+        $this->redirections_manager = new GP_Redirections_Manager();
     }
     
     /**
@@ -384,6 +390,37 @@ class GP_API_Handler {
                 'callback' => array($this, 'create_redirect'),
                 'permission_callback' => array($this, 'validate_request'),
             ),
+        ));
+        
+        register_rest_route($namespace, '/redirects/(?P<id>[a-zA-Z0-9_-]+)', array(
+            array(
+                'methods' => 'PUT',
+                'callback' => array($this, 'update_redirect'),
+                'permission_callback' => array($this, 'validate_request'),
+            ),
+            array(
+                'methods' => 'DELETE',
+                'callback' => array($this, 'delete_redirect'),
+                'permission_callback' => array($this, 'validate_request'),
+            ),
+        ));
+        
+        register_rest_route($namespace, '/redirects/bulk-sync', array(
+            'methods' => 'POST',
+            'callback' => array($this, 'bulk_sync_redirects'),
+            'permission_callback' => array($this, 'validate_request'),
+        ));
+        
+        register_rest_route($namespace, '/redirects/import', array(
+            'methods' => 'POST',
+            'callback' => array($this, 'import_redirects'),
+            'permission_callback' => array($this, 'validate_request'),
+        ));
+        
+        register_rest_route($namespace, '/redirects/detected-plugins', array(
+            'methods' => 'GET',
+            'callback' => array($this, 'get_detected_redirect_plugins'),
+            'permission_callback' => array($this, 'validate_request'),
         ));
         
         // Resolve URL to post ID
@@ -1005,19 +1042,7 @@ class GP_API_Handler {
             return new WP_REST_Response(array('error' => 'Permission denied'), 403);
         }
         
-        // Check for common redirect plugins
-        if (defined('WPSEO_VERSION')) {
-            // Yoast SEO Premium redirects
-            return $this->get_yoast_redirects();
-        }
-        
-        if (defined('RANK_MATH_VERSION')) {
-            // RankMath redirects
-            return $this->get_rankmath_redirects();
-        }
-        
-        // Custom redirects stored in options
-        $redirects = get_option('gp_connector_redirects', array());
+        $redirects = $this->redirections_manager->get_all_redirects();
         return new WP_REST_Response($redirects, 200);
     }
     
@@ -1027,19 +1052,72 @@ class GP_API_Handler {
         }
         
         $data = $request->get_json_params();
+        $result = $this->redirections_manager->create_redirect($data);
         
-        // Store in custom option for now
-        $redirects = get_option('gp_connector_redirects', array());
-        $redirects[] = array(
-            'source' => $data['source'],
-            'target' => $data['target'],
-            'type' => $data['type'] ?? 301,
-            'created_at' => current_time('mysql'),
-        );
+        if (is_wp_error($result)) {
+            return new WP_REST_Response(array('error' => $result->get_error_message()), 400);
+        }
         
-        update_option('gp_connector_redirects', $redirects);
+        return new WP_REST_Response($result, 201);
+    }
+    
+    public function update_redirect(WP_REST_Request $request) {
+        if (!gp_has_permission('REDIRECTS_MANAGE')) {
+            return new WP_REST_Response(array('error' => 'Permission denied'), 403);
+        }
         
-        return new WP_REST_Response(array('success' => true), 201);
+        $data = $request->get_json_params();
+        $result = $this->redirections_manager->update_redirect($request['id'], $data);
+        
+        if (is_wp_error($result)) {
+            return new WP_REST_Response(array('error' => $result->get_error_message()), 400);
+        }
+        
+        return new WP_REST_Response($result, 200);
+    }
+    
+    public function delete_redirect(WP_REST_Request $request) {
+        if (!gp_has_permission('REDIRECTS_MANAGE')) {
+            return new WP_REST_Response(array('error' => 'Permission denied'), 403);
+        }
+        
+        $result = $this->redirections_manager->delete_redirect($request['id']);
+        
+        if (is_wp_error($result)) {
+            return new WP_REST_Response(array('error' => $result->get_error_message()), 400);
+        }
+        
+        return new WP_REST_Response(array('deleted' => true), 200);
+    }
+    
+    public function bulk_sync_redirects(WP_REST_Request $request) {
+        if (!gp_has_permission('REDIRECTS_MANAGE')) {
+            return new WP_REST_Response(array('error' => 'Permission denied'), 403);
+        }
+        
+        $data = $request->get_json_params();
+        $redirects = isset($data['redirects']) ? $data['redirects'] : array();
+        $result = $this->redirections_manager->bulk_sync($redirects);
+        
+        return new WP_REST_Response($result, 200);
+    }
+    
+    public function import_redirects(WP_REST_Request $request) {
+        if (!gp_has_permission('REDIRECTS_MANAGE')) {
+            return new WP_REST_Response(array('error' => 'Permission denied'), 403);
+        }
+        
+        $result = $this->redirections_manager->import_from_detected_plugin();
+        return new WP_REST_Response($result, 200);
+    }
+    
+    public function get_detected_redirect_plugins(WP_REST_Request $request) {
+        if (!gp_has_permission('REDIRECTS_MANAGE')) {
+            return new WP_REST_Response(array('error' => 'Permission denied'), 403);
+        }
+        
+        $plugins = $this->redirections_manager->detect_plugins();
+        return new WP_REST_Response($plugins, 200);
     }
     
     // ==========================================
@@ -1217,24 +1295,6 @@ class GP_API_Handler {
             'discouraged' => (bool) $params['discouraged'],
             'blogPublic'  => $new_value,
         ), 200);
-    }
-    
-    private function get_yoast_redirects() {
-        // Yoast SEO Premium redirect implementation
-        return new WP_REST_Response(array(), 200);
-    }
-    
-    private function get_rankmath_redirects() {
-        // RankMath redirect implementation
-        global $wpdb;
-        $table = $wpdb->prefix . 'rank_math_redirections';
-        
-        if ($wpdb->get_var("SHOW TABLES LIKE '$table'") !== $table) {
-            return new WP_REST_Response(array(), 200);
-        }
-        
-        $redirects = $wpdb->get_results("SELECT * FROM $table ORDER BY id DESC LIMIT 100");
-        return new WP_REST_Response($redirects, 200);
     }
     
     // ==========================================

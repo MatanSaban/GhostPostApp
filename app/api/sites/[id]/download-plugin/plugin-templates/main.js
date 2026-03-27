@@ -45,6 +45,7 @@ require_once GP_CONNECTOR_PLUGIN_DIR . 'includes/class-gp-seo-manager.php';
 require_once GP_CONNECTOR_PLUGIN_DIR . 'includes/class-gp-cpt-manager.php';
 require_once GP_CONNECTOR_PLUGIN_DIR . 'includes/class-gp-acf-manager.php';
 require_once GP_CONNECTOR_PLUGIN_DIR . 'includes/class-gp-entity-sync.php';
+require_once GP_CONNECTOR_PLUGIN_DIR . 'includes/class-gp-redirections-manager.php';
 require_once GP_CONNECTOR_PLUGIN_DIR . 'includes/class-gp-updater.php';
 
 /**

@@ -20,6 +20,9 @@ import { getAdminPage } from '@/app/api/sites/[id]/download-plugin/plugin-templa
 import { getAdminCss } from '@/app/api/sites/[id]/download-plugin/plugin-templates/admin-css';
 import { getClassUpdater } from '@/app/api/sites/[id]/download-plugin/plugin-templates/class-updater';
 import { getClassEntitySync } from '@/app/api/sites/[id]/download-plugin/plugin-templates/class-entity-sync';
+import { getClassRedirectionsManager } from '@/app/api/sites/[id]/download-plugin/plugin-templates/class-redirections-manager';
+import { getAdminJs } from '@/app/api/sites/[id]/download-plugin/plugin-templates/admin-js';
+import { getRedirectionsPage } from '@/app/api/sites/[id]/download-plugin/plugin-templates/redirections-page';
 
 /**
  * GET /api/plugin/download
@@ -88,10 +91,13 @@ export async function GET(request) {
     pluginFolder.file('includes/class-gp-acf-manager.php', getClassAcfManager());
     pluginFolder.file('includes/class-gp-updater.php', getClassUpdater());
     pluginFolder.file('includes/class-gp-entity-sync.php', getClassEntitySync());
+    pluginFolder.file('includes/class-gp-redirections-manager.php', getClassRedirectionsManager());
 
     // Admin folder
     pluginFolder.file('admin/views/settings-page.php', getAdminPage());
+    pluginFolder.file('admin/views/redirections-page.php', getRedirectionsPage());
     pluginFolder.file('admin/css/admin.css', getAdminCss());
+    pluginFolder.file('admin/js/admin.js', getAdminJs());
 
     // Generate ZIP buffer
     const zipBuffer = await zip.generateAsync({ 

@@ -24,29 +24,47 @@ class Ghost_Post {
     private $validator;
     
     /**
+     * @var GP_Entity_Sync
+     */
+    private $entity_sync;
+    
+    /**
+     * @var GP_Redirections_Manager
+     */
+    private $redirections_manager;
+    
+    /**
      * Initialize the plugin
      */
     public function init() {
         $this->validator = new GP_Request_Validator();
         $this->api_handler = new GP_API_Handler($this->validator);
+        $this->redirections_manager = new GP_Redirections_Manager();
         
         // Initialize entity sync (real-time webhook push)
-        $entity_sync = new GP_Entity_Sync();
-        $entity_sync->init();
+        $this->entity_sync = new GP_Entity_Sync();
+        $this->entity_sync->init();
         
         // Register REST API endpoints
         add_action('rest_api_init', array($this, 'register_rest_routes'));
         
-        // Admin menu
+        // Admin menu - top-level menu with child pages
         add_action('admin_menu', array($this, 'add_admin_menu'));
         
-        // Admin styles
+        // Admin styles and scripts
         add_action('admin_enqueue_scripts', array($this, 'enqueue_admin_styles'));
+        
+        // Frontend redirect execution
+        add_action('template_redirect', array($this->redirections_manager, 'maybe_redirect'));
         
         // AJAX actions for admin
         add_action('wp_ajax_gp_test_connection', array($this, 'ajax_test_connection'));
         add_action('wp_ajax_gp_send_ping', array($this, 'ajax_send_ping'));
         add_action('wp_ajax_gp_disconnect', array($this, 'ajax_disconnect'));
+        add_action('wp_ajax_gp_import_redirects', array($this, 'ajax_import_redirects'));
+        add_action('wp_ajax_gp_save_redirect', array($this, 'ajax_save_redirect'));
+        add_action('wp_ajax_gp_delete_redirect', array($this, 'ajax_delete_redirect'));
+        add_action('wp_ajax_gp_toggle_redirect', array($this, 'ajax_toggle_redirect'));
         
         // Schedule ping cron
         add_action('gp_connector_ping', array($this, 'send_ping'));
@@ -69,23 +87,52 @@ class Ghost_Post {
     }
     
     /**
-     * Add admin menu
+     * Add admin menu - top-level menu with child pages
      */
     public function add_admin_menu() {
-        add_options_page(
+        // Top-level menu
+        add_menu_page(
             __('Ghost Post', 'ghost-post-connector'),
             __('Ghost Post', 'ghost-post-connector'),
             'manage_options',
             'ghost-post-connector',
+            array($this, 'render_admin_page'),
+            'dashicons-admin-site-alt3',
+            30
+        );
+        
+        // Dashboard submenu (replaces auto-generated first item)
+        add_submenu_page(
+            'ghost-post-connector',
+            __('Dashboard', 'ghost-post-connector'),
+            __('Dashboard', 'ghost-post-connector'),
+            'manage_options',
+            'ghost-post-connector',
             array($this, 'render_admin_page')
+        );
+        
+        // Redirections submenu
+        add_submenu_page(
+            'ghost-post-connector',
+            __('Redirections', 'ghost-post-connector'),
+            __('Redirections', 'ghost-post-connector'),
+            'manage_options',
+            'ghost-post-redirections',
+            array($this, 'render_redirections_page')
         );
     }
     
     /**
-     * Enqueue admin styles
+     * Enqueue admin styles and scripts
      */
     public function enqueue_admin_styles($hook) {
-        if ($hook !== 'settings_page_ghost-post-connector') {
+        // Load on our plugin pages only
+        $plugin_pages = array(
+            'toplevel_page_ghost-post-connector',
+            'ghost-post_page_ghost-post-redirections',
+        );
+        
+        if (!in_array($hook, $plugin_pages, true)) {
             return;
         }
         
@@ -95,6 +142,27 @@ class Ghost_Post {
             array(),
             GP_CONNECTOR_VERSION
         );
+        
+        wp_enqueue_script(
+            'gp-connector-admin',
+            GP_CONNECTOR_PLUGIN_URL . 'admin/js/admin.js',
+            array('jquery'),
+            GP_CONNECTOR_VERSION,
+            true
+        );
+        
+        wp_localize_script('gp-connector-admin', 'gpAdmin', array(
+            'ajaxUrl' => admin_url('admin-ajax.php'),
+            'nonce'   => wp_create_nonce('gp_connector_nonce'),
+            'strings' => array(
+                'testing'  => __('Testing connection...', 'ghost-post-connector'),
+                'success'  => __('Connection successful!', 'ghost-post-connector'),
+                'error'    => __('Connection failed', 'ghost-post-connector'),
+                'confirm_delete' => __('Are you sure you want to delete this redirect?', 'ghost-post-connector'),
+                'importing' => __('Importing redirects...', 'ghost-post-connector'),
+                'import_success' => __('Import completed!', 'ghost-post-connector'),
+            ),
+        ));
     }
     
     /**
@@ -102,6 +170,119 @@ class Ghost_Post {
      */
     public function render_admin_page() {
         include GP_CONNECTOR_PLUGIN_DIR . 'admin/views/settings-page.php';
+    }
+    
+    /**
+     * Render redirections page
+     */
+    public function render_redirections_page() {
+        $this->redirections_manager = $this->redirections_manager ?? new GP_Redirections_Manager();
+        include GP_CONNECTOR_PLUGIN_DIR . 'admin/views/redirections-page.php';
+    }
+    
+    /**
+     * AJAX: Import redirects from a detected third-party plugin
+     */
+    public function ajax_import_redirects() {
+        check_ajax_referer('gp_connector_nonce', 'nonce');
+        
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error('Permission denied');
+        }
+        
+        $manager = $this->redirections_manager ?? new GP_Redirections_Manager();
+        $result = $manager->import_from_detected_plugin();
+        
+        wp_send_json_success($result);
+    }
+    
+    /**
+     * AJAX: Save (create or update) a redirect
+     */
+    public function ajax_save_redirect() {
+        check_ajax_referer('gp_connector_nonce', 'nonce');
+        
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error('Permission denied');
+        }
+        
+        $manager = $this->redirections_manager ?? new GP_Redirections_Manager();
+        
+        $id     = sanitize_text_field($_POST['redirect_id'] ?? '');
+        $source = sanitize_text_field($_POST['source'] ?? '');
+        $target = sanitize_text_field($_POST['target'] ?? '');
+        $type   = intval($_POST['type'] ?? 301);
+        
+        if (empty($source) || empty($target)) {
+            wp_send_json_error('Source and target URLs are required');
+        }
+        
+        $data = array('source' => $source, 'target' => $target, 'type' => $type);
+        
+        if ($id) {
+            $result = $manager->update_redirect($id, $data);
+        } else {
+            $result = $manager->create_redirect($data);
+        }
+        
+        if (is_wp_error($result)) {
+            wp_send_json_error($result->get_error_message());
+        }
+        
+        wp_send_json_success($result);
+    }
+    
+    /**
+     * AJAX: Delete a redirect
+     */
+    public function ajax_delete_redirect() {
+        check_ajax_referer('gp_connector_nonce', 'nonce');
+        
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error('Permission denied');
+        }
+        
+        $manager = $this->redirections_manager ?? new GP_Redirections_Manager();
+        $id = sanitize_text_field($_POST['redirect_id'] ?? '');
+        
+        if (empty($id)) {
+            wp_send_json_error('Redirect ID is required');
+        }
+        
+        $result = $manager->delete_redirect($id);
+        
+        if (is_wp_error($result)) {
+            wp_send_json_error($result->get_error_message());
+        }
+        
+        wp_send_json_success(array('deleted' => true));
+    }
+    
+    /**
+     * AJAX: Toggle redirect active/inactive
+     */
+    public function ajax_toggle_redirect() {
+        check_ajax_referer('gp_connector_nonce', 'nonce');
+        
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error('Permission denied');
+        }
+        
+        $manager = $this->redirections_manager ?? new GP_Redirections_Manager();
+        $id = sanitize_text_field($_POST['redirect_id'] ?? '');
+        $active = ($_POST['active'] ?? '1') === '1';
+        
+        if (empty($id)) {
+            wp_send_json_error('Redirect ID is required');
+        }
+        
+        $result = $manager->update_redirect($id, array('is_active' => !$active));
+        
+        if (is_wp_error($result)) {
+            wp_send_json_error($result->get_error_message());
+        }
+        
+        wp_send_json_success($result);
     }
     
     /**
