@@ -3,9 +3,10 @@ import { cookies } from 'next/headers';
 import prisma from '@/lib/prisma';
 import { deductAiCredits } from '@/lib/account-utils';
 import { updateSeoData, resolveUrl } from '@/lib/wp-api-client';
+import { recalculateAuditAfterFix } from '@/lib/audit/recalculate-after-fix';
 
 const SESSION_COOKIE = 'user_session';
-const TITLE_FIX_CREDIT_COST = 1; // 1 credit per page
+const DESC_FIX_CREDIT_COST = 1; // 1 credit per page
 
 async function getAuthenticatedUser() {
   try {
@@ -27,12 +28,12 @@ async function getAuthenticatedUser() {
 }
 
 /**
- * POST: Apply an AI-generated title fix to one or more pages
+ * POST: Apply an AI-generated meta description fix to one or more pages
  *
- * Body: { siteId, auditId?, fixes: [{ url, newTitle }] }
+ * Body: { siteId, auditId?, fixes: [{ url, newDescription }] }
  *
  * Cost: 1 AI Credit per page
- * Pushes the new title to the WP plugin if connected.
+ * Pushes the new description to the WP plugin (Yoast/RankMath/custom).
  * If auditId is provided, updates the audit issues + pageResults in-place.
  */
 export async function POST(request) {
@@ -69,7 +70,7 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Site not found' }, { status: 404 });
     }
 
-    const totalCost = fixes.length * TITLE_FIX_CREDIT_COST;
+    const totalCost = fixes.length * DESC_FIX_CREDIT_COST;
 
     // Verify site has synced entities before charging credits
     const entityCount = await prisma.siteEntity.count({ where: { siteId } });
@@ -83,16 +84,16 @@ export async function POST(request) {
       );
     }
 
-    // Deduct credits for all fixes at once
+    // Deduct credits
     const deduction = await deductAiCredits(site.accountId, totalCost, {
       userId: user.id,
       siteId,
-      source: 'ai_title_fix',
-      description: `AI Title Fix: ${fixes.length} page(s)`,
+      source: 'ai_description_fix',
+      description: `AI Description Fix: ${fixes.length} page(s)`,
     });
 
     if (!deduction.success) {
-      console.warn('[ApplyTitleFix] Credit deduction failed:', deduction.error, '| accountId:', site.accountId, '| cost:', totalCost);
+      console.warn('[ApplyDescFix] Credit deduction failed:', deduction.error, '| accountId:', site.accountId, '| cost:', totalCost);
       const isInsufficient = deduction.error?.includes('Insufficient');
       return NextResponse.json(
         {
@@ -110,7 +111,7 @@ export async function POST(request) {
       site.connectionStatus === 'CONNECTED' && !!site.siteKey;
 
     for (const fix of fixes) {
-      const { url, newTitle } = fix;
+      const { url, newDescription } = fix;
       let pushed = false;
       let pushError = null;
 
@@ -120,11 +121,10 @@ export async function POST(request) {
           const archivePatterns = [/\/category\//, /\/tag\//, /\/author\//, /\/page\/\d/];
           if (archivePatterns.some(p => p.test(url))) {
             pushError = 'Archive/taxonomy pages cannot be updated via the plugin';
-            results.push({ url, newTitle, pushed: false, pushError, skipped: true });
+            results.push({ url, newDescription, pushed: false, pushError, skipped: true });
             continue;
           }
 
-          // Look up the WordPress post ID from our SiteEntity records
           const parsedUrl = new URL(url);
           const pathParts = decodeURIComponent(
             parsedUrl.pathname.replace(/^\/|\/$/g, '')
@@ -132,17 +132,16 @@ export async function POST(request) {
           const slug = pathParts.split('/').pop() || '';
           const isHomepage = pathParts === '';
 
-          // Normalise URL: try with and without trailing slash
           const urlWithSlash = url.endsWith('/') ? url : url + '/';
           const urlWithoutSlash = url.endsWith('/') ? url.slice(0, -1) : url;
 
-          // Try finding entity by exact URL first
+          // Try finding entity by exact URL
           let entity = await prisma.siteEntity.findFirst({
             where: { siteId, url: { in: [url, urlWithSlash, urlWithoutSlash] } },
             select: { externalId: true },
           });
 
-          // Fallback: try by slug (skip if homepage — slug would be empty)
+          // Fallback: by slug
           if (!entity && slug) {
             entity = await prisma.siteEntity.findFirst({
               where: { siteId, slug },
@@ -150,7 +149,7 @@ export async function POST(request) {
             });
           }
 
-          // For homepage, also try matching entities whose url contains the hostname root
+          // Homepage fallback
           if (!entity && isHomepage) {
             entity = await prisma.siteEntity.findFirst({
               where: {
@@ -167,65 +166,62 @@ export async function POST(request) {
           }
 
           if (!entity?.externalId) {
-            // Fallback: ask the WP plugin to resolve the URL → post ID
-            // This handles translated slugs, rewrite aliases, etc.
             const resolved = await resolveUrl(site, url);
             if (resolved?.found && resolved.postId) {
-              console.log('[ApplyTitleFix] Resolved URL via plugin:', url, '→ postId', resolved.postId);
-              // Push directly using the resolved post ID
-              await updateSeoData(site, resolved.postId, { title: newTitle });
+              await updateSeoData(site, resolved.postId, { description: newDescription });
               pushed = true;
             } else {
               throw new Error(`WordPress post ID not found for "${isHomepage ? '(homepage)' : slug}" — URL: ${url}`);
             }
           } else {
-            // Update SEO title via the /seo/{id} endpoint (Yoast/RankMath)
-            await updateSeoData(site, entity.externalId, { title: newTitle });
+            await updateSeoData(site, entity.externalId, { description: newDescription });
             pushed = true;
           }
         } catch (err) {
           pushError = err.message;
-          console.warn('[ApplyTitleFix] Plugin push failed for', url, ':', err.message);
+          console.warn('[ApplyDescFix] Plugin push failed for', url, ':', err.message);
         }
       }
 
-      results.push({ url, newTitle, pushed, pushError });
+      results.push({ url, newDescription, pushed, pushError });
     }
 
-    // ── Update audit issues + pageResults in-place ────────────
+    // Update audit issues + pageResults in-place
     const successfulFixes = results.filter(r => r.pushed && !r.pushError);
     if (auditId && successfulFixes.length > 0) {
       try {
-        const fixMap = new Map(successfulFixes.map(f => [f.url, f.newTitle]));
+        const fixMap = new Map(successfulFixes.map(f => [f.url, f.newDescription]));
 
         const buildUpdated = (audit) => {
           const updatedIssues = (audit.issues || []).map(issue => {
             if (
-              issue.message === 'audit.issues.titleTooShort' &&
+              (issue.message === 'audit.issues.noMetaDescription' ||
+               issue.message === 'audit.issues.metaDescriptionShort') &&
               issue.url &&
               fixMap.has(issue.url)
             ) {
-              const newTitle = fixMap.get(issue.url);
-              if (newTitle.length >= 30 && newTitle.length <= 60) {
+              const newDesc = fixMap.get(issue.url);
+              if (newDesc.length >= 120 && newDesc.length <= 160) {
                 return {
                   ...issue,
                   severity: 'passed',
-                  message: 'audit.issues.titleGood',
+                  message: 'audit.issues.metaDescriptionGood',
                   suggestion: null,
-                  details: `${newTitle.length} chars (AI fixed)`,
+                  details: `${newDesc.length} chars (AI fixed)`,
                 };
-              } else if (newTitle.length > 60) {
+              } else if (newDesc.length > 160) {
                 return {
                   ...issue,
                   severity: 'warning',
-                  message: 'audit.issues.titleTooLong',
-                  suggestion: 'audit.suggestions.titleLength',
-                  details: `${newTitle.length} chars — "${newTitle.slice(0, 50)}..." (AI fixed)`,
+                  message: 'audit.issues.metaDescriptionLong',
+                  suggestion: 'audit.suggestions.metaDescriptionLength',
+                  details: `${newDesc.length} chars (AI fixed)`,
                 };
               }
               return {
                 ...issue,
-                details: `${newTitle.length} chars — "${newTitle.slice(0, 50)}" (AI fixed)`,
+                severity: 'warning',
+                details: `${newDesc.length} chars (AI fixed)`,
               };
             }
             return issue;
@@ -233,7 +229,7 @@ export async function POST(request) {
 
           const updatedPageResults = (audit.pageResults || []).map(pr => {
             if (fixMap.has(pr.url)) {
-              return { ...pr, title: fixMap.get(pr.url) };
+              return { ...pr, metaDescription: fixMap.get(pr.url) };
             }
             return pr;
           });
@@ -268,8 +264,13 @@ export async function POST(request) {
             throw retryErr;
           }
         }
+
+        // Recalculate score + regenerate summary
+        recalculateAuditAfterFix(auditId, site.url).catch(err =>
+          console.warn('[ApplyDescFix] Recalc failed (non-fatal):', err.message)
+        );
       } catch (auditErr) {
-        console.warn('[ApplyTitleFix] Audit update failed (non-fatal):', auditErr.message);
+        console.warn('[ApplyDescFix] Audit update failed (non-fatal):', auditErr.message);
       }
     }
 
@@ -282,7 +283,7 @@ export async function POST(request) {
       auditUpdated: successfulFixes.length > 0 && !!auditId,
     });
   } catch (error) {
-    console.error('[API/audit/apply-title-fix] Error:', error);
+    console.error('[API/audit/apply-description-fix] Error:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

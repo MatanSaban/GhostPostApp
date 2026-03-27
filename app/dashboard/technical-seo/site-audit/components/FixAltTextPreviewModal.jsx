@@ -10,56 +10,40 @@ import {
   XCircle,
   Coins,
   RefreshCw,
-  ArrowRight,
-  Database,
   ExternalLink,
   Pencil,
+  ImageIcon,
 } from 'lucide-react';
 import { useLocale } from '@/app/context/locale-context';
 import { emitCreditsUpdated } from '@/app/context/user-context';
 import { handleLimitError } from '@/app/context/limit-guard-context';
-import SyncRequiredModal from './SyncRequiredModal';
 import { useModalResize, ModalResizeButton } from '@/app/components/ui/ModalResizeButton';
 import styles from './FixTitlePreviewModal.module.css';
 
 /**
- * FixTitlePreviewModal — Shows AI-generated title suggestions with Preview → Confirm → Execute flow
+ * FixAltTextPreviewModal — Shows AI-generated alt text suggestions for images
  *
  * Props:
  * - open: boolean
  * - onClose: () => void
  * - auditId: string
  * - siteId: string
+ * - onAuditUpdated: () => void
  */
-export default function FixTitlePreviewModal({ open, onClose, auditId, siteId, onAuditUpdated }) {
+export default function FixAltTextPreviewModal({ open, onClose, auditId, siteId, onAuditUpdated }) {
   const { t, locale } = useLocale();
   const { isMaximized, toggleMaximize } = useModalResize();
 
-  // Loading / error
   const [isLoading, setIsLoading] = useState(false);
-  const [loadingStep, setLoadingStep] = useState(0); // 0=audit, 1=analyzing, 2=generating
+  const [loadingStep, setLoadingStep] = useState(0);
   const [error, setError] = useState(null);
-
-  // Suggestions from API
   const [suggestions, setSuggestions] = useState([]);
-
-  // Per-item fix status: { [url]: 'idle' | 'fixing' | 'done' | 'error' }
   const [fixStatus, setFixStatus] = useState({});
-
-  // Batch-fixing all
   const [isFixingAll, setIsFixingAll] = useState(false);
   const [fixProgress, setFixProgress] = useState({ done: 0, total: 0 });
-
-  // Inline editing
-  const [editingUrl, setEditingUrl] = useState(null);
+  const [editingKey, setEditingKey] = useState(null);
   const [editValue, setEditValue] = useState('');
-
-  // Track if any fix was applied (to refresh audit on close)
   const [hasAppliedFixes, setHasAppliedFixes] = useState(false);
-
-  // Entities sync check
-  const [hasEntities, setHasEntities] = useState(true);
-  const [showSyncModal, setShowSyncModal] = useState(false);
 
   // ─── Fetch suggestions on open ──────────────────────────────
 
@@ -71,12 +55,11 @@ export default function FixTitlePreviewModal({ open, onClose, auditId, siteId, o
     setSuggestions([]);
     setFixStatus({});
 
-    // Simulate progress steps while API works
-    const stepTimer1 = setTimeout(() => setLoadingStep(1), 1200);
-    const stepTimer2 = setTimeout(() => setLoadingStep(2), 3000);
+    const stepTimer1 = setTimeout(() => setLoadingStep(1), 1500);
+    const stepTimer2 = setTimeout(() => setLoadingStep(2), 5000);
 
     try {
-      const res = await fetch('/api/audit/generate-title-suggestions', {
+      const res = await fetch('/api/audit/generate-alt-suggestions', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ auditId, siteId, locale }),
@@ -88,23 +71,28 @@ export default function FixTitlePreviewModal({ open, onClose, auditId, siteId, o
         throw new Error(data.error || 'Failed to generate suggestions');
       }
 
-      setSuggestions(data.suggestions || []);
-      setHasEntities(data.hasEntities !== false);
-      // Init all statuses to idle
+      // Deduplicate by imageUrl
+      const seen = new Set();
+      const unique = (data.suggestions || []).filter((s) => {
+        if (seen.has(s.imageUrl)) return false;
+        seen.add(s.imageUrl);
+        return true;
+      });
+      setSuggestions(unique);
       const statuses = {};
-      (data.suggestions || []).forEach((s) => {
-        statuses[s.url] = 'idle';
+      unique.forEach((s) => {
+        statuses[s.imageUrl] = 'idle';
       });
       setFixStatus(statuses);
     } catch (err) {
-      console.error('[FixTitlePreview] fetch error:', err);
+      console.error('[FixAltTextPreview] fetch error:', err);
       setError(err.message);
     } finally {
       clearTimeout(stepTimer1);
       clearTimeout(stepTimer2);
       setIsLoading(false);
     }
-  }, [auditId, siteId]);
+  }, [auditId, siteId, locale]);
 
   useEffect(() => {
     if (open) {
@@ -115,17 +103,17 @@ export default function FixTitlePreviewModal({ open, onClose, auditId, siteId, o
   // ─── Apply single fix ───────────────────────────────────────
 
   const applyFix = async (suggestion) => {
-    const { url, newTitle } = suggestion;
-    setFixStatus((prev) => ({ ...prev, [url]: 'fixing' }));
+    const { imageUrl, altText, pageUrl } = suggestion;
+    setFixStatus((prev) => ({ ...prev, [imageUrl]: 'fixing' }));
 
     try {
-      const res = await fetch('/api/audit/apply-title-fix', {
+      const res = await fetch('/api/audit/apply-alt-fix', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           siteId,
           auditId,
-          fixes: [{ url, newTitle }],
+          fixes: [{ imageUrl, altText, pageUrl }],
         }),
       });
 
@@ -135,54 +123,50 @@ export default function FixTitlePreviewModal({ open, onClose, auditId, siteId, o
         if (data.code === 'INSUFFICIENT_CREDITS') {
           handleLimitError(data);
         }
-        if (data.code === 'NO_ENTITIES') {
-          setShowSyncModal(true);
-          setFixStatus((prev) => ({ ...prev, [url]: 'idle' }));
-          return;
+        if (data.code === 'PLUGIN_UPDATE_REQUIRED') {
+          throw new Error(data.error);
         }
         throw new Error(data.error || 'Fix failed');
       }
 
-      // Update credits header
       if (data.creditsUpdated?.used != null) {
         emitCreditsUpdated(data.creditsUpdated.used);
       }
 
       const result = data.results?.[0];
-      const isSuccess = result?.pushed || result?.skipped || !result?.pushError;
+      const isSuccess = result?.pushed && !result?.pushError;
       setFixStatus((prev) => ({
         ...prev,
-        [url]: isSuccess ? 'done' : 'error',
+        [imageUrl]: isSuccess ? 'done' : 'error',
       }));
       if (isSuccess) setHasAppliedFixes(true);
     } catch (err) {
-      console.error('[FixTitlePreview] apply error:', err);
-      setFixStatus((prev) => ({ ...prev, [url]: 'error' }));
+      console.error('[FixAltTextPreview] apply error:', err);
+      setFixStatus((prev) => ({ ...prev, [imageUrl]: 'error' }));
     }
   };
 
   // ─── Fix All ────────────────────────────────────────────────
 
   const handleFixAll = async () => {
-    const pending = suggestions.filter((s) => fixStatus[s.url] === 'idle');
+    const pending = suggestions.filter((s) => fixStatus[s.imageUrl] === 'idle');
     if (pending.length === 0) return;
 
     setIsFixingAll(true);
     setFixProgress({ done: 0, total: pending.length });
 
-    // Fix one-by-one so credits and progress update incrementally
     for (let i = 0; i < pending.length; i++) {
       const s = pending[i];
-      setFixStatus((prev) => ({ ...prev, [s.url]: 'fixing' }));
+      setFixStatus((prev) => ({ ...prev, [s.imageUrl]: 'fixing' }));
 
       try {
-        const res = await fetch('/api/audit/apply-title-fix', {
+        const res = await fetch('/api/audit/apply-alt-fix', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             siteId,
             auditId,
-            fixes: [{ url: s.url, newTitle: s.newTitle }],
+            fixes: [{ imageUrl: s.imageUrl, altText: s.altText, pageUrl: s.pageUrl }],
           }),
         });
 
@@ -191,12 +175,7 @@ export default function FixTitlePreviewModal({ open, onClose, auditId, siteId, o
         if (!res.ok) {
           if (data.code === 'INSUFFICIENT_CREDITS') {
             handleLimitError(data);
-            setFixStatus((prev) => ({ ...prev, [s.url]: 'error' }));
-            break;
-          }
-          if (data.code === 'NO_ENTITIES') {
-            setShowSyncModal(true);
-            setFixStatus((prev) => ({ ...prev, [s.url]: 'idle' }));
+            setFixStatus((prev) => ({ ...prev, [s.imageUrl]: 'error' }));
             break;
           }
           throw new Error(data.error || 'Fix failed');
@@ -207,15 +186,15 @@ export default function FixTitlePreviewModal({ open, onClose, auditId, siteId, o
         }
 
         const result = data.results?.[0];
-        const isSuccess = result?.pushed || result?.skipped || !result?.pushError;
+        const isSuccess = result?.pushed && !result?.pushError;
         setFixStatus((prev) => ({
           ...prev,
-          [s.url]: isSuccess ? 'done' : 'error',
+          [s.imageUrl]: isSuccess ? 'done' : 'error',
         }));
         if (isSuccess) setHasAppliedFixes(true);
       } catch (err) {
-        console.error('[FixTitlePreview] batch fix error:', err);
-        setFixStatus((prev) => ({ ...prev, [s.url]: 'error' }));
+        console.error('[FixAltTextPreview] batch fix error:', err);
+        setFixStatus((prev) => ({ ...prev, [s.imageUrl]: 'error' }));
       }
 
       setFixProgress({ done: i + 1, total: pending.length });
@@ -224,13 +203,33 @@ export default function FixTitlePreviewModal({ open, onClose, auditId, siteId, o
     setIsFixingAll(false);
   };
 
+  // ─── Inline edit helpers ────────────────────────────────────
+
+  const startEdit = (imageUrl, currentValue) => {
+    setEditingKey(imageUrl);
+    setEditValue(currentValue);
+  };
+
+  const confirmEdit = () => {
+    if (!editingKey) return;
+    setSuggestions((prev) =>
+      prev.map((item) =>
+        item.imageUrl === editingKey ? { ...item, altText: editValue } : item
+      )
+    );
+    setEditingKey(null);
+  };
+
+  const cancelEdit = () => {
+    setEditingKey(null);
+  };
+
   // ─── Derived state ──────────────────────────────────────────
 
   const doneCount = Object.values(fixStatus).filter((s) => s === 'done').length;
   const pendingCount = Object.values(fixStatus).filter((s) => s === 'idle').length;
   const allDone = suggestions.length > 0 && pendingCount === 0;
 
-  // Close handler — refresh audit if fixes were applied
   const handleClose = useCallback(() => {
     if (hasAppliedFixes && onAuditUpdated) {
       onAuditUpdated();
@@ -243,9 +242,7 @@ export default function FixTitlePreviewModal({ open, onClose, auditId, siteId, o
 
   if (!open) return null;
 
-  return (
-    <>
-    {createPortal(
+  return createPortal(
     <div className={styles.overlay} onClick={handleClose}>
       <div className={`${styles.modal} ${isMaximized ? 'modal-maximized' : ''}`} onClick={(e) => e.stopPropagation()}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', position: 'absolute', top: '1rem', right: '1rem', zIndex: 1 }}>
@@ -258,26 +255,26 @@ export default function FixTitlePreviewModal({ open, onClose, auditId, siteId, o
         {/* Header */}
         <div className={styles.header}>
           <div className={styles.iconWrap}>
-            <Wand2 size={24} />
+            <ImageIcon size={24} />
           </div>
-          <h3 className={styles.title}>{t('siteAudit.titleFix.title')}</h3>
+          <h3 className={styles.title}>{t('siteAudit.altFix.title')}</h3>
           <p className={styles.subtitle}>
-            {t('siteAudit.titleFix.subtitle')}
+            {t('siteAudit.altFix.subtitle')}
             <span className={styles.creditBadge}>
               <Coins size={12} />
-              {t('siteAudit.titleFix.creditCost')}
+              {t('siteAudit.altFix.creditCost')}
             </span>
           </p>
         </div>
 
-        {/* Loading with progress steps */}
+        {/* Loading */}
         {isLoading && (
           <div className={styles.loadingState}>
             <Loader2 size={28} className={styles.spinning} />
             <div className={styles.loadingSteps}>
               <div className={`${styles.loadingStep} ${loadingStep >= 0 ? styles.stepActive : ''}`}>
                 <CheckCircle2 size={14} className={loadingStep > 0 ? styles.stepDone : styles.stepCurrent} />
-                <span>{t('siteAudit.titleFix.stepAudit')}</span>
+                <span>{t('siteAudit.altFix.stepAudit')}</span>
               </div>
               <div className={`${styles.loadingStep} ${loadingStep >= 1 ? styles.stepActive : ''}`}>
                 {loadingStep > 1
@@ -285,13 +282,13 @@ export default function FixTitlePreviewModal({ open, onClose, auditId, siteId, o
                   : loadingStep === 1
                     ? <Loader2 size={14} className={styles.spinning} />
                     : <span className={styles.stepDot} />}
-                <span>{t('siteAudit.titleFix.stepAnalyzing')}</span>
+                <span>{t('siteAudit.altFix.stepAnalyzing')}</span>
               </div>
               <div className={`${styles.loadingStep} ${loadingStep >= 2 ? styles.stepActive : ''}`}>
                 {loadingStep >= 2
                   ? <Loader2 size={14} className={styles.spinning} />
                   : <span className={styles.stepDot} />}
-                <span>{t('siteAudit.titleFix.stepGenerating')}</span>
+                <span>{t('siteAudit.altFix.stepGenerating')}</span>
               </div>
             </div>
           </div>
@@ -304,7 +301,7 @@ export default function FixTitlePreviewModal({ open, onClose, auditId, siteId, o
             <p className={styles.errorMsg}>{error}</p>
             <button className={styles.retryBtn} onClick={fetchSuggestions}>
               <RefreshCw size={14} />
-              {t('siteAudit.titleFix.retry')}
+              {t('siteAudit.altFix.retry')}
             </button>
           </div>
         )}
@@ -313,129 +310,102 @@ export default function FixTitlePreviewModal({ open, onClose, auditId, siteId, o
         {!isLoading && !error && suggestions.length === 0 && (
           <div className={styles.emptyState}>
             <CheckCircle2 size={32} color="var(--success, #22c55e)" />
-            <span>{t('siteAudit.titleFix.noIssues')}</span>
+            <span>{t('siteAudit.altFix.noIssues')}</span>
           </div>
         )}
 
         {/* Suggestions list */}
         {!isLoading && !error && suggestions.length > 0 && (
           <>
-            {!hasEntities && (
-              <div className={styles.syncBanner} onClick={() => setShowSyncModal(true)}>
-                <Database size={15} />
-                <span>{t('siteAudit.syncRequired.banner')}</span>
-                <ArrowRight size={13} />
-              </div>
-            )}
             <div className={styles.suggestionsList}>
               {suggestions.map((s, idx) => {
-                const status = fixStatus[s.url] || 'idle';
+                const status = fixStatus[s.imageUrl] || 'idle';
+                const isEditing = editingKey === s.imageUrl;
                 return (
-                  <div key={s.url || idx} className={styles.suggestionItem}>
-                    {/* Page URL */}
-                    <div className={styles.pageUrl}>
-                      <a
-                        href={s.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className={styles.pageUrlLink}
-                        title={s.url}
-                      >
-                        <bdi dir="ltr">
-                          {(() => {
-                            try {
-                              const u = new URL(s.url);
-                              return u.pathname === '/' ? u.hostname : `${u.hostname}${decodeURIComponent(u.pathname)}`;
-                            } catch {
-                              return s.url;
-                            }
-                          })()}
-                        </bdi>
-                        <ExternalLink size={12} />
-                      </a>
-                    </div>
+                  <div key={s.imageUrl || idx} className={styles.suggestionItem}>
+                    <div className={styles.imageRow}>
+                      {/* Image thumbnail */}
+                      <img
+                        src={s.imageUrl}
+                        alt=""
+                        className={styles.imageThumb}
+                        loading="lazy"
+                        onError={(e) => { e.target.style.display = 'none'; }}
+                      />
+                      <div className={styles.imageDetails}>
+                        {/* File name */}
+                        {s.fileName && (
+                          <div className={styles.imageFileName} title={s.fileName}>
+                            {s.fileName}
+                          </div>
+                        )}
 
-                    {/* Old title */}
-                    <div className={styles.titleRow}>
-                      <span className={`${styles.titleLabel} ${styles.labelOld}`}>
-                        {t('siteAudit.titleFix.oldLabel')}
-                      </span>
-                      <span className={`${styles.titleText} ${styles.oldTitleText}`}>
-                        {s.oldTitle || '—'}
-                        <span className={styles.charCount}>({(s.oldTitle || '').length})</span>
-                      </span>
-                    </div>
-
-                    {/* New title — editable */}
-                    <div className={styles.titleRow}>
-                      <span className={`${styles.titleLabel} ${styles.labelNew}`}>
-                        {t('siteAudit.titleFix.newLabel')}
-                      </span>
-                      {editingUrl === s.url ? (
-                        <span className={styles.titleEditWrap}>
-                          <input
-                            className={styles.titleEditInput}
-                            value={editValue}
-                            onChange={(e) => setEditValue(e.target.value)}
-                            onKeyDown={(e) => {
-                              if (e.key === 'Enter') {
-                                setSuggestions((prev) =>
-                                  prev.map((item) =>
-                                    item.url === s.url ? { ...item, newTitle: editValue } : item
-                                  )
-                                );
-                                setEditingUrl(null);
-                              } else if (e.key === 'Escape') {
-                                setEditingUrl(null);
-                              }
-                            }}
-                            autoFocus
-                          />
-                          <span className={styles.charCount}>({editValue.length})</span>
-                          <button
-                            className={styles.editConfirmBtn}
-                            onClick={() => {
-                              setSuggestions((prev) =>
-                                prev.map((item) =>
-                                  item.url === s.url ? { ...item, newTitle: editValue } : item
-                                )
-                              );
-                              setEditingUrl(null);
-                            }}
-                          >
-                            <CheckCircle2 size={14} />
-                          </button>
-                          <button
-                            className={styles.editCancelBtn}
-                            onClick={() => setEditingUrl(null)}
-                          >
-                            <X size={14} />
-                          </button>
-                        </span>
-                      ) : (
-                        <span className={styles.titleText}>
-                          {s.newTitle}
-                          <span className={styles.charCount}>({s.newTitle.length})</span>
-                          {status === 'idle' && (
-                            <button
-                              className={styles.editTitleBtn}
-                              onClick={() => {
-                                setEditingUrl(s.url);
-                                setEditValue(s.newTitle);
-                              }}
-                              title={t('siteAudit.titleFix.editTitle')}
+                        {/* Page URL */}
+                        {s.pageUrl && (
+                          <div className={styles.pageUrl} style={{ marginBottom: 6 }}>
+                            <a
+                              href={s.pageUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className={styles.pageUrlLink}
+                              title={s.pageUrl}
                             >
-                              <Pencil size={12} />
-                            </button>
-                          )}
-                        </span>
-                      )}
-                    </div>
+                              <bdi dir="ltr">
+                                {(() => {
+                                  try {
+                                    const u = new URL(s.pageUrl);
+                                    return u.pathname === '/' ? u.hostname : `${u.hostname}${decodeURIComponent(u.pathname)}`;
+                                  } catch {
+                                    return s.pageUrl;
+                                  }
+                                })()}
+                              </bdi>
+                              <ExternalLink size={11} />
+                            </a>
+                          </div>
+                        )}
 
-                    {/* Reason */}
-                    {s.reason && (
-                      <div className={styles.reason}>{s.reason}</div>
-                    )}
+                        {/* Alt text field */}
+                        <div className={styles.titleRow} style={{ marginBottom: 0 }}>
+                          <span className={`${styles.titleLabel} ${styles.labelNew}`}>alt</span>
+                          {isEditing ? (
+                            <span className={styles.titleEditWrap}>
+                              <textarea
+                                className={styles.altEditArea}
+                                value={editValue}
+                                onChange={(e) => setEditValue(e.target.value)}
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); confirmEdit(); }
+                                  else if (e.key === 'Escape') { cancelEdit(); }
+                                }}
+                                autoFocus
+                                rows={2}
+                              />
+                              <button className={styles.editConfirmBtn} onClick={confirmEdit}>
+                                <CheckCircle2 size={14} />
+                              </button>
+                              <button className={styles.editCancelBtn} onClick={cancelEdit}>
+                                <X size={14} />
+                              </button>
+                            </span>
+                          ) : (
+                            <span className={styles.titleText}>
+                              {s.altText}
+                              <span className={styles.charCount}>({s.altText.length})</span>
+                              {status === 'idle' && (
+                                <button
+                                  className={styles.editTitleBtn}
+                                  onClick={() => startEdit(s.imageUrl, s.altText)}
+                                  title={t('siteAudit.altFix.edit')}
+                                >
+                                  <Pencil size={12} />
+                                </button>
+                              )}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
 
                     {/* Fix / status */}
                     <div className={styles.itemActions}>
@@ -446,35 +416,35 @@ export default function FixTitlePreviewModal({ open, onClose, auditId, siteId, o
                           disabled={isFixingAll}
                         >
                           <Wand2 size={13} />
-                          {t('siteAudit.titleFix.fixOne')}
+                          {t('siteAudit.altFix.fixOne')}
                         </button>
                       )}
                       {status === 'fixing' && (
                         <span className={styles.fixOneBtn} style={{ pointerEvents: 'none' }}>
                           <Loader2 size={13} className={styles.spinning} />
-                          {t('siteAudit.titleFix.fixing')}
+                          {t('siteAudit.altFix.fixing')}
                         </span>
                       )}
                       {status === 'done' && (
                         <span className={styles.fixedBadge}>
                           <CheckCircle2 size={14} />
-                          {t('siteAudit.titleFix.fixed')}
+                          {t('siteAudit.altFix.fixed')}
                         </span>
                       )}
                       {status === 'error' && (
                         <>
                           <span className={styles.fixFailedBadge}>
                             <XCircle size={14} />
-                            {t('siteAudit.titleFix.failed')}
+                            {t('siteAudit.altFix.failed')}
                           </span>
                           <button
                             className={styles.retryItemBtn}
                             onClick={() => {
-                              setFixStatus((prev) => ({ ...prev, [s.url]: 'idle' }));
+                              setFixStatus((prev) => ({ ...prev, [s.imageUrl]: 'idle' }));
                             }}
                           >
                             <RefreshCw size={13} />
-                            {t('siteAudit.titleFix.retry')}
+                            {t('siteAudit.altFix.retry')}
                           </button>
                         </>
                       )}
@@ -489,7 +459,7 @@ export default function FixTitlePreviewModal({ open, onClose, auditId, siteId, o
               {isFixingAll ? (
                 <div className={styles.progressWrap}>
                   <span className={styles.progressLabel}>
-                    {t('siteAudit.titleFix.fixingProgress', {
+                    {t('siteAudit.altFix.fixingProgress', {
                       done: fixProgress.done,
                       total: fixProgress.total,
                     })}
@@ -509,8 +479,8 @@ export default function FixTitlePreviewModal({ open, onClose, auditId, siteId, o
                 <span className={styles.footerInfo}>
                   <Coins size={14} />
                   {allDone
-                    ? t('siteAudit.titleFix.allFixed', { count: doneCount })
-                    : t('siteAudit.titleFix.totalCost', { count: pendingCount })}
+                    ? t('siteAudit.altFix.allFixed', { count: doneCount })
+                    : t('siteAudit.altFix.totalCost', { count: pendingCount })}
                 </span>
               )}
 
@@ -525,7 +495,7 @@ export default function FixTitlePreviewModal({ open, onClose, auditId, siteId, o
                   ) : (
                     <Wand2 size={15} />
                   )}
-                  {t('siteAudit.titleFix.fixAll', { count: pendingCount })}
+                  {t('siteAudit.altFix.fixAll', { count: pendingCount })}
                 </button>
               )}
             </div>
@@ -534,11 +504,5 @@ export default function FixTitlePreviewModal({ open, onClose, auditId, siteId, o
       </div>
     </div>,
     document.body
-  )}
-  <SyncRequiredModal
-    open={showSyncModal}
-    onClose={() => setShowSyncModal(false)}
-  />
-  </>
   );
 }

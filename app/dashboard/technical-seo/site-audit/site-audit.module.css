@@ -131,6 +131,74 @@
   font-size: 0.9rem;
 }
 
+/* ─── Site-Wide Noindex Banner ─────────────────────────────── */
+
+.siteWideNoindexBanner {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 20px 24px;
+  background: rgba(239, 68, 68, 0.06);
+  border: 2px solid rgba(239, 68, 68, 0.25);
+  border-radius: var(--radius-lg, 16px);
+  animation: fadeIn 0.3s ease-out;
+}
+
+.siteWideNoindexIcon {
+  flex-shrink: 0;
+  color: #ef4444;
+  display: flex;
+  align-items: center;
+}
+
+.siteWideNoindexContent {
+  flex: 1;
+  min-width: 0;
+}
+
+.siteWideNoindexTitle {
+  display: block;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #ef4444;
+  margin-bottom: 4px;
+}
+
+.siteWideNoindexDesc {
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+  margin: 0;
+  line-height: 1.5;
+}
+
+.siteWideNoindexBtn {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  border: none;
+  border-radius: var(--radius-md, 8px);
+  background: #ef4444;
+  color: white;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.1s;
+  white-space: nowrap;
+
+  &:hover {
+    background: #dc2626;
+    transform: translateY(-1px);
+  }
+
+  &:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+    transform: none;
+  }
+}
+
 /* ─── Scanning Card ────────────────────────────────────────── */
 
 .scanningCard {

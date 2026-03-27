@@ -168,11 +168,8 @@ export async function POST(request) {
 
     pageResult.issueCount = issues.length;
 
-    // ── Update the audit record ─────────────────────────────
+    // ── Update the audit record (with retry for write conflicts) ──
 
-    // Replace the old page result for this URL
-    const existingPageResults = audit.pageResults || [];
-    // Normalize every page result to ensure required fields exist (older records may lack them)
     const normalizePageResult = (pr) => ({
       url: pr.url,
       statusCode: pr.statusCode || null,
@@ -193,35 +190,54 @@ export async function POST(request) {
       filmstripDesktop: pr.filmstripDesktop || null,
       filmstripMobile: pr.filmstripMobile || null,
     });
-    const updatedPageResults = existingPageResults.map((pr) =>
-      pr.url === url
-        ? normalizePageResult({ ...pr, ...pageResult })
-        : normalizePageResult(pr)
-    );
 
-    // Replace old issues for this URL, keep others
-    const existingIssues = audit.issues || [];
-    const otherIssues = existingIssues.filter((i) => i.url !== url);
-    const updatedIssues = [
-      ...otherIssues,
-      ...issues.map((i) => ({
-        type: i.type || 'technical',
-        severity: i.severity || 'warning',
-        message: i.message || '',
-        url: i.url || null,
-        suggestion: i.suggestion || null,
-        source: i.source || null,
-        details: i.details || null,
-      })),
-    ];
+    const newIssuesForUrl = issues.map((i) => ({
+      type: i.type || 'technical',
+      severity: i.severity || 'warning',
+      message: i.message || '',
+      url: i.url || null,
+      suggestion: i.suggestion || null,
+      source: i.source || null,
+      details: i.details || null,
+    }));
 
-    await prisma.siteAudit.update({
-      where: { id: auditId },
-      data: {
-        issues: updatedIssues,
-        pageResults: updatedPageResults,
-      },
-    });
+    const MAX_RETRIES = 5;
+    for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
+      try {
+        // Re-read the latest audit state before each write attempt
+        const freshAudit = attempt === 0 ? audit : await prisma.siteAudit.findUnique({
+          where: { id: auditId },
+          select: { issues: true, pageResults: true },
+        });
+
+        const existingPageResults = freshAudit.pageResults || [];
+        const updatedPageResults = existingPageResults.map((pr) =>
+          pr.url === url
+            ? normalizePageResult({ ...pr, ...pageResult })
+            : normalizePageResult(pr)
+        );
+
+        const existingIssues = freshAudit.issues || [];
+        const otherIssues = existingIssues.filter((i) => i.url !== url);
+        const updatedIssues = [...otherIssues, ...newIssuesForUrl];
+
+        await prisma.siteAudit.update({
+          where: { id: auditId },
+          data: {
+            issues: updatedIssues,
+            pageResults: updatedPageResults,
+          },
+        });
+        break; // success
+      } catch (retryErr) {
+        if (retryErr.code === 'P2034' && attempt < MAX_RETRIES - 1) {
+          // Wait with exponential backoff before retrying
+          await new Promise((r) => setTimeout(r, 200 * (attempt + 1)));
+          continue;
+        }
+        throw retryErr;
+      }
+    }
 
     return NextResponse.json({
       success: true,

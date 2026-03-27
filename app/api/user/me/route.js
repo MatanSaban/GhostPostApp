@@ -116,6 +116,7 @@ export async function GET() {
       });
 
       // Count site audits for this account (this month)
+      // Desktop + mobile run as a pair — only count non-mobile so each trigger counts as 1
       const startOfMonth = new Date();
       startOfMonth.setDate(1);
       startOfMonth.setHours(0, 0, 0, 0);
@@ -124,6 +125,7 @@ export async function GET() {
         where: { 
           site: { accountId: currentAccount.id },
           createdAt: { gte: startOfMonth },
+          deviceType: { not: 'mobile' },
         },
       });
 

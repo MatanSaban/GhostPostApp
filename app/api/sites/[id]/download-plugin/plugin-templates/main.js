@@ -61,6 +61,21 @@ function gp_connector_init() {
 add_action('plugins_loaded', 'gp_connector_init');
 
 /**
+ * Send security headers if enabled via Ghost Post platform
+ */
+function gp_send_security_headers() {
+    if (headers_sent()) return;
+    $option = get_option('gp_security_headers', array());
+    if (empty($option['enabled']) || empty($option['headers'])) return;
+    foreach ($option['headers'] as $name => $value) {
+        if (!empty($value)) {
+            header($name . ': ' . $value);
+        }
+    }
+}
+add_action('send_headers', 'gp_send_security_headers');
+
+/**
  * Activation hook
  */
 function gp_connector_activate() {

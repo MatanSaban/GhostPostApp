@@ -386,6 +386,55 @@ class GP_API_Handler {
             ),
         ));
         
+        // Resolve URL to post ID
+        register_rest_route($namespace, '/resolve-url', array(
+            'methods' => 'POST',
+            'callback' => array($this, 'resolve_url'),
+            'permission_callback' => array($this, 'validate_request'),
+        ));
+        
+        // Resolve media/image URLs to attachment IDs
+        register_rest_route($namespace, '/resolve-media-urls', array(
+            'methods' => 'POST',
+            'callback' => array($this, 'resolve_media_urls'),
+            'permission_callback' => array($this, 'validate_request'),
+        ));
+        
+        // Set site favicon
+        register_rest_route($namespace, '/set-favicon', array(
+            'methods' => 'POST',
+            'callback' => array($this, 'set_favicon'),
+            'permission_callback' => array($this, 'validate_request'),
+        ));
+        
+        // Security headers
+        register_rest_route($namespace, '/security-headers', array(
+            array(
+                'methods' => 'GET',
+                'callback' => array($this, 'get_security_headers'),
+                'permission_callback' => array($this, 'validate_request'),
+            ),
+            array(
+                'methods' => 'PUT',
+                'callback' => array($this, 'update_security_headers'),
+                'permission_callback' => array($this, 'validate_request'),
+            ),
+        ));
+        
+        // Search engine visibility (blog_public option)
+        register_rest_route($namespace, '/search-engine-visibility', array(
+            array(
+                'methods' => 'GET',
+                'callback' => array($this, 'get_search_engine_visibility'),
+                'permission_callback' => array($this, 'validate_request'),
+            ),
+            array(
+                'methods' => 'PUT',
+                'callback' => array($this, 'set_search_engine_visibility'),
+                'permission_callback' => array($this, 'validate_request'),
+            ),
+        ));
+        
         // Media stats (for WebP conversion tool)
         register_rest_route($namespace, '/media/stats', array(
             'methods' => 'GET',
@@ -993,6 +1042,183 @@ class GP_API_Handler {
         return new WP_REST_Response(array('success' => true), 201);
     }
     
+    // ==========================================
+    // RESOLVE URL
+    // ==========================================
+    
+    public function resolve_url(WP_REST_Request $request) {
+        $url = $request->get_param('url');
+        if (empty($url)) {
+            return new WP_REST_Response(array(
+                'error' => 'url parameter is required',
+            ), 400);
+        }
+
+        // url_to_postid handles permalink rewrites, custom structures, etc.
+        $post_id = url_to_postid($url);
+
+        // Fallback: try with/without trailing slash
+        if (!$post_id) {
+            $alt_url = str_ends_with($url, '/') ? rtrim($url, '/') : $url . '/';
+            $post_id = url_to_postid($alt_url);
+        }
+
+        // Fallback: try to find by the last path segment as slug
+        if (!$post_id) {
+            $path = wp_parse_url($url, PHP_URL_PATH);
+            $segments = array_filter(explode('/', trim($path, '/')));
+            $slug = end($segments);
+            if ($slug) {
+                $decoded_slug = urldecode($slug);
+                $post_types = get_post_types(array('public' => true));
+                $query = new WP_Query(array(
+                    'name' => $decoded_slug,
+                    'post_type' => array_values($post_types),
+                    'posts_per_page' => 1,
+                    'post_status' => 'publish',
+                    'fields' => 'ids',
+                ));
+                if ($query->have_posts()) {
+                    $post_id = $query->posts[0];
+                }
+                wp_reset_postdata();
+            }
+        }
+
+        if (!$post_id) {
+            return new WP_REST_Response(array(
+                'found' => false,
+                'postId' => null,
+            ), 200);
+        }
+
+        $post = get_post($post_id);
+        return new WP_REST_Response(array(
+            'found' => true,
+            'postId' => $post_id,
+            'postType' => $post ? $post->post_type : null,
+            'slug' => $post ? $post->post_name : null,
+            'permalink' => get_permalink($post_id),
+        ), 200);
+    }
+    
+    // ==========================================
+    // RESOLVE MEDIA URLS
+    // ==========================================
+    
+    /**
+     * Resolve image src URLs to WordPress attachment IDs.
+     * Uses attachment_url_to_postid() and falls back to guid query.
+     *
+     * Body: { urls: string[] }
+     * Returns: { results: { [url]: { found: bool, attachmentId: int|null } } }
+     */
+    public function resolve_media_urls(WP_REST_Request $request) {
+        $urls = $request->get_param('urls');
+        if (empty($urls) || !is_array($urls)) {
+            return new WP_REST_Response(array(
+                'error' => 'urls array is required',
+            ), 400);
+        }
+
+        $results = array();
+        foreach (array_slice($urls, 0, 50) as $url) {
+            $url = esc_url_raw($url);
+            $attachment_id = attachment_url_to_postid($url);
+
+            // Fallback: try without size suffix (-300x200 etc)
+            if (!$attachment_id) {
+                $clean_url = preg_replace('/-\\d+x\\d+(?=\\.[a-z]+$)/i', '', $url);
+                if ($clean_url !== $url) {
+                    $attachment_id = attachment_url_to_postid($clean_url);
+                }
+            }
+
+            // Fallback: query by guid (full URL stored in posts table)
+            if (!$attachment_id) {
+                global $wpdb;
+                $attachment_id = (int) $wpdb->get_var($wpdb->prepare(
+                    "SELECT ID FROM {$wpdb->posts} WHERE post_type = 'attachment' AND guid = %s LIMIT 1",
+                    $url
+                ));
+            }
+
+            $results[$url] = array(
+                'found' => $attachment_id > 0,
+                'attachmentId' => $attachment_id > 0 ? $attachment_id : null,
+            );
+        }
+
+        return new WP_REST_Response(array('results' => $results), 200);
+    }
+    
+    // ==========================================
+    // SET FAVICON
+    // ==========================================
+    
+    public function set_favicon(WP_REST_Request $request) {
+        $attachment_id = absint($request->get_param('attachmentId'));
+        if (!$attachment_id) {
+            return new WP_REST_Response(array(
+                'error' => 'attachmentId parameter is required',
+            ), 400);
+        }
+
+        $attachment = get_post($attachment_id);
+        if (!$attachment || $attachment->post_type !== 'attachment') {
+            return new WP_REST_Response(array(
+                'error' => 'Attachment not found',
+            ), 404);
+        }
+
+        if (!wp_attachment_is_image($attachment_id)) {
+            return new WP_REST_Response(array(
+                'error' => 'Attachment must be an image',
+            ), 422);
+        }
+
+        update_option('site_icon', $attachment_id);
+        $icon_url = get_site_icon_url(512, '', get_current_blog_id());
+
+        return new WP_REST_Response(array(
+            'success' => true,
+            'attachmentId' => $attachment_id,
+            'faviconUrl' => $icon_url,
+        ), 200);
+    }
+    
+    // ==========================================
+    // SEARCH ENGINE VISIBILITY
+    // ==========================================
+    
+    public function get_search_engine_visibility(WP_REST_Request $request) {
+        $blog_public = get_option('blog_public', '1');
+        
+        return new WP_REST_Response(array(
+            'discouraged' => $blog_public === '0',
+            'blogPublic'  => $blog_public,
+        ), 200);
+    }
+    
+    public function set_search_engine_visibility(WP_REST_Request $request) {
+        $params = $request->get_json_params();
+        
+        if (!isset($params['discouraged'])) {
+            return new WP_REST_Response(array(
+                'error' => '"discouraged" parameter is required (boolean)',
+            ), 400);
+        }
+        
+        $new_value = $params['discouraged'] ? '0' : '1';
+        update_option('blog_public', $new_value);
+        
+        return new WP_REST_Response(array(
+            'success'     => true,
+            'discouraged' => (bool) $params['discouraged'],
+            'blogPublic'  => $new_value,
+        ), 200);
+    }
+    
     private function get_yoast_redirects() {
         // Yoast SEO Premium redirect implementation
         return new WP_REST_Response(array(), 200);
@@ -1009,6 +1235,84 @@ class GP_API_Handler {
         
         $redirects = $wpdb->get_results("SELECT * FROM $table ORDER BY id DESC LIMIT 100");
         return new WP_REST_Response($redirects, 200);
+    }
+    
+    // ==========================================
+    // SECURITY HEADERS
+    // ==========================================
+    
+    private static $default_security_headers = array(
+        'strict-transport-security' => 'max-age=31536000; includeSubDomains; preload',
+        'x-frame-options'           => 'SAMEORIGIN',
+        'x-content-type-options'    => 'nosniff',
+        'referrer-policy'           => 'strict-origin-when-cross-origin',
+        'permissions-policy'        => 'geolocation=(), microphone=(), camera=()',
+        'content-security-policy'   => "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https:; style-src 'self' 'unsafe-inline' https:; img-src 'self' data: https:; font-src 'self' https: data:; connect-src 'self' https:; frame-ancestors 'self';",
+    );
+    
+    public function get_security_headers(WP_REST_Request $request) {
+        $option = get_option('gp_security_headers', array());
+        $enabled = !empty($option['enabled']);
+        $headers = isset($option['headers']) ? $option['headers'] : array();
+        
+        return new WP_REST_Response(array(
+            'enabled' => $enabled,
+            'headers' => $headers,
+            'defaults' => self::$default_security_headers,
+        ), 200);
+    }
+    
+    public function update_security_headers(WP_REST_Request $request) {
+        $params = $request->get_json_params();
+        
+        $enable = isset($params['enable']) ? (bool) $params['enable'] : true;
+        $custom_headers = isset($params['headers']) && is_array($params['headers'])
+            ? $params['headers']
+            : null;
+        
+        // Read existing option so we can merge
+        $existing = get_option('gp_security_headers', array());
+        $existing_headers = isset($existing['headers']) ? $existing['headers'] : array();
+        
+        // If no custom headers provided, use defaults for all
+        if ($custom_headers === null) {
+            $custom_headers = self::$default_security_headers;
+        }
+        
+        // Sanitize incoming header values
+        $allowed_keys = array_keys(self::$default_security_headers);
+        $incoming = array();
+        foreach ($allowed_keys as $key) {
+            if (isset($custom_headers[$key]) && is_string($custom_headers[$key])) {
+                $incoming[$key] = sanitize_text_field($custom_headers[$key]);
+            }
+        }
+        
+        // Merge: keep existing headers, overlay with incoming
+        $merged = $existing_headers;
+        foreach ($incoming as $key => $value) {
+            $merged[$key] = $value;
+        }
+        
+        // If enable=true and incoming is a subset, fill in missing with defaults
+        if ($enable) {
+            foreach ($allowed_keys as $key) {
+                if (!isset($merged[$key])) {
+                    $merged[$key] = self::$default_security_headers[$key];
+                }
+            }
+        }
+        
+        update_option('gp_security_headers', array(
+            'enabled' => $enable,
+            'headers' => $merged,
+        ));
+        
+        return new WP_REST_Response(array(
+            'success' => true,
+            'enabled' => $enable,
+            'headers' => $merged,
+        ), 200);
     }
 }
 `;

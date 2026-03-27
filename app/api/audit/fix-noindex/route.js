@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import prisma from '@/lib/prisma';
 import { updateSeoData, resolveUrl, setSearchEngineVisibility } from '@/lib/wp-api-client';
+import { recalculateAuditAfterFix } from '@/lib/audit/recalculate-after-fix';
 
 const SESSION_COOKIE = 'user_session';
 
@@ -178,17 +179,11 @@ export async function POST(request) {
     const hasChanges = successfulFixes.length > 0 || siteWideFixed;
     if (auditId && hasChanges) {
       try {
-        const audit = await prisma.siteAudit.findUnique({
-          where: { id: auditId },
-          select: { issues: true, pageResults: true },
-        });
+        const fixedUrls = new Set(successfulFixes.map(f => f.url));
+        const fixMap = new Map((fixes || []).map(f => [f.url, f]));
 
-        if (audit) {
-          const fixedUrls = new Set(successfulFixes.map(f => f.url));
-          const fixMap = new Map((fixes || []).map(f => [f.url, f]));
-
+        const buildUpdated = (audit) => {
           const updatedIssues = (audit.issues || []).map(issue => {
-            // Site-wide WP visibility fix
             if (siteWideFixed && issue.message === 'audit.issues.wpSearchEngineDiscouraged') {
               return {
                 ...issue,
@@ -199,7 +194,6 @@ export async function POST(request) {
               };
             }
 
-            // Site-wide fix also resolves per-page noindex caused by the WP setting
             if (siteWideFixed && issue.message === 'audit.issues.metaRobotsNoindex') {
               return {
                 ...issue,
@@ -232,7 +226,6 @@ export async function POST(request) {
             return issue;
           });
 
-          // Clear robotsMeta on fixed page results
           const updatedPageResults = (audit.pageResults || []).map(pr => {
             if (!fixedUrls.has(pr.url)) return pr;
             const fix = fixMap.get(pr.url);
@@ -242,14 +235,41 @@ export async function POST(request) {
             return pr;
           });
 
-          await prisma.siteAudit.update({
-            where: { id: auditId },
-            data: {
-              issues: updatedIssues,
-              pageResults: updatedPageResults,
-            },
-          });
+          return { updatedIssues, updatedPageResults };
+        };
+
+        const MAX_RETRIES = 5;
+        for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
+          try {
+            const audit = await prisma.siteAudit.findUnique({
+              where: { id: auditId },
+              select: { issues: true, pageResults: true },
+            });
+            if (!audit) break;
+
+            const { updatedIssues, updatedPageResults } = buildUpdated(audit);
+
+            await prisma.siteAudit.update({
+              where: { id: auditId },
+              data: {
+                issues: updatedIssues,
+                pageResults: updatedPageResults,
+              },
+            });
+            break;
+          } catch (retryErr) {
+            if (retryErr.code === 'P2034' && attempt < MAX_RETRIES - 1) {
+              await new Promise((r) => setTimeout(r, 200 * (attempt + 1)));
+              continue;
+            }
+            throw retryErr;
+          }
         }
+
+          // Recalculate score + regenerate summary with updated issues
+          recalculateAuditAfterFix(auditId, site.url).catch(err =>
+            console.warn('[FixNoindex] Recalc failed (non-fatal):', err.message)
+          );
       } catch (auditErr) {
         console.warn('[FixNoindex] Audit update failed (non-fatal):', auditErr.message);
       }

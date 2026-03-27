@@ -52,6 +52,10 @@ import {
 import { toImgSrc, filmSrc } from './lib/img-src';
 import PluginRequiredModal from './components/PluginRequiredModal';
 import FixTitlePreviewModal from './components/FixTitlePreviewModal';
+import FixDescriptionPreviewModal from './components/FixDescriptionPreviewModal';
+import FixOGPreviewModal from './components/FixOGPreviewModal';
+import FixAltTextPreviewModal from './components/FixAltTextPreviewModal';
+import SecurityHeadersModal from './components/SecurityHeadersModal';
 import { MediaModal } from '@/app/dashboard/components/MediaModal/MediaModal';
 import { useModalResize, ModalResizeButton } from '@/app/components/ui/ModalResizeButton';
 import styles from './site-audit.module.css';
@@ -63,9 +67,20 @@ const POLL_INTERVAL = 3000;
 /** Issue message keys that support AI Fix via the WP plugin (costs credits) */
 const AI_FIXABLE_ISSUES = new Set([
   'audit.issues.noMetaDescription',
+  'audit.issues.metaDescriptionShort',
   'audit.issues.titleTooShort',
   'audit.issues.missingOG',
   'audit.issues.imagesNoAlt',
+]);
+
+/** Issue keys for missing security headers — fixable via plugin */
+const SECURITY_HEADER_ISSUES = new Set([
+  'audit.issues.noHsts',
+  'audit.issues.noXFrameOptions',
+  'audit.issues.noContentTypeOptions',
+  'audit.issues.noCsp',
+  'audit.issues.noReferrerPolicy',
+  'audit.issues.noPermissionsPolicy',
 ]);
 
 /** Issue message keys that support free Fix via the WP plugin (no credits) */
@@ -74,6 +89,7 @@ const FREE_FIXABLE_ISSUES = new Set([
   'audit.issues.metaRobotsNoindex',
   'audit.issues.metaRobotsNofollow',
   'audit.issues.wpSearchEngineDiscouraged',
+  ...SECURITY_HEADER_ISSUES,
 ]);
 
 const TABS = [
@@ -225,8 +241,14 @@ export default function SiteAuditPage() {
   const [lightboxImg, setLightboxImg] = useState(null);
   const [showPluginModal, setShowPluginModal] = useState(false);
   const [showTitleFixModal, setShowTitleFixModal] = useState(false);
+  const [showDescFixModal, setShowDescFixModal] = useState(false);
+  const [showOGFixModal, setShowOGFixModal] = useState(false);
+  const [showAltFixModal, setShowAltFixModal] = useState(false);
+  const [showSecHeadersModal, setShowSecHeadersModal] = useState(false);
   const [showFaviconMediaModal, setShowFaviconMediaModal] = useState(false);
   const [isSettingFavicon, setIsSettingFavicon] = useState(false);
+  const [isFixingSiteWide, setIsFixingSiteWide] = useState(false);
+  const [fixingIssueKey, setFixingIssueKey] = useState(null);
 
   // AI issue translations cache (for visual/UX tab)
   const [issueTranslations, setIssueTranslations] = useState({});
@@ -587,6 +609,16 @@ export default function SiteAuditPage() {
       case 'audit.issues.titleTooShort':
         setShowTitleFixModal(true);
         break;
+      case 'audit.issues.noMetaDescription':
+      case 'audit.issues.metaDescriptionShort':
+        setShowDescFixModal(true);
+        break;
+      case 'audit.issues.missingOG':
+        setShowOGFixModal(true);
+        break;
+      case 'audit.issues.imagesNoAlt':
+        setShowAltFixModal(true);
+        break;
       default:
         // Future: handle other AI-fixable issues
         console.log('[AiFix] No handler yet for:', issueKey);
@@ -600,6 +632,9 @@ export default function SiteAuditPage() {
       setShowPluginModal(true);
       return;
     }
+
+    setFixingIssueKey(issueKey);
+    try {
 
     switch (issueKey) {
       case 'audit.issues.noFavicon':
@@ -681,9 +716,21 @@ export default function SiteAuditPage() {
         }
         break;
       }
+      case 'audit.issues.noHsts':
+      case 'audit.issues.noXFrameOptions':
+      case 'audit.issues.noContentTypeOptions':
+      case 'audit.issues.noCsp':
+      case 'audit.issues.noReferrerPolicy':
+      case 'audit.issues.noPermissionsPolicy':
+        setShowSecHeadersModal(true);
+        break;
       default:
         console.log('[Fix] No handler yet for:', issueKey);
         break;
+    }
+
+    } finally {
+      setFixingIssueKey(null);
     }
   };
 
@@ -883,6 +930,70 @@ export default function SiteAuditPage() {
           ════════════════════════════════════════════════════════════ */}
       {isCompleted && !isRunning && (
         <>
+          {/* ═══ Site-Wide Noindex Banner ════════════════════════════ */}
+          {(() => {
+            const siteWideIssue = allIssues.find(
+              i => i.message === 'audit.issues.wpSearchEngineDiscouraged' && i.severity !== 'passed'
+            );
+            if (!siteWideIssue || !isPluginConnected) return null;
+
+            const handleSiteWideFix = async () => {
+              setIsFixingSiteWide(true);
+              setError(null);
+              try {
+                const res = await fetch('/api/audit/fix-noindex', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({
+                    siteId: selectedSite?.id,
+                    auditId: latestAudit?.id,
+                    fixes: [],
+                    fixSiteWide: true,
+                  }),
+                });
+                const data = await res.json();
+                if (!res.ok) {
+                  setError(data.message || data.error || 'Fix failed');
+                  return;
+                }
+                if (data.auditUpdated) {
+                  fetchAudits(selectedSite?.id, activeDevice);
+                }
+              } catch (err) {
+                setError(err.message);
+              } finally {
+                setIsFixingSiteWide(false);
+              }
+            };
+
+            return (
+              <div className={styles.siteWideNoindexBanner}>
+                <div className={styles.siteWideNoindexIcon}>
+                  <XCircle size={24} />
+                </div>
+                <div className={styles.siteWideNoindexContent}>
+                  <strong className={styles.siteWideNoindexTitle}>
+                    {t('siteAudit.siteWideNoindex.title')}
+                  </strong>
+                  <p className={styles.siteWideNoindexDesc}>
+                    {t('siteAudit.siteWideNoindex.description')}
+                  </p>
+                </div>
+                <button
+                  className={styles.siteWideNoindexBtn}
+                  onClick={handleSiteWideFix}
+                  disabled={isFixingSiteWide}
+                >
+                  {isFixingSiteWide ? (
+                    <><Loader2 size={16} className={styles.spinning} /> {t('siteAudit.siteWideNoindex.fixing')}</>
+                  ) : (
+                    <><Wrench size={16} /> {t('siteAudit.siteWideNoindex.fixButton')}</>
+                  )}
+                </button>
+              </div>
+            );
+          })()}
+
           {/* ═══ TABS ═══════════════════════════════════════════════ */}
           <div className={styles.tabsCard}>
             <div className={styles.tabsHeader}>
@@ -1046,12 +1157,13 @@ export default function SiteAuditPage() {
                                   role="button"
                                   tabIndex={0}
                                   className={styles.fixBtn}
-                                  onClick={(e) => { e.stopPropagation(); handleFix(agg.key, agg); }}
-                                  onKeyDown={(e) => { if (e.key === 'Enter') { e.stopPropagation(); handleFix(agg.key, agg); } }}
+                                  onClick={(e) => { e.stopPropagation(); if (!fixingIssueKey) handleFix(agg.key, agg); }}
+                                  onKeyDown={(e) => { if (e.key === 'Enter') { e.stopPropagation(); if (!fixingIssueKey) handleFix(agg.key, agg); } }}
                                   title={t('siteAudit.fix.title')}
+                                  style={fixingIssueKey ? { opacity: 0.6, pointerEvents: 'none' } : undefined}
                                 >
-                                  <Wrench size={13} />
-                                  <span>{t('siteAudit.fix.label')}</span>
+                                  {fixingIssueKey === agg.key ? <Loader2 size={13} className={styles.spinning} /> : <Wrench size={13} />}
+                                  <span>{fixingIssueKey === agg.key ? t('siteAudit.fix.fixing') || 'Fixing...' : t('siteAudit.fix.label')}</span>
                                 </span>
                               )}
                               {agg.count > 1 && (
@@ -1123,10 +1235,11 @@ export default function SiteAuditPage() {
                           {FREE_FIXABLE_ISSUES.has(drillDownAgg.key) && (
                             <button
                               className={styles.fixBtn}
-                              onClick={() => handleFix(drillDownAgg.key, drillDownAgg)}
+                              onClick={() => { if (!fixingIssueKey) handleFix(drillDownAgg.key, drillDownAgg); }}
+                              disabled={!!fixingIssueKey}
                             >
-                              <Wrench size={13} />
-                              <span>{t('siteAudit.fix.label')}</span>
+                              {fixingIssueKey === drillDownAgg.key ? <Loader2 size={13} className={styles.spinning} /> : <Wrench size={13} />}
+                              <span>{fixingIssueKey === drillDownAgg.key ? t('siteAudit.fix.fixing') || 'Fixing...' : t('siteAudit.fix.label')}</span>
                             </button>
                           )}
                         </div>
@@ -1439,11 +1552,12 @@ export default function SiteAuditPage() {
                       {FREE_FIXABLE_ISSUES.has(issue.message) && (
                         <button
                           className={styles.fixBtnSmall}
-                          onClick={() => handleFix(issue.message, issue)}
+                          onClick={() => { if (!fixingIssueKey) handleFix(issue.message, issue); }}
+                          disabled={!!fixingIssueKey}
                           title={t('siteAudit.fix.title')}
                         >
-                          <Wrench size={12} />
-                          <span>{t('siteAudit.fix.label')}</span>
+                          {fixingIssueKey === issue.message ? <Loader2 size={12} className={styles.spinning} /> : <Wrench size={12} />}
+                          <span>{fixingIssueKey === issue.message ? t('siteAudit.fix.fixing') || 'Fixing...' : t('siteAudit.fix.label')}</span>
                         </button>
                       )}
                     </div>
@@ -1663,6 +1777,47 @@ export default function SiteAuditPage() {
         onClose={() => setShowTitleFixModal(false)}
         auditId={latestAudit?.id}
         siteId={selectedSite?.id}
+        onAuditUpdated={() => fetchAudits(selectedSite?.id, activeDevice)}
+      />
+
+      {/* AI Description Fix Preview Modal */}
+      <FixDescriptionPreviewModal
+        open={showDescFixModal}
+        onClose={() => setShowDescFixModal(false)}
+        auditId={latestAudit?.id}
+        siteId={selectedSite?.id}
+        onAuditUpdated={() => fetchAudits(selectedSite?.id, activeDevice)}
+      />
+
+      {/* AI Open Graph Fix Preview Modal */}
+      <FixOGPreviewModal
+        open={showOGFixModal}
+        onClose={() => setShowOGFixModal(false)}
+        auditId={latestAudit?.id}
+        siteId={selectedSite?.id}
+        onAuditUpdated={() => fetchAudits(selectedSite?.id, activeDevice)}
+      />
+
+      {/* AI Alt Text Fix Preview Modal */}
+      <FixAltTextPreviewModal
+        open={showAltFixModal}
+        onClose={() => setShowAltFixModal(false)}
+        auditId={latestAudit?.id}
+        siteId={selectedSite?.id}
+        onAuditUpdated={() => fetchAudits(selectedSite?.id, activeDevice)}
+      />
+
+      {/* Security Headers Modal */}
+      <SecurityHeadersModal
+        open={showSecHeadersModal}
+        onClose={() => setShowSecHeadersModal(false)}
+        siteId={selectedSite?.id}
+        auditId={latestAudit?.id}
+        missingHeaders={allIssues
+          .filter(i => SECURITY_HEADER_ISSUES.has(i.message) && i.severity !== 'passed')
+          .map(i => i.message)
+          .filter((v, idx, arr) => arr.indexOf(v) === idx)
+        }
         onAuditUpdated={() => fetchAudits(selectedSite?.id, activeDevice)}
       />
 

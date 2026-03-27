@@ -541,3 +541,74 @@
 .syncBanner span {
   flex: 1;
 }
+
+/* Alt text image preview */
+.imageRow {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.imageThumb {
+  width: 64px;
+  height: 64px;
+  border-radius: 8px;
+  object-fit: cover;
+  border: 1px solid var(--border);
+  flex-shrink: 0;
+  background: var(--bg-hover);
+}
+
+.imageDetails {
+  flex: 1;
+  min-width: 0;
+}
+
+.imageFileName {
+  font-size: 0.6875rem;
+  color: var(--text-tertiary, #888);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  direction: ltr;
+  margin-bottom: 4px;
+}
+
+.altEditArea {
+  width: 100%;
+  font-size: 0.7575rem;
+  padding: 6px 10px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--bg-input, var(--bg-secondary));
+  color: var(--text-primary);
+  outline: none;
+  transition: border-color 0.15s;
+  resize: vertical;
+  min-height: 48px;
+  font-family: inherit;
+  line-height: 1.4;
+
+  &:focus {
+    border-color: var(--primary);
+  }
+}
+
+.pageGroup {
+  margin-bottom: 16px;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+.pageGroupHeader {
+  font-size: 0.7575rem;
+  color: var(--text-secondary);
+  margin-bottom: 8px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}

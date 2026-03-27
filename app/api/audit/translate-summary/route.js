@@ -123,12 +123,28 @@ Only output the translated text — no preamble or explanation.`,
       metadata: { auditId, targetLang },
     });
 
-    // Cache the translation
-    const updatedTranslations = { ...translations, [targetLang]: translation };
-    await prisma.siteAudit.update({
-      where: { id: auditId },
-      data: { summaryTranslations: updatedTranslations },
-    });
+    // Cache the translation (retry on write conflict)
+    const MAX_RETRIES = 5;
+    for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
+      try {
+        const fresh = await prisma.siteAudit.findUnique({
+          where: { id: auditId },
+          select: { summaryTranslations: true },
+        });
+        const merged = { ...(fresh?.summaryTranslations || {}), [targetLang]: translation };
+        await prisma.siteAudit.update({
+          where: { id: auditId },
+          data: { summaryTranslations: merged },
+        });
+        break;
+      } catch (retryErr) {
+        if (retryErr.code === 'P2034' && attempt < MAX_RETRIES - 1) {
+          await new Promise((r) => setTimeout(r, 200 * (attempt + 1)));
+          continue;
+        }
+        throw retryErr;
+      }
+    }
 
     return NextResponse.json({ translation });
   } catch (error) {

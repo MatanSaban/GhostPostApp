@@ -10,10 +10,15 @@
  */
 
 // Current plugin version - increment this when making updates
-export const PLUGIN_VERSION = "1.9.0";
+export const PLUGIN_VERSION = "1.10.0";
 
 // Changelog for the current version
 export const PLUGIN_CHANGELOG = `
+= 1.10.0 =
+* NEW: Security headers endpoint (/security-headers) — enable/disable individual HTTP security headers via the plugin
+* NEW: Automatic send_headers hook — injects enabled security headers (HSTS, X-Frame-Options, X-Content-Type-Options, CSP, Referrer-Policy, Permissions-Policy) on every page load
+* Supports enabling all headers at once or individually with safe defaults
+
 = 1.9.0 =
 * NEW: Resolve URL to WordPress post ID endpoint (/resolve-url) for per-page SEO fixes
 * NEW: Search engine visibility endpoint (/search-engine-visibility) to detect and fix "Discourage search engines" setting

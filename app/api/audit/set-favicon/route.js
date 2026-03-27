@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import prisma from '@/lib/prisma';
 import { setFavicon } from '@/lib/wp-api-client';
+import { recalculateAuditAfterFix } from '@/lib/audit/recalculate-after-fix';
 
 const SESSION_COOKIE = 'user_session';
 
@@ -87,13 +88,8 @@ export async function POST(request) {
     let auditUpdated = false;
     if (auditId) {
       try {
-        const audit = await prisma.siteAudit.findUnique({
-          where: { id: auditId },
-          select: { issues: true },
-        });
-
-        if (audit) {
-          const updatedIssues = (audit.issues || []).map(issue => {
+        const buildUpdated = (audit) => {
+          return (audit.issues || []).map(issue => {
             if (issue.message === 'audit.issues.noFavicon') {
               return {
                 ...issue,
@@ -105,12 +101,39 @@ export async function POST(request) {
             }
             return issue;
           });
+        };
 
-          await prisma.siteAudit.update({
-            where: { id: auditId },
-            data: { issues: updatedIssues },
-          });
-          auditUpdated = true;
+        const MAX_RETRIES = 5;
+        for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
+          try {
+            const audit = await prisma.siteAudit.findUnique({
+              where: { id: auditId },
+              select: { issues: true },
+            });
+            if (!audit) break;
+
+            const updatedIssues = buildUpdated(audit);
+
+            await prisma.siteAudit.update({
+              where: { id: auditId },
+              data: { issues: updatedIssues },
+            });
+            auditUpdated = true;
+            break;
+          } catch (retryErr) {
+            if (retryErr.code === 'P2034' && attempt < MAX_RETRIES - 1) {
+              await new Promise((r) => setTimeout(r, 200 * (attempt + 1)));
+              continue;
+            }
+            throw retryErr;
+          }
+        }
+
+        if (auditUpdated) {
+          // Recalculate score + regenerate summary with updated issues
+          recalculateAuditAfterFix(auditId, site.url).catch(err =>
+            console.warn('[SetFavicon] Recalc failed (non-fatal):', err.message)
+          );
         }
       } catch (err) {
         console.warn('[SetFavicon] Audit update failed:', err.message);

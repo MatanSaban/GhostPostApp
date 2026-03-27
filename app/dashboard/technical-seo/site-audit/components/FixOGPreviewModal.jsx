@@ -14,6 +14,7 @@ import {
   Database,
   ExternalLink,
   Pencil,
+  Share2,
 } from 'lucide-react';
 import { useLocale } from '@/app/context/locale-context';
 import { emitCreditsUpdated } from '@/app/context/user-context';
@@ -23,41 +24,30 @@ import { useModalResize, ModalResizeButton } from '@/app/components/ui/ModalResi
 import styles from './FixTitlePreviewModal.module.css';
 
 /**
- * FixTitlePreviewModal — Shows AI-generated title suggestions with Preview → Confirm → Execute flow
+ * FixOGPreviewModal — Shows AI-generated Open Graph tag suggestions
  *
  * Props:
  * - open: boolean
  * - onClose: () => void
  * - auditId: string
  * - siteId: string
+ * - onAuditUpdated: () => void
  */
-export default function FixTitlePreviewModal({ open, onClose, auditId, siteId, onAuditUpdated }) {
+export default function FixOGPreviewModal({ open, onClose, auditId, siteId, onAuditUpdated }) {
   const { t, locale } = useLocale();
   const { isMaximized, toggleMaximize } = useModalResize();
 
-  // Loading / error
   const [isLoading, setIsLoading] = useState(false);
-  const [loadingStep, setLoadingStep] = useState(0); // 0=audit, 1=analyzing, 2=generating
+  const [loadingStep, setLoadingStep] = useState(0);
   const [error, setError] = useState(null);
-
-  // Suggestions from API
   const [suggestions, setSuggestions] = useState([]);
-
-  // Per-item fix status: { [url]: 'idle' | 'fixing' | 'done' | 'error' }
   const [fixStatus, setFixStatus] = useState({});
-
-  // Batch-fixing all
   const [isFixingAll, setIsFixingAll] = useState(false);
   const [fixProgress, setFixProgress] = useState({ done: 0, total: 0 });
-
-  // Inline editing
   const [editingUrl, setEditingUrl] = useState(null);
+  const [editField, setEditField] = useState(null); // 'ogTitle' or 'ogDescription'
   const [editValue, setEditValue] = useState('');
-
-  // Track if any fix was applied (to refresh audit on close)
   const [hasAppliedFixes, setHasAppliedFixes] = useState(false);
-
-  // Entities sync check
   const [hasEntities, setHasEntities] = useState(true);
   const [showSyncModal, setShowSyncModal] = useState(false);
 
@@ -71,12 +61,11 @@ export default function FixTitlePreviewModal({ open, onClose, auditId, siteId, o
     setSuggestions([]);
     setFixStatus({});
 
-    // Simulate progress steps while API works
     const stepTimer1 = setTimeout(() => setLoadingStep(1), 1200);
     const stepTimer2 = setTimeout(() => setLoadingStep(2), 3000);
 
     try {
-      const res = await fetch('/api/audit/generate-title-suggestions', {
+      const res = await fetch('/api/audit/generate-og-suggestions', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ auditId, siteId, locale }),
@@ -88,23 +77,29 @@ export default function FixTitlePreviewModal({ open, onClose, auditId, siteId, o
         throw new Error(data.error || 'Failed to generate suggestions');
       }
 
-      setSuggestions(data.suggestions || []);
+      // Deduplicate by URL (keep first suggestion per URL)
+      const seen = new Set();
+      const unique = (data.suggestions || []).filter(s => {
+        if (seen.has(s.url)) return false;
+        seen.add(s.url);
+        return true;
+      });
+      setSuggestions(unique);
       setHasEntities(data.hasEntities !== false);
-      // Init all statuses to idle
       const statuses = {};
-      (data.suggestions || []).forEach((s) => {
+      unique.forEach((s) => {
         statuses[s.url] = 'idle';
       });
       setFixStatus(statuses);
     } catch (err) {
-      console.error('[FixTitlePreview] fetch error:', err);
+      console.error('[FixOGPreview] fetch error:', err);
       setError(err.message);
     } finally {
       clearTimeout(stepTimer1);
       clearTimeout(stepTimer2);
       setIsLoading(false);
     }
-  }, [auditId, siteId]);
+  }, [auditId, siteId, locale]);
 
   useEffect(() => {
     if (open) {
@@ -115,17 +110,17 @@ export default function FixTitlePreviewModal({ open, onClose, auditId, siteId, o
   // ─── Apply single fix ───────────────────────────────────────
 
   const applyFix = async (suggestion) => {
-    const { url, newTitle } = suggestion;
+    const { url, ogTitle, ogDescription } = suggestion;
     setFixStatus((prev) => ({ ...prev, [url]: 'fixing' }));
 
     try {
-      const res = await fetch('/api/audit/apply-title-fix', {
+      const res = await fetch('/api/audit/apply-og-fix', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           siteId,
           auditId,
-          fixes: [{ url, newTitle }],
+          fixes: [{ url, ogTitle, ogDescription }],
         }),
       });
 
@@ -143,7 +138,6 @@ export default function FixTitlePreviewModal({ open, onClose, auditId, siteId, o
         throw new Error(data.error || 'Fix failed');
       }
 
-      // Update credits header
       if (data.creditsUpdated?.used != null) {
         emitCreditsUpdated(data.creditsUpdated.used);
       }
@@ -156,7 +150,7 @@ export default function FixTitlePreviewModal({ open, onClose, auditId, siteId, o
       }));
       if (isSuccess) setHasAppliedFixes(true);
     } catch (err) {
-      console.error('[FixTitlePreview] apply error:', err);
+      console.error('[FixOGPreview] apply error:', err);
       setFixStatus((prev) => ({ ...prev, [url]: 'error' }));
     }
   };
@@ -170,19 +164,18 @@ export default function FixTitlePreviewModal({ open, onClose, auditId, siteId, o
     setIsFixingAll(true);
     setFixProgress({ done: 0, total: pending.length });
 
-    // Fix one-by-one so credits and progress update incrementally
     for (let i = 0; i < pending.length; i++) {
       const s = pending[i];
       setFixStatus((prev) => ({ ...prev, [s.url]: 'fixing' }));
 
       try {
-        const res = await fetch('/api/audit/apply-title-fix', {
+        const res = await fetch('/api/audit/apply-og-fix', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             siteId,
             auditId,
-            fixes: [{ url: s.url, newTitle: s.newTitle }],
+            fixes: [{ url: s.url, ogTitle: s.ogTitle, ogDescription: s.ogDescription }],
           }),
         });
 
@@ -214,7 +207,7 @@ export default function FixTitlePreviewModal({ open, onClose, auditId, siteId, o
         }));
         if (isSuccess) setHasAppliedFixes(true);
       } catch (err) {
-        console.error('[FixTitlePreview] batch fix error:', err);
+        console.error('[FixOGPreview] batch fix error:', err);
         setFixStatus((prev) => ({ ...prev, [s.url]: 'error' }));
       }
 
@@ -224,13 +217,36 @@ export default function FixTitlePreviewModal({ open, onClose, auditId, siteId, o
     setIsFixingAll(false);
   };
 
+  // ─── Inline edit helpers ────────────────────────────────────
+
+  const startEdit = (url, field, currentValue) => {
+    setEditingUrl(url);
+    setEditField(field);
+    setEditValue(currentValue);
+  };
+
+  const confirmEdit = () => {
+    if (!editingUrl || !editField) return;
+    setSuggestions((prev) =>
+      prev.map((item) =>
+        item.url === editingUrl ? { ...item, [editField]: editValue } : item
+      )
+    );
+    setEditingUrl(null);
+    setEditField(null);
+  };
+
+  const cancelEdit = () => {
+    setEditingUrl(null);
+    setEditField(null);
+  };
+
   // ─── Derived state ──────────────────────────────────────────
 
   const doneCount = Object.values(fixStatus).filter((s) => s === 'done').length;
   const pendingCount = Object.values(fixStatus).filter((s) => s === 'idle').length;
   const allDone = suggestions.length > 0 && pendingCount === 0;
 
-  // Close handler — refresh audit if fixes were applied
   const handleClose = useCallback(() => {
     if (hasAppliedFixes && onAuditUpdated) {
       onAuditUpdated();
@@ -242,6 +258,53 @@ export default function FixTitlePreviewModal({ open, onClose, auditId, siteId, o
   // ─── Render ─────────────────────────────────────────────────
 
   if (!open) return null;
+
+  const renderEditableField = (suggestion, field, label) => {
+    const value = suggestion[field];
+    const status = fixStatus[suggestion.url] || 'idle';
+    const isEditing = editingUrl === suggestion.url && editField === field;
+
+    return (
+      <div className={styles.titleRow}>
+        <span className={`${styles.titleLabel} ${styles.labelNew}`}>{label}</span>
+        {isEditing ? (
+          <span className={styles.titleEditWrap}>
+            <input
+              className={styles.titleEditInput}
+              value={editValue}
+              onChange={(e) => setEditValue(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') { confirmEdit(); }
+                else if (e.key === 'Escape') { cancelEdit(); }
+              }}
+              autoFocus
+            />
+            <span className={styles.charCount}>({editValue.length})</span>
+            <button className={styles.editConfirmBtn} onClick={confirmEdit}>
+              <CheckCircle2 size={14} />
+            </button>
+            <button className={styles.editCancelBtn} onClick={cancelEdit}>
+              <X size={14} />
+            </button>
+          </span>
+        ) : (
+          <span className={styles.titleText}>
+            {value}
+            <span className={styles.charCount}>({value.length})</span>
+            {status === 'idle' && (
+              <button
+                className={styles.editTitleBtn}
+                onClick={() => startEdit(suggestion.url, field, value)}
+                title={t('siteAudit.ogFix.edit')}
+              >
+                <Pencil size={12} />
+              </button>
+            )}
+          </span>
+        )}
+      </div>
+    );
+  };
 
   return (
     <>
@@ -258,26 +321,26 @@ export default function FixTitlePreviewModal({ open, onClose, auditId, siteId, o
         {/* Header */}
         <div className={styles.header}>
           <div className={styles.iconWrap}>
-            <Wand2 size={24} />
+            <Share2 size={24} />
           </div>
-          <h3 className={styles.title}>{t('siteAudit.titleFix.title')}</h3>
+          <h3 className={styles.title}>{t('siteAudit.ogFix.title')}</h3>
           <p className={styles.subtitle}>
-            {t('siteAudit.titleFix.subtitle')}
+            {t('siteAudit.ogFix.subtitle')}
             <span className={styles.creditBadge}>
               <Coins size={12} />
-              {t('siteAudit.titleFix.creditCost')}
+              {t('siteAudit.ogFix.creditCost')}
             </span>
           </p>
         </div>
 
-        {/* Loading with progress steps */}
+        {/* Loading */}
         {isLoading && (
           <div className={styles.loadingState}>
             <Loader2 size={28} className={styles.spinning} />
             <div className={styles.loadingSteps}>
               <div className={`${styles.loadingStep} ${loadingStep >= 0 ? styles.stepActive : ''}`}>
                 <CheckCircle2 size={14} className={loadingStep > 0 ? styles.stepDone : styles.stepCurrent} />
-                <span>{t('siteAudit.titleFix.stepAudit')}</span>
+                <span>{t('siteAudit.ogFix.stepAudit')}</span>
               </div>
               <div className={`${styles.loadingStep} ${loadingStep >= 1 ? styles.stepActive : ''}`}>
                 {loadingStep > 1
@@ -285,13 +348,13 @@ export default function FixTitlePreviewModal({ open, onClose, auditId, siteId, o
                   : loadingStep === 1
                     ? <Loader2 size={14} className={styles.spinning} />
                     : <span className={styles.stepDot} />}
-                <span>{t('siteAudit.titleFix.stepAnalyzing')}</span>
+                <span>{t('siteAudit.ogFix.stepAnalyzing')}</span>
               </div>
               <div className={`${styles.loadingStep} ${loadingStep >= 2 ? styles.stepActive : ''}`}>
                 {loadingStep >= 2
                   ? <Loader2 size={14} className={styles.spinning} />
                   : <span className={styles.stepDot} />}
-                <span>{t('siteAudit.titleFix.stepGenerating')}</span>
+                <span>{t('siteAudit.ogFix.stepGenerating')}</span>
               </div>
             </div>
           </div>
@@ -304,7 +367,7 @@ export default function FixTitlePreviewModal({ open, onClose, auditId, siteId, o
             <p className={styles.errorMsg}>{error}</p>
             <button className={styles.retryBtn} onClick={fetchSuggestions}>
               <RefreshCw size={14} />
-              {t('siteAudit.titleFix.retry')}
+              {t('siteAudit.ogFix.retry')}
             </button>
           </div>
         )}
@@ -313,7 +376,7 @@ export default function FixTitlePreviewModal({ open, onClose, auditId, siteId, o
         {!isLoading && !error && suggestions.length === 0 && (
           <div className={styles.emptyState}>
             <CheckCircle2 size={32} color="var(--success, #22c55e)" />
-            <span>{t('siteAudit.titleFix.noIssues')}</span>
+            <span>{t('siteAudit.ogFix.noIssues')}</span>
           </div>
         )}
 
@@ -353,83 +416,25 @@ export default function FixTitlePreviewModal({ open, onClose, auditId, siteId, o
                         </bdi>
                         <ExternalLink size={12} />
                       </a>
-                    </div>
-
-                    {/* Old title */}
-                    <div className={styles.titleRow}>
-                      <span className={`${styles.titleLabel} ${styles.labelOld}`}>
-                        {t('siteAudit.titleFix.oldLabel')}
-                      </span>
-                      <span className={`${styles.titleText} ${styles.oldTitleText}`}>
-                        {s.oldTitle || '—'}
-                        <span className={styles.charCount}>({(s.oldTitle || '').length})</span>
-                      </span>
-                    </div>
-
-                    {/* New title — editable */}
-                    <div className={styles.titleRow}>
-                      <span className={`${styles.titleLabel} ${styles.labelNew}`}>
-                        {t('siteAudit.titleFix.newLabel')}
-                      </span>
-                      {editingUrl === s.url ? (
-                        <span className={styles.titleEditWrap}>
-                          <input
-                            className={styles.titleEditInput}
-                            value={editValue}
-                            onChange={(e) => setEditValue(e.target.value)}
-                            onKeyDown={(e) => {
-                              if (e.key === 'Enter') {
-                                setSuggestions((prev) =>
-                                  prev.map((item) =>
-                                    item.url === s.url ? { ...item, newTitle: editValue } : item
-                                  )
-                                );
-                                setEditingUrl(null);
-                              } else if (e.key === 'Escape') {
-                                setEditingUrl(null);
-                              }
-                            }}
-                            autoFocus
-                          />
-                          <span className={styles.charCount}>({editValue.length})</span>
-                          <button
-                            className={styles.editConfirmBtn}
-                            onClick={() => {
-                              setSuggestions((prev) =>
-                                prev.map((item) =>
-                                  item.url === s.url ? { ...item, newTitle: editValue } : item
-                                )
-                              );
-                              setEditingUrl(null);
-                            }}
-                          >
-                            <CheckCircle2 size={14} />
-                          </button>
-                          <button
-                            className={styles.editCancelBtn}
-                            onClick={() => setEditingUrl(null)}
-                          >
-                            <X size={14} />
-                          </button>
-                        </span>
-                      ) : (
-                        <span className={styles.titleText}>
-                          {s.newTitle}
-                          <span className={styles.charCount}>({s.newTitle.length})</span>
-                          {status === 'idle' && (
-                            <button
-                              className={styles.editTitleBtn}
-                              onClick={() => {
-                                setEditingUrl(s.url);
-                                setEditValue(s.newTitle);
-                              }}
-                              title={t('siteAudit.titleFix.editTitle')}
-                            >
-                              <Pencil size={12} />
-                            </button>
-                          )}
+                      {s.missingTags && (
+                        <span className={styles.charCount} style={{ marginInlineStart: '0.5rem' }}>
+                          {s.missingTags}
                         </span>
                       )}
+                    </div>
+
+                    {/* og:title */}
+                    {renderEditableField(s, 'ogTitle', 'og:title')}
+
+                    {/* og:description */}
+                    {renderEditableField(s, 'ogDescription', 'og:description')}
+
+                    {/* og:image note */}
+                    <div className={styles.titleRow}>
+                      <span className={`${styles.titleLabel} ${styles.labelOld}`}>og:image</span>
+                      <span className={styles.titleText} style={{ fontStyle: 'italic', opacity: 0.7 }}>
+                        {t('siteAudit.ogFix.imageNote')}
+                      </span>
                     </div>
 
                     {/* Reason */}
@@ -446,26 +451,26 @@ export default function FixTitlePreviewModal({ open, onClose, auditId, siteId, o
                           disabled={isFixingAll}
                         >
                           <Wand2 size={13} />
-                          {t('siteAudit.titleFix.fixOne')}
+                          {t('siteAudit.ogFix.fixOne')}
                         </button>
                       )}
                       {status === 'fixing' && (
                         <span className={styles.fixOneBtn} style={{ pointerEvents: 'none' }}>
                           <Loader2 size={13} className={styles.spinning} />
-                          {t('siteAudit.titleFix.fixing')}
+                          {t('siteAudit.ogFix.fixing')}
                         </span>
                       )}
                       {status === 'done' && (
                         <span className={styles.fixedBadge}>
                           <CheckCircle2 size={14} />
-                          {t('siteAudit.titleFix.fixed')}
+                          {t('siteAudit.ogFix.fixed')}
                         </span>
                       )}
                       {status === 'error' && (
                         <>
                           <span className={styles.fixFailedBadge}>
                             <XCircle size={14} />
-                            {t('siteAudit.titleFix.failed')}
+                            {t('siteAudit.ogFix.failed')}
                           </span>
                           <button
                             className={styles.retryItemBtn}
@@ -474,7 +479,7 @@ export default function FixTitlePreviewModal({ open, onClose, auditId, siteId, o
                             }}
                           >
                             <RefreshCw size={13} />
-                            {t('siteAudit.titleFix.retry')}
+                            {t('siteAudit.ogFix.retry')}
                           </button>
                         </>
                       )}
@@ -489,7 +494,7 @@ export default function FixTitlePreviewModal({ open, onClose, auditId, siteId, o
               {isFixingAll ? (
                 <div className={styles.progressWrap}>
                   <span className={styles.progressLabel}>
-                    {t('siteAudit.titleFix.fixingProgress', {
+                    {t('siteAudit.ogFix.fixingProgress', {
                       done: fixProgress.done,
                       total: fixProgress.total,
                     })}
@@ -509,8 +514,8 @@ export default function FixTitlePreviewModal({ open, onClose, auditId, siteId, o
                 <span className={styles.footerInfo}>
                   <Coins size={14} />
                   {allDone
-                    ? t('siteAudit.titleFix.allFixed', { count: doneCount })
-                    : t('siteAudit.titleFix.totalCost', { count: pendingCount })}
+                    ? t('siteAudit.ogFix.allFixed', { count: doneCount })
+                    : t('siteAudit.ogFix.totalCost', { count: pendingCount })}
                 </span>
               )}
 
@@ -525,7 +530,7 @@ export default function FixTitlePreviewModal({ open, onClose, auditId, siteId, o
                   ) : (
                     <Wand2 size={15} />
                   )}
-                  {t('siteAudit.titleFix.fixAll', { count: pendingCount })}
+                  {t('siteAudit.ogFix.fixAll', { count: pendingCount })}
                 </button>
               )}
             </div>

@@ -99,7 +99,7 @@ class GP_SEO_Manager {
         }
         
         // Auto-detect and update primary SEO plugin
-        if (!empty($data['title']) || !empty($data['description'])) {
+        if (!empty($data['title']) || !empty($data['description']) || !empty($data['og_title']) || !empty($data['og_description']) || !empty($data['og_image'])) {
             if (defined('WPSEO_VERSION')) {
                 $this->update_yoast_meta($post_id, $data);
             } elseif (defined('RANK_MATH_VERSION')) {
