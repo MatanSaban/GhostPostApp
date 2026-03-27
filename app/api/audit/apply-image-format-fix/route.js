@@ -317,6 +317,18 @@ export async function POST(request) {
       try {
         const fixedImageUrls = new Set(successfulFixes.map((f) => f.imageUrl));
 
+        // Also match WP size variants (e.g. image-300x200.jpg shares base with image.jpg)
+        const stripWpSizeSuffix = (url) => url.replace(/-\d+x\d+(?=\.[a-z]+$)/i, '');
+        const fixedBaseUrls = new Set(
+          successfulFixes.map((f) => stripWpSizeSuffix(f.imageUrl))
+        );
+
+        const isFixedImage = (srcUrl) => {
+          if (fixedImageUrls.has(srcUrl)) return true;
+          // Match size variants of the same base image
+          return fixedBaseUrls.has(stripWpSizeSuffix(srcUrl));
+        };
+
         const buildUpdated = (audit) => {
           const updatedIssues = (audit.issues || []).map((issue) => {
             if (
@@ -328,7 +340,7 @@ export async function POST(request) {
             }
 
             const remaining = (issue.detailedSources || []).filter(
-              (src) => !fixedImageUrls.has(src.url)
+              (src) => !isFixedImage(src.url)
             );
 
             if (remaining.length === 0) {

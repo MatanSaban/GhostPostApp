@@ -100,7 +100,7 @@ function useAnimatedScore(target, duration = 4000) {
    WaveSVG - reusable SVG wave-fill circle (no wrapper div)
    ─────────────────────────────────────────────────────────── */
 
-function WaveSVG({ animatedScore, size }) {
+function WaveSVG({ animatedScore, size, noData }) {
   const clipId = useId();
   const fillPct = Math.max(0, Math.min(100, animatedScore));
   const r = size / 2;
@@ -164,9 +164,9 @@ function WaveSVG({ animatedScore, size }) {
         textAnchor="middle"
         dominantBaseline="central"
         className={styles.waveScoreText}
-        style={{ fontSize: size * 0.28 }}
+        style={{ fontSize: size * (noData ? 0.22 : 0.28) }}
       >
-        {animatedScore}
+        {noData ? 'N/A' : animatedScore}
       </text>
     </svg>
   );
@@ -177,11 +177,16 @@ function WaveSVG({ animatedScore, size }) {
    ─────────────────────────────────────────────────────────── */
 
 function WaveCircle({ score, label, size = 90 }) {
-  const animatedScore = useAnimatedScore(score);
+  const animatedScore = useAnimatedScore(score ?? 0);
+  const hasData = score != null;
 
   return (
     <div className={styles.waveCircle}>
-      <WaveSVG animatedScore={animatedScore} size={size} />
+      {hasData ? (
+        <WaveSVG animatedScore={animatedScore} size={size} />
+      ) : (
+        <WaveSVG animatedScore={0} size={size} noData />
+      )}
       <span className={styles.waveLabel}>{label}</span>
     </div>
   );
@@ -402,7 +407,7 @@ export default function AuditOverviewTab({
           {['technical', 'performance', 'visual', 'accessibility'].map(cat => (
             <WaveCircle
               key={cat}
-              score={categoryScores[cat] ?? 0}
+              score={categoryScores[cat]}
               label={t(`siteAudit.${cat}`)}
             />
           ))}

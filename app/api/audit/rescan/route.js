@@ -4,6 +4,7 @@ import prisma from '@/lib/prisma';
 import { getPageSpeedInsights } from '@/lib/audit/pagespeed-client';
 import { analyzeHtml } from '@/lib/audit/html-analyzer';
 import { deductAiCredits } from '@/lib/account-utils';
+import { recalculateAuditAfterFix } from '@/lib/audit/recalculate-after-fix';
 
 const SESSION_COOKIE = 'user_session';
 const RESCAN_CREDIT_COST = 1;
@@ -199,9 +200,10 @@ export async function POST(request) {
       suggestion: i.suggestion || null,
       source: i.source || null,
       details: i.details || null,
+      detailedSources: i.detailedSources || undefined,
     }));
 
-    const MAX_RETRIES = 5;
+    const MAX_RETRIES = 8;
     for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
       try {
         // Re-read the latest audit state before each write attempt
@@ -231,13 +233,18 @@ export async function POST(request) {
         break; // success
       } catch (retryErr) {
         if (retryErr.code === 'P2034' && attempt < MAX_RETRIES - 1) {
-          // Wait with exponential backoff before retrying
-          await new Promise((r) => setTimeout(r, 200 * (attempt + 1)));
+          // Wait with exponential backoff (400ms, 800ms, 1.2s, 1.6s, ...)
+          await new Promise((r) => setTimeout(r, 400 * (attempt + 1)));
           continue;
         }
         throw retryErr;
       }
     }
+
+    // Recalculate score + summary after rescan
+    recalculateAuditAfterFix(auditId, site.url).catch((err) =>
+      console.warn('[Rescan] Recalc failed (non-fatal):', err.message)
+    );
 
     return NextResponse.json({
       success: true,

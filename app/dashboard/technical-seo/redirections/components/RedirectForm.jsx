@@ -1,24 +1,63 @@
 'use client';
 
-import { useState } from 'react';
-import { Plus } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Plus, X } from 'lucide-react';
 import styles from '../page.module.css';
 
-export function RedirectForm({ translations }) {
+export function RedirectForm({ translations, onSubmit, editingRedirect, onCancel }) {
   const [fromUrl, setFromUrl] = useState('');
   const [toUrl, setToUrl] = useState('');
   const [redirectType, setRedirectType] = useState('301');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = (e) => {
+  const isEditing = !!editingRedirect;
+
+  // Populate form when editing
+  useEffect(() => {
+    if (editingRedirect) {
+      setFromUrl(editingRedirect.sourceUrl || '');
+      setToUrl(editingRedirect.targetUrl || '');
+      const typeMap = { PERMANENT: '301', TEMPORARY: '302', FOUND: '307' };
+      setRedirectType(typeMap[editingRedirect.type] || '301');
+    } else {
+      setFromUrl('');
+      setToUrl('');
+      setRedirectType('301');
+    }
+  }, [editingRedirect]);
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log({ fromUrl, toUrl, redirectType });
+    if (!fromUrl || !toUrl) return;
+
+    setIsSubmitting(true);
+    const success = await onSubmit({ sourceUrl: fromUrl, targetUrl: toUrl, type: redirectType });
+    setIsSubmitting(false);
+
+    if (success) {
+      setFromUrl('');
+      setToUrl('');
+      setRedirectType('301');
+    }
+  };
+
+  const handleCancel = () => {
     setFromUrl('');
     setToUrl('');
+    setRedirectType('301');
+    onCancel?.();
   };
 
   return (
     <div className={styles.formCard}>
-      <h3 className={styles.cardTitle}>{translations.createNew}</h3>
+      <h3 className={styles.cardTitle}>
+        {isEditing ? (translations.update || 'Edit Redirect') : translations.createNew}
+        {isEditing && (
+          <button className={styles.cancelEditButton} onClick={handleCancel}>
+            <X size={16} />
+          </button>
+        )}
+      </h3>
       <form className={styles.formGrid} onSubmit={handleSubmit}>
         <div className={styles.formGroup}>
           <label className={styles.formLabel}>{translations.fromUrl}</label>
@@ -28,6 +67,7 @@ export function RedirectForm({ translations }) {
             placeholder={translations.fromUrlPlaceholder}
             value={fromUrl}
             onChange={(e) => setFromUrl(e.target.value)}
+            required
           />
         </div>
         <div className={styles.formGroup}>
@@ -38,6 +78,7 @@ export function RedirectForm({ translations }) {
             placeholder={translations.toUrlPlaceholder}
             value={toUrl}
             onChange={(e) => setToUrl(e.target.value)}
+            required
           />
         </div>
         <div className={styles.formGroup}>
@@ -49,12 +90,23 @@ export function RedirectForm({ translations }) {
           >
             <option value="301">{translations.permanent}</option>
             <option value="302">{translations.temporary}</option>
-            <option value="307">{translations.temporary}</option>
+            <option value="307">307 - Temporary</option>
           </select>
         </div>
-        <button type="submit" className={styles.addButton}>
-          <Plus size={16} /> {translations.add}
-        </button>
+        <div className={styles.formActions}>
+          <button type="submit" className={styles.addButton} disabled={isSubmitting}>
+            {isSubmitting ? '...' : (
+              <>
+                <Plus size={16} /> {isEditing ? translations.update : translations.add}
+              </>
+            )}
+          </button>
+          {isEditing && (
+            <button type="button" className={styles.cancelButton} onClick={handleCancel}>
+              {translations.cancel}
+            </button>
+          )}
+        </div>
       </form>
     </div>
   );

@@ -187,14 +187,14 @@ function calculateCategoryScores(issues = []) {
     const total = errors + warnings + passed + info;
 
     if (total === 0) {
-      // No issues: ratio-based = 0 (no data), deduction-based = 100 (no violations)
-      scores[cat] = RATIO_CATS.has(cat) ? 0 : 100;
+      // No issues: ratio-based = null (no data), deduction-based = 100 (no violations)
+      scores[cat] = RATIO_CATS.has(cat) ? null : 100;
       continue;
     }
 
     if (RATIO_CATS.has(cat)) {
       const checkCount = passed + warnings + errors;
-      if (checkCount === 0) { scores[cat] = 0; continue; }
+      if (checkCount === 0) { scores[cat] = null; continue; }
       const maxPts = checkCount * 100;
       const earned = (passed * 100) + (warnings * 30);
       scores[cat] = Math.round(Math.min(100, (earned / maxPts) * 100));
@@ -273,6 +273,17 @@ export default function SiteAuditPage() {
 
   const pollRef = useRef(null);
   const stepIntervalRef = useRef(null);
+  const hasRestoredFromUrl = useRef(false);
+
+  // ─── URL State Sync ─────────────────────────────────────────
+  const updateUrl = useCallback((tab, issueKey, pageUrl) => {
+    const params = new URLSearchParams();
+    if (tab && tab !== 'overview') params.set('tab', tab);
+    if (issueKey) params.set('issue', issueKey);
+    if (pageUrl) params.set('page', pageUrl);
+    const qs = params.toString();
+    window.history.replaceState(null, '', qs ? `${window.location.pathname}?${qs}` : window.location.pathname);
+  }, []);
 
   // Cache audit data per device to avoid re-fetching on tab switch
   // Shape: { desktop: { latest, history, translations }, mobile: { ... } }
@@ -364,6 +375,31 @@ export default function SiteAuditPage() {
     }
   }, [selectedSite?.id]);
 
+  // Restore tab / drill-down / page-detail state from URL on first data load
+  useEffect(() => {
+    if (!latestAudit || latestAudit.status !== 'COMPLETED' || hasRestoredFromUrl.current) return;
+    hasRestoredFromUrl.current = true;
+
+    const params = new URLSearchParams(window.location.search);
+    const urlTab = params.get('tab');
+    const urlIssue = params.get('issue');
+    const urlPage = params.get('page');
+
+    if (!urlTab && !urlIssue && !urlPage) return;
+
+    if (urlTab && TABS.some(t => t.id === urlTab)) {
+      setActiveTab(urlTab);
+    }
+    if (urlIssue) {
+      setDrillDown({ issueKey: urlIssue, category: urlTab || 'technical' });
+    }
+    if (urlPage) {
+      const prs = latestAudit.pageResults || [];
+      const pr = prs.find(p => p.url === urlPage);
+      if (pr) setPageDetail(pr);
+    }
+  }, [latestAudit]);
+
   // ─── Device Toggle Handler ─────────────────────────────────
 
   const handleDeviceChange = (device) => {
@@ -375,6 +411,7 @@ export default function SiteAuditPage() {
     setActiveDevice(device);
     setDrillDown(null);
     setPageDetail(null);
+    updateUrl(activeTab, null, null);
   };
 
   // ─── Polling ──────────────────────────────────────────────────
@@ -500,7 +537,7 @@ export default function SiteAuditPage() {
   // ─── AI Issue Translations (Visual & UX tab + Accessibility) ──
 
   useEffect(() => {
-    if (!isCompleted || !latestAudit?.id || locale === 'en') return;
+    if (!isCompleted || !latestAudit?.id) return;
 
     // Find AI-generated issues (messages that don't start with translation keys)
     const aiIssues = allIssues.filter(
@@ -596,8 +633,15 @@ export default function SiteAuditPage() {
     return agg.message?.startsWith('audit.') ? t(agg.message) : agg.message;
   };
 
-  /** Resolve "What is it?" or "How to fix?" popup content from i18n */
+  /** Resolve "What is it?" or "How to fix?" popup content from i18n or AI translations */
   const getIssueInfoContent = (issueKey, type) => {
+    // For dynamic issues (ai-vision/axe), check AI-generated translations first
+    const tr = issueTranslations[issueKey]
+      // Also check a11y colon variant (translation key uses "a11y:" while issue message uses "a11y.")
+      || (issueKey?.startsWith('a11y.') && issueTranslations[`a11y:${issueKey.slice(5)}`]);
+    if (tr && tr[type]) return tr[type];
+
+    // Standard i18n key lookup
     const shortKey = issueKey?.startsWith('audit.issues.')
       ? issueKey.replace('audit.issues.', '')
       : issueKey;
@@ -1041,7 +1085,7 @@ export default function SiteAuditPage() {
                   <button
                     key={tab.id}
                     className={`${styles.tab} ${isActive ? styles.tabActive : ''}`}
-                    onClick={() => { setActiveTab(tab.id); setDrillDown(null); setPageDetail(null); }}
+                    onClick={() => { setActiveTab(tab.id); setDrillDown(null); setPageDetail(null); updateUrl(tab.id, null, null); }}
                   >
                     <Icon size={16} />
                     <span className={styles.tabLabel}>{t(tab.labelKey)}</span>
@@ -1059,9 +1103,9 @@ export default function SiteAuditPage() {
                         {warnCount > 0 && <span className={styles.tabCountWarning}>{warnCount}</span>}
                       </div>
                     )}
-                    {isActive && tab.id !== 'pages' && tab.id !== 'overview' && (
-                      <div className={`${styles.tabScore} ${styles[getScoreColor(categoryScores[tab.id] ?? 0)]}`}>
-                        {categoryScores[tab.id] ?? 0}
+                    {isActive && tab.id !== 'pages' && tab.id !== 'overview' && categoryScores[tab.id] != null && (
+                      <div className={`${styles.tabScore} ${styles[getScoreColor(categoryScores[tab.id])]}`}>
+                        {categoryScores[tab.id]}
                       </div>
                     )}
                   </button>
@@ -1106,7 +1150,7 @@ export default function SiteAuditPage() {
                           <button
                             key={agg.key}
                             className={`${styles.aggregatedRow} ${styles[`issue_${agg.severity}`]}`}
-                            onClick={() => setDrillDown({ issueKey: agg.key, category: activeTab })}
+                            onClick={() => { setDrillDown({ issueKey: agg.key, category: activeTab }); updateUrl(activeTab, agg.key, null); }}
                           >
                             <div className={styles.aggIcon}>
                               {agg.severity === 'passed' && <CheckCircle2 size={16} />}
@@ -1243,7 +1287,7 @@ export default function SiteAuditPage() {
                 <div className={styles.drillDown}>
                   <button
                     className={styles.drillDownBack}
-                    onClick={() => setDrillDown(null)}
+                    onClick={() => { setDrillDown(null); updateUrl(activeTab, null, null); }}
                   >
                     <ChevronDown size={16} className={styles.backIcon} />
                     {t('siteAudit.backToList')}
@@ -1342,7 +1386,7 @@ export default function SiteAuditPage() {
                           auditId={latestAudit.id}
                           siteId={selectedSite.id}
                           onRescanComplete={handleRescanComplete}
-                          onViewDetails={(p) => setPageDetail(p)}
+                          onViewDetails={(p) => { setPageDetail(p); updateUrl(activeTab, drillDown?.issueKey || null, p?.url || null); }}
                           compact
                           pageIssues={allIssues.filter(i => i.url === pr.url)}
                           onFixComplete={() => handleRescanComplete()}
@@ -1417,7 +1461,7 @@ export default function SiteAuditPage() {
                             auditId={latestAudit.id}
                             siteId={selectedSite.id}
                             onRescanComplete={handleRescanComplete}
-                            onViewDetails={(p) => setPageDetail(p)}
+                            onViewDetails={(p) => { setPageDetail(p); updateUrl(activeTab, null, p?.url || null); }}
                             pageIssues={allIssues.filter(i => i.url === pr.url)}
                             onFixComplete={() => handleRescanComplete()}
                             isPluginConnected={isPluginConnected}
@@ -1499,6 +1543,7 @@ export default function SiteAuditPage() {
                   setActiveTab('overview');
                   setDrillDown(null);
                   setPageDetail(null);
+                  updateUrl('overview', null, null);
                 }}
               >
                 <div className={styles.historyItemLeft}>
@@ -1532,11 +1577,11 @@ export default function SiteAuditPage() {
 
       {/* Page Detail Modal */}
       {pageDetail && createPortal(
-        <div className={styles.lightbox} onClick={() => setPageDetail(null)}>
+        <div className={styles.lightbox} onClick={() => { setPageDetail(null); updateUrl(activeTab, drillDown?.issueKey || null, null); }}>
           <div className={`${styles.pageDetailModal} ${isPageDetailMaximized ? 'modal-maximized' : ''}`} onClick={(e) => e.stopPropagation()}>
             <div className={styles.pageDetailActions}>
               <ModalResizeButton isMaximized={isPageDetailMaximized} onToggle={togglePageDetailMaximize} className={styles.pageDetailActionBtn} />
-              <button className={styles.pageDetailActionBtn} onClick={() => setPageDetail(null)}>
+              <button className={styles.pageDetailActionBtn} onClick={() => { setPageDetail(null); updateUrl(activeTab, drillDown?.issueKey || null, null); }}>
                 <X size={20} />
               </button>
             </div>
@@ -1688,7 +1733,7 @@ export default function SiteAuditPage() {
                               src={filmSrc(f)}
                               alt={f.stage}
                               className={styles.filmstripImg}
-                              onClick={() => { setPageDetail(null); setLightboxImg(filmSrc(f)); }}
+                              onClick={() => { setPageDetail(null); updateUrl(activeTab, drillDown?.issueKey || null, null); setLightboxImg(filmSrc(f)); }}
                             />
                             <span className={styles.filmstripLabel}>{f.stage}</span>
                           </div>
@@ -1708,7 +1753,7 @@ export default function SiteAuditPage() {
                               src={filmSrc(f)}
                               alt={f.stage}
                               className={`${styles.filmstripImg} ${styles.filmstripImgMobile}`}
-                              onClick={() => { setPageDetail(null); setLightboxImg(filmSrc(f)); }}
+                              onClick={() => { setPageDetail(null); updateUrl(activeTab, drillDown?.issueKey || null, null); setLightboxImg(filmSrc(f)); }}
                             />
                             <span className={styles.filmstripLabel}>{f.stage}</span>
                           </div>
@@ -1748,7 +1793,7 @@ export default function SiteAuditPage() {
                               <div
                                 key={idx}
                                 className={styles.segmentThumb}
-                                onClick={() => { setPageDetail(null); setLightboxImg(toImgSrc(seg)); }}
+                                onClick={() => { setPageDetail(null); updateUrl(activeTab, drillDown?.issueKey || null, null); setLightboxImg(toImgSrc(seg)); }}
                               >
                                 <img
                                   src={toImgSrc(seg)}
@@ -1771,7 +1816,7 @@ export default function SiteAuditPage() {
                               <div
                                 key={idx}
                                 className={`${styles.segmentThumb} ${styles.segmentThumbMobile}`}
-                                onClick={() => { setPageDetail(null); setLightboxImg(toImgSrc(seg)); }}
+                                onClick={() => { setPageDetail(null); updateUrl(activeTab, drillDown?.issueKey || null, null); setLightboxImg(toImgSrc(seg)); }}
                               >
                                 <img
                                   src={toImgSrc(seg)}
@@ -1797,7 +1842,7 @@ export default function SiteAuditPage() {
                           </span>
                           <div
                             className={styles.pdScreenshotWrapper}
-                            onClick={() => { setPageDetail(null); setLightboxImg(toImgSrc(pageDetail.screenshotDesktop)); }}
+                            onClick={() => { setPageDetail(null); updateUrl(activeTab, drillDown?.issueKey || null, null); setLightboxImg(toImgSrc(pageDetail.screenshotDesktop)); }}
                           >
                             <img
                               src={toImgSrc(pageDetail.screenshotDesktop)}
@@ -1817,7 +1862,7 @@ export default function SiteAuditPage() {
                           </span>
                           <div
                             className={styles.pdScreenshotWrapper}
-                            onClick={() => { setPageDetail(null); setLightboxImg(toImgSrc(pageDetail.screenshotMobile)); }}
+                            onClick={() => { setPageDetail(null); updateUrl(activeTab, drillDown?.issueKey || null, null); setLightboxImg(toImgSrc(pageDetail.screenshotMobile)); }}
                           >
                             <img
                               src={toImgSrc(pageDetail.screenshotMobile)}

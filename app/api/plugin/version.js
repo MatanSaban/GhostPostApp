@@ -10,10 +10,22 @@
  */
 
 // Current plugin version - increment this when making updates
-export const PLUGIN_VERSION = "1.11.0";
+export const PLUGIN_VERSION = "2.0.0";
 
 // Changelog for the current version
 export const PLUGIN_CHANGELOG = `
+= 2.0.0 =
+* NEW: Full redirections management system with CRUD operations
+* NEW: Detect popular redirection plugins (Redirection, Yoast Premium, Rank Math, Safe Redirect Manager, Simple 301 Redirects, 301 Redirects)
+* NEW: Import redirects from detected third-party plugins into Ghost Post
+* NEW: WordPress admin Redirections page with add/edit/delete/toggle functionality
+* NEW: Plugin menu moved from Settings submenu to top-level WordPress menu item
+* NEW: Redirections child page in WordPress admin with full management UI
+* NEW: Frontend redirect execution via template_redirect hook with hit tracking
+* NEW: Bulk sync redirects from/to Ghost Post platform
+* NEW: REST API endpoints for redirect CRUD, import, bulk-sync, and plugin detection
+* NEW: Recommendation banner to import existing redirects and deactivate external plugins
+
 = 1.11.0 =
 * NEW: Multi-format image conversion - convert images to WebP or AVIF via /media/convert-image-format endpoint
 * NEW: AVIF support using Imagick or GD (PHP 8.1+) with quality control and backup system
