@@ -37,6 +37,9 @@ class Ghost_Post {
      * Initialize the plugin
      */
     public function init() {
+        // Initialize i18n (must be before any output)
+        GP_I18n::init();
+        
         $this->validator = new GP_Request_Validator();
         $this->api_handler = new GP_API_Handler($this->validator);
         $this->redirections_manager = new GP_Redirections_Manager();
@@ -65,6 +68,8 @@ class Ghost_Post {
         add_action('wp_ajax_gp_save_redirect', array($this, 'ajax_save_redirect'));
         add_action('wp_ajax_gp_delete_redirect', array($this, 'ajax_delete_redirect'));
         add_action('wp_ajax_gp_toggle_redirect', array($this, 'ajax_toggle_redirect'));
+        add_action('wp_ajax_gp_save_language', array($this, 'ajax_save_language'));
+        add_action('wp_ajax_gp_deactivate_plugin', array($this, 'ajax_deactivate_plugin'));
         
         // Schedule ping cron
         add_action('gp_connector_ping', array($this, 'send_ping'));
@@ -90,14 +95,16 @@ class Ghost_Post {
      * Add admin menu - top-level menu with child pages
      */
     public function add_admin_menu() {
+        $icon = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMzUgMjg4Ij48cGF0aCBmaWxsPSJibGFjayIgZD0iTTMxMy43MzYgMTI3Ljc0N0MzMTMuNjgxIDEyMy4yMjkgMzExLjkyNCAxMTIuMzYyIDMxMS4wNjQgMTA3LjcxNkMzMTAuMjA0IDEwMy4wNTEgMzE0Ljc5NyA5MS44MDA3IDMxNi44MTkgODMuMjY3M0MzMTkuNTI3IDcxLjgzMzkgMzIwLjM0MSA2MS41OTkxIDMxNy4xNzYgNTYuMDM3N0MzMTQuNDc3IDUxLjI5MDkgMjkxLjk2MSA1Mi41MjU4IDI4Mi43NzUgNTMuNjU5NkMyNzkuOTg1IDU0LjAwNzUgMjY4LjI4MyAzNS4xMTA1IDI0NC42NjkgMjEuMzgxNkMyMjMuNjgyIDkuMTg5MiAxOTEuODI1IDIgMTcwLjY5MSAyQzEwOS43NTggMiA1Ny42MjcgMzkuMDUyNyAzNi4zODI4IDkxLjQ3MTZDMzYuMjE4MSA5MS44ODM0IDMwLjg5MzQgOTAuNDQ3MSAyMi42Nzc1IDkxLjc4MjdDMTQuMjQyMiA5My4xNTQ3IDIuODk3MzcgOTcuMzUzMSAyLjExMDU0IDEwMS4zNUMxLjI3Nzk4IDEwNS41NTcgNS4yMzAzNSAxMjAuMDQ1IDExLjIwNDcgMTMwLjU1NUMxNy42ODIyIDE0MS45NDMgMjUuMzQ5MSAxNDkuNzQ1IDI1LjM5NDggMTUwLjg0MkMyNy44Mzc2IDIwNC45MTYgNjEuOTgxNiAyNTAuNjQ5IDEwOS4yIDI3Mi40OTFDMTIyLjc5NiAyNzguNzg0IDE0NC4xOTUgMjg2LjczMiAxNzAuNjkxIDI4NS45NDZDMjQ1LjgwNCAyODMuNzIzIDMwMi45OTUgMjEzLjQ2OSAzMjUuMTQ0IDE0NS45MDNDMzMwLjA4NSAxMzAuODI5IDMzMy4xNSAxMTYuOTI2IDMzMi45OTQgMTA4Ljc3N0MzMzIuOTg1IDEwOC4xMTggMzMyLjI5OSAxMDcuNjg5IDMzMS42OTUgMTA3Ljk3MkMzMjcuNjk3IDEwOS44NDcgMzE2LjA4NyAxMTYuMDY3IDMxMy41MjUgMTE4LjY4M1oiLz48L3N2Zz4=';
+        
         // Top-level menu
         add_menu_page(
-            __('Ghost Post', 'ghost-post-connector'),
-            __('Ghost Post', 'ghost-post-connector'),
+            __('Ghost Post Connector', 'ghost-post-connector'),
+            __('Ghost Post Connector', 'ghost-post-connector'),
             'manage_options',
             'ghost-post-connector',
             array($this, 'render_admin_page'),
-            'dashicons-admin-site-alt3',
+            $icon,
             30
         );
         
@@ -120,6 +127,16 @@ class Ghost_Post {
             'ghost-post-redirections',
             array($this, 'render_redirections_page')
         );
+        
+        // Settings submenu
+        add_submenu_page(
+            'ghost-post-connector',
+            __('Settings', 'ghost-post-connector'),
+            __('Settings', 'ghost-post-connector'),
+            'manage_options',
+            'ghost-post-settings',
+            array($this, 'render_settings_page')
+        );
     }
     
     /**
@@ -129,7 +146,8 @@ class Ghost_Post {
         // Load on our plugin pages only
         $plugin_pages = array(
             'toplevel_page_ghost-post-connector',
-            'ghost-post_page_ghost-post-redirections',
+            'ghost-post-connector_page_ghost-post-redirections',
+            'ghost-post-connector_page_ghost-post-settings',
         );
         
         if (!in_array($hook, $plugin_pages, true)) {
@@ -155,21 +173,46 @@ class Ghost_Post {
             'ajaxUrl' => admin_url('admin-ajax.php'),
             'nonce'   => wp_create_nonce('gp_connector_nonce'),
             'strings' => array(
-                'testing'  => __('Testing connection...', 'ghost-post-connector'),
-                'success'  => __('Connection successful!', 'ghost-post-connector'),
-                'error'    => __('Connection failed', 'ghost-post-connector'),
-                'confirm_delete' => __('Are you sure you want to delete this redirect?', 'ghost-post-connector'),
-                'importing' => __('Importing redirects...', 'ghost-post-connector'),
-                'import_success' => __('Import completed!', 'ghost-post-connector'),
+                'testing'             => __('Testing...', 'ghost-post-connector'),
+                'test_connection'     => __('Test Connection', 'ghost-post-connector'),
+                'connection_success'  => __('Connection successful!', 'ghost-post-connector'),
+                'connection_failed'   => __('Connection failed:', 'ghost-post-connector'),
+                'sending'             => __('Sending...', 'ghost-post-connector'),
+                'send_ping'           => __('Send Ping', 'ghost-post-connector'),
+                'ping_success'        => __('Ping sent successfully!', 'ghost-post-connector'),
+                'ping_failed'         => __('Ping failed:', 'ghost-post-connector'),
+                'disconnecting'       => __('Disconnecting...', 'ghost-post-connector'),
+                'disconnect'          => __('Disconnect', 'ghost-post-connector'),
+                'disconnected'        => __('Disconnected successfully.', 'ghost-post-connector'),
+                'disconnect_failed'   => __('Disconnect failed:', 'ghost-post-connector'),
+                'disconnect_error'    => __('Disconnect failed. Please try again.', 'ghost-post-connector'),
+                'confirm_disconnect'  => __('Are you sure you want to disconnect from Ghost Post? You can reconnect later by downloading a new plugin.', 'ghost-post-connector'),
+                'checking'            => __('Checking...', 'ghost-post-connector'),
+                'check_updates'       => __('Check for Updates', 'ghost-post-connector'),
+                'update_available'    => __('Update available! Version', 'ghost-post-connector'),
+                'go_to_plugins'       => __('Go to Plugins page to update.', 'ghost-post-connector'),
+                'latest_version'      => __('You have the latest version!', 'ghost-post-connector'),
+                'check_failed'        => __('Failed to check for updates.', 'ghost-post-connector'),
+                'confirm_delete'      => __('Are you sure you want to delete this redirect?', 'ghost-post-connector'),
+                'importing'           => __('Importing redirects...', 'ghost-post-connector'),
+                'import_success'      => __('Import completed!', 'ghost-post-connector'),
+                'add_redirect'        => __('Add Redirect', 'ghost-post-connector'),
+                'save_redirect'       => __('Save Redirect', 'ghost-post-connector'),
+                'confirm_deactivate'  => __('Are you sure you want to deactivate %s?', 'ghost-post-connector'),
+                'deactivating'        => __('Deactivating...', 'ghost-post-connector'),
+                'deactivated'         => __('Plugin deactivated successfully. Refreshing...', 'ghost-post-connector'),
+                'saving'              => __('Saving...', 'ghost-post-connector'),
+                'save_settings'       => __('Save Settings', 'ghost-post-connector'),
+                'settings_saved'      => __('Settings saved successfully!', 'ghost-post-connector'),
             ),
         ));
     }
     
     /**
-     * Render admin settings page
+     * Render dashboard page
      */
     public function render_admin_page() {
-        include GP_CONNECTOR_PLUGIN_DIR . 'admin/views/settings-page.php';
+        include GP_CONNECTOR_PLUGIN_DIR . 'admin/views/dashboard-page.php';
     }
     
     /**
@@ -178,6 +221,13 @@ class Ghost_Post {
     public function render_redirections_page() {
         $this->redirections_manager = $this->redirections_manager ?? new GP_Redirections_Manager();
         include GP_CONNECTOR_PLUGIN_DIR . 'admin/views/redirections-page.php';
+    }
+    
+    /**
+     * Render settings page
+     */
+    public function render_settings_page() {
+        include GP_CONNECTOR_PLUGIN_DIR . 'admin/views/settings-page.php';
     }
     
     /**
@@ -283,6 +333,54 @@ class Ghost_Post {
         }
         
         wp_send_json_success($result);
+    }
+    
+    /**
+     * AJAX: Save language preference
+     */
+    public function ajax_save_language() {
+        check_ajax_referer('gp_connector_nonce', 'nonce');
+        
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error('Permission denied');
+        }
+        
+        $lang = sanitize_text_field($_POST['language'] ?? 'auto');
+        if (!in_array($lang, array('auto', 'en', 'he'), true)) {
+            $lang = 'auto';
+        }
+        
+        update_option('gp_connector_language', $lang);
+        wp_send_json_success(array('language' => $lang));
+    }
+    
+    /**
+     * AJAX: Deactivate a third-party plugin
+     */
+    public function ajax_deactivate_plugin() {
+        check_ajax_referer('gp_connector_nonce', 'nonce');
+        
+        if (!current_user_can('activate_plugins')) {
+            wp_send_json_error('Permission denied');
+        }
+        
+        $plugin_slug = sanitize_text_field($_POST['plugin_slug'] ?? '');
+        if (empty($plugin_slug)) {
+            wp_send_json_error('Plugin slug is required');
+        }
+        
+        if (!is_plugin_active($plugin_slug)) {
+            wp_send_json_success(array('already_inactive' => true));
+            return;
+        }
+        
+        deactivate_plugins($plugin_slug);
+        
+        if (is_plugin_active($plugin_slug)) {
+            wp_send_json_error('Failed to deactivate plugin');
+        }
+        
+        wp_send_json_success(array('deactivated' => true));
     }
     
     /**

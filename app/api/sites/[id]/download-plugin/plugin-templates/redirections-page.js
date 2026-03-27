@@ -19,9 +19,10 @@ $external_redirects = ($primary_plugin && $primary_plugin !== 'ghost-post') ? $m
 $has_external_plugin = !empty($detected_plugins);
 $connection_status = get_option('gp_connector_connection_status', '');
 $is_connected = $connection_status === 'connected';
+$dir = GP_I18n::dir_attr();
 ?>
 
-<div class="wrap gp-settings-page gp-redirections-page">
+<div class="wrap gp-settings-page gp-redirections-page" dir="<?php echo esc_attr($dir); ?>">
     <h1>
         <span class="dashicons dashicons-randomize"></span>
         <?php esc_html_e('Redirections', 'ghost-post-connector'); ?>
@@ -66,6 +67,14 @@ $is_connected = $connection_status === 'connected';
                         count($external_redirects)
                     ); ?>
                 </button>
+                <?php foreach ($detected_plugins as $dp): ?>
+                <?php if (!empty($dp['file'])): ?>
+                <button type="button" class="button gp-deactivate-plugin" data-slug="<?php echo esc_attr($dp['file']); ?>" data-name="<?php echo esc_attr($dp['name']); ?>">
+                    <span class="dashicons dashicons-no"></span>
+                    <?php printf(esc_html__('Deactivate %s', 'ghost-post-connector'), esc_html($dp['name'])); ?>
+                </button>
+                <?php endif; ?>
+                <?php endforeach; ?>
                 <span class="gp-import-count">
                     <?php printf(
                         esc_html__('%d redirects found in %s', 'ghost-post-connector'),
@@ -165,8 +174,9 @@ $is_connected = $connection_status === 'connected';
                     <?php foreach ($redirects as $redirect): ?>
                     <tr data-id="<?php echo esc_attr($redirect['id']); ?>" class="<?php echo empty($redirect['is_active']) ? 'gp-inactive-row' : ''; ?>">
                         <td class="gp-col-status">
-                            <button type="button" class="gp-toggle-status" data-id="<?php echo esc_attr($redirect['id']); ?>" data-active="<?php echo $redirect['is_active'] ? '1' : '0'; ?>">
-                                <span class="gp-status-indicator-dot <?php echo $redirect['is_active'] ? 'active' : 'inactive'; ?>"></span>
+                            <button type="button" class="gp-toggle-status <?php echo $redirect['is_active'] ? 'gp-active' : 'gp-not-active'; ?>" data-id="<?php echo esc_attr($redirect['id']); ?>" data-active="<?php echo $redirect['is_active'] ? '1' : '0'; ?>">
+                                <span class="gp-dot"></span>
+                                <span class="gp-status-label"><?php echo $redirect['is_active'] ? esc_html__('Active', 'ghost-post-connector') : esc_html__('Inactive', 'ghost-post-connector'); ?></span>
                             </button>
                         </td>
                         <td class="gp-col-source">

@@ -23,6 +23,7 @@ export function getAdminCss() {
 }
 
 /* Cards */
+.gp-card,
 .gp-status-card,
 .gp-info-card,
 .gp-permissions-card,
@@ -35,6 +36,7 @@ export function getAdminCss() {
     box-shadow: 0 1px 1px rgba(0, 0, 0, 0.04);
 }
 
+.gp-card h2,
 .gp-status-card h2,
 .gp-info-card h2,
 .gp-permissions-card h2,
@@ -183,7 +185,7 @@ export function getAdminCss() {
 .gp-plugins-list .gp-version {
     color: #646970;
     font-size: 12px;
-    margin-left: auto;
+    margin-inline-start: auto;
 }
 
 /* Responsive */
@@ -249,7 +251,8 @@ export function getAdminCss() {
 }
 
 /* Stats Row */
-.gp-stats-row {
+.gp-stats-row,
+.gp-redirections-stats {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
     gap: 16px;
@@ -265,6 +268,7 @@ export function getAdminCss() {
     box-shadow: 0 1px 1px rgba(0, 0, 0, 0.04);
 }
 
+.gp-stat-card .gp-stat-value,
 .gp-stat-card .gp-stat-number {
     font-size: 28px;
     font-weight: 700;
@@ -280,7 +284,8 @@ export function getAdminCss() {
 }
 
 /* Redirect Form */
-.gp-redirect-form-card {
+.gp-redirect-form-card,
+.gp-create-redirect-card {
     background: #fff;
     border: 1px solid #ccd0d4;
     border-radius: 4px;
@@ -289,35 +294,38 @@ export function getAdminCss() {
     box-shadow: 0 1px 1px rgba(0, 0, 0, 0.04);
 }
 
-.gp-redirect-form-card h2 {
+.gp-redirect-form-card h2,
+.gp-create-redirect-card h2 {
     margin-top: 0;
     padding-bottom: 12px;
     border-bottom: 1px solid #eee;
 }
 
-.gp-redirect-fields {
+.gp-redirect-form-grid {
     display: grid;
     grid-template-columns: 1fr 1fr auto auto;
     gap: 12px;
     align-items: end;
 }
 
-.gp-redirect-fields .gp-field {
+.gp-redirect-form-grid .gp-form-group {
     display: flex;
     flex-direction: column;
 }
 
-.gp-redirect-fields .gp-field label {
+.gp-redirect-form-grid .gp-form-group label {
     font-weight: 600;
     margin-bottom: 6px;
     font-size: 13px;
 }
 
-.gp-redirect-fields .gp-field input,
-.gp-redirect-fields .gp-field select {
+.gp-redirect-form-grid .gp-form-group input,
+.gp-redirect-form-grid .gp-form-group select {
     padding: 6px 10px;
     border: 1px solid #8c8f94;
     border-radius: 4px;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 #gp-redirect-result {
@@ -341,17 +349,17 @@ export function getAdminCss() {
     margin-top: 0;
     padding-bottom: 12px;
     border-bottom: 1px solid #eee;
+}
 
-    .gp-count-badge {
-        background: #2271b1;
-        color: #fff;
-        border-radius: 10px;
-        padding: 2px 8px;
-        font-size: 12px;
-        font-weight: 400;
-        margin-left: 8px;
-        vertical-align: middle;
-    }
+.gp-count-badge {
+    background: #2271b1;
+    color: #fff;
+    border-radius: 10px;
+    padding: 2px 8px;
+    font-size: 12px;
+    font-weight: 400;
+    margin-inline-start: 8px;
+    vertical-align: middle;
 }
 
 .gp-redirects-table {
@@ -407,14 +415,25 @@ export function getAdminCss() {
 }
 
 /* Status Toggle */
+.gp-toggle-status,
 .gp-status-toggle {
     cursor: pointer;
     display: inline-flex;
     align-items: center;
-    gap: 4px;
+    gap: 6px;
     font-size: 13px;
+    background: none;
+    border: none;
+    padding: 4px 8px;
+    border-radius: 3px;
 }
 
+.gp-toggle-status:hover,
+.gp-status-toggle:hover {
+    background: #f0f0f1;
+}
+
+.gp-toggle-status .gp-dot,
 .gp-status-toggle .gp-dot {
     width: 10px;
     height: 10px;
@@ -422,12 +441,19 @@ export function getAdminCss() {
     display: inline-block;
 }
 
+.gp-toggle-status.gp-active .gp-dot,
 .gp-status-toggle.gp-active .gp-dot {
     background: #00a32a;
 }
 
+.gp-toggle-status.gp-not-active .gp-dot,
 .gp-status-toggle.gp-not-active .gp-dot {
     background: #d63638;
+}
+
+.gp-toggle-status .gp-status-label {
+    font-size: 12px;
+    color: #646970;
 }
 
 /* Row Actions */
@@ -461,7 +487,8 @@ export function getAdminCss() {
 
 /* Responsive - Redirections */
 @media screen and (max-width: 1200px) {
-    .gp-redirect-fields {
+    .gp-redirect-fields,
+    .gp-redirect-form-grid {
         grid-template-columns: 1fr 1fr;
     }
 }
@@ -471,17 +498,107 @@ export function getAdminCss() {
         max-width: 100%;
     }
     
-    .gp-stats-row {
+    .gp-stats-row,
+    .gp-redirections-stats {
         grid-template-columns: repeat(2, 1fr);
     }
     
-    .gp-redirect-fields {
+    .gp-redirect-fields,
+    .gp-redirect-form-grid {
         grid-template-columns: 1fr;
     }
     
     .gp-redirects-table {
         font-size: 13px;
     }
+}
+
+/* ==========================================
+   Settings Page
+   ========================================== */
+
+.gp-settings-page .gp-form-group {
+    margin-bottom: 16px;
+}
+
+.gp-settings-page .gp-form-group label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 6px;
+}
+
+.gp-settings-page .gp-form-group select {
+    min-width: 250px;
+}
+
+.gp-settings-page .gp-form-group .description {
+    margin-top: 6px;
+    color: #646970;
+    font-style: italic;
+}
+
+.gp-settings-page .gp-form-actions {
+    margin-top: 16px;
+}
+
+/* Deactivate plugin button */
+.gp-deactivate-plugin {
+    color: #d63638 !important;
+    border-color: #d63638 !important;
+}
+
+.gp-deactivate-plugin:hover {
+    background: #d63638 !important;
+    color: #fff !important;
+}
+
+/* Synced / Not Synced indicators */
+.gp-synced {
+    color: #00a32a;
+}
+
+.gp-not-synced {
+    color: #d63638;
+}
+
+/* ==========================================
+   RTL Overrides
+   ========================================== */
+
+[dir="rtl"] .gp-connector-settings h1,
+[dir="rtl"] .gp-redirections-page h1 {
+    flex-direction: row-reverse;
+}
+
+[dir="rtl"] .gp-info-table th {
+    text-align: right;
+}
+
+[dir="rtl"] .gp-redirects-table th {
+    text-align: right;
+}
+
+[dir="rtl"] .gp-recommendation-banner {
+    border-left: none;
+    border-right: 4px solid #ffc107;
+}
+
+[dir="rtl"] .gp-error-message {
+    border-left: none;
+    border-right: 4px solid #d63638;
+}
+
+[dir="rtl"] .gp-recommendation-steps {
+    direction: rtl;
+}
+
+[dir="rtl"] .gp-actions {
+    flex-direction: row-reverse;
+}
+
+[dir="rtl"] .gp-redirects-table td code {
+    direction: ltr;
+    unicode-bidi: embed;
 }
 `;
 }

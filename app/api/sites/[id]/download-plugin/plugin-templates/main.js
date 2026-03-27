@@ -35,6 +35,9 @@ define('GP_CONNECTOR_PLUGIN_BASENAME', plugin_basename(__FILE__));
 // Load configuration
 require_once GP_CONNECTOR_PLUGIN_DIR . 'includes/config.php';
 
+// Load i18n (must be before other classes so translations are available)
+require_once GP_CONNECTOR_PLUGIN_DIR . 'includes/class-gp-i18n.php';
+
 // Load dependencies
 require_once GP_CONNECTOR_PLUGIN_DIR . 'includes/class-ghost-post.php';
 require_once GP_CONNECTOR_PLUGIN_DIR . 'includes/class-gp-api-handler.php';

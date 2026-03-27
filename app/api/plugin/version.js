@@ -10,10 +10,26 @@
  */
 
 // Current plugin version - increment this when making updates
-export const PLUGIN_VERSION = "2.0.1";
+export const PLUGIN_VERSION = "2.1.0";
 
 // Changelog for the current version
 export const PLUGIN_CHANGELOG = `
+= 2.1.0 =
+* NEW: Internationalization (i18n) support with English and Hebrew translations
+* NEW: RTL layout support for Hebrew language
+* NEW: Settings page with language selector, connection status, and permissions
+* NEW: Auto-detect WordPress admin language/direction (Auto/EN/HE)
+* NEW: Deactivate third-party redirect plugins directly from the Redirections page
+* NEW: Ghost SVG icon for WordPress admin menu
+* NEW: Detected redirect plugins section on Dashboard page
+* FIX: Redirect status toggle button now shows Active/Inactive text with proper styling
+* FIX: Stat cards display in a proper row layout
+* FIX: URL inputs now use full width in redirect form
+* FIX: Edit redirect now correctly populates form fields
+* FIX: Plugin renamed to "Ghost Post Connector" throughout admin UI
+* CHANGE: Dashboard page simplified - Connection Status and Permissions moved to Settings
+* CHANGE: Admin menu restructured: Dashboard, Redirections, Settings
+
 = 2.0.1 =
 * FIX: Plugin templates now correctly include all redirections files in generated ZIPs
 * FIX: Top-level WordPress menu with Dashboard and Redirections subpages

@@ -12,7 +12,7 @@ export function getAdminJs() {
     // Show result message
     function showResult(container, message, isError) {
         var cls = isError ? 'notice notice-error' : 'notice notice-success';
-        $(container).html('<div class="' + cls + '"><p>' + message + '</p></div>');
+        $(container).html('<div class="' + cls + '"><p>' + message + '</p></div>').show();
         setTimeout(function() { $(container).fadeOut(function() { $(this).empty().show(); }); }, 4000);
     }
 
@@ -23,9 +23,9 @@ export function getAdminJs() {
         var data = {
             action: 'gp_save_redirect',
             nonce: gpAdmin.nonce,
-            source: $('#gp-source').val(),
-            target: $('#gp-target').val(),
-            type: $('#gp-type').val(),
+            source: $('#gp-source-url').val(),
+            target: $('#gp-target-url').val(),
+            type: $('#gp-redirect-type').val(),
             redirect_id: editingId
         };
 
@@ -33,22 +33,22 @@ export function getAdminJs() {
             if (response.success) {
                 location.reload();
             } else {
-                showResult('#gp-redirect-result', response.data || 'Error saving redirect', true);
+                showResult('#gp-save-result', response.data || 'Error saving redirect', true);
             }
         }).fail(function() {
-            showResult('#gp-redirect-result', 'Request failed', true);
+            showResult('#gp-save-result', 'Request failed', true);
         });
     });
 
     // Edit redirect
     $(document).on('click', '.gp-edit-redirect', function(e) {
         e.preventDefault();
-        var row = $(this).closest('tr');
-        editingId = row.data('id');
-        $('#gp-source').val(row.data('source'));
-        $('#gp-target').val(row.data('target'));
-        $('#gp-type').val(row.data('type'));
-        $('#gp-form-title').text('Edit Redirect');
+        var btn = $(this);
+        editingId = btn.data('id');
+        $('#gp-source-url').val(btn.data('source'));
+        $('#gp-target-url').val(btn.data('target'));
+        $('#gp-redirect-type').val(btn.data('type'));
+        $('#gp-save-redirect').text(gpAdmin.strings.save_redirect || 'Save Redirect');
         $('#gp-cancel-edit').show();
         $('html, body').animate({ scrollTop: $('#gp-redirect-form').offset().top - 50 }, 300);
     });
@@ -58,8 +58,8 @@ export function getAdminJs() {
         e.preventDefault();
         editingId = '';
         $('#gp-redirect-form')[0].reset();
-        $('#gp-type').val('301');
-        $('#gp-form-title').text('Add New Redirect');
+        $('#gp-redirect-type').val('301');
+        $('#gp-save-redirect').text(gpAdmin.strings.add_redirect || 'Add Redirect');
         $(this).hide();
     });
 
@@ -87,8 +87,8 @@ export function getAdminJs() {
     // Toggle redirect active/inactive
     $(document).on('click', '.gp-toggle-status', function(e) {
         e.preventDefault();
-        var row = $(this).closest('tr');
         var btn = $(this);
+        var row = btn.closest('tr');
         var data = {
             action: 'gp_toggle_redirect',
             nonce: gpAdmin.nonce,
@@ -127,6 +127,144 @@ export function getAdminJs() {
         }).fail(function() {
             showResult('#gp-import-result', 'Request failed', true);
             btn.prop('disabled', false).text('Import Redirects');
+        });
+    });
+
+    // ========== Deactivate third-party plugin ==========
+
+    $(document).on('click', '.gp-deactivate-plugin', function(e) {
+        e.preventDefault();
+        var btn = $(this);
+        var pluginSlug = btn.data('slug');
+        var pluginName = btn.data('name');
+
+        if (!confirm(gpAdmin.strings.confirm_deactivate
+            ? gpAdmin.strings.confirm_deactivate.replace('%s', pluginName)
+            : 'Are you sure you want to deactivate ' + pluginName + '?')) {
+            return;
+        }
+
+        btn.prop('disabled', true).text(gpAdmin.strings.deactivating || 'Deactivating...');
+
+        $.post(gpAdmin.ajaxUrl, {
+            action: 'gp_deactivate_plugin',
+            nonce: gpAdmin.nonce,
+            plugin_slug: pluginSlug
+        }, function(response) {
+            if (response.success) {
+                alert(gpAdmin.strings.deactivated || 'Plugin deactivated successfully. Refreshing...');
+                location.reload();
+            } else {
+                alert(response.data || 'Failed to deactivate plugin.');
+                btn.prop('disabled', false).text(pluginName);
+            }
+        }).fail(function() {
+            alert('Request failed.');
+            btn.prop('disabled', false).text(pluginName);
+        });
+    });
+
+    // ========== Settings: Language save ==========
+
+    $(document).on('submit', '#gp-language-form', function(e) {
+        e.preventDefault();
+        var btn = $('#gp-save-language');
+        btn.prop('disabled', true).text(gpAdmin.strings.saving || 'Saving...');
+
+        $.post(gpAdmin.ajaxUrl, {
+            action: 'gp_save_language',
+            nonce: gpAdmin.nonce,
+            language: $('#gp-language-select').val()
+        }, function(response) {
+            if (response.success) {
+                showResult('#gp-language-result', gpAdmin.strings.settings_saved || 'Settings saved successfully!', false);
+                setTimeout(function() { location.reload(); }, 1000);
+            } else {
+                showResult('#gp-language-result', response.data || 'Failed to save settings.', true);
+            }
+        }).fail(function() {
+            showResult('#gp-language-result', 'Request failed.', true);
+        }).always(function() {
+            btn.prop('disabled', false).text(gpAdmin.strings.save_settings || 'Save Settings');
+        });
+    });
+
+    // ========== Dashboard & Settings: Connection actions ==========
+
+    $(document).on('click', '#gp-check-updates', function() {
+        var btn = $(this);
+        btn.prop('disabled', true).text(gpAdmin.strings.checking || 'Checking...');
+
+        $.post(gpAdmin.ajaxUrl, { action: 'gp_check_for_updates' }, function(response) {
+            if (response.success) {
+                if (response.data.update_available) {
+                    alert((gpAdmin.strings.update_available || 'Update available! Version') + ' ' + response.data.version + '. ' + (gpAdmin.strings.go_to_plugins || 'Go to Plugins page to update.'));
+                } else {
+                    alert(gpAdmin.strings.latest_version || 'You have the latest version!');
+                }
+            } else {
+                alert(gpAdmin.strings.check_failed || 'Failed to check for updates.');
+            }
+        }).fail(function() {
+            alert(gpAdmin.strings.check_failed || 'Failed to check for updates.');
+        }).always(function() {
+            btn.prop('disabled', false).text(gpAdmin.strings.check_updates || 'Check for Updates');
+        });
+    });
+
+    $(document).on('click', '#gp-test-connection', function() {
+        var btn = $(this);
+        btn.prop('disabled', true).text(gpAdmin.strings.testing || 'Testing...');
+
+        $.post(gpAdmin.ajaxUrl, { action: 'gp_test_connection' }, function(response) {
+            if (response.success) {
+                alert(gpAdmin.strings.connection_success || 'Connection successful!');
+                location.reload();
+            } else {
+                alert((gpAdmin.strings.connection_failed || 'Connection failed:') + ' ' + response.data);
+            }
+        }).fail(function(xhr) {
+            alert((gpAdmin.strings.connection_failed || 'Connection failed:') + ' ' + xhr.responseText);
+        }).always(function() {
+            btn.prop('disabled', false).text(gpAdmin.strings.test_connection || 'Test Connection');
+        });
+    });
+
+    $(document).on('click', '#gp-send-ping', function() {
+        var btn = $(this);
+        btn.prop('disabled', true).text(gpAdmin.strings.sending || 'Sending...');
+
+        $.post(gpAdmin.ajaxUrl, { action: 'gp_send_ping' }, function(response) {
+            if (response.success) {
+                alert(gpAdmin.strings.ping_success || 'Ping sent successfully!');
+                location.reload();
+            } else {
+                alert((gpAdmin.strings.ping_failed || 'Ping failed:') + ' ' + response.data);
+            }
+        }).always(function() {
+            btn.prop('disabled', false).text(gpAdmin.strings.send_ping || 'Send Ping');
+        });
+    });
+
+    $(document).on('click', '#gp-disconnect', function() {
+        if (!confirm(gpAdmin.strings.confirm_disconnect || 'Are you sure you want to disconnect from Ghost Post?')) {
+            return;
+        }
+
+        var btn = $(this);
+        btn.prop('disabled', true).text(gpAdmin.strings.disconnecting || 'Disconnecting...');
+
+        $.post(gpAdmin.ajaxUrl, { action: 'gp_disconnect' }, function(response) {
+            if (response.success) {
+                alert(gpAdmin.strings.disconnected || 'Disconnected successfully.');
+                location.reload();
+            } else {
+                alert((gpAdmin.strings.disconnect_failed || 'Disconnect failed:') + ' ' + response.data);
+            }
+        }).fail(function() {
+            alert(gpAdmin.strings.disconnect_error || 'Disconnect failed. Please try again.');
+        }).always(function() {
+            btn.prop('disabled', false).text(gpAdmin.strings.disconnect || 'Disconnect');
         });
     });
 
