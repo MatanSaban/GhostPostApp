@@ -51,7 +51,11 @@ export async function POST(request, { params }) {
         const target = r.target || '';
         if (!source || !target) continue;
         
-        const normalizedSource = source.startsWith('/') ? source : `/${source}`;
+        let normalizedSource = source.startsWith('/') ? source : `/${source}`;
+        try { normalizedSource = decodeURIComponent(normalizedSource); } catch {}
+        if (normalizedSource.length > 1 && normalizedSource.endsWith('/')) normalizedSource = normalizedSource.slice(0, -1);
+        let normalizedTarget = target;
+        try { normalizedTarget = decodeURIComponent(normalizedTarget); } catch {}
         
         // Map numeric type to enum
         const typeNum = parseInt(r.type, 10);
@@ -68,7 +72,7 @@ export async function POST(request, { params }) {
               },
             },
             update: {
-              targetUrl: target,
+              targetUrl: normalizedTarget,
               type: typeEnum,
               isActive: r.is_active !== false,
               hitCount: parseInt(r.hit_count, 10) || 0,
@@ -76,7 +80,7 @@ export async function POST(request, { params }) {
             create: {
               siteId: id,
               sourceUrl: normalizedSource,
-              targetUrl: target,
+              targetUrl: normalizedTarget,
               type: typeEnum,
               isActive: r.is_active !== false,
               hitCount: parseInt(r.hit_count, 10) || 0,
@@ -136,7 +140,11 @@ export async function POST(request, { params }) {
         const target = r.target || '';
         if (!source || !target) continue;
         
-        const normalizedSource = source.startsWith('/') ? source : `/${source}`;
+        let normalizedSource = source.startsWith('/') ? source : `/${source}`;
+        try { normalizedSource = decodeURIComponent(normalizedSource); } catch {}
+        if (normalizedSource.length > 1 && normalizedSource.endsWith('/')) normalizedSource = normalizedSource.slice(0, -1);
+        let normalizedTarget = target;
+        try { normalizedTarget = decodeURIComponent(normalizedTarget); } catch {}
         const typeNum = parseInt(r.type, 10);
         let typeEnum = 'PERMANENT';
         if (typeNum === 302) typeEnum = 'TEMPORARY';
@@ -151,14 +159,14 @@ export async function POST(request, { params }) {
               },
             },
             update: {
-              targetUrl: target,
+              targetUrl: normalizedTarget,
               type: typeEnum,
               isActive: r.is_active !== false,
             },
             create: {
               siteId: id,
               sourceUrl: normalizedSource,
-              targetUrl: target,
+              targetUrl: normalizedTarget,
               type: typeEnum,
               isActive: r.is_active !== false,
             },

@@ -72,7 +72,9 @@ export async function POST(request) {
       );
     }
 
-    const normalizedSource = redirect.source.startsWith('/') ? redirect.source : `/${redirect.source}`;
+    let normalizedSource = redirect.source.startsWith('/') ? redirect.source : `/${redirect.source}`;
+    try { normalizedSource = decodeURIComponent(normalizedSource); } catch {}
+    if (normalizedSource.length > 1 && normalizedSource.endsWith('/')) normalizedSource = normalizedSource.slice(0, -1);
 
     // Map numeric type to enum
     const typeNum = parseInt(redirect.type, 10);
@@ -104,6 +106,9 @@ export async function POST(request) {
     }
 
     // For created/updated — upsert
+    let normalizedTarget = redirect.target || '';
+    try { normalizedTarget = decodeURIComponent(normalizedTarget); } catch {}
+
     const result = await prisma.redirection.upsert({
       where: {
         siteId_sourceUrl: {
@@ -112,7 +117,7 @@ export async function POST(request) {
         },
       },
       update: {
-        targetUrl: redirect.target || '',
+        targetUrl: normalizedTarget,
         type: typeEnum,
         isActive: redirect.is_active !== false,
         hitCount: parseInt(redirect.hit_count, 10) || 0,
@@ -120,7 +125,7 @@ export async function POST(request) {
       create: {
         siteId: site.id,
         sourceUrl: normalizedSource,
-        targetUrl: redirect.target || '',
+        targetUrl: normalizedTarget,
         type: typeEnum,
         isActive: redirect.is_active !== false,
         hitCount: parseInt(redirect.hit_count, 10) || 0,

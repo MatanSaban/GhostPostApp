@@ -260,6 +260,7 @@
   text-align: left;
   direction: ltr;
   unicode-bidi: embed;
+  text-wrap: auto;
 }
 
 .typeBadge {

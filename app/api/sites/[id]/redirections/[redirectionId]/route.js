@@ -51,11 +51,14 @@ export async function PUT(request, { params }) {
     
     if (body.sourceUrl !== undefined) {
       let src = body.sourceUrl.startsWith('/') ? body.sourceUrl : `/${body.sourceUrl}`;
+      try { src = decodeURIComponent(src); } catch {}
       if (src.length > 1 && src.endsWith('/')) src = src.slice(0, -1);
       updateData.sourceUrl = src;
     }
     if (body.targetUrl !== undefined) {
-      updateData.targetUrl = body.targetUrl;
+      let tgt = body.targetUrl;
+      try { tgt = decodeURIComponent(tgt); } catch {}
+      updateData.targetUrl = tgt;
     }
     if (body.type !== undefined) {
       const typeMap = { '301': 'PERMANENT', '302': 'TEMPORARY', '307': 'FOUND', 'PERMANENT': 'PERMANENT', 'TEMPORARY': 'TEMPORARY', 'FOUND': 'FOUND' };

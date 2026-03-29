@@ -95,11 +95,16 @@ export async function POST(request, { params }) {
       return NextResponse.json({ error: 'Site not found' }, { status: 404 });
     }
     
-    // Normalize source URL - ensure it starts with / and strip trailing slash
+    // Normalize source URL - ensure it starts with /, decode percent-encoded chars, strip trailing slash
     let normalizedSource = sourceUrl.startsWith('/') ? sourceUrl : `/${sourceUrl}`;
+    try { normalizedSource = decodeURIComponent(normalizedSource); } catch {}
     if (normalizedSource.length > 1 && normalizedSource.endsWith('/')) {
       normalizedSource = normalizedSource.slice(0, -1);
     }
+
+    // Decode target URL if percent-encoded
+    let normalizedTarget = targetUrl;
+    try { normalizedTarget = decodeURIComponent(normalizedTarget); } catch {}
     
     // Map type string to enum
     const typeMap = { '301': 'PERMANENT', '302': 'TEMPORARY', '307': 'FOUND', 'PERMANENT': 'PERMANENT', 'TEMPORARY': 'TEMPORARY', 'FOUND': 'FOUND' };
@@ -110,7 +115,7 @@ export async function POST(request, { params }) {
       data: {
         siteId: id,
         sourceUrl: normalizedSource,
-        targetUrl,
+        targetUrl: normalizedTarget,
         type: redirectType,
       },
     });
@@ -121,7 +126,7 @@ export async function POST(request, { params }) {
         const typeCodeMap = { PERMANENT: 301, TEMPORARY: 302, FOUND: 307 };
         await wpCreateRedirect(site, {
           source: normalizedSource,
-          target: targetUrl,
+          target: normalizedTarget,
           type: typeCodeMap[redirectType] || 301,
         });
       } catch (err) {
