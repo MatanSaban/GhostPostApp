@@ -27,6 +27,9 @@ export async function GET(request) {
     const error = searchParams.get('error');
     const stateParam = searchParams.get('state');
     
+    console.log('[Google OAuth Callback] Request URL:', request.url);
+    console.log('[Google OAuth Callback] Has code:', !!code, 'Has error:', !!error);
+    
     // Handle OAuth errors
     if (error) {
       console.error('Google OAuth error:', error);
@@ -45,7 +48,10 @@ export async function GET(request) {
     const cookieStore = await cookies();
     const oauthStateCookie = cookieStore.get('google_oauth_state');
     
+    console.log('[Google OAuth Callback] Cookie found:', !!oauthStateCookie);
+    
     if (!oauthStateCookie) {
+      console.error('[Google OAuth Callback] Missing google_oauth_state cookie - this usually means cookies are not being sent cross-site');
       return NextResponse.redirect(
         new URL('/auth/login?error=invalid_state', request.url)
       );
@@ -54,7 +60,8 @@ export async function GET(request) {
     let oauthState;
     try {
       oauthState = JSON.parse(oauthStateCookie.value);
-    } catch {
+    } catch (parseError) {
+      console.error('[Google OAuth Callback] Failed to parse cookie:', parseError.message);
       return NextResponse.redirect(
         new URL('/auth/login?error=invalid_state', request.url)
       );
