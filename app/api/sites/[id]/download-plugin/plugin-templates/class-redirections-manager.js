@@ -42,6 +42,22 @@ class GP_Redirections_Manager {
     }
 
     /**
+     * Sanitize a redirect URL path, preserving percent-encoded characters.
+     * Unlike sanitize_text_field() which strips percent-encoded octets,
+     * this keeps them intact (important for non-Latin URLs like Hebrew).
+     *
+     * @param string $url The URL path to sanitize
+     * @return string Sanitized URL path
+     */
+    public static function sanitize_redirect_url($url) {
+        $url = trim($url);
+        $url = wp_check_invalid_utf8($url);
+        $url = wp_strip_all_tags($url);
+        $url = preg_replace('/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/', '', $url);
+        return $url;
+    }
+
+    /**
      * Known redirection plugins and their detection constants/classes.
      */
     private static $known_plugins = array(
@@ -190,8 +206,8 @@ class GP_Redirections_Manager {
      * Create a redirect in Ghost Post storage.
      */
     public function create_redirect($data) {
-        $source = sanitize_text_field($data['source'] ?? '');
-        $target = sanitize_text_field($data['target'] ?? '');
+        $source = self::sanitize_redirect_url($data['source'] ?? '');
+        $target = self::sanitize_redirect_url($data['target'] ?? '');
         $type   = intval($data['type'] ?? 301);
 
         if (empty($source) || empty($target)) {
@@ -250,14 +266,14 @@ class GP_Redirections_Manager {
         }
 
         if (isset($data['source'])) {
-            $source = sanitize_text_field($data['source']);
+            $source = self::sanitize_redirect_url($data['source']);
             if (strpos($source, '/') !== 0) {
                 $source = '/' . $source;
             }
             $redirects[$index]['source'] = $source;
         }
         if (isset($data['target'])) {
-            $redirects[$index]['target'] = sanitize_text_field($data['target']);
+            $redirects[$index]['target'] = self::sanitize_redirect_url($data['target']);
         }
         if (isset($data['type'])) {
             $type = intval($data['type']);
@@ -347,8 +363,8 @@ class GP_Redirections_Manager {
     public function bulk_sync($redirects) {
         $synced = array();
         foreach ($redirects as $r) {
-            $source = sanitize_text_field($r['sourceUrl'] ?? $r['source'] ?? '');
-            $target = sanitize_text_field($r['targetUrl'] ?? $r['target'] ?? '');
+            $source = self::sanitize_redirect_url($r['sourceUrl'] ?? $r['source'] ?? '');
+            $target = self::sanitize_redirect_url($r['targetUrl'] ?? $r['target'] ?? '');
             $type = intval($r['type'] ?? 301);
 
             if (empty($source) || empty($target)) {
@@ -625,8 +641,9 @@ class GP_Redirections_Manager {
         $redirects = get_option('gp_connector_redirects', array());
 
         foreach ($redirects as $index => &$r) {
+            $stored_source = $r['source'] ?? '';
             $is_active = isset($r['is_active']) ? (bool) $r['is_active'] : true;
-            if ($is_active && ($r['source'] ?? '') === $path) {
+            if ($is_active && ($stored_source === $path || rawurldecode($stored_source) === rawurldecode($path))) {
                 $r['hit_count'] = intval($r['hit_count'] ?? 0) + 1;
                 update_option('gp_connector_redirects', $redirects);
 

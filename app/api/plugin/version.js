@@ -10,10 +10,15 @@
  */
 
 // Current plugin version - increment this when making updates
-export const PLUGIN_VERSION = "2.3.3";
+export const PLUGIN_VERSION = "2.3.4";
 
 // Changelog for the current version
 export const PLUGIN_CHANGELOG = `
+= 2.3.4 =
+* FIX: Plugin templates now use sanitize_redirect_url instead of sanitize_text_field for redirect paths
+* FIX: Non-Latin redirect URLs (Hebrew, Arabic) no longer stripped when created via WP admin or API
+* FIX: Redirect matching now works for both encoded and decoded URL forms
+
 = 2.3.3 =
 * FIX: Redirect URL sanitizer regex causing paths to be emptied (broken delimiter)
 

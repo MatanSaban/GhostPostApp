@@ -259,8 +259,8 @@ class Ghost_Post {
         $manager = $this->redirections_manager ?? new GP_Redirections_Manager();
         
         $id     = sanitize_text_field($_POST['redirect_id'] ?? '');
-        $source = sanitize_text_field($_POST['source'] ?? '');
-        $target = sanitize_text_field($_POST['target'] ?? '');
+        $source = GP_Redirections_Manager::sanitize_redirect_url($_POST['source'] ?? '');
+        $target = GP_Redirections_Manager::sanitize_redirect_url($_POST['target'] ?? '');
         $type   = intval($_POST['type'] ?? 301);
         
         if (empty($source) || empty($target)) {
