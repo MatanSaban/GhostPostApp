@@ -42,24 +42,16 @@ class GP_Redirections_Manager {
     }
 
     /**
-     * Sanitize a redirect URL path, preserving percent-encoded characters.
-     * Unlike sanitize_text_field() which strips percent-encoded octets,
-     * this keeps them intact (important for non-Latin URLs like Hebrew).
-     *
-     * @param string $url The URL path to sanitize
-     * @return string Sanitized URL path
+     * Sanitize a redirect URL path, decoding percent-encoded characters to readable Unicode.
      */
     public static function sanitize_redirect_url($url) {
         $url = trim($url);
+        $url = rawurldecode($url);
         $url = wp_check_invalid_utf8($url);
         $url = wp_strip_all_tags($url);
-        $url = preg_replace('/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/', '', $url);
+        $url = preg_replace('/[\\x00-\\x08\\x0B\\x0C\\x0E-\\x1F\\x7F]/', '', $url);
         return $url;
     }
-
-    /**
-     * Known redirection plugins and their detection constants/classes.
-     */
     private static $known_plugins = array(
         'redirection' => array(
             'name'    => 'Redirection',

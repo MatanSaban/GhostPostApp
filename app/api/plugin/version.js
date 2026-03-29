@@ -10,10 +10,16 @@
  */
 
 // Current plugin version - increment this when making updates
-export const PLUGIN_VERSION = "2.3.4";
+export const PLUGIN_VERSION = "2.3.6";
 
 // Changelog for the current version
 export const PLUGIN_CHANGELOG = `
+= 2.3.6 =
+* IMPROVE: Percent-encoded redirect URLs are now auto-decoded to readable Unicode when saved
+
+= 2.3.5 =
+* FIX: Plugin no longer shows duplicate update notice after being updated
+
 = 2.3.4 =
 * FIX: Plugin templates now use sanitize_redirect_url instead of sanitize_text_field for redirect paths
 * FIX: Non-Latin redirect URLs (Hebrew, Arabic) no longer stripped when created via WP admin or API

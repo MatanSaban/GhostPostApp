@@ -230,7 +230,17 @@ class GP_Updater {
         if ($options['action'] === 'update' && $options['type'] === 'plugin') {
             // Check if our plugin was updated
             if (isset($options['plugins']) && in_array($this->plugin_basename, $options['plugins'])) {
+                // Clear our own cache
                 delete_transient($this->cache_key);
+                
+                // Remove our plugin from WordPress's update transient
+                // This is needed because $this->current_version still holds the OLD version
+                // (PHP constants are set at request start, before files were replaced)
+                $update_plugins = get_site_transient('update_plugins');
+                if ($update_plugins && isset($update_plugins->response[$this->plugin_basename])) {
+                    unset($update_plugins->response[$this->plugin_basename]);
+                    set_site_transient('update_plugins', $update_plugins);
+                }
             }
         }
     }
