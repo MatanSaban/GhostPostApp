@@ -10,10 +10,13 @@
  */
 
 // Current plugin version - increment this when making updates
-export const PLUGIN_VERSION = "2.3.2";
+export const PLUGIN_VERSION = "2.3.3";
 
 // Changelog for the current version
 export const PLUGIN_CHANGELOG = `
+= 2.3.3 =
+* FIX: Redirect URL sanitizer regex causing paths to be emptied (broken delimiter)
+
 = 2.3.2 =
 * FIX: Redirect URLs with non-Latin characters (Hebrew, Arabic, etc.) now preserved correctly
 * FIX: Percent-encoded paths no longer stripped to dashes when creating/updating redirects
