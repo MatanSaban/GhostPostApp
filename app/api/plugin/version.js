@@ -10,10 +10,14 @@
  */
 
 // Current plugin version - increment this when making updates
-export const PLUGIN_VERSION = "2.3.1";
+export const PLUGIN_VERSION = "2.3.2";
 
 // Changelog for the current version
 export const PLUGIN_CHANGELOG = `
+= 2.3.2 =
+* FIX: Redirect URLs with non-Latin characters (Hebrew, Arabic, etc.) now preserved correctly
+* FIX: Percent-encoded paths no longer stripped to dashes when creating/updating redirects
+
 = 2.3.1 =
 * FIX: Hit count sync now works correctly (fixed in plugin template that generates deployed code)
 
