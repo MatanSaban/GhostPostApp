@@ -2,8 +2,8 @@
  * Generate AI Post from Keyword API
  * 
  * Generates a complete blog post using AI based on a keyword
- * Uses Gemini 2.0 Flash for text generation
- * Uses Nano Banana 2 (Gemini native) for AI image generation (with Picsum fallback)
+ * Uses Gemini 2.5 Pro for text generation
+ * Uses Nano Banana Pro (gemini-3-pro-image-preview) for AI image generation (with Picsum fallback)
  */
 
 import { NextResponse } from 'next/server';
@@ -20,7 +20,7 @@ const SESSION_COOKIE = 'user_session';
 const PICSUM_URL = 'https://picsum.photos';
 
 /**
- * Generate a single AI image using Nano Banana 2, with Picsum fallback
+ * Generate a single AI image using Nano Banana Pro, with Picsum fallback
  * Images are uploaded to Cloudinary to avoid embedding large base64 data in HTML
  * @param {string} prompt - Image description
  * @param {string} aspectRatio - Aspect ratio (e.g. '16:9', '3:2')
@@ -55,9 +55,9 @@ async function generateSingleImage(prompt, aspectRatio, fallbackSeed, fallbackSi
         return { url: `data:${mimeType};base64,${images[0].base64}`, alt: prompt, isAI: true };
       }
     }
-    throw new Error('No image data returned from Imagen');
+    throw new Error('No image data returned from Nano Banana Pro');
   } catch (error) {
-    console.error('[generate-post] Imagen generation failed:', error.message);
+    console.error('[generate-post] Image generation failed:', error.message);
     if (error.statusCode) console.error('[generate-post] Status:', error.statusCode);
     if (error.responseBody) console.error('[generate-post] Response:', typeof error.responseBody === 'string' ? error.responseBody.slice(0, 300) : JSON.stringify(error.responseBody).slice(0, 300));
     console.warn('[generate-post] Falling back to Picsum placeholder');
@@ -309,7 +309,7 @@ export async function POST(request, { params }) {
       }
     }
 
-    // Generate featured image using Nano Banana 2 (with fallback)
+    // Generate featured image using Nano Banana Pro (with fallback)
     let featuredImageUrl = null;
     let featuredImageIsAI = false;
     if (featuredImage) {
@@ -341,7 +341,7 @@ export async function POST(request, { params }) {
     if (contentImages && contentImagesCount > 0) {
       const imageDescriptions = article.contentImageDescriptions || [];
       
-      // Generate content images using Nano Banana 2 (with fallback)
+      // Generate content images using Nano Banana Pro (with fallback)
       // First, find where each image will be inserted to get nearby content for context
       const ctxParagraphs = [...processedHtml.matchAll(/<\/p>/gi)];
       const ctxH2s = [...processedHtml.matchAll(/<h2[^>]*>/gi)];
@@ -545,7 +545,8 @@ function buildSystemPrompt({
 
 TARGET KEYWORD: "${keyword}"
 WORD COUNT: STRICTLY ${wordCount} words. This is a hard requirement - the article MUST contain at least ${Math.floor(wordCount * 0.9)} words and ideally reach ${wordCount} words. Write comprehensive, detailed content to fill the full word count. Do NOT write a shorter article.
-CONTENT LANGUAGE: ${siteLanguage === 'he' ? 'Hebrew' : 'English'}`;
+CONTENT LANGUAGE: ${siteLanguage === 'he' ? 'Hebrew' : 'English'}
+CURRENT YEAR: ${new Date().getFullYear()}. If you mention a year in the title, headings, or content, use ${new Date().getFullYear()} unless referring to a specific historical event or date.`;
 
   // Inject rich business context so AI understands what kind of website this is
   if (businessContext) {
@@ -648,7 +649,7 @@ ${existingPost.html}${userInstruction}`;
       break;
 
     case 'featuredImage': {
-      // Regenerate featured image using Nano Banana 2 with full context
+      // Regenerate featured image using Nano Banana Pro with full context
       const imgPrompt = buildImagePrompt({
         imageContext: imageContext || {},
         keyword: keyword.keyword,

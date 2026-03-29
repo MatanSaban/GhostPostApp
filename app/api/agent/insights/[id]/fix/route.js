@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import prisma from '@/lib/prisma';
-import { generateInsightPreview, applyInsightFix, regenerateItem, isFixableType } from '@/lib/agent-fix';
+import { generateInsightPreview, applyInsightFix, regenerateItem, isFixableType, generateMergedContent, applyMergedContent } from '@/lib/agent-fix';
 
 const SESSION_COOKIE = 'user_session';
 
@@ -58,6 +58,16 @@ export async function POST(request, { params }) {
         siteSecret: true,
         connectionStatus: true,
         wpLocale: true,
+        googleIntegration: {
+          select: {
+            id: true,
+            gscConnected: true,
+            gscSiteUrl: true,
+            accessToken: true,
+            refreshToken: true,
+            tokenExpiresAt: true,
+          },
+        },
       },
     });
 
@@ -93,6 +103,64 @@ export async function POST(request, { params }) {
       const itemIndex = typeof body.itemIndex === 'number' ? body.itemIndex : 0;
       const result = await regenerateItem(insight, site, itemIndex);
       return NextResponse.json(result);
+    }
+
+    // ─── Generate mode: generate merged content for preview ────
+    if (mode === 'generate') {
+      const proposal = body.proposal;
+      if (!proposal) {
+        return NextResponse.json({ error: 'No proposal provided' }, { status: 400 });
+      }
+
+      const options = {
+        generateFeaturedImages: body.generateFeaturedImages || false,
+        wordCount: proposal.wordCount,
+        articleType: proposal.articleType,
+        mergeInstructions: proposal.mergeInstructions,
+        contentImagesCount: proposal.contentImageCount || 0,
+        featuredImagePrompt: proposal.featuredImagePrompt || '',
+        contentImagesPrompt: proposal.contentImagesPrompt || '',
+      };
+
+      const result = await generateMergedContent(insight, site, proposal, options);
+      return NextResponse.json(result);
+    }
+
+    // ─── Apply-generated mode: apply previously generated content ─
+    if (mode === 'apply-generated') {
+      const { proposal, generatedPost } = body;
+      if (!proposal || !generatedPost) {
+        return NextResponse.json({ error: 'Missing proposal or generated content' }, { status: 400 });
+      }
+
+      const options = {
+        generateFeaturedImages: body.generateFeaturedImages || false,
+        googleIntegration: site.googleIntegration || null,
+      };
+
+      const result = await applyMergedContent(insight, site, proposal, generatedPost, options);
+
+      // Update insight with result
+      const prevResults = insight.executionResult?.results || [];
+      const allResults = [...prevResults];
+      for (const r of result.results) {
+        const existingIdx = allResults.findIndex(p => p.postId === r.postId);
+        if (existingIdx >= 0) allResults[existingIdx] = r;
+        else allResults.push(r);
+      }
+      const mergedResult = { ...result, results: allResults };
+
+      await prisma.agentInsight.update({
+        where: { id },
+        data: { executionResult: mergedResult },
+      });
+
+      return NextResponse.json({
+        success: result.success,
+        summary: result.summary,
+        results: result.results,
+        actions: result.actions || [],
+      });
     }
 
     // ─── Apply mode: push approved proposals to WordPress ─────

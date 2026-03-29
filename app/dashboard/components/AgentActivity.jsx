@@ -12,6 +12,7 @@ import { useAgent } from '@/app/context/agent-context';
 import { DashboardCard } from './DashboardCard';
 import { ArrowIcon } from '@/app/components/ui/arrow-icon';
 import FixPreviewModal from './FixPreviewModal';
+import AiSuggestModal from './AiSuggestModal';
 import { formatPageUrl } from '@/lib/urlDisplay';
 import {
   FIXABLE_INSIGHT_TYPES,
@@ -66,12 +67,34 @@ function EntityLinkCell({ url, siteId, translations }) {
   return <span className={styles.entityNone}>-</span>;
 }
 
+function AiSuggestButton({ page, siteId, translations }) {
+  const [open, setOpen] = useState(false);
+  const t = translations?.agent?.suggestTraffic || {};
+  return (
+    <>
+      <button className={styles.aiSuggestBtn} onClick={() => setOpen(true)}>
+        <Sparkles size={12} /> {t.buttonLabel || 'AI Suggestion'}
+      </button>
+      <AiSuggestModal
+        open={open}
+        onClose={() => setOpen(false)}
+        pageTitle={page.title}
+        pageUrl={page.url}
+        pageSlug={page.slug}
+        siteId={siteId}
+        translations={translations}
+      />
+    </>
+  );
+}
+
 function InsightDetails({ insight, translations, pluginConnected, onOpenFixSingle, trackedKeywords, addingKeyword, onAddKeyword, siteId }) {
   const d = insight.data;
   if (!d) return null;
 
   const labels = translations?.agent?.detailLabels || {};
   const t = translations?.agent || {};
+  const entityLabel = labels.entity || 'Entity';
   const type = getInsightType(insight.titleKey);
   const canFix = pluginConnected && FIXABLE_INSIGHT_TYPES.has(type) && ['PENDING', 'APPROVED', 'FAILED', 'EXECUTED'].includes(insight.status);
 
@@ -592,16 +615,40 @@ function InsightDetails({ insight, translations, pluginConnected, onOpenFixSingl
     return (
       <div className={styles.detailSection}>
         <table className={styles.detailTable}>
-          <thead><tr><th>{labels.page || 'Page'}</th><th>{labels.publishedAt || 'Published'}</th></tr></thead>
+          <thead>
+            <tr>
+              <th>{labels.page || 'Page'}</th>
+              <th>{labels.url || 'URL'}</th>
+              <th>{labels.publishedAt || 'Published'}</th>
+              <th>{entityLabel}</th>
+              <th>{labels.aiSuggestion || 'AI Suggestion'}</th>
+            </tr>
+          </thead>
           <tbody>
-            {d.pages.slice(0, 5).map((p, i) => (
+            {d.pages.map((p, i) => (
               <tr key={i}>
-                <td>{p.title}</td>
+                <td className={styles.detailPageTitle}>{p.title}</td>
+                <td>
+                  {p.url && (
+                    <a href={p.url} target="_blank" rel="noopener noreferrer" className={styles.detailLink}>
+                      <bdi dir="ltr">{formatPageUrl(p.url)}</bdi> <ExternalLink size={12} />
+                    </a>
+                  )}
+                </td>
                 <td>{p.publishedAt ? new Date(p.publishedAt).toLocaleDateString() : '-'}</td>
+                <td><EntityLinkCell url={p.url} siteId={siteId} translations={translations} /></td>
+                <td>
+                  <AiSuggestButton page={p} siteId={siteId} translations={translations} />
+                </td>
               </tr>
             ))}
           </tbody>
         </table>
+        {d.count > d.pages.length && (
+          <p className={styles.detailMore}>
+            {(labels.andMore || 'and {count} more...').replace('{count}', d.count - d.pages.length)}
+          </p>
+        )}
       </div>
     );
   }
@@ -889,7 +936,7 @@ function InsightItem({ insight, translations, onAction, onOpenFix, pluginConnect
           />
           {showActions && (
             <div className={styles.insightActions}>
-              {canFix && (
+              {canFix && getInsightType(insight.titleKey) !== 'cannibalization' && (
                 <button
                   className={`${styles.actionBtn} ${styles.fixBtn}`}
                   onClick={() => onOpenFix(insight)}

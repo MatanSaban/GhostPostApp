@@ -10,6 +10,7 @@ import { useSite } from '@/app/context/site-context';
 import { useAgent } from '@/app/context/agent-context';
 import { PageHeader } from '../components';
 import FixPreviewModal from '../components/FixPreviewModal';
+import AiSuggestModal from '../components/AiSuggestModal';
 import { formatPageUrl } from '@/lib/urlDisplay';
 import {
   FIXABLE_INSIGHT_TYPES,
@@ -145,6 +146,27 @@ function ItemFixButton({ insightId, itemIndex, translations, onItemFixed }) {
     <button className={styles.itemFixBtn} onClick={handleFix}>
       <Sparkles size={12} /> {translations.fixApplyItem || 'Apply'}
     </button>
+  );
+}
+
+function AiSuggestButton({ page, siteId, translations }) {
+  const [open, setOpen] = useState(false);
+  const t = translations?.agent?.suggestTraffic || {};
+  return (
+    <>
+      <button className={styles.aiSuggestBtn} onClick={() => setOpen(true)}>
+        <Sparkles size={12} /> {t.buttonLabel || 'AI Suggestion'}
+      </button>
+      <AiSuggestModal
+        open={open}
+        onClose={() => setOpen(false)}
+        pageTitle={page.title}
+        pageUrl={page.url}
+        pageSlug={page.slug}
+        siteId={siteId}
+        translations={translations}
+      />
+    </>
   );
 }
 
@@ -839,6 +861,7 @@ function InsightDetails({ insight, translations, siteId, pluginConnected, onItem
               <th>{labels.url || 'URL'}</th>
               <th>{labels.publishedAt || 'Published'}</th>
               <th>{entityLabel}</th>
+              <th>{labels.aiSuggestion || 'AI Suggestion'}</th>
             </tr>
           </thead>
           <tbody>
@@ -854,6 +877,9 @@ function InsightDetails({ insight, translations, siteId, pluginConnected, onItem
                 </td>
                 <td>{p.publishedAt ? new Date(p.publishedAt).toLocaleDateString() : '-'}</td>
                 <td><EntityLinkCell url={p.url} siteId={siteId} translations={translations} /></td>
+                <td>
+                  <AiSuggestButton page={p} siteId={siteId} translations={translations} />
+                </td>
               </tr>
             ))}
           </tbody>
@@ -1203,7 +1229,7 @@ function InsightRow({ insight, translations, onAction, onOpenFix, siteId, plugin
 
           {showActions && (
             <div className={styles.insightActions}>
-              {canFix && (
+              {canFix && getInsightType(insight.titleKey) !== 'cannibalization' && (
                 <button className={`${styles.actionBtn} ${styles.fixBtn}`} onClick={() => onOpenFix(insight, null)} disabled={actionLoading}>
                   <Sparkles size={14} />
                   {translations?.agent?.fixWithAi || 'Fix with AI'}
@@ -1358,35 +1384,6 @@ export default function AgentPageContent({ translations }) {
         </button>
       </PageHeader>
 
-      {/* Stats */}
-      <div className={styles.statsRow}>
-        {loading ? (
-          <>
-            {[0, 1, 2].map(i => (
-              <div key={i} className={`${styles.statCard} ${styles.statCardSkeleton}`}>
-                <div className={styles.skeletonLine} style={{ width: '2rem', height: '1.5rem' }} />
-                <div className={styles.skeletonLine} style={{ width: '5rem', height: '0.75rem' }} />
-              </div>
-            ))}
-          </>
-        ) : (
-          <>
-            <div className={styles.statCard}>
-              <div className={styles.statValue}>{totalCount}</div>
-              <div className={styles.statLabel}>{t.totalInsights || 'Total Insights'}</div>
-            </div>
-            <div className={`${styles.statCard} ${pendingCount > 0 ? styles.statHighlight : ''}`}>
-              <div className={styles.statValue}>{pendingCount}</div>
-              <div className={styles.statLabel}>{t.pendingReview || 'Pending Review'}</div>
-            </div>
-            <div className={styles.statCard}>
-              <div className={styles.statValue}>{runs.length}</div>
-              <div className={styles.statLabel}>{t.recentRuns || 'Recent Runs'}</div>
-            </div>
-          </>
-        )}
-      </div>
-
       {/* Filters */}
       <div className={styles.filters}>
         <div className={styles.filterGroup}>
@@ -1424,6 +1421,35 @@ export default function AgentPageContent({ translations }) {
         <button className={styles.refreshBtn} onClick={() => fetchInsights()} title="Refresh">
           <RefreshCw size={14} />
         </button>
+      </div>
+
+      {/* Stats */}
+      <div className={styles.statsRow}>
+        {loading ? (
+          <>
+            {[0, 1, 2].map(i => (
+              <div key={i} className={`${styles.statCard} ${styles.statCardSkeleton}`}>
+                <div className={styles.skeletonLine} style={{ width: '2rem', height: '1.5rem' }} />
+                <div className={styles.skeletonLine} style={{ width: '5rem', height: '0.75rem' }} />
+              </div>
+            ))}
+          </>
+        ) : (
+          <>
+            <div className={styles.statCard}>
+              <div className={styles.statValue}>{totalCount}</div>
+              <div className={styles.statLabel}>{t.totalInsights || 'Total Insights'}</div>
+            </div>
+            <div className={`${styles.statCard} ${pendingCount > 0 ? styles.statHighlight : ''}`}>
+              <div className={styles.statValue}>{pendingCount}</div>
+              <div className={styles.statLabel}>{t.pendingReview || 'Pending Review'}</div>
+            </div>
+            <div className={styles.statCard}>
+              <div className={styles.statValue}>{runs.length}</div>
+              <div className={styles.statLabel}>{t.recentRuns || 'Recent Runs'}</div>
+            </div>
+          </>
+        )}
       </div>
 
       {/* Insights List */}

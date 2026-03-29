@@ -290,7 +290,7 @@
   flex-direction: column;
   gap: 1.5rem;
   min-width: 0;
-  overflow: hidden;
+  overflow: unset;
 }
 
 /* Chart Container */

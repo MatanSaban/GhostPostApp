@@ -46,10 +46,13 @@ async function generateAiArticle(content, site) {
 
   const siteUrl = (site.url || '').replace(/\/+$/, '');
 
+  const currentYear = new Date().getFullYear();
   const systemPrompt = `You are an expert SEO content writer. Your job is to write a complete, publish-ready article in HTML format.
+Current year: ${currentYear}
 
 Rules:
 1. Write approximately ${targetWordCount} words.
+1a. If you mention a year in the title, headings, or content, use ${currentYear} unless referring to a specific historical event or date.
 2. Format the output as clean HTML. Use <h2>, <h3>, <p>, <ul>/<ol>, <strong>, <em> as needed.
 3. Do NOT include <html>, <head>, <body>, or <h1> tags - return the article body only.
 4. The <h1> title will be set separately. Use ONLY <h2> tags for main section titles and <h3> for sub-sections. Never use <h1> inside the content.
