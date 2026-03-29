@@ -95,8 +95,11 @@ export async function POST(request, { params }) {
       return NextResponse.json({ error: 'Site not found' }, { status: 404 });
     }
     
-    // Normalize source URL - ensure it starts with /
-    const normalizedSource = sourceUrl.startsWith('/') ? sourceUrl : `/${sourceUrl}`;
+    // Normalize source URL - ensure it starts with / and strip trailing slash
+    let normalizedSource = sourceUrl.startsWith('/') ? sourceUrl : `/${sourceUrl}`;
+    if (normalizedSource.length > 1 && normalizedSource.endsWith('/')) {
+      normalizedSource = normalizedSource.slice(0, -1);
+    }
     
     // Map type string to enum
     const typeMap = { '301': 'PERMANENT', '302': 'TEMPORARY', '307': 'FOUND', 'PERMANENT': 'PERMANENT', 'TEMPORARY': 'TEMPORARY', 'FOUND': 'FOUND' };

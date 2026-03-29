@@ -50,7 +50,9 @@ export async function PUT(request, { params }) {
     const updateData = {};
     
     if (body.sourceUrl !== undefined) {
-      updateData.sourceUrl = body.sourceUrl.startsWith('/') ? body.sourceUrl : `/${body.sourceUrl}`;
+      let src = body.sourceUrl.startsWith('/') ? body.sourceUrl : `/${body.sourceUrl}`;
+      if (src.length > 1 && src.endsWith('/')) src = src.slice(0, -1);
+      updateData.sourceUrl = src;
     }
     if (body.targetUrl !== undefined) {
       updateData.targetUrl = body.targetUrl;

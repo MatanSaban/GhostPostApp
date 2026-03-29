@@ -42,6 +42,14 @@ class GP_Redirections_Manager {
     }
 
     /**
+     * Normalize a URL path by stripping the trailing slash (except root '/').
+     */
+    private static function normalize_path($path) {
+        $path = rtrim($path, '/');
+        return $path === '' ? '/' : $path;
+    }
+
+    /**
      * Sanitize a redirect URL path, decoding percent-encoded characters to readable Unicode.
      */
     public static function sanitize_redirect_url($url) {
@@ -214,10 +222,13 @@ class GP_Redirections_Manager {
             $source = '/' . $source;
         }
 
+        // Normalize: strip trailing slash for consistent storage
+        $source = self::normalize_path($source);
+
         $redirects = get_option('gp_connector_redirects', array());
 
         foreach ($redirects as $r) {
-            if (($r['source'] ?? '') === $source) {
+            if (self::normalize_path($r['source'] ?? '') === $source) {
                 return new WP_Error('duplicate', 'A redirect for this source URL already exists', array('status' => 409));
             }
         }
@@ -631,11 +642,13 @@ class GP_Redirections_Manager {
         }
 
         $redirects = get_option('gp_connector_redirects', array());
+        $normalized_path = self::normalize_path(rawurldecode($path));
 
         foreach ($redirects as $index => &$r) {
             $stored_source = $r['source'] ?? '';
+            $normalized_source = self::normalize_path(rawurldecode($stored_source));
             $is_active = isset($r['is_active']) ? (bool) $r['is_active'] : true;
-            if ($is_active && ($stored_source === $path || rawurldecode($stored_source) === rawurldecode($path))) {
+            if ($is_active && $normalized_source === $normalized_path) {
                 $r['hit_count'] = intval($r['hit_count'] ?? 0) + 1;
                 update_option('gp_connector_redirects', $redirects);
 
