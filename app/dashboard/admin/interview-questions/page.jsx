@@ -21,7 +21,7 @@ import {
 import { useLocale } from '@/app/context/locale-context';
 import { useUser } from '@/app/context/user-context';
 import { AdminModal, ConfirmDialog, FormInput, FormTextarea, FormSelect, FormCheckbox, FormActions, PrimaryButton, SecondaryButton } from '../components/AdminModal';
-import { AdminPageSkeleton, TableSkeleton } from '@/app/dashboard/components';
+import { AdminPageSkeleton, TableSkeleton, Button } from '@/app/dashboard/components';
 import styles from '../admin.module.css';
 
 export default function InterviewQuestionsPage() {
@@ -322,10 +322,10 @@ export default function InterviewQuestionsPage() {
             <FolderPlus size={16} />
             <span>{t('admin.interviewQuestions.addCategory')}</span>
           </button>
-          <button className={styles.addButton} onClick={handleAdd}>
+          <Button variant="primary" onClick={handleAdd}>
             <Plus size={16} />
             <span>{t('admin.interviewQuestions.addQuestion')}</span>
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -387,45 +387,46 @@ export default function InterviewQuestionsPage() {
                   </td>
                   <td>
                     <div className={styles.actionsCell}>
-                      <button
-                        className={styles.actionButton}
+                      <Button
+                        variant="icon"
                         onClick={() => handleMoveUp(question.id)}
                         disabled={index === 0}
                         title={t('admin.interviewQuestions.actions.moveUp')}
                         style={{ opacity: index === 0 ? 0.5 : 1 }}
                       >
                         <ChevronUp size={16} />
-                      </button>
-                      <button
-                        className={styles.actionButton}
+                      </Button>
+                      <Button
+                        variant="icon"
                         onClick={() => handleMoveDown(question.id)}
                         disabled={index === filteredQuestions.length - 1}
                         title={t('admin.interviewQuestions.actions.moveDown')}
                         style={{ opacity: index === filteredQuestions.length - 1 ? 0.5 : 1 }}
                       >
                         <ChevronDown size={16} />
-                      </button>
-                      <button 
-                        className={styles.actionButton} 
+                      </Button>
+                      <Button 
+                        variant="icon" 
                         title={t('admin.interviewQuestions.actions.edit')}
                         onClick={() => handleEdit(question)}
                       >
                         <Edit2 size={16} />
-                      </button>
-                      <button 
-                        className={styles.actionButton} 
+                      </Button>
+                      <Button 
+                        variant="icon" 
                         title={t('admin.interviewQuestions.actions.duplicate')}
                         onClick={() => handleDuplicate(question)}
                       >
                         <Copy size={16} />
-                      </button>
-                      <button 
-                        className={`${styles.actionButton} ${styles.danger}`} 
+                      </Button>
+                      <Button 
+                        variant="icon" 
+                        iconDanger
                         title={t('admin.interviewQuestions.actions.delete')}
                         onClick={() => handleDeleteClick(question)}
                       >
                         <Trash2 size={16} />
-                      </button>
+                      </Button>
                     </div>
                   </td>
                 </tr>

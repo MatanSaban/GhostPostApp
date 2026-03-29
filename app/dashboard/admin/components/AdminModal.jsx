@@ -5,6 +5,7 @@ import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 import { useLocale } from '@/app/context/locale-context';
 import { useModalResize, ModalResizeButton } from '@/app/components/ui/ModalResizeButton';
+import { Button } from '@/app/dashboard/components';
 import styles from './AdminModal.module.css';
 
 export function AdminModal({ isOpen, onClose, title, children, size = 'medium' }) {
@@ -76,20 +77,19 @@ export function ConfirmDialog({ isOpen, onClose, onConfirm, title, message, conf
         <div className={styles.content}>
           <p className={styles.message}>{message}</p>
           <div className={styles.actions}>
-            <button 
-              className={styles.cancelButton} 
+            <Button 
               onClick={onClose}
               disabled={isLoading}
             >
               {cancelText || t('admin.common.cancel')}
-            </button>
-            <button 
-              className={`${styles.confirmButton} ${styles[variant]}`} 
+            </Button>
+            <Button 
+              variant={variant} 
               onClick={onConfirm}
               disabled={isLoading}
             >
               {isLoading ? t('admin.common.loading') : (confirmText || t('admin.common.delete'))}
-            </button>
+            </Button>
           </div>
         </div>
       </div>
@@ -151,16 +151,16 @@ export function FormActions({ children }) {
 
 export function PrimaryButton({ children, isLoading, ...props }) {
   return (
-    <button className={styles.primaryButton} disabled={isLoading} {...props}>
+    <Button variant="primary" disabled={isLoading} {...props}>
       {isLoading ? '...' : children}
-    </button>
+    </Button>
   );
 }
 
 export function SecondaryButton({ children, ...props }) {
   return (
-    <button className={styles.secondaryButton} {...props}>
+    <Button {...props}>
       {children}
-    </button>
+    </Button>
   );
 }

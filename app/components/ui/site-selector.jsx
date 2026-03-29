@@ -26,15 +26,15 @@ function getPlatformLabel(platform) {
 }
 
 /**
- * Get the full URL with protocol for linking, and a clean display domain
+ * Get the full URL with protocol for linking, and a clean display URL with protocol
  */
 function formatSiteUrl(url) {
   if (!url) return { display: '', href: '' };
   const href = url.startsWith('http://') || url.startsWith('https://') ? url : `https://${url}`;
-  const raw = url.replace(/^https?:\/\//, '').replace(/\/$/, '');
-  let display;
-  try { display = decodeURI(raw); } catch { display = raw; }
   const isHttps = href.startsWith('https://');
+  const cleanUrl = href.replace(/\/$/, '');
+  let display;
+  try { display = decodeURI(cleanUrl); } catch { display = cleanUrl; }
   return { display, href, isHttps };
 }
 

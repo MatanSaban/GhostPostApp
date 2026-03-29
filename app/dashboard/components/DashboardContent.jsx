@@ -118,6 +118,14 @@ export default function DashboardContent({ translations }) {
   const [chartLoading, setChartLoading] = useState(false);
   const [chartData, setChartData] = useState(null); // null = use data.trafficChart
   const [chartComparison, setChartComparison] = useState(null); // { visitors, visitorsChange, ... }
+  const [chartAnimatedData, setChartAnimatedData] = useState(null); // Animated dummy data for loading state
+  const [chartVisibleMetrics, setChartVisibleMetrics] = useState({
+    visitors: true,
+    pageViews: true,
+    sessions: false, // hidden by default
+    newUsers: false, // hidden by default
+    engagedSessions: false, // hidden by default
+  });
 
   // GA KPIs date range
   const [gaPreset, setGaPreset] = useState('30d');
@@ -251,6 +259,61 @@ export default function DashboardContent({ translations }) {
       fetchTrafficChart();
     }
   }, [chartStartDate, chartEndDate, data?.gaConnected, selectedSite?.id]);
+
+  // ─── Animated chart data while loading (equalizer effect) ───
+  const [isTransitioning, setIsTransitioning] = useState(false);
+  const prevAnimatedDataRef = useRef(null);
+  
+  useEffect(() => {
+    if (!chartLoading) {
+      // When loading ends, start transition phase
+      if (chartAnimatedData) {
+        prevAnimatedDataRef.current = chartAnimatedData;
+        setIsTransitioning(true);
+      }
+      // Delay clearing animated data to allow CSS transition
+      const timeout = setTimeout(() => {
+        setChartAnimatedData(null);
+        setIsTransitioning(false);
+        prevAnimatedDataRef.current = null;
+      }, 1100);
+      return () => clearTimeout(timeout);
+    }
+    
+    // Calculate number of days in the selected range
+    const start = new Date(chartStartDate);
+    const end = new Date(chartEndDate);
+    const dayCount = Math.max(1, Math.ceil((end - start) / (1000 * 60 * 60 * 24)) + 1);
+    
+    // Generate data points matching the date range (low values for subtle animation)
+    const generateAnimatedData = () => {
+      const points = [];
+      for (let i = 0; i < dayCount; i++) {
+        const date = new Date(start);
+        date.setDate(date.getDate() + i);
+        points.push({
+          date: date.toISOString().split('T')[0],
+          visitors: Math.floor(Math.random() * 20),
+          pageViews: Math.floor(Math.random() * 20),
+          sessions: Math.floor(Math.random() * 20),
+          newUsers: Math.floor(Math.random() * 20),
+          engagedSessions: Math.floor(Math.random() * 20),
+        });
+      }
+      return points;
+    };
+    
+    // Initial data
+    setChartAnimatedData(generateAnimatedData());
+    setIsTransitioning(false);
+    
+    // Update every 1000ms to match CSS transition duration
+    const interval = setInterval(() => {
+      setChartAnimatedData(generateAnimatedData());
+    }, 1000);
+    
+    return () => clearInterval(interval);
+  }, [chartLoading, chartStartDate, chartEndDate]);
 
   // ─── Generic preset handler factory ───
   const makePresetHandler = (setPreset, setStart, setEnd, rangeFn = getDateRange) => (e) => {
@@ -738,8 +801,25 @@ export default function DashboardContent({ translations }) {
   const wrapRef = useRef(null);
   const [tooltip, setTooltip] = useState(null);
 
-  // Use custom-fetched chart data if available, otherwise fall back to initial data
-  const activeChartData = chartData ?? data?.trafficChart ?? [];
+  // Get real chart data
+  const realChartData = chartData ?? data?.trafficChart ?? [];
+  
+  // Use animated data while loading, otherwise real data
+  // Ensure animated data matches real data length for smooth CSS transition
+  const activeChartData = (() => {
+    if (chartLoading && chartAnimatedData) {
+      return chartAnimatedData;
+    }
+    if (!chartLoading && chartAnimatedData && realChartData.length > 0) {
+      // Transitioning from animated to real - ensure same length for smooth CSS transition
+      if (chartAnimatedData.length === realChartData.length) {
+        return realChartData;
+      }
+      // If lengths differ, still use real data but transition won't be as smooth
+      return realChartData;
+    }
+    return realChartData;
+  })();
 
   // Clamp tooltip within chart bounds after render
   useLayoutEffect(() => {
@@ -770,9 +850,14 @@ export default function DashboardContent({ translations }) {
     const innerW = W - padL - padR;
     const innerH = H - padT - padB;
 
-    const maxVisitors = Math.max(...chartItems.map(d => d.visitors), 1);
-    const maxPV = Math.max(...chartItems.map(d => d.pageViews), 1);
-    const maxY = Math.max(maxVisitors, maxPV);
+    // Calculate max Y based on visible metrics only
+    const visibleMaxValues = [];
+    if (chartVisibleMetrics.visitors) visibleMaxValues.push(Math.max(...chartItems.map(d => d.visitors), 1));
+    if (chartVisibleMetrics.pageViews) visibleMaxValues.push(Math.max(...chartItems.map(d => d.pageViews), 1));
+    if (chartVisibleMetrics.sessions) visibleMaxValues.push(Math.max(...chartItems.map(d => d.sessions || 0), 1));
+    if (chartVisibleMetrics.newUsers) visibleMaxValues.push(Math.max(...chartItems.map(d => d.newUsers || 0), 1));
+    if (chartVisibleMetrics.engagedSessions) visibleMaxValues.push(Math.max(...chartItems.map(d => d.engagedSessions || 0), 1));
+    const maxY = visibleMaxValues.length > 0 ? Math.max(...visibleMaxValues) : 1;
     // Nice round ceiling
     const ceil = Math.ceil(maxY / 10) * 10 || 10;
 
@@ -781,7 +866,7 @@ export default function DashboardContent({ translations }) {
 
     // Build smooth path via monotone cubic interpolation
     const buildPath = (field) => {
-      const pts = chartItems.map((d, i) => ({ x: xOf(i), y: yOf(d[field]) }));
+      const pts = chartItems.map((d, i) => ({ x: xOf(i), y: yOf(d[field] || 0) }));
       if (pts.length < 2) return '';
       let d = `M${pts[0].x},${pts[0].y}`;
       for (let i = 0; i < pts.length - 1; i++) {
@@ -800,10 +885,16 @@ export default function DashboardContent({ translations }) {
       return path + ` L${xOf(lastPt)},${padT + innerH} L${xOf(0)},${padT + innerH} Z`;
     };
 
-    const visitorsPath = buildPath('visitors');
-    const pageViewsPath = buildPath('pageViews');
-    const visitorsArea = buildArea('visitors');
-    const pageViewsArea = buildArea('pageViews');
+    const visitorsPath = chartVisibleMetrics.visitors ? buildPath('visitors') : '';
+    const pageViewsPath = chartVisibleMetrics.pageViews ? buildPath('pageViews') : '';
+    const sessionsPath = chartVisibleMetrics.sessions ? buildPath('sessions') : '';
+    const newUsersPath = chartVisibleMetrics.newUsers ? buildPath('newUsers') : '';
+    const engagedSessionsPath = chartVisibleMetrics.engagedSessions ? buildPath('engagedSessions') : '';
+    const visitorsArea = chartVisibleMetrics.visitors ? buildArea('visitors') : '';
+    const pageViewsArea = chartVisibleMetrics.pageViews ? buildArea('pageViews') : '';
+    const sessionsArea = chartVisibleMetrics.sessions ? buildArea('sessions') : '';
+    const newUsersArea = chartVisibleMetrics.newUsers ? buildArea('newUsers') : '';
+    const engagedSessionsArea = chartVisibleMetrics.engagedSessions ? buildArea('engagedSessions') : '';
 
     // Y-axis gridlines – 5 steps
     const gridLines = [];
@@ -818,6 +909,14 @@ export default function DashboardContent({ translations }) {
     const xLabels = chartItems
       .filter((_, i) => i % step === 0 || i === chartItems.length - 1)
       .map((d, _, arr) => ({ i: chartItems.indexOf(d), label: formatChartDate(d.date) }));
+
+    // Vertical gridlines at x-axis label positions
+    const verticalGridLines = xLabels.map(({ i }) => xOf(i));
+
+    // Toggle metric visibility
+    const toggleMetric = (metric) => {
+      setChartVisibleMetrics(prev => ({ ...prev, [metric]: !prev[metric] }));
+    };
 
     const handleMouseMove = (e) => {
       const svg = chartRef.current;
@@ -837,6 +936,9 @@ export default function DashboardContent({ translations }) {
         date: formatChartDate(d.date),
         visitors: d.visitors,
         pageViews: d.pageViews,
+        sessions: d.sessions || 0,
+        newUsers: d.newUsers || 0,
+        engagedSessions: d.engagedSessions || 0,
       });
     };
 
@@ -844,16 +946,53 @@ export default function DashboardContent({ translations }) {
 
     return (
       <div className={styles.fancyChartWrap} ref={wrapRef}>
-        {/* Legend */}
+        {/* Legend - clickable to toggle visibility */}
         <div className={styles.chartLegend}>
-          <span className={`${styles.chartLegendItem} ${styles.hasTooltip}`} data-tooltip={t.tipVisitorsLegend || 'Unique users who visited your site via organic search. One person visiting 5 pages counts as 1 visitor.'}>
-            <span className={styles.chartLegendDot} style={{ background: '#8b5cf6' }} />
+          <button
+            type="button"
+            className={`${styles.chartLegendItem} ${styles.hasTooltip} ${!chartVisibleMetrics.visitors ? styles.chartLegendItemHidden : ''}`}
+            data-tooltip={t.tipVisitorsLegend || 'Unique users who visited your site via organic search. One person visiting 5 pages counts as 1 visitor.'}
+            onClick={() => toggleMetric('visitors')}
+          >
+            <span className={styles.chartLegendDot} style={{ background: chartVisibleMetrics.visitors ? '#8b5cf6' : 'var(--muted-foreground)' }} />
             {t.visitors || 'Visitors'}
-          </span>
-          <span className={`${styles.chartLegendItem} ${styles.hasTooltip}`} data-tooltip={t.tipPageViewsLegend || 'Every single page load across your site. One person visiting 5 pages counts as 5 page views.'}>
-            <span className={styles.chartLegendDot} style={{ background: '#06b6d4' }} />
+          </button>
+          <button
+            type="button"
+            className={`${styles.chartLegendItem} ${styles.hasTooltip} ${!chartVisibleMetrics.pageViews ? styles.chartLegendItemHidden : ''}`}
+            data-tooltip={t.tipPageViewsLegend || 'Every single page load across your site. One person visiting 5 pages counts as 5 page views.'}
+            onClick={() => toggleMetric('pageViews')}
+          >
+            <span className={styles.chartLegendDot} style={{ background: chartVisibleMetrics.pageViews ? '#06b6d4' : 'var(--muted-foreground)' }} />
             {t.pageViews || 'Page Views'}
-          </span>
+          </button>
+          <button
+            type="button"
+            className={`${styles.chartLegendItem} ${styles.hasTooltip} ${!chartVisibleMetrics.sessions ? styles.chartLegendItemHidden : ''}`}
+            data-tooltip={t.tipSessionsLegend || 'A session is a period of user activity. A user visiting multiple pages in one visit counts as one session.'}
+            onClick={() => toggleMetric('sessions')}
+          >
+            <span className={styles.chartLegendDot} style={{ background: chartVisibleMetrics.sessions ? '#10b981' : 'var(--muted-foreground)' }} />
+            {t.sessions || 'Sessions'}
+          </button>
+          <button
+            type="button"
+            className={`${styles.chartLegendItem} ${styles.hasTooltip} ${!chartVisibleMetrics.newUsers ? styles.chartLegendItemHidden : ''}`}
+            data-tooltip={t.tipNewUsersLegend || 'First-time visitors who have never been to your site before.'}
+            onClick={() => toggleMetric('newUsers')}
+          >
+            <span className={styles.chartLegendDot} style={{ background: chartVisibleMetrics.newUsers ? '#f59e0b' : 'var(--muted-foreground)' }} />
+            {t.newUsers || 'New Users'}
+          </button>
+          <button
+            type="button"
+            className={`${styles.chartLegendItem} ${styles.hasTooltip} ${!chartVisibleMetrics.engagedSessions ? styles.chartLegendItemHidden : ''}`}
+            data-tooltip={t.tipEngagedSessionsLegend || 'Sessions with meaningful engagement: over 10 seconds, 2+ page views, or a conversion.'}
+            onClick={() => toggleMetric('engagedSessions')}
+          >
+            <span className={styles.chartLegendDot} style={{ background: chartVisibleMetrics.engagedSessions ? '#ec4899' : 'var(--muted-foreground)' }} />
+            {t.engagedSessions || 'Engaged'}
+          </button>
         </div>
 
         <svg
@@ -872,11 +1011,23 @@ export default function DashboardContent({ translations }) {
               <stop offset="0%" stopColor="#06b6d4" stopOpacity="0.25" />
               <stop offset="100%" stopColor="#06b6d4" stopOpacity="0.02" />
             </linearGradient>
+            <linearGradient id="sessionsGrad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#10b981" stopOpacity="0.25" />
+              <stop offset="100%" stopColor="#10b981" stopOpacity="0.02" />
+            </linearGradient>
+            <linearGradient id="newUsersGrad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#f59e0b" stopOpacity="0.25" />
+              <stop offset="100%" stopColor="#f59e0b" stopOpacity="0.02" />
+            </linearGradient>
+            <linearGradient id="engagedGrad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#ec4899" stopOpacity="0.25" />
+              <stop offset="100%" stopColor="#ec4899" stopOpacity="0.02" />
+            </linearGradient>
           </defs>
 
-          {/* Grid lines */}
+          {/* Horizontal grid lines */}
           {gridLines.map(({ y, val }, i) => (
-            <g key={i}>
+            <g key={`h-${i}`}>
               <line x1={padL} y1={y} x2={W - padR} y2={y} stroke="var(--border)" strokeWidth="0.5" strokeDasharray="3,3" />
               <text x={padL - 6} y={y + 3} textAnchor="end" fill="var(--muted-foreground)" fontSize="9" fontFamily="inherit">
                 {val}
@@ -884,13 +1035,24 @@ export default function DashboardContent({ translations }) {
             </g>
           ))}
 
+          {/* Vertical grid lines */}
+          {verticalGridLines.map((x, i) => (
+            <line key={`v-${i}`} x1={x} y1={padT} x2={x} y2={padT + innerH} stroke="var(--border)" strokeWidth="0.5" strokeDasharray="3,3" />
+          ))}
+
           {/* Areas */}
-          <path d={pageViewsArea} fill="url(#pvGrad)" />
-          <path d={visitorsArea} fill="url(#visitorsGrad)" />
+          {chartVisibleMetrics.engagedSessions && <path className={styles.chartPath} d={engagedSessionsArea} fill="url(#engagedGrad)" />}
+          {chartVisibleMetrics.newUsers && <path className={styles.chartPath} d={newUsersArea} fill="url(#newUsersGrad)" />}
+          {chartVisibleMetrics.sessions && <path className={styles.chartPath} d={sessionsArea} fill="url(#sessionsGrad)" />}
+          {chartVisibleMetrics.pageViews && <path className={styles.chartPath} d={pageViewsArea} fill="url(#pvGrad)" />}
+          {chartVisibleMetrics.visitors && <path className={styles.chartPath} d={visitorsArea} fill="url(#visitorsGrad)" />}
 
           {/* Lines */}
-          <path d={pageViewsPath} fill="none" stroke="#06b6d4" strokeWidth="2" strokeLinecap="round" />
-          <path d={visitorsPath} fill="none" stroke="#8b5cf6" strokeWidth="2" strokeLinecap="round" />
+          {chartVisibleMetrics.engagedSessions && <path className={styles.chartPath} d={engagedSessionsPath} fill="none" stroke="#ec4899" strokeWidth="2" strokeLinecap="round" />}
+          {chartVisibleMetrics.newUsers && <path className={styles.chartPath} d={newUsersPath} fill="none" stroke="#f59e0b" strokeWidth="2" strokeLinecap="round" />}
+          {chartVisibleMetrics.sessions && <path className={styles.chartPath} d={sessionsPath} fill="none" stroke="#10b981" strokeWidth="2" strokeLinecap="round" />}
+          {chartVisibleMetrics.pageViews && <path className={styles.chartPath} d={pageViewsPath} fill="none" stroke="#06b6d4" strokeWidth="2" strokeLinecap="round" />}
+          {chartVisibleMetrics.visitors && <path className={styles.chartPath} d={visitorsPath} fill="none" stroke="#8b5cf6" strokeWidth="2" strokeLinecap="round" />}
 
           {/* X labels */}
           {xLabels.map(({ i, label }) => (
@@ -903,8 +1065,11 @@ export default function DashboardContent({ translations }) {
           {tooltip && (
             <g>
               <line x1={tooltip.x} y1={padT} x2={tooltip.x} y2={padT + innerH} stroke="var(--muted-foreground)" strokeWidth="0.5" strokeDasharray="3,3" />
-              <circle cx={tooltip.x} cy={yOf(tooltip.visitors)} r="4" fill="#8b5cf6" stroke="white" strokeWidth="2" />
-              <circle cx={tooltip.x} cy={yOf(tooltip.pageViews)} r="4" fill="#06b6d4" stroke="white" strokeWidth="2" />
+              {chartVisibleMetrics.visitors && <circle cx={tooltip.x} cy={yOf(tooltip.visitors)} r="4" fill="#8b5cf6" stroke="white" strokeWidth="2" />}
+              {chartVisibleMetrics.pageViews && <circle cx={tooltip.x} cy={yOf(tooltip.pageViews)} r="4" fill="#06b6d4" stroke="white" strokeWidth="2" />}
+              {chartVisibleMetrics.sessions && <circle cx={tooltip.x} cy={yOf(tooltip.sessions)} r="4" fill="#10b981" stroke="white" strokeWidth="2" />}
+              {chartVisibleMetrics.newUsers && <circle cx={tooltip.x} cy={yOf(tooltip.newUsers)} r="4" fill="#f59e0b" stroke="white" strokeWidth="2" />}
+              {chartVisibleMetrics.engagedSessions && <circle cx={tooltip.x} cy={yOf(tooltip.engagedSessions)} r="4" fill="#ec4899" stroke="white" strokeWidth="2" />}
             </g>
           )}
         </svg>
@@ -924,14 +1089,36 @@ export default function DashboardContent({ translations }) {
             }}
           >
             <div className={styles.chartTooltipDate}>{tooltip.date}</div>
-            <div className={styles.chartTooltipRow}>
-              <span className={styles.chartTooltipDot} style={{ background: '#8b5cf6' }} />
-              {t.visitors || 'Visitors'}: <strong>{fmtNum(tooltip.visitors)}</strong>
-            </div>
-            <div className={styles.chartTooltipRow}>
-              <span className={styles.chartTooltipDot} style={{ background: '#06b6d4' }} />
-              {t.pageViews || 'Page Views'}: <strong>{fmtNum(tooltip.pageViews)}</strong>
-            </div>
+            {chartVisibleMetrics.visitors && (
+              <div className={styles.chartTooltipRow}>
+                <span className={styles.chartTooltipDot} style={{ background: '#8b5cf6' }} />
+                {t.visitors || 'Visitors'}: <strong>{fmtNum(tooltip.visitors)}</strong>
+              </div>
+            )}
+            {chartVisibleMetrics.pageViews && (
+              <div className={styles.chartTooltipRow}>
+                <span className={styles.chartTooltipDot} style={{ background: '#06b6d4' }} />
+                {t.pageViews || 'Page Views'}: <strong>{fmtNum(tooltip.pageViews)}</strong>
+              </div>
+            )}
+            {chartVisibleMetrics.sessions && (
+              <div className={styles.chartTooltipRow}>
+                <span className={styles.chartTooltipDot} style={{ background: '#10b981' }} />
+                {t.sessions || 'Sessions'}: <strong>{fmtNum(tooltip.sessions)}</strong>
+              </div>
+            )}
+            {chartVisibleMetrics.newUsers && (
+              <div className={styles.chartTooltipRow}>
+                <span className={styles.chartTooltipDot} style={{ background: '#f59e0b' }} />
+                {t.newUsers || 'New Users'}: <strong>{fmtNum(tooltip.newUsers)}</strong>
+              </div>
+            )}
+            {chartVisibleMetrics.engagedSessions && (
+              <div className={styles.chartTooltipRow}>
+                <span className={styles.chartTooltipDot} style={{ background: '#ec4899' }} />
+                {t.engagedSessions || 'Engaged'}: <strong>{fmtNum(tooltip.engagedSessions)}</strong>
+              </div>
+            )}
           </div>
         )}
       </div>
@@ -1031,10 +1218,24 @@ export default function DashboardContent({ translations }) {
                 </div>
                 <div className={styles.aiEngineGroupPages}>
                   {pages.map((row, j) => {
+                    // Build full URL display with protocol
                     let displayPath = row.page;
+                    let fullUrl = row.page;
+                    const siteUrl = selectedSite?.url?.replace(/\/$/, '') || '';
+                    const siteBase = siteUrl.startsWith('http') ? siteUrl : `https://${siteUrl}`;
                     try {
-                      displayPath = decodeURIComponent(row.page);
-                      if (displayPath === '/') displayPath = `/ (${t.aiHomePage || 'Homepage'})`;
+                      // row.page may be just a path or a full URL
+                      if (row.page.startsWith('/')) {
+                        // It's a path - prepend site URL for full display
+                        const path = decodeURIComponent(row.page);
+                        displayPath = siteBase + (path === '/' ? ` (${t.aiHomePage || 'Homepage'})` : path);
+                        fullUrl = siteBase + row.page;
+                      } else {
+                        // It's a full URL
+                        const u = new URL(row.page);
+                        displayPath = u.protocol + '//' + u.hostname + (u.pathname === '/' ? ` (${t.aiHomePage || 'Homepage'})` : decodeURIComponent(u.pathname));
+                        fullUrl = row.page;
+                      }
                     } catch { /* keep raw */ }
                     return (
                       <div key={j} className={styles.aiEnginePageRow}>
@@ -1044,7 +1245,7 @@ export default function DashboardContent({ translations }) {
                               {row.keyword}
                             </span>
                           )}
-                          <a href={toExternalUrl(row.page)} target="_blank" rel="noopener noreferrer" className={styles.aiEnginePageLink}>
+                          <a href={toExternalUrl(fullUrl)} target="_blank" rel="noopener noreferrer" className={styles.aiEnginePageLink}>
                             <bdi dir="ltr"><span className={styles.aiEnginePagePath} title={row.page}>{displayPath}</span></bdi>
                             <ExternalLink size={10} className={styles.pageLinkIcon} />
                           </a>
@@ -1247,7 +1448,7 @@ export default function DashboardContent({ translations }) {
         let display = row.page;
         try {
           const u = new URL(row.page);
-          display = u.hostname + (u.pathname === '/' ? '' : decodeURIComponent(u.pathname));
+          display = u.protocol + '//' + u.hostname + (u.pathname === '/' ? '' : decodeURIComponent(u.pathname));
         } catch { /* keep raw */ }
         return (
           <span className={styles.gscColLabel} title={row.page}>
@@ -1822,7 +2023,7 @@ export default function DashboardContent({ translations }) {
               rel="noopener noreferrer"
               className={styles.welcomeUrl}
             >
-              <bdi dir="ltr">{decodeDisplayUrl(selectedSite.url.replace(/^https?:\/\//, '').replace(/\/$/, ''))}</bdi>
+              <bdi dir="ltr">{decodeDisplayUrl(selectedSite.url.startsWith('http') ? selectedSite.url.replace(/\/$/, '') : `https://${selectedSite.url}`.replace(/\/$/, ''))}</bdi>
               <ExternalLink size={12} />
             </a>
           </div>
@@ -1942,13 +2143,15 @@ export default function DashboardContent({ translations }) {
                       {t.reconnectGoogle}
                     </a>
                   </div>
-                ) : chartLoading ? (
-                  <div className={styles.chartPlaceholder}>
-                    <Activity size={48} className={`${styles.chartPlaceholderIcon} ${styles.spinning}`} />
-                    <p>{t.loadingChart || 'Loading chart data...'}</p>
-                  </div>
                 ) : activeChartData?.length > 0 ? (
-                  renderFancyChart()
+                  <div className={chartLoading ? styles.chartLoadingWrap : undefined}>
+                    {renderFancyChart()}
+                    {chartLoading && (
+                      <div className={styles.chartLoadingOverlay}>
+                        <span>{t.loadingChart || 'Loading...'}</span>
+                      </div>
+                    )}
+                  </div>
                 ) : (
                   <div className={styles.chartPlaceholder}>
                     <Activity size={48} className={styles.chartPlaceholderIcon} />

@@ -11,6 +11,7 @@ export { PageHeader } from './PageHeader';
 export { LoadingState } from './LoadingState';
 export { StatsGrid } from './StatsGrid';
 export { EmptyState } from './EmptyState';
+export { Button } from './Button';
 
 // Reusable action buttons
 export { ScanButton, DeleteButton, AIDiscoverButton } from './actions';

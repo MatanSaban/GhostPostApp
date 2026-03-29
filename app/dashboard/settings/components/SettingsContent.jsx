@@ -59,7 +59,7 @@ import { useSite } from '@/app/context/site-context';
 import { useLocale } from '@/app/context/locale-context';
 import { useUser } from '@/app/context/user-context';
 import { usePermissions } from '@/app/hooks/usePermissions';
-import { SettingsFormSkeleton, TableSkeleton, FormSkeleton, Skeleton } from '@/app/dashboard/components';
+import { SettingsFormSkeleton, TableSkeleton, FormSkeleton, Skeleton, Button } from '@/app/dashboard/components';
 import WordPressPluginSection from './WordPressPluginSection';
 import UpgradePlanModal from '@/app/components/ui/UpgradePlanModal';
 import AddCreditsModal from '@/app/components/ui/AddCreditsModal';
@@ -704,8 +704,8 @@ function GeneralSettings({ general, setGeneral, translations, canEdit = true }) 
       <div className={styles.saveButtonWrapper}>
         {saveError && <span className={styles.saveError}>{saveError}</span>}
         {saveSuccess && <span className={styles.saveSuccess}>{t.saveSuccess || 'Settings saved successfully'}</span>}
-        <button 
-          className={styles.saveButton} 
+        <Button 
+          variant="primary"
           onClick={handleSave}
           disabled={isSaving}
         >
@@ -717,7 +717,7 @@ function GeneralSettings({ general, setGeneral, translations, canEdit = true }) 
           ) : (
             t.saveChanges
           )}
-        </button>
+        </Button>
       </div>
     </>
   );
@@ -870,7 +870,7 @@ function AIConfigSettings({ aiConfig, setAiConfig, translations, canEdit = true 
       </div>
 
       <div className={styles.saveButtonWrapper}>
-        <button className={styles.saveButton}>{t.saveChanges}</button>
+        <Button variant="primary">{t.saveChanges}</Button>
       </div>
     </>
   );
@@ -934,10 +934,10 @@ function SchedulingSettings({ scheduling, setScheduling, translations, canEdit =
             );
           })}
         </div>
-        <button className={styles.addButton} style={{ marginTop: '1rem' }}>
+        <Button variant="primary" style={{ marginTop: '1rem' }}>
           <Plus size={16} />
           {t.schedulingAddScheduledTask}
-        </button>
+        </Button>
       </div>
 
       <div className={styles.subsection}>
@@ -986,7 +986,7 @@ function SchedulingSettings({ scheduling, setScheduling, translations, canEdit =
       </div>
 
       <div className={styles.saveButtonWrapper}>
-        <button className={styles.saveButton}>{t.saveChanges}</button>
+        <Button variant="primary">{t.saveChanges}</Button>
       </div>
     </>
   );
@@ -1104,7 +1104,7 @@ function NotificationsSettings({ notifications, setNotifications, translations, 
       </div>
 
       <div className={styles.saveButtonWrapper}>
-        <button className={styles.saveButton}>{t.saveChanges}</button>
+        <Button variant="primary">{t.saveChanges}</Button>
       </div>
     </>
   );
@@ -1207,7 +1207,7 @@ function SEOSettings({ seo, setSeo, translations, canEdit = true }) {
       </div>
 
       <div className={styles.saveButtonWrapper}>
-        <button className={styles.saveButton}>{t.saveChanges}</button>
+        <Button variant="primary">{t.saveChanges}</Button>
       </div>
     </>
   );
@@ -1720,7 +1720,9 @@ function IntegrationsSettings({ translations, canEdit = true }) {
             ) : (
               <div className={styles.pickerList}>
                 {gscSites.map((site) => {
-                  const cleanUrl = site.siteUrl.replace(/^sc-domain:/, '').replace(/^https?:\/\//, '');
+                  const cleanUrl = site.siteUrl.startsWith('sc-domain:') 
+                    ? `https://${site.siteUrl.replace(/^sc-domain:/, '')}` 
+                    : site.siteUrl;
                   const isOwner = site.permissionLevel === 'siteOwner';
                   const permLabel = site.permissionLevel === 'siteOwner' ? (int.owner || 'Owner')
                     : site.permissionLevel === 'siteFullUser' ? (int.fullAccess || 'Full Access')
@@ -1953,9 +1955,9 @@ function AgentConfigSettings({ translations, canEdit = true }) {
       </div>
 
       <div className={styles.saveButtonWrapper}>
-        <button className={styles.saveButton} onClick={handleSave} disabled={saving || !canEdit}>
+        <Button variant="primary" onClick={handleSave} disabled={saving || !canEdit}>
           {saving ? (t.saving || 'Saving...') : t.saveChanges}
-        </button>
+        </Button>
       </div>
     </>
   );
@@ -2427,14 +2429,13 @@ function UsersSettings({ translations, canEdit = true }) {
             <h3>{us.confirmRemove?.title || 'Remove User'}</h3>
             <p>{us.confirmRemove?.message || 'Are you sure you want to remove this user from your account?'}</p>
             <div className={styles.modalActions}>
-              <button 
-                className={styles.cancelBtn} 
+              <Button 
                 onClick={() => setShowConfirmRemove(null)}
               >
                 {us.confirmRemove?.cancel || 'Cancel'}
-              </button>
-              <button 
-                className={styles.dangerBtn} 
+              </Button>
+              <Button 
+                variant="danger"
                 onClick={() => handleRemove(showConfirmRemove)}
                 disabled={actionLoading === showConfirmRemove}
               >
@@ -2442,7 +2443,7 @@ function UsersSettings({ translations, canEdit = true }) {
                   <Loader2 className={styles.spinner} size={14} />
                 ) : null}
                 {us.confirmRemove?.confirm || 'Remove'}
-              </button>
+              </Button>
             </div>
           </div>
         </div>,
@@ -2467,14 +2468,13 @@ function UsersSettings({ translations, canEdit = true }) {
               ))}
             </select>
             <div className={styles.modalActions}>
-              <button 
-                className={styles.cancelBtn} 
+              <Button 
                 onClick={() => setShowChangeRole(null)}
               >
                 {us.changeRoleModal?.cancel || 'Cancel'}
-              </button>
-              <button 
-                className={styles.primaryBtn} 
+              </Button>
+              <Button 
+                variant="primary"
                 onClick={handleChangeRole}
                 disabled={actionLoading === showChangeRole}
               >
@@ -2482,7 +2482,7 @@ function UsersSettings({ translations, canEdit = true }) {
                   <Loader2 className={styles.spinner} size={14} />
                 ) : null}
                 {us.changeRoleModal?.confirm || 'Save'}
-              </button>
+              </Button>
             </div>
           </div>
         </div>,
@@ -2658,8 +2658,9 @@ function TeamSettings({ translations, canEdit = true }) {
               </span>
               {canEdit && (
                 <div className={styles.memberActions}>
-                  <button 
-                    className={`${styles.actionButton} ${styles.danger}`}
+                  <Button 
+                    variant="icon"
+                    iconDanger
                     onClick={() => handleRemoveMember(member.siteMemberId)}
                     disabled={actionLoading === member.siteMemberId}
                     title={translate('settings.teamSection.removeFromSite')}
@@ -2669,7 +2670,7 @@ function TeamSettings({ translations, canEdit = true }) {
                     ) : (
                       <X size={14} />
                     )}
-                  </button>
+                  </Button>
                 </div>
               )}
             </div>
@@ -2679,14 +2680,14 @@ function TeamSettings({ translations, canEdit = true }) {
 
       {/* Add Member Button */}
       {canEdit && availableMembers.length > 0 && (
-        <button 
-          className={styles.addButton} 
+        <Button 
+          variant="primary"
           style={{ marginTop: '1.5rem' }}
           onClick={() => setShowAssignModal(true)}
         >
           <UserPlus size={16} />
           {translate('settings.teamSection.assignMember')}
-        </button>
+        </Button>
       )}
 
       {canEdit && availableMembers.length === 0 && assignedMembers.length > 0 && (
@@ -5233,8 +5234,8 @@ function AccountSettings({ translations, canEdit = true }) {
       </div>
 
       <div className={styles.saveButtonWrapper}>
-        <button 
-          className={styles.saveButton} 
+        <Button 
+          variant="primary"
           onClick={handleSave}
           disabled={isSaving || !canEdit}
         >
@@ -5246,7 +5247,7 @@ function AccountSettings({ translations, canEdit = true }) {
           ) : (
             t('common.saveChanges')
           )}
-        </button>
+        </Button>
       </div>
       
       {/* Delete Account Modal */}
@@ -5557,22 +5558,23 @@ function RolesSettings({ translations, canEdit = true }) {
                     <td>
                       {canEdit && (
                         <div className={styles.actionButtons}>
-                          <button 
-                            className={styles.iconButton} 
+                          <Button 
+                            variant="icon"
                             onClick={() => handleEdit(role)}
                             title={t('common.edit')}
                           >
                             <Edit2 size={16} />
-                          </button>
+                          </Button>
                           {!role.isSystemRole && (
-                            <button 
-                              className={`${styles.iconButton} ${styles.danger}`}
+                            <Button 
+                              variant="icon"
+                              iconDanger
                               onClick={() => handleDelete(role)}
                               title={t('common.delete')}
                               disabled={role.membersCount > 0}
                             >
                               <Trash2 size={16} />
-                            </button>
+                            </Button>
                           )}
                         </div>
                       )}
@@ -5593,9 +5595,9 @@ function RolesSettings({ translations, canEdit = true }) {
               <h2 className={styles.modalTitle}>
                 {editingRole ? t('settings.rolesSection.editRole') : t('settings.rolesSection.addRole')}
               </h2>
-              <button className={styles.modalClose} onClick={() => setModalOpen(false)}>
+              <Button variant="ghost" iconOnly onClick={() => setModalOpen(false)}>
                 <X size={20} />
-              </button>
+              </Button>
             </div>
             <form onSubmit={handleSubmit}>
               <div className={styles.modalBody}>
@@ -5641,12 +5643,12 @@ function RolesSettings({ translations, canEdit = true }) {
                 </div>
               </div>
               <div className={styles.modalFooter}>
-                <button type="button" className={styles.secondaryButton} onClick={() => setModalOpen(false)}>
+                <Button type="button" onClick={() => setModalOpen(false)}>
                   {t('common.cancel')}
-                </button>
-                <button type="submit" className={styles.primaryButton} disabled={isSubmitting}>
+                </Button>
+                <Button type="submit" variant="primary" disabled={isSubmitting}>
                   {isSubmitting ? <Loader2 className={styles.spinnerSmall} /> : t('common.save')}
-                </button>
+                </Button>
               </div>
             </form>
           </div>
@@ -5660,24 +5662,24 @@ function RolesSettings({ translations, canEdit = true }) {
           <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
             <div className={styles.modalHeader}>
               <h2 className={styles.modalTitle}>{t('settings.rolesSection.deleteConfirm')}</h2>
-              <button className={styles.modalClose} onClick={() => setDeleteConfirm(null)}>
+              <Button variant="ghost" iconOnly onClick={() => setDeleteConfirm(null)}>
                 <X size={20} />
-              </button>
+              </Button>
             </div>
             <div className={styles.modalBody}>
               <p>{t('settings.rolesSection.deleteWarning').replace('{name}', getRoleLabel(deleteConfirm))}</p>
             </div>
             <div className={styles.modalFooter}>
-              <button className={styles.secondaryButton} onClick={() => setDeleteConfirm(null)}>
+              <Button onClick={() => setDeleteConfirm(null)}>
                 {t('common.cancel')}
-              </button>
-              <button 
-                className={styles.dangerButton} 
+              </Button>
+              <Button 
+                variant="danger"
                 onClick={confirmDelete}
                 disabled={isSubmitting}
               >
                 {isSubmitting ? <Loader2 className={styles.spinnerSmall} /> : t('common.delete')}
-              </button>
+              </Button>
             </div>
           </div>
         </div>,
@@ -6302,8 +6304,8 @@ function PermissionsSettings({ translations, canEdit = true }) {
 
             {!isOwnerRole && canEdit && (
               <div className={styles.saveButtonWrapper}>
-                <button 
-                  className={styles.saveButton} 
+                <Button 
+                  variant="primary"
                   onClick={handleSave}
                   disabled={isSaving}
                 >
@@ -6317,7 +6319,7 @@ function PermissionsSettings({ translations, canEdit = true }) {
                   ) : (
                     t('common.save')
                   )}
-                </button>
+                </Button>
               </div>
             )}
           </>

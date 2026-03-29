@@ -24,6 +24,8 @@ export default async function DashboardPage() {
     totalPageViews: t('dashboard.stats.totalPageViews'),
     avgSessionDuration: t('dashboard.stats.avgSessionDuration'),
     sessions: t('dashboard.stats.sessions'),
+    newUsers: t('dashboard.stats.newUsers'),
+    engagedSessions: t('dashboard.stats.engagedSessions'),
 
     // GSC stats
     totalClicks: t('dashboard.stats.totalClicks'),
@@ -96,6 +98,9 @@ export default async function DashboardPage() {
     // Tooltip explanations
     tipVisitorsLegend: t('dashboard.tooltips.visitorsLegend'),
     tipPageViewsLegend: t('dashboard.tooltips.pageViewsLegend'),
+    tipSessionsLegend: t('dashboard.tooltips.sessionsLegend'),
+    tipNewUsersLegend: t('dashboard.tooltips.newUsersLegend'),
+    tipEngagedSessionsLegend: t('dashboard.tooltips.engagedSessionsLegend'),
     tipMoreFromPrev: t('dashboard.tooltips.moreFromPrev'),
     tipLessFromPrev: t('dashboard.tooltips.lessFromPrev'),
     tipCardUp: t('dashboard.tooltips.cardUp'),

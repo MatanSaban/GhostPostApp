@@ -102,7 +102,12 @@ export async function POST(request, { params }) {
         return NextResponse.json({ error: 'No proposals provided' }, { status: 400 });
       }
 
-      const result = await applyInsightFix(insight, site, proposals);
+      const options = {
+        generateFeaturedImages: body.generateFeaturedImages || false, // 1 credit per image
+        generateContentImages: body.generateContentImages || false, // 2 credits per image, max 3
+      };
+
+      const result = await applyInsightFix(insight, site, proposals, options);
 
       // Merge with previously fixed items to track partial progress
       const prevResults = insight.executionResult?.results || [];

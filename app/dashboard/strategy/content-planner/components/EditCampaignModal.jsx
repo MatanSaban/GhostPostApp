@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { createPortal } from 'react-dom';
 import { X, Save, Loader2, Trash2 } from 'lucide-react';
 import CampaignForm, { CAMPAIGN_COLORS } from '../../_shared/CampaignForm';
+import { Button } from '@/app/dashboard/components';
 import styles from '../page.module.css';
 
 export default function EditCampaignModal({ campaign, translations, onClose, onUpdated, onDeleted, canDelete = true }) {
@@ -66,9 +67,9 @@ export default function EditCampaignModal({ campaign, translations, onClose, onU
       <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
         <div className={styles.modalHeader}>
           <h2 className={styles.modalTitle}>{t.title}</h2>
-          <button className={styles.modalClose} onClick={onClose}>
+          <Button variant="ghost" iconOnly onClick={onClose}>
             <X size={20} />
-          </button>
+          </Button>
         </div>
 
         <form onSubmit={(e) => { e.preventDefault(); handleSave(); }}>
@@ -100,22 +101,21 @@ export default function EditCampaignModal({ campaign, translations, onClose, onU
                   <div className={styles.deleteConfirm}>
                     <p className={styles.deleteConfirmText}>{t.deleteConfirm}</p>
                     <div className={styles.deleteConfirmActions}>
-                      <button
+                      <Button
                         type="button"
-                        className={styles.secondaryButton}
                         onClick={() => setConfirmDelete(false)}
                       >
                         {t.cancel}
-                      </button>
-                      <button
+                      </Button>
+                      <Button
                         type="button"
-                        className={styles.deleteConfirmButton}
+                        variant="danger"
                         onClick={handleDelete}
                         disabled={deleting}
                       >
                         {deleting ? <Loader2 size={14} className={styles.spinner} /> : <Trash2 size={14} />}
                         {t.confirmDelete}
-                      </button>
+                      </Button>
                     </div>
                   </div>
                 )}
@@ -124,13 +124,13 @@ export default function EditCampaignModal({ campaign, translations, onClose, onU
           </div>
 
           <div className={styles.modalFooter}>
-            <button type="button" className={styles.secondaryButton} onClick={onClose}>
+            <Button type="button" onClick={onClose}>
               {t.cancel}
-            </button>
-            <button type="submit" className={styles.primaryButton} disabled={!name.trim() || saving}>
+            </Button>
+            <Button type="submit" variant="primary" disabled={!name.trim() || saving}>
               {saving ? <Loader2 size={16} className={styles.spinner} /> : <Save size={16} />}
               {t.save}
-            </button>
+            </Button>
           </div>
         </form>
       </div>

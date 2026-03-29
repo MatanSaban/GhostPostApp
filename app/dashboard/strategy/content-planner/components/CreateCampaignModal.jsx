@@ -5,6 +5,7 @@ import { createPortal } from 'react-dom';
 import { X, FolderPlus, Loader2 } from 'lucide-react';
 import { useSite } from '@/app/context/site-context';
 import CampaignForm, { CAMPAIGN_COLORS } from '../../_shared/CampaignForm';
+import { Button } from '@/app/dashboard/components';
 import styles from '../page.module.css';
 
 export default function CreateCampaignModal({ translations, onClose, onCreated }) {
@@ -54,9 +55,9 @@ export default function CreateCampaignModal({ translations, onClose, onCreated }
       <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
         <div className={styles.modalHeader}>
           <h2 className={styles.modalTitle}>{t.title}</h2>
-          <button className={styles.modalClose} onClick={onClose}>
+          <Button variant="ghost" iconOnly onClick={onClose}>
             <X size={20} />
-          </button>
+          </Button>
         </div>
 
         <form onSubmit={(e) => { e.preventDefault(); handleCreate(); }}>
@@ -74,13 +75,13 @@ export default function CreateCampaignModal({ translations, onClose, onCreated }
           </div>
 
           <div className={styles.modalFooter}>
-            <button type="button" className={styles.secondaryButton} onClick={onClose}>
+            <Button type="button" onClick={onClose}>
               {t.cancel}
-            </button>
-            <button type="submit" className={styles.primaryButton} disabled={!name.trim() || saving}>
+            </Button>
+            <Button type="submit" variant="primary" disabled={!name.trim() || saving}>
               {saving ? <Loader2 size={16} className={styles.spinner} /> : <FolderPlus size={16} />}
               {t.create}
-            </button>
+            </Button>
           </div>
         </form>
       </div>

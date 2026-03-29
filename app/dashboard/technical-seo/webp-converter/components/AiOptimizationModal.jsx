@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { useLocale } from '@/app/context/locale-context';
 import { useModalResize, ModalResizeButton } from '@/app/components/ui/ModalResizeButton';
+import { Button } from '@/app/dashboard/components';
 import styles from '../../technical-seo.module.css';
 
 export default function AiOptimizationModal({
@@ -54,13 +55,14 @@ export default function AiOptimizationModal({
           </h2>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
             <ModalResizeButton isMaximized={isMaximized} onToggle={toggleMaximize} className={styles.modalClose} />
-            <button 
-              className={styles.modalClose}
+            <Button 
+              variant="ghost"
+              iconOnly
               onClick={() => !aiOptimizing && onClose()}
               disabled={aiOptimizing}
             >
               <X />
-            </button>
+            </Button>
           </div>
         </div>
         
@@ -211,24 +213,23 @@ export default function AiOptimizationModal({
         
         <div className={styles.modalFooter}>
           {aiResults.length > 0 ? (
-            <button
-              className={styles.modalConfirm}
+            <Button
+              variant="primary"
               onClick={() => onClose()}
             >
               <Check />
               {t('common.done')}
-            </button>
+            </Button>
           ) : (
             <>
-              <button
-                className={styles.modalCancel}
+              <Button
                 onClick={onClose}
                 disabled={aiOptimizing}
               >
                 {t('common.cancel')}
-              </button>
-              <button
-                className={`${styles.modalConfirm} ${styles.aiModalConfirm}`}
+              </Button>
+              <Button
+                variant="primary"
                 onClick={onOptimize}
                 disabled={aiOptimizing || selectedImages.size === 0 || (!applyFilename && !applyAltText)}
               >
@@ -243,7 +244,7 @@ export default function AiOptimizationModal({
                     {t('tools.ai.optimizeSelected')} ({selectedImages.size})
                   </>
                 )}
-              </button>
+              </Button>
             </>
           )}
         </div>

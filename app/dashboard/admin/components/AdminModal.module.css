@@ -116,56 +116,6 @@
   justify-content: flex-end;
 }
 
-.cancelButton {
-  padding: 0.625rem 1.25rem;
-  font-size: 0.9rem;
-  font-weight: 500;
-  color: var(--foreground);
-  background: var(--muted);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  transition: all var(--transition-fast);
-}
-
-.cancelButton:hover:not(:disabled) {
-  background: var(--background);
-  border-color: var(--primary);
-}
-
-.cancelButton:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.confirmButton {
-  padding: 0.625rem 1.25rem;
-  font-size: 0.9rem;
-  font-weight: 600;
-  color: white;
-  border: none;
-  border-radius: var(--radius-lg);
-  transition: all var(--transition-fast);
-}
-
-.confirmButton:hover:not(:disabled) {
-  transform: translateY(-1px);
-}
-
-.confirmButton:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.confirmButton.danger {
-  background: linear-gradient(135deg, #ef4444, #dc2626);
-  box-shadow: 0 4px 14px rgba(239, 68, 68, 0.25);
-}
-
-.confirmButton.primary {
-  background: var(--gradient-primary);
-  box-shadow: var(--shadow-purple);
-}
-
 /* Form Styles */
 .formField {
   display: flex;

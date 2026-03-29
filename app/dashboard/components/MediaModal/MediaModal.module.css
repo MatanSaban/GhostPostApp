@@ -437,43 +437,6 @@
   gap: 0.5rem;
 }
 
-.cancelButton {
-  padding: 0.5rem 1rem;
-  border-radius: var(--radius-md);
-  background: transparent;
-  border: 1px solid var(--border);
-  cursor: pointer;
-  font-size: 0.9rem;
-  font-weight: 500;
-  color: var(--foreground);
-  transition: all 0.15s;
-
-  &:hover {
-    background: var(--muted);
-  }
-}
-
-.confirmButton {
-  padding: 0.5rem 1rem;
-  border-radius: var(--radius-md);
-  background: var(--primary);
-  border: none;
-  cursor: pointer;
-  font-size: 0.9rem;
-  font-weight: 500;
-  color: var(--primary-foreground);
-  transition: all 0.15s;
-
-  &:hover:not(:disabled) {
-    opacity: 0.9;
-  }
-
-  &:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-  }
-}
-
 /* Edit Fields */
 .editFields {
   display: flex;

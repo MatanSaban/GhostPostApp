@@ -174,56 +174,6 @@
   }
 }
 
-.addButton {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  padding: 0.75rem 1.5rem;
-  font-size: 0.9rem;
-  font-weight: 500;
-  color: white;
-  background: var(--gradient-primary);
-  border: none;
-  border-radius: var(--radius-lg);
-  cursor: pointer;
-  transition: all var(--transition-fast);
-  white-space: nowrap;
-
-  &:hover:not(:disabled) {
-    transform: scale(1.02);
-  }
-
-  &:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-  }
-}
-
-.cancelButton {
-  padding: 0.75rem 1.5rem;
-  font-size: 0.9rem;
-  font-weight: 500;
-  color: var(--muted-foreground);
-  background: transparent;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  cursor: pointer;
-  transition: all var(--transition-fast);
-
-  &:hover {
-    background: var(--muted);
-  }
-
-  .dark & {
-    border-color: rgba(123, 44, 191, 0.2);
-
-    &:hover {
-      background: rgba(123, 44, 191, 0.1);
-    }
-  }
-}
-
 .errorText {
   margin-top: 0.75rem;
   font-size: 0.8125rem;

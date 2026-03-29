@@ -13,6 +13,7 @@ import {
   Globe,
 } from 'lucide-react';
 import { useLocale } from '@/app/context/locale-context';
+import { Button } from '@/app/dashboard/components';
 import styles from './OnboardingCard.module.css';
 
 /**
@@ -126,8 +127,8 @@ export function OnboardingCard({
 
       <div className={styles.actions}>
         {config.primaryLabel && (
-          <button 
-            className={styles.primaryButton}
+          <Button 
+            variant="primary"
             onClick={onPrimaryAction}
             disabled={isLoading}
           >
@@ -142,17 +143,16 @@ export function OnboardingCard({
                 <span>{config.primaryLabel}</span>
               </>
             )}
-          </button>
+          </Button>
         )}
         
         {config.secondaryLabel && onSecondaryAction && (
-          <button 
-            className={styles.secondaryButton}
+          <Button 
             onClick={onSecondaryAction}
           >
             {SecondaryIconComponent && <SecondaryIconComponent />}
             <span>{config.secondaryLabel}</span>
-          </button>
+          </Button>
         )}
       </div>
     </div>

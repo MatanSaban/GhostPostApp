@@ -19,7 +19,7 @@ import {
 } from 'lucide-react';
 import { useLocale } from '@/app/context/locale-context';
 import { usePermissions } from '@/app/hooks/usePermissions';
-import { TableSkeleton } from '@/app/dashboard/components';
+import { TableSkeleton, Button } from '@/app/dashboard/components';
 import { OnboardingCard } from './OnboardingCard';
 import styles from '../entities.module.css';
 
@@ -364,21 +364,20 @@ export function EntitiesTable({
             />
           </div>
           {isSyncing ? (
-            <button 
-              className={`${styles.syncButton} ${styles.stopButton}`}
+            <Button 
+              variant="danger"
               onClick={onStopSync}
             >
               <StopCircle />
               <span>{t('entities.sync.stop')}</span>
-            </button>
+            </Button>
           ) : (
-            <button 
-              className={styles.syncButton}
+            <Button 
               onClick={onSync}
             >
               <RefreshCw />
               <span>{t('entities.syncEntity', { name: entityTypeName || entityType })}</span>
-            </button>
+            </Button>
           )}
         </div>
       </div>

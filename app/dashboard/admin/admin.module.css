@@ -117,27 +117,6 @@
   }
 }
 
-.addButton {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.625rem 1.25rem;
-  font-size: 0.9rem;
-  font-weight: 600;
-  background: var(--gradient-primary);
-  border: none;
-  border-radius: var(--radius-lg);
-  color: white;
-  cursor: pointer;
-  transition: all var(--transition-fast);
-  box-shadow: var(--shadow-purple);
-
-  &:hover {
-    transform: translateY(-1px);
-    box-shadow: var(--shadow-purple-lg);
-  }
-}
-
 /* Filter Select - matches FormSelect from AdminModal */
 .filterSelect {
   width: auto;
@@ -386,12 +365,6 @@
     color: var(--foreground);
     border-color: var(--border);
   }
-
-  &.danger:hover {
-    background: rgba(239, 68, 68, 0.1);
-    color: #ef4444;
-    border-color: rgba(239, 68, 68, 0.2);
-  }
 }
 
 /* Empty State */
@@ -495,13 +468,6 @@
   to {
     transform: rotate(360deg);
   }
-}
-
-/* Delete button styling */
-.deleteButton:hover {
-  background: rgba(239, 68, 68, 0.1) !important;
-  color: #ef4444 !important;
-  border-color: rgba(239, 68, 68, 0.2) !important;
 }
 
 /* Inactive row styling */
@@ -634,21 +600,6 @@
   color: var(--foreground);
 }
 
-.modalClose {
-  background: none;
-  border: none;
-  padding: 0.25rem;
-  cursor: pointer;
-  color: var(--muted-foreground);
-  border-radius: 0.375rem;
-  transition: all 0.2s ease;
-
-  &:hover {
-    background: var(--muted);
-    color: var(--foreground);
-  }
-}
-
 .modalBody {
   padding: 1.5rem;
   overflow-y: auto;
@@ -768,31 +719,6 @@
 
   &:hover {
     background: var(--muted-hover);
-  }
-}
-
-.dangerButton {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  padding: 0.625rem 1.25rem;
-  font-size: 0.9rem;
-  font-weight: 500;
-  color: white;
-  background: var(--destructive);
-  border: none;
-  border-radius: 0.5rem;
-  cursor: pointer;
-  transition: all 0.2s ease;
-
-  &:hover {
-    background: var(--destructive-hover, #dc2626);
-  }
-
-  &:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
   }
 }
 

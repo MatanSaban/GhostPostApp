@@ -22,7 +22,7 @@ import {
 import { useLocale } from '@/app/context/locale-context';
 import { useUser } from '@/app/context/user-context';
 import { AdminModal, ConfirmDialog, FormInput, FormTextarea, FormCheckbox, FormSelect, FormActions, PrimaryButton, SecondaryButton } from '../components/AdminModal';
-import { AdminPageSkeleton, TableSkeleton } from '@/app/dashboard/components';
+import { AdminPageSkeleton, TableSkeleton, Button } from '@/app/dashboard/components';
 import styles from '../admin.module.css';
 
 const EMPTY_FORM = {
@@ -403,10 +403,10 @@ export default function CouponsPage() {
           <button className={styles.refreshButton} onClick={loadCoupons} title="Refresh">
             <RefreshCw size={16} />
           </button>
-          <button className={styles.addButton} onClick={handleAdd}>
+          <Button variant="primary" onClick={handleAdd}>
             <Plus size={16} />
             {t('admin.coupons.addCoupon')}
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -528,15 +528,15 @@ export default function CouponsPage() {
                   </td>
                   <td>
                     <div className={styles.actionButtons}>
-                      <button className={styles.actionButton} onClick={() => handleTranslate(coupon)} title={t('admin.coupons.actions.translate') || 'Translate'}>
+                      <Button variant="icon" onClick={() => handleTranslate(coupon)} title={t('admin.coupons.actions.translate') || 'Translate'}>
                         <Languages size={14} />
-                      </button>
-                      <button className={styles.actionButton} onClick={() => handleEdit(coupon)} title="Edit">
+                      </Button>
+                      <Button variant="icon" onClick={() => handleEdit(coupon)} title="Edit">
                         <Edit2 size={14} />
-                      </button>
-                      <button className={`${styles.actionButton} ${styles.danger}`} onClick={() => handleDeleteClick(coupon)} title="Delete">
+                      </Button>
+                      <Button variant="icon" iconDanger onClick={() => handleDeleteClick(coupon)} title="Delete">
                         <Trash2 size={14} />
-                      </button>
+                      </Button>
                     </div>
                   </td>
                 </tr>

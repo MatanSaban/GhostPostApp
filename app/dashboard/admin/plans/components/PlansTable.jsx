@@ -15,7 +15,7 @@ import {
   Globe,
 } from 'lucide-react';
 import { useLocale } from '@/app/context/locale-context';
-import { TableSkeleton } from '@/app/dashboard/components';
+import { TableSkeleton, Button } from '@/app/dashboard/components';
 import styles from '../../admin.module.css';
 
 export default function PlansTable({
@@ -151,51 +151,52 @@ export default function PlansTable({
             </td>
             <td>
               <div className={styles.actionsCell}>
-                <button 
-                  className={styles.actionButton} 
+                <Button 
+                  variant="icon" 
                   title={t('admin.plans.actions.translate')}
                   onClick={() => onTranslate(plan)}
                 >
                   <Languages size={16} />
-                </button>
-                <button 
-                  className={styles.actionButton} 
+                </Button>
+                <Button 
+                  variant="icon" 
                   title={t('admin.plans.actions.edit')}
                   onClick={() => onEdit(plan)}
                 >
                   <Edit2 size={16} />
-                </button>
-                <button 
-                  className={styles.actionButton} 
+                </Button>
+                <Button 
+                  variant="icon" 
                   title={t('admin.plans.actions.duplicate')}
                   onClick={() => onDuplicate(plan)}
                 >
                   <Copy size={16} />
-                </button>
+                </Button>
                 {plan.status === 'active' ? (
-                  <button 
-                    className={styles.actionButton} 
+                  <Button 
+                    variant="icon" 
                     title={t('admin.plans.actions.archive')}
                     onClick={() => onToggleActive(plan)}
                   >
                     <Archive size={16} />
-                  </button>
+                  </Button>
                 ) : (
                   <>
-                    <button 
-                      className={styles.actionButton} 
+                    <Button 
+                      variant="icon" 
                       title={t('admin.common.reactivate')}
                       onClick={() => onToggleActive(plan)}
                     >
                       <RotateCcw size={16} />
-                    </button>
-                    <button 
-                      className={`${styles.actionButton} ${styles.danger}`} 
+                    </Button>
+                    <Button 
+                      variant="icon" 
+                      iconDanger
                       title={t('admin.plans.actions.delete')}
                       onClick={() => onDelete(plan)}
                     >
                       <Trash2 size={16} />
-                    </button>
+                    </Button>
                   </>
                 )}
               </div>

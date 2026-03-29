@@ -329,6 +329,31 @@
   to { transform: rotate(360deg); }
 }
 
+/* Chart loading state - animated data */
+.chartLoadingWrap {
+  position: relative;
+  pointer-events: none;
+}
+
+.chartLoadingOverlay {
+  position: absolute;
+  bottom: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(var(--background-rgb, 255, 255, 255), 0.9);
+  padding: 6px 16px;
+  border-radius: var(--radius-md);
+  font-size: 0.8rem;
+  color: var(--muted-foreground);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(4px);
+  z-index: 10;
+
+  .dark & {
+    background: rgba(0, 0, 0, 0.8);
+  }
+}
+
 .reconnectLink {
   display: inline-flex;
   align-items: center;
@@ -973,6 +998,25 @@
   font-size: 0.8125rem;
   font-weight: 500;
   color: var(--muted-foreground);
+  background: none;
+  border: none;
+  padding: 0.25rem 0.5rem;
+  margin: -0.25rem -0.5rem;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: background-color 0.15s ease, opacity 0.15s ease;
+
+  &:hover {
+    background: var(--muted);
+  }
+}
+
+.chartLegendItemHidden {
+  opacity: 0.5;
+  
+  .chartLegendDot {
+    opacity: 0.4;
+  }
 }
 
 .chartLegendDot {
@@ -987,6 +1031,17 @@
   height: auto;
   display: block;
   cursor: crosshair;
+}
+
+.chartPath {
+  transition: d 1s ease-out, fill 0.3s ease, stroke 0.3s ease;
+}
+
+/* Ensure smooth path morphing across browsers */
+@supports (d: path("M0 0")) {
+  .chartPath {
+    transition: d 1s ease-out;
+  }
 }
 
 .chartTooltip {

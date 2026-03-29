@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { useLocale } from '@/app/context/locale-context';
 import { useModalResize, ModalResizeButton } from '@/app/components/ui/ModalResizeButton';
+import { Button } from '@/app/dashboard/components';
 import styles from '../../technical-seo.module.css';
 
 export default function WebpConversionModal({
@@ -49,13 +50,14 @@ export default function WebpConversionModal({
           <h2>{t('tools.webp.selectImages')}</h2>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
             <ModalResizeButton isMaximized={isMaximized} onToggle={toggleMaximize} className={styles.modalClose} />
-            <button 
-              className={styles.modalClose}
+            <Button 
+              variant="ghost"
+              iconOnly
               onClick={() => !converting && onClose()}
               disabled={converting}
             >
               <X />
-            </button>
+            </Button>
           </div>
         </div>
         
@@ -185,15 +187,14 @@ export default function WebpConversionModal({
             </div>
           ) : (
             <>
-              <button
-                className={styles.modalCancel}
+              <Button
                 onClick={onClose}
                 disabled={converting}
               >
                 {t('common.cancel')}
-              </button>
-              <button
-                className={styles.modalConfirm}
+              </Button>
+              <Button
+                variant="primary"
                 onClick={onConvert}
                 disabled={converting || selectedImages.size === 0}
               >
@@ -214,7 +215,7 @@ export default function WebpConversionModal({
                     }
                   </>
                 )}
-              </button>
+              </Button>
             </>
           )}
         </div>

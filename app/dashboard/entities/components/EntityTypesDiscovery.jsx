@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { useLocale } from '@/app/context/locale-context';
+import { Button } from '@/app/dashboard/components';
 import styles from '../entities.module.css';
 
 function formatTimeLeft(seconds, t) {
@@ -262,13 +263,13 @@ export function EntityTypesDiscovery({
                 placeholder="https://example.com/sitemap.xml"
                 className={styles.sitemapInput}
               />
-              <button
+              <Button
+                variant="primary"
                 onClick={onCustomSitemapSubmit}
                 disabled={!customSitemapUrl.trim() || isDiscovering}
-                className={styles.submitButton}
               >
                 {isDiscovering ? t('common.loading') : t('entities.discovery.tryCustom')}
-              </button>
+              </Button>
             </div>
           </div>
 
@@ -439,10 +440,10 @@ export function EntityTypesDiscovery({
         </div>
 
         <div className={styles.discoveryActions}>
-          <button
+          <Button
+            variant="primary"
             onClick={onSaveAndPopulate}
             disabled={selectedTypes.length === 0 || isSaving}
-            className={styles.saveButton}
           >
             {isSaving ? (
               <>
@@ -459,7 +460,7 @@ export function EntityTypesDiscovery({
                 {t('entities.discovery.saveAndPopulate')} ({selectedTypes.length})
               </>
             )}
-          </button>
+          </Button>
         </div>
       </>
     );

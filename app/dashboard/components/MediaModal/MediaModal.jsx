@@ -21,6 +21,7 @@ import {
 import { useSite } from '@/app/context/site-context';
 import { useLocale } from '@/app/context/locale-context';
 import { useModalResize, ModalResizeButton } from '@/app/components/ui/ModalResizeButton';
+import { Button } from '@/app/dashboard/components';
 import styles from './MediaModal.module.css';
 
 /**
@@ -575,16 +576,16 @@ export function MediaModal({
             )}
           </div>
           <div className={styles.footerActions}>
-            <button className={styles.cancelButton} onClick={onClose}>
+            <Button onClick={onClose}>
               {t('common.cancel')}
-            </button>
-            <button 
-              className={styles.confirmButton}
+            </Button>
+            <Button 
+              variant="primary"
               onClick={handleConfirm}
               disabled={selectedItems.length === 0}
             >
               {t('media.modal.select')}
-            </button>
+            </Button>
           </div>
         </div>
       </div>

@@ -143,7 +143,7 @@ export function CompetitorTable({ competitors, selectedCompetitor, scanningIds, 
                   />
                   <div>
                     <div className={styles.tableCompetitorName}>
-                      {competitor.name || competitor.domain}
+                      {competitor.name || (competitor.domain?.startsWith('http') ? competitor.domain : `https://${competitor.domain}`)}
                     </div>
                     <a
                       href={competitor.url}
@@ -152,7 +152,7 @@ export function CompetitorTable({ competitors, selectedCompetitor, scanningIds, 
                       className={styles.tableCompetitorUrl}
                       onClick={(e) => e.stopPropagation()}
                     >
-                      {competitor.domain}
+                      {competitor.domain?.startsWith('http') ? competitor.domain : `https://${competitor.domain}`}
                       <ExternalLink size={10} />
                     </a>
                   </div>

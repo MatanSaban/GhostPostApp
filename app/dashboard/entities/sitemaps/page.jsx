@@ -17,7 +17,7 @@ import {
 import { useLocale } from '@/app/context/locale-context';
 import { useSite } from '@/app/context/site-context';
 import { decodeDisplayUrl } from '@/lib/urlDisplay';
-import { PageHeaderSkeleton, ContentGridSkeleton, StatsGridSkeleton } from '@/app/dashboard/components';
+import { PageHeaderSkeleton, ContentGridSkeleton, StatsGridSkeleton, Button } from '@/app/dashboard/components';
 import styles from '../entities.module.css';
 import sitemapStyles from './sitemaps.module.css';
 
@@ -197,14 +197,13 @@ export default function SitemapsPage() {
           <p className={styles.pageSubtitle}>{t('entities.sitemaps.subtitle')}</p>
         </div>
         <div className={styles.headerActions}>
-          <button 
-            className={styles.secondaryButton}
+          <Button 
             onClick={fetchSitemaps}
             disabled={isLoading || isResyncingAll}
           >
             <RefreshCw size={16} className={isLoading ? sitemapStyles.spinning : ''} />
             {t('common.refresh')}
-          </button>
+          </Button>
           {sitemaps.length > 0 && (
             <button 
               className={sitemapStyles.resyncButton}

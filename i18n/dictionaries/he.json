@@ -350,6 +350,8 @@
       "contentPieces": "פריטי תוכן",
       "backlinks": "קישורים נכנסים",
       "sessions": "סשנים",
+      "newUsers": "חדשים",
+      "engagedSessions": "מעורבים",
       "visitors": "מבקרים",
       "totalClicks": "סה״כ קליקים",
       "totalImpressions": "חשיפות",
@@ -414,6 +416,9 @@
     "tooltips": {
       "visitorsLegend": "משתמשים ייחודיים שהגיעו לאתר דרך חיפוש אורגני. אדם אחד שצופה ב-5 דפים נספר כמבקר 1.",
       "pageViewsLegend": "כל טעינת דף באתר שלך. אדם אחד שצופה ב-5 דפים נספר כ-5 צפיות דף.",
+      "sessionsLegend": "סשן הוא תקופת פעילות באתר. משתמש שמבקר בדפים רבים בביקור אחד נספר כסשן אחד.",
+      "newUsersLegend": "מבקרים חדשים באתר שלך. משתמשים שמעולם לא היו באתר קודם לכן.",
+      "engagedSessionsLegend": "סשנים עם מעורבות משמעותית: מעל 10 שניות, 2+ צפיות דף, או אירוע המרה.",
       "moreFromPrev": "{value} {metric} - {percent}% יותר מ-{period}",
       "lessFromPrev": "{value} {metric} - {percent}% פחות מ-{period}",
       "cardUp": "{label} עלה ב-{percent}% בהשוואה ל-{period}",
@@ -3633,7 +3638,9 @@
     },
     "agentInsights": {
       "title": "תובנות סוכן חדשות",
-      "message": "נמצאו {count} תובנות חדשות לאתר שלך"
+      "message": "נמצאו {count} תובנות חדשות לאתר {siteName}",
+      "titleNoNew": "ניתוח סוכן הושלם",
+      "messageNoNew": "אין תובנות חדשות לאתר {siteName} - הכל נשאר כמו קודם"
     },
     "failedPublishModal": {
       "title": "הפרסום נכשל",
@@ -6030,6 +6037,8 @@
     "runAnalysis": "הפעל ניתוח",
     "running": "מנתח...",
     "lastRun": "הרצה אחרונה: {time}",
+    "weekday": "ימי חול",
+    "weekend": "סופ\"ש",
     "pendingApproval": "{count} ממתינים לאישור",
     "totalInsights": "סה\"כ תובנות",
     "pendingReview": "ממתינים לבדיקה",
@@ -6065,6 +6074,9 @@
     "dismiss": "סגור",
     "execute": "בצע",
     "fixWithAi": "תקן עם AI",
+    "fixWithAiCost": "תקן עם AI (1 קרדיט)",
+    "aiCredit": "קרדיט",
+    "vs": "לעומת",
     "fixing": "מתקן...",
     "fixSuccess": "תוקן בהצלחה: {summary}",
     "fixFailed": "התיקון נכשל. נסה שוב.",
@@ -6098,6 +6110,11 @@
     "expired": "פג תוקף",
     "pending": "ממתין",
     "resolved": "נפתר",
+    "alreadyTracked": "כבר במעקב",
+    "addToKeywords": "הוסף למילות מפתח",
+    "track": "מעקב",
+    "editPage": "ערוך עמוד",
+    "viewPage": "צפה בעמוד",
     "categories": {
       "CONTENT": "תוכן",
       "TRAFFIC": "תנועה",
@@ -6137,7 +6154,7 @@
       },
       "trafficDrop": {
         "title": "ירידה בתנועת חיפוש",
-        "description": "הקליקים מחיפוש ירדו ב-{change}% ב-30 הימים האחרונים. בדוק שינויים אחרונים ובעיות אינדקס."
+        "description": "הקליקים מחיפוש ירדו ב-{change}% בתקופה {periodStart} עד {periodEnd} לעומת {comparePeriodStart} עד {comparePeriodEnd}. בדוק שינויים אחרונים ובעיות אינדקס."
       },
       "lowCtrQueries": {
         "title": "הזדמנויות CTR נמוך",
@@ -6149,11 +6166,11 @@
       },
       "visitorsDrop": {
         "title": "ירידה במספר מבקרים",
-        "description": "מבקרים אורגניים ירדו ב-{change}% ב-30 הימים האחרונים. זה עשוי להצביע על שינוי בדירוג או בעיה טכנית."
+        "description": "מבקרים אורגניים ירדו ב-{change}% בתקופה {periodStart} עד {periodEnd} לעומת {comparePeriodStart} עד {comparePeriodEnd}. זה עשוי להצביע על שינוי בדירוג או בעיה טכנית."
       },
       "trafficGrowth": {
         "title": "תנועה בעלייה",
-        "description": "מבקרים אורגניים עלו ב-{change}% ב-30 הימים האחרונים. המשיכו כך!"
+        "description": "מבקרים אורגניים עלו ב-{change}% בתקופה {periodStart} עד {periodEnd} לעומת {comparePeriodStart} עד {comparePeriodEnd}. המשיכו כך!"
       },
       "contentGaps": {
         "title": "פערי תוכן נמצאו",
@@ -6169,10 +6186,18 @@
       },
       "cannibalization": {
         "title": "קניבליזציה של מילות מפתח",
-        "description": "{count} מילות מפתח מדורגות עם מספר עמודים, מה שמדלל את כוח הדירוג. אחד תוכן כדי להימנע מתחרות עם עצמך."
+        "description": "{count} מילות מפתח מדורגות עם מספר עמודים, מה שמדלל את כוח הדירוג. אחד תוכן כדי להימנע מתחרות עם עצמך.",
+        "proactive": {
+          "title": "סיכון חפיפת תוכן זוהה",
+          "description": "{count} עמודים בעלי כותרות או מילות מפתח דומות מאוד עלולים להתחרות על אותם דירוגים. בדוק ובדל עמודים אלו לפני שיתחילו לאכול אחד את השני."
+        },
+        "semantic": {
+          "title": "כוונת חיפוש זהה בעמודים שונים",
+          "description": "{count} זוגות עמודים משרתים את אותה כוונת משתמש למרות שהם מדורגים על מילות מפתח שונות. ניתוח AI מציע לאחד או לבדל עמודים אלו."
+        }
       },
       "newKeywordOpportunities": {
-        "title": "מילות מפתח לא מעוקבות מביאות תנועה",
+        "title": "מילות מפתח שאינן במעקב מביאות תנועה",
         "description": "{count} שאילתות חיפוש מביאות תנועה אבל לא נמצאות במעקב. הוסף אותן למעקב ואופטימיזציה."
       },
       "lowCtrForPosition": {
@@ -6182,12 +6207,37 @@
       "contentWithoutTraffic": {
         "title": "תוכן מפורסם ללא תנועה אורגנית",
         "description": "{count} עמודים מפורסמים לא קיבלו חשיפות אורגניות ב-30 הימים האחרונים. ייתכן שהם צריכים אופטימיזציה או קישור פנימי."
+      },
+      "weekendTrafficPattern": {
+        "title": "דפוס תנועה: ימי חול מול סופ\"ש",
+        "description": "התנועה גבוהה ב-{skewPercent}% בימי {dominantPeriod} — ממוצע {weekdayAvg} מבקרים בימי חול לעומת {weekendAvg} בסופ\"ש. תובנה זו חושפת את התנהגות הקהל שלך ויכולה לכוון תזמון תוכן."
+      },
+      "trafficSpike": {
+        "title": "זוהתה קפיצת תנועה",
+        "description": "זוהו {count} קפיצות תנועה חריגות ב-30 הימים האחרונים לעומת ממוצע יומי של {avgDaily} מבקרים. עבור {sourcesFound} קפיצות זוהה מקור סביר לזינוק."
+      },
+      "impressionClickGap": {
+        "title": "חשיפות עולות, קליקים בפיגור",
+        "description": "חשיפות בחיפוש עלו ב-{impressionsChange}% אבל קליקים עלו רק ב-{clicksChange}% בתקופה {periodStart} עד {periodEnd} לעומת {comparePeriodStart} עד {comparePeriodEnd}. הפער של {gapPercent}% מצביע על כך שכותרות ותיאורי מטא צריכים שיפור כדי להמיר נראות לביקורים."
+      },
+      "aiTrafficGrowth": {
+        "title": "תנועת AI בעלייה",
+        "description": "תנועה ממנועי AI (ChatGPT, Perplexity ועוד) עלתה ב-{change}% ל-{sessions} סשנים בתקופה {periodStart} עד {periodEnd} לעומת {comparePeriodStart} עד {comparePeriodEnd}, ומהווה {sharePercent}% מהתנועה הכוללת. התוכן שלך מוצג על ידי עוזרי AI."
+      },
+      "aiTrafficDrop": {
+        "title": "תנועת AI בירידה",
+        "description": "תנועה ממנועי AI ירדה ב-{change}% ל-{sessions} סשנים בתקופה {periodStart} עד {periodEnd} לעומת {comparePeriodStart} עד {comparePeriodEnd}. בדוק האם מבנה התוכן שלך מותאם לגילוי על ידי AI."
+      },
+      "trafficConcentration": {
+        "title": "ריכוז תנועה יתר",
+        "description": "{concentrationPercent}% מהקליקים בחיפוש מגיעים מ-3 עמודים בלבד מתוך {totalPages}. גוון את אסטרטגיית התוכן כדי להפחית תלות בכמה עמודים."
       }
     },
     "detailLabels": {
       "keyword": "מילת מפתח",
       "position": "מיקום",
       "searchVolume": "נפח חיפוש",
+      "date": "תאריך",
       "page": "עמוד",
       "url": "כתובת",
       "lastUpdated": "עדכון אחרון",
@@ -6210,7 +6260,76 @@
       "actualCtr": "CTR בפועל",
       "expectedCtr": "CTR צפוי",
       "ctr": "CTR",
-      "publishedAt": "פורסם"
+      "publishedAt": "פורסם",
+      "weekdayAvg": "ממוצע ימי חול",
+      "weekendAvg": "ממוצע סופ\"ש",
+      "dominantPeriod": "תקופת שיא",
+      "avgDaily": "ממוצע יומי",
+      "multiplier": "× ממוצע",
+      "source": "מקור סביר",
+      "topPage": "עמוד נחיתה מוביל",
+      "gapPercent": "פער",
+      "sharePercent": "נתח תנועה",
+      "concentrationPercent": "ריכוז",
+      "engine": "מנוע AI",
+      "confidence": "וודאות",
+      "recommended": "מומלץ",
+      "competingPages": "עמודים מתחרים",
+      "focusKeyword": "מילת מפתח",
+      "detectedSignals": "סימנים שזוהו",
+      "actionMerge": "מיזוג עמודים",
+      "actionCanonical": "קביעת canonical",
+      "actionRedirect": "הפניה 301",
+      "actionDifferentiate": "בידול תוכן",
+      "targetAngle": "זווית יעד",
+      "manualActionRequired": "נדרשת פעולה ידנית - לא ניתן להחיל אוטומטית",
+      "manualRequired": "נדרשת פעולה ידנית",
+      "mergeInstructions": "הוראות מיזוג",
+      "canonicalTarget": "יעד canonical",
+      "pageA": "עמוד A",
+      "pageB": "עמוד B",
+      "reasonDetectedBySource": "זוהה בעיה משולבת:\n\n• מה קרה: שני העמודים האלו מתחרים זה עם זה על אותן מילות מפתח בגוגל.\n• איך זוהה: {sources}\n• רמת וודאות: {confidence}%\n\nלמה זה בעיה: כשגוגל רואה שני עמודים שמתחרים על אותן מילות, הוא מתקשה להחליט איזה מהם לדרג. זה גורם לשניהם לקבל דירוג נמוך יותר ממה שהיה להם אם לא הייתה התחרות.\n\nמה לעשות: יש להבדיל את התוכן כך שכל עמוד יתמקד במילת מפתח אחרת, או למזג את העמודים לאחד.",
+      "reasonPrefixMatch": "זוהה בעיה קריטית:\n\n• מה קרה: הכותרות של שני העמודים מתחילות באותן המילים - זה סימן חזק מאוד לקניבליזציה!\n• רמת וודאות: {confidence}%\n\nלמה זה בעיה: כשהכותרות מתחילות באותו אופן, גוגל רואה אותם כעמודים דומים ומתקשה להחליט איזה מהם לדרג. התוצאה היא ששני העמודים לא ידורגו טוב, והתנועה הפוטנציאלית של שניהם תיפגע.\n\nמה לעשות:\n1. שנה את הכותרת של אחד העמודים כך שלא תתחיל באותן מילים\n2. או מזג את העמודים לאחד אם הם עוסקים באותו נושא\n3. או הגדר הפניה מאחד העמודים לשני",
+      "reasonTitleH1Similarity": "זוהה דמיון גבוה בתוכן:\n\n• מה קרה: הכותרות (דמיון {titleSimilarity}%) וכותרות H1 (דמיון {h1Similarity}%) של שני העמודים דומות מאוד.\n• רמת וודאות: {confidence}%\n\nלמה זה בעיה: דמיון גבוה בכותרות מצביע על תוכן דומה. גוגל רואה את העמודים האלו כעונים על אותו נושא, מה שגורם לו להתבלבל במיקום איזה מהם להציג.\n\nמה לעשות:\n1. שנה את הכותרות כך שיהיה ברור על מה כל עמוד מדבר\n2. התמקד במילת מפתח שונה לכל עמוד\n3. או מזג את העמודים אם הם עוסקים באותו נושא",
+      "reasonQuerySignals": "זוהתה תחרות בגוגל:\n\n• מה קרה: בשאילתת החיפוש \"{query}\" שני העמודים מתחרים ומפצלים את הדירוג.\n• הסימנים: {signals}\n\nלמה זה בעיה: הנתונים מ-Google Search Console מראים ששני העמודים מופיעים בתוצאות לאותה שאילתה, מה שמעיד שגוגל לא בטוח בעצמו איזה עמוד לדרג.\n\nמה לעשות:\n1. הבדל את התוכן - התמקד במילת מפתח שונה לכל עמוד\n2. או מזג את העמודים לאחד\n3. או הגדר canonical לעמוד המעודף",
+      "reasonAiVerified": "זוהתה בעיה ע״י AI:\n\n• מה קרה: ה-AI ניתח את התוכן ומצא ששני העמודים מתחרים על אותה כוונת חיפוש.\n• רמת וודאות: {confidence}%\n\nלמה זה בעיה: גם אם הכותרות שונות, התוכן עצמו מכוון לאותו סוג של משתמשים. גוגל יתקשה להחליט איזה עמוד להציג, מה שפוגע בשניהם.\n\nמה לעשות: יש להבדיל את התוכן כך שכל עמוד יענה על שאלה שונה של המשתמש, או למזג את העמודים לאחד.",
+      "signalImpressionSplit": "פיצול חשיפות בין העמודים",
+      "signalPositionDance": "תנודות מיקום בין העמודים"
+    },
+    "fixCannibalization": "תקן עם AI",
+    "cannibalizationIssue": "בעיית קניבליזציה",
+    "generateFeaturedImages": "צור תמונת ראשית ייחודית",
+    "generateContentImages": "צור תמונות תוכן (עד 3 לעמוד)",
+    "creditPerImage": "קרדיט/תמונה",
+    "creditsPerImage": "קרדיטים/תמונה",
+    "mergedPagePreview": "תצוגה מקדימה של העמוד הממוזג",
+    "contentImages": "תמונות תוכן",
+    "maxImages": "מקסימום",
+    "generateContent": "יצירת תוכן",
+    "generateArticle": "יצירת מאמר",
+    "contentImagesToGenerate": "תמונות תוכן ליצירה",
+    "featuredImagePrompt": "הנחיות לתמונה ראשית (אופציונלי)",
+    "contentImagesPrompt": "הנחיות לתמונות תוכן (אופציונלי)",
+    "aiPromptPlaceholder": "תאר מה ה-AI צריך ליצור...",
+    "postsToMerge": "פוסטים למיזוג",
+    "currentMeta": "מטא נוכחי",
+    "articleType": "סוג מאמר",
+    "generating": "מייצר...",
+    "preview": "תצוגה מקדימה",
+    "save": "שמירה",
+    "saveToEntities": "שמור במערכת",
+    "publishToSite": "פרסם לאתר",
+    "articleTypes": {
+      "seo": "מאמר SEO",
+      "blogPost": "פוסט בלוג",
+      "guide": "מדריך",
+      "howTo": "מדריך 'איך לעשות'",
+      "listicle": "מאמר רשימה",
+      "comparison": "מאמר השוואה",
+      "review": "ביקורת",
+      "news": "חדשות",
+      "tutorial": "הדרכה",
+      "caseStudy": "מקרה בוחן"
     },
     "seoPriorities": {
       "high": "גבוה",

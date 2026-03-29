@@ -8,6 +8,7 @@ import { useTranslation } from '@/app/context/locale-context';
 import { emitCreditsUpdated } from '@/app/context/user-context';
 import { usePermissions } from '@/app/hooks/usePermissions';
 import { Skeleton } from '@/app/dashboard/components/Skeleton';
+import { Button } from '@/app/dashboard/components';
 import GeneratePostModal from './GeneratePostModal';
 import styles from '../page.module.css';
 
@@ -696,14 +697,15 @@ export function KeywordsContent() {
                 className={styles.addKeywordInput}
                 autoFocus
               />
-              <button
+              <Button
                 type="submit"
-                className={styles.addKeywordBtn}
+                variant="primary"
+                size="sm"
                 disabled={addingKeyword || !newKeyword.trim()}
               >
                 {addingKeyword ? <Loader2 size={14} className={styles.spinner} /> : <Plus size={14} />}
                 {t('common.add')}
-              </button>
+              </Button>
               <button
                 type="button"
                 className={styles.addKeywordCancel}

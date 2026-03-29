@@ -21,6 +21,7 @@ import TiptapImage from '@tiptap/extension-image';
 import { useTranslation } from '@/app/context/locale-context';
 import { useSite } from '@/app/context/site-context';
 import { ARTICLE_TYPES, ARTICLE_TYPE_KEY_MAP } from '../../ai-content-wizard/wizardConfig';
+import { Button } from '@/app/dashboard/components';
 import styles from './GeneratePostModal.module.css';
 
 // Progress messages for generation phases
@@ -796,28 +797,28 @@ export default function GeneratePostModal({ isOpen, onClose, keyword, onSuccess 
           
           <div className={styles.footerRight}>
             {currentStep === STEPS.SETTINGS && (
-              <button
-                className={styles.primaryButton}
+              <Button
+                variant="primary"
                 onClick={handleNext}
               >
                 {t('generatePost.next')}
                 <ChevronRight size={18} />
-              </button>
+              </Button>
             )}
 
             {currentStep === STEPS.KEYWORDS && (
-              <button
-                className={styles.primaryButton}
+              <Button
+                variant="primary"
                 onClick={handleNext}
               >
                 {t('generatePost.next')}
                 <ChevronRight size={18} />
-              </button>
+              </Button>
             )}
             
             {currentStep === STEPS.SUMMARY && (
-              <button
-                className={styles.primaryButton}
+              <Button
+                variant="primary"
                 onClick={handleNext}
                 disabled={isGenerating}
               >
@@ -832,7 +833,7 @@ export default function GeneratePostModal({ isOpen, onClose, keyword, onSuccess 
                     {t('generatePost.generate')}
                   </>
                 )}
-              </button>
+              </Button>
             )}
             
             {currentStep === STEPS.PREVIEW && !showPluginStep && (
@@ -850,8 +851,8 @@ export default function GeneratePostModal({ isOpen, onClose, keyword, onSuccess 
                   {t('generatePost.regenerateAll')}
                 </button>
                 
-                <button
-                  className={styles.saveButton}
+                <Button
+                  variant="primary"
                   onClick={handleSave}
                   disabled={isRegenerating || isSaving || isPublishing}
                 >
@@ -861,7 +862,7 @@ export default function GeneratePostModal({ isOpen, onClose, keyword, onSuccess 
                     <Save size={18} />
                   )}
                   {t('generatePost.save')}
-                </button>
+                </Button>
                 
                 {isWordPress && (
                   <>

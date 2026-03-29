@@ -64,31 +64,6 @@
   margin-bottom: 0.5rem;
 }
 
-.siteSelectorButton {
-  width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0.75rem;
-  background: rgba(123, 44, 191, 0.1);
-  border: 1px solid rgba(123, 44, 191, 0.2);
-  border-radius: var(--radius-lg);
-  color: var(--foreground);
-  font-size: 0.9rem;
-  transition: all var(--transition-fast);
-
-  &:hover {
-    background: rgba(123, 44, 191, 0.15);
-    border-color: rgba(123, 44, 191, 0.3);
-  }
-}
-
-.siteSelectorIcon {
-  width: 1rem;
-  height: 1rem;
-  color: var(--muted-foreground);
-}
-
 /* Navigation */
 .navigation {
   flex: 1;
@@ -1118,12 +1093,6 @@
 :global(html[dir="rtl"]) .chatButtonBadge {
   right: auto;
   left: 0.25rem;
-}
-
-/* Site Selector RTL */
-:global(html[dir="rtl"]) .siteSelectorButton {
-  flex-direction: row-reverse;
-  text-align: right;
 }
 
 /* Credits Section RTL */

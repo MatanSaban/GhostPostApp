@@ -361,7 +361,7 @@
 
 /* Insight Body (expanded) */
 .insightBody {
-  padding: 0 1rem 0.75rem 3.5rem;
+  padding: 0 1rem 0.75rem;
   border-top: 1px solid var(--border-light);
 
   .dark & {
@@ -376,6 +376,21 @@
   margin: 0.75rem 0;
 }
 
+.insightPeriod {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-size: 0.6875rem;
+  color: var(--muted-foreground);
+  opacity: 0.75;
+  margin: -0.25rem 0 0.75rem;
+
+  .periodVs {
+    opacity: 0.6;
+    font-style: italic;
+  }
+}
+
 /* Detail sections within expanded insight */
 .detailSection {
   margin: 0.75rem 0;
@@ -386,6 +401,13 @@
   gap: 1rem;
   flex-wrap: wrap;
   margin-bottom: 0.5rem;
+}
+
+.detailSubheading {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--muted-foreground);
+  margin: 0.75rem 0 0.5rem;
 }
 
 .detailStat {
@@ -453,6 +475,34 @@
   }
 }
 
+.hasTooltip {
+  position: relative;
+  cursor: help;
+
+  &::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: calc(100% + 8px);
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(15, 23, 42, 0.95);
+    color: #fff;
+    padding: 0.3rem 0.45rem;
+    border-radius: 0.375rem;
+    font-size: 0.625rem;
+    font-weight: 500;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.15s ease;
+    z-index: 40;
+  }
+
+  &:hover::after {
+    opacity: 1;
+  }
+}
+
 .detailLink {
   display: inline-flex;
   align-items: center;
@@ -509,6 +559,44 @@
 .detailNegative {
   color: var(--error, #ef4444);
   font-weight: 500;
+}
+
+/* Page action buttons (edit/view) */
+.pageActions {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  justify-content: flex-end;
+}
+
+.pageActionBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.625rem;
+  height: 1.625rem;
+  color: var(--muted-foreground);
+  background: var(--muted);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
+  text-decoration: none;
+  transition: all 0.15s ease;
+
+  &:hover {
+    color: var(--primary);
+    background: rgba(123, 44, 191, 0.1);
+    border-color: rgba(123, 44, 191, 0.2);
+  }
+
+  .dark & {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.1);
+
+    &:hover {
+      background: rgba(123, 44, 191, 0.2);
+      border-color: rgba(123, 44, 191, 0.3);
+    }
+  }
 }
 
 .insightActions {
@@ -595,6 +683,195 @@
   border: 1px solid rgba(239, 68, 68, 0.25);
 }
 
+.itemFixBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border: 1px solid rgba(123, 44, 191, 0.3);
+  border-radius: 6px;
+  background: rgba(123, 44, 191, 0.08);
+  color: var(--primary, #7b2cbf);
+  font-size: 0.6875rem;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all var(--transition-fast);
+
+  &:hover {
+    background: rgba(123, 44, 191, 0.16);
+    border-color: rgba(123, 44, 191, 0.45);
+  }
+}
+
+/* Cannibalization Issue Display */
+.cannibalizationIssue {
+  padding: 1rem;
+  background: var(--background);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-lg);
+  margin-bottom: 1rem;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+
+  .dark & {
+    background: rgba(123, 44, 191, 0.03);
+    border-color: rgba(123, 44, 191, 0.1);
+  }
+}
+
+.cannibalizationHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.confidenceBadge {
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.25rem 0.5rem;
+  border-radius: var(--radius-sm);
+}
+
+.recommendedAction {
+  font-size: 0.8rem;
+  color: var(--muted-foreground);
+  
+  strong {
+    color: var(--foreground);
+  }
+}
+
+.cannibalizationReason {
+  font-size: 0.85rem;
+  color: var(--foreground);
+  margin: 0.75rem 0;
+  line-height: 1.5;
+  padding: 0.5rem;
+  background: rgba(234, 179, 8, 0.1);
+  border-radius: var(--radius-sm);
+  border-inline-start: 3px solid #eab308;
+  white-space: pre-wrap;
+}
+
+.competingPagesHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--muted-foreground);
+  margin-bottom: 0.5rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.competingPages {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.competingPage {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  background: var(--background);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
+
+  .dark & {
+    background: rgba(0, 0, 0, 0.2);
+  }
+}
+
+.pageLabel {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #fff;
+  background: var(--primary);
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.pageDetails {
+  flex: 1;
+  min-width: 0;
+}
+
+.pageTitle {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--foreground);
+  margin-bottom: 0.25rem;
+  line-height: 1.3;
+  word-break: break-word;
+}
+
+.vsIndicator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--muted-foreground);
+  padding: 0.25rem 0;
+  letter-spacing: 0.1em;
+}
+
+.cannibalizationFixBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  width: 100%;
+  margin-top: 1rem;
+  padding: 0.6rem 1rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #fff;
+  background: linear-gradient(135deg, var(--primary), #a855f7);
+  border: none;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+
+  &:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(123, 44, 191, 0.3);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+}
+
+.detailMore {
+  font-size: 0.8rem;
+  color: var(--muted-foreground);
+  margin-top: 0.5rem;
+}
+
+.itemFixedBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  color: #10b981;
+  white-space: nowrap;
+}
+
 /* Run Analysis Button */
 .runBtn {
   display: inline-flex;
@@ -668,5 +945,117 @@
   }
   to {
     transform: rotate(360deg);
+  }
+}
+
+/* Keyword Tracking UI */
+.kwRow {
+  &:hover .kwAddBtn {
+    max-width: 5rem;
+    opacity: 1;
+    margin-inline-end: 0.4rem;
+  }
+
+  /* First column (query) gets fixed width to prevent layout shift */
+  td:first-child {
+    width: 50%;
+    max-width: 0;
+  }
+}
+
+.kwCell {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.kwText {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+
+.kwAddBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+  max-width: 0;
+  overflow: hidden;
+  opacity: 0;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--primary);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: max-width 0.25s ease, opacity 0.2s ease, margin 0.25s ease;
+  margin-inline-end: 0;
+  flex-shrink: 0;
+
+  &:hover {
+    color: var(--primary-hover, #7c3aed);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+.kwTrackedIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--success, #22c55e);
+  margin-inline-end: 0.35rem;
+  flex-shrink: 0;
+  opacity: 0.7;
+}
+
+/* Entity Link Cell */
+.entityEditLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.75rem;
+  color: var(--primary);
+  text-decoration: none;
+  
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.entityNone {
+  color: var(--muted-foreground);
+  font-size: 0.75rem;
+}
+
+.entitySkeleton {
+  display: inline-block;
+  width: 3rem;
+  height: 1rem;
+}
+
+.entitySkeletonBar {
+  display: block;
+  width: 100%;
+  height: 0.875rem;
+  background: var(--muted);
+  border-radius: var(--radius-sm);
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
   }
 }

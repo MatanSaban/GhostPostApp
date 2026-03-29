@@ -821,25 +821,6 @@
   color: var(--foreground);
 }
 
-.modalClose {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 2rem;
-  height: 2rem;
-  background: transparent;
-  border: none;
-  border-radius: var(--radius-md);
-  cursor: pointer;
-  color: var(--muted-foreground);
-  transition: background 0.2s, color 0.2s;
-
-  &:hover {
-    background: var(--muted);
-    color: var(--foreground);
-  }
-}
-
 .modalBody {
   padding: 1.5rem;
   display: flex;
@@ -1354,52 +1335,6 @@
   &:disabled {
     opacity: 0.5;
     cursor: not-allowed;
-  }
-}
-
-/* Buttons */
-.primaryButton {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  padding: 0.625rem 1.25rem;
-  font-size: 0.9rem;
-  font-weight: 500;
-  color: white;
-  background: var(--gradient-primary);
-  border: none;
-  border-radius: var(--radius-lg);
-  cursor: pointer;
-  transition: opacity 0.2s;
-
-  &:hover {
-    opacity: 0.9;
-  }
-
-  &:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-  }
-}
-
-.secondaryButton {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  padding: 0.625rem 1.25rem;
-  font-size: 0.9rem;
-  font-weight: 500;
-  color: var(--foreground);
-  background: var(--muted);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  cursor: pointer;
-  transition: background 0.2s;
-
-  &:hover {
-    background: var(--border);
   }
 }
 

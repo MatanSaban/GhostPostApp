@@ -26,7 +26,7 @@ import {
 import { useLocale } from '@/app/context/locale-context';
 import { useUser } from '@/app/context/user-context';
 import { AdminModal, ConfirmDialog, FormInput, FormTextarea, FormCheckbox, FormSelect, FormActions, PrimaryButton, SecondaryButton } from '../components/AdminModal';
-import { AdminPageSkeleton, TableSkeleton } from '@/app/dashboard/components';
+import { AdminPageSkeleton, TableSkeleton, Button } from '@/app/dashboard/components';
 import styles from '../admin.module.css';
 
 // Add-on type icons
@@ -513,10 +513,10 @@ export default function AddOnsSettingsPage() {
           <button className={styles.refreshButton} onClick={loadAddOns}>
             <RefreshCw size={16} />
           </button>
-          <button className={styles.addButton} onClick={handleAdd}>
+          <Button variant="primary" onClick={handleAdd}>
             <Plus size={16} />
             <span>{t('admin.addons.addAddOn') || 'Add Add-On'}</span>
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -615,44 +615,45 @@ export default function AddOnsSettingsPage() {
                   </td>
                   <td>
                     <div className={styles.actionsCell}>
-                      <button 
-                        className={styles.actionButton} 
+                      <Button 
+                        variant="icon" 
                         title={t('admin.addons.actions.translate') || 'Translate'}
                         onClick={() => handleTranslate(addOn)}
                       >
                         <Languages size={16} />
-                      </button>
-                      <button 
-                        className={styles.actionButton} 
+                      </Button>
+                      <Button 
+                        variant="icon" 
                         title={t('admin.addons.actions.edit') || 'Edit'}
                         onClick={() => handleEdit(addOn)}
                       >
                         <Edit2 size={16} />
-                      </button>
+                      </Button>
                       {addOn.isActive ? (
-                        <button 
-                          className={styles.actionButton} 
+                        <Button 
+                          variant="icon" 
                           title={t('admin.addons.actions.archive') || 'Archive'}
                           onClick={() => handleToggleActive(addOn)}
                         >
                           <Archive size={16} />
-                        </button>
+                        </Button>
                       ) : (
                         <>
-                          <button 
-                            className={styles.actionButton} 
+                          <Button 
+                            variant="icon" 
                             title={t('admin.common.reactivate') || 'Reactivate'}
                             onClick={() => handleToggleActive(addOn)}
                           >
                             <RotateCcw size={16} />
-                          </button>
-                          <button 
-                            className={`${styles.actionButton} ${styles.danger}`} 
+                          </Button>
+                          <Button 
+                            variant="icon" 
+                            iconDanger
                             title={t('admin.addons.actions.delete') || 'Delete'}
                             onClick={() => handleDeleteClick(addOn)}
                           >
                             <Trash2 size={16} />
-                          </button>
+                          </Button>
                         </>
                       )}
                     </div>

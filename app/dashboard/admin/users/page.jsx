@@ -20,7 +20,7 @@ import {
 import { useLocale } from '@/app/context/locale-context';
 import { useUser } from '@/app/context/user-context';
 import { AdminModal, ConfirmDialog, FormInput, FormCheckbox, FormSelect, FormActions, PrimaryButton, SecondaryButton } from '../components/AdminModal';
-import { AdminPageSkeleton, TableSkeleton } from '@/app/dashboard/components';
+import { AdminPageSkeleton, TableSkeleton, Button } from '@/app/dashboard/components';
 import styles from '../admin.module.css';
 import modalStyles from '../components/AdminModal.module.css';
 
@@ -349,10 +349,10 @@ export default function PlatformUsersPage() {
           <button className={styles.refreshButton} onClick={loadUsers}>
             <RefreshCw size={16} />
           </button>
-          <button className={styles.addButton} onClick={handleAdd}>
+          <Button variant="primary" onClick={handleAdd}>
             <Plus size={16} />
             <span>{t('admin.users.addUser')}</span>
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -428,28 +428,29 @@ export default function PlatformUsersPage() {
                     <td>{formatLastLogin(user.lastLoginAt)}</td>
                     <td>
                       <div className={styles.actionsCell}>
-                        <button 
-                          className={styles.actionButton} 
+                        <Button 
+                          variant="icon" 
                           title={t('admin.users.actions.view')}
                           onClick={() => handleView(user)}
                         >
                           <Eye size={16} />
-                        </button>
-                        <button 
-                          className={styles.actionButton} 
+                        </Button>
+                        <Button 
+                          variant="icon" 
                           title={t('admin.users.actions.edit')}
                           onClick={() => handleEdit(user)}
                         >
                           <Edit2 size={16} />
-                        </button>
+                        </Button>
                         {!PROTECTED_EMAILS.includes(user.email) && (
-                          <button 
-                            className={`${styles.actionButton} ${styles.danger}`} 
+                          <Button 
+                            variant="icon" 
+                            iconDanger
                             title={t('admin.users.actions.delete')}
                             onClick={() => handleDeleteClick(user)}
                           >
                             <Trash2 size={16} />
-                          </button>
+                          </Button>
                         )}
                       </div>
                     </td>

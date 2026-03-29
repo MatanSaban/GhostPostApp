@@ -16,7 +16,7 @@ import {
 } from 'lucide-react';
 import { useLocale } from '@/app/context/locale-context';
 import { useSite } from '@/app/context/site-context';
-import { EntityDetailSkeleton } from '@/app/dashboard/components';
+import { EntityDetailSkeleton, Button } from '@/app/dashboard/components';
 import styles from './edit.module.css';
 
 // Field components
@@ -201,14 +201,14 @@ export default function EntityEditPage({ params }) {
               {t('entities.viewOnSite')}
             </a>
           )}
-          <button 
+          <Button 
+            variant="primary"
             onClick={handleSave}
             disabled={isSaving || !hasChanges}
-            className={styles.saveButton}
           >
             {isSaving ? <Loader2 className={styles.spinning} /> : <Save />}
             {isSaving ? t('common.saving') : t('common.save')}
-          </button>
+          </Button>
         </div>
       </div>
 

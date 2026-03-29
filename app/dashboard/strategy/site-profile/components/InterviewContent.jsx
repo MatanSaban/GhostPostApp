@@ -29,6 +29,7 @@ import { useSite } from '@/app/context/site-context';
 import { useLocale } from '@/app/context/locale-context';
 import { decodeDisplayUrl } from '@/lib/urlDisplay';
 import styles from '../page.module.css';
+import { Button } from '@/app/dashboard/components';
 
 const iconMap = {
   Building2,
@@ -1222,22 +1223,23 @@ export function InterviewContent({ translations }) {
                           <div className={styles.editContainer}>
                             {renderEditInput(item)}
                             <div className={styles.editActions}>
-                              <button 
-                                className={styles.saveButton}
+                              <Button 
+                                variant="primary"
+                                size="sm"
                                 onClick={() => handleSaveEdit(item)}
                                 disabled={isSaving}
                               >
                                 {isSaving ? <Loader2 size={14} className={styles.spinning} /> : <Save size={14} />}
                                 <span>שמור</span>
-                              </button>
-                              <button 
-                                className={styles.cancelButton}
+                              </Button>
+                              <Button 
+                                size="sm"
                                 onClick={handleCancelEdit}
                                 disabled={isSaving}
                               >
                                 <X size={14} />
                                 <span>ביטול</span>
-                              </button>
+                              </Button>
                             </div>
                           </div>
                         ) : (

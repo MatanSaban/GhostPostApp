@@ -18,6 +18,7 @@ import {
 import { useLocale } from '@/app/context/locale-context';
 import { useSite } from '@/app/context/site-context';
 import { RedirectForm } from './components';
+import { Button } from '@/app/dashboard/components';
 import styles from './page.module.css';
 
 export default function RedirectionsPage() {
@@ -278,22 +279,20 @@ export default function RedirectionsPage() {
         </div>
         {isConnected && isWordPress && (
           <div className={styles.syncActions}>
-            <button 
-              className={styles.syncButton}
+            <Button 
               onClick={() => handleSync('from-wp')}
               disabled={isSyncing}
             >
               <Download size={16} />
               {isSyncing ? '...' : t('redirections.syncFromWp')}
-            </button>
-            <button 
-              className={styles.syncButton}
+            </Button>
+            <Button 
               onClick={() => handleSync('to-wp')}
               disabled={isSyncing}
             >
               <ArrowUpDown size={16} />
               {isSyncing ? '...' : t('redirections.pushToWp')}
-            </button>
+            </Button>
           </div>
         )}
       </div>
@@ -326,14 +325,14 @@ export default function RedirectionsPage() {
             <p>
               {t('redirections.externalPluginDescription').replace('{plugins}', detectedPlugins.map(p => p.name).join(', '))}
             </p>
-            <button 
-              className={styles.importButton}
+            <Button 
+              variant="warning"
               onClick={() => handleSync('import-external')}
               disabled={isSyncing}
             >
               <Download size={16} />
               {isSyncing ? t('redirections.importing') : t('redirections.importRedirects')}
-            </button>
+            </Button>
           </div>
         </div>
       )}
@@ -399,85 +398,86 @@ export default function RedirectionsPage() {
             <p>{t('redirections.noRedirects')}</p>
           </div>
         ) : (
-          <>
-            <div className={styles.tableHeader}>
-              {[
-                { key: 'status' },
-                { key: 'from' },
-                { key: 'to' },
-                { key: 'type' },
-                { key: 'hits' },
-              ].map(col => (
-                <span
-                  key={col.key}
-                  className={styles.thLabel}
-                  data-tooltip={t(`redirections.tooltips.${col.key}`)}
-                  onClick={() => setColumnInfoPopup(col.key)}
-                >
-                  {col.key === 'status' ? t('redirections.status')
-                    : col.key === 'from' ? t('redirections.from')
-                    : col.key === 'to' ? t('redirections.to')
-                    : col.key === 'type' ? t('redirections.type')
-                    : t('redirections.hits')}
-                  <Info size={11} className={styles.thInfoIcon} />
-                </span>
-              ))}
-              <span>{t('common.actions')}</span>
-            </div>
-            <div className={styles.tableBody}>
-              {redirections.map((redirect) => (
-                <div 
-                  key={redirect.id} 
-                  className={`${styles.tableRow} ${!redirect.isActive ? styles.inactiveRow : ''}`}
-                >
-                  <div className={styles.statusCell}>
-                    <button
-                      className={`${styles.statusToggle} ${redirect.isActive ? styles.statusActive : styles.statusInactive}`}
-                      onClick={() => handleToggle(redirect.id, redirect.isActive)}
-                      disabled={togglingId === redirect.id}
-                    >
-                      {togglingId === redirect.id ? (
-                        <Loader2 size={12} className={styles.spinner} />
-                      ) : (
-                        <span className={styles.statusDot} />
-                      )}
-                      <span className={styles.statusLabel}>
-                        {redirect.isActive ? t('redirections.active') : t('redirections.inactive')}
+          <div className={styles.tableContainer}>
+            <table className={styles.table}>
+              <thead className={styles.tableHead}>
+                <tr>
+                  {[
+                    { key: 'status', label: t('redirections.status'), width: '6.5rem' },
+                    { key: 'from', label: t('redirections.from') },
+                    { key: 'to', label: t('redirections.to') },
+                    { key: 'type', label: t('redirections.type'), width: '5rem' },
+                    { key: 'hits', label: t('redirections.hits'), width: '5rem' },
+                  ].map(col => (
+                    <th key={col.key} style={col.width ? { width: col.width } : undefined}>
+                      <span
+                        className={styles.thLabel}
+                        data-tooltip={t(`redirections.tooltips.${col.key}`)}
+                        onClick={() => setColumnInfoPopup(col.key)}
+                      >
+                        {col.label}
+                        <Info size={11} className={styles.thInfoIcon} />
                       </span>
-                    </button>
-                  </div>
-                  <div className={`${styles.urlCell} ${styles.fromUrl}`}>
-                    <span className={styles.urlPath} dir="ltr">{redirect.sourceUrl}</span>
-                  </div>
-                  <div className={`${styles.urlCell} ${styles.toUrl}`}>
-                    <span className={styles.urlPath} dir="ltr">{redirect.targetUrl}</span>
-                  </div>
-                  <div className={`${styles.cell} ${styles.typeCell}`}>
-                    <span className={`${styles.typeBadge} ${styles[`type${getTypeCode(redirect.type)}`]}`}>
-                      {getTypeCode(redirect.type)}
-                    </span>
-                  </div>
-                  <div className={`${styles.cell} ${styles.hitsCell}`}>
-                    {redirect.hitCount.toLocaleString()}
-                  </div>
-                  <div className={styles.actions}>
-                    <button 
-                      className={styles.actionButton}
-                      onClick={() => setEditingRedirect(redirect)}
-                    >
-                      <Edit size={14} />
-                    </button>
-                    <button 
-                      className={`${styles.actionButton} ${styles.delete}`}
-                      onClick={() => handleDelete(redirect.id)}
-                    >
-                      <Trash2 size={14} />
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </>
+                    </th>
+                  ))}
+                  <th style={{ width: '5rem' }}>{t('common.actions')}</th>
+                </tr>
+              </thead>
+              <tbody className={styles.tableBody}>
+                {redirections.map((redirect) => (
+                  <tr key={redirect.id} className={!redirect.isActive ? styles.inactiveRow : ''}>
+                    <td>
+                      <button
+                        className={`${styles.statusToggle} ${redirect.isActive ? styles.statusActive : styles.statusInactive}`}
+                        onClick={() => handleToggle(redirect.id, redirect.isActive)}
+                        disabled={togglingId === redirect.id}
+                      >
+                        {togglingId === redirect.id ? (
+                          <Loader2 size={12} className={styles.spinner} />
+                        ) : (
+                          <span className={styles.statusDot} />
+                        )}
+                        <span className={styles.statusLabel}>
+                          {redirect.isActive ? t('redirections.active') : t('redirections.inactive')}
+                        </span>
+                      </button>
+                    </td>
+                    <td>
+                      <span className={styles.urlPath} dir="ltr">{redirect.sourceUrl}</span>
+                    </td>
+                    <td>
+                      <span className={styles.urlPath} dir="ltr">{redirect.targetUrl}</span>
+                    </td>
+                    <td>
+                      <span className={`${styles.typeBadge} ${styles[`type${getTypeCode(redirect.type)}`]}`}>
+                        {getTypeCode(redirect.type)}
+                      </span>
+                    </td>
+                    <td>
+                      {redirect.hitCount.toLocaleString()}
+                    </td>
+                    <td>
+                      <div className={styles.actions}>
+                        <Button 
+                          variant="icon"
+                          onClick={() => setEditingRedirect(redirect)}
+                        >
+                          <Edit size={14} />
+                        </Button>
+                        <Button 
+                          variant="icon"
+                          iconDanger
+                          onClick={() => handleDelete(redirect.id)}
+                        >
+                          <Trash2 size={14} />
+                        </Button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
       </div>
 

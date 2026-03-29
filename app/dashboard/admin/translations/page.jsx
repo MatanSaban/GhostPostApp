@@ -16,7 +16,7 @@ import {
 import { useLocale } from '@/app/context/locale-context';
 import { useUser } from '@/app/context/user-context';
 import { AdminModal, ConfirmDialog, FormInput, FormTextarea, FormSelect, FormActions, PrimaryButton, SecondaryButton } from '../components/AdminModal';
-import { AdminPageSkeleton } from '@/app/dashboard/components';
+import { AdminPageSkeleton, Button } from '@/app/dashboard/components';
 import SearchableSelect from '@/app/components/ui/searchable-select';
 import styles from './translations.module.css';
 import adminStyles from '../admin.module.css';
@@ -492,8 +492,7 @@ export default function TranslationsPage() {
             value={filter}
             onChange={e => setFilter(e.target.value)}
           />
-          <button 
-            className={`${styles.btn} ${styles.btnOutline}`} 
+          <Button 
             onClick={async () => {
               await fetchAll();
               await refreshTranslations();
@@ -501,13 +500,12 @@ export default function TranslationsPage() {
             disabled={loading}
           >
             <RefreshCw size={14} /> {t('admin.common.refresh')}
-          </button>
-          <button 
-            className={`${styles.btn} ${styles.btnOutline}`}
+          </Button>
+          <Button 
             onClick={() => { resetImportState(); setImportModalOpen(true); }}
           >
             <Upload size={14} /> {t('admin.translations.import')}
-          </button>
+          </Button>
         </div>
 
         {/* Add key row */}
@@ -554,13 +552,13 @@ export default function TranslationsPage() {
               setNsManuallyEdited(true);
             }}
           />
-          <button
-            className={`${styles.btn} ${styles.btnPrimary}`}
+          <Button
+            variant="primary"
             disabled={saving || !newKey}
             onClick={addKey}
           >
             <Plus size={14} /> {t('admin.translations.addKey')}
-          </button>
+          </Button>
         </div>
 
         {/* Add language row */}
@@ -587,13 +585,12 @@ export default function TranslationsPage() {
             value={fallbackCsv}
             onChange={e => setFallbackCsv(e.target.value)}
           />
-          <button
-            className={`${styles.btn} ${styles.btnOutline}`}
+          <Button
             disabled={saving || !newLocale || !newLocaleName}
             onClick={addLanguage}
           >
             <Globe size={14} /> {t('admin.translations.addLanguage')}
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -608,14 +605,14 @@ export default function TranslationsPage() {
           <label key={l.locale} className={styles.langCheck}>
             <input type="checkbox" checked={visibleLocales.includes(l.locale)} onChange={() => toggleLocale(l.locale)} />
             {l.locale} ({l.name})
-            <button
-              className={`${styles.btn} ${styles.btnSm} ${styles.btnOutline}`}
+            <Button
+              size="sm"
               onClick={() => exportTranslations(l.locale)}
               title={t('admin.translations.export')}
               style={{ marginInlineStart: '0.25rem', padding: '0.25rem 0.5rem' }}
             >
               <Download size={12} />
-            </button>
+            </Button>
           </label>
         ))}
       </div>
@@ -623,12 +620,12 @@ export default function TranslationsPage() {
       {/* Delete bar */}
       {selectedRowIds.length > 0 && (
         <div className={styles.deleteBar}>
-          <button
-            className={`${styles.btn} ${styles.btnDanger}`}
+          <Button
+            variant="danger"
             onClick={() => setDeleteDialogOpen(true)}
           >
             <Trash2 size={14} /> {t('admin.translations.deleteSelected')} ({selectedRowIds.length})
-          </button>
+          </Button>
         </div>
       )}
 
@@ -693,18 +690,19 @@ export default function TranslationsPage() {
                   );
                 })}
                 <td className={styles.actionCell}>
-                  <button
-                    className={`${styles.btn} ${styles.btnSm} ${styles.btnOutline}`}
+                  <Button
+                    size="sm"
                     onClick={() => openEditModal(row)}
                   >
                     <Edit2 size={12} />
-                  </button>
-                  <button
-                    className={`${styles.btn} ${styles.btnSm} ${styles.btnDanger}`}
+                  </Button>
+                  <Button
+                    variant="danger"
+                    size="sm"
                     onClick={() => { setSelectedRowIds([row.id]); setDeleteDialogOpen(true); }}
                   >
                     <Trash2 size={12} />
-                  </button>
+                  </Button>
                 </td>
               </tr>
             ))}

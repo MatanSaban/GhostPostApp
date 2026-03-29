@@ -4,6 +4,7 @@ import { createPortal } from 'react-dom';
 import { Sparkles, X, Loader2, AlertCircle, Check, ExternalLink } from 'lucide-react';
 import { useLocale } from '@/app/context/locale-context';
 import { useModalResize, ModalResizeButton } from '@/app/components/ui/ModalResizeButton';
+import { Button } from '@/app/dashboard/components';
 import styles from '../competitors.module.css';
 
 export function DiscoveryModal({
@@ -29,13 +30,14 @@ export function DiscoveryModal({
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
             <ModalResizeButton isMaximized={isMaximized} onToggle={toggleMaximize} className={styles.modalClose} />
-            <button
-              className={styles.modalClose}
+            <Button
+              variant="ghost"
+              iconOnly
               onClick={onClose}
               disabled={discovering}
             >
               <X size={20} />
-            </button>
+            </Button>
           </div>
         </div>
 
@@ -91,7 +93,7 @@ export function DiscoveryModal({
                       onError={(e) => { e.target.style.display = 'none'; }}
                     />
                     <div className={styles.discoveredInfo}>
-                      <span className={styles.discoveredDomain}>{comp.domain}</span>
+                      <span className={styles.discoveredDomain}>{comp.domain?.startsWith('http') ? comp.domain : `https://${comp.domain}`}</span>
                       <span className={styles.discoveredMeta}>
                         {t('competitorAnalysis.foundInKeywords').replace('{count}', String(comp.keywordCount))}
                         {' • '}{t('competitorAnalysis.avgRank')}: #{comp.averageRank?.toFixed(1)}

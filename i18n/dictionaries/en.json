@@ -350,6 +350,8 @@
       "contentPieces": "Content Pieces",
       "backlinks": "Backlinks",
       "sessions": "Sessions",
+      "newUsers": "New Users",
+      "engagedSessions": "Engaged",
       "visitors": "Visitors",
       "totalClicks": "Total Clicks",
       "totalImpressions": "Impressions",
@@ -414,6 +416,9 @@
     "tooltips": {
       "visitorsLegend": "Unique users who visited your site via organic search. One person visiting 5 pages counts as 1 visitor.",
       "pageViewsLegend": "Every single page load across your site. One person visiting 5 pages counts as 5 page views.",
+      "sessionsLegend": "A session is a period of user activity. A user visiting multiple pages in one visit counts as one session.",
+      "newUsersLegend": "First-time visitors to your site. Users who have never been on your website before.",
+      "engagedSessionsLegend": "Sessions with meaningful engagement: over 10 seconds, 2+ page views, or a conversion event.",
       "moreFromPrev": "{value} {metric} - {percent}% more than {period}",
       "lessFromPrev": "{value} {metric} - {percent}% less than {period}",
       "cardUp": "{label} is up {percent}% compared to {period}",
@@ -3627,7 +3632,9 @@
     },
     "agentInsights": {
       "title": "New Agent Insights",
-      "message": "{count} new insights found for your site"
+      "message": "{count} new insights found for {siteName}",
+      "titleNoNew": "Agent Analysis Complete",
+      "messageNoNew": "No new insights for {siteName} - everything looks the same as before"
     },
     "failedPublishModal": {
       "title": "Publishing Failed",
@@ -6030,6 +6037,8 @@
     "runAnalysis": "Run Analysis",
     "running": "Analyzing...",
     "lastRun": "Last run: {time}",
+    "weekday": "Weekdays",
+    "weekend": "Weekends",
     "pendingApproval": "{count} pending approval",
     "totalInsights": "Total Insights",
     "pendingReview": "Pending Review",
@@ -6065,6 +6074,9 @@
     "dismiss": "Dismiss",
     "execute": "Execute",
     "fixWithAi": "Fix with AI",
+    "fixWithAiCost": "Fix with AI (1 Credit)",
+    "aiCredit": "Credit",
+    "vs": "vs",
     "fixing": "Fixing...",
     "fixSuccess": "Fix applied successfully: {summary}",
     "fixFailed": "Fix failed. Please try again.",
@@ -6098,6 +6110,11 @@
     "expired": "Expired",
     "pending": "Pending",
     "resolved": "Resolved",
+    "alreadyTracked": "Already tracked",
+    "addToKeywords": "Add to keywords",
+    "track": "Track",
+    "editPage": "Edit page",
+    "viewPage": "View page",
     "categories": {
       "CONTENT": "Content",
       "TRAFFIC": "Traffic",
@@ -6137,7 +6154,7 @@
       },
       "trafficDrop": {
         "title": "Search Traffic Drop",
-        "description": "Search clicks dropped by {change}% in the last 30 days. Review recent changes and check for indexing issues."
+        "description": "Search clicks dropped by {change}% in {periodStart} to {periodEnd} vs {comparePeriodStart} to {comparePeriodEnd}. Review recent changes and check for indexing issues."
       },
       "lowCtrQueries": {
         "title": "Low CTR Opportunities",
@@ -6149,11 +6166,11 @@
       },
       "visitorsDrop": {
         "title": "Visitor Count Drop",
-        "description": "Organic visitors dropped by {change}% in the last 30 days. This may indicate a ranking change or technical issue."
+        "description": "Organic visitors dropped by {change}% in {periodStart} to {periodEnd} vs {comparePeriodStart} to {comparePeriodEnd}. This may indicate a ranking change or technical issue."
       },
       "trafficGrowth": {
         "title": "Traffic Growing",
-        "description": "Organic visitors grew by {change}% in the last 30 days. Keep up the momentum!"
+        "description": "Organic visitors grew by {change}% in {periodStart} to {periodEnd} vs {comparePeriodStart} to {comparePeriodEnd}. Keep up the momentum!"
       },
       "contentGaps": {
         "title": "Content Gaps Found",
@@ -6169,7 +6186,15 @@
       },
       "cannibalization": {
         "title": "Keyword Cannibalization Detected",
-        "description": "{count} keywords are ranking with multiple pages, diluting your ranking power. Consolidate content to avoid competing with yourself."
+        "description": "{count} keywords are ranking with multiple pages, diluting your ranking power. Consolidate content to avoid competing with yourself.",
+        "proactive": {
+          "title": "Content Overlap Risk Detected",
+          "description": "{count} pages have highly similar titles or focus keywords and may compete for the same rankings. Review and differentiate these pages before they start cannibalizing each other."
+        },
+        "semantic": {
+          "title": "Same Search Intent Across Pages",
+          "description": "{count} page pairs serve the same user intent despite ranking for different keywords. AI analysis suggests consolidating or differentiating these pages."
+        }
       },
       "newKeywordOpportunities": {
         "title": "Untracked Keywords Driving Traffic",
@@ -6182,12 +6207,37 @@
       "contentWithoutTraffic": {
         "title": "Published Content With No Organic Traffic",
         "description": "{count} published pages have received zero organic impressions in the last 30 days. They may need SEO optimization or internal linking."
+      },
+      "weekendTrafficPattern": {
+        "title": "Weekday vs Weekend Traffic Pattern",
+        "description": "Your traffic is {skewPercent}% higher on {dominantPeriod}s — averaging {weekdayAvg} visitors on weekdays vs {weekendAvg} on weekends. This reveals your audience behavior and can guide content scheduling."
+      },
+      "trafficSpike": {
+        "title": "Traffic Spike Detected",
+        "description": "{count} unusual traffic spikes detected in the last 30 days against a daily average of {avgDaily} visitors. A likely source was identified for {sourcesFound} spikes."
+      },
+      "impressionClickGap": {
+        "title": "Impressions Growing, Clicks Lagging",
+        "description": "Search impressions grew by {impressionsChange}% but clicks only grew by {clicksChange}% in {periodStart} to {periodEnd} vs {comparePeriodStart} to {comparePeriodEnd}. The {gapPercent}% gap suggests your titles and meta descriptions need improvement to convert visibility into visits."
+      },
+      "aiTrafficGrowth": {
+        "title": "AI Traffic Growing",
+        "description": "Traffic from AI engines (ChatGPT, Perplexity, etc.) grew by {change}% to {sessions} sessions in {periodStart} to {periodEnd} vs {comparePeriodStart} to {comparePeriodEnd}, making up {sharePercent}% of your total traffic. Your content is being surfaced by AI assistants."
+      },
+      "aiTrafficDrop": {
+        "title": "AI Traffic Declining",
+        "description": "Traffic from AI engines dropped by {change}% to {sessions} sessions in {periodStart} to {periodEnd} vs {comparePeriodStart} to {comparePeriodEnd}. Review whether your content structure is optimized for AI discoverability."
+      },
+      "trafficConcentration": {
+        "title": "Traffic Over-Concentrated",
+        "description": "{concentrationPercent}% of your search clicks come from just 3 pages out of {totalPages}. Diversify your content strategy to reduce dependency on a few pages."
       }
     },
     "detailLabels": {
       "keyword": "Keyword",
       "position": "Position",
       "searchVolume": "Search Volume",
+      "date": "Date",
       "page": "Page",
       "url": "URL",
       "lastUpdated": "Last Updated",
@@ -6210,7 +6260,76 @@
       "actualCtr": "Actual CTR",
       "expectedCtr": "Expected CTR",
       "ctr": "CTR",
-      "publishedAt": "Published"
+      "publishedAt": "Published",
+      "weekdayAvg": "Weekday Avg",
+      "weekendAvg": "Weekend Avg",
+      "dominantPeriod": "Peak Period",
+      "avgDaily": "Daily Average",
+      "multiplier": "\u00d7 Average",
+      "source": "Likely Source",
+      "topPage": "Top Landing Page",
+      "gapPercent": "Gap",
+      "sharePercent": "Traffic Share",
+      "concentrationPercent": "Concentration",
+      "engine": "AI Engine",
+      "confidence": "confidence",
+      "recommended": "Recommended",
+      "competingPages": "Competing Pages",
+      "focusKeyword": "Focus Keyword",
+      "detectedSignals": "Detected signals",
+      "actionMerge": "Merge pages",
+      "actionCanonical": "Set canonical",
+      "actionRedirect": "301 Redirect",
+      "actionDifferentiate": "Differentiate content",
+      "targetAngle": "Target Angle",
+      "manualActionRequired": "Manual action required - cannot be auto-applied",
+      "manualRequired": "Manual action required",
+      "mergeInstructions": "Merge Instructions",
+      "canonicalTarget": "Canonical Target",
+      "pageA": "Page A",
+      "pageB": "Page B",
+      "reasonDetectedBySource": "Issue Detected:\n\n• What happened: These two pages are competing for the same keywords in Google search results.\n• Detection method: {sources}\n• Confidence: {confidence}%\n\nWhy this is a problem: When Google sees two pages targeting the same keywords, it struggles to decide which one to rank. This causes both pages to rank lower than they would if there was no competition.\n\nRecommended solution: Either differentiate the content so each page targets unique keywords, or merge the pages into one comprehensive article.",
+      "reasonPrefixMatch": "Critical Issue Detected:\n\n• What happened: Both page titles start with the same words - this is a strong indicator of content cannibalization!\n• Confidence: {confidence}%\n\nWhy this is a problem: When titles begin with identical words, Google sees them as very similar content competing for the same searches. Neither page will rank as well as it could if there was no internal competition.\n\nRecommended solutions:\n1. Change one page's title to start differently and target a unique angle\n2. Merge the pages if they cover the same topic\n3. Redirect one page to the other if one is clearly better",
+      "reasonTitleH1Similarity": "High Content Similarity Detected:\n\n• What happened: Both pages have similar titles ({titleSimilarity}% match) and H1 headings ({h1Similarity}% match).\n• Confidence: {confidence}%\n\nWhy this is a problem: Similar titles and headings signal to Google that both pages cover the same topic. Google will struggle to decide which page to show in search results, often causing both to rank lower.\n\nRecommended solutions:\n1. Rewrite titles to clearly differentiate what each page covers\n2. Target a different focus keyword for each page\n3. Consider merging if both pages truly cover the same topic",
+      "reasonQuerySignals": "Competition Detected in Google Search Console:\n\n• What happened: For the search query \"{query}\", both pages are appearing in results and splitting your rankings.\n• Signals found: {signals}\n\nWhy this is a problem: Google Search Console data shows both pages receiving impressions for this query. This means Google is unsure which page to rank, causing position fluctuations and lost traffic potential.\n\nRecommended solutions:\n1. Differentiate content - make each page target a unique angle of this topic\n2. Merge the pages into one comprehensive article\n3. Set a canonical tag pointing to your preferred page",
+      "reasonAiVerified": "AI Analysis Confirmed Issue:\n\n• What happened: Our AI analyzed both pages and confirmed they target the same search intent.\n• Confidence: {confidence}%\n\nWhy this is a problem: Even if the titles look different, the actual content is aimed at the same type of searcher. Google recognizes this overlap and penalizes both pages by not ranking either one as highly as it could.\n\nRecommended solution: Differentiate the content so each page answers a unique user question, or merge the pages into one authoritative article.",
+      "signalImpressionSplit": "impressions being split between pages",
+      "signalPositionDance": "position fluctuating as pages compete"
+    },
+    "fixCannibalization": "Fix with AI",
+    "cannibalizationIssue": "Cannibalization Issue",
+    "generateFeaturedImages": "Generate unique featured images",
+    "generateContentImages": "Generate content images (max 3 per page)",
+    "creditPerImage": "credit/image",
+    "creditsPerImage": "credits/image",
+    "mergedPagePreview": "Merged Page Preview",
+    "contentImages": "Content Images",
+    "maxImages": "max",
+    "generateContent": "Generate Content",
+    "generateArticle": "Generate Article",
+    "contentImagesToGenerate": "Content images to generate",
+    "featuredImagePrompt": "Featured Image Instructions (optional)",
+    "contentImagesPrompt": "Content Images Instructions (optional)",
+    "aiPromptPlaceholder": "Describe what the AI should generate...",
+    "postsToMerge": "Posts to Merge",
+    "currentMeta": "Current Meta",
+    "articleType": "Article Type",
+    "generating": "Generating...",
+    "preview": "Preview",
+    "save": "Save",
+    "saveToEntities": "Save to Platform",
+    "publishToSite": "Publish to Site",
+    "articleTypes": {
+      "seo": "SEO Article",
+      "blogPost": "Blog Post",
+      "guide": "Guide",
+      "howTo": "How-To Article",
+      "listicle": "Listicle",
+      "comparison": "Comparison Article",
+      "review": "Review",
+      "news": "News",
+      "tutorial": "Tutorial",
+      "caseStudy": "Case Study"
     },
     "seoPriorities": {
       "high": "High",

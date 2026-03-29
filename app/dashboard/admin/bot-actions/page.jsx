@@ -25,7 +25,7 @@ import {
 import { useLocale } from '@/app/context/locale-context';
 import { useUser } from '@/app/context/user-context';
 import { AdminModal, ConfirmDialog, FormInput, FormTextarea, FormSelect, FormCheckbox, FormActions, PrimaryButton, SecondaryButton } from '../components/AdminModal';
-import { AdminPageSkeleton, TableSkeleton } from '@/app/dashboard/components';
+import { AdminPageSkeleton, TableSkeleton, Button } from '@/app/dashboard/components';
 import styles from '../admin.module.css';
 
 export default function BotActionsPage() {
@@ -356,10 +356,10 @@ export default function BotActionsPage() {
           <button className={styles.refreshButton} onClick={loadData}>
             <RefreshCw size={16} />
           </button>
-          <button className={styles.addButton} onClick={handleAdd}>
+          <Button variant="primary" onClick={handleAdd}>
             <Plus size={16} />
             <span>{t('admin.botActions.addAction')}</span>
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -439,28 +439,29 @@ export default function BotActionsPage() {
                   </td>
                   <td>
                     <div className={styles.actionButtons}>
-                      <button
-                        className={styles.actionButton}
+                      <Button
+                        variant="icon"
                         onClick={() => handleTest(action)}
                         title="Test"
                         style={{ color: 'var(--primary)' }}
                       >
                         <Play size={14} />
-                      </button>
-                      <button
-                        className={styles.actionButton}
+                      </Button>
+                      <Button
+                        variant="icon"
                         onClick={() => handleEdit(action)}
                         title="Edit"
                       >
                         <Edit2 size={14} />
-                      </button>
-                      <button
-                        className={`${styles.actionButton} ${styles.deleteButton}`}
+                      </Button>
+                      <Button
+                        variant="icon"
+                        iconDanger
                         onClick={() => handleDeleteClick(action)}
                         title="Delete"
                       >
                         <Trash2 size={14} />
-                      </button>
+                      </Button>
                     </div>
                   </td>
                 </tr>

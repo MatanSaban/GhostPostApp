@@ -6,6 +6,7 @@ import { useLocale } from '@/app/context/locale-context';
 import { useUser } from '@/app/context/user-context';
 import { useSite } from '@/app/context/site-context';
 import { useModalResize, ModalResizeButton } from '@/app/components/ui/ModalResizeButton';
+import { Button } from '@/app/dashboard/components';
 import styles from '../backlinks.module.css';
 
 // ──────────────────────────────────────────────
@@ -34,7 +35,7 @@ function CreateListingModal({ userSites, t, onClose, onSubmit }) {
   const [isProcessing, setIsProcessing] = useState(false);
 
   const selectedSite = selectedSiteIdx !== '' ? userSites[Number(selectedSiteIdx)] : null;
-  const domain = selectedSite ? selectedSite.siteUrl?.replace(/^https?:\/\//, '').replace(/\/$/, '') : '';
+  const domain = selectedSite?.siteUrl || '';
 
   // Auto-fill category and language when a site is selected
   useEffect(() => {
@@ -128,7 +129,7 @@ function CreateListingModal({ userSites, t, onClose, onSubmit }) {
           <h2 className={styles.modalTitle}>{t('backlinks.createListing.title')}</h2>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
             <ModalResizeButton isMaximized={isMaximized} onToggle={toggleMaximize} className={styles.modalClose} />
-            <button className={styles.modalClose} onClick={onClose}><X size={18} /></button>
+            <Button variant="ghost" iconOnly onClick={onClose}><X size={18} /></Button>
           </div>
         </div>
 
@@ -326,16 +327,16 @@ function CreateListingModal({ userSites, t, onClose, onSubmit }) {
 
         {/* Footer */}
         <div className={styles.modalFooter}>
-          <button className={styles.modalCancel} onClick={onClose}>
+          <Button onClick={onClose}>
             {t('backlinks.purchase.cancel')}
-          </button>
-          <button
-            className={styles.modalConfirm}
+          </Button>
+          <Button
+            variant="primary"
             disabled={!canSubmit}
             onClick={handleSubmit}
           >
             {isProcessing ? t('backlinks.purchase.processing') : t('backlinks.createListing.submit')}
-          </button>
+          </Button>
         </div>
       </div>
     </div>
@@ -380,9 +381,9 @@ function PurchaseModal({ listing, sites, stats, t, onClose, onPurchase }) {
       <div className={styles.modal} onClick={e => e.stopPropagation()}>
         <div className={styles.modalHeader}>
           <h2 className={styles.modalTitle}>{t('backlinks.purchase.title')}</h2>
-          <button className={styles.modalClose} onClick={onClose}>
+          <Button variant="ghost" iconOnly onClick={onClose}>
             <X size={18} />
-          </button>
+          </Button>
         </div>
 
         <div className={styles.modalBody}>
@@ -486,16 +487,16 @@ function PurchaseModal({ listing, sites, stats, t, onClose, onPurchase }) {
 
         {/* Actions */}
         <div className={styles.modalFooter}>
-          <button className={styles.modalCancel} onClick={onClose}>
+          <Button onClick={onClose}>
             {t('backlinks.purchase.cancel')}
-          </button>
-          <button
-            className={styles.modalConfirm}
+          </Button>
+          <Button
+            variant="primary"
             disabled={!paymentMethod || !targetUrl || isProcessing}
             onClick={handleConfirm}
           >
             {isProcessing ? t('backlinks.purchase.processing') : t('backlinks.purchase.confirm')}
-          </button>
+          </Button>
         </div>
       </div>
     </div>
@@ -514,7 +515,7 @@ function ListingCard({ listing, t, onPurchaseClick }) {
       {/* Header: domain + link type badge */}
       <div className={styles.cardHeader}>
         <div className={styles.domainInfo}>
-          <span className={styles.domainName}>{listing.domain}</span>
+          <span className={styles.domainName}>{listing.domain?.startsWith('http') ? listing.domain : `https://${listing.domain}`}</span>
           <span className={styles.cardTitle}>{listing.title}</span>
         </div>
         <span className={`${styles.linkTypeBadge} ${listing.linkType === 'DOFOLLOW' ? styles.dofollow : styles.nofollow}`}>

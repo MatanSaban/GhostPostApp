@@ -108,10 +108,10 @@ export function CompetitorCard({ competitor, isSelected, isScanning, onSelect, o
           />
           <div className={styles.competitorDetails}>
             <h4 className={styles.competitorDomain}>
-              {competitor.name || competitor.domain}
+              {competitor.name || (competitor.domain?.startsWith('http') ? competitor.domain : `https://${competitor.domain}`)}
             </h4>
             {competitor.name && (
-              <span className={styles.competitorDomainSmall}>{competitor.domain}</span>
+              <span className={styles.competitorDomainSmall}>{competitor.domain?.startsWith('http') ? competitor.domain : `https://${competitor.domain}`}</span>
             )}
             <a
               href={competitor.url}

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Plus, X } from 'lucide-react';
+import { Button } from '@/app/dashboard/components';
 import styles from '../page.module.css';
 
 export function RedirectForm({ translations, onSubmit, editingRedirect, onCancel }) {
@@ -96,17 +97,17 @@ export function RedirectForm({ translations, onSubmit, editingRedirect, onCancel
           </select>
         </div>
         <div className={styles.formActions}>
-          <button type="submit" className={styles.addButton} disabled={isSubmitting}>
+          <Button type="submit" variant="primary" disabled={isSubmitting}>
             {isSubmitting ? '...' : (
               <>
                 <Plus size={16} /> {isEditing ? translations.update : translations.add}
               </>
             )}
-          </button>
+          </Button>
           {isEditing && (
-            <button type="button" className={styles.cancelButton} onClick={handleCancel}>
+            <Button type="button" onClick={handleCancel}>
               {translations.cancel}
-            </button>
+            </Button>
           )}
         </div>
       </form>

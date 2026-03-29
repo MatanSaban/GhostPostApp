@@ -22,7 +22,7 @@ import {
 import { useSite } from '@/app/context/site-context';
 import { useLocale } from '@/app/context/locale-context';
 import { usePermissions, MODULES } from '@/app/hooks/usePermissions';
-import { ContentGridSkeleton, PageHeaderSkeleton } from '@/app/dashboard/components';
+import { ContentGridSkeleton, PageHeaderSkeleton, Button } from '@/app/dashboard/components';
 import styles from './media.module.css';
 
 /**
@@ -492,10 +492,10 @@ export default function MediaPage() {
               
               <div className={styles.detailsActions}>
                 {canEditMedia && (
-                  <button
+                  <Button
+                    variant="primary"
                     onClick={handleSave}
                     disabled={isSaving}
-                    className={styles.saveButton}
                   >
                     {isSaving ? (
                       <Loader2 className={styles.spinIcon} />
@@ -505,16 +505,16 @@ export default function MediaPage() {
                       <Save />
                     )}
                     {t('common.save')}
-                  </button>
+                  </Button>
                 )}
                 {canDeleteMedia && (
-                  <button
+                  <Button
+                    variant="danger"
                     onClick={handleDelete}
-                    className={styles.deleteButton}
                   >
                     <Trash2 />
                     {t('common.delete')}
-                  </button>
+                  </Button>
                 )}
               </div>
             </div>

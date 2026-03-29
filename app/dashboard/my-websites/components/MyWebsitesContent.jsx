@@ -23,7 +23,7 @@ import {
 import { useLocale } from '@/app/context/locale-context';
 import { useSite } from '@/app/context/site-context';
 import { usePermissions } from '@/app/hooks/usePermissions';
-import { EmptyState, MyWebsitesCardsSkeleton } from '@/app/dashboard/components';
+import { EmptyState, MyWebsitesCardsSkeleton, Button } from '@/app/dashboard/components';
 import { Skeleton } from '@/app/dashboard/components/Skeleton';
 import { AddSiteModal } from '@/app/components/ui/AddSiteModal';
 import { decodeDisplayUrl } from '@/lib/urlDisplay';
@@ -228,10 +228,10 @@ export function MyWebsitesContent() {
         </div>
         <div className={styles.toolbarRight}>
           {canCreate && (
-            <button className={styles.addButton} onClick={openAddModal}>
+            <Button variant="primary" onClick={openAddModal}>
               <Plus size={16} />
               <span>{t('sites.addSite')}</span>
-            </button>
+            </Button>
           )}
           <div className={styles.viewToggle}>
             <button
@@ -329,7 +329,7 @@ export function MyWebsitesContent() {
                       rel="noopener noreferrer"
                       className={styles.siteUrl}
                     >
-                      <bdi dir="ltr">{decodeDisplayUrl(site.url.replace(/^https?:\/\//, ''))}</bdi>
+                      <bdi dir="ltr">{decodeDisplayUrl(site.url)}</bdi>
                       <ExternalLink size={12} />
                     </a>
                   </td>
@@ -347,30 +347,31 @@ export function MyWebsitesContent() {
                   <td className={styles.dateCell}>{formatDate(site.createdAt)}</td>
                   <td>
                     <div className={styles.actions}>
-                      <button
-                        className={styles.actionButton}
+                      <Button
+                        variant="icon"
                         onClick={() => handleManageSite(site)}
                         title={t('myWebsites.actions.manage')}
                       >
                         <ArrowRight size={16} />
-                      </button>
+                      </Button>
                       {canEdit && (
-                        <button
-                          className={styles.actionButton}
+                        <Button
+                          variant="icon"
                           onClick={() => openRenameModal(site)}
                           title={t('myWebsites.actions.rename')}
                         >
                           <Pencil size={16} />
-                        </button>
+                        </Button>
                       )}
                       {canDelete && (
-                        <button
-                          className={`${styles.actionButton} ${styles.actionButtonDanger}`}
+                        <Button
+                          variant="icon"
+                          iconDanger
                           onClick={() => setRemoveModal(site)}
                           title={t('myWebsites.actions.remove')}
                         >
                           <Trash2 size={16} />
-                        </button>
+                        </Button>
                       )}
                     </div>
                   </td>
@@ -402,7 +403,7 @@ export function MyWebsitesContent() {
                   rel="noopener noreferrer"
                   className={styles.cardUrl}
                 >
-                  <bdi dir="ltr">{decodeDisplayUrl(site.url.replace(/^https?:\/\//, ''))}</bdi>
+                  <bdi dir="ltr">{decodeDisplayUrl(site.url)}</bdi>
                   <ExternalLink size={12} />
                 </a>
 
@@ -458,9 +459,9 @@ export function MyWebsitesContent() {
           <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
             <div className={styles.modalHeader}>
               <h2>{t('myWebsites.renameModal.title')}</h2>
-              <button className={styles.modalClose} onClick={() => !isUpdating && setRenameModal(null)}>
+              <Button variant="ghost" iconOnly onClick={() => !isUpdating && setRenameModal(null)}>
                 <X size={20} />
-              </button>
+              </Button>
             </div>
             <div className={styles.modalBody}>
               <label className={styles.modalLabel}>{t('myWebsites.renameModal.label')}</label>
@@ -476,15 +477,15 @@ export function MyWebsitesContent() {
               />
             </div>
             <div className={styles.modalFooter}>
-              <button
-                className={styles.modalCancel}
+              <Button
+                variant="ghost"
                 onClick={() => setRenameModal(null)}
                 disabled={isUpdating}
               >
                 {t('myWebsites.renameModal.cancel')}
-              </button>
-              <button
-                className={styles.modalConfirm}
+              </Button>
+              <Button
+                variant="primary"
                 onClick={handleRename}
                 disabled={isUpdating || !editName.trim()}
               >
@@ -496,7 +497,7 @@ export function MyWebsitesContent() {
                 ) : (
                   t('myWebsites.renameModal.save')
                 )}
-              </button>
+              </Button>
             </div>
           </div>
         </div>,
@@ -509,9 +510,9 @@ export function MyWebsitesContent() {
           <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
             <div className={styles.modalHeader}>
               <h2>{t('myWebsites.removeModal.title')}</h2>
-              <button className={styles.modalClose} onClick={() => !isRemoving && setRemoveModal(null)}>
+              <Button variant="ghost" iconOnly onClick={() => !isRemoving && setRemoveModal(null)}>
                 <X size={20} />
-              </button>
+              </Button>
             </div>
             <div className={styles.modalBody}>
               <div className={styles.removeWarning}>
@@ -520,15 +521,15 @@ export function MyWebsitesContent() {
               </div>
             </div>
             <div className={styles.modalFooter}>
-              <button
-                className={styles.modalCancel}
+              <Button
+                variant="ghost"
                 onClick={() => setRemoveModal(null)}
                 disabled={isRemoving}
               >
                 {t('myWebsites.removeModal.cancel')}
-              </button>
-              <button
-                className={styles.modalDanger}
+              </Button>
+              <Button
+                variant="danger"
                 onClick={handleRemove}
                 disabled={isRemoving}
               >
@@ -540,7 +541,7 @@ export function MyWebsitesContent() {
                 ) : (
                   t('myWebsites.removeModal.confirm')
                 )}
-              </button>
+              </Button>
             </div>
           </div>
         </div>,

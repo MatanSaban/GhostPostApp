@@ -399,7 +399,9 @@ export default function KeywordsStep({ state, dispatch, translations }) {
             ) : (
               <div className={styles.gscPickerList}>
                 {gscSites.map((site) => {
-                  const cleanUrl = site.siteUrl.replace(/^sc-domain:/, '').replace(/^https?:\/\//, '');
+                  const cleanUrl = site.siteUrl.startsWith('sc-domain:') 
+                    ? `https://${site.siteUrl.replace(/^sc-domain:/, '')}` 
+                    : site.siteUrl;
                   const permLabel = site.permissionLevel === 'siteOwner' ? (t.permOwner || 'Owner')
                     : site.permissionLevel === 'siteFullUser' ? (t.permFull || 'Full Access')
                     : site.permissionLevel === 'siteRestrictedUser' ? (t.permRestricted || 'Restricted')

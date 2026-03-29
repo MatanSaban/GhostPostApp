@@ -24,7 +24,7 @@ import {
 } from 'lucide-react';
 import { useLocale } from '@/app/context/locale-context';
 import { useUser } from '@/app/context/user-context';
-import { AdminPageSkeleton, TableSkeleton } from '@/app/dashboard/components';
+import { AdminPageSkeleton, TableSkeleton, Button } from '@/app/dashboard/components';
 import styles from '../admin.module.css';
 
 export default function SubscriptionsPage() {
@@ -317,36 +317,37 @@ export default function SubscriptionsPage() {
                     </td>
                     <td>
                       <div className={styles.actionsCell}>
-                        <button 
-                          className={styles.actionButton} 
+                        <Button 
+                          variant="icon" 
                           title={t('admin.subscriptions.actions.view')}
                           onClick={() => handleView(sub)}
                         >
                           <Eye size={16} />
-                        </button>
-                        <button 
-                          className={styles.actionButton} 
+                        </Button>
+                        <Button 
+                          variant="icon" 
                           title={t('admin.subscriptions.actions.modify')}
                           onClick={() => handleEdit(sub)}
                         >
                           <Edit2 size={16} />
-                        </button>
+                        </Button>
                         {sub.status === 'canceled' || sub.cancelAtPeriodEnd ? (
-                          <button 
-                            className={styles.actionButton} 
+                          <Button 
+                            variant="icon" 
                             title={t('admin.common.reactivate')}
                             onClick={() => handleReactivate(sub)}
                           >
                             <RotateCcw size={16} />
-                          </button>
+                          </Button>
                         ) : (
-                          <button 
-                            className={`${styles.actionButton} ${styles.danger}`} 
+                          <Button 
+                            variant="icon" 
+                            iconDanger
                             title={t('admin.subscriptions.actions.cancel')}
                             onClick={() => handleCancel(sub)}
                           >
                             <XCircle size={16} />
-                          </button>
+                          </Button>
                         )}
                       </div>
                     </td>
@@ -398,13 +399,14 @@ export default function SubscriptionsPage() {
           <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
             <div className={styles.modalHeader}>
               <h2 className={styles.modalTitle}>{t('admin.subscriptions.viewTitle')}</h2>
-              <button 
-                className={styles.modalClose}
+              <Button 
+                variant="ghost" 
+                iconOnly
                 onClick={() => setViewModal({ open: false, subscription: null })}
                 title={t('admin.common.close')}
               >
                 <X size={20} />
-              </button>
+              </Button>
             </div>
             <div className={styles.modalBody}>
               <div className={styles.detailGrid}>
@@ -468,12 +470,11 @@ export default function SubscriptionsPage() {
               </div>
             </div>
             <div className={styles.modalFooter}>
-              <button 
-                className={styles.secondaryButton}
+              <Button 
                 onClick={() => setViewModal({ open: false, subscription: null })}
               >
                 {t('admin.common.close')}
-              </button>
+              </Button>
             </div>
           </div>
         </div>,
@@ -486,13 +487,14 @@ export default function SubscriptionsPage() {
           <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
             <div className={styles.modalHeader}>
               <h2 className={styles.modalTitle}>{t('admin.subscriptions.changePlan')}</h2>
-              <button 
-                className={styles.modalClose}
+              <Button 
+                variant="ghost" 
+                iconOnly
                 onClick={() => setEditModal({ open: false, subscription: null, selectedPlanId: '' })}
                 title={t('admin.common.close')}
               >
                 <X size={20} />
-              </button>
+              </Button>
             </div>
             <div className={styles.modalBody}>
               <p style={{ marginBottom: '1rem' }}>
@@ -515,19 +517,18 @@ export default function SubscriptionsPage() {
               </div>
             </div>
             <div className={styles.modalFooter}>
-              <button 
-                className={styles.secondaryButton}
+              <Button 
                 onClick={() => setEditModal({ open: false, subscription: null, selectedPlanId: '' })}
               >
                 {t('admin.common.close')}
-              </button>
-              <button 
-                className={styles.primaryButton}
+              </Button>
+              <Button 
+                variant="primary"
                 onClick={() => executeAction('change_plan', editModal.subscription.id, editModal.selectedPlanId)}
                 disabled={!editModal.selectedPlanId || isActionLoading}
               >
                 {isActionLoading ? t('admin.common.saving') : t('admin.common.save')}
-              </button>
+              </Button>
             </div>
           </div>
         </div>,
@@ -544,13 +545,14 @@ export default function SubscriptionsPage() {
                   ? t('admin.subscriptions.confirmCancel') 
                   : t('admin.subscriptions.confirmReactivate')}
               </h2>
-              <button 
-                className={styles.modalClose}
+              <Button 
+                variant="ghost" 
+                iconOnly
                 onClick={() => setConfirmModal({ open: false, subscription: null, action: null })}
                 title={t('admin.common.close')}
               >
                 <X size={20} />
-              </button>
+              </Button>
             </div>
             <div className={styles.modalBody}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1rem' }}>
@@ -581,14 +583,13 @@ export default function SubscriptionsPage() {
               </div>
             </div>
             <div className={styles.modalFooter}>
-              <button 
-                className={styles.secondaryButton}
+              <Button 
                 onClick={() => setConfirmModal({ open: false, subscription: null, action: null })}
               >
                 {t('admin.common.close')}
-              </button>
-              <button 
-                className={confirmModal.action === 'cancel' ? styles.dangerButton : styles.primaryButton}
+              </Button>
+              <Button 
+                variant={confirmModal.action === 'cancel' ? 'danger' : 'primary'}
                 onClick={() => executeAction(confirmModal.action, confirmModal.subscription.id)}
                 disabled={isActionLoading}
               >
@@ -598,7 +599,7 @@ export default function SubscriptionsPage() {
                     ? t('admin.subscriptions.actions.cancel')
                     : t('admin.common.reactivate')
                 }
-              </button>
+              </Button>
             </div>
           </div>
         </div>,

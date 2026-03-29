@@ -1,6 +1,7 @@
 'use client';
 
 import { Loader2 } from 'lucide-react';
+import { Button } from '@/app/dashboard/components';
 import styles from '../competitors.module.css';
 
 export function AddCompetitorForm({ translations, newUrl, setNewUrl, addingUrl, error, limit, competitorCount, onSubmit, onClose }) {
@@ -25,9 +26,9 @@ export function AddCompetitorForm({ translations, newUrl, setNewUrl, addingUrl, 
             required
             autoFocus
           />
-          <button
+          <Button
             type="submit"
-            className={styles.addButton}
+            variant="primary"
             disabled={addingUrl || !newUrl.trim()}
           >
             {addingUrl ? (
@@ -35,14 +36,13 @@ export function AddCompetitorForm({ translations, newUrl, setNewUrl, addingUrl, 
             ) : (
               t.addUrl || t.add
             )}
-          </button>
-          <button
+          </Button>
+          <Button
             type="button"
-            className={styles.cancelButton}
             onClick={onClose}
           >
             {t.cancel}
-          </button>
+          </Button>
         </div>
         {error && <p className={styles.errorText}>{error}</p>}
       </form>

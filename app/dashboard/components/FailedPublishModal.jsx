@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { createPortal } from 'react-dom';
 import { X, AlertTriangle, RefreshCw, FileText, ExternalLink, Loader2 } from 'lucide-react';
 import { useModalResize, ModalResizeButton } from '@/app/components/ui/ModalResizeButton';
+import { Button } from '@/app/dashboard/components';
 import styles from './FailedPublishModal.module.css';
 
 /**
@@ -202,12 +203,12 @@ export default function FailedPublishModal({ data, translations, onClose, onRetr
         
         {/* Footer */}
         <div className={styles.footer}>
-          <button className={styles.secondaryBtn} onClick={onClose}>
+          <Button onClick={onClose}>
             {t.close || 'Close'}
-          </button>
+          </Button>
           {data.isConnected && !retrySuccess && (
-            <button 
-              className={styles.primaryBtn} 
+            <Button 
+              variant="primary" 
               onClick={handleRetry}
               disabled={retrying}
             >
@@ -222,7 +223,7 @@ export default function FailedPublishModal({ data, translations, onClose, onRetr
                   {t.retryPublish || 'Retry Publishing'}
                 </>
               )}
-            </button>
+            </Button>
           )}
           {!data.isConnected && (
             <a 

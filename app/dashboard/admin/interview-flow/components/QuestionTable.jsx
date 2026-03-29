@@ -19,7 +19,7 @@ import {
   Bot,
 } from 'lucide-react';
 import { useLocale } from '@/app/context/locale-context';
-import { TableSkeleton } from '@/app/dashboard/components';
+import { TableSkeleton, Button } from '@/app/dashboard/components';
 import { getTypeLabel } from './useInterviewFlow';
 import styles from '../../admin.module.css';
 
@@ -162,27 +162,28 @@ export default function QuestionTable({
             </td>
             <td>
               <div className={styles.actionButtons}>
-                <button
-                  className={styles.actionButton}
+                <Button
+                  variant="icon"
                   onClick={() => onEdit(question)}
                   title="Edit"
                 >
                   <Edit2 size={14} />
-                </button>
-                <button
-                  className={styles.actionButton}
+                </Button>
+                <Button
+                  variant="icon"
                   onClick={() => onDuplicate(question)}
                   title="Duplicate"
                 >
                   <Copy size={14} />
-                </button>
-                <button
-                  className={`${styles.actionButton} ${styles.deleteButton}`}
+                </Button>
+                <Button
+                  variant="icon"
+                  iconDanger
                   onClick={() => onDelete(question)}
                   title="Delete"
                 >
                   <Trash2 size={14} />
-                </button>
+                </Button>
               </div>
             </td>
           </tr>

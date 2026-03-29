@@ -18,7 +18,7 @@ import {
 import { useLocale } from '@/app/context/locale-context';
 import { useUser } from '@/app/context/user-context';
 import { AdminModal, ConfirmDialog, FormInput, FormTextarea, FormSelect, FormActions, PrimaryButton, SecondaryButton } from '../components/AdminModal';
-import { AdminPageSkeleton } from '@/app/dashboard/components';
+import { AdminPageSkeleton, Button } from '@/app/dashboard/components';
 import styles from '../admin.module.css';
 
 // ──────────────────────────────────────────────
@@ -601,10 +601,10 @@ export default function AdminBacklinksPage() {
               <button className={styles.refreshButton} onClick={fetchListings}>
                 <RefreshCw size={16} />
               </button>
-              <button className={styles.addButton} onClick={handleAddListing}>
+              <Button variant="primary" onClick={handleAddListing}>
                 <Plus size={16} />
                 {t('admin.backlinks.addListing')}
-              </button>
+              </Button>
             </div>
           </div>
 
@@ -675,20 +675,21 @@ export default function AdminBacklinksPage() {
                     </td>
                     <td>
                       <div className={styles.actionsCell}>
-                        <button
-                          className={styles.actionButton}
+                        <Button
+                          variant="icon"
                           onClick={() => handleEditListing(listing)}
                           title={t('admin.backlinks.editListing')}
                         >
                           <Edit2 size={16} />
-                        </button>
-                        <button
-                          className={`${styles.actionButton} ${styles.danger}`}
+                        </Button>
+                        <Button
+                          variant="icon"
+                          iconDanger
                           onClick={() => handleDeleteClick(listing)}
                           title={t('admin.backlinks.deleteListing')}
                         >
                           <Trash2 size={16} />
-                        </button>
+                        </Button>
                       </div>
                     </td>
                   </tr>
@@ -820,13 +821,13 @@ export default function AdminBacklinksPage() {
                     </td>
                     <td>
                       <div className={styles.actionsCell}>
-                        <button
-                          className={styles.actionButton}
+                        <Button
+                          variant="icon"
                           onClick={() => handlePurchaseStatusClick(purchase)}
                           title={t('admin.backlinks.purchaseStatusUpdate')}
                         >
                           <Edit2 size={16} />
-                        </button>
+                        </Button>
                         {purchase.publishedUrl && (
                           <a
                             href={purchase.publishedUrl}

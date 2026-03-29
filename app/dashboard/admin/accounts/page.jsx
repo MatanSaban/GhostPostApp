@@ -29,7 +29,7 @@ import {
   PrimaryButton,
   SecondaryButton,
 } from '../components/AdminModal';
-import { AdminPageSkeleton, TableSkeleton } from '@/app/dashboard/components';
+import { AdminPageSkeleton, TableSkeleton, Button } from '@/app/dashboard/components';
 import styles from '../admin.module.css';
 import modalStyles from '../components/AdminModal.module.css';
 
@@ -327,10 +327,10 @@ export default function PlatformAccountsPage() {
           <button className={styles.refreshButton} onClick={loadAccounts}>
             <RefreshCw size={16} />
           </button>
-          <button className={styles.addButton} onClick={handleAdd}>
+          <Button variant="primary" onClick={handleAdd}>
             <Plus size={16} />
             <span>{t('admin.accounts.addAccount')}</span>
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -391,27 +391,28 @@ export default function PlatformAccountsPage() {
                     <td>{formatDate(account.createdAt)}</td>
                     <td>
                       <div className={styles.actionsCell}>
-                        <button 
-                          className={styles.actionButton} 
+                        <Button 
+                          variant="icon" 
                           title={t('admin.accounts.actions.view')}
                           onClick={() => handleView(account)}
                         >
                           <Eye size={16} />
-                        </button>
-                        <button 
-                          className={styles.actionButton} 
+                        </Button>
+                        <Button 
+                          variant="icon" 
                           title={t('admin.accounts.actions.edit')}
                           onClick={() => handleEdit(account)}
                         >
                           <Edit2 size={16} />
-                        </button>
-                        <button 
-                          className={`${styles.actionButton} ${styles.danger}`} 
+                        </Button>
+                        <Button 
+                          variant="icon" 
+                          iconDanger
                           title={t('admin.accounts.actions.delete')}
                           onClick={() => handleDeleteClick(account)}
                         >
                           <Trash2 size={16} />
-                        </button>
+                        </Button>
                       </div>
                     </td>
                   </tr>

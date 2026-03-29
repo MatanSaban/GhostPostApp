@@ -56,7 +56,7 @@ export default async function LinkBuildingPage() {
             {opportunities.map((opp, index) => (
               <div key={index} className={styles.opportunityItem}>
                 <div className={styles.opportunityInfo}>
-                  <span className={styles.opportunityDomain}>{opp.domain}</span>
+                  <span className={styles.opportunityDomain}>{opp.domain?.startsWith('http') ? opp.domain : `https://${opp.domain}`}</span>
                   <span className={styles.opportunityMeta}>{opp.category}</span>
                 </div>
                 <div className={styles.opportunityScore}>
@@ -92,7 +92,7 @@ export default async function LinkBuildingPage() {
               {backlinks.map((link, index) => (
                 <div key={index} className={styles.tableRow}>
                   <div className={styles.domainCell}>
-                    <span className={styles.domainName}>{link.domain}</span>
+                    <span className={styles.domainName}>{link.domain?.startsWith('http') ? link.domain : `https://${link.domain}`}</span>
                     <span className={styles.domainUrl}>{link.url}</span>
                   </div>
                   <span className={`${styles.cell} ${styles.daCell}`}>{link.da}</span>

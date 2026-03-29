@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 import { useSite } from '@/app/context/site-context';
 import { useLocale } from '@/app/context/locale-context';
+import { Button } from '@/app/dashboard/components';
 import styles from './WordPressPluginSection.module.css';
 
 const CONNECTION_STATUS = {
@@ -429,16 +430,15 @@ export default function WordPressPluginSection({
           )}
 
           <div className={styles.formActions}>
-            <button 
+            <Button 
               type="button" 
-              className={styles.cancelButton}
               onClick={() => setShowAutoInstall(false)}
             >
               {t('common.cancel')}
-            </button>
-            <button 
+            </Button>
+            <Button 
               type="submit" 
-              className={styles.submitButton}
+              variant="primary"
               disabled={isAutoInstalling}
             >
               {isAutoInstalling ? (
@@ -452,7 +452,7 @@ export default function WordPressPluginSection({
                   {t('settings.wordpress.installNow')}
                 </>
               )}
-            </button>
+            </Button>
           </div>
 
           <p className={styles.securityNote}>

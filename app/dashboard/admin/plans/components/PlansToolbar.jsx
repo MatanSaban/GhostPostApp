@@ -2,6 +2,7 @@
 
 import { Search, Filter, RefreshCw, Plus } from 'lucide-react';
 import { useLocale } from '@/app/context/locale-context';
+import { Button } from '@/app/dashboard/components';
 import styles from '../../admin.module.css';
 
 export default function PlansToolbar({
@@ -34,10 +35,10 @@ export default function PlansToolbar({
         <button className={styles.refreshButton} onClick={onRefresh}>
           <RefreshCw size={16} />
         </button>
-        <button className={styles.addButton} onClick={onAdd}>
+        <Button variant="primary" onClick={onAdd}>
           <Plus size={16} />
           <span>{t('admin.plans.addPlan')}</span>
-        </button>
+        </Button>
       </div>
     </div>
   );

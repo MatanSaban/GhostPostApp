@@ -263,46 +263,6 @@
   justify-content: flex-end;
 }
 
-.cancelButton {
-  padding: 0.5rem 1rem;
-  font-size: 0.8125rem;
-  font-weight: 500;
-  color: var(--muted-foreground);
-  background: transparent;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  cursor: pointer;
-  transition: all var(--transition-fast);
-
-  &:hover {
-    background: var(--muted);
-  }
-}
-
-.submitButton {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.5rem 1.25rem;
-  font-size: 0.8125rem;
-  font-weight: 600;
-  color: white;
-  background: var(--gradient-primary);
-  border: none;
-  border-radius: var(--radius-md);
-  cursor: pointer;
-  transition: all var(--transition-fast);
-
-  &:hover:not(:disabled) {
-    opacity: 0.9;
-  }
-
-  &:disabled {
-    opacity: 0.7;
-    cursor: not-allowed;
-  }
-}
-
 .securityNote {
   display: flex;
   align-items: center;
@@ -460,11 +420,5 @@
 
   .formActions {
     flex-direction: column-reverse;
-  }
-
-  .cancelButton,
-  .submitButton {
-    width: 100%;
-    justify-content: center;
   }
 }

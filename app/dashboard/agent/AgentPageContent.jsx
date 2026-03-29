@@ -1,147 +1,32 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   Bot, CheckCircle, XCircle, Clock, AlertTriangle, Lightbulb,
   TrendingUp, TrendingDown, Minus, Search, FileText, Users, Wrench, Loader2, Play,
-  ChevronDown, ChevronUp, EyeOff, Filter, RefreshCw, ExternalLink, Sparkles,
+  ChevronDown, ChevronUp, EyeOff, Filter, RefreshCw, ExternalLink, Sparkles, Calendar,
 } from 'lucide-react';
 import { useSite } from '@/app/context/site-context';
 import { useAgent } from '@/app/context/agent-context';
 import { PageHeader } from '../components';
 import FixPreviewModal from '../components/FixPreviewModal';
 import { formatPageUrl } from '@/lib/urlDisplay';
+import {
+  FIXABLE_INSIGHT_TYPES,
+  CATEGORY_ICONS,
+  CATEGORIES,
+  STATUSES,
+  isFixableInsight,
+  getInsightType,
+  getInsightSentiment,
+  getInsightDirection,
+  resolveChangePercent,
+  translateReason,
+  resolveTranslation,
+  isInsightFullyFixed,
+  getTimeAgo,
+} from '../components/insight/insight-utils';
 import styles from './agent.module.css';
-
-const FIXABLE_INSIGHT_TYPES = new Set(['missingSeo', 'keywordStrikeZone']);
-
-function isFixableInsight(titleKey) {
-  const type = titleKey?.match(/agent\.insights\.(\w+)\.title/)?.[1];
-  return FIXABLE_INSIGHT_TYPES.has(type);
-}
-
-const CATEGORY_ICONS = {
-  CONTENT: FileText,
-  TRAFFIC: TrendingUp,
-  KEYWORDS: Search,
-  COMPETITORS: Users,
-  TECHNICAL: Wrench,
-};
-
-const TYPE_COLORS = {
-  DISCOVERY: 'info',
-  SUGGESTION: 'warning',
-  ACTION: 'primary',
-  ANALYSIS: 'neutral',
-  ALERT: 'error',
-};
-
-const CATEGORIES = ['CONTENT', 'TRAFFIC', 'KEYWORDS', 'COMPETITORS', 'TECHNICAL'];
-const STATUSES = ['PENDING', 'APPROVED', 'REJECTED', 'EXECUTED', 'FAILED', 'EXPIRED', 'RESOLVED'];
-
-const POSITIVE_INSIGHT_TYPES = new Set(['trafficGrowth']);
-const NEGATIVE_INSIGHT_TYPES = new Set(['trafficDrop', 'visitorsDrop', 'decliningPages']);
-
-function getInsightSentiment(insight) {
-  const insightType = insight.titleKey?.match(/agent\.insights\.(\w+)\.title/)?.[1];
-  const direction = getInsightDirection(insight);
-
-  // If actual change is exactly 0 → neutral/gray
-  if (direction === 'equal') return 'neutral';
-
-  // Positive insights → green (only when direction confirms it)
-  if (POSITIVE_INSIGHT_TYPES.has(insightType)) return direction === 'down' ? 'warning' : 'positive';
-  if (insight.type === 'DISCOVERY' && !NEGATIVE_INSIGHT_TYPES.has(insightType)) return 'positive';
-  if (insight.type === 'ALERT' && (insight.priority === 'CRITICAL' || insight.priority === 'HIGH')) return 'severe';
-  if (insight.priority === 'LOW') return 'neutral';
-  return 'warning';
-}
-
-function getInsightDirection(insight) {
-  const d = insight.data || {};
-  const change = d.change ?? d.clicksChange ?? d.visitorsChange;
-  if (change === undefined || change === null) {
-    // Default direction based on insight type when data is missing
-    const insightType = insight.titleKey?.match(/agent\.insights\.(\w+)\.title/)?.[1];
-    if (NEGATIVE_INSIGHT_TYPES.has(insightType)) return 'down';
-    if (POSITIVE_INSIGHT_TYPES.has(insightType)) return 'up';
-    return null;
-  }
-  if (change > 0) return 'up';
-  if (change < 0) return 'down';
-  return 'equal';
-}
-
-function resolveTranslation(translations, titleKey, data = {}) {
-  const parts = titleKey.split('.');
-  let value = translations;
-  for (const part of parts) {
-    value = value?.[part];
-    if (!value) return titleKey;
-  }
-  if (typeof value !== 'string') return titleKey;
-  return value.replace(/\{(\w+)\}/g, (match, key) => {
-    let val = data[key];
-
-    // Fallback: {change} might be stored as clicksChange/visitorsChange (integer %)
-    if (val === undefined && key === 'change') {
-      if (data.clicksChange !== undefined) val = data.clicksChange / 100;
-      else if (data.visitorsChange !== undefined) val = data.visitorsChange / 100;
-    }
-
-    if (val !== undefined && val !== null && !Number.isNaN(val)) {
-      if (key.toLowerCase().includes('change')) {
-        return Math.abs(Math.round(val * 100));
-      }
-      return val;
-    }
-    return match;
-  });
-}
-
-function getInsightType(titleKey) {
-  const match = titleKey?.match(/agent\.insights\.(\w+)\.title/);
-  return match?.[1] || null;
-}
-
-/**
- * Check if an insight is "fully fixed" - all fixable items have been applied.
- * For non-fixable insights, checks if status is resolved (not PENDING/FAILED).
- */
-function isInsightFullyFixed(insight) {
-  const type = getInsightType(insight.titleKey);
-  const isFixable = FIXABLE_INSIGHT_TYPES.has(type);
-
-  if (!isFixable) {
-    // Non-fixable insights: consider "fixed" if resolved status
-    return !['PENDING', 'FAILED'].includes(insight.status);
-  }
-
-  const results = insight.executionResult?.results || [];
-  if (results.length === 0) return false;
-
-  // Count how many items need fixing
-  if (type === 'keywordStrikeZone') {
-    return results.some(r => r.status === 'fixed');
-  }
-
-  // missingSeo - check if all pages have been fixed
-  const pages = insight.data?.pages || [];
-  if (pages.length === 0) return false;
-
-  const fixedUrls = new Set(results.filter(r => r.status === 'fixed').map(r => r.url));
-  return pages.every(p => fixedUrls.has(p.url));
-}
-
-// Moved to lib/urlDisplay.js
-
-function resolveChangePercent(d) {
-  if (d.change !== undefined && d.change !== null) return Math.round(d.change * 100);
-  if (d.clicksChange !== undefined && d.clicksChange !== null) return d.clicksChange;
-  if (d.visitorsChange !== undefined && d.visitorsChange !== null) return d.visitorsChange;
-  if (d.sessionsChange !== undefined && d.sessionsChange !== null) return d.sessionsChange;
-  return 0;
-}
 
 function EntityLinkCell({ url, siteId, translations }) {
   const [entity, setEntity] = useState(undefined); // undefined=loading, null=not found, object=found
@@ -392,9 +277,18 @@ function InsightDetails({ insight, translations, siteId, pluginConnected, onItem
               const itemResults = insight.executionResult?.results || [];
               const itemFixed = itemResults.some(r => r.url === p.url && r.status === 'fixed');
               const priorityLabel = t.seoPriorities?.[p.seoPriority] || p.seoPriority;
+              // Get best display title - prefer actual title over slug/URL
+              let displayTitle = p.title;
+              if (!displayTitle || /^(https?:\/\/|\/)/i.test(displayTitle)) {
+                displayTitle = p.h1 || null;
+              }
+              // Decode URL-encoded characters (Hebrew slugs etc.)
+              if (displayTitle) {
+                try { displayTitle = decodeURIComponent(displayTitle); } catch { /* keep original */ }
+              }
               return (
                 <tr key={i}>
-                  <td className={styles.detailPageTitle}>{p.title}</td>
+                  <td className={styles.detailPageTitle}>{displayTitle || <bdi dir="ltr">{formatPageUrl(p.url)}</bdi>}</td>
                   <td>
                     {p.url && (
                       <a href={p.url} target="_blank" rel="noopener noreferrer" className={styles.detailLink}>
@@ -488,6 +382,38 @@ function InsightDetails({ insight, translations, siteId, pluginConnected, onItem
             <span className={styles.detailStatValue}>{d.impressions?.toLocaleString()}</span>
           </div>
         </div>
+        {d.pages?.length > 0 && (
+          <>
+            <div className={styles.detailSubheading}>{labels.affectedPages || 'Affected Pages'}:</div>
+            <table className={styles.detailTable}>
+              <thead><tr><th>{labels.page || 'Page'}</th><th>{labels.clicks || 'Clicks'}</th><th>{labels.change || 'Change'}</th></tr></thead>
+              <tbody>
+                {d.pages.slice(0, 5).map((p, i) => {
+                  // Get best display title
+                  let displayTitle = p.title;
+                  if (!displayTitle || /^(https?:\/\/|\/)/i.test(displayTitle)) {
+                    displayTitle = null;
+                  }
+                  if (displayTitle) {
+                    try { displayTitle = decodeURIComponent(displayTitle); } catch { /* keep original */ }
+                  }
+                  return (
+                    <tr key={i}>
+                      <td>
+                        {displayTitle && <div className={styles.pageTitle}>{displayTitle}</div>}
+                        <a href={p.page} target="_blank" rel="noopener noreferrer" className={styles.detailLink}>
+                          <bdi dir="ltr">{formatPageUrl(p.page)}</bdi> <ExternalLink size={12} />
+                        </a>
+                      </td>
+                      <td>{p.clicks?.toLocaleString()}</td>
+                      <td className={styles.detailNegative}>{p.clicksChange}%</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </>
+        )}
       </div>
     );
   }
@@ -534,16 +460,29 @@ function InsightDetails({ insight, translations, siteId, pluginConnected, onItem
             </tr>
           </thead>
           <tbody>
-            {d.pages.map((p, i) => (
-              <tr key={i}>
-                <td className={styles.detailPageTitle}>
-                  <bdi dir="ltr">{p.page ? formatPageUrl(p.page) : '-'}</bdi>
-                </td>
-                <td>{p.clicks?.toLocaleString()}</td>
-                <td className={styles.detailNegative}>{p.clicksChange}%</td>
-                <td><EntityLinkCell url={p.page} siteId={siteId} translations={translations} /></td>
-              </tr>
-            ))}
+            {d.pages.map((p, i) => {
+              // Get best display title
+              let displayTitle = p.title;
+              if (!displayTitle || /^(https?:\/\/|\/)/i.test(displayTitle)) {
+                displayTitle = null;
+              }
+              if (displayTitle) {
+                try { displayTitle = decodeURIComponent(displayTitle); } catch { /* keep original */ }
+              }
+              return (
+                <tr key={i}>
+                  <td>
+                    {displayTitle && <div className={styles.pageTitle}>{displayTitle}</div>}
+                    <a href={p.page} target="_blank" rel="noopener noreferrer" className={styles.detailLink}>
+                      <bdi dir="ltr">{formatPageUrl(p.page)}</bdi> <ExternalLink size={12} />
+                    </a>
+                  </td>
+                  <td>{p.clicks?.toLocaleString()}</td>
+                  <td className={styles.detailNegative}>{p.clicksChange}%</td>
+                  <td><EntityLinkCell url={p.page} siteId={siteId} translations={translations} /></td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>
@@ -638,7 +577,7 @@ function InsightDetails({ insight, translations, siteId, pluginConnected, onItem
           <tbody>
             {d.competitors.map((c, i) => (
               <tr key={i}>
-                <td>{c.domain}</td>
+                <td>{c.domain?.startsWith('http') ? c.domain : `https://${c.domain}`}</td>
                 <td>{c.lastScannedAt ? new Date(c.lastScannedAt).toLocaleDateString() : '-'}</td>
               </tr>
             ))}
@@ -648,7 +587,120 @@ function InsightDetails({ insight, translations, siteId, pluginConnected, onItem
     );
   }
 
-  // Keyword Cannibalization - queries ranking with multiple pages
+  // Proactive/Semantic Cannibalization - content-based issues with competing pages
+  if (type === 'cannibalization' && d.issues?.length > 0) {
+    const actionLabels = {
+      MERGE: labels.actionMerge || 'Merge pages',
+      CANONICAL: labels.actionCanonical || 'Set canonical',
+      '301_REDIRECT': labels.actionRedirect || '301 Redirect',
+      DIFFERENTIATE: labels.actionDifferentiate || 'Differentiate content'
+    };
+    const severityColors = {
+      critical: '#ef4444',
+      high: '#f97316', 
+      medium: '#eab308',
+      low: '#22c55e'
+    };
+    
+    return (
+      <div className={styles.detailSection}>
+        {d.issues.map((issue, i) => (
+          <div key={i} className={styles.cannibalizationIssue}>
+            {/* Confidence badge */}
+            <div className={styles.cannibalizationHeader}>
+              <span className={styles.confidenceBadge} style={{ 
+                backgroundColor: issue.confidence >= 80 ? '#fee2e2' : issue.confidence >= 60 ? '#fef3c7' : '#e0f2fe',
+                color: issue.confidence >= 80 ? '#991b1b' : issue.confidence >= 60 ? '#92400e' : '#075985'
+              }}>
+                {issue.confidence}% {labels.confidence || 'confidence'}
+              </span>
+              <span className={styles.recommendedAction}>
+                {labels.recommended || 'Recommended'}: <strong>{actionLabels[issue.action] || issue.action}</strong>
+              </span>
+            </div>
+            
+            {/* Reason/explanation */}
+            <p className={styles.cannibalizationReason}>{translateReason(issue, labels)}</p>
+            
+            {/* Competing pages */}
+            <div className={styles.competingPagesHeader}>
+              <AlertTriangle size={14} />
+              <span>{labels.competingPages || 'Competing Pages'} ({issue.urls?.length || 2}):</span>
+            </div>
+            <div className={styles.competingPages}>
+              {/* Render all pages in the group */}
+              {(issue.entities || [issue.entityA, issue.entityB].filter(Boolean)).map((entity, idx) => {
+                const url = issue.urls?.[idx];
+                const pageLabel = String.fromCharCode(65 + idx); // A, B, C, D...
+                // Get best available title - prefer title over h1, but skip if it looks like a URL
+                let displayTitle = entity?.title;
+                // If title looks like a URL (starts with http, https, or /), try h1 instead
+                if (!displayTitle || /^(https?:\/\/|\/)/i.test(displayTitle)) {
+                  displayTitle = entity?.h1 || null;
+                }
+                // Decode title if it contains URL-encoded characters
+                if (displayTitle) {
+                  try { displayTitle = decodeURIComponent(displayTitle); } catch { /* keep original */ }
+                }
+                return (
+                  <React.Fragment key={idx}>
+                    {idx > 0 && <div className={styles.vsIndicator}>VS</div>}
+                    <div className={styles.competingPage}>
+                      <div className={styles.pageLabel}>{pageLabel}</div>
+                      <div className={styles.pageDetails}>
+                        <div className={styles.pageTitle}>{displayTitle || <bdi dir="ltr">{formatPageUrl(url)}</bdi>}</div>
+                        <a href={url} target="_blank" rel="noopener noreferrer" className={styles.detailLink}>
+                          <bdi dir="ltr">{formatPageUrl(url)}</bdi> <ExternalLink size={12} />
+                        </a>
+                        {entity?.focusKeyword && (
+                          <div className={styles.pageMeta}>
+                            <span className={styles.metaLabel}>{labels.focusKeyword || 'Focus'}:</span> {entity.focusKeyword}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </React.Fragment>
+                );
+              })}
+            </div>
+            
+            {/* Detection signals */}
+            {issue.verification?.checks?.length > 0 && (
+              <div className={styles.detectionSignals}>
+                <span className={styles.signalsLabel}>{labels.detectedSignals || 'Detected signals'}:</span>
+                <div className={styles.signalTags}>
+                  {issue.verification.checks.slice(0, 4).map((check, j) => (
+                    <span key={j} className={styles.signalTag} style={{ borderColor: severityColors[check.severity] || '#94a3b8' }}>
+                      {check.name.replace(/_/g, ' ')}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+            
+            {/* AI Fix button */}
+            {canFix && (
+              <button 
+                className={styles.cannibalizationFixBtn}
+                onClick={() => onOpenFixSingle?.(insight, [i])}
+              >
+                <Sparkles size={14} />
+                {t.fixCannibalization || 'Fix with AI'}
+              </button>
+            )}
+          </div>
+        ))}
+        
+        {d.count > d.issues.length && (
+          <p className={styles.detailMore}>
+            {(labels.andMore || 'and {count} more...').replace('{count}', d.count - d.issues.length)}
+          </p>
+        )}
+      </div>
+    );
+  }
+
+  // Keyword Cannibalization (GSC-based) - queries ranking with multiple pages
   if (type === 'cannibalization' && d.queries?.length > 0) {
     return (
       <div className={styles.detailSection}>
@@ -737,22 +789,39 @@ function InsightDetails({ insight, translations, siteId, pluginConnected, onItem
               <th>{labels.actualCtr || 'Actual CTR'}</th>
               <th>{labels.expectedCtr || 'Expected CTR'}</th>
               <th>{labels.impressions || 'Impressions'}</th>
+              <th>{entityLabel}</th>
+              {canFix && <th>{t.fixWithAi || 'Fix with AI'}</th>}
             </tr>
           </thead>
           <tbody>
-            {d.pages.map((p, i) => (
-              <tr key={i}>
-                <td className={styles.detailPageTitle}>
-                  <a href={p.page} target="_blank" rel="noopener noreferrer" className={styles.detailLink}>
-                    <bdi dir="ltr">{formatPageUrl(p.page)}</bdi> <ExternalLink size={12} />
-                  </a>
-                </td>
-                <td>{p.position ? Math.round(parseFloat(p.position)) : '-'}</td>
-                <td className={styles.detailNegative}>{p.actualCtr}%</td>
-                <td>{p.expectedCtr}%</td>
-                <td>{p.impressions?.toLocaleString()}</td>
-              </tr>
-            ))}
+            {d.pages.map((p, i) => {
+              const itemResults = insight.executionResult?.results || [];
+              const itemFixed = itemResults.some(r => r.url === p.page && r.status === 'fixed');
+              return (
+                <tr key={i}>
+                  <td className={styles.detailPageTitle}>
+                    <a href={p.page} target="_blank" rel="noopener noreferrer" className={styles.detailLink}>
+                      <bdi dir="ltr">{formatPageUrl(p.page)}</bdi> <ExternalLink size={12} />
+                    </a>
+                  </td>
+                  <td>{p.position ? Math.round(parseFloat(p.position)) : '-'}</td>
+                  <td className={styles.detailNegative}>{p.actualCtr}%</td>
+                  <td>{p.expectedCtr}%</td>
+                  <td>{p.impressions?.toLocaleString()}</td>
+                  <td><EntityLinkCell url={p.page} siteId={siteId} translations={translations} /></td>
+                  {canFix && (
+                    <td>
+                      {itemFixed
+                        ? <span className={styles.itemFixedBadge}><CheckCircle size={12} /> {t.fixItemApplied || 'Applied'}</span>
+                        : <button className={styles.itemFixBtn} onClick={() => onOpenFixSingle?.(insight, [i])}>
+                            <Sparkles size={12} /> {t.fixWithAiCost || 'Fix with AI (1 Credit)'}
+                          </button>
+                      }
+                    </td>
+                  )}
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>
@@ -794,6 +863,179 @@ function InsightDetails({ insight, translations, siteId, pluginConnected, onItem
             {(labels.andMore || 'and {count} more...').replace('{count}', d.count - d.pages.length)}
           </p>
         )}
+      </div>
+    );
+  }
+
+  // Weekend vs Weekday Traffic Pattern
+  if (type === 'weekendTrafficPattern') {
+    return (
+      <div className={styles.detailSection}>
+        <div className={styles.detailStats}>
+          <div className={styles.detailStat}>
+            <span className={styles.detailStatLabel}>{labels.weekdayAvg || 'Weekday Avg'}</span>
+            <span className={styles.detailStatValue}>{d.weekdayAvg?.toLocaleString()}</span>
+          </div>
+          <div className={styles.detailStat}>
+            <span className={styles.detailStatLabel}>{labels.weekendAvg || 'Weekend Avg'}</span>
+            <span className={styles.detailStatValue}>{d.weekendAvg?.toLocaleString()}</span>
+          </div>
+          <div className={styles.detailStat}>
+            <span className={styles.detailStatLabel}>{labels.dominantPeriod || 'Peak Period'}</span>
+            <span className={styles.detailStatValue}>{d.dominantPeriod === 'weekday' ? (translations?.agent?.weekday || 'Weekdays') : (translations?.agent?.weekend || 'Weekends')}</span>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Traffic Spike Detection
+  if (type === 'trafficSpike' && d.spikes?.length > 0) {
+    return (
+      <div className={styles.detailSection}>
+        <div className={styles.detailStats}>
+          <div className={styles.detailStat}>
+            <span className={styles.detailStatLabel}>{labels.avgDaily || 'Daily Average'}</span>
+            <span className={styles.detailStatValue}>{d.avgDaily?.toLocaleString()}</span>
+          </div>
+        </div>
+        <table className={styles.detailTable}>
+          <thead>
+            <tr>
+              <th>{labels.date || 'Date'}</th>
+              <th>{labels.visitors || 'Visitors'}</th>
+              <th>{labels.multiplier || '× Average'}</th>
+              <th>{labels.source || 'Likely Source'}</th>
+              <th>{labels.topPage || 'Top Landing Page'}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {d.spikes.map((s, i) => (
+              <tr key={i}>
+                <td>{s.date ? `${s.date.slice(0,4)}-${s.date.slice(4,6)}-${s.date.slice(6,8)}` : '-'}</td>
+                <td className={styles.detailPositive}>{s.visitors?.toLocaleString()}</td>
+                <td>{s.multiplier}×</td>
+                <td>
+                  {s.source
+                    ? `${s.source}${s.medium && s.medium !== '(not set)' ? ` / ${s.medium}` : ''}`
+                    : '-'}
+                </td>
+                <td>{s.topLandingPage || '-'}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    );
+  }
+
+  // Impression-Click Gap
+  if (type === 'impressionClickGap') {
+    return (
+      <div className={styles.detailSection}>
+        <div className={styles.detailStats}>
+          <div className={styles.detailStat}>
+            <span className={styles.detailStatLabel}>{labels.impressions || 'Impressions'}</span>
+            <span className={styles.detailStatValue}>{d.impressions?.toLocaleString()}</span>
+          </div>
+          <div className={`${styles.detailStat} ${styles.detailStatPositive}`}>
+            <span className={styles.detailStatLabel}>{labels.impressions || 'Impressions'} {labels.change || 'Change'}</span>
+            <span className={styles.detailStatValue}><TrendingUp size={14} /> +{d.impressionsChange}%</span>
+          </div>
+          <div className={styles.detailStat}>
+            <span className={styles.detailStatLabel}>{labels.clicks || 'Clicks'}</span>
+            <span className={styles.detailStatValue}>{d.clicks?.toLocaleString()}</span>
+          </div>
+          <div className={`${styles.detailStat} ${d.clicksChange > 0 ? styles.detailStatPositive : d.clicksChange < 0 ? styles.detailStatNegative : ''}`}>
+            <span className={styles.detailStatLabel}>{labels.clicks || 'Clicks'} {labels.change || 'Change'}</span>
+            <span className={styles.detailStatValue}>
+              {d.clicksChange > 0 ? <><TrendingUp size={14} /> +{d.clicksChange}%</> : d.clicksChange < 0 ? <><TrendingDown size={14} /> {d.clicksChange}%</> : <>0%</>}
+            </span>
+          </div>
+          <div className={styles.detailStat}>
+            <span className={styles.detailStatLabel}>{labels.gapPercent || 'Gap'}</span>
+            <span className={styles.detailStatValue}>{d.gapPercent}%</span>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // AI Traffic Growth / Drop
+  if ((type === 'aiTrafficGrowth' || type === 'aiTrafficDrop') && d.sessions != null) {
+    const isGrowth = type === 'aiTrafficGrowth';
+    return (
+      <div className={styles.detailSection}>
+        <div className={styles.detailStats}>
+          <div className={styles.detailStat}>
+            <span className={styles.detailStatLabel}>{labels.sessions || 'Sessions'}</span>
+            <span className={styles.detailStatValue}>{d.sessions?.toLocaleString()}</span>
+          </div>
+          <div className={`${styles.detailStat} ${isGrowth ? styles.detailStatPositive : styles.detailStatNegative}`}>
+            <span className={styles.detailStatLabel}>{labels.change || 'Change'}</span>
+            <span className={styles.detailStatValue}>
+              {isGrowth ? <><TrendingUp size={14} /> +{d.change}%</> : <><TrendingDown size={14} /> {d.change}%</>}
+            </span>
+          </div>
+          <div className={styles.detailStat}>
+            <span className={styles.detailStatLabel}>{labels.sharePercent || 'Traffic Share'}</span>
+            <span className={styles.detailStatValue}>{d.sharePercent}%</span>
+          </div>
+        </div>
+        {d.topEngines?.length > 0 && (
+          <table className={styles.detailTable}>
+            <thead>
+              <tr>
+                <th>{labels.engine || 'AI Engine'}</th>
+                <th>{labels.sessions || 'Sessions'}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {d.topEngines.map((e, i) => (
+                <tr key={i}>
+                  <td>{e.name}</td>
+                  <td>{e.sessions?.toLocaleString()}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </div>
+    );
+  }
+
+  // Traffic Concentration
+  if (type === 'trafficConcentration' && d.topPages?.length > 0) {
+    return (
+      <div className={styles.detailSection}>
+        <div className={styles.detailStats}>
+          <div className={styles.detailStat}>
+            <span className={styles.detailStatLabel}>{labels.concentrationPercent || 'Concentration'}</span>
+            <span className={styles.detailStatValue}>{d.concentrationPercent}%</span>
+          </div>
+        </div>
+        <table className={styles.detailTable}>
+          <thead>
+            <tr>
+              <th>{labels.page || 'Page'}</th>
+              <th>{labels.clicks || 'Clicks'}</th>
+              <th>{labels.sharePercent || 'Traffic Share'}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {d.topPages.map((p, i) => (
+              <tr key={i}>
+                <td className={styles.detailPageTitle}>
+                  <a href={p.page} target="_blank" rel="noopener noreferrer" className={styles.detailLink}>
+                    <bdi dir="ltr">{formatPageUrl(p.page)}</bdi> <ExternalLink size={12} />
+                  </a>
+                </td>
+                <td>{p.clicks?.toLocaleString()}</td>
+                <td>{p.sharePercent}%</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
     );
   }
@@ -874,6 +1116,7 @@ function InsightLegend({ translations }) {
 function InsightRow({ insight, translations, onAction, onOpenFix, siteId, pluginConnected, onItemFixed }) {
   const [expanded, setExpanded] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
+  const bodyRef = useRef(null);
 
   const CategoryIcon = CATEGORY_ICONS[insight.category] || FileText;
   const sentiment = getInsightSentiment(insight);
@@ -898,12 +1141,25 @@ function InsightRow({ insight, translations, onAction, onOpenFix, siteId, plugin
 
   const isPending = insight.status === 'PENDING' || insight.status === 'FAILED';
   const isActionable = insight.status === 'PENDING' && insight.type === 'ACTION';
-  const canFix = pluginConnected && isFixableInsight(insight.titleKey) && ['PENDING', 'APPROVED', 'FAILED', 'EXECUTED'].includes(insight.status);
+  const isFixable = isFixableInsight(insight.titleKey);
+  const canFix = pluginConnected && isFixable && ['PENDING', 'APPROVED', 'FAILED', 'EXECUTED'].includes(insight.status);
   const showActions = isPending || canFix;
 
   const timeAgo = getTimeAgo(insight.createdAt, translations);
   const DirectionIcon = direction === 'up' ? TrendingUp : direction === 'down' ? TrendingDown : direction === 'equal' ? Minus : null;
   const DisplayIcon = DirectionIcon || CategoryIcon;
+
+  useEffect(() => {
+    if (!expanded || !bodyRef.current) return;
+
+    const headers = bodyRef.current.querySelectorAll('th');
+    headers.forEach((th) => {
+      const text = (th.textContent || '').trim();
+      if (!text) return;
+      th.classList.add(styles.hasTooltip);
+      th.setAttribute('data-tooltip', text);
+    });
+  }, [expanded, insight.id]);
 
   return (
     <div className={`${styles.insightRow} ${styles[sentiment]}`}>
@@ -931,8 +1187,17 @@ function InsightRow({ insight, translations, onAction, onOpenFix, siteId, plugin
       </div>
 
       {expanded && (
-        <div className={styles.insightRowBody}>
+        <div className={styles.insightRowBody} ref={bodyRef}>
           <p className={styles.insightDescription}>{description}</p>
+
+          {insight.data?.periodStart && insight.data?.comparePeriodStart && (
+            <p className={styles.insightPeriod}>
+              <Calendar size={12} />
+              <span>{new Date(insight.data.periodStart).toLocaleDateString()} – {new Date(insight.data.periodEnd).toLocaleDateString()}</span>
+              <span className={styles.periodVs}>{translations?.agent?.vs || 'vs'}</span>
+              <span>{new Date(insight.data.comparePeriodStart).toLocaleDateString()} – {new Date(insight.data.comparePeriodEnd).toLocaleDateString()}</span>
+            </p>
+          )}
 
           <InsightDetails insight={insight} translations={translations} siteId={siteId} pluginConnected={pluginConnected} onItemFixed={onItemFixed} onOpenFixSingle={(i, indices) => onOpenFix(i, indices)} />
 
@@ -949,6 +1214,7 @@ function InsightRow({ insight, translations, onAction, onOpenFix, siteId, plugin
                   <CheckCircle size={14} /> {translations?.approve || 'Approve'}
                 </button>
               )}
+              {/* TODO: Re-enable reject/dismiss when functionality is ready
               {isPending && (
                 <button className={`${styles.actionBtn} ${styles.rejectBtn}`} onClick={() => handleAction('reject')} disabled={actionLoading}>
                   <XCircle size={14} /> {translations?.reject || 'Reject'}
@@ -959,22 +1225,13 @@ function InsightRow({ insight, translations, onAction, onOpenFix, siteId, plugin
                   <EyeOff size={14} /> {translations?.dismiss || 'Dismiss'}
                 </button>
               )}
+              */}
             </div>
           )}
         </div>
       )}
     </div>
   );
-}
-
-function getTimeAgo(dateStr, t = {}) {
-  const diff = Date.now() - new Date(dateStr).getTime();
-  const mins = Math.floor(diff / 60000);
-  if (mins < 60) return (t.minutesAgo || '{n}m ago').replace('{n}', mins);
-  const hours = Math.floor(mins / 60);
-  if (hours < 24) return (t.hoursAgo || '{n}h ago').replace('{n}', hours);
-  const days = Math.floor(hours / 24);
-  return (t.daysAgo || '{n}d ago').replace('{n}', days);
 }
 
 export default function AgentPageContent({ translations }) {
@@ -1088,6 +1345,7 @@ export default function AgentPageContent({ translations }) {
         subtitle={lastRun ? (t.lastRun || 'Last run: {time}').replace('{time}', `${getTimeAgo(lastRun.startedAt, t)} - ${lastRun.insightsCount} ${t.agent?.insightsCountLabel || 'insights'}`) : null}
       >
         <button
+          type="button"
           className={styles.runButton}
           onClick={handleRunAnalysis}
           disabled={runningAnalysis || !selectedSite?.id}
@@ -1191,7 +1449,7 @@ export default function AgentPageContent({ translations }) {
             <Bot size={48} className={styles.emptyIcon} />
             <h3>{t.noInsightsFound || 'No Insights Found'}</h3>
             <p>{t.noInsights || 'The AI Agent will analyze your site data and provide suggestions.'}</p>
-            <button className={styles.runButton} onClick={handleRunAnalysis} disabled={runningAnalysis}>
+            <button type="button" className={styles.runButton} onClick={handleRunAnalysis} disabled={runningAnalysis}>
               <Play size={16} /> {t.runAnalysis || 'Run Analysis'}
             </button>
           </div>
