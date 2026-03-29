@@ -1720,14 +1720,24 @@ function ContentPreview({ generatedContent, setGeneratedContent, setShowPreview,
 
 // ─── Merge Actions Summary ────────────────────────────────────
 
-const ACTION_LABELS = {
-  post_updated: { icon: '✏️', label: 'Post updated with merged content' },
-  seo_updated: { icon: '🔍', label: 'SEO title & description updated' },
-  featured_image: { icon: '🖼️', label: 'Featured image generated' },
-  redirect_wp: { icon: '↪️', label: 'Redirect created in WordPress' },
-  redirect_platform: { icon: '📌', label: 'Redirect saved in platform' },
-  post_trashed: { icon: '🗑️', label: 'Duplicate post moved to trash' },
-  gsc_reindex: { icon: '📡', label: 'Google re-index requested' },
+const ACTION_ICONS = {
+  post_updated: '✏️',
+  seo_updated: '🔍',
+  featured_image: '🖼️',
+  redirect_wp: '↪️',
+  redirect_platform: '📌',
+  post_trashed: '🗑️',
+  gsc_reindex: '📡',
+};
+
+const ACTION_DL_KEYS = {
+  post_updated: 'actionPostUpdated',
+  seo_updated: 'actionSeoUpdated',
+  featured_image: 'actionFeaturedImage',
+  redirect_wp: 'actionRedirectWp',
+  redirect_platform: 'actionRedirectPlatform',
+  post_trashed: 'actionPostTrashed',
+  gsc_reindex: 'actionGscReindex',
 };
 
 function MergeActionsSummary({ actions, t, dl, styles }) {
@@ -1741,7 +1751,9 @@ function MergeActionsSummary({ actions, t, dl, styles }) {
       </h4>
       <ul className={styles.actionsList}>
         {actions.map((action, i) => {
-          const meta = ACTION_LABELS[action.type] || { icon: '•', label: action.type };
+          const icon = ACTION_ICONS[action.type] || '•';
+          const dlKey = ACTION_DL_KEYS[action.type];
+          const label = (dlKey && dl[dlKey]) || action.type;
           const isSuccess = action.status === 'success';
           const isSkipped = action.status === 'skipped';
           const isFailed = action.status === 'failed';
@@ -1751,7 +1763,7 @@ function MergeActionsSummary({ actions, t, dl, styles }) {
               <span className={styles.actionIcon}>
                 {isSuccess ? <CheckCircle2 size={14} /> : isFailed ? <XCircle size={14} /> : <AlertTriangle size={14} />}
               </span>
-              <span className={styles.actionLabel}>{meta.icon} {meta.label}</span>
+              <span className={styles.actionLabel}>{icon} {label}</span>
               {isFailed && action.detail && (
                 <span className={styles.actionDetail}>{action.detail}</span>
               )}

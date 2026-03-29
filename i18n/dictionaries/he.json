@@ -6336,7 +6336,16 @@
         "generatingImages": "יוצר תמונות AI שמתאימות לתוכן שלך...",
         "finalizingArticle": "מסיים את כתיבת המאמר הממוזג...",
         "almostDone": "כמעט מוכן! מלטש את התוצאה הסופית..."
-      }
+      },
+      "mergeActionsTitle": "פעולות שבוצעו",
+      "actionPostUpdated": "הפוסט עודכן עם התוכן הממוזג",
+      "actionSeoUpdated": "כותרת ותיאור SEO עודכנו",
+      "actionFeaturedImage": "תמונה ראשית נוצרה",
+      "actionRedirectWp": "הפניה נוצרה בוורדפרס",
+      "actionRedirectPlatform": "הפניה נשמרה במערכת",
+      "actionPostTrashed": "הפוסט הכפול הועבר לאשפה",
+      "actionGscReindex": "בקשת אינדוקס מחדש נשלחה לגוגל",
+      "actionGscReindexManual": "מומלץ לבצע אינדוקס מחדש ידנית דרך Google Search Console"
     },
     "fixCannibalization": "תקן עם AI",
     "cannibalizationIssue": "בעיית קניבליזציה",

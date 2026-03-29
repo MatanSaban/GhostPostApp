@@ -6336,7 +6336,16 @@
         "generatingImages": "Generating AI images to match your content...",
         "finalizingArticle": "Finalizing the merged article...",
         "almostDone": "Almost done! Polishing the final result..."
-      }
+      },
+      "mergeActionsTitle": "Actions performed",
+      "actionPostUpdated": "Post updated with merged content",
+      "actionSeoUpdated": "SEO title & description updated",
+      "actionFeaturedImage": "Featured image generated",
+      "actionRedirectWp": "Redirect created in WordPress",
+      "actionRedirectPlatform": "Redirect saved in platform",
+      "actionPostTrashed": "Duplicate post moved to trash",
+      "actionGscReindex": "Google re-index requested",
+      "actionGscReindexManual": "Manual re-index recommended via Google Search Console"
     },
     "fixCannibalization": "Fix with AI",
     "cannibalizationIssue": "Cannibalization Issue",
