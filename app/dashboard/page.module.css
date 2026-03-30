@@ -1034,13 +1034,13 @@
 }
 
 .chartPath {
-  transition: d 1s ease-out, fill 0.3s ease, stroke 0.3s ease;
+  transition: d 0.5s ease-out, fill 0.3s ease, stroke 0.3s ease;
 }
 
 /* Ensure smooth path morphing across browsers */
 @supports (d: path("M0 0")) {
   .chartPath {
-    transition: d 1s ease-out;
+    transition: d 0.5s ease-out;
   }
 }
 

@@ -285,21 +285,26 @@ export default function DashboardContent({ translations }) {
     const end = new Date(chartEndDate);
     const dayCount = Math.max(1, Math.ceil((end - start) / (1000 * 60 * 60 * 24)) + 1);
     
-    // Generate data points matching the date range (low values for subtle animation)
+    // Generate smooth wave animation — gentle rolling curves like a breathing pulse
+    let tick = 0;
     const generateAnimatedData = () => {
       const points = [];
       for (let i = 0; i < dayCount; i++) {
         const date = new Date(start);
         date.setDate(date.getDate() + i);
+        // Smooth wave: position along x-axis + time shift
+        const t = (i / Math.max(dayCount - 1, 1)) * Math.PI * 2;
+        const wave = (offset) => 5 + 2 * Math.sin(t + tick * 0.8 + offset);
         points.push({
           date: date.toISOString().split('T')[0],
-          visitors: Math.floor(Math.random() * 20),
-          pageViews: Math.floor(Math.random() * 20),
-          sessions: Math.floor(Math.random() * 20),
-          newUsers: Math.floor(Math.random() * 20),
-          engagedSessions: Math.floor(Math.random() * 20),
+          visitors:        parseFloat(wave(0).toFixed(1)),
+          pageViews:       parseFloat(wave(Math.PI).toFixed(1)),
+          sessions:        parseFloat(wave(0).toFixed(1)),
+          newUsers:        parseFloat(wave(Math.PI).toFixed(1)),
+          engagedSessions: parseFloat(wave(0).toFixed(1)),
         });
       }
+      tick++;
       return points;
     };
     
@@ -307,10 +312,10 @@ export default function DashboardContent({ translations }) {
     setChartAnimatedData(generateAnimatedData());
     setIsTransitioning(false);
     
-    // Update every 1000ms to match CSS transition duration
+    // Update every 200ms for fast smooth animation
     const interval = setInterval(() => {
       setChartAnimatedData(generateAnimatedData());
-    }, 1000);
+    }, 200);
     
     return () => clearInterval(interval);
   }, [chartLoading, chartStartDate, chartEndDate]);
