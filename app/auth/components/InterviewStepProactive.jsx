@@ -193,10 +193,33 @@ export function InterviewStep({ translations, onComplete, initialData = {}, onAn
     onAnswerSaved?.(newData, false);
     
     // Add analysis summary message
-    const summaryMsg = t('interviewWizard.proactive.analysisDone', {
-      platform: data.platform?.name || 'Custom',
-      language: data.contentStyle?.language === 'he' ? 'עברית' : 'English',
-    });
+    const platformName = data.platform?.name && data.platform.name !== 'Custom' 
+      ? data.platform.name 
+      : null;
+    const detectedLang = data.contentStyle?.language;
+    const langLabel = detectedLang === 'he' ? 'עברית' : detectedLang === 'en' ? 'English' : null;
+    
+    // Only show detection message if we actually detected something
+    let summaryMsg;
+    if (platformName && langLabel) {
+      summaryMsg = t('interviewWizard.proactive.analysisDone', {
+        platform: platformName,
+        language: langLabel,
+      });
+    } else if (platformName) {
+      summaryMsg = t('interviewWizard.proactive.analysisDonePartial', {
+        platform: platformName,
+      }) || t('interviewWizard.proactive.analysisDone', {
+        platform: platformName,
+        language: locale === 'he' ? 'עברית' : 'English',
+      });
+    } else {
+      summaryMsg = t('interviewWizard.proactive.analysisComplete') 
+        || t('interviewWizard.proactive.analysisDone', {
+          platform: t('interviewWizard.proactive.websitePlatform') || 'website',
+          language: locale === 'he' ? 'עברית' : 'English',
+        });
+    }
     
     setMessages(prev => [...prev, {
       id: prev.length,

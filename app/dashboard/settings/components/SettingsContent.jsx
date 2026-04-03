@@ -84,6 +84,8 @@ const iconMap = {
   Coins,
   Puzzle,
   Bot,
+  FileText,
+  TrendingUp,
 };
 
 // Account-level tab IDs that require special permissions
@@ -384,6 +386,8 @@ export default function SettingsContent({ translations, websiteTabs, accountTabs
         return <ProfileSettings translations={translations} />;
       case 'account':
         return <AccountSettings translations={translations} canEdit={canEdit} />;
+      case 'client-reporting':
+        return <ClientReportingSettings translations={translations} canEdit={canEdit} />;
       default:
         return null;
     }
@@ -4811,6 +4815,10 @@ function AccountSettings({ translations, canEdit = true }) {
     generalEmail: '',
   });
   
+  // Wide logo for reports (from white-label config)
+  const [wideLogo, setWideLogo] = useState(null);
+  const [isUploadingWideLogo, setIsUploadingWideLogo] = useState(false);
+  
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [isUploadingLogo, setIsUploadingLogo] = useState(false);
@@ -4829,7 +4837,20 @@ function AccountSettings({ translations, canEdit = true }) {
   // Fetch current account on mount
   useEffect(() => {
     fetchCurrentAccount();
+    fetchWideLogo();
   }, []);
+
+  const fetchWideLogo = async () => {
+    try {
+      const response = await fetch('/api/account/white-label-config');
+      if (response.ok) {
+        const data = await response.json();
+        setWideLogo(data.config?.agencyLogo || null);
+      }
+    } catch (error) {
+      console.error('Error fetching wide logo:', error);
+    }
+  };
 
   const fetchCurrentAccount = async () => {
     try {
@@ -4941,6 +4962,55 @@ function AccountSettings({ translations, canEdit = true }) {
       setTimeout(() => setSaveMessage({ type: '', text: '' }), 5000);
     }
   };
+
+  const handleWideLogoUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      setSaveMessage({ type: 'error', text: t('settings.whiteLabelReportingSection.invalidImageType') || 'Please select an image file' });
+      return;
+    }
+
+    if (file.size > 2 * 1024 * 1024) {
+      setSaveMessage({ type: 'error', text: t('settings.whiteLabelReportingSection.imageTooLarge') || 'Image must be under 2MB' });
+      return;
+    }
+
+    try {
+      setIsUploadingWideLogo(true);
+
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('type', 'white-label-logo');
+
+      const response = await fetch('/api/account/upload-asset', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setWideLogo(data.url);
+        
+        // Also save to white-label config
+        await fetch('/api/account/white-label-config', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ agencyLogo: data.url }),
+        });
+        
+        setSaveMessage({ type: 'success', text: t('settings.whiteLabelReportingSection.logoUploaded') || 'Logo uploaded' });
+      } else {
+        setSaveMessage({ type: 'error', text: t('settings.whiteLabelReportingSection.logoUploadError') || 'Failed to upload logo' });
+      }
+    } catch (error) {
+      setSaveMessage({ type: 'error', text: t('settings.whiteLabelReportingSection.logoUploadError') || 'Failed to upload logo' });
+    } finally {
+      setIsUploadingWideLogo(false);
+      setTimeout(() => setSaveMessage({ type: '', text: '' }), 5000);
+    }
+  };
   
   const handleDeleteAccount = async () => {
     if (!canDelete) return;
@@ -5044,39 +5114,87 @@ function AccountSettings({ translations, canEdit = true }) {
           <Building2 className={styles.subsectionIcon} />
           {t('account.logo.title')}
         </h3>
-        <div className={styles.logoSection}>
-          <div className={styles.logoPreview}>
-            {account.logo ? (
-              <img
-                src={account.logo}
-                alt={account.name || 'Organization logo'}
-                className={styles.logoImage}
-              />
-            ) : (
-              <div className={styles.logoPlaceholder}>
-                <Building2 size={32} />
-              </div>
-            )}
-          </div>
-          <div className={styles.logoActions}>
-            <label className={styles.editButton}>
-              <input
-                type="file"
-                accept="image/*"
-                onChange={handleLogoUpload}
-                disabled={isUploadingLogo || !canEdit}
-                style={{ display: 'none' }}
-              />
-              {isUploadingLogo ? (
-                <>
-                  <Loader2 size={14} className={styles.spinningIcon} />
-                  {t('common.loading')}
-                </>
-              ) : (
-                t('account.logo.change')
-              )}
+        <div className={styles.logoUploadRow}>
+          {/* Organization Logo Icon */}
+          <div className={styles.logoUploadItemIcon}>
+            <label className={styles.logoPreviewLabel}>
+              {t('account.logo.iconLabel') || 'Logo Icon'}
             </label>
-            <p className={styles.logoHint}>{t('account.logo.hint')}</p>
+            <div className={`${styles.logoPreview} ${styles.logoPreviewIcon}`}>
+              {account.logo ? (
+                <img
+                  src={account.logo}
+                  alt={account.name || 'Organization logo'}
+                  className={`${styles.logoImage} ${styles.logoImageIcon}`}
+                />
+              ) : (
+                <div className={`${styles.logoPlaceholder} ${styles.logoPlaceholderIcon}`}>
+                  <Building2 size={20} />
+                </div>
+              )}
+            </div>
+            <div className={styles.logoActions}>
+              <label className={styles.editButton}>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleLogoUpload}
+                  disabled={isUploadingLogo || !canEdit}
+                  className={styles.hiddenInput}
+                />
+                {isUploadingLogo ? (
+                  <>
+                    <Loader2 size={14} className={styles.spinningIcon} />
+                    {t('common.loading')}
+                  </>
+                ) : (
+                  t('account.logo.change')
+                )}
+              </label>
+              <p className={styles.logoHint}>{t('account.logo.iconHint') || 'Square, 60x60px'}</p>
+            </div>
+          </div>
+
+          {/* Full Wide Logo */}
+          <div className={styles.logoUploadItem}>
+            <label className={styles.logoPreviewLabel}>
+              {t('settings.whiteLabelReportingSection.branding.fullWideLogo') || 'Full Wide Logo'}
+            </label>
+            <div className={styles.logoPreview}>
+              {wideLogo ? (
+                <img
+                  src={wideLogo}
+                  alt="Wide logo"
+                  className={styles.logoImage}
+                />
+              ) : (
+                <div className={styles.logoPlaceholder}>
+                  <FileText size={24} />
+                </div>
+              )}
+            </div>
+            <div className={styles.logoActions}>
+              <label className={styles.editButton}>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleWideLogoUpload}
+                  disabled={isUploadingWideLogo || !canEdit}
+                  className={styles.hiddenInput}
+                />
+                {isUploadingWideLogo ? (
+                  <>
+                    <Loader2 size={14} className={styles.spinningIcon} />
+                    {t('common.loading')}
+                  </>
+                ) : (
+                  t('settings.whiteLabelReportingSection.branding.uploadLogo') || 'Upload Logo'
+                )}
+              </label>
+              <p className={styles.logoHint}>
+                {t('settings.whiteLabelReportingSection.branding.logoHint') || 'Recommended: 200x50px PNG or SVG'}
+              </p>
+            </div>
           </div>
         </div>
       </div>
@@ -5209,6 +5327,9 @@ function AccountSettings({ translations, canEdit = true }) {
         </div>
       </div>
 
+      {/* White-Label Branding Section */}
+      <WhiteLabelReportingSettings translations={translations} canEdit={canEdit} />
+
       {/* Danger Zone */}
       <div className={styles.subsection}>
         <h3 className={styles.subsectionTitle}>
@@ -5325,6 +5446,716 @@ function AccountSettings({ translations, canEdit = true }) {
         </div>,
         document.body
       )}
+    </>
+  );
+}
+
+// White-Label Reporting Settings Component (Account-level)
+function WhiteLabelReportingSettings({ translations, canEdit = true }) {
+  const { t } = useLocale();
+  const { user } = useUser();
+  
+  // State
+  const [config, setConfig] = useState({
+    accentColor: '#6366f1',
+    replyToEmail: '',
+  });
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveMessage, setSaveMessage] = useState({ type: '', text: '' });
+  const [hasFeature, setHasFeature] = useState(false);
+
+  // Check feature & fetch config on mount
+  useEffect(() => {
+    fetchConfig();
+  }, []);
+
+  const fetchConfig = async () => {
+    try {
+      setIsLoading(true);
+      const response = await fetch('/api/account/white-label-config');
+      if (response.ok) {
+        const data = await response.json();
+        setHasFeature(data.hasFeature);
+        // Use owner's email as default for replyToEmail if not set
+        const defaultEmail = data.ownerEmail || '';
+        if (data.config) {
+          setConfig({
+            accentColor: data.config.accentColor || '#6366f1',
+            replyToEmail: data.config.replyToEmail || defaultEmail,
+          });
+        } else {
+          // No config yet, set default email
+          setConfig(prev => ({
+            ...prev,
+            replyToEmail: defaultEmail,
+          }));
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching white-label config:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const updateField = (field, value) => {
+    setConfig(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleSave = async () => {
+    try {
+      setIsSaving(true);
+      setSaveMessage({ type: '', text: '' });
+
+      const response = await fetch('/api/account/white-label-config', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(config),
+      });
+
+      if (response.ok) {
+        setSaveMessage({ type: 'success', text: t('settings.whiteLabelReportingSection.saveSuccess') || 'Settings saved successfully' });
+      } else {
+        const error = await response.json();
+        setSaveMessage({ type: 'error', text: error.error || t('settings.whiteLabelReportingSection.saveError') || 'Failed to save settings' });
+      }
+    } catch (error) {
+      setSaveMessage({ type: 'error', text: t('settings.whiteLabelReportingSection.saveError') || 'Failed to save settings' });
+    } finally {
+      setIsSaving(false);
+      setTimeout(() => setSaveMessage({ type: '', text: '' }), 5000);
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className={styles.subsection}>
+        <Skeleton width="12rem" height="1.5rem" style={{ marginBottom: '1rem' }} />
+        <div className={styles.formGrid}>
+          {[1, 2].map(i => (
+            <div key={i} className={styles.formGroup}>
+              <Skeleton width="30%" height="0.875rem" />
+              <Skeleton width="100%" height="2.5rem" borderRadius="md" />
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  // Feature not available
+  if (!hasFeature) {
+    return (
+      <div className={styles.emptyState}>
+        <Crown className={styles.emptyIcon} />
+        <h3 className={styles.emptyTitle}>{t('settings.whiteLabelReportingSection.featureNotAvailable') || 'White-Label Reports'}</h3>
+        <p className={styles.emptyText}>
+          {t('settings.whiteLabelReportingSection.upgradeMessage') || 'Upgrade to a Professional plan to unlock branded PDF reports for your clients.'}
+        </p>
+        <Button variant="primary" onClick={() => window.location.href = '/dashboard/settings?tab=subscription'}>
+          {t('settings.whiteLabelReportingSection.upgradeButton') || 'Upgrade Plan'}
+        </Button>
+      </div>
+    );
+  }
+
+  return (
+    <>
+      {saveMessage.text && (
+        <div className={`${styles.saveMessage} ${styles[saveMessage.type]}`}>
+          {saveMessage.type === 'success' ? <Check size={16} /> : <AlertTriangle size={16} />}
+          <span>{saveMessage.text}</span>
+        </div>
+      )}
+
+      {/* Agency Branding */}
+      <div className={styles.subsection}>
+        <h3 className={styles.subsectionTitle}>
+          <TrendingUp className={styles.subsectionIcon} />
+          {t('settings.whiteLabelReportingSection.branding.title') || 'Agency Branding'}
+        </h3>
+        <p className={styles.subsectionDescription}>
+          {t('settings.whiteLabelReportingSection.branding.description') || 'Customize how your brand appears on client reports.'}
+        </p>
+
+        <div className={styles.formGrid}>
+          <div className={styles.formGroup}>
+            <label className={styles.formLabel}>
+              {t('settings.whiteLabelReportingSection.branding.accentColor') || 'Accent Color'}
+            </label>
+            <div className={styles.colorInputGroup}>
+              <input 
+                type="color" 
+                value={config.accentColor}
+                onChange={(e) => updateField('accentColor', e.target.value)}
+                disabled={!canEdit}
+                className={styles.colorPicker}
+              />
+              <input 
+                type="text" 
+                className={`${styles.formInput} ${styles.colorTextInput}`}
+                value={config.accentColor}
+                onChange={(e) => updateField('accentColor', e.target.value)}
+                placeholder="#6366f1"
+                disabled={!canEdit}
+              />
+            </div>
+          </div>
+
+          <div className={styles.formGroup}>
+            <label className={styles.formLabel}>
+              {t('settings.whiteLabelReportingSection.branding.replyToEmail') || 'Reply-To Email'}
+            </label>
+            <input 
+              type="email" 
+              className={styles.formInput}
+              value={config.replyToEmail}
+              onChange={(e) => updateField('replyToEmail', e.target.value)}
+              placeholder={t('settings.whiteLabelReportingSection.branding.replyToEmailPlaceholder') || 'reports@youragency.com'}
+              disabled={!canEdit}
+            />
+            <span className={styles.inputHint}>
+              {t('settings.whiteLabelReportingSection.branding.replyToEmailHint') || 'Clients will reply to this email when they receive reports'}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {/* Save Button */}
+      <div className={styles.saveButtonWrapper}>
+        <Button
+          variant="primary"
+          onClick={handleSave}
+          disabled={isSaving || !canEdit}
+        >
+          {isSaving ? (
+            <>
+              <Loader2 size={16} className={styles.spinningIcon} />
+              {t('common.saving') || 'Saving...'}
+            </>
+          ) : (
+            <>
+              <Check size={16} />
+              {t('common.save') || 'Save Changes'}
+            </>
+          )}
+        </Button>
+      </div>
+    </>
+  );
+}
+
+// Client Reporting Settings Component (Site-level)
+function ClientReportingSettings({ translations, canEdit = true }) {
+  const { t, locale } = useLocale();
+  const { selectedSite } = useSite();
+  
+  // State
+  const [config, setConfig] = useState({
+    enabled: false,
+    recipients: '',
+    deliveryMode: 'manual', // 'manual', 'monthly', 'weekly'
+    includeAiSummary: true,
+    includeActions: true,
+    includeHealthScore: true,
+  });
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [saveMessage, setSaveMessage] = useState({ type: '', text: '' });
+  const [hasFeature, setHasFeature] = useState(false);
+  const [recentReports, setRecentReports] = useState([]);
+  const [brandingConfigured, setBrandingConfigured] = useState(false);
+
+  // Fetch config on mount or site change
+  useEffect(() => {
+    if (selectedSite?.id) {
+      fetchConfig();
+      checkBrandingConfig();
+    }
+  }, [selectedSite?.id]);
+
+  const checkBrandingConfig = async () => {
+    try {
+      // Check account has name and white-label logo configured
+      const [accountRes, whiteLabelRes] = await Promise.all([
+        fetch('/api/account'),
+        fetch('/api/account/white-label-config'),
+      ]);
+      
+      let hasAccountName = false;
+      let hasLogo = false;
+      
+      if (accountRes.ok) {
+        const accountData = await accountRes.json();
+        hasAccountName = !!accountData.account?.name;
+      }
+      
+      if (whiteLabelRes.ok) {
+        const whiteLabelData = await whiteLabelRes.json();
+        hasLogo = !!whiteLabelData.config?.agencyLogo;
+      }
+      
+      setBrandingConfigured(hasAccountName && hasLogo);
+    } catch (error) {
+      console.error('Error checking branding config:', error);
+      setBrandingConfigured(false);
+    }
+  };
+
+  const fetchConfig = async () => {
+    try {
+      setIsLoading(true);
+      const response = await fetch(`/api/sites/${selectedSite.id}/report-config`);
+      if (response.ok) {
+        const data = await response.json();
+        setHasFeature(data.hasFeature);
+        if (data.config) {
+          setConfig({
+            enabled: data.config.enabled || false,
+            recipients: Array.isArray(data.config.recipients) ? data.config.recipients.join(', ') : (data.config.recipients || ''),
+            deliveryMode: data.config.deliveryMode || 'manual',
+            includeAiSummary: data.config.includeAiSummary !== false,
+            includeActions: data.config.includeActions !== false,
+            includeHealthScore: data.config.includeHealthScore !== false,
+          });
+        }
+        setRecentReports(data.recentReports || []);
+      }
+    } catch (error) {
+      console.error('Error fetching report config:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const fetchRecentReports = async () => {
+    if (!selectedSite?.id) return;
+    try {
+      const response = await fetch(`/api/sites/${selectedSite.id}/report-config`);
+      if (response.ok) {
+        const data = await response.json();
+        setRecentReports(data.recentReports || []);
+      }
+    } catch (error) {
+      console.error('Error fetching recent reports:', error);
+    }
+  };
+
+  const updateField = (field, value) => {
+    setConfig(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleSave = async () => {
+    if (!selectedSite?.id) return;
+    
+    try {
+      setIsSaving(true);
+      setSaveMessage({ type: '', text: '' });
+
+      // Parse recipients into array
+      const recipientsList = config.recipients
+        .split(',')
+        .map(email => email.trim())
+        .filter(email => email.length > 0);
+
+      const response = await fetch(`/api/sites/${selectedSite.id}/report-config`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...config,
+          recipients: recipientsList,
+        }),
+      });
+
+      if (response.ok) {
+        setSaveMessage({ type: 'success', text: t('settings.clientReportingSection.saveSuccess') || 'Settings saved successfully' });
+      } else {
+        const error = await response.json();
+        setSaveMessage({ type: 'error', text: error.error || t('settings.clientReportingSection.saveError') || 'Failed to save settings' });
+      }
+    } catch (error) {
+      setSaveMessage({ type: 'error', text: t('settings.clientReportingSection.saveError') || 'Failed to save settings' });
+    } finally {
+      setIsSaving(false);
+      setTimeout(() => setSaveMessage({ type: '', text: '' }), 5000);
+    }
+  };
+
+  const handleGenerateReport = async () => {
+    if (!selectedSite?.id) return;
+    
+    try {
+      setIsGenerating(true);
+      setSaveMessage({ type: '', text: '' });
+
+      const response = await fetch('/api/reports/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          siteId: selectedSite.id,
+          locale,
+        }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setSaveMessage({ type: 'success', text: t('settings.clientReportingSection.reportGenerated') || 'Report generated successfully!' });
+        // Refresh reports list only
+        fetchRecentReports();
+      } else {
+        const error = await response.json();
+        setSaveMessage({ type: 'error', text: error.error || t('settings.clientReportingSection.reportError') || 'Failed to generate report' });
+      }
+    } catch (error) {
+      setSaveMessage({ type: 'error', text: t('settings.clientReportingSection.reportError') || 'Failed to generate report' });
+    } finally {
+      setIsGenerating(false);
+      setTimeout(() => setSaveMessage({ type: '', text: '' }), 8000);
+    }
+  };
+
+  const handleSendReport = async (reportId) => {
+    try {
+      setSaveMessage({ type: '', text: '' });
+
+      // Parse recipients
+      const recipientsList = config.recipients
+        .split(',')
+        .map(email => email.trim())
+        .filter(email => email.length > 0);
+
+      if (recipientsList.length === 0) {
+        setSaveMessage({ type: 'error', text: t('settings.clientReportingSection.noRecipients') || 'Please add recipient emails first' });
+        return;
+      }
+
+      const response = await fetch('/api/reports/send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          reportId,
+          recipients: recipientsList,
+        }),
+      });
+
+      if (response.ok) {
+        setSaveMessage({ type: 'success', text: t('settings.clientReportingSection.reportSent') || 'Report sent successfully!' });
+        fetchRecentReports();
+      } else {
+        const error = await response.json();
+        setSaveMessage({ type: 'error', text: error.error || t('settings.clientReportingSection.sendError') || 'Failed to send report' });
+      }
+    } catch (error) {
+      setSaveMessage({ type: 'error', text: t('settings.clientReportingSection.sendError') || 'Failed to send report' });
+    }
+  };
+
+  const handleDeleteReport = async (reportId) => {
+    if (!window.confirm(t('settings.clientReportingSection.confirmDelete') || 'Are you sure you want to delete this report?')) {
+      return;
+    }
+
+    try {
+      setSaveMessage({ type: '', text: '' });
+
+      const response = await fetch(`/api/reports/${reportId}`, {
+        method: 'DELETE',
+      });
+
+      if (response.ok) {
+        setSaveMessage({ type: 'success', text: t('settings.clientReportingSection.reportDeleted') || 'Report deleted successfully' });
+        fetchRecentReports();
+      } else {
+        const error = await response.json();
+        setSaveMessage({ type: 'error', text: error.error || t('settings.clientReportingSection.deleteError') || 'Failed to delete report' });
+      }
+    } catch (error) {
+      setSaveMessage({ type: 'error', text: t('settings.clientReportingSection.deleteError') || 'Failed to delete report' });
+    }
+  };
+
+  if (!selectedSite) {
+    return (
+      <div className={styles.emptyState}>
+        <Globe className={styles.emptyIcon} />
+        <h3 className={styles.emptyTitle}>{t('settings.noSiteSelected') || 'No Site Selected'}</h3>
+        <p className={styles.emptyText}>
+          {t('settings.selectSiteForReporting') || 'Please select a website to configure client reporting.'}
+        </p>
+      </div>
+    );
+  }
+
+  if (isLoading) {
+    return (
+      <div className={styles.subsection}>
+        <Skeleton width="12rem" height="1.5rem" style={{ marginBottom: '1rem' }} />
+        <div className={styles.formGrid}>
+          {[1, 2, 3].map(i => (
+            <div key={i} className={styles.formGroup}>
+              <Skeleton width="30%" height="0.875rem" />
+              <Skeleton width="100%" height="2.5rem" borderRadius="md" />
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  // Feature not available
+  if (!hasFeature) {
+    return (
+      <div className={styles.emptyState}>
+        <Crown className={styles.emptyIcon} />
+        <h3 className={styles.emptyTitle}>{t('settings.clientReportingSection.featureNotAvailable') || 'Client Reporting'}</h3>
+        <p className={styles.emptyText}>
+          {t('settings.clientReportingSection.upgradeMessage') || 'Upgrade to a Professional plan to send branded reports to your clients.'}
+        </p>
+        <Button variant="primary" onClick={() => window.location.href = '/dashboard/settings?tab=subscription'}>
+          {t('settings.clientReportingSection.upgradeButton') || 'Upgrade Plan'}
+        </Button>
+      </div>
+    );
+  }
+
+  // Branding not configured (account name + logo)
+  if (!brandingConfigured) {
+    return (
+      <div className={styles.emptyState}>
+        <AlertTriangle className={`${styles.emptyIcon} ${styles.warningIcon}`} />
+        <h3 className={styles.emptyTitle}>{t('settings.clientReportingSection.brandingRequired') || 'Configure Branding First'}</h3>
+        <p className={styles.emptyText}>
+          {t('settings.clientReportingSection.brandingRequiredMessage') || 'Please configure your organization name and logo in the Account settings before setting up client reports.'}
+        </p>
+        <Button variant="primary" onClick={() => window.location.href = '/dashboard/settings?tab=account'}>
+          {t('settings.clientReportingSection.configureBranding') || 'Configure Account Settings'}
+        </Button>
+      </div>
+    );
+  }
+
+  return (
+    <>
+      {saveMessage.text && (
+        <div className={`${styles.saveMessage} ${styles[saveMessage.type]}`}>
+          {saveMessage.type === 'success' ? <Check size={16} /> : <AlertTriangle size={16} />}
+          <span>{saveMessage.text}</span>
+        </div>
+      )}
+
+      {/* Report Configuration */}
+      <div className={styles.subsection}>
+        <h3 className={styles.subsectionTitle}>
+          <FileText className={styles.subsectionIcon} />
+          {t('settings.clientReportingSection.config.title') || 'Report Configuration'}
+        </h3>
+
+        <div className={styles.formGrid}>
+          {/* Enable Toggle */}
+          <div className={`${styles.formGroup} ${styles.fullWidth}`}>
+            <label className={styles.toggleLabel}>
+              <span className={styles.toggleText}>
+                {t('settings.clientReportingSection.config.enabled') || 'Enable Client Reporting'}
+              </span>
+              <div className={styles.toggleSwitch}>
+                <input
+                  type="checkbox"
+                  checked={config.enabled}
+                  onChange={(e) => updateField('enabled', e.target.checked)}
+                  disabled={!canEdit}
+                />
+                <span className={styles.toggleSlider}></span>
+              </div>
+            </label>
+            <span className={styles.inputHint}>
+              {t('settings.clientReportingSection.config.enabledHint') || 'Allow generating and sending reports for this website'}
+            </span>
+          </div>
+
+          {/* Recipients */}
+          <div className={`${styles.formGroup} ${styles.fullWidth}`}>
+            <label className={styles.formLabel}>
+              {t('settings.clientReportingSection.config.recipients') || 'Recipient Emails'}
+            </label>
+            <input 
+              type="text" 
+              className={styles.formInput}
+              value={config.recipients}
+              onChange={(e) => updateField('recipients', e.target.value)}
+              placeholder={t('settings.clientReportingSection.config.recipientsPlaceholder') || 'client@example.com, partner@example.com'}
+              disabled={!canEdit}
+            />
+            <span className={styles.inputHint}>
+              {t('settings.clientReportingSection.config.recipientsHint') || 'Comma-separated list of email addresses'}
+            </span>
+          </div>
+
+          {/* Delivery Mode */}
+          <div className={styles.formGroup}>
+            <label className={styles.formLabel}>
+              {t('settings.clientReportingSection.config.deliveryMode') || 'Delivery Mode'}
+            </label>
+            <select 
+              className={styles.formSelect}
+              value={config.deliveryMode}
+              onChange={(e) => updateField('deliveryMode', e.target.value)}
+              disabled={!canEdit}
+            >
+              <option value="manual">{t('settings.clientReportingSection.deliveryModes.manual') || 'Manual Only'}</option>
+              <option value="monthly">{t('settings.clientReportingSection.deliveryModes.monthly') || 'Monthly (1st of month)'}</option>
+              <option value="weekly">{t('settings.clientReportingSection.deliveryModes.weekly') || 'Weekly (Every Monday)'}</option>
+            </select>
+          </div>
+        </div>
+
+        {/* Report Options */}
+        <div className={styles.optionsGroup}>
+          <label className={styles.optionsGroupLabel}>
+            {t('settings.clientReportingSection.config.includeInReport') || 'Include in Report'}
+          </label>
+          <div className={styles.checkboxList}>
+            <label className={styles.checkboxLabel}>
+              <input
+                type="checkbox"
+                checked={config.includeAiSummary}
+                onChange={(e) => updateField('includeAiSummary', e.target.checked)}
+                disabled={!canEdit}
+              />
+              <span>{t('settings.clientReportingSection.options.aiSummary') || 'AI Executive Summary'}</span>
+            </label>
+            <label className={styles.checkboxLabel}>
+              <input
+                type="checkbox"
+                checked={config.includeHealthScore}
+                onChange={(e) => updateField('includeHealthScore', e.target.checked)}
+                disabled={!canEdit}
+              />
+              <span>{t('settings.clientReportingSection.options.healthScore') || 'Site Health Score & Progress'}</span>
+            </label>
+            <label className={styles.checkboxLabel}>
+              <input
+                type="checkbox"
+                checked={config.includeActions}
+                onChange={(e) => updateField('includeActions', e.target.checked)}
+                disabled={!canEdit}
+              />
+              <span>{t('settings.clientReportingSection.options.actions') || 'AI Actions Performed'}</span>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      {/* Generate Report Button */}
+      <div className={styles.subsection}>
+        <h3 className={styles.subsectionTitle}>
+          <Download className={styles.subsectionIcon} />
+          {t('settings.clientReportingSection.generate.title') || 'Generate Report'}
+        </h3>
+        <p className={styles.subsectionDescription}>
+          {t('settings.clientReportingSection.generate.description') || 'Generate a PDF report for the current reporting period.'}
+        </p>
+        
+        <Button
+          variant="primary"
+          onClick={handleGenerateReport}
+          disabled={isGenerating || !config.enabled}
+          className={styles.generateButton}
+        >
+          {isGenerating ? (
+            <>
+              <Loader2 size={16} className={styles.spinningIcon} />
+              {t('settings.clientReportingSection.generate.generating') || 'Generating...'}
+            </>
+          ) : (
+            <>
+              <FileText size={16} />
+              {t('settings.clientReportingSection.generate.button') || 'Generate Report Now'}
+            </>
+          )}
+        </Button>
+
+        {/* Recent Reports */}
+        <div className={styles.recentReports}>
+          <h4>
+            {t('settings.clientReportingSection.recentReports') || 'Recent Reports'}
+          </h4>
+          {recentReports.length === 0 ? (
+            <p className={styles.noReports}>
+              {t('settings.clientReportingSection.noReportsYet') || 'No reports generated yet. Generate your first report above.'}
+            </p>
+          ) : (
+            <div className={styles.reportsList}>
+              {recentReports.map(report => {
+                // Format date based on locale
+                const reportDate = new Date(report.createdAt);
+                const formattedMonth = reportDate.toLocaleDateString(
+                  locale === 'he' ? 'he-IL' : 'en-US',
+                  { month: 'long', year: 'numeric' }
+                );
+                
+                return (
+                  <div key={report.id} className={styles.reportItem}>
+                    <div className={styles.reportInfo}>
+                      <span className={styles.reportMonth}>{formattedMonth}</span>
+                      <span className={`${styles.reportStatus} ${styles[report.status.toLowerCase()]}`}>
+                        {t(`settings.clientReportingSection.statuses.${report.status.toLowerCase()}`) || report.status}
+                      </span>
+                    </div>
+                  <div className={styles.reportActions}>
+                    <a href={`/api/reports/${report.id}/download`} download className={styles.reportLink}>
+                      <Download size={14} />
+                    </a>
+                    {report.status === 'DRAFT' && (
+                      <Button
+                        variant="primary"
+                        iconOnly
+                        size="sm"
+                        onClick={() => handleSendReport(report.id)}
+                        title={t('settings.clientReportingSection.sendReport') || 'Send to recipients'}
+                      >
+                        <Send size={14} />
+                      </Button>
+                    )}
+                    <Button
+                      variant="danger"
+                      iconOnly
+                      size="sm"
+                      onClick={() => handleDeleteReport(report.id)}
+                      title={t('settings.clientReportingSection.deleteReport') || 'Delete report'}
+                    >
+                      <Trash2 size={14} />
+                    </Button>
+                  </div>
+                </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Save Button */}
+      <div className={styles.saveButtonWrapper}>
+        <Button
+          variant="primary"
+          onClick={handleSave}
+          disabled={isSaving || !canEdit}
+        >
+          {isSaving ? (
+            <>
+              <Loader2 size={16} className={styles.spinningIcon} />
+              {t('common.saving') || 'Saving...'}
+            </>
+          ) : (
+            <>
+              <Check size={16} />
+              {t('common.save') || 'Save Changes'}
+            </>
+          )}
+        </Button>
+      </div>
     </>
   );
 }

@@ -194,6 +194,13 @@ async function analyzeWebsite(url) {
   // Detect language
   results.contentStyle.language = detectLanguage(html);
   
+  console.log('[Analyze] Detection results:', {
+    platform: results.platform?.name,
+    language: results.contentStyle.language,
+    businessName: results.businessInfo?.name,
+    title: results.seoData?.title,
+  });
+  
   // Step 3: Check for blog/content
   results.contentStyle.hasBlog = await checkForBlog(url, results.platform);
   
@@ -277,19 +284,23 @@ async function fetchAndParsePage(url) {
       headers: {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
         'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-        'Accept-Language': 'en-US,en;q=0.9,he;q=0.8',
+        'Accept-Language': 'he,en;q=0.9,en-US;q=0.8',
       },
       signal: controller.signal,
+      redirect: 'follow',
     });
     
     clearTimeout(timeout);
     
     if (!response.ok) {
+      console.log(`[Analyze] Fetch failed for ${url}: HTTP ${response.status}`);
       return { success: false, error: `HTTP ${response.status}` };
     }
     
     const html = await response.text();
     const headers = Object.fromEntries(response.headers.entries());
+    
+    console.log(`[Analyze] Fetched ${url}: ${html.length} chars, final URL: ${response.url}`);
     
     return { success: true, html, headers };
   } catch (error) {
@@ -303,14 +314,21 @@ async function fetchAndParsePage(url) {
 function detectPlatform(html, headers) {
   const platforms = [];
   
-  // WordPress indicators - match structural paths only to avoid false positives
-  if (
-    /(?:src|href)=["'][^"']*\/wp-content\//i.test(html) ||
-    /(?:src|href)=["'][^"']*\/wp-includes\//i.test(html) ||
-    /<meta[^>]*generator[^>]*WordPress/i.test(html) ||
-    /<link[^>]*rel=["']https:\/\/api\.w\.org\//i.test(html)
-  ) {
-    platforms.push({ name: 'WordPress', confidence: 0.9 });
+  // WordPress indicators - match multiple signals for robustness
+  const wpSignals = [
+    /(?:src|href)=["'][^"']*\/wp-content\//i.test(html),
+    /(?:src|href)=["'][^"']*\/wp-includes\//i.test(html),
+    /<meta[^>]*generator[^>]*WordPress/i.test(html),
+    /<link[^>]*rel=["']https:\/\/api\.w\.org\//i.test(html),
+    /\/wp-json\//i.test(html),
+    /wp-emoji/i.test(html),
+    /<link[^>]*wp-block-/i.test(html),
+  ];
+  const wpScore = wpSignals.filter(Boolean).length;
+  
+  if (wpScore >= 1) {
+    platforms.push({ name: 'WordPress', confidence: Math.min(0.5 + wpScore * 0.1, 0.95) });
+    console.log(`[Analyze] WordPress detected with ${wpScore}/7 signals`);
   }
   
   // Shopify indicators
@@ -329,7 +347,7 @@ function detectPlatform(html, headers) {
   }
   
   // Webflow indicators
-  if (html.includes('webflow.com') || html.includes('w-nav') && html.includes('w-container')) {
+  if (html.includes('webflow.com') || (html.includes('w-nav') && html.includes('w-container'))) {
     platforms.push({ name: 'Webflow', confidence: 0.8 });
   }
   
@@ -338,6 +356,14 @@ function detectPlatform(html, headers) {
     const wpPlatform = platforms.find(p => p.name === 'WordPress');
     if (wpPlatform) {
       wpPlatform.builder = 'Elementor';
+    }
+  }
+  
+  // Divi (WordPress theme)
+  if (html.includes('et-boc') || html.includes('et_pb_')) {
+    const wpPlatform = platforms.find(p => p.name === 'WordPress');
+    if (wpPlatform) {
+      wpPlatform.builder = 'Divi';
     }
   }
   
@@ -351,10 +377,12 @@ function detectPlatform(html, headers) {
   
   // Return highest confidence or Custom
   if (platforms.length === 0) {
+    console.log('[Analyze] No platform detected, defaulting to Custom');
     return { name: 'Custom', confidence: 0.5 };
   }
   
   platforms.sort((a, b) => b.confidence - a.confidence);
+  console.log('[Analyze] Platform detected:', platforms[0].name, 'confidence:', platforms[0].confidence);
   return platforms[0];
 }
 
@@ -679,21 +707,51 @@ function detectLanguage(html) {
   const langMatch = html.match(/<html[^>]+lang=["']([^"']+)["']/i);
   if (langMatch) {
     const lang = langMatch[1].toLowerCase();
+    console.log('[Analyze] HTML lang attribute:', lang);
     if (lang.startsWith('he')) return 'he';
     if (lang.startsWith('en')) return 'en';
     if (lang.startsWith('ar')) return 'ar';
     return lang.split('-')[0];
   }
   
-  // Check for Hebrew characters in content
-  const bodyMatch = html.match(/<body[^>]*>([\s\S]*)<\/body>/i);
-  if (bodyMatch) {
-    const hebrewChars = (bodyMatch[1].match(/[\u0590-\u05FF]/g) || []).length;
-    const englishChars = (bodyMatch[1].match(/[a-zA-Z]/g) || []).length;
-    
-    if (hebrewChars > englishChars * 0.5) {
-      return 'he';
-    }
+  // Check dir attribute (RTL is strong indicator for Hebrew/Arabic)
+  const dirMatch = html.match(/<html[^>]+dir=["']rtl["']/i);
+  if (dirMatch) {
+    console.log('[Analyze] HTML dir=rtl detected, checking if Hebrew');
+  }
+  
+  // Check content-language meta tag
+  const contentLangMatch = html.match(/<meta[^>]+http-equiv=["']content-language["'][^>]+content=["']([^"']+)["']/i);
+  if (contentLangMatch) {
+    const lang = contentLangMatch[1].toLowerCase();
+    console.log('[Analyze] Content-Language meta:', lang);
+    if (lang.startsWith('he')) return 'he';
+    if (lang.startsWith('en')) return 'en';
+    return lang.split('-')[0];
+  }
+  
+  // Fallback: Count Hebrew vs English characters in CLEAN text content (no JS/CSS/HTML)
+  let cleanText = html;
+  // Remove script tags and content
+  cleanText = cleanText.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '');
+  // Remove style tags and content
+  cleanText = cleanText.replace(/<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/gi, '');
+  // Remove all HTML tags
+  cleanText = cleanText.replace(/<[^>]+>/g, ' ');
+  
+  const hebrewChars = (cleanText.match(/[\u0590-\u05FF]/g) || []).length;
+  const englishChars = (cleanText.match(/[a-zA-Z]/g) || []).length;
+  
+  console.log('[Analyze] Language fallback - Hebrew chars:', hebrewChars, 'English chars:', englishChars);
+  
+  // Hebrew content should dominate after stripping code
+  if (hebrewChars > 50 && hebrewChars > englishChars * 0.3) {
+    return 'he';
+  }
+  
+  // If dir=rtl was found and we have SOME Hebrew, it's likely Hebrew
+  if (dirMatch && hebrewChars > 20) {
+    return 'he';
   }
   
   return 'en';

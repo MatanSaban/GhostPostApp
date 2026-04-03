@@ -2700,38 +2700,40 @@
 }
 
 .logoPreview {
-  width: 100px;
-  height: 100px;
+  width: 200px;
+  height: 50px;
   flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--muted);
+  border: 2px dashed var(--border);
+  border-radius: var(--radius-lg);
+
+  .dark & {
+    background: rgba(123, 44, 191, 0.1);
+    border-color: rgba(123, 44, 191, 0.3);
+  }
 }
 
 .logoImage {
-  width: 100%;
-  height: 100%;
-  border-radius: var(--radius-lg);
-  object-fit: cover;
-  border: 2px solid var(--border);
+  max-width: 100%;
+  max-height: 100%;
+  border-radius: var(--radius-md);
+  object-fit: contain;
 
   .dark & {
-    border-color: rgba(123, 44, 191, 0.3);
+    filter: drop-shadow(0 0 1px rgba(255, 255, 255, 0.1));
   }
 }
 
 .logoPlaceholder {
   width: 100%;
   height: 100%;
-  border-radius: var(--radius-lg);
-  background: var(--muted);
-  border: 2px dashed var(--border);
   display: flex;
   align-items: center;
   justify-content: center;
   color: var(--muted-foreground);
-
-  .dark & {
-    background: rgba(123, 44, 191, 0.1);
-    border-color: rgba(123, 44, 191, 0.3);
-  }
 }
 
 .logoActions {
@@ -4075,5 +4077,430 @@
 @keyframes integrationSpin {
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }
+}
+
+/* =========================================
+   White-Label & Client Reporting Improvements
+   ========================================= */
+
+/* Empty State Title & Text */
+.emptyTitle {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--foreground);
+  margin-bottom: 0.25rem;
+}
+
+.emptyText {
+  font-size: 0.9rem;
+  color: var(--muted-foreground);
+  max-width: 400px;
+  line-height: 1.6;
+  margin-bottom: 1rem;
+}
+
+/* Subsection Description */
+.subsectionDescription {
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+  margin-top: -0.5rem;
+  margin-bottom: 1.25rem;
+  line-height: 1.5;
+}
+
+/* Logo Upload Row Layout */
+.logoUploadRow {
+  display: flex;
+  gap: 2rem;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.logoUploadItem {
+  flex: 1;
+  min-width: 200px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.logoUploadItemIcon {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+/* Improved Options Group - Dark Mode */
+.optionsGroup {
+  margin-top: 1rem;
+  padding: 1rem;
+  background: var(--muted);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border);
+
+  .dark & {
+    background: rgba(0, 0, 0, 0.3);
+    border-color: rgba(123, 44, 191, 0.15);
+  }
+}
+
+/* Improved Checkbox Label - Dark Mode */
+.checkboxLabel {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  font-size: 0.9rem;
+  color: var(--foreground);
+  padding: 0.5rem;
+  border-radius: var(--radius-md);
+  transition: background var(--transition-fast);
+
+  &:hover {
+    background: var(--bg-hover);
+  }
+
+  input[type="checkbox"] {
+    width: 1rem;
+    height: 1rem;
+    accent-color: var(--primary);
+    cursor: pointer;
+  }
+
+  .dark & {
+    &:hover {
+      background: rgba(123, 44, 191, 0.1);
+    }
+  }
+}
+
+/* Generate Button */
+.generateButton {
+  background: linear-gradient(135deg, var(--primary), var(--secondary));
+  margin-bottom: 1rem;
+  
+  &:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(123, 44, 191, 0.3);
+  }
+}
+
+/* Recent Reports - Dark Mode */
+.recentReports {
+  margin-top: 1rem;
+  padding: 1rem;
+  background: var(--muted);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border);
+
+  .dark & {
+    background: rgba(0, 0, 0, 0.3);
+    border-color: rgba(123, 44, 191, 0.15);
+  }
+
+  h4 {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--foreground);
+    margin-bottom: 0.75rem;
+  }
+}
+
+.noReports {
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+  text-align: center;
+  padding: 1.5rem 1rem;
+  margin: 0;
+}
+
+.reportsList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.reportItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1rem;
+  background: var(--background);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+
+  .dark & {
+    background: rgba(0, 0, 0, 0.4);
+    border-color: rgba(123, 44, 191, 0.2);
+  }
+}
+
+.reportInfo {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.reportMonth {
+  font-weight: 500;
+  font-size: 0.875rem;
+  color: var(--foreground);
+}
+
+.reportStatus {
+  font-size: 0.75rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: var(--radius-sm);
+  font-weight: 500;
+  text-transform: uppercase;
+
+  &.draft {
+    background: rgba(234, 179, 8, 0.15);
+    color: #eab308;
+
+    .dark & {
+      background: rgba(251, 191, 36, 0.15);
+      color: #fbbf24;
+    }
+  }
+
+  &.sent {
+    background: rgba(34, 197, 94, 0.15);
+    color: #22c55e;
+
+    .dark & {
+      background: rgba(74, 222, 128, 0.15);
+      color: #4ade80;
+    }
+  }
+
+  &.error {
+    background: rgba(239, 68, 68, 0.15);
+    color: #ef4444;
+
+    .dark & {
+      background: rgba(248, 113, 113, 0.15);
+      color: #f87171;
+    }
+  }
+}
+
+.reportActions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.reportLink,
+.sendButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--muted-foreground);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+
+  &:hover {
+    background: var(--primary);
+    border-color: var(--primary);
+    color: white;
+  }
+
+  .dark & {
+    border-color: rgba(123, 44, 191, 0.3);
+
+    &:hover {
+      background: var(--primary);
+      border-color: var(--primary);
+    }
+  }
+}
+
+.sendButton {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: white;
+
+  &:hover {
+    opacity: 0.9;
+    transform: scale(1.05);
+  }
+}
+
+/* White-Label Logo Preview - Improved */
+.logoPreviewWrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.logoPreviewLabel {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--muted-foreground);
+}
+
+/* Color Input Group */
+.colorInputGroup {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.colorPicker {
+  width: 3rem;
+  height: 2.5rem;
+  padding: 0;
+  border: none;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  overflow: hidden;
+  background: transparent;
+
+  &::-webkit-color-swatch-wrapper {
+    padding: 0;
+  }
+
+  &::-webkit-color-swatch {
+    border: 2px solid var(--border);
+    border-radius: var(--radius-md);
+  }
+
+  .dark &::-webkit-color-swatch {
+    border-color: rgba(123, 44, 191, 0.3);
+  }
+}
+
+/* Toggle Label for enable/disable - Full Width */
+.toggleLabelFull {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem;
+  background: var(--muted);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+
+  .dark & {
+    background: rgba(0, 0, 0, 0.3);
+    border-color: rgba(123, 44, 191, 0.15);
+  }
+}
+
+.toggleText {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--foreground);
+}
+
+/* Toggle Switch Styles */
+.toggleSwitch {
+  position: relative;
+  width: 3rem;
+  height: 1.5rem;
+
+  input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+    position: absolute;
+  }
+}
+
+.toggleSlider {
+  position: absolute;
+  cursor: pointer;
+  inset: 0;
+  background: var(--muted-foreground);
+  transition: all var(--transition-fast);
+  border-radius: 9999px;
+
+  &::before {
+    content: '';
+    position: absolute;
+    height: 1.125rem;
+    width: 1.125rem;
+    left: 0.1875rem;
+    bottom: 0.1875rem;
+    background: white;
+    transition: all var(--transition-fast);
+    border-radius: 50%;
+    box-shadow: var(--shadow-sm);
+  }
+
+  input:checked + & {
+    background: linear-gradient(90deg, #10b981, var(--accent));
+    box-shadow: 0 0 10px rgba(0, 255, 157, 0.4);
+
+    &::before {
+      transform: translateX(1.5rem);
+    }
+  }
+
+  input:focus + & {
+    box-shadow: 0 0 0 3px rgba(123, 44, 191, 0.2);
+  }
+
+  input:disabled + & {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+/* Warning Icon Color */
+.warningIcon {
+  color: var(--warning-color);
+}
+
+/* Hidden Input */
+.hiddenInput {
+  display: none;
+}
+
+/* Logo Preview Variants */
+.logoPreviewIcon {
+  width: 60px;
+  height: 60px;
+  border-radius: var(--radius-lg);
+}
+
+.logoImageIcon {
+  width: 60px;
+  height: 60px;
+  object-fit: cover;
+  border-radius: var(--radius-lg);
+}
+
+.logoPlaceholderIcon {
+  width: 60px;
+  height: 60px;
+}
+
+/* Color Text Input */
+.colorTextInput {
+  flex: 1;
+}
+
+/* Options Group Label */
+.optionsGroupLabel {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--muted-foreground);
+  margin-bottom: 0.75rem;
+}
+
+/* Checkbox List */
+.checkboxList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
 }
 

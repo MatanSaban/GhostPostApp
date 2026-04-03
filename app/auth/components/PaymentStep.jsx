@@ -392,16 +392,16 @@ export function PaymentStep({ translations, selectedPlan, userData, onComplete }
               <span>{selectedPlan?.name}</span>
             </div>
             <div className={styles.orderRow}>
-              <span>{translations.subscriptionType || 'סוג מנוי'}</span>
-              <span>{translations.monthly || 'חודשי'}</span>
+              <span>{translations.subscriptionType || 'Subscription Type'}</span>
+              <span>{translations.monthly || 'Monthly'}</span>
             </div>
             <div className={styles.orderRow}>
-              <span>{translations.planPrice || 'מחיר תוכנית'}</span>
+              <span>{translations.planPrice || 'Plan Price'}</span>
               <span>₪{priceBreakdown.basePrice}</span>
             </div>
             {priceBreakdown.proration && priceBreakdown.proration.remainingDays < priceBreakdown.proration.totalDays && (
               <div className={styles.orderRow} style={{ fontSize: '0.75rem', opacity: 0.7 }}>
-                <span>{translations.prorated || 'חיוב יחסי'} ({priceBreakdown.proration.remainingDays}/{priceBreakdown.proration.totalDays} {translations.days || 'ימים'})</span>
+                <span>{translations.prorated || 'Prorated'} ({priceBreakdown.proration.remainingDays}/{priceBreakdown.proration.totalDays} {translations.days || 'days'})</span>
               </div>
             )}
             {priceBreakdown.discount > 0 && (
@@ -419,7 +419,7 @@ export function PaymentStep({ translations, selectedPlan, userData, onComplete }
               </div>
             )}
             <div className={styles.orderRow}>
-              <span>{translations.vat || 'מע״מ (18%)'}</span>
+              <span>{translations.vat || 'VAT (18%)'}</span>
               <span>₪{priceBreakdown.vatAmount}</span>
             </div>
             <div className={`${styles.orderRow} ${styles.orderTotal}`}>
@@ -575,7 +575,7 @@ export function PaymentStep({ translations, selectedPlan, userData, onComplete }
 
             <div className={styles.formGroup}>
               <label htmlFor="citizenId" className={styles.formLabel}>
-                {translations.citizenId || 'תעודת זהות'}
+                  {translations.citizenId || 'ID Number'}
               </label>
               <input
                 type="text"
@@ -583,7 +583,7 @@ export function PaymentStep({ translations, selectedPlan, userData, onComplete }
                 value={citizenId}
                 onChange={(e) => setCitizenId(e.target.value.replace(/\D/g, '').slice(0, 9))}
                 className={styles.formInput}
-                placeholder={translations.citizenIdPlaceholder || 'הכנס תעודת זהות'}
+                placeholder={translations.citizenIdPlaceholder || 'Enter ID number'}
                 dir="ltr"
                 required
                 disabled={isProcessing}
@@ -592,7 +592,7 @@ export function PaymentStep({ translations, selectedPlan, userData, onComplete }
 
             <div className={styles.formGroup}>
               <label htmlFor="billingEmail" className={styles.formLabel}>
-                {translations.billingEmail || 'אימייל לחיוב'}
+                  {translations.billingEmail || 'Billing Email'}
               </label>
               <input
                 type="email"
@@ -601,7 +601,7 @@ export function PaymentStep({ translations, selectedPlan, userData, onComplete }
                 onChange={(e) => setBillingEmail(e.target.value)}
                 onBlur={updateCardOwnerDetails}
                 className={styles.formInput}
-                placeholder={translations.billingEmailPlaceholder || 'אימייל לקבלת חשבונית'}
+                placeholder={translations.billingEmailPlaceholder || 'Email for invoices'}
                 dir="ltr"
                 required
                 disabled={isProcessing}
@@ -610,7 +610,7 @@ export function PaymentStep({ translations, selectedPlan, userData, onComplete }
 
             <div className={styles.formGroup}>
               <label htmlFor="cardOwnerPhone" className={styles.formLabel}>
-                {translations.phone || 'טלפון'}
+                {translations.phone || 'Phone'}
               </label>
               <input
                 type="tel"
@@ -649,7 +649,7 @@ export function PaymentStep({ translations, selectedPlan, userData, onComplete }
                 <div className={styles.formRow}>
                   <div className={styles.formGroup}>
                     <label className={styles.formLabel}>
-                      {translations.expMonth || 'חודש'}
+                      {translations.expMonth || 'Month'}
                     </label>
                     <input
                       type="text"
@@ -665,7 +665,7 @@ export function PaymentStep({ translations, selectedPlan, userData, onComplete }
                   </div>
                   <div className={styles.formGroup}>
                     <label className={styles.formLabel}>
-                      {translations.expYear || 'שנה'}
+                      {translations.expYear || 'Year'}
                     </label>
                     <input
                       type="text"

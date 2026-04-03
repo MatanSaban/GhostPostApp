@@ -710,6 +710,9 @@
     "overview": "סקירה כללית",
     "aiSummary": "סיכום AI",
     "translatingSummary": "מתרגם סיכום...",
+    "scoreProgression": "התקדמות הציון",
+    "greatJob": "עבודה מצוינת!",
+    "resolvedIssues": "תיקנת {count} בעיות מאז הסריקה הקודמת.",
     "notices": "הערות",
     "pageScreenshots": "צילומי מסך לדף",
     "sources": {
@@ -1342,8 +1345,8 @@
       "moreFromPrev": "{value} {metric} - {percent}% יותר מ-{period}",
       "lessFromPrev": "{value} {metric} - {percent}% פחות מ-{period}",
       "positionNoChange": "המיקום לא השתנה מ-{period}",
-      "positionUp": "המיקום השתפר ב-{percent}% {period}",
-      "positionDown": "המיקום ירד ב-{percent}% {period}"
+      "positionUp": "עלה {ranks} דירוגים מ-#{from} ל-#{to} ({period})",
+      "positionDown": "ירד {ranks} דירוגים מ-#{from} ל-#{to} ({period})"
     }
   },
   "generatePost": {
@@ -2783,6 +2786,8 @@
     "lightMode": "מצב בהיר",
     "systemTheme": "ערכת מערכת",
     "saveChanges": "שמור שינויים",
+    "whiteLabelReporting": "מיתוג",
+    "clientReporting": "דוחות ללקוחות",
     "descriptions": {
       "general": "הגדר הגדרות אתר בסיסיות והעדפות",
       "aiConfiguration": "התאם אישית מודלי AI והגדרות יצירת תוכן",
@@ -2790,6 +2795,8 @@
       "notifications": "שלוט בהעדפות אימייל והתראות",
       "seo": "אופטימיזציה של הגדרות נראות במנועי חיפוש",
       "integrations": "חבר שירותי צד שלישי ו-APIs",
+      "whiteLabelReporting": "הגדר דוחות PDF ממותגים לסוכנות שלך",
+      "clientReporting": "הגדר דוחות אוטומטיים ללקוחות עבור אתר זה",
       "team": "נהל חברי צוות והרשאות",
       "users": "הזמן ונהל משתמשים בחשבון שלך",
       "subscription": "צפה ונהל את תוכנית המנוי שלך",
@@ -3100,6 +3107,88 @@
         "active": "פעיל",
         "pending": "ממתין",
         "inactive": "לא פעיל"
+      }
+    },
+    "whiteLabelReportingSection": {
+      "saveSuccess": "הגדרות מיתוג נשמרו בהצלחה",
+      "saveError": "שמירת הגדרות מיתוג נכשלה",
+      "invalidImageType": "אנא העלה קובץ תמונה תקין",
+      "imageTooLarge": "התמונה חייבת להיות מתחת ל-2MB",
+      "logoUploaded": "הלוגו הועלה בהצלחה",
+      "logoUploadError": "העלאת הלוגו נכשלה",
+      "iconUploaded": "האייקון הועלה בהצלחה",
+      "iconUploadError": "העלאת האייקון נכשלה",
+      "featureNotAvailable": "מיתוג",
+      "upgradeMessage": "שדרג לתוכנית מקצועית כדי לפתוח דוחות PDF ממותגים עבור הלקוחות שלך.",
+      "upgradeButton": "שדרג תוכנית",
+      "branding": {
+        "title": "מיתוג סוכנות",
+        "description": "התאם אישית כיצד המותג שלך מופיע בדוחות ללקוחות.",
+        "fullWideLogo": "לוגו רחב מלא",
+        "logoIcon": "אייקון לוגו",
+        "uploadLogo": "העלה לוגו",
+        "uploadIcon": "העלה אייקון",
+        "logoHint": "מומלץ: 200x50px PNG או SVG",
+        "iconHint": "ריבועי, 60x60px",
+        "agencyName": "שם הסוכנות",
+        "agencyNamePlaceholder": "שם הסוכנות שלך",
+        "accentColor": "צבע הדגשה",
+        "replyToEmail": "אימייל למענה",
+        "replyToEmailPlaceholder": "reports@youragency.com",
+        "replyToEmailHint": "לקוחות יענו לאימייל זה כשיקבלו דוחות"
+      }
+    },
+    "clientReportingSection": {
+      "saveSuccess": "הגדרות דיווח ללקוחות נשמרו בהצלחה",
+      "saveError": "שמירת הגדרות דיווח ללקוחות נכשלה",
+      "reportGenerated": "הדוח נוצר בהצלחה!",
+      "reportError": "יצירת הדוח נכשלה",
+      "reportSent": "הדוח נשלח בהצלחה!",
+      "sendError": "שליחת הדוח נכשלה",
+      "noRecipients": "אנא הוסף כתובות אימייל של נמענים קודם",
+      "featureNotAvailable": "דיווח ללקוחות",
+      "upgradeMessage": "שדרג לתוכנית מקצועית כדי לשלוח דוחות ממותגים ללקוחות שלך.",
+      "upgradeButton": "שדרג תוכנית",
+      "whiteLabelRequired": "הגדר מיתוג קודם",
+      "whiteLabelRequiredMessage": "אנא הגדר את המיתוג של הסוכנות (שם ולוגו) בהגדרות מיתוג לפני הגדרת דוחות ללקוחות.",
+      "configureWhiteLabel": "הגדר מיתוג",
+      "config": {
+        "title": "תצורת דוח",
+        "enabled": "אפשר דיווח ללקוחות",
+        "enabledHint": "אפשר יצירה ושליחה של דוחות עבור אתר זה",
+        "recipients": "אימיילים של נמענים",
+        "recipientsPlaceholder": "client@example.com, partner@example.com",
+        "recipientsHint": "רשימה של כתובות אימייל מופרדות בפסיקים",
+        "deliveryMode": "אופן משלוח",
+        "includeInReport": "כלול בדוח"
+      },
+      "deliveryModes": {
+        "manual": "ידני בלבד",
+        "monthly": "חודשי (ב-1 לחודש)",
+        "weekly": "שבועי (כל יום שני)"
+      },
+      "options": {
+        "aiSummary": "סיכום מנהלים AI",
+        "healthScore": "ציון בריאות אתר והתקדמות",
+        "actions": "פעולות AI שבוצעו"
+      },
+      "generate": {
+        "title": "יצירת דוח",
+        "description": "צור דוח PDF עבור תקופת הדיווח הנוכחית.",
+        "button": "צור דוח עכשיו",
+        "generating": "מייצר..."
+      },
+      "recentReports": "דוחות אחרונים",
+      "noReportsYet": "אין דוחות שנוצרו עדיין. צור את הדוח הראשון שלך למעלה.",
+      "sendReport": "שלח לנמענים",
+      "deleteReport": "מחק דוח",
+      "confirmDelete": "האם אתה בטוח שברצונך למחוק דוח זה?",
+      "reportDeleted": "הדוח נמחק בהצלחה",
+      "deleteError": "מחיקת הדוח נכשלה",
+      "statuses": {
+        "draft": "טיוטה",
+        "sent": "נשלח",
+        "error": "שגיאה"
       }
     },
     "usersSection": {
@@ -4821,6 +4910,13 @@
       "orderSummary": "סיכום הזמנה",
       "plan": "תוכנית",
       "billingCycle": "חודשי",
+      "subscriptionType": "סוג מנוי",
+      "monthly": "חודשי",
+      "planPrice": "מחיר תוכנית",
+      "prorated": "חיוב יחסי",
+      "days": "ימים",
+      "vat": "מע״מ (18%)",
+      "confirmFree": "אשר",
       "total": "סה״כ",
       "coupon": {
         "label": "קוד קופון",
@@ -6237,6 +6333,10 @@
       "trafficConcentration": {
         "title": "ריכוז תנועה יתר",
         "description": "{concentrationPercent}% מהקליקים בחיפוש מגיעים מ-3 עמודים בלבד מתוך {totalPages}. גוון את אסטרטגיית התוכן כדי להפחית תלות בכמה עמודים."
+      },
+      "sgeTrafficTheft": {
+        "title": "זוהתה גניבת תנועה על ידי SGE במילות מפתח מובילות",
+        "description": "{count} מילות מפתח מובילות איבדו CTR משמעותי למרות מיקום ונפח חיפוש יציבים בין {periodStart} ל-{periodEnd} לעומת {comparePeriodStart} עד {comparePeriodEnd}. כ-{totalClicksLost} קליקים אבדו — ככל הנראה נבלעו על ידי סקירות AI של גוגל. הוסיפו ניסיון אישי, נתונים ייחודיים או דעות חזקות לעמודים אלו כדי להתמודד עם תשובות שנוצרו על ידי AI."
       }
     },
     "detailLabels": {

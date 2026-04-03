@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
-import { TrendingUp, TrendingDown, Minus, Search, Loader2, Tag, Trash2, Plus, X, Sparkles, BarChart3, Crosshair, Trophy, ChevronDown, Info, Navigation, ShoppingCart, DollarSign, ExternalLink, FileText, Wand2, Calendar } from 'lucide-react';
+import { TrendingUp, TrendingDown, Minus, Search, Loader2, Tag, Trash2, Plus, X, Sparkles, BarChart3, Crosshair, Trophy, ChevronDown, ChevronUp, Info, Navigation, ShoppingCart, DollarSign, ExternalLink, FileText, Wand2, Calendar, ArrowUpDown } from 'lucide-react';
 import { useSite } from '@/app/context/site-context';
 import { useTranslation } from '@/app/context/locale-context';
 import { emitCreditsUpdated } from '@/app/context/user-context';
@@ -190,6 +190,8 @@ export function KeywordsContent() {
   const [gscPreset, setGscPreset] = useState('30d');
   const [gscCustomStart, setGscCustomStart] = useState('');
   const [gscCustomEnd, setGscCustomEnd] = useState('');
+  const [sortBy, setSortBy] = useState('keyword'); // keyword, position, clicks, impressions, ctr, status
+  const [sortDir, setSortDir] = useState('asc'); // asc, desc
   const dropdownRef = useRef(null);
 
   // Close dropdowns when clicking outside
@@ -264,7 +266,10 @@ export function KeywordsContent() {
     }
   };
 
-  const fetchGSCData = async (siteId, keywordList) => {
+  // Track if we've done the initial force refresh to clear stale cache
+  const didForceRefresh = useRef(false);
+
+  const fetchGSCData = async (siteId, keywordList, forceRefresh = false) => {
     setGscLoading(true);
     try {
       let start, end;
@@ -280,8 +285,12 @@ export function KeywordsContent() {
       const prev = getPreviousPeriod(start, end, gscPreset);
 
       const keywordsParam = encodeURIComponent(keywordList.join(','));
+      // Force refresh on first load to clear any stale cached data
+      const shouldForceRefresh = forceRefresh || !didForceRefresh.current;
+      if (shouldForceRefresh) didForceRefresh.current = true;
+      
       const res = await fetch(
-        `/api/dashboard/stats/gsc?siteId=${siteId}&section=trackedKeywords&keywords=${keywordsParam}&startDate=${start}&endDate=${end}&compareStartDate=${prev.start}&compareEndDate=${prev.end}`
+        `/api/dashboard/stats/gsc?siteId=${siteId}&section=trackedKeywords&keywords=${keywordsParam}&startDate=${start}&endDate=${end}&compareStartDate=${prev.start}&compareEndDate=${prev.end}${shouldForceRefresh ? '&forceRefresh=true' : ''}`
       );
       if (res.ok) {
         const json = await res.json();
@@ -481,6 +490,61 @@ export function KeywordsContent() {
     ? keywords
     : keywords.filter(kw => kw.status === filter.toUpperCase());
 
+  // Sort keywords
+  const sortedKeywords = [...filteredKeywords].sort((a, b) => {
+    const gscA = gscData?.get(a.keyword.toLowerCase().trim());
+    const gscB = gscData?.get(b.keyword.toLowerCase().trim());
+    
+    let valA, valB;
+    switch (sortBy) {
+      case 'keyword':
+        valA = a.keyword.toLowerCase();
+        valB = b.keyword.toLowerCase();
+        break;
+      case 'position':
+        valA = parseFloat(gscA?.position) || 999;
+        valB = parseFloat(gscB?.position) || 999;
+        break;
+      case 'clicks':
+        valA = gscA?.clicks || 0;
+        valB = gscB?.clicks || 0;
+        break;
+      case 'impressions':
+        valA = gscA?.impressions || 0;
+        valB = gscB?.impressions || 0;
+        break;
+      case 'ctr':
+        valA = parseFloat(gscA?.ctr) || 0;
+        valB = parseFloat(gscB?.ctr) || 0;
+        break;
+      case 'status':
+        valA = a.status || '';
+        valB = b.status || '';
+        break;
+      default:
+        return 0;
+    }
+    
+    if (valA < valB) return sortDir === 'asc' ? -1 : 1;
+    if (valA > valB) return sortDir === 'asc' ? 1 : -1;
+    return 0;
+  });
+
+  const handleSort = (column) => {
+    if (sortBy === column) {
+      setSortDir(sortDir === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortBy(column);
+      // Default to desc for metrics (higher is better), asc for text
+      setSortDir(['position'].includes(column) ? 'asc' : ['clicks', 'impressions', 'ctr'].includes(column) ? 'desc' : 'asc');
+    }
+  };
+
+  const SortIcon = ({ column }) => {
+    if (sortBy !== column) return <ArrowUpDown size={12} className={styles.sortIconInactive} />;
+    return sortDir === 'asc' ? <ChevronUp size={12} /> : <ChevronDown size={12} />;
+  };
+
   // Stats - aggregate from GSC data for the selected date range
   const totalKeywords = keywords.length;
   const gscStats = (() => {
@@ -525,13 +589,49 @@ export function KeywordsContent() {
       : t('keywordStrategy.tooltips.lessFromPrev', { value, metric, percent: Math.abs(change), period });
   };
 
-  const positionTip = (change) => {
-    if (change == null) return undefined;
+  const positionTip = (change, currentPos, prevPos) => {
+    // Don't show tooltip if we don't have valid comparison data
+    if (change == null || prevPos == null || currentPos == null) return undefined;
     const period = getPeriodName();
     if (change === 0) return t('keywordStrategy.tooltips.positionNoChange', { period });
+    // prevPos is now already a rounded integer from API
+    const curRank = Math.round(parseFloat(currentPos));
+    const prevRank = typeof prevPos === 'number' ? prevPos : Math.round(parseFloat(prevPos));
+    // Sanity check: if ranks are unreasonable, don't show tooltip
+    if (isNaN(curRank) || isNaN(prevRank) || prevRank <= 0 || curRank <= 0) return undefined;
     return change > 0
-      ? t('keywordStrategy.tooltips.positionUp', { percent: Math.abs(change), period })
-      : t('keywordStrategy.tooltips.positionDown', { percent: Math.abs(change), period });
+      ? t('keywordStrategy.tooltips.positionUp', { ranks: Math.abs(change), from: prevRank, to: curRank, period })
+      : t('keywordStrategy.tooltips.positionDown', { ranks: Math.abs(change), from: prevRank, to: curRank, period });
+  };
+
+  // Check if positionChange value looks reasonable (actual rank diff should be small, not percentage)
+  const isValidRankChange = (change, currentPos) => {
+    if (change == null || change === 0) return false; // Don't show badge if no change
+    // If change is over 50 and current position is also a small number, 
+    // it's likely old cached percentage data, not actual rank difference
+    const absChange = Math.abs(change);
+    const pos = parseFloat(currentPos);
+    // Reasonable: change should be less than current position + 100 (you can't drop more than your rank)
+    // And change shouldn't be exactly 100 (old fallback for "no previous data")
+    if (change === 100 && pos > 10) return false; // likely old cache fallback
+    if (absChange > 100) return false; // percentage values were often > 100
+    return true;
+  };
+
+  const RankChangeBadge = ({ value, prevPos, currentPos, tooltip }) => {
+    if (value == null || value === 0) return null; // No badge if no change
+    // Skip display if this looks like old percentage-based cached data
+    if (!isValidRankChange(value, currentPos) || prevPos == null) return null;
+    const isUp = value > 0;
+    const cls = isUp ? styles.changeBadgeUp : styles.changeBadgeDown;
+    return (
+      <span
+        className={`${styles.changeBadge} ${cls} ${tooltip ? styles.hasTooltip : ''}`}
+        data-tooltip={tooltip || undefined}
+      >
+        {isUp ? '↑' : '↓'}{Math.abs(value)}
+      </span>
+    );
   };
 
   const ChangeBadge = ({ value, tooltip }) => {
@@ -751,19 +851,37 @@ export function KeywordsContent() {
         ) : (
           <>
             <div className={styles.tableHeader}>
-              <span className={styles.hasTooltip} data-tooltip={t('keywordStrategy.tooltips.keyword')}>{t('keywordStrategy.keyword')}</span>
-              <span className={styles.hasTooltip} data-tooltip={t('keywordStrategy.tooltips.position')}>{t('keywordStrategy.position')}</span>
+              <button className={`${styles.sortableHeader} ${sortBy === 'keyword' ? styles.active : ''}`} onClick={() => handleSort('keyword')}>
+                <span className={styles.hasTooltip} data-tooltip={t('keywordStrategy.tooltips.keyword')}>{t('keywordStrategy.keyword')}</span>
+                <SortIcon column="keyword" />
+              </button>
+              <button className={`${styles.sortableHeader} ${sortBy === 'position' ? styles.active : ''}`} onClick={() => handleSort('position')}>
+                <span className={styles.hasTooltip} data-tooltip={t('keywordStrategy.tooltips.position')}>{t('keywordStrategy.position')}</span>
+                <SortIcon column="position" />
+              </button>
               <span className={styles.hasTooltip} data-tooltip={t('keywordStrategy.tooltips.volume')}>{t('keywordStrategy.volume')}</span>
-              <span className={styles.hasTooltip} data-tooltip={t('keywordStrategy.tooltips.clicks')}>{t('keywordStrategy.clicks')}</span>
-              <span className={styles.hasTooltip} data-tooltip={t('keywordStrategy.tooltips.impressions')}>{t('keywordStrategy.impressions')}</span>
-              <span className={styles.hasTooltip} data-tooltip={t('keywordStrategy.tooltips.ctr')}>{t('keywordStrategy.ctr')}</span>
+              <button className={`${styles.sortableHeader} ${sortBy === 'clicks' ? styles.active : ''}`} onClick={() => handleSort('clicks')}>
+                <span className={styles.hasTooltip} data-tooltip={t('keywordStrategy.tooltips.clicks')}>{t('keywordStrategy.clicks')}</span>
+                <SortIcon column="clicks" />
+              </button>
+              <button className={`${styles.sortableHeader} ${sortBy === 'impressions' ? styles.active : ''}`} onClick={() => handleSort('impressions')}>
+                <span className={styles.hasTooltip} data-tooltip={t('keywordStrategy.tooltips.impressions')}>{t('keywordStrategy.impressions')}</span>
+                <SortIcon column="impressions" />
+              </button>
+              <button className={`${styles.sortableHeader} ${sortBy === 'ctr' ? styles.active : ''}`} onClick={() => handleSort('ctr')}>
+                <span className={styles.hasTooltip} data-tooltip={t('keywordStrategy.tooltips.ctr')}>{t('keywordStrategy.ctr')}</span>
+                <SortIcon column="ctr" />
+              </button>
               <span className={styles.hasTooltip} data-tooltip={t('keywordStrategy.tooltips.intent')}>{t('keywordStrategy.intent.label')}</span>
               <span className={styles.hasTooltip} data-tooltip={t('keywordStrategy.tooltips.relatedPost')}>{t('keywordStrategy.columns.relatedPost')}</span>
-              <span className={styles.hasTooltip} data-tooltip={t('keywordStrategy.tooltips.status')}>{t('keywordStrategy.status')}</span>
+              <button className={`${styles.sortableHeader} ${sortBy === 'status' ? styles.active : ''}`} onClick={() => handleSort('status')}>
+                <span className={styles.hasTooltip} data-tooltip={t('keywordStrategy.tooltips.status')}>{t('keywordStrategy.status')}</span>
+                <SortIcon column="status" />
+              </button>
               <span></span>
             </div>
             <div className={styles.tableBody}>
-              {filteredKeywords.map((kw) => {
+              {sortedKeywords.map((kw) => {
                 const diffLevel = getDifficultyLevel(kw.difficulty);
                 const isUpdating = updatingKeywords.has(kw.id);
                 const gsc = getGSCMetrics(kw.keyword);
@@ -795,7 +913,12 @@ export function KeywordsContent() {
                           <span className={`${styles.positionBadge} ${styles[getPositionClass(position)]}`}>
                             #{Math.round(position)}
                           </span>
-                          {gsc && <ChangeBadge value={gsc.positionChange} tooltip={positionTip(gsc.positionChange)} />}
+                          {gsc && <RankChangeBadge 
+                            value={gsc.positionChange} 
+                            prevPos={gsc.prevPosition}
+                            currentPos={gsc.position}
+                            tooltip={positionTip(gsc.positionChange, gsc.position, gsc.prevPosition)} 
+                          />}
                         </>
                       ) : (
                         <span className={styles.noData}>-</span>

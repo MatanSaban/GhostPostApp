@@ -1386,7 +1386,7 @@ model AgentRun {
 
 ### 14 Analysis Modules
 
-All 14 modules run in parallel via `Promise.allSettled()` within `runSiteAnalysis()`:
+All 15 modules run in parallel via `Promise.allSettled()` within `runSiteAnalysis()`:
 
 | # | Module | Function | Data Source | Key Thresholds | Insights Generated |
 |---|--------|----------|-------------|-----------------|-------------------|
@@ -1404,6 +1404,7 @@ All 14 modules run in parallel via `Promise.allSettled()` within `runSiteAnalysi
 | 12 | **Impression Gap** | `analyzeImpressionClickGap()` | GSC | Impressions 10%+, gap 15%+ | `impressionClickGap` |
 | 13 | **AI Traffic** | `analyzeAITrafficTrend()` | GA referral data | ±30% change | `aiTrafficGrowth`, `aiTrafficDrop` |
 | 14 | **Concentration** | `analyzeTrafficConcentration()` | GSC | Top 3 pages = 70%+ of clicks | `trafficConcentration` |
+| 15 | **SGE Traffic Theft** | `analyzeSgeTrafficTheft()` | GSC + GA | Position ≤ 5, CTR drop ≥ 35%, stable impressions, GA4 cross-ref | `sgeTrafficTheft` |
 
 ### Insight Categories & Types
 

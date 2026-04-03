@@ -160,12 +160,20 @@ export async function GET(request) {
 
     let enriched = current.map(row => {
       const prev = prevMap.get(row.query);
+      const curPosRaw = parseFloat(row.position);
+      const prevPosRaw = prev ? parseFloat(prev.position) : null;
+      // Round positions FIRST, then calculate the rank difference
+      const curRank = Math.round(curPosRaw);
+      const prevRank = prevPosRaw != null ? Math.round(prevPosRaw) : null;
+      // positionChange is the actual rank difference (positive = improved, e.g., went from 5 to 3 = +2)
+      const positionChange = prevRank != null ? prevRank - curRank : null;
       return {
         ...row,
+        prevPosition: prevRank, // rounded rank (integer)
         clicksChange: pct(row.clicks, prev?.clicks ?? 0),
         impressionsChange: pct(row.impressions, prev?.impressions ?? 0),
         ctrChange: pct(parseFloat(row.ctr), parseFloat(prev?.ctr ?? 0)),
-        positionChange: prev ? -pct(parseFloat(row.position), parseFloat(prev.position)) : 100,
+        positionChange, // actual rank difference, not percentage
       };
     });
 

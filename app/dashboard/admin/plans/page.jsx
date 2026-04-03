@@ -1,6 +1,7 @@
 'use client';
 
 import { useUser } from '@/app/context/user-context';
+import { useLocale } from '@/app/context/locale-context';
 import { ConfirmDialog } from '../components/AdminModal';
 import { AdminPageSkeleton } from '@/app/dashboard/components/Skeleton';
 import styles from '../admin.module.css';
@@ -15,6 +16,7 @@ import {
 
 export default function PlansPage() {
   const { isSuperAdmin, isLoading: isUserLoading } = useUser();
+  const { t } = useLocale();
   
   const {
     // Data
@@ -85,11 +87,10 @@ export default function PlansPage() {
     getAllPlanLimitations,
     
     // Locale helpers
-    t,
     getPlanName,
     getPlanDescription,
     getPlanFeatures,
-  } = usePlans();
+  } = usePlans(isSuperAdmin, t);
 
   if (isUserLoading) {
     return <AdminPageSkeleton statsCount={3} columns={6} />;

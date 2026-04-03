@@ -15,6 +15,10 @@ import {
   FileSearch,
   ExternalLink,
   Camera,
+  TrendingUp,
+  TrendingDown,
+  Minus,
+  PartyPopper,
 } from 'lucide-react';
 import { useLocale } from '@/app/context/locale-context';
 import { toImgSrc } from '../lib/img-src';
@@ -176,7 +180,7 @@ function WaveSVG({ animatedScore, size, noData }) {
    WaveCircle - small category circle with label
    ─────────────────────────────────────────────────────────── */
 
-function WaveCircle({ score, label, size = 90 }) {
+function WaveCircle({ score, label, size = 90, delta }) {
   const animatedScore = useAnimatedScore(score ?? 0);
   const hasData = score != null;
 
@@ -188,6 +192,205 @@ function WaveCircle({ score, label, size = 90 }) {
         <WaveSVG animatedScore={0} size={size} noData />
       )}
       <span className={styles.waveLabel}>{label}</span>
+      {delta != null && <DeltaBadge delta={delta} size="sm" />}
+    </div>
+  );
+}
+
+/* ───────────────────────────────────────────────────────────
+   DeltaBadge - pill showing +X / -X / No change
+   ─────────────────────────────────────────────────────────── */
+
+function DeltaBadge({ delta, size = 'md' }) {
+  if (delta == null) return null;
+
+  const isUp = delta > 0;
+  const isDown = delta < 0;
+  const cls = isUp ? styles.deltaUp : isDown ? styles.deltaDown : styles.deltaNeutral;
+  const iconSize = size === 'sm' ? 11 : 13;
+
+  return (
+    <span className={`${styles.deltaBadge} ${cls} ${size === 'sm' ? styles.deltaSm : ''}`}>
+      {isUp && <TrendingUp size={iconSize} />}
+      {isDown && <TrendingDown size={iconSize} />}
+      {!isUp && !isDown && <Minus size={iconSize} />}
+      <span>{isUp ? `+${delta}` : isDown ? `${delta}` : '0'}</span>
+    </span>
+  );
+}
+
+/* ───────────────────────────────────────────────────────────
+   TrendChart - SVG area chart for score history (dashboard style)
+   ─────────────────────────────────────────────────────────── */
+
+function TrendChart({ timeline, locale }) {
+  const chartRef = useRef(null);
+  const wrapRef = useRef(null);
+  const gradientId = useId().replace(/:/g, '_') + '_trendGrad';
+  const [tooltip, setTooltip] = useState(null);
+
+  if (!timeline || timeline.length < 2) return null;
+
+  const W = 600;
+  const H = 180;
+  const padL = 40;
+  const padR = 12;
+  const padT = 20;
+  const padB = 32;
+  const innerW = W - padL - padR;
+  const innerH = H - padT - padB;
+
+  const scores = timeline.map(p => p.score);
+  const minScore = Math.max(0, Math.min(...scores) - 10);
+  const maxScore = Math.min(100, Math.max(...scores) + 10);
+  const ceil = Math.ceil(maxScore / 10) * 10 || 10;
+  const floor = Math.floor(minScore / 10) * 10;
+  const range = ceil - floor || 10;
+
+  const xOf = (i) => padL + (i / (timeline.length - 1)) * innerW;
+  const yOf = (v) => padT + innerH - ((v - floor) / range) * innerH;
+
+  const points = timeline.map((p, i) => ({
+    x: xOf(i),
+    y: yOf(p.score),
+    score: p.score,
+    date: new Date(p.date).toLocaleDateString(locale, { month: 'short', day: 'numeric' }),
+  }));
+
+  // Smooth bezier path (monotone cubic like dashboard)
+  const buildSmoothPath = () => {
+    if (points.length < 2) return '';
+    let d = `M${points[0].x},${points[0].y}`;
+    for (let i = 0; i < points.length - 1; i++) {
+      const cpx = (points[i + 1].x - points[i].x) / 3;
+      const c1x = points[i].x + cpx;
+      const c2x = points[i + 1].x - cpx;
+      d += ` C${c1x},${points[i].y} ${c2x},${points[i + 1].y} ${points[i + 1].x},${points[i + 1].y}`;
+    }
+    return d;
+  };
+
+  const linePath = buildSmoothPath();
+  const areaPath = linePath + ` L${points[points.length - 1].x},${padT + innerH} L${points[0].x},${padT + innerH} Z`;
+
+  // Y-axis gridlines (5 steps)
+  const gridLines = [];
+  for (let i = 0; i <= 4; i++) {
+    const val = Math.round(floor + (range / 4) * i);
+    const y = yOf(val);
+    gridLines.push({ y, val });
+  }
+
+  // X-axis labels (show ~6 dates)
+  const step = Math.max(1, Math.floor(timeline.length / 6));
+  const xLabels = timeline
+    .map((d, i) => ({ i, label: new Date(d.date).toLocaleDateString(locale, { month: 'short', day: 'numeric' }) }))
+    .filter((_, i) => i % step === 0 || i === timeline.length - 1);
+
+  // Vertical gridlines at x-label positions
+  const verticalGridLines = xLabels.map(({ i }) => xOf(i));
+
+  // Mouse handling
+  const handleMouseMove = (e) => {
+    if (!chartRef.current || !wrapRef.current) return;
+    const rect = wrapRef.current.getBoundingClientRect();
+    const svgW = rect.width;
+    const ratio = W / svgW;
+    const mouseX = (e.clientX - rect.left) * ratio;
+
+    // Find closest data point
+    let closest = 0;
+    let minDist = Infinity;
+    points.forEach((p, i) => {
+      const dist = Math.abs(p.x - mouseX);
+      if (dist < minDist) {
+        minDist = dist;
+        closest = i;
+      }
+    });
+
+    if (minDist < innerW / (points.length - 1)) {
+      setTooltip({ ...points[closest], idx: closest });
+    } else {
+      setTooltip(null);
+    }
+  };
+
+  const handleMouseLeave = () => setTooltip(null);
+
+  return (
+    <div className={styles.trendChartWrap} ref={wrapRef}>
+      <svg
+        ref={chartRef}
+        viewBox={`0 0 ${W} ${H}`}
+        className={styles.trendChartSvg}
+        preserveAspectRatio="xMidYMid meet"
+        onMouseMove={handleMouseMove}
+        onMouseLeave={handleMouseLeave}
+      >
+        <defs>
+          <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#8b5cf6" stopOpacity="0.35" />
+            <stop offset="100%" stopColor="#8b5cf6" stopOpacity="0.02" />
+          </linearGradient>
+        </defs>
+
+        {/* Horizontal grid lines */}
+        {gridLines.map(({ y, val }, i) => (
+          <g key={`h-${i}`}>
+            <line x1={padL} y1={y} x2={W - padR} y2={y} stroke="var(--border)" strokeWidth="0.5" strokeDasharray="3,3" />
+            <text x={padL - 6} y={y + 3} textAnchor="end" fill="var(--muted-foreground)" fontSize="9" fontFamily="inherit">
+              {val}
+            </text>
+          </g>
+        ))}
+
+        {/* Vertical grid lines */}
+        {verticalGridLines.map((x, i) => (
+          <line key={`v-${i}`} x1={x} y1={padT} x2={x} y2={padT + innerH} stroke="var(--border)" strokeWidth="0.5" strokeDasharray="3,3" />
+        ))}
+
+        {/* Area fill */}
+        <path className={styles.chartPath} d={areaPath} fill={`url(#${gradientId})`} />
+
+        {/* Line */}
+        <path className={styles.chartPath} d={linePath} fill="none" stroke="#8b5cf6" strokeWidth="2" strokeLinecap="round" />
+
+        {/* X labels */}
+        {xLabels.map(({ i, label }) => (
+          <text key={i} x={xOf(i)} y={H - 6} textAnchor="middle" fill="var(--muted-foreground)" fontSize="9" fontFamily="inherit">
+            {label}
+          </text>
+        ))}
+
+        {/* Hover crosshair + dot */}
+        {tooltip && (
+          <g>
+            <line x1={tooltip.x} y1={padT} x2={tooltip.x} y2={padT + innerH} stroke="var(--muted-foreground)" strokeWidth="0.5" strokeDasharray="3,3" />
+            <circle cx={tooltip.x} cy={tooltip.y} r="5" fill="#8b5cf6" stroke="white" strokeWidth="2" />
+          </g>
+        )}
+      </svg>
+
+      {/* Tooltip popover */}
+      {tooltip && (
+        <div
+          className={styles.chartTooltip}
+          style={{
+            left: `${(tooltip.x / W) * 100}%`,
+            transform: `translateX(${
+              (tooltip.x / W) < 0.15 ? '0%' :
+              (tooltip.x / W) > 0.85 ? '-100%' : '-50%'
+            })`,
+          }}
+        >
+          <div className={styles.chartTooltipDate}>{tooltip.date}</div>
+          <div className={styles.chartTooltipRow}>
+            <span className={styles.chartTooltipDot} style={{ background: '#8b5cf6' }} />
+            Score: <strong>{tooltip.score}</strong>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -246,9 +449,26 @@ export default function AuditOverviewTab({
   const { t, locale } = useLocale();
   const [summaryText, setSummaryText] = useState('');
   const [isTranslating, setIsTranslating] = useState(false);
+  const [comparisonData, setComparisonData] = useState(null);
 
   // Animated health score
   const animatedHealthScore = useAnimatedScore(overallScore);
+
+  // ─── Fetch audit history comparison ───────────────────────
+
+  useEffect(() => {
+    if (!audit?.siteId) return;
+    let cancelled = false;
+
+    fetch(`/api/audit/history-comparison?siteId=${audit.siteId}&deviceType=${activeDevice}`)
+      .then(res => res.ok ? res.json() : null)
+      .then(data => {
+        if (!cancelled && data) setComparisonData(data);
+      })
+      .catch(() => {});
+
+    return () => { cancelled = true; };
+  }, [audit?.siteId, audit?.id, activeDevice]);
 
   // ─── AI Summary: resolve correct language ─────────────────
 
@@ -375,8 +595,33 @@ export default function AuditOverviewTab({
           <div className={styles.scoreCircleWrap}>
             <WaveSVG animatedScore={animatedHealthScore} size={130} />
             <span className={styles.scoreLabel}>{t('siteAudit.healthScore')}</span>
+            {comparisonData?.deltas && <DeltaBadge delta={comparisonData.deltas.score} />}
           </div>
         </div>
+
+        {/* Trend Chart */}
+        {comparisonData?.timeline?.length >= 2 && (
+          <div className={styles.trendSection}>
+            <h3 className={styles.sectionTitle}>
+              <TrendingUp size={18} />
+              {t('siteAudit.scoreProgression')}
+            </h3>
+            <TrendChart timeline={comparisonData.timeline} locale={locale} />
+          </div>
+        )}
+
+        {/* Resolved Issues Celebration */}
+        {comparisonData?.deltas?.fixedIssues > 0 && (
+          <div className={styles.celebrationBox}>
+            <PartyPopper size={22} />
+            <div className={styles.celebrationText}>
+              <strong>{t('siteAudit.greatJob')}</strong>
+              <span>
+                {t('siteAudit.resolvedIssues').replace('{count}', comparisonData.deltas.fixedIssues)}
+              </span>
+            </div>
+          </div>
+        )}
 
         {/* Stats Grid */}
         <div className={styles.statsGrid}>
@@ -409,6 +654,7 @@ export default function AuditOverviewTab({
               key={cat}
               score={categoryScores[cat]}
               label={t(`siteAudit.${cat}`)}
+              delta={comparisonData?.deltas?.[cat]}
             />
           ))}
         </div>

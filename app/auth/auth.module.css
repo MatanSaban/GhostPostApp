@@ -2242,8 +2242,8 @@
   padding: 1.25rem;
   
   .dark & {
-    background: rgba(0, 0, 0, 0.3);
-    border-color: rgba(123, 44, 191, 0.2);
+    background: var(--card);
+    border-color: var(--border);
   }
 }
 
@@ -2304,7 +2304,7 @@
   margin-bottom: 1rem;
   
   .dark & {
-    background: rgba(123, 44, 191, 0.2);
+    background: var(--border);
   }
 }
 
@@ -2320,12 +2320,14 @@
   overflow-y: auto;
   font-family: 'SF Mono', 'Consolas', monospace;
   font-size: 0.8125rem;
-  padding: 0.5rem;
-  background: var(--muted);
+  padding: 0.75rem;
+  background: var(--bg-subtle);
+  border: 1px solid var(--border-light);
   border-radius: var(--radius-md);
   
   .dark & {
-    background: rgba(0, 0, 0, 0.4);
+    background: var(--input-background);
+    border-color: var(--border);
   }
 }
 
@@ -2337,11 +2339,15 @@
   color: var(--muted-foreground);
   
   &.logcomplete {
-    color: var(--accent);
+    color: var(--success-color);
   }
   
   &.logerror {
-    color: var(--destructive);
+    color: var(--danger);
+  }
+  
+  &.logpending {
+    color: var(--primary);
   }
 }
 
@@ -2367,10 +2373,10 @@
   gap: 0.5rem;
   padding: 0.75rem 1rem;
   margin-top: 0.75rem;
-  background: rgba(239, 68, 68, 0.1);
-  border: 1px solid rgba(239, 68, 68, 0.2);
+  background: var(--danger-bg);
+  border: 1px solid var(--danger);
   border-radius: var(--radius-md);
-  color: var(--destructive);
+  color: var(--danger);
   font-size: 0.8125rem;
 }
 

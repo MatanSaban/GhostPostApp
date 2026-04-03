@@ -21,6 +21,7 @@
     "@floating-ui/dom": "^1.7.5",
     "@playwright/test": "^1.58.2",
     "@prisma/client": "^6.0.0",
+    "@react-pdf/renderer": "^4.3.2",
     "@sparticuz/chromium-min": "^143.0.4",
     "@tiptap/extension-color": "^3.18.0",
     "@tiptap/extension-highlight": "^3.18.0",

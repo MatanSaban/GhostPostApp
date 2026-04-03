@@ -638,6 +638,35 @@
   }
 }
 
+.sortableHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  transition: color var(--transition-fast);
+
+  &:hover {
+    color: var(--primary);
+  }
+
+  &.active {
+    color: var(--primary);
+  }
+
+  svg {
+    flex-shrink: 0;
+  }
+}
+
+.sortIconInactive {
+  opacity: 0.3;
+}
+
 .tableBody {
   display: flex;
   flex-direction: column;

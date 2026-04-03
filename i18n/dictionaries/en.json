@@ -710,6 +710,9 @@
     "overview": "Overview",
     "aiSummary": "AI Summary",
     "translatingSummary": "Translating summary...",
+    "scoreProgression": "Score Progression",
+    "greatJob": "Great job!",
+    "resolvedIssues": "You've resolved {count} issues since your last scan.",
     "notices": "Notices",
     "pageScreenshots": "Page Screenshots",
     "sources": {
@@ -1342,8 +1345,8 @@
       "moreFromPrev": "{value} {metric} - {percent}% more than {period}",
       "lessFromPrev": "{value} {metric} - {percent}% less than {period}",
       "positionNoChange": "Position unchanged from {period}",
-      "positionUp": "Position improved by {percent}% from {period}",
-      "positionDown": "Position dropped by {percent}% from {period}"
+      "positionUp": "Climbed {ranks} ranks from #{from} to #{to} ({period})",
+      "positionDown": "Dropped {ranks} ranks from #{from} to #{to} ({period})"
     }
   },
   "generatePost": {
@@ -2782,6 +2785,8 @@
     "lightMode": "Light Mode",
     "systemTheme": "System Theme",
     "saveChanges": "Save Changes",
+    "whiteLabelReporting": "White-Label Reporting",
+    "clientReporting": "Client Reporting",
     "descriptions": {
       "general": "Configure basic website settings and preferences",
       "aiConfiguration": "Customize AI models and content generation settings",
@@ -2790,6 +2795,8 @@
       "seo": "Optimize search engine visibility settings",
       "integrations": "Connect third-party services and APIs",
       "team": "Manage team members and permissions",
+      "whiteLabelReporting": "Configure branded PDF reports for your agency",
+      "clientReporting": "Set up automated client reports for this website",
       "users": "Invite and manage users in your account",
       "subscription": "View and manage your subscription plan",
       "credits": "Manage your AI credits and usage",
@@ -3094,6 +3101,88 @@
         "active": "Active",
         "pending": "Pending",
         "inactive": "Inactive"
+      }
+    },
+    "whiteLabelReportingSection": {
+      "saveSuccess": "White-label settings saved successfully",
+      "saveError": "Failed to save white-label settings",
+      "invalidImageType": "Please upload a valid image file",
+      "imageTooLarge": "Image must be under 2MB",
+      "logoUploaded": "Logo uploaded successfully",
+      "logoUploadError": "Failed to upload logo",
+      "iconUploaded": "Icon uploaded successfully",
+      "iconUploadError": "Failed to upload icon",
+      "featureNotAvailable": "White-Label Reports",
+      "upgradeMessage": "Upgrade to a Professional plan to unlock branded PDF reports for your clients.",
+      "upgradeButton": "Upgrade Plan",
+      "branding": {
+        "title": "Agency Branding",
+        "description": "Customize how your brand appears on client reports.",
+        "fullWideLogo": "Full Wide Logo",
+        "logoIcon": "Logo Icon",
+        "uploadLogo": "Upload Logo",
+        "uploadIcon": "Upload Icon",
+        "logoHint": "Recommended: 200x50px PNG or SVG",
+        "iconHint": "Square, 60x60px",
+        "agencyName": "Agency Name",
+        "agencyNamePlaceholder": "Your Agency Name",
+        "accentColor": "Accent Color",
+        "replyToEmail": "Reply-To Email",
+        "replyToEmailPlaceholder": "reports@youragency.com",
+        "replyToEmailHint": "Clients will reply to this email when they receive reports"
+      }
+    },
+    "clientReportingSection": {
+      "saveSuccess": "Client reporting settings saved successfully",
+      "saveError": "Failed to save client reporting settings",
+      "reportGenerated": "Report generated successfully!",
+      "reportError": "Failed to generate report",
+      "reportSent": "Report sent successfully!",
+      "sendError": "Failed to send report",
+      "noRecipients": "Please add recipient emails first",
+      "featureNotAvailable": "Client Reporting",
+      "upgradeMessage": "Upgrade to a Professional plan to send branded reports to your clients.",
+      "upgradeButton": "Upgrade Plan",
+      "whiteLabelRequired": "Configure White-Label First",
+      "whiteLabelRequiredMessage": "Please configure your agency branding (name and logo) in the White-Label Reporting settings before setting up client reports.",
+      "configureWhiteLabel": "Configure White-Label Settings",
+      "config": {
+        "title": "Report Configuration",
+        "enabled": "Enable Client Reporting",
+        "enabledHint": "Allow generating and sending reports for this website",
+        "recipients": "Recipient Emails",
+        "recipientsPlaceholder": "client@example.com, partner@example.com",
+        "recipientsHint": "Comma-separated list of email addresses",
+        "deliveryMode": "Delivery Mode",
+        "includeInReport": "Include in Report"
+      },
+      "deliveryModes": {
+        "manual": "Manual Only",
+        "monthly": "Monthly (1st of month)",
+        "weekly": "Weekly (Every Monday)"
+      },
+      "options": {
+        "aiSummary": "AI Executive Summary",
+        "healthScore": "Site Health Score & Progress",
+        "actions": "AI Actions Performed"
+      },
+      "generate": {
+        "title": "Generate Report",
+        "description": "Generate a PDF report for the current reporting period.",
+        "button": "Generate Report Now",
+        "generating": "Generating..."
+      },
+      "recentReports": "Recent Reports",
+      "noReportsYet": "No reports generated yet. Generate your first report above.",
+      "sendReport": "Send to recipients",
+      "deleteReport": "Delete report",
+      "confirmDelete": "Are you sure you want to delete this report?",
+      "reportDeleted": "Report deleted successfully",
+      "deleteError": "Failed to delete report",
+      "statuses": {
+        "draft": "Draft",
+        "sent": "Sent",
+        "error": "Error"
       }
     },
     "usersSection": {
@@ -4820,6 +4909,13 @@
       "orderSummary": "Order Summary",
       "plan": "Plan",
       "billingCycle": "Monthly",
+      "subscriptionType": "Subscription Type",
+      "monthly": "Monthly",
+      "planPrice": "Plan Price",
+      "prorated": "Prorated",
+      "days": "days",
+      "vat": "VAT (18%)",
+      "confirmFree": "Confirm",
       "total": "Total",
       "coupon": {
         "label": "Coupon Code",
@@ -6237,6 +6333,10 @@
       "trafficConcentration": {
         "title": "Traffic Over-Concentrated",
         "description": "{concentrationPercent}% of your search clicks come from just 3 pages out of {totalPages}. Diversify your content strategy to reduce dependency on a few pages."
+      },
+      "sgeTrafficTheft": {
+        "title": "SGE Traffic Theft Detected on Top Keywords",
+        "description": "{count} top-ranking keywords lost significant CTR despite stable positions and impressions in {periodStart} to {periodEnd} vs {comparePeriodStart} to {comparePeriodEnd}. An estimated {totalClicksLost} clicks were lost — likely absorbed by Google's AI Overviews. Inject personal experience, proprietary data, or strong opinions into these pages to combat AI-generated answers."
       }
     },
     "detailLabels": {

@@ -2,6 +2,12 @@
 
 import { useState, useEffect, useCallback } from 'react';
 
+// Available languages for translations
+const availableLanguages = [
+  { code: 'HE', name: 'עברית' },
+  { code: 'EN', name: 'English' },
+];
+
 const initialFormData = {
   name: '',
   slug: '',
@@ -386,6 +392,41 @@ export function usePlans(isSuperAdmin, t) {
     setTranslateModalOpen(true);
   };
 
+  // Close translate modal
+  const closeTranslateModal = () => {
+    setTranslateModalOpen(false);
+    setSelectedPlan(null);
+  };
+
+  // Get localized plan name
+  const getPlanName = useCallback((plan, locale = 'en') => {
+    if (!plan) return '';
+    const langCode = locale.toUpperCase();
+    return plan.translations?.[langCode]?.name || plan.name;
+  }, []);
+
+  // Get localized plan description
+  const getPlanDescription = useCallback((plan, locale = 'en') => {
+    if (!plan) return '';
+    const langCode = locale.toUpperCase();
+    return plan.translations?.[langCode]?.description || plan.description || '';
+  }, []);
+
+  // Get localized plan features
+  const getPlanFeatures = useCallback((plan, locale = 'en') => {
+    if (!plan || !plan.features) return [];
+    const langCode = locale.toUpperCase();
+    const translatedFeatures = plan.translations?.[langCode]?.features || [];
+    
+    return plan.features.map(feature => {
+      const translated = translatedFeatures.find(f => f.key === feature.key);
+      return {
+        ...feature,
+        label: translated?.label || feature.label,
+      };
+    });
+  }, []);
+
   // Handle language change in translate modal
   const handleLanguageChange = (lang) => {
     setSelectedLanguage(lang);
@@ -539,5 +580,11 @@ export function usePlans(isSuperAdmin, t) {
     handleDeleteConfirm,
     handleToggleActive,
     handleTranslate,
+    closeTranslateModal,
+    // Locale helpers
+    availableLanguages,
+    getPlanName,
+    getPlanDescription,
+    getPlanFeatures,
   };
 }

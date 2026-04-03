@@ -171,9 +171,9 @@ async function handleGoogleLogin({ googleUser, normalizedEmail, tokens, request,
       }),
     ]);
     
-    // Determine redirect based on registration step
-    const redirectTo = STEP_REDIRECTS[user.registrationStep] || '/dashboard';
+    // Super admins always go to dashboard regardless of registration step
     const isRegistrationComplete = user.registrationStep === 'COMPLETED';
+    const redirectTo = user.isSuperAdmin ? '/dashboard' : (STEP_REDIRECTS[user.registrationStep] || '/dashboard');
     
     // Set session cookie
     const response = NextResponse.redirect(new URL(redirectTo, request.url));
@@ -229,9 +229,9 @@ async function handleGoogleLogin({ googleUser, normalizedEmail, tokens, request,
       },
     });
     
-    // Determine redirect based on registration step
-    const redirectTo = STEP_REDIRECTS[existingUser.registrationStep] || '/dashboard';
+    // Super admins always go to dashboard regardless of registration step
     const isRegistrationComplete = existingUser.registrationStep === 'COMPLETED';
+    const redirectTo = existingUser.isSuperAdmin ? '/dashboard' : (STEP_REDIRECTS[existingUser.registrationStep] || '/dashboard');
     
     // Set session cookie
     const response = NextResponse.redirect(new URL(redirectTo, request.url));

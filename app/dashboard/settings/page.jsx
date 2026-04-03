@@ -15,6 +15,7 @@ export default async function SettingsPage() {
     { id: 'seo', label: t('settings.seoSettings'), iconName: 'Search', description: t('settings.descriptions.seo') },
     { id: 'integrations', label: t('settings.integrations'), iconName: 'Link', description: t('settings.descriptions.integrations') },
     { id: 'agent-config', label: t('settings.agentConfig'), iconName: 'Bot', description: t('settings.descriptions.agentConfig') },
+    { id: 'client-reporting', label: t('settings.clientReporting'), iconName: 'FileText', description: t('settings.descriptions.clientReporting') },
     { id: 'team', label: t('settings.team'), iconName: 'Users', description: t('settings.descriptions.team') },
   ];
 

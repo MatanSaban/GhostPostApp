@@ -127,6 +127,7 @@ export async function GET(request) {
 
     if (section === 'trackedKeywords' && keywordsParam) {
       const keywords = keywordsParam.split(',').map(k => k.trim()).filter(Boolean);
+      const forceRefresh = searchParams.get('forceRefresh') === 'true';
       if (keywords.length > 0) {
         // Determine cache key from the date span (maps to preset or custom dates)
         const cacheKey = (() => {
@@ -140,8 +141,8 @@ export async function GET(request) {
 
         const TWELVE_HOURS = 12 * 60 * 60 * 1000;
 
-        // Check cache
-        const cached = await prisma.gscKeywordCache.findUnique({
+        // Check cache (skip if forceRefresh)
+        const cached = forceRefresh ? null : await prisma.gscKeywordCache.findUnique({
           where: { siteId_rangeKey: { siteId, rangeKey: cacheKey } },
         });
 
@@ -151,7 +152,7 @@ export async function GET(request) {
           result.trackedQueries = cached.data;
           result.cached = true;
         } else {
-          console.log(`[GSC] trackedKeywords fetching FRESH from Google Search Console (key: ${cacheKey}${cached ? ', cache expired' : ', no cache'})`);
+          console.log(`[GSC] trackedKeywords fetching FRESH from Google Search Console (key: ${cacheKey}${cached ? ', cache expired' : forceRefresh ? ', force refresh' : ', no cache'})`);
           result.trackedQueries = await fetchGSCForKeywords(accessToken, integration.gscSiteUrl, keywords, range, compareRange).catch(err => {
             console.error('[GSC] fetchGSCForKeywords error:', err.message);
             errors.trackedKeywords = err.message;

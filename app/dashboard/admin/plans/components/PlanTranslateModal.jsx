@@ -46,10 +46,14 @@ export default function PlanTranslateModal({
             label={t('admin.plans.translations.selectLanguage')}
             value={selectedLanguage}
             onChange={(e) => onLanguageChange(e.target.value)}
-            options={availableLanguages.filter(l => l !== 'EN').map(lang => ({
-              value: lang,
-              label: `${lang} ${existingTranslations[lang] ? '✓' : ''}`,
-            }))}
+            options={availableLanguages.filter(l => (l.code || l) !== 'EN').map(lang => {
+              const code = lang.code || lang;
+              const name = lang.name || code;
+              return {
+                value: code,
+                label: `${name} ${existingTranslations[code] ? '✓' : ''}`,
+              };
+            })}
           />
         </div>
 
