@@ -2284,8 +2284,8 @@
       "scanning": "Scanning website for content types...",
       "failed": "Could not discover content types. Please try again.",
       "found": "Found {count} content types on your website",
-      "noTypes": "No additional content types found",
-      "noTypesDescription": "Click the button below to scan your website for additional content types",
+      "noTypes": "You haven't searched for content types on this site yet",
+      "noTypesDescription": "Click the button below to scan your website and discover content types",
       "scan": "Scan Website",
       "rescan": "Rescan",
       "manualSitemapLabel": "Sitemap URL",
@@ -2764,6 +2764,9 @@
     },
     "general": "General",
     "aiConfiguration": "AI Configuration",
+    "agentConfig": "AI Agent",
+    "noSiteSelected": "No Site Selected",
+    "selectSiteForReporting": "Please select a website to configure client reporting.",
     "scheduling": "Scheduling",
     "notifications": "Notifications",
     "seoSettings": "SEO",
@@ -3274,6 +3277,8 @@
         "aiCredits": "AI Credits",
         "maxPages": "Pages",
         "maxPosts": "Blog Posts",
+        "maxKeywords": "Keywords",
+        "maxContent": "Content",
         "storage": "Storage",
         "siteAudits": "Site Audits"
       },
@@ -3936,7 +3941,9 @@
       "create": "Add Website",
       "creating": "Adding...",
       "aiSuggest": "Suggest with AI",
-      "nonWordPressWarning": "Ghost Post currently supports WordPress websites only. You can still add this site, but content syncing features won't be available."
+      "nonWordPressWarning": "Ghost Post currently supports WordPress websites only. You can still add this site, but content syncing features won't be available.",
+      "duplicateTitle": "Website already exists",
+      "duplicateMessage": "The website you're trying to add already exists under the account \"{accountName}\". If you want to add it to a different account, switch to that account and try again."
     },
     "edit": {
       "title": "Edit Website",
@@ -5025,7 +5032,9 @@
         "timezone": "Timezone",
         "defaultLanguage": "Default Language",
         "billingEmail": "Billing Email",
-        "generalEmail": "General Email"
+        "generalEmail": "General Email",
+        "plan": "Subscription Plan",
+        "billingInterval": "Billing Interval"
       },
       "deleteConfirm": {
         "title": "Delete Account",
@@ -6129,6 +6138,14 @@
       "notifyInsightsDesc": "Receive notifications when the AI Agent finds new insights for your site."
     },
     "viewAll": "View All Activity",
+    "entitiesRequired": {
+      "title": "Entities Required",
+      "description": "The AI Agent needs your website content to analyze. Please add your site entities (pages, posts) first.",
+      "step1": "Go to the Entities page",
+      "step2": "Discover your content types and click \"Save & Populate Entities\"",
+      "step3": "Come back here and run the AI Agent analysis",
+      "goToEntities": "Go to Entities"
+    },
     "noInsights": "No insights yet. The AI Agent will analyze your site data and provide suggestions.",
     "runAnalysis": "Run Analysis",
     "running": "Analyzing...",

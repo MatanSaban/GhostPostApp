@@ -329,6 +329,7 @@ export function EntityTypesDiscovery({
           <path d="m21 21-4.35-4.35" />
         </svg>
         <h3>{t('entities.discovery.noTypes')}</h3>
+        <p>{t('entities.discovery.noTypesDescription')}</p>
         <button
           onClick={() => onDiscoverEntityTypes()}
           disabled={isDiscovering}

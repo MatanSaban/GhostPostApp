@@ -115,6 +115,8 @@ export async function GET(request) {
             }
           : null,
         plan: plan?.name || 'No Plan',
+        planId: plan?.id || '',
+        billingInterval: account.subscription?.billingInterval || 'MONTHLY',
         planTranslations,
         status: account.isActive ? 'active' : 'inactive',
         usersCount: account._count.members,
@@ -163,6 +165,8 @@ export async function POST(request) {
       billingEmail,
       generalEmail,
       isActive,
+      planId,
+      billingInterval,
     } = body;
 
     // Validate required fields
@@ -250,6 +254,34 @@ export async function POST(request) {
 
     const owner = newAccount.members[0]?.user;
 
+    // Create subscription if a plan was selected
+    let subscriptionPlan = null;
+    if (planId) {
+      const plan = await prisma.plan.findUnique({ where: { id: planId } });
+      if (plan) {
+        const now = new Date();
+        const interval = billingInterval || 'MONTHLY';
+        const periodEnd = new Date(now);
+        if (interval === 'YEARLY') {
+          periodEnd.setFullYear(periodEnd.getFullYear() + 1);
+        } else {
+          periodEnd.setMonth(periodEnd.getMonth() + 1);
+        }
+
+        await prisma.subscription.create({
+          data: {
+            accountId: newAccount.id,
+            planId: plan.id,
+            status: 'ACTIVE',
+            billingInterval: interval,
+            currentPeriodStart: now,
+            currentPeriodEnd: periodEnd,
+          },
+        });
+        subscriptionPlan = plan;
+      }
+    }
+
     return NextResponse.json({
       id: newAccount.id,
       name: newAccount.name,
@@ -260,7 +292,9 @@ export async function POST(request) {
             email: owner.email,
           }
         : null,
-      plan: 'No Plan',
+      plan: subscriptionPlan?.name || 'No Plan',
+      planId: subscriptionPlan?.id || '',
+      billingInterval: billingInterval || 'MONTHLY',
       status: 'active',
       usersCount: newAccount._count.members,
       createdAt: newAccount.createdAt.toISOString(),

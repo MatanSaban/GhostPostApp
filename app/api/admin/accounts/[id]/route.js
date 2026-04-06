@@ -98,6 +98,8 @@ export async function PUT(request, { params }) {
       billingEmail,
       generalEmail,
       isActive,
+      planId,
+      billingInterval,
     } = body;
 
     // Check if account exists
@@ -127,7 +129,7 @@ export async function PUT(request, { params }) {
     }
 
     // Update account
-    const updatedAccount = await prisma.account.update({
+    await prisma.account.update({
       where: { id },
       data: {
         ...(name !== undefined && { name }),
@@ -141,6 +143,63 @@ export async function PUT(request, { params }) {
         ...(generalEmail !== undefined && { generalEmail }),
         ...(isActive !== undefined && { isActive }),
       },
+    });
+
+    // Handle subscription/plan changes
+    if (planId !== undefined) {
+      const existingSub = await prisma.subscription.findUnique({
+        where: { accountId: id },
+      });
+
+      if (planId === '') {
+        // Remove subscription if plan cleared
+        if (existingSub) {
+          await prisma.subscription.delete({ where: { accountId: id } });
+        }
+      } else {
+        const plan = await prisma.plan.findUnique({ where: { id: planId } });
+        if (plan) {
+          const now = new Date();
+          const interval = billingInterval || 'MONTHLY';
+          const periodEnd = new Date(now);
+          if (interval === 'YEARLY') {
+            periodEnd.setFullYear(periodEnd.getFullYear() + 1);
+          } else {
+            periodEnd.setMonth(periodEnd.getMonth() + 1);
+          }
+
+          if (existingSub) {
+            await prisma.subscription.update({
+              where: { accountId: id },
+              data: {
+                planId: plan.id,
+                status: 'ACTIVE',
+                billingInterval: interval,
+                currentPeriodStart: now,
+                currentPeriodEnd: periodEnd,
+                cancelAtPeriodEnd: false,
+                canceledAt: null,
+              },
+            });
+          } else {
+            await prisma.subscription.create({
+              data: {
+                accountId: id,
+                planId: plan.id,
+                status: 'ACTIVE',
+                billingInterval: interval,
+                currentPeriodStart: now,
+                currentPeriodEnd: periodEnd,
+              },
+            });
+          }
+        }
+      }
+    }
+
+    // Re-fetch to get updated subscription data
+    const refreshedAccount = await prisma.account.findUnique({
+      where: { id },
       include: {
         members: {
           where: { isOwner: true },
@@ -158,7 +217,7 @@ export async function PUT(request, { params }) {
         subscription: {
           include: {
             plan: {
-              select: { name: true },
+              select: { id: true, name: true },
             },
           },
         },
@@ -169,28 +228,30 @@ export async function PUT(request, { params }) {
     });
 
     // Format response
-    const owner = updatedAccount.members[0]?.user;
+    const owner = refreshedAccount.members[0]?.user;
     const formatted = {
-      id: updatedAccount.id,
-      name: updatedAccount.name,
-      slug: updatedAccount.slug,
-      logo: updatedAccount.logo,
-      website: updatedAccount.website,
-      industry: updatedAccount.industry,
-      timezone: updatedAccount.timezone,
-      defaultLanguage: updatedAccount.defaultLanguage,
-      billingEmail: updatedAccount.billingEmail,
-      generalEmail: updatedAccount.generalEmail,
+      id: refreshedAccount.id,
+      name: refreshedAccount.name,
+      slug: refreshedAccount.slug,
+      logo: refreshedAccount.logo,
+      website: refreshedAccount.website,
+      industry: refreshedAccount.industry,
+      timezone: refreshedAccount.timezone,
+      defaultLanguage: refreshedAccount.defaultLanguage,
+      billingEmail: refreshedAccount.billingEmail,
+      generalEmail: refreshedAccount.generalEmail,
       owner: owner
         ? {
             name: `${owner.firstName} ${owner.lastName}`,
             email: owner.email,
           }
         : null,
-      plan: updatedAccount.subscription?.plan?.name || 'No Plan',
-      status: updatedAccount.isActive ? 'active' : 'inactive',
-      usersCount: updatedAccount._count.members,
-      createdAt: updatedAccount.createdAt.toISOString(),
+      plan: refreshedAccount.subscription?.plan?.name || 'No Plan',
+      planId: refreshedAccount.subscription?.plan?.id || '',
+      billingInterval: refreshedAccount.subscription?.billingInterval || 'MONTHLY',
+      status: refreshedAccount.isActive ? 'active' : 'inactive',
+      usersCount: refreshedAccount._count.members,
+      createdAt: refreshedAccount.createdAt.toISOString(),
     };
 
     return NextResponse.json(formatted);

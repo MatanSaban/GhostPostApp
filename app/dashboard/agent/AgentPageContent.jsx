@@ -11,6 +11,7 @@ import { useAgent } from '@/app/context/agent-context';
 import { PageHeader } from '../components';
 import FixPreviewModal from '../components/FixPreviewModal';
 import AiSuggestModal from '../components/AiSuggestModal';
+import EntitiesRequiredModal from '../components/EntitiesRequiredModal/EntitiesRequiredModal';
 import { formatPageUrl } from '@/lib/urlDisplay';
 import {
   FIXABLE_INSIGHT_TYPES,
@@ -1263,7 +1264,7 @@ function InsightRow({ insight, translations, onAction, onOpenFix, siteId, plugin
 export default function AgentPageContent({ translations }) {
   const t = translations;
   const { selectedSite } = useSite();
-  const { runningAnalysis, lastAnalysisTs, runAnalysis } = useAgent();
+  const { runningAnalysis, lastAnalysisTs, runAnalysis, entitiesRequired, setEntitiesRequired } = useAgent();
 
   const [insights, setInsights] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -1282,7 +1283,11 @@ export default function AgentPageContent({ translations }) {
   const dedup = (items) => {
     const seen = new Set();
     return items.filter(item => {
-      const key = item.titleKey + ':' + (item.data?.keyword || item.data?.query || '');
+      let key = item.titleKey + ':' + (item.data?.keyword || item.data?.query || '');
+      // Per-cluster cannibalization: include sorted URLs so each pair is unique
+      if (item.titleKey?.includes('cannibalization') && item.data?.issues?.[0]?.urls) {
+        key += ':' + [...item.data.issues[0].urls].sort().join('|');
+      }
       if (seen.has(key)) return false;
       seen.add(key);
       return true;
@@ -1521,6 +1526,7 @@ export default function AgentPageContent({ translations }) {
         onApplied={fetchInsights}
         itemIndices={fixModalItemIndices}
       />
+      <EntitiesRequiredModal open={entitiesRequired} onClose={() => setEntitiesRequired(false)} />
     </>
   );
 }

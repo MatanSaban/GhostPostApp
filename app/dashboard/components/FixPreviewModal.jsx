@@ -86,6 +86,9 @@ export default function FixPreviewModal({ open, onClose, insight, translations, 
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatingStep, setGeneratingStep] = useState(0);
 
+  // Background fix polling
+  const [fixPollingStatus, setFixPollingStatus] = useState(null); // 'GENERATING' | 'APPLYING' | null
+
   // Detect if this is a cannibalization fix
   const isCannibalizationFix = insight?.titleKey?.includes('cannibalization');
 
@@ -295,6 +298,7 @@ export default function FixPreviewModal({ open, onClose, insight, translations, 
     setError(null);
     setProposals(skeletons);
     setApplyResults(null);
+    setFixPollingStatus(null);
     // Reset all form state for a clean session
     setSelectedArticleTypes({});
     setWordCounts({});
@@ -338,6 +342,33 @@ export default function FixPreviewModal({ open, onClose, insight, translations, 
         .then(data => {
           if (data.proposal) {
             setProposals(prev => prev.map((p, j) => j === idx ? data.proposal : p));
+            // Populate merge instructions immediately alongside proposals update
+            if (data.proposal.recommendation?.mergeInstructions) {
+              setMergeInstructions(prev => {
+                if (prev[idx] !== undefined) return prev;
+                return { ...prev, [idx]: formatMergeInstructionsAsList(data.proposal.recommendation.mergeInstructions) };
+              });
+            }
+            // Populate article type and word count immediately
+            if (data.proposal.recommendation?.mergedPageChanges?.articleType) {
+              setSelectedArticleTypes(prev => {
+                if (prev[idx]) return prev;
+                return { ...prev, [idx]: data.proposal.recommendation.mergedPageChanges.articleType };
+              });
+              const typeDef = getArticleTypeDef(data.proposal.recommendation.mergedPageChanges.articleType);
+              if (typeDef) {
+                setWordCounts(prev => {
+                  if (prev[idx] !== undefined) return prev;
+                  return { ...prev, [idx]: Math.floor((typeDef.minWords + typeDef.maxWords) / 2) };
+                });
+              }
+            }
+            if (data.proposal.recommendation?.mergedPageChanges?.suggestedContentImages !== undefined) {
+              setContentImageCounts(prev => {
+                if (prev[idx] !== undefined) return prev;
+                return { ...prev, [idx]: data.proposal.recommendation.mergedPageChanges.suggestedContentImages };
+              });
+            }
           } else {
             setProposals(prev => prev.map((p, j) =>
               j === idx ? { ...p, status: 'error', reason: data.error || 'Generation failed' } : p
@@ -355,8 +386,75 @@ export default function FixPreviewModal({ open, onClose, insight, translations, 
   }, [insightId, buildSkeletonProposals]);
 
   useEffect(() => {
-    if (open) fetchPreview();
-  }, [open, fetchPreview]);
+    if (!open) return;
+
+    // Check for in-progress background fix before loading preview
+    const execResult = insight?.executionResult;
+    const status = execResult?.fixStatus;
+
+    if (status === 'GENERATING') {
+      setIsGenerating(true);
+      setFixPollingStatus('GENERATING');
+      return;
+    }
+    if (status === 'GENERATED') {
+      setGeneratedContent({
+        post: execResult.generatedContent,
+        proposal: execResult.fixProposal,
+      });
+      setShowPreview(true);
+      return;
+    }
+    if (status === 'APPLYING') {
+      setIsApplying(true);
+      setFixPollingStatus('APPLYING');
+      return;
+    }
+    // COMPLETED/FAILED/null → normal preview flow
+    fetchPreview();
+  }, [open, fetchPreview]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // ─── Poll for background fix status ─────────────────────────
+  useEffect(() => {
+    if (!fixPollingStatus || !insightId) return;
+
+    const poll = async () => {
+      try {
+        const res = await fetch(`/api/agent/insights/${insightId}/fix`);
+        if (!res.ok) return;
+        const data = await res.json();
+        const status = data.fixStatus;
+
+        if (status === 'GENERATED' && fixPollingStatus === 'GENERATING') {
+          setFixPollingStatus(null);
+          setIsGenerating(false);
+          setGeneratedContent({
+            post: data.executionResult.generatedContent,
+            proposal: data.executionResult.fixProposal,
+          });
+          setShowPreview(true);
+        } else if (status === 'COMPLETED') {
+          setFixPollingStatus(null);
+          setIsGenerating(false);
+          setIsApplying(false);
+          setApplyResults(data.executionResult);
+          if (data.executionResult?.success && onApplied) onApplied();
+        } else if (status === 'FAILED') {
+          setFixPollingStatus(null);
+          setIsGenerating(false);
+          setIsApplying(false);
+          setError(data.executionResult?.fixError || 'Fix failed');
+        }
+      } catch (err) {
+        console.error('[FixPreview] polling error:', err);
+      }
+    };
+
+    const interval = setInterval(poll, 3000);
+    // Also poll immediately
+    poll();
+    return () => clearInterval(interval);
+  }, [fixPollingStatus, insightId, onApplied]);
 
   // ─── Regenerate single item ─────────────────────────────────
 
@@ -412,11 +510,17 @@ export default function FixPreviewModal({ open, onClose, insight, translations, 
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Apply failed');
 
-      const itemResult = data.results?.[0];
-      if (itemResult) {
-        setAppliedItems(prev => ({ ...prev, [key]: itemResult }));
+      if (data.fixInProgress) {
+        // Background processing (cannibalization), poll for results
+        setIsApplying(true);
+        setFixPollingStatus('APPLYING');
+      } else {
+        const itemResult = data.results?.[0];
+        if (itemResult) {
+          setAppliedItems(prev => ({ ...prev, [key]: itemResult }));
+        }
+        if (data.success && onApplied) onApplied();
       }
-      if (data.success && onApplied) onApplied();
     } catch (err) {
       console.error('[FixPreview] apply single error:', err);
       setAppliedItems(prev => ({ ...prev, [key]: { status: 'error', reason: err.message } }));
@@ -466,16 +570,22 @@ export default function FixPreviewModal({ open, onClose, insight, translations, 
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Generation failed');
       
-      setGeneratedContent({
-        idx: proposal.proposalIdx,
-        post: data.post,
-        proposal,
-      });
-      setShowPreview(true);
+      if (data.fixInProgress) {
+        // Background processing, poll for results
+        setFixPollingStatus('GENERATING');
+      } else {
+        // Synchronous response (fallback)
+        setGeneratedContent({
+          idx: proposal.proposalIdx,
+          post: data.post,
+          proposal,
+        });
+        setShowPreview(true);
+        setIsGenerating(false);
+      }
     } catch (err) {
       console.error('[FixPreview] generate error:', err);
       setError(err.message);
-    } finally {
       setIsGenerating(false);
     }
   };
@@ -499,14 +609,20 @@ export default function FixPreviewModal({ open, onClose, insight, translations, 
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Apply failed');
       
-      setApplyResults(data);
-      setShowPreview(false);
-      setGeneratedContent(null);
-      if (data.success && onApplied) onApplied();
+      if (data.fixInProgress) {
+        // Background processing, poll for results
+        setFixPollingStatus('APPLYING');
+      } else {
+        // Synchronous response (fallback)
+        setApplyResults(data);
+        setShowPreview(false);
+        setGeneratedContent(null);
+        if (data.success && onApplied) onApplied();
+        setIsApplying(false);
+      }
     } catch (err) {
       console.error('[FixPreview] apply generated error:', err);
       setApplyResults({ success: false, error: err.message });
-    } finally {
       setIsApplying(false);
     }
   };
@@ -535,12 +651,19 @@ export default function FixPreviewModal({ open, onClose, insight, translations, 
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Apply failed');
-      setApplyResults(data);
-      if (data.success && onApplied) onApplied();
+
+      if (data.fixInProgress) {
+        // Background processing (cannibalization), poll for results
+        setFixPollingStatus('APPLYING');
+      } else {
+        // Synchronous response (non-cannibalization)
+        setApplyResults(data);
+        if (data.success && onApplied) onApplied();
+        setIsApplying(false);
+      }
     } catch (err) {
       console.error('[FixPreview] apply error:', err);
       setApplyResults({ success: false, error: err.message });
-    } finally {
       setIsApplying(false);
     }
   };

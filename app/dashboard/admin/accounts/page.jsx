@@ -38,6 +38,7 @@ export default function PlatformAccountsPage() {
   const { t, locale } = useLocale();
   const { isSuperAdmin, isLoading: isUserLoading } = useUser();
   const [accounts, setAccounts] = useState([]);
+  const [plans, setPlans] = useState([]);
   const [stats, setStats] = useState({ total: 0, active: 0, totalUsers: 0 });
   const [searchQuery, setSearchQuery] = useState('');
   const [isLoading, setIsLoading] = useState(true);
@@ -62,6 +63,8 @@ export default function PlatformAccountsPage() {
     billingEmail: '',
     generalEmail: '',
     isActive: true,
+    planId: '',
+    billingInterval: 'MONTHLY',
   });
 
   // Enum options
@@ -97,11 +100,24 @@ export default function PlatformAccountsPage() {
     }
   }, []);
 
+  // Load available plans
+  const loadPlans = useCallback(async () => {
+    try {
+      const response = await fetch('/api/admin/plans');
+      if (!response.ok) return;
+      const data = await response.json();
+      setPlans((data.plans || []).filter(p => p.status === 'active'));
+    } catch (error) {
+      console.error('Failed to load plans:', error);
+    }
+  }, []);
+
   useEffect(() => {
     if (isSuperAdmin) {
       loadAccounts();
+      loadPlans();
     }
-  }, [isSuperAdmin, loadAccounts]);
+  }, [isSuperAdmin, loadAccounts, loadPlans]);
 
   // Handle View
   const handleView = (account) => {
@@ -124,6 +140,8 @@ export default function PlatformAccountsPage() {
       billingEmail: account.billingEmail || '',
       generalEmail: account.generalEmail || '',
       isActive: account.status === 'active',
+      planId: account.planId || '',
+      billingInterval: account.billingInterval || 'MONTHLY',
     });
     setEditModalOpen(true);
   };
@@ -143,6 +161,8 @@ export default function PlatformAccountsPage() {
       billingEmail: '',
       generalEmail: '',
       isActive: true,
+      planId: '',
+      billingInterval: 'MONTHLY',
     });
     setEditModalOpen(true);
   };
@@ -162,6 +182,8 @@ export default function PlatformAccountsPage() {
       billingEmail: '',
       generalEmail: '',
       isActive: true,
+      planId: '',
+      billingInterval: 'MONTHLY',
     });
   };
 
@@ -628,6 +650,30 @@ export default function PlatformAccountsPage() {
               onChange={(e) => setFormData({ ...formData, generalEmail: e.target.value })}
               required
             />
+            <FormSelect
+              label={t('admin.accounts.form.plan')}
+              value={formData.planId}
+              onChange={(e) => setFormData({ ...formData, planId: e.target.value })}
+              options={[
+                { value: '', label: t('admin.accounts.noPlan') },
+                ...plans.map(p => {
+                  const langKey = locale.toUpperCase();
+                  const translatedName = p.translations?.[langKey]?.name;
+                  return { value: p.id, label: translatedName || p.name };
+                }),
+              ]}
+            />
+            {formData.planId && (
+              <FormSelect
+                label={t('admin.accounts.form.billingInterval')}
+                value={formData.billingInterval}
+                onChange={(e) => setFormData({ ...formData, billingInterval: e.target.value })}
+                options={[
+                  { value: 'MONTHLY', label: t('admin.subscriptions.billingCycles.monthly') },
+                  { value: 'YEARLY', label: t('admin.subscriptions.billingCycles.yearly') },
+                ]}
+              />
+            )}
             <FormCheckbox
               label={t('admin.accounts.form.isActive')}
               checked={formData.isActive}

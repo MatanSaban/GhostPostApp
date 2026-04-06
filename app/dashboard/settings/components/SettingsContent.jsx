@@ -1075,38 +1075,6 @@ function NotificationsSettings({ notifications, setNotifications, translations, 
         </div>
       </div>
 
-      <div className={styles.subsection}>
-        <h3 className={styles.subsectionTitle}>
-          <Link className={styles.subsectionIcon} />
-          {t.notificationsSlackIntegration}
-        </h3>
-        <div className={styles.formGroup}>
-          <label className={styles.formLabel}>{t.notificationsSlackWebhookUrl}</label>
-          <input 
-            type="url" 
-            className={styles.formInput}
-            value={notifications.slackWebhook}
-            onChange={(e) => updateField('slackWebhook', e.target.value)}
-            placeholder={t.notificationsSlackWebhookPlaceholder}
-          />
-        </div>
-        <div className={styles.toggleRow} style={{ marginTop: '1rem' }}>
-          <div className={styles.toggleInfo}>
-            <Play className={styles.toggleIcon} />
-            <div className={styles.toggleContent}>
-              <span className={styles.toggleLabel}>{t.notificationsEnableSlack}</span>
-              <span className={styles.toggleDescription}>{t.notificationsEnableSlackDesc}</span>
-            </div>
-          </div>
-          <button 
-            className={`${styles.toggleSwitch} ${notifications.slackEnabled ? styles.active : ''}`}
-            onClick={() => updateField('slackEnabled', !notifications.slackEnabled)}
-          >
-            <div className={styles.toggleKnob}></div>
-          </button>
-        </div>
-      </div>
-
       <div className={styles.saveButtonWrapper}>
         <Button variant="primary">{t.saveChanges}</Button>
       </div>

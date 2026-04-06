@@ -1609,6 +1609,49 @@ Per-site settings stored in `site.toolSettings.agentConfig`:
 6. `executionResult` updated with results
 7. Status transitions: `PENDING` → `APPROVED` → `EXECUTED`
 
+### Cannibalization Fix Execution Flow
+
+The fix API (`/api/agent/insights/{id}/fix`) supports multiple modes for the full cannibalization resolution pipeline:
+
+| Mode | Description |
+|------|-------------|
+| `preview` | Generate AI fix proposals (action type, SEO changes, merge instructions) |
+| `regenerate` | Regenerate a single item's proposal |
+| `generate` | Generate full merged content for a MERGE proposal (title, body, SEO, images) |
+| `apply-generated` | Apply previously generated merged content to WordPress |
+| `apply` | Apply approved proposals directly (for non-MERGE fixes like DIFFERENTIATE) |
+
+**Fix Types & Actions:**
+
+| Action | Description | WordPress Effects |
+|--------|-------------|-------------------|
+| `MERGE` | Combine two pages into one comprehensive post | Update primary post content/SEO, create 301 redirect from secondary, trash secondary post, request GSC re-index |
+| `CANONICAL` | Set canonical tag on secondary page | Update canonical URL on secondary post via plugin |
+| `301_REDIRECT` | Redirect redundant page to authoritative one | Create 301 redirect via plugin, trash secondary post |
+| `DIFFERENTIATE` | Give each page distinct focus keywords/angles | Update SEO meta (title, description, focus keyword) on both posts |
+
+**MERGE Flow (most complex):**
+1. `preview` → `generateCannibalizationFix()` analyzes both pages, recommends action, provides SEO proposals
+2. User reviews proposal in FixPreviewModal (primary page selection, merged SEO, merge instructions)
+3. `generate` → `generateMergedContent()` creates full article via Gemini (with optional featured/content images via AI generation)
+4. User reviews generated content in editor
+5. `apply-generated` → `applyMergedContent()` pushes to WordPress:
+   - Updates primary post with merged content + SEO
+   - Creates 301 redirect from secondary URL → primary URL
+   - Trashes secondary post
+   - Requests GSC URL re-indexing for primary page
+
+**Credit Cost:** `CANNIBALIZATION_FIX` = 50 credits per fix execution
+
+### Entity Check Before Analysis
+
+Before running analysis, the system checks that the site has synced entities (content types from WordPress). If no entities exist:
+1. `runAnalysis()` triggers entity count check via API
+2. If count is 0, `EntitiesRequiredModal` appears guiding the user to:
+   - Step 1: Navigate to My Websites to verify plugin connection
+   - Step 2: Navigate to Entities page to sync content types
+3. Analysis is blocked until entities are available
+
 ### API Endpoints
 
 | Method | Path | Description | Response |

@@ -72,8 +72,7 @@ export default async function SettingsPage() {
       emailWeeklyReport: true,
       emailErrors: true,
       emailMarketing: false,
-      slackWebhook: '',
-      slackEnabled: false,
+
     },
     seo: {
       siteName: 'My Website',
@@ -267,11 +266,7 @@ export default async function SettingsPage() {
     notificationsErrorAlertsDesc: t('settings.notificationsSection.errorAlertsDesc'),
     notificationsMarketingUpdates: t('settings.notificationsSection.marketingUpdates'),
     notificationsMarketingUpdatesDesc: t('settings.notificationsSection.marketingUpdatesDesc'),
-    notificationsSlackIntegration: t('settings.notificationsSection.slackIntegration'),
-    notificationsSlackWebhookUrl: t('settings.notificationsSection.slackWebhookUrl'),
-    notificationsSlackWebhookPlaceholder: t('settings.notificationsSection.slackWebhookPlaceholder'),
-    notificationsEnableSlack: t('settings.notificationsSection.enableSlack'),
-    notificationsEnableSlackDesc: t('settings.notificationsSection.enableSlackDesc'),
+
     
     // SEO Settings
     seoSiteNameSeo: t('settings.seo.siteNameSeo'),

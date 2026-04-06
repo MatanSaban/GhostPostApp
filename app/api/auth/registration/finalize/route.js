@@ -351,7 +351,19 @@ export async function POST(request) {
         }
         // Remove trailing slash
         normalizedUrl = normalizedUrl.replace(/\/+$/, '');
-        
+
+        // Check for duplicate site URL in the same account
+        const normalizedForCompare = normalizedUrl.replace(/^https?:\/\//, '').replace(/^www\./, '').replace(/\/+$/, '').toLowerCase();
+        const existingSites = await tx.site.findMany({
+          where: { accountId: account.id, isActive: true },
+          select: { url: true },
+        });
+        const isDuplicate = existingSites.some(s => {
+          const existing = (s.url || '').replace(/^https?:\/\//, '').replace(/^www\./, '').replace(/\/+$/, '').toLowerCase();
+          return existing === normalizedForCompare;
+        });
+
+        if (!isDuplicate) {
         // Extract site name from URL or use account name
         let siteName = account.name;
         try {
@@ -392,6 +404,9 @@ export async function POST(request) {
         });
         
         console.log('[Finalize] Created site:', { siteId: site.id, url: normalizedUrl });
+        } else {
+          console.log('[Finalize] Skipped duplicate site:', { url: normalizedUrl, accountId: account.id });
+        }
       }
 
       // 8. Delete the temp registration

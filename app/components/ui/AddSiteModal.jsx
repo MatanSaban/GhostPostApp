@@ -44,6 +44,7 @@ export function AddSiteModal({ isOpen, onClose, onSiteAdded, autoSelect = false,
   const [createError, setCreateError] = useState(null);
   const [isSuggestingName, setIsSuggestingName] = useState(false);
   const [interviewSite, setInterviewSite] = useState(null);
+  const [duplicateInfo, setDuplicateInfo] = useState(null);
   const urlInputRef = useRef(null);
 
   // Reset state when modal opens/closes
@@ -56,6 +57,7 @@ export function AddSiteModal({ isOpen, onClose, onSiteAdded, autoSelect = false,
       setIsValidating(false);
       setIsCreating(false);
       setIsSuggestingName(false);
+      setDuplicateInfo(null);
     }
   }, [isOpen]);
 
@@ -130,6 +132,10 @@ export function AddSiteModal({ isOpen, onClose, onSiteAdded, autoSelect = false,
 
       if (!response.ok) {
         const data = await response.json();
+        if (data.error === 'DUPLICATE_SITE') {
+          setDuplicateInfo({ accountName: data.accountName });
+          return;
+        }
         if (handleLimitError(data)) {
           onClose();
           return;
@@ -248,6 +254,7 @@ export function AddSiteModal({ isOpen, onClose, onSiteAdded, autoSelect = false,
                 onChange={(e) => {
                   setNewSiteUrl(e.target.value);
                   setValidationResult(null);
+                  setDuplicateInfo(null);
                 }}
                 onKeyDown={handleUrlKeyDown}
                 placeholder={t('sites.add.urlPlaceholder')}
@@ -330,10 +337,23 @@ export function AddSiteModal({ isOpen, onClose, onSiteAdded, autoSelect = false,
           )}
 
           {/* Error */}
-          {createError && (
+          {createError && !duplicateInfo && (
             <div className={styles.errorMessage}>
               <AlertCircle size={16} />
               <span>{createError}</span>
+            </div>
+          )}
+
+          {/* Duplicate site warning */}
+          {duplicateInfo && (
+            <div className={styles.duplicateWarning}>
+              <AlertCircle size={18} />
+              <div>
+                <p className={styles.duplicateTitle}>{t('sites.add.duplicateTitle')}</p>
+                <p className={styles.duplicateMessage}>
+                  {t('sites.add.duplicateMessage').replace('{accountName}', duplicateInfo.accountName)}
+                </p>
+              </div>
             </div>
           )}
         </div>

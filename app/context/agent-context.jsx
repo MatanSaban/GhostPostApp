@@ -1,10 +1,13 @@
 'use client';
 
 import { createContext, useContext, useState, useCallback, useRef, useEffect } from 'react';
+import { useSite } from './site-context';
 
 const AgentContext = createContext({
   runningAnalysis: false,
   lastAnalysisTs: 0,
+  entitiesRequired: false,
+  setEntitiesRequired: () => {},
   runAnalysis: async () => {},
 });
 
@@ -12,10 +15,13 @@ const POLL_INTERVAL = 2000;
 
 export function AgentProvider({ children }) {
   const [runningAnalysis, setRunningAnalysis] = useState(false);
+  const [checkingEntities, setCheckingEntities] = useState(false);
   const [lastAnalysisTs, setLastAnalysisTs] = useState(0);
+  const [entitiesRequired, setEntitiesRequired] = useState(false);
   const pollRef = useRef(null);
   const runIdRef = useRef(null);
   const siteIdRef = useRef(null);
+  const { selectedSite } = useSite();
 
   const stopPolling = useCallback(() => {
     if (pollRef.current) {
@@ -51,13 +57,55 @@ export function AgentProvider({ children }) {
     }, POLL_INTERVAL);
   }, [stopPolling]);
 
+  // Check for already-running analysis on site change / page load
+  useEffect(() => {
+    if (!selectedSite?.id) return;
+    
+    let cancelled = false;
+    const checkRunning = async () => {
+      try {
+        const res = await fetch(`/api/agent/runs?siteId=${selectedSite.id}&limit=1`);
+        if (!res.ok || cancelled) return;
+        const data = await res.json();
+        const latestRun = data.runs?.[0];
+        if (latestRun?.status === 'RUNNING') {
+          setRunningAnalysis(true);
+          startPolling(selectedSite.id, latestRun.id);
+        } else {
+          setRunningAnalysis(false);
+          stopPolling();
+        }
+      } catch {
+        // Ignore
+      }
+    };
+    checkRunning();
+
+    return () => { cancelled = true; };
+  }, [selectedSite?.id, startPolling, stopPolling]);
+
   // Cleanup on unmount
   useEffect(() => stopPolling, [stopPolling]);
 
   const runAnalysis = useCallback(async (siteId) => {
-    if (!siteId || runningAnalysis) return;
+    if (!siteId || runningAnalysis || checkingEntities) return;
     try {
+      // Immediately show loading on button
+      setCheckingEntities(true);
+
+      // Check if site has entities before starting
+      const entitiesRes = await fetch(`/api/entities?siteId=${siteId}`);
+      if (entitiesRes.ok) {
+        const entitiesData = await entitiesRes.json();
+        if (!entitiesData.entities?.length) {
+          setCheckingEntities(false);
+          setEntitiesRequired(true);
+          return;
+        }
+      }
+
       setRunningAnalysis(true);
+      setCheckingEntities(false);
       const res = await fetch('/api/agent/runs', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -74,11 +122,12 @@ export function AgentProvider({ children }) {
     } catch (err) {
       console.error('[AgentContext] Run error:', err);
       setRunningAnalysis(false);
+      setCheckingEntities(false);
     }
-  }, [runningAnalysis, startPolling]);
+  }, [runningAnalysis, checkingEntities, startPolling]);
 
   return (
-    <AgentContext.Provider value={{ runningAnalysis, lastAnalysisTs, runAnalysis }}>
+    <AgentContext.Provider value={{ runningAnalysis: runningAnalysis || checkingEntities, lastAnalysisTs, entitiesRequired, setEntitiesRequired, runAnalysis }}>
       {children}
     </AgentContext.Provider>
   );

@@ -176,15 +176,37 @@ export async function POST(request) {
       return NextResponse.json(limitCheck, { status: 403 });
     }
 
-    // Generate site connection keys
-    const siteKey = generateSiteKey();
-    const siteSecret = generateSiteSecret();
-
     // Ensure URL has protocol
     let siteUrl = url;
     if (siteUrl && !siteUrl.startsWith('http://') && !siteUrl.startsWith('https://')) {
       siteUrl = `https://${siteUrl}`;
     }
+
+    // Check for duplicate site URL in the same account
+    const normalizedNew = siteUrl.replace(/^https?:\/\//, '').replace(/^www\./, '').replace(/\/+$/, '').toLowerCase();
+    const existingSites = await prisma.site.findMany({
+      where: { accountId: targetAccountId, isActive: true },
+      select: { url: true },
+    });
+    const isDuplicate = existingSites.some(s => {
+      const normalizedExisting = (s.url || '').replace(/^https?:\/\//, '').replace(/^www\./, '').replace(/\/+$/, '').toLowerCase();
+      return normalizedExisting === normalizedNew;
+    });
+
+    if (isDuplicate) {
+      const account = await prisma.account.findUnique({
+        where: { id: targetAccountId },
+        select: { name: true },
+      });
+      return NextResponse.json(
+        { error: 'DUPLICATE_SITE', accountName: account?.name || '' },
+        { status: 409 }
+      );
+    }
+
+    // Generate site connection keys
+    const siteKey = generateSiteKey();
+    const siteSecret = generateSiteSecret();
 
     const site = await prisma.site.create({
       data: {
