@@ -75,6 +75,8 @@
     "match": "התאמה",
     "skip": "דלג",
     "confident": "בטוח",
+    "detected": "זוהה",
+    "processing": "מעבד...",
     "minimum": "מינימום",
     "expand": "הרחב",
     "collapse": "כווץ",
@@ -96,7 +98,9 @@
     "seconds": "שניות",
     "clear": "נקה",
     "showMore": "הצג עוד",
-    "showLess": "הצג פחות"
+    "showLess": "הצג פחות",
+    "author": "כותב",
+    "unsavedChanges": "יש לך שינויים שלא נשמרו. האם אתה בטוח שברצונך לעזוב?"
   },
   "backgroundTasks": {
     "entityPopulation": {
@@ -317,6 +321,162 @@
       "botActions": "פעולות בוט",
       "backlinks": "קישורים נכנסים",
       "website": "תוכן אתר"
+    }
+  },
+  "websiteAdmin": {
+    "title": "תוכן אתר",
+    "subtitle": "ניהול תוכן ו-SEO של אתר השיווק Ghost Post",
+    "visitWebsite": "בקר באתר",
+    "sections": {
+      "pages": {
+        "title": "עמודים",
+        "description": "ניהול תוכן ו-SEO לכל עמודי האתר כולל בית, אודות, מחירים ועוד."
+      },
+      "blog": {
+        "title": "פוסטים בבלוג",
+        "description": "יצירה, עריכה וניהול פוסטים בכל השפות עם אופטימיזציה ל-SEO."
+      },
+      "settings": {
+        "title": "הגדרות האתר",
+        "description": "הגדרת הגדרות גלובליות כמו שם האתר, SEO ברירת מחדל, רשתות חברתיות ועוד."
+      }
+    },
+    "pages": {
+      "title": "עמודי האתר",
+      "subtitle": "בחר עמוד לעריכת התוכן והגדרות ה-SEO שלו",
+      "home": "בית",
+      "about": "אודות",
+      "pricing": "מחירים",
+      "contact": "צור קשר",
+      "faq": "שאלות נפוצות",
+      "features": "תכונות",
+      "howItWorks": "איך זה עובד",
+      "privacy": "מדיניות פרטיות",
+      "terms": "תנאי שימוש",
+      "blog": "אינדקס הבלוג",
+      "common": "אלמנטים משותפים",
+      "commonPath": "(כותרת עליונה, תחתונה וכו׳)"
+    },
+    "pageEdit": {
+      "back": "חזרה לעמודים",
+      "content": "תוכן",
+      "seo": "SEO",
+      "saveDraft": "שמור טיוטה",
+      "publish": "פרסם",
+      "publishing": "מפרסם...",
+      "saving": "שומר...",
+      "draftSaved": "הטיוטה נשמרה בהצלחה",
+      "published": "התוכן פורסם בהצלחה",
+      "loadError": "נכשל בטעינת התוכן"
+    },
+    "blog": {
+      "title": "פוסטים בבלוג",
+      "subtitle": "ניהול פוסטים בכל השפות",
+      "newPost": "פוסט חדש",
+      "searchPlaceholder": "חיפוש פוסטים...",
+      "noResults": "לא נמצאו פוסטים",
+      "createFirst": "צור את הפוסט הראשון שלך",
+      "slug": "Slug",
+      "locales": "שפות",
+      "status": "סטטוס",
+      "actions": "פעולות",
+      "published": "פורסם",
+      "draft": "טיוטה",
+      "edit": "עריכה",
+      "delete": "מחיקה",
+      "confirmDelete": "האם אתה בטוח שברצונך למחוק את הפוסט הזה? פעולה זו לא ניתנת לביטול.",
+      "deleteSuccess": "הפוסט נמחק בהצלחה",
+      "deleteError": "נכשל במחיקת הפוסט"
+    },
+    "blogEdit": {
+      "newPost": "פוסט חדש בבלוג",
+      "editPost": "עריכת פוסט בבלוג",
+      "back": "חזרה לבלוג",
+      "title": "כותרת",
+      "titlePlaceholder": "הזן כותרת לפוסט...",
+      "slug": "Slug",
+      "slugPlaceholder": "post-url-slug",
+      "excerpt": "תקציר",
+      "excerptPlaceholder": "תקציר קצר של הפוסט...",
+      "content": "תוכן",
+      "contentPlaceholder": "כתוב את תוכן הפוסט...",
+      "featuredImage": "תמונה ראשית",
+      "selectImage": "בחר תמונה",
+      "seo": "הגדרות SEO",
+      "metaTitle": "כותרת Meta",
+      "metaTitlePlaceholder": "כותרת SEO (ברירת מחדל: כותרת הפוסט)",
+      "metaDescription": "תיאור Meta",
+      "metaDescriptionPlaceholder": "תיאור SEO לתוצאות החיפוש...",
+      "saveDraft": "שמור טיוטה",
+      "publish": "פרסם",
+      "saving": "שומר...",
+      "publishing": "מפרסם...",
+      "created": "הפוסט נוצר בהצלחה",
+      "updated": "הפוסט עודכן בהצלחה",
+      "error": "נכשל בשמירת הפוסט"
+    },
+    "settings": {
+      "title": "הגדרות האתר",
+      "subtitle": "הגדרת הגדרות גלובליות לאתר",
+      "general": "הגדרות כלליות",
+      "siteUrl": "כתובת האתר",
+      "siteUrlHint": "כתובת ה-URL הקנונית של האתר",
+      "siteName": "שם האתר",
+      "siteNameByLocale": "שם האתר בכל שפה",
+      "social": "רשתות חברתיות",
+      "twitterHandle": "שם משתמש בטוויטר",
+      "twitterHint": "ללא סימן @",
+      "seoDefaults": "ברירות מחדל SEO",
+      "defaultOgImage": "תמונת OG ברירת מחדל",
+      "defaultOgImageHint": "משמשת כאשר לעמוד אין תמונה משלו",
+      "defaultRobots": "Robots ברירת מחדל",
+      "defaultRobotsHint": "ערך meta robots ברירת מחדל לעמודים",
+      "dataManagement": "ניהול נתונים",
+      "exportAll": "ייצוא כל התוכן",
+      "exportHint": "הורדת כל התוכן כקובץ JSON",
+      "importAll": "ייבוא תוכן",
+      "importHint": "העלאת קובץ JSON לייבוא תוכן",
+      "saveChanges": "שמור שינויים",
+      "saving": "שומר...",
+      "saved": "ההגדרות נשמרו בהצלחה",
+      "error": "נכשל בשמירת ההגדרות"
+    },
+    "seo": {
+      "title": "הגדרות SEO",
+      "metaTitle": "כותרת Meta",
+      "metaTitleHint": "מומלץ: 50-60 תווים",
+      "metaDescription": "תיאור Meta",
+      "metaDescriptionHint": "מומלץ: 150-160 תווים",
+      "canonical": "כתובת Canonical",
+      "canonicalHint": "נתיב יחסי לשורש האתר (למשל, /about)",
+      "robots": "Robots",
+      "robotsHint": "הוראת meta robots",
+      "openGraph": "Open Graph",
+      "ogTitle": "כותרת OG",
+      "ogTitleHint": "כותרת לשיתוף ברשתות (ברירת מחדל: כותרת meta)",
+      "ogDescription": "תיאור OG",
+      "ogDescriptionHint": "תיאור לשיתוף ברשתות חברתיות",
+      "ogImage": "תמונת OG",
+      "ogImageHint": "תמונה לשיתוף ברשתות חברתיות",
+      "ogType": "סוג OG",
+      "twitter": "כרטיס טוויטר",
+      "twitterCard": "סוג כרטיס",
+      "jsonLd": "נתונים מובנים (JSON-LD)",
+      "jsonLdHint": "נתונים מובנים לפי Schema.org",
+      "characters": "תווים"
+    },
+    "locales": {
+      "en": "אנגלית",
+      "he": "עברית",
+      "fr": "צרפתית",
+      "selectLocale": "בחר שפה לעריכה"
+    },
+    "toast": {
+      "draftSaved": "הטיוטה נשמרה",
+      "published": "פורסם בהצלחה",
+      "saved": "נשמר בהצלחה",
+      "error": "אירעה שגיאה",
+      "loadError": "נכשל בטעינת הנתונים"
     }
   },
   "dashboard": {
@@ -2188,6 +2348,8 @@
     "h1IssueTooltip": "בעיית H1: העמוד חסר כותרת H1 תקינה",
     "removeFailed": "הסרת הפריט נכשלה",
     "deleteFailed": "מחיקת הפריט נכשלה",
+    "protectTooltip": "הגן מפני מיזוג/הפניה",
+    "unprotectTooltip": "הסר הגנה",
     "removeItemConfirm": "האם אתה בטוח שברצונך להסיר את \"{title}\" מהפלטפורמה? פעולה זו לא תשפיע על האתר של הלקוח.",
     "deleteItemConfirm": "האם אתה בטוח שברצונך למחוק את \"{title}\"? פעולה זו תעביר את הפריט לאשפה באתר הלקוח.",
     "bulk": {
@@ -2724,7 +2886,7 @@
       "createFailed": "יצירת הרישום נכשלה. נסה שוב."
     },
     "createListing": {
-      "button": "הוסף את האתר שלי",
+      "button": "הוסף אתר",
       "title": "רשום את האתר שלך",
       "selectSite": "בחר אתר",
       "chooseSite": "בחר אתר לרישום...",
@@ -2752,7 +2914,21 @@
       "monthlyTraffic": "תנועה חודשית",
       "monthlyVisitors": "מבקרים חודשיים",
       "metricsSource": "נתונים מ",
-      "metricsUnavailable": "לא ניתן לשלוף מדדי דומיין. הגדר מפתחות API של SEMrush / Ahrefs."
+      "metricsUnavailable": "לא ניתן לשלוף מדדי דומיין. הגדר מפתחות API של SEMrush / Ahrefs.",
+      "daInfo": "לחץ כדי ללמוד איך למצוא את ציון ה-DA שלך",
+      "drInfo": "לחץ כדי ללמוד איך למצוא את ציון ה-DR שלך",
+      "daInfoTitle": "Domain Authority (DA)",
+      "drInfoTitle": "Domain Rating (DR)",
+      "daInfoLong": "<strong>Domain Authority (DA)</strong> הוא ציון שפותח על ידי <a href=\"https://moz.com/learn/seo/domain-authority\" target=\"_blank\" rel=\"noopener noreferrer\">Moz</a> שמנבא עד כמה אתר ידורג במנועי חיפוש. הציון נע בין 0 ל-100.<br/><br/><strong>איך לבדוק את ה-DA שלך:</strong><ol><li>היכנס ל-<a href=\"https://moz.com/domain-analysis\" target=\"_blank\" rel=\"noopener noreferrer\">Moz Domain Analysis</a> (חינם)</li><li>הכנס את הדומיין שלך ולחץ על \"Analyze domain\"</li><li>ציון ה-DA יופיע בראש התוצאות</li></ol>ניתן גם להשתמש ב-<a href=\"https://moz.com/products/pro\" target=\"_blank\" rel=\"noopener noreferrer\">תוסף MozBar לדפדפן</a> כדי לבדוק DA באופן מיידי בכל עמוד.",
+      "drInfoLong": "<strong>Domain Rating (DR)</strong> הוא מדד של <a href=\"https://ahrefs.com/blog/domain-rating/\" target=\"_blank\" rel=\"noopener noreferrer\">Ahrefs</a> שמראה את חוזק פרופיל הקישורים הנכנסים של אתר. הציון נע בין 0 ל-100.<br/><br/><strong>איך לבדוק את ה-DR שלך:</strong><ol><li>היכנס ל-<a href=\"https://ahrefs.com/website-authority-checker\" target=\"_blank\" rel=\"noopener noreferrer\">Ahrefs Website Authority Checker</a> (חינם)</li><li>הכנס את הדומיין שלך ולחץ על \"Check Authority\"</li><li>ציון ה-DR יופיע בתוצאות</li></ol>לניתוח קישורים מפורט יותר, השתמש ב-<a href=\"https://ahrefs.com/site-explorer\" target=\"_blank\" rel=\"noopener noreferrer\">Ahrefs Site Explorer</a>.",
+      "gotIt": "הבנתי",
+      "publishMode": "מצב פרסום",
+      "publishAuto": "אוטומטי",
+      "publishManual": "ידני",
+      "publishAutoHint": "פוסטים של קישורים נכנסים יפורסמו אוטומטית באתר הוורדפרס שלך דרך תוסף Ghost Post.",
+      "publishManualHint": "ניתן לעבור לפרסום אוטומטי כיוון שהאתר שלך תומך בכך.",
+      "publishManualOnly": "ידני בלבד — חבר את תוסף Ghost Post לוורדפרס כדי לאפשר פרסום אוטומטי.",
+      "aiGenerating": "AI מייצר..."
     }
   },
   "settings": {
@@ -4376,7 +4552,9 @@
       "internalLinksDefault": "על בסיס המאמרים שלך, אנו ממליצים על {count} קישורים פנימיים לכל 1000 מילים.",
       "analyzingInternalLinks": "מנתח קישורים פנימיים במאמרים שלך...",
       "fetchingBlogPosts": "מביא את המאמרים האחרונים מהבלוג שלך...",
-      "skipped": "דלג"
+      "skipped": "דלג",
+      "processing": "מעבד...",
+      "visitWebsite": "בקר באתר"
     },
     "blogDiscovery": {
       "hasBlog": "לא הצלחנו למצוא מאמרים באתר שלך. יש לך עמוד בלוג?",
@@ -4489,6 +4667,10 @@
       "benefit2": "אופטימיזציית SEO מובנית",
       "benefit3": "ניהול תוכן ישירות מ-Ghost Post",
       "downloadButton": "הורד תוסף",
+      "connected": "תוסף וורדפרס חובר בהצלחה!",
+      "waitingForConnection": "ממתין לחיבור התוסף... התקן והפעל את התוסף בוורדפרס.",
+      "checkConnection": "התקנתי והפעלתי — בדוק חיבור",
+      "connectionTimeout": "לא הצלחנו לזהות את חיבור התוסף. ניתן לנסות שוב או לדלג ולהגדיר מאוחר יותר בהגדרות.",
       "noSiteKey": "התוסף יהיה זמין לאחר השלמת ההגדרה.",
       "skipText": "דלג - אתקין מאוחר יותר"
     },
@@ -4755,7 +4937,8 @@
       },
       "placeholders": {
         "websiteUrl": "https://www.yourwebsite.com",
-        "competitors": "הזן כתובות או שמות מתחרים"
+        "competitors": "הזן כתובות או שמות מתחרים",
+        "competitorUrl": "הוסף כתובת מתחרה (למשל, https://competitor.com)"
       },
       "hints": {
         "languageDetected": "זיהינו את שפת האתר שלך כ-{language}",
@@ -4769,7 +4952,9 @@
         "internalLinksSeoTip": "לפי שיטות עבודה מומלצות של SEO, כמות אופטימלית היא 3-5 קישורים פנימיים לכל 1000 מילים. קישורים פנימיים עוזרים לגוגל להבין את מבנה האתר, משפרים ניווט למשתמשים ומפזרים את ׳כוח הדף׳ (Page Authority) בין דפי האתר.",
         "internalLinksRecommendedRange": "טווח מומלץ:",
         "internalLinksDefault": "3-5",
-        "selectFavoriteArticles": "בחר עד 3 מאמרים שמייצגים בצורה הטובה ביותר את סגנון התוכן שלך"
+        "selectFavoriteArticles": "בחר עד 3 מאמרים שמייצגים בצורה הטובה ביותר את סגנון התוכן שלך",
+        "targetLocationDefault": "אנחנו מציעים {location} בהתבסס על שפת האתר שלך",
+        "pressEnterToAdd": "לחץ Enter להוספה"
       }
     },
     "languages": {
@@ -6304,7 +6489,7 @@
         "title": "קניבליזציה של מילות מפתח",
         "description": "{count} מילות מפתח מדורגות עם מספר עמודים, מה שמדלל את כוח הדירוג. אחד תוכן כדי להימנע מתחרות עם עצמך.",
         "proactive": {
-          "title": "סיכון חפיפת תוכן זוהה",
+          "title": "קניבליזציה פוטנציאלית זוהתה",
           "description": "{count} עמודים בעלי כותרות או מילות מפתח דומות מאוד עלולים להתחרות על אותם דירוגים. בדוק ובדל עמודים אלו לפני שיתחילו לאכול אחד את השני."
         },
         "semantic": {
@@ -6421,6 +6606,8 @@
       "words": "מילים",
       "mergeInstructionsLabel": "הנחיות מיזוג עבור AI",
       "mergeInstructionsPlaceholder": "הוסף הנחיות מותאמות אישית כיצד ה-AI צריך למזג את התוכן...",
+      "mergePlanLabel": "תוכנית מיזוג AI (ערוך לפני החלה)",
+      "mergePlanHint": "עיין את תוכנית המיזוג של ה-AI למטה. ערוך, הסר או הוסף הנחיות משלך — תקציר זה מנחה את יצירת התוכן הסופי.",
       "mergedPagePreview": "תצוגה מקדימה של העמוד הממוזג",
       "articleType": "סוג מאמר",
       "contentImagesToGenerate": "תמונות תוכן ליצירה",

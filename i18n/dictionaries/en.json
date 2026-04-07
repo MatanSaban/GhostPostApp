@@ -76,6 +76,8 @@
     "match": "match",
     "skip": "Skip",
     "confident": "confident",
+    "detected": "Detected",
+    "processing": "Processing...",
     "minimum": "minimum",
     "expand": "Expand",
     "collapse": "Collapse",
@@ -96,7 +98,9 @@
     "seconds": "seconds",
     "clear": "Clear",
     "showMore": "Show More",
-    "showLess": "Show Less"
+    "showLess": "Show Less",
+    "author": "Author",
+    "unsavedChanges": "You have unsaved changes. Are you sure you want to leave?"
   },
   "backgroundTasks": {
     "entityPopulation": {
@@ -317,6 +321,162 @@
       "botActions": "Bot Actions",
       "backlinks": "Backlinks",
       "website": "Website Content"
+    }
+  },
+  "websiteAdmin": {
+    "title": "Website Content",
+    "subtitle": "Manage Ghost Post marketing website content and SEO",
+    "visitWebsite": "Visit Website",
+    "sections": {
+      "pages": {
+        "title": "Pages",
+        "description": "Manage content and SEO for all website pages including Home, About, Pricing, and more."
+      },
+      "blog": {
+        "title": "Blog Posts",
+        "description": "Create, edit, and manage blog posts across all languages with SEO optimization."
+      },
+      "settings": {
+        "title": "Site Settings",
+        "description": "Configure global settings like site name, default SEO, social media, and more."
+      }
+    },
+    "pages": {
+      "title": "Website Pages",
+      "subtitle": "Select a page to edit its content and SEO settings",
+      "home": "Home",
+      "about": "About",
+      "pricing": "Pricing",
+      "contact": "Contact",
+      "faq": "FAQ",
+      "features": "Features",
+      "howItWorks": "How It Works",
+      "privacy": "Privacy Policy",
+      "terms": "Terms of Service",
+      "blog": "Blog Index",
+      "common": "Common Elements",
+      "commonPath": "(header, footer, etc.)"
+    },
+    "pageEdit": {
+      "back": "Back to Pages",
+      "content": "Content",
+      "seo": "SEO",
+      "saveDraft": "Save Draft",
+      "publish": "Publish",
+      "publishing": "Publishing...",
+      "saving": "Saving...",
+      "draftSaved": "Draft saved successfully",
+      "published": "Content published successfully",
+      "loadError": "Failed to load content"
+    },
+    "blog": {
+      "title": "Blog Posts",
+      "subtitle": "Manage blog posts for all languages",
+      "newPost": "New Post",
+      "searchPlaceholder": "Search posts...",
+      "noResults": "No blog posts found",
+      "createFirst": "Create your first blog post",
+      "slug": "Slug",
+      "locales": "Languages",
+      "status": "Status",
+      "actions": "Actions",
+      "published": "Published",
+      "draft": "Draft",
+      "edit": "Edit",
+      "delete": "Delete",
+      "confirmDelete": "Are you sure you want to delete this blog post? This action cannot be undone.",
+      "deleteSuccess": "Blog post deleted successfully",
+      "deleteError": "Failed to delete blog post"
+    },
+    "blogEdit": {
+      "newPost": "New Blog Post",
+      "editPost": "Edit Blog Post",
+      "back": "Back to Blog",
+      "title": "Title",
+      "titlePlaceholder": "Enter blog post title...",
+      "slug": "Slug",
+      "slugPlaceholder": "post-url-slug",
+      "excerpt": "Excerpt",
+      "excerptPlaceholder": "Brief summary of the post...",
+      "content": "Content",
+      "contentPlaceholder": "Write your blog post content...",
+      "featuredImage": "Featured Image",
+      "selectImage": "Select Image",
+      "seo": "SEO Settings",
+      "metaTitle": "Meta Title",
+      "metaTitlePlaceholder": "SEO title (defaults to post title)",
+      "metaDescription": "Meta Description",
+      "metaDescriptionPlaceholder": "SEO description for search results...",
+      "saveDraft": "Save Draft",
+      "publish": "Publish",
+      "saving": "Saving...",
+      "publishing": "Publishing...",
+      "created": "Blog post created successfully",
+      "updated": "Blog post updated successfully",
+      "error": "Failed to save blog post"
+    },
+    "settings": {
+      "title": "Site Settings",
+      "subtitle": "Configure global website settings",
+      "general": "General Settings",
+      "siteUrl": "Site URL",
+      "siteUrlHint": "The canonical URL of the website",
+      "siteName": "Site Name",
+      "siteNameByLocale": "Site name for each language",
+      "social": "Social Media",
+      "twitterHandle": "Twitter Handle",
+      "twitterHint": "Without the @ symbol",
+      "seoDefaults": "SEO Defaults",
+      "defaultOgImage": "Default OG Image",
+      "defaultOgImageHint": "Used when a page doesn't have its own image",
+      "defaultRobots": "Default Robots",
+      "defaultRobotsHint": "Default meta robots value for pages",
+      "dataManagement": "Data Management",
+      "exportAll": "Export All Content",
+      "exportHint": "Download all content as JSON",
+      "importAll": "Import Content",
+      "importHint": "Upload JSON file to import content",
+      "saveChanges": "Save Changes",
+      "saving": "Saving...",
+      "saved": "Settings saved successfully",
+      "error": "Failed to save settings"
+    },
+    "seo": {
+      "title": "SEO Settings",
+      "metaTitle": "Meta Title",
+      "metaTitleHint": "Recommended: 50-60 characters",
+      "metaDescription": "Meta Description",
+      "metaDescriptionHint": "Recommended: 150-160 characters",
+      "canonical": "Canonical URL",
+      "canonicalHint": "Path relative to site root (e.g., /about)",
+      "robots": "Robots",
+      "robotsHint": "Meta robots directive",
+      "openGraph": "Open Graph",
+      "ogTitle": "OG Title",
+      "ogTitleHint": "Title for social sharing (defaults to meta title)",
+      "ogDescription": "OG Description",
+      "ogDescriptionHint": "Description for social sharing",
+      "ogImage": "OG Image",
+      "ogImageHint": "Image for social sharing",
+      "ogType": "OG Type",
+      "twitter": "Twitter Card",
+      "twitterCard": "Card Type",
+      "jsonLd": "Structured Data (JSON-LD)",
+      "jsonLdHint": "Schema.org structured data",
+      "characters": "characters"
+    },
+    "locales": {
+      "en": "English",
+      "he": "Hebrew",
+      "fr": "French",
+      "selectLocale": "Select language to edit"
+    },
+    "toast": {
+      "draftSaved": "Draft saved",
+      "published": "Published successfully",
+      "saved": "Saved successfully",
+      "error": "An error occurred",
+      "loadError": "Failed to load data"
     }
   },
   "dashboard": {
@@ -2188,6 +2348,8 @@
     "h1IssueTooltip": "H1 Issue: Page is missing a valid H1 heading",
     "removeFailed": "Failed to remove item",
     "deleteFailed": "Failed to delete item",
+    "protectTooltip": "Protect from merge/redirect",
+    "unprotectTooltip": "Remove protection",
     "removeItemConfirm": "Are you sure you want to remove \"{title}\" from the platform? This will NOT affect the client's website.",
     "deleteItemConfirm": "Are you sure you want to delete \"{title}\"? This will move the item to trash on the client's website.",
     "bulk": {
@@ -2724,7 +2886,7 @@
       "createFailed": "Failed to create listing. Please try again."
     },
     "createListing": {
-      "button": "List My Website",
+      "button": "Add Website",
       "title": "List Your Website",
       "selectSite": "Select Website",
       "chooseSite": "Choose a website to list...",
@@ -2752,7 +2914,21 @@
       "monthlyTraffic": "Monthly Traffic",
       "monthlyVisitors": "Monthly visitors",
       "metricsSource": "Data from",
-      "metricsUnavailable": "Domain metrics could not be fetched. Configure SEMrush / Ahrefs API keys."
+      "metricsUnavailable": "Domain metrics could not be fetched. Configure SEMrush / Ahrefs API keys.",
+      "daInfo": "Click to learn how to find your DA score",
+      "drInfo": "Click to learn how to find your DR score",
+      "daInfoTitle": "Domain Authority (DA)",
+      "drInfoTitle": "Domain Rating (DR)",
+      "daInfoLong": "<strong>Domain Authority (DA)</strong> is a score developed by <a href=\"https://moz.com/learn/seo/domain-authority\" target=\"_blank\" rel=\"noopener noreferrer\">Moz</a> that predicts how well a website will rank on search engines. It ranges from 0 to 100.<br/><br/><strong>How to check your DA:</strong><ol><li>Go to <a href=\"https://moz.com/domain-analysis\" target=\"_blank\" rel=\"noopener noreferrer\">Moz Domain Analysis</a> (free)</li><li>Enter your domain and click \"Analyze domain\"</li><li>Your DA score will appear at the top of the results</li></ol>You can also use the <a href=\"https://moz.com/products/pro\" target=\"_blank\" rel=\"noopener noreferrer\">MozBar browser extension</a> to check DA instantly on any page.",
+      "drInfoLong": "<strong>Domain Rating (DR)</strong> is a metric by <a href=\"https://ahrefs.com/blog/domain-rating/\" target=\"_blank\" rel=\"noopener noreferrer\">Ahrefs</a> that shows the strength of a website's backlink profile. It ranges from 0 to 100.<br/><br/><strong>How to check your DR:</strong><ol><li>Go to <a href=\"https://ahrefs.com/website-authority-checker\" target=\"_blank\" rel=\"noopener noreferrer\">Ahrefs Website Authority Checker</a> (free)</li><li>Enter your domain and click \"Check Authority\"</li><li>Your DR score will appear in the results</li></ol>For more detailed backlink analysis, use the <a href=\"https://ahrefs.com/site-explorer\" target=\"_blank\" rel=\"noopener noreferrer\">Ahrefs Site Explorer</a> tool.",
+      "gotIt": "Got it",
+      "publishMode": "Publish Mode",
+      "publishAuto": "Automatic",
+      "publishManual": "Manual",
+      "publishAutoHint": "Backlink posts will be published automatically on your WordPress site via the Ghost Post plugin.",
+      "publishManualHint": "You can switch to automatic publishing since your site supports it.",
+      "publishManualOnly": "Manual only — connect the Ghost Post WordPress plugin to enable automatic publishing.",
+      "aiGenerating": "AI is generating..."
     }
   },
   "settings": {
@@ -4375,7 +4551,10 @@
       "internalLinksSEO": "SEO best practice: 2-4 internal links per 1000 words helps with rankings and user navigation",
       "selectKeywordsFirst": "Please select keywords first to find competitors",
       "manuallyAdded": "Manually added",
-      "skipped": "Skipped"
+      "skipped": "Skipped",
+      "processing": "Processing...",
+      "visitWebsite": "Visit website",
+      "fetchingBlogPosts": "Fetching your latest blog posts..."
     },
     "blogDiscovery": {
       "hasBlog": "We couldn't find blog articles on your website. Do you have a blog page?",
@@ -4421,6 +4600,10 @@
       "benefit2": "Built-in SEO optimization",
       "benefit3": "Manage content directly from Ghost Post",
       "downloadButton": "Download Plugin",
+      "connected": "WordPress plugin connected successfully!",
+      "waitingForConnection": "Waiting for plugin connection... Install and activate the plugin in WordPress.",
+      "checkConnection": "I installed & activated it — Check Connection",
+      "connectionTimeout": "We couldn't detect the plugin connection. You can try again or skip and set it up later in Settings.",
       "noSiteKey": "Plugin will be available after setup is complete.",
       "skipText": "Skip \u2014 I'll install it later"
     },
@@ -6307,7 +6490,7 @@
         "title": "Keyword Cannibalization Detected",
         "description": "{count} keywords are ranking with multiple pages, diluting your ranking power. Consolidate content to avoid competing with yourself.",
         "proactive": {
-          "title": "Content Overlap Risk Detected",
+          "title": "Potential Cannibalization Detected",
           "description": "{count} pages have highly similar titles or focus keywords and may compete for the same rankings. Review and differentiate these pages before they start cannibalizing each other."
         },
         "semantic": {
@@ -6424,6 +6607,8 @@
       "words": "words",
       "mergeInstructionsLabel": "Merge Instructions for AI",
       "mergeInstructionsPlaceholder": "Add custom instructions for how the AI should merge the content...",
+      "mergePlanLabel": "AI Merge Plan (Edit before applying)",
+      "mergePlanHint": "Review the AI's merge plan below. Edit, remove, or add your own instructions — this brief drives the final content generation.",
       "mergedPagePreview": "Merged Page Preview",
       "articleType": "Article Type",
       "contentImagesToGenerate": "Content images to generate",

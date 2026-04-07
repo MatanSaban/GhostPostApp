@@ -10,10 +10,13 @@
  */
 
 // Current plugin version - increment this when making updates
-export const PLUGIN_VERSION = "2.3.7";
+export const PLUGIN_VERSION = "2.3.8";
 
 // Changelog for the current version
 export const PLUGIN_CHANGELOG = `
+= 2.3.8 =
+* NEW: Internal link healing endpoint (search-replace-links) for cannibalization fix flow
+
 = 2.3.7 =
 * IMPROVE: Redirects now match with or without trailing slash (e.g. /path and /path/ both redirect)
 * IMPROVE: Source URLs are normalized (trailing slash stripped) on save for consistent duplicate detection

@@ -1286,9 +1286,27 @@
 /* Merge Instructions Section */
 .mergeInstructionsSection {
   margin-top: 12px;
-  padding: 10px;
+  padding: 14px;
   background: var(--bg-hover);
   border-radius: 8px;
+  border: 1px solid var(--border);
+}
+
+.mergeInstructionsLabel {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 6px;
+}
+
+.mergeInstructionsHint {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin: 0 0 10px;
+  line-height: 1.4;
 }
 
 .mergeInstructionsTextarea {

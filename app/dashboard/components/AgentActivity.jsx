@@ -456,7 +456,7 @@ function InsightDetails({ insight, translations, pluginConnected, onOpenFixSingl
     };
     return (
       <div className={styles.detailSection}>
-        {d.issues.slice(0, 3).map((issue, i) => (
+        {d.issues.map((issue, i) => (
           <div key={i} className={styles.cannibalizationIssue}>
             {/* Confidence badge */}
             <div className={styles.cannibalizationHeader}>
@@ -524,11 +524,6 @@ function InsightDetails({ insight, translations, pluginConnected, onOpenFixSingl
           </div>
         ))}
         
-        {d.count > d.issues.length && (
-          <p className={styles.detailMore}>
-            {(labels.andMore || 'and {count} more...').replace('{count}', d.count - d.issues.length)}
-          </p>
-        )}
       </div>
     );
   }

@@ -184,6 +184,8 @@ export async function POST(request, { params }) {
             id: true,
             gscConnected: true,
             gscSiteUrl: true,
+            gaConnected: true,
+            gaPropertyId: true,
             accessToken: true,
             refreshToken: true,
             tokenExpiresAt: true,

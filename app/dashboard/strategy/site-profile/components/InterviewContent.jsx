@@ -85,7 +85,7 @@ export function InterviewContent({ translations }) {
   const [submittingQuestion, setSubmittingQuestion] = useState(null); // ID of question being submitted
   
   const { selectedSite } = useSite();
-  const { locale } = useLocale();
+  const { locale, t } = useLocale();
 
   // Get available posts from profile data
   const availablePosts = profileData?.availablePosts || [];
@@ -168,7 +168,7 @@ export function InterviewContent({ translations }) {
     
     // Validate required questions
     if (question.required && !skipped && !answer.trim()) {
-      alert('יש למלא תשובה לשאלה זו');
+      alert(t('interviewWizard.validation.required'));
       return;
     }
     
@@ -428,7 +428,7 @@ export function InterviewContent({ translations }) {
     try {
       new URL(url);
     } catch {
-      alert('כתובת לא תקינה');
+      alert(t('interviewWizard.validation.url'));
       return;
     }
     
@@ -508,11 +508,11 @@ export function InterviewContent({ translations }) {
       } else {
         const error = await response.json();
         console.error('Failed to fetch posts:', error.error);
-        alert(error.error || 'שגיאה בשליפת המאמרים');
+        alert(error.error || t('interviewWizard.blogDiscovery.fetchError'));
       }
     } catch (error) {
       console.error('Error fetching posts:', error);
-      alert('שגיאה בשליפת המאמרים מהאתר');
+      alert(t('interviewWizard.blogDiscovery.fetchError'));
     } finally {
       setIsFetchingPosts(false);
     }

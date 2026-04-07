@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef, Fragment } from 'react';
 import { createPortal } from 'react-dom';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
@@ -273,12 +273,20 @@ export default function FixPreviewModal({ open, onClose, insight, translations, 
       return indicesToUse.map(i => {
         const issue = issues[i];
         if (!issue) return null;
+        const urls = issue.urls || [];
+        const entities = issue.entities || [issue.entityA, issue.entityB].filter(Boolean);
         return {
           issueIndex: i,
-          urlA: issue.urls?.[0] || '',
-          urlB: issue.urls?.[1] || '',
-          titleA: issue.entityA?.title || '',
-          titleB: issue.entityB?.title || '',
+          // Full pages array for N-page support
+          pages: urls.map((url, idx) => ({
+            url,
+            title: entities[idx]?.title || '',
+          })),
+          // Backward compat
+          urlA: urls[0] || '',
+          urlB: urls[1] || '',
+          titleA: entities[0]?.title || '',
+          titleB: entities[1]?.title || '',
           status: 'loading',
           isCannibalization: true,
           recommendation: null,
@@ -344,10 +352,9 @@ export default function FixPreviewModal({ open, onClose, insight, translations, 
             setProposals(prev => prev.map((p, j) => j === idx ? data.proposal : p));
             // Populate merge instructions immediately alongside proposals update
             if (data.proposal.recommendation?.mergeInstructions) {
-              setMergeInstructions(prev => {
-                if (prev[idx] !== undefined) return prev;
-                return { ...prev, [idx]: formatMergeInstructionsAsList(data.proposal.recommendation.mergeInstructions) };
-              });
+              setMergeInstructions(prev => ({
+                ...prev, [idx]: formatMergeInstructionsAsList(data.proposal.recommendation.mergeInstructions)
+              }));
             }
             // Populate article type and word count immediately
             if (data.proposal.recommendation?.mergedPageChanges?.articleType) {
@@ -471,6 +478,12 @@ export default function FixPreviewModal({ open, onClose, insight, translations, 
       if (!res.ok) throw new Error(data.error || 'Regeneration failed');
       if (data.proposal) {
         setProposals(prev => prev.map((p, i) => i === idx ? data.proposal : p));
+        // Update merge instructions on regeneration
+        if (data.proposal.recommendation?.mergeInstructions) {
+          setMergeInstructions(prev => ({
+            ...prev, [idx]: formatMergeInstructionsAsList(data.proposal.recommendation.mergeInstructions)
+          }));
+        }
       }
     } catch (err) {
       console.error('[FixPreview] regenerate error:', err);
@@ -905,17 +918,16 @@ export default function FixPreviewModal({ open, onClose, insight, translations, 
                     {isSkeleton && p.isCannibalization ? (
                       <div className={styles.cannibalizationSkeleton}>
                         <div className={styles.cannibalizationPagesRow}>
-                          <div className={styles.cannibalizationPage}>
-                            <div className={styles.cannibalizationPageLabel}>{dl.pageA || 'Page A'}</div>
-                            <span className={styles.skeletonBar} style={{ width: '80%', height: '14px' }} />
-                            <span className={styles.skeletonBar} style={{ width: '60%', height: '12px', marginTop: '4px' }} />
-                          </div>
-                          <div className={styles.cannibalizationVs}>{t.vs || 'VS'}</div>
-                          <div className={styles.cannibalizationPage}>
-                            <div className={styles.cannibalizationPageLabel}>{dl.pageB || 'Page B'}</div>
-                            <span className={styles.skeletonBar} style={{ width: '80%', height: '14px' }} />
-                            <span className={styles.skeletonBar} style={{ width: '60%', height: '12px', marginTop: '4px' }} />
-                          </div>
+                          {(p.pages || [{ label: 'A' }, { label: 'B' }]).map((page, i) => (
+                            <Fragment key={i}>
+                              {i > 0 && <div className={styles.cannibalizationVs}>{t.vs || 'VS'}</div>}
+                              <div className={styles.cannibalizationPage}>
+                                <div className={styles.cannibalizationPageLabel}>{dl[`page${String.fromCharCode(65 + i)}`] || `Page ${String.fromCharCode(65 + i)}`}</div>
+                                <span className={styles.skeletonBar} style={{ width: '80%', height: '14px' }} />
+                                <span className={styles.skeletonBar} style={{ width: '60%', height: '12px', marginTop: '4px' }} />
+                              </div>
+                            </Fragment>
+                          ))}
                         </div>
                         <div className={styles.seoField} style={{ marginTop: '12px' }}>
                           <span className={styles.skeletonBar} style={{ width: '40%', height: '16px' }} />
@@ -967,79 +979,52 @@ export default function FixPreviewModal({ open, onClose, insight, translations, 
 
                         {/* Pages comparison grid */}
                         <div className={styles.cannibalizationPagesGrid}>
-                          {/* Page A */}
-                          <div className={styles.cannibalizationPageCard}>
-                            <div className={styles.cannibalizationPageHeader}>
-                              <span className={styles.cannibalizationPageTag}>A</span>
-                              <a href={p.urlA} target="_blank" rel="noopener noreferrer" className={styles.cannibalizationPageUrl}>
-                                <bdi dir="ltr">{formatUrl(p.urlA)}</bdi>
-                                <ExternalLink size={11} />
-                              </a>
-                            </div>
-                            <div className={styles.cannibalizationPageTitle}>{decodeUrl(p.titleA)}</div>
-                            
-                            {p.recommendation?.pageAChanges && (
-                              <div className={styles.cannibalizationChanges}>
-                                {p.recommendation.recommendedAction === 'DIFFERENTIATE' && (
-                                  <div className={styles.cannibalizationChangeItem}>
-                                    <span className={styles.cannibalizationChangeLabel}>{t.fixFieldTitle || 'SEO Title'}</span>
-                                    <span className={styles.cannibalizationChangeValue}>{p.recommendation.pageAChanges.newTitle}</span>
+                          {(p.pages || [
+                            { url: p.urlA, title: p.titleA },
+                            { url: p.urlB, title: p.titleB },
+                          ]).map((page, pageIdx) => {
+                            const label = String.fromCharCode(65 + pageIdx);
+                            const pageChanges = p.recommendation?.pagesChanges?.[pageIdx] 
+                              || (pageIdx === 0 ? p.recommendation?.pageAChanges : null)
+                              || (pageIdx === 1 ? p.recommendation?.pageBChanges : null);
+                            return (
+                              <div key={pageIdx} className={styles.cannibalizationPageCard}>
+                                <div className={styles.cannibalizationPageHeader}>
+                                  <span className={styles.cannibalizationPageTag}>{label}</span>
+                                  <a href={page.url} target="_blank" rel="noopener noreferrer" className={styles.cannibalizationPageUrl}>
+                                    <bdi dir="ltr">{formatUrl(page.url)}</bdi>
+                                    <ExternalLink size={11} />
+                                  </a>
+                                </div>
+                                <div className={styles.cannibalizationPageTitle}>{decodeUrl(page.title)}</div>
+                                
+                                {pageChanges && (
+                                  <div className={styles.cannibalizationChanges}>
+                                    {p.recommendation.recommendedAction === 'DIFFERENTIATE' && (
+                                      <div className={styles.cannibalizationChangeItem}>
+                                        <span className={styles.cannibalizationChangeLabel}>{t.fixFieldTitle || 'SEO Title'}</span>
+                                        <span className={styles.cannibalizationChangeValue}>{pageChanges.newTitle}</span>
+                                      </div>
+                                    )}
+                                    {p.recommendation.recommendedAction === 'DIFFERENTIATE' && (
+                                      <div className={styles.cannibalizationChangeItem}>
+                                        <span className={styles.cannibalizationChangeLabel}>{t.fixFieldDesc || 'Description'}</span>
+                                        <span className={styles.cannibalizationChangeValue}>{pageChanges.newDescription}</span>
+                                      </div>
+                                    )}
+                                    <div className={styles.cannibalizationChangeItem}>
+                                      <span className={styles.cannibalizationChangeLabel}>{dl.focusKeyword || 'Focus Keyword'}</span>
+                                      <span className={`${styles.cannibalizationChangeValue} ${styles.cannibalizationKeyword}`}>{pageChanges.newFocusKeyword}</span>
+                                    </div>
+                                    <div className={styles.cannibalizationChangeItem}>
+                                      <span className={styles.cannibalizationChangeLabel}>{dl.searchIntent || 'Search Intent'}</span>
+                                      <span className={styles.cannibalizationChangeValue}>{pageChanges.targetAngle}</span>
+                                    </div>
                                   </div>
                                 )}
-                                {p.recommendation.recommendedAction === 'DIFFERENTIATE' && (
-                                  <div className={styles.cannibalizationChangeItem}>
-                                    <span className={styles.cannibalizationChangeLabel}>{t.fixFieldDesc || 'Description'}</span>
-                                    <span className={styles.cannibalizationChangeValue}>{p.recommendation.pageAChanges.newDescription}</span>
-                                  </div>
-                                )}
-                                <div className={styles.cannibalizationChangeItem}>
-                                  <span className={styles.cannibalizationChangeLabel}>{dl.focusKeyword || 'Focus Keyword'}</span>
-                                  <span className={`${styles.cannibalizationChangeValue} ${styles.cannibalizationKeyword}`}>{p.recommendation.pageAChanges.newFocusKeyword}</span>
-                                </div>
-                                <div className={styles.cannibalizationChangeItem}>
-                                  <span className={styles.cannibalizationChangeLabel}>{dl.searchIntent || 'Search Intent'}</span>
-                                  <span className={styles.cannibalizationChangeValue}>{p.recommendation.pageAChanges.targetAngle}</span>
-                                </div>
                               </div>
-                            )}
-                          </div>
-
-                          {/* Page B */}
-                          <div className={styles.cannibalizationPageCard}>
-                            <div className={styles.cannibalizationPageHeader}>
-                              <span className={styles.cannibalizationPageTag}>B</span>
-                              <a href={p.urlB} target="_blank" rel="noopener noreferrer" className={styles.cannibalizationPageUrl}>
-                                <bdi dir="ltr">{formatUrl(p.urlB)}</bdi>
-                                <ExternalLink size={11} />
-                              </a>
-                            </div>
-                            <div className={styles.cannibalizationPageTitle}>{decodeUrl(p.titleB)}</div>
-                            
-                            {p.recommendation?.pageBChanges && (
-                              <div className={styles.cannibalizationChanges}>
-                                {p.recommendation.recommendedAction === 'DIFFERENTIATE' && (
-                                  <div className={styles.cannibalizationChangeItem}>
-                                    <span className={styles.cannibalizationChangeLabel}>{t.fixFieldTitle || 'SEO Title'}</span>
-                                    <span className={styles.cannibalizationChangeValue}>{p.recommendation.pageBChanges.newTitle}</span>
-                                  </div>
-                                )}
-                                {p.recommendation.recommendedAction === 'DIFFERENTIATE' && (
-                                  <div className={styles.cannibalizationChangeItem}>
-                                    <span className={styles.cannibalizationChangeLabel}>{t.fixFieldDesc || 'Description'}</span>
-                                    <span className={styles.cannibalizationChangeValue}>{p.recommendation.pageBChanges.newDescription}</span>
-                                  </div>
-                                )}
-                                <div className={styles.cannibalizationChangeItem}>
-                                  <span className={styles.cannibalizationChangeLabel}>{dl.focusKeyword || 'Focus Keyword'}</span>
-                                  <span className={`${styles.cannibalizationChangeValue} ${styles.cannibalizationKeyword}`}>{p.recommendation.pageBChanges.newFocusKeyword}</span>
-                                </div>
-                                <div className={styles.cannibalizationChangeItem}>
-                                  <span className={styles.cannibalizationChangeLabel}>{dl.searchIntent || 'Search Intent'}</span>
-                                  <span className={styles.cannibalizationChangeValue}>{p.recommendation.pageBChanges.targetAngle}</span>
-                                </div>
-                              </div>
-                            )}
-                          </div>
+                            );
+                          })}
                         </div>
 
                         {/* Merged Page SEO Preview - for MERGE action */}
@@ -1349,26 +1334,30 @@ export default function FixPreviewModal({ open, onClose, insight, translations, 
                               </div>
                             )}
                             
-                            {/* Editable Merge Instructions */}
+                            {/* Editable Merge Instructions — AI Merge Plan */}
                             {!appliedResult && (
                               <div className={styles.mergeInstructionsSection}>
-                                <label className={styles.settingLabel}>
-                                  {dl.mergeInstructionsLabel || 'Merge Instructions for AI'}
+                                <label className={styles.mergeInstructionsLabel}>
+                                  <Edit3 size={14} />
+                                  {dl.mergePlanLabel || 'AI Merge Plan (Edit before applying)'}
                                 </label>
+                                <p className={styles.mergeInstructionsHint}>
+                                  {dl.mergePlanHint || 'Review the AI\'s merge plan below. Edit, remove, or add your own instructions — this brief drives the final content generation.'}
+                                </p>
                                 <textarea
                                   className={styles.mergeInstructionsTextarea}
                                   placeholder={dl.mergeInstructionsPlaceholder || 'Instructions for merging the content...'}
                                   value={getMergeInstructions(idx)}
                                   onChange={(e) => setMergeInstructions(prev => ({ ...prev, [idx]: e.target.value }))}
-                                  rows={4}
+                                  rows={8}
                                 />
                               </div>
                             )}
                           </div>
                         )}
 
-                        {/* Merge instructions or canonical target */}
-                        {p.recommendation?.mergeInstructions && (
+                        {/* Merge instructions (static display) — only for non-MERGE actions, since MERGE has the editable textarea above */}
+                        {p.recommendation?.mergeInstructions && p.recommendation?.recommendedAction !== 'MERGE' && (
                           <div className={styles.cannibalizationInstructions}>
                             <strong>{dl.mergeInstructions || 'Merge Instructions'}:</strong>
                             {formatInstructionsAsList(p.recommendation.mergeInstructions)}

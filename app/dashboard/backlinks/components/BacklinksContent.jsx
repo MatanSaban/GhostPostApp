@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { Link2, ExternalLink, Globe, Tag, Languages, Search, X, Shield, ShoppingBag, DollarSign, Plus, Loader2 } from 'lucide-react';
+import { createPortal } from 'react-dom';
+import { Link2, ExternalLink, Globe, Tag, Languages, Search, X, Shield, ShoppingBag, DollarSign, Plus, Loader2, Info } from 'lucide-react';
 import { useLocale } from '@/app/context/locale-context';
 import { useUser } from '@/app/context/user-context';
 import { useSite } from '@/app/context/site-context';
@@ -28,23 +29,65 @@ function CreateListingModal({ userSites, t, onClose, onSubmit }) {
   const [metricsAutoMode, setMetricsAutoMode] = useState(null); // null=unknown, true=API on, false=manual
   const [pricingType, setPricingType] = useState('money');
   const [price, setPrice] = useState('');
-  const [currency, setCurrency] = useState('USD');
+  const [currency, setCurrency] = useState('ILS');
   const [aiCreditsPrice, setAiCreditsPrice] = useState('');
   const [maxSlots, setMaxSlots] = useState('');
   const [turnaroundDays, setTurnaroundDays] = useState('7');
   const [isProcessing, setIsProcessing] = useState(false);
+  const [infoPopup, setInfoPopup] = useState(null); // 'da' | 'dr' | null
+  const [publishMode, setPublishMode] = useState('manual');
+  const [aiGenerating, setAiGenerating] = useState(false);
 
   const selectedSite = selectedSiteIdx !== '' ? userSites[Number(selectedSiteIdx)] : null;
   const domain = selectedSite?.siteUrl || '';
 
-  // Auto-fill category and language when a site is selected
+  // Auto-fill category, language, and publishMode when a site is selected
+  // Then trigger AI generation for title & description
   useEffect(() => {
     if (selectedSite) {
       if (selectedSite.businessCategory) setCategory(selectedSite.businessCategory);
       if (selectedSite.contentLanguage) setLanguage(selectedSite.contentLanguage);
+      // Auto-set publishMode: auto only if WordPress + plugin connected
+      if (selectedSite.isWordPress && selectedSite.hasPlugin) {
+        setPublishMode('auto');
+      } else {
+        setPublishMode('manual');
+      }
+
+      // AI-generate title & description
+      setTitle('');
+      setDescription('');
+      setAiGenerating(true);
+      const lang = selectedSite.contentLanguage || 'en';
+      fetch('/api/backlinks/generate-listing', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          domain: selectedSite.siteUrl,
+          businessName: selectedSite.businessName || selectedSite.siteName || '',
+          businessAbout: selectedSite.businessAbout || '',
+          businessCategory: selectedSite.businessCategory || '',
+          language: lang,
+        }),
+      })
+        .then(r => r.json())
+        .then(data => {
+          if (data.title) setTitle(data.title);
+          if (data.description) setDescription(data.description);
+        })
+        .catch(() => {
+          // Fallback to basic data if AI fails
+          setTitle(selectedSite.businessName || selectedSite.siteName || '');
+          setDescription(selectedSite.businessAbout || '');
+        })
+        .finally(() => setAiGenerating(false));
     } else {
       setCategory('');
       setLanguage('en');
+      setTitle('');
+      setDescription('');
+      setPublishMode('manual');
+      setAiGenerating(false);
     }
   }, [selectedSite]);
 
@@ -65,7 +108,8 @@ function CreateListingModal({ userSites, t, onClose, onSubmit }) {
     setMonthlyTraffic('');
     setMetricsSources([]);
 
-    fetch(`/api/backlinks/domain-metrics?domain=${encodeURIComponent(domain)}`)
+    const metricsUrl = `/api/backlinks/domain-metrics?domain=${encodeURIComponent(domain)}${selectedSite?.siteId ? `&siteId=${encodeURIComponent(selectedSite.siteId)}` : ''}`;
+    fetch(metricsUrl)
       .then(r => r.json())
       .then(data => {
         if (cancelled) return;
@@ -81,7 +125,7 @@ function CreateListingModal({ userSites, t, onClose, onSubmit }) {
       .finally(() => { if (!cancelled) setMetricsLoading(false); });
 
     return () => { cancelled = true; };
-  }, [domain]);
+  }, [domain, selectedSite?.siteId]);
 
   const isManualMetrics = metricsAutoMode !== true;
 
@@ -116,13 +160,14 @@ function CreateListingModal({ userSites, t, onClose, onSubmit }) {
         aiCreditsPrice: pricingType === 'credits' && aiCreditsPrice ? parseInt(aiCreditsPrice, 10) : null,
         maxSlots: maxSlots ? parseInt(maxSlots, 10) : null,
         turnaroundDays: turnaroundDays ? parseInt(turnaroundDays, 10) : 7,
+        publishMode,
       });
     } finally {
       setIsProcessing(false);
     }
   };
 
-  return (
+  return createPortal(
     <div className={styles.modalOverlay} onClick={onClose}>
       <div className={`${styles.modal} ${styles.modalWide} ${isMaximized ? 'modal-maximized' : ''}`} onClick={e => e.stopPropagation()}>
         <div className={styles.modalHeader}>
@@ -172,11 +217,14 @@ function CreateListingModal({ userSites, t, onClose, onSubmit }) {
 
           {/* Title */}
           <div className={styles.modalField}>
-            <label className={styles.modalLabel}>{t('backlinks.createListing.listingTitle')}</label>
+            <label className={styles.modalLabel}>
+              {t('backlinks.createListing.listingTitle')}
+              {aiGenerating && <Loader2 size={12} className={styles.metricSpinner} />}
+            </label>
             <input
               className={styles.modalInput}
               type="text"
-              placeholder={t('backlinks.createListing.titlePlaceholder')}
+              placeholder={aiGenerating ? t('backlinks.createListing.aiGenerating') : t('backlinks.createListing.titlePlaceholder')}
               value={title}
               onChange={e => setTitle(e.target.value)}
             />
@@ -184,11 +232,14 @@ function CreateListingModal({ userSites, t, onClose, onSubmit }) {
 
           {/* Description */}
           <div className={styles.modalField}>
-            <label className={styles.modalLabel}>{t('backlinks.createListing.description')}</label>
+            <label className={styles.modalLabel}>
+              {t('backlinks.createListing.description')}
+              {aiGenerating && <Loader2 size={12} className={styles.metricSpinner} />}
+            </label>
             <textarea
               className={`${styles.modalInput} ${styles.modalTextarea}`}
               rows={3}
-              placeholder={t('backlinks.createListing.descriptionPlaceholder')}
+              placeholder={aiGenerating ? t('backlinks.createListing.aiGenerating') : t('backlinks.createListing.descriptionPlaceholder')}
               value={description}
               onChange={e => setDescription(e.target.value)}
             />
@@ -232,28 +283,40 @@ function CreateListingModal({ userSites, t, onClose, onSubmit }) {
               <label className={styles.modalLabel}>
                 {t('backlinks.card.da')}
                 {metricsLoading && <Loader2 size={12} className={styles.metricSpinner} />}
+                <span
+                  className={`${styles.infoIconBtn} ${styles.hasTooltip}`}
+                  data-tooltip={t('backlinks.createListing.daInfo')}
+                  onClick={() => setInfoPopup('da')}
+                >
+                  <Info size={14} />
+                </span>
               </label>
               <input
-                className={`${styles.modalInput} ${!isManualMetrics ? styles.readonlyMetric : ''}`}
+                className={styles.modalInput}
                 type="number" min="0" max="100"
                 placeholder={metricsLoading ? '...' : '0-100'}
                 value={domainAuthority}
-                onChange={isManualMetrics ? e => setDomainAuthority(e.target.value) : undefined}
-                readOnly={!isManualMetrics}
+                onChange={e => setDomainAuthority(e.target.value)}
               />
             </div>
             <div className={styles.modalField}>
               <label className={styles.modalLabel}>
                 {t('backlinks.card.dr')}
                 {metricsLoading && <Loader2 size={12} className={styles.metricSpinner} />}
+                <span
+                  className={`${styles.infoIconBtn} ${styles.hasTooltip}`}
+                  data-tooltip={t('backlinks.createListing.drInfo')}
+                  onClick={() => setInfoPopup('dr')}
+                >
+                  <Info size={14} />
+                </span>
               </label>
               <input
-                className={`${styles.modalInput} ${!isManualMetrics ? styles.readonlyMetric : ''}`}
+                className={styles.modalInput}
                 type="number" min="0" max="100"
                 placeholder={metricsLoading ? '...' : '0-100'}
                 value={domainRating}
-                onChange={isManualMetrics ? e => setDomainRating(e.target.value) : undefined}
-                readOnly={!isManualMetrics}
+                onChange={e => setDomainRating(e.target.value)}
               />
             </div>
             <div className={styles.modalField}>
@@ -300,9 +363,6 @@ function CreateListingModal({ userSites, t, onClose, onSubmit }) {
               <div className={styles.modalField}>
                 <label className={styles.modalLabel}>{t('backlinks.createListing.currency')}</label>
                 <select className={styles.modalSelect} value={currency} onChange={e => setCurrency(e.target.value)}>
-                  <option value="USD">USD</option>
-                  <option value="EUR">EUR</option>
-                  <option value="GBP">GBP</option>
                   <option value="ILS">ILS</option>
                 </select>
               </div>
@@ -323,6 +383,31 @@ function CreateListingModal({ userSites, t, onClose, onSubmit }) {
               </div>
             </div>
           )}
+
+          {/* Publish Mode */}
+          {selectedSite && (
+            <div className={styles.modalField}>
+              <label className={styles.modalLabel}>{t('backlinks.createListing.publishMode')}</label>
+              <select
+                className={styles.modalSelect}
+                value={publishMode}
+                onChange={e => setPublishMode(e.target.value)}
+              >
+                <option value="manual">{t('backlinks.createListing.publishManual')}</option>
+                {selectedSite.isWordPress && selectedSite.hasPlugin && (
+                  <option value="auto">{t('backlinks.createListing.publishAuto')}</option>
+                )}
+              </select>
+              <span className={styles.publishModeHint}>
+                {publishMode === 'auto'
+                  ? t('backlinks.createListing.publishAutoHint')
+                  : selectedSite.isWordPress && selectedSite.hasPlugin
+                    ? t('backlinks.createListing.publishManualHint')
+                    : t('backlinks.createListing.publishManualOnly')
+                }
+              </span>
+            </div>
+          )}
         </div>
 
         {/* Footer */}
@@ -339,7 +424,37 @@ function CreateListingModal({ userSites, t, onClose, onSubmit }) {
           </Button>
         </div>
       </div>
-    </div>
+
+      {/* DA/DR Info Popup */}
+      {infoPopup && (
+        <div className={styles.infoPopupOverlay} onClick={() => setInfoPopup(null)}>
+          <div className={styles.infoPopup} onClick={e => e.stopPropagation()}>
+            <button className={styles.infoPopupClose} onClick={() => setInfoPopup(null)}>
+              <X size={18} />
+            </button>
+            <div className={styles.infoPopupHeader}>
+              <div className={styles.infoPopupIconBadge}>
+                <Info size={22} />
+              </div>
+              <h3 className={styles.infoPopupTitle}>
+                {infoPopup === 'da' ? t('backlinks.createListing.daInfoTitle') : t('backlinks.createListing.drInfoTitle')}
+              </h3>
+            </div>
+            <div className={styles.infoPopupBody}
+              dangerouslySetInnerHTML={{
+                __html: infoPopup === 'da'
+                  ? t('backlinks.createListing.daInfoLong')
+                  : t('backlinks.createListing.drInfoLong')
+              }}
+            />
+            <button className={styles.infoPopupDismiss} onClick={() => setInfoPopup(null)}>
+              {t('backlinks.createListing.gotIt')}
+            </button>
+          </div>
+        </div>
+      )}
+    </div>,
+    document.body
   );
 }
 
@@ -376,7 +491,7 @@ function PurchaseModal({ listing, sites, stats, t, onClose, onPurchase }) {
     }
   };
 
-  return (
+  return createPortal(
     <div className={styles.modalOverlay} onClick={onClose}>
       <div className={styles.modal} onClick={e => e.stopPropagation()}>
         <div className={styles.modalHeader}>
@@ -499,7 +614,8 @@ function PurchaseModal({ listing, sites, stats, t, onClose, onPurchase }) {
           </Button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
 

@@ -1084,3 +1084,204 @@
     color: #fbbf24;
   }
 }
+
+/* ── Info Icon Button (DA/DR) ───────────── */
+.infoIconBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-inline-start: 0.375rem;
+  color: var(--muted-foreground);
+  opacity: 0.55;
+  cursor: pointer;
+  transition: opacity 0.15s, color 0.15s;
+  flex-shrink: 0;
+  vertical-align: middle;
+
+  &:hover {
+    opacity: 1;
+    color: var(--primary);
+  }
+}
+
+/* ── Custom Tooltip (data-tooltip on hover) ── */
+.hasTooltip {
+  position: relative;
+}
+
+.hasTooltip::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: calc(100% + 6px);
+  inset-inline-end: 0;
+  background: var(--popover, #1f2937);
+  color: var(--popover-foreground, #f9fafb);
+  font-size: 0.625rem;
+  font-weight: 400;
+  line-height: 1.4;
+  padding: 0.4rem 0.6rem;
+  border-radius: 6px;
+  white-space: normal;
+  width: max-content;
+  max-width: 220px;
+  text-align: center;
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.15s, visibility 0.15s;
+  z-index: 9999;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
+}
+
+.hasTooltip:hover::after {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* ── Info Popup (DA/DR long explanation) ──── */
+.infoPopupOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+  z-index: 10001;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: infoFadeIn 0.15s ease;
+}
+
+@keyframes infoFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes infoSlideUp {
+  from { opacity: 0; transform: translateY(16px) scale(0.97); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.infoPopup {
+  background: var(--card);
+  border-radius: var(--radius-xl);
+  padding: 1.75rem;
+  max-width: 480px;
+  width: 90%;
+  position: relative;
+  animation: infoSlideUp 0.2s ease;
+  box-shadow: var(--shadow-lg);
+  border: 1px solid var(--border);
+
+  .dark & {
+    border-color: rgba(123, 44, 191, 0.25);
+  }
+}
+
+.infoPopupClose {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-sm);
+  border: none;
+  background: transparent;
+  color: var(--muted-foreground);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+
+  :global([dir="rtl"]) & {
+    right: auto;
+    left: 0.75rem;
+  }
+
+  &:hover {
+    background: var(--muted);
+    color: var(--foreground);
+  }
+}
+
+.infoPopupHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+}
+
+.infoPopupIconBadge {
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  color: #fff;
+}
+
+.infoPopupTitle {
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: var(--foreground);
+}
+
+.infoPopupBody {
+  font-size: 0.9rem;
+  color: var(--muted-foreground);
+  line-height: 1.7;
+  margin-bottom: 1.25rem;
+
+  strong {
+    color: var(--foreground);
+    font-weight: 600;
+  }
+
+  a {
+    color: var(--primary);
+    text-decoration: underline;
+
+    &:hover {
+      opacity: 0.8;
+    }
+  }
+
+  ol, ul {
+    padding-inline-start: 1.25rem;
+    margin: 0.5rem 0;
+  }
+
+  li {
+    margin-bottom: 0.375rem;
+  }
+}
+
+.infoPopupDismiss {
+  display: block;
+  width: 100%;
+  padding: 0.65rem;
+  margin-top: 0.5rem;
+  background: var(--primary);
+  color: var(--primary-foreground);
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: opacity 0.15s;
+
+  &:hover {
+    opacity: 0.9;
+  }
+}
+
+/* ── Publish Mode Hint ───────────────────── */
+.publishModeHint {
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+  line-height: 1.4;
+  margin-top: 0.125rem;
+}

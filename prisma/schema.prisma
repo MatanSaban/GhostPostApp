@@ -832,6 +832,7 @@ model Site {
   googleIntegration GoogleIntegration?
   members         SiteMember[]
   gscKeywordCaches GscKeywordCache[]
+  scrapeQueue     ScrapeQueue[]
 
   @@index([siteKey])
 }
@@ -1042,6 +1043,7 @@ model SiteEntity {
   metadata      Json?        // General metadata
   seoData       Json?        // Yoast/RankMath SEO data
   acfData       Json?        // ACF field data
+  isProtected   Boolean      @default(false)  // Protected from MERGE/301 in cannibalization fixes
   externalId    String?      // ID from the original CMS (WordPress, etc.)
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
@@ -1132,6 +1134,39 @@ enum SitemapScanStatus {
   SCANNING     // Scan in progress
   COMPLETED    // Scan completed successfully
   ERROR        // Scan failed
+}
+
+// Queue for async page scraping (used by sitemap delta sync)
+model ScrapeQueue {
+  id           String            @id @default(auto()) @map("_id") @db.ObjectId
+  siteId       String            @db.ObjectId
+  entityId     String?           @db.ObjectId  // Set for UPDATED entities, null for NEW
+  url          String
+  lastmod      String?           // lastmod from sitemap (ISO string)
+  action       ScrapeAction      // NEW or UPDATED
+  status       ScrapeStatus      @default(PENDING)
+  error        String?
+  attempts     Int               @default(0)
+  entityTypeId String?           @db.ObjectId  // Entity type for NEW entities
+  processedAt  DateTime?
+  createdAt    DateTime          @default(now())
+
+  site Site @relation(fields: [siteId], references: [id], onDelete: Cascade)
+
+  @@index([status, createdAt])
+  @@index([siteId])
+}
+
+enum ScrapeAction {
+  NEW
+  UPDATED
+}
+
+enum ScrapeStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
 }
 
 model Interview {
@@ -1777,6 +1812,9 @@ model BacklinkListing {
   maxSlots        Int?                                    // Max backlinks to sell (null = unlimited)
   soldCount       Int                  @default(0)
 
+  // Publishing
+  publishMode     String?              @default("manual") // "auto" (WordPress + plugin) or "manual"
+
   // Status
   status          BacklinkListingStatus @default(ACTIVE)
   isActive        Boolean              @default(true)
@@ -2104,4 +2142,92 @@ enum ReportStatus {
   DRAFT     // Generated but not sent (for review)
   SENT      // Successfully sent to recipients
   ERROR     // Failed to send
+}
+
+// ==========================================
+// WEBSITE CMS (gp-ws content management)
+// ==========================================
+
+// Site-wide SEO configuration
+model WebsiteSeo {
+  id              String   @id @default(auto()) @map("_id") @db.ObjectId
+  websiteId       String   @default("gp-ws")
+  
+  // Site-wide defaults
+  siteName        Json     // { en: "Ghost Post", he: "גוסט פוסט", fr: "Ghost Post" }
+  siteUrl         String   @default("https://ghostpost.co.il")
+  defaultOgImage  String?
+  twitterHandle   String?
+  
+  // Robots defaults
+  defaultRobots   String   @default("index, follow, max-video-preview:-1, max-image-preview:large, max-snippet:-1")
+  
+  updatedAt       DateTime @updatedAt
+  updatedBy       String?  @db.ObjectId
+  
+  @@unique([websiteId])
+  @@map("website_seo")
+}
+
+// Content and SEO per locale
+model WebsiteLocale {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  websiteId String   @default("gp-ws")
+  locale    String   // "en", "he", "fr"
+  
+  // Full content dictionary (matches gp-ws i18n structure)
+  content   Json
+  
+  // Page-level SEO per locale
+  // { home: { title, description, canonical, ogImage, ogTitle, ogDescription, robots, jsonLd }, ... }
+  seo       Json?
+  
+  // Draft system for preview before publish
+  contentDraft Json?
+  seoDraft     Json?
+  
+  // Versioning and audit
+  version   Int      @default(1)
+  updatedAt DateTime @updatedAt
+  updatedBy String?  @db.ObjectId
+  
+  @@unique([websiteId, locale])
+  @@map("website_locales")
+}
+
+// Blog posts managed from CMS (future expansion)
+model WebsiteBlogPost {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  websiteId   String   @default("gp-ws")
+  slug        String
+  
+  // Content per locale
+  content     Json     // { en: { title, excerpt, content, ... }, he: {...}, fr: {...} }
+  
+  // SEO per locale
+  seo         Json?    // { en: { title, description, ogImage, ... }, he: {...}, fr: {...} }
+  
+  // Metadata
+  author      String?
+  category    String?
+  tags        String[]
+  featuredImage String?
+  
+  // Publishing
+  status      WebsiteContentStatus @default(DRAFT)
+  publishedAt DateTime?
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  updatedBy   String?  @db.ObjectId
+  
+  @@unique([websiteId, slug])
+  @@index([websiteId, status])
+  @@map("website_blog_posts")
+}
+
+enum WebsiteContentStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
 }

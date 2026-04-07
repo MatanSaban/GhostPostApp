@@ -194,6 +194,7 @@ export async function POST(request) {
       domainRating,
       monthlyTraffic,
       maxSlots,
+      publishMode,
     } = body;
 
     if (!accountId || !siteId || !domain || !title) {
@@ -239,6 +240,7 @@ export async function POST(request) {
         domainRating: domainRating != null ? parseInt(domainRating, 10) : null,
         monthlyTraffic: monthlyTraffic != null ? parseInt(monthlyTraffic, 10) : null,
         maxSlots: maxSlots != null ? parseInt(maxSlots, 10) : null,
+        publishMode: publishMode === 'auto' ? 'auto' : 'manual',
         status: 'ACTIVE',
       },
     });

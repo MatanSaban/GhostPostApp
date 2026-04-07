@@ -48,6 +48,16 @@ export async function GET() {
                     connectionStatus: true,
                     businessCategory: true,
                     contentLanguage: true,
+                    businessName: true,
+                    businessAbout: true,
+                    platform: true,
+                    pluginVersion: true,
+                    googleIntegration: {
+                      select: {
+                        gaConnected: true,
+                        gscConnected: true,
+                      },
+                    },
                   },
                   orderBy: { name: 'asc' },
                 },
@@ -86,13 +96,46 @@ export async function GET() {
           select: { id: true, status: true },
         });
 
+        const isWordPress = (site.platform || '').toLowerCase() === 'wordpress';
+        const hasPlugin = isWordPress && site.connectionStatus === 'CONNECTED' && !!site.pluginVersion;
+
+        // Fallback to interview responses when Site-level fields are null
+        let businessCategory = site.businessCategory || null;
+        let contentLanguage = site.contentLanguage || null;
+        let businessName = site.businessName || null;
+        let businessAbout = site.businessAbout || null;
+
+        if (!businessCategory || !contentLanguage || !businessName || !businessAbout) {
+          const interview = await prisma.userInterview.findFirst({
+            where: { siteId: site.id },
+            select: { responses: true },
+            orderBy: { updatedAt: 'desc' },
+          });
+          if (interview?.responses) {
+            const r = typeof interview.responses === 'string'
+              ? JSON.parse(interview.responses)
+              : interview.responses;
+            if (!contentLanguage && r.contentLanguage) contentLanguage = r.contentLanguage;
+            if (!businessCategory && r.businessInfo?.category) businessCategory = r.businessInfo.category;
+            if (!businessName && r.businessInfo?.businessName) businessName = r.businessInfo.businessName;
+            if (!businessAbout && r.businessInfo?.about) businessAbout = r.businessInfo.about;
+          }
+        }
+
         sitesWithPermission.push({
           siteId: site.id,
           siteName: site.name,
           siteUrl: site.url,
           connectionStatus: site.connectionStatus,
-          businessCategory: site.businessCategory || null,
-          contentLanguage: site.contentLanguage || null,
+          businessCategory,
+          contentLanguage,
+          businessName,
+          businessAbout,
+          platform: site.platform || null,
+          isWordPress,
+          hasPlugin,
+          hasGa4: !!site.googleIntegration?.gaConnected,
+          hasGsc: !!site.googleIntegration?.gscConnected,
           accountId: membership.account.id,
           accountName: membership.account.name,
           hasActiveListing: !!existingListing,

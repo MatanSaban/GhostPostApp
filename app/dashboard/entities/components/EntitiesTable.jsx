@@ -16,6 +16,8 @@ import {
   Square,
   Minus,
   AlertTriangle,
+  Shield,
+  ShieldCheck,
 } from 'lucide-react';
 import { useLocale } from '@/app/context/locale-context';
 import { usePermissions } from '@/app/hooks/usePermissions';
@@ -63,6 +65,10 @@ export function EntitiesTable({
   const [deletingId, setDeletingId] = useState(null);
   const [deleteType, setDeleteType] = useState(null); // 'remove' or 'trash'
   const [refreshingId, setRefreshingId] = useState(null);
+  const [protectingId, setProtectingId] = useState(null);
+  
+  // Local optimistic state for isProtected toggles
+  const [protectedOverrides, setProtectedOverrides] = useState({});
   
   // Bulk selection state
   const [selectedIds, setSelectedIds] = useState(new Set());
@@ -136,6 +142,32 @@ export function EntitiesTable({
       await onRefreshEntity(entity.id);
     } finally {
       setRefreshingId(null);
+    }
+  };
+
+  // Toggle protected status on an entity
+  const handleToggleProtect = async (entity) => {
+    const currentValue = protectedOverrides[entity.id] ?? entity.isProtected;
+    const newValue = !currentValue;
+    
+    // Optimistic update
+    setProtectedOverrides(prev => ({ ...prev, [entity.id]: newValue }));
+    setProtectingId(entity.id);
+    try {
+      const response = await fetch(`/api/entities/${entity.id}/protect`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ isProtected: newValue }),
+      });
+      if (!response.ok) {
+        // Revert on failure
+        setProtectedOverrides(prev => ({ ...prev, [entity.id]: currentValue }));
+      }
+    } catch (error) {
+      console.error('Failed to toggle protection:', error);
+      setProtectedOverrides(prev => ({ ...prev, [entity.id]: currentValue }));
+    } finally {
+      setProtectingId(null);
     }
   };
 
@@ -397,7 +429,7 @@ export function EntitiesTable({
           }
           onSecondaryAction={onboardingVariant === 'connect' ? () => {
             // Open instructions - could link to docs or show a modal
-            window.open('https://docs.ghostpost.io/wordpress-plugin', '_blank');
+            window.open('https://docs.ghostpost.co.il/wordpress-plugin', '_blank');
           } : undefined}
         />
       ) : filteredEntities.length === 0 ? (
@@ -548,6 +580,22 @@ export function EntitiesTable({
                       >
                         <ExternalLink />
                       </a>
+                    )}
+                    {canEditEntities && (
+                      <button
+                        className={`${styles.actionButton} ${(protectedOverrides[entity.id] ?? entity.isProtected) ? styles.protected : styles.protect}`}
+                        onClick={() => handleToggleProtect(entity)}
+                        disabled={protectingId === entity.id}
+                        title={(protectedOverrides[entity.id] ?? entity.isProtected) ? t('entities.unprotectTooltip') : t('entities.protectTooltip')}
+                      >
+                        {protectingId === entity.id ? (
+                          <Loader2 className={styles.spinningIcon} />
+                        ) : (protectedOverrides[entity.id] ?? entity.isProtected) ? (
+                          <ShieldCheck />
+                        ) : (
+                          <Shield />
+                        )}
+                      </button>
                     )}
                     {canEditEntities && (
                       <button 
