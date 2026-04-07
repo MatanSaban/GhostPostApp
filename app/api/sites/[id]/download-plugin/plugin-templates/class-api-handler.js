@@ -472,6 +472,13 @@ class GP_API_Handler {
             ),
         ));
         
+        // Search & replace internal links across all content
+        register_rest_route($namespace, '/search-replace-links', array(
+            'methods' => 'POST',
+            'callback' => array($this, 'search_replace_links'),
+            'permission_callback' => array($this, 'validate_request'),
+        ));
+        
         // Media stats (for WebP conversion tool)
         register_rest_route($namespace, '/media/stats', array(
             'methods' => 'GET',
@@ -1381,6 +1388,96 @@ class GP_API_Handler {
             'enabled' => $enable,
             'headers' => $merged,
         ), 200);
+    }
+
+    // ==========================================
+    // SEARCH & REPLACE INTERNAL LINKS
+    // ==========================================
+
+    /**
+     * Search and replace internal links across all published posts and pages.
+     * Used after cannibalization merges to fix orphaned internal links.
+     */
+    public function search_replace_links(WP_REST_Request $request) {
+        $params = $request->get_json_params();
+        $search  = isset($params['search'])  ? trim($params['search'])  : '';
+        $replace = isset($params['replace']) ? trim($params['replace']) : '';
+
+        if (empty($search) || empty($replace)) {
+            return new WP_REST_Response(array(
+                'error' => '"search" and "replace" parameters are required',
+            ), 400);
+        }
+
+        if ($search === $replace) {
+            return new WP_REST_Response(array(
+                'updated' => 0,
+                'posts'   => array(),
+                'message' => 'Search and replace values are identical',
+            ), 200);
+        }
+
+        global $wpdb;
+
+        $escaped_search = $wpdb->esc_like($search);
+
+        $post_ids = $wpdb->get_col($wpdb->prepare(
+            "SELECT ID FROM {$wpdb->posts}
+             WHERE post_status = 'publish'
+               AND post_content LIKE %s",
+            '%' . $escaped_search . '%'
+        ));
+
+        if (empty($post_ids)) {
+            return new WP_REST_Response(array(
+                'updated' => 0,
+                'posts'   => array(),
+            ), 200);
+        }
+
+        $updated_posts = array();
+
+        foreach ($post_ids as $post_id) {
+            $post = get_post($post_id);
+            if (!$post) continue;
+
+            $old_content = $post->post_content;
+            $new_content = $this->replace_in_href($old_content, $search, $replace);
+
+            if ($new_content !== $old_content) {
+                wp_update_post(array(
+                    'ID'           => $post_id,
+                    'post_content' => $new_content,
+                ));
+
+                $updated_posts[] = array(
+                    'id'    => (int) $post_id,
+                    'title' => $post->post_title,
+                );
+            }
+        }
+
+        return new WP_REST_Response(array(
+            'updated' => count($updated_posts),
+            'posts'   => $updated_posts,
+        ), 200);
+    }
+
+    /**
+     * Replace a URL path only inside href attributes.
+     */
+    private function replace_in_href($content, $search, $replace) {
+        return preg_replace_callback(
+            '/(<a\\s[^>]*href=["\\'\\'])([^"\\'\\']*?)(["\\'\\'])/i',
+            function ($matches) use ($search, $replace) {
+                $prefix  = $matches[1];
+                $href    = $matches[2];
+                $suffix  = $matches[3];
+                $new_href = str_replace($search, $replace, $href);
+                return $prefix . $new_href . $suffix;
+            },
+            $content
+        );
     }
 }
 `;
