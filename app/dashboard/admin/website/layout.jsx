@@ -16,7 +16,7 @@ const NAV_ITEMS = [
 export default function WebsiteLayout({ children }) {
   const pathname = usePathname();
   const { t } = useLocale();
-
+ 
   // Determine active nav item
   const getIsActive = (href) => {
     if (href === '/dashboard/admin/website/pages') {
