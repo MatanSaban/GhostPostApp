@@ -10,10 +10,13 @@
  */
 
 // Current plugin version - increment this when making updates
-export const PLUGIN_VERSION = "2.3.8";
+export const PLUGIN_VERSION = "2.3.9";
 
 // Changelog for the current version
 export const PLUGIN_CHANGELOG = `
+= 2.3.9 =
+* FIX: Internal link healing endpoint now included in generated plugin templates
+
 = 2.3.8 =
 * NEW: Internal link healing endpoint (search-replace-links) for cannibalization fix flow
 
