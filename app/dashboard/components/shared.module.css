@@ -1191,6 +1191,10 @@
   .dark & {
     background: rgba(0, 0, 0, 0.4);
   }
+
+  .tableRow {
+    display: table-row;
+  }
 }
 
 .tableHeaderCell {
@@ -1206,6 +1210,7 @@
 .tableBody {
   .tableRow {
     transition: background-color var(--transition-fast);
+    display: table-row;
 
     &:hover {
       background: var(--muted);

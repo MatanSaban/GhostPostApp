@@ -50,29 +50,32 @@ export async function GET(request) {
     const category = searchParams.get('category') || '';
     const page = parseInt(searchParams.get('page') || '1', 10);
     const limit = parseInt(searchParams.get('limit') || '20', 10);
-    const accountId = searchParams.get('accountId');
+    const accountId = searchParams.get('accountId') || null;
 
-    if (!accountId) {
+    // Verify user belongs to account (superadmins can browse without accountId)
+    if (accountId) {
+      const membership = user.accountMemberships.find(m => m.accountId === accountId);
+      if (!membership && !user.isSuperAdmin) {
+        return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+      }
+    } else if (!user.isSuperAdmin) {
       return NextResponse.json({ error: 'accountId is required' }, { status: 400 });
     }
 
-    // Verify user belongs to account
-    const membership = user.accountMemberships.find(m => m.accountId === accountId);
-    if (!membership && !user.isSuperAdmin) {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-    }
-
-    let where = {};
+    let where = { status: 'ACTIVE', isActive: true };
     let orderBy = { createdAt: 'desc' };
 
     if (filter === 'available') {
       where = {
         status: 'ACTIVE',
         isActive: true,
-        // Exclude own listings
-        NOT: { publisherAccountId: accountId },
+        // Exclude own listings (if user has an account)
+        ...(accountId ? { NOT: { publisherAccountId: accountId } } : {}),
       };
     } else if (filter === 'purchased') {
+      if (!accountId) {
+        return NextResponse.json({ listings: [], total: 0, page, totalPages: 0 });
+      }
       // Fetch purchases by this account and return listings
       const purchases = await prisma.backlinkPurchase.findMany({
         where: { buyerAccountId: accountId },
@@ -106,10 +109,17 @@ export async function GET(request) {
         totalPages: Math.ceil(totalPurchases / limit),
       });
     } else if (filter === 'myListings') {
-      where = {
-        publisherAccountId: accountId,
-        publisherType: 'USER',
-      };
+      // Show listings from ALL of this user's accounts (not just selected)
+      const userAccountIds = user.accountMemberships.map(m => m.accountId);
+      if (user.isSuperAdmin && userAccountIds.length === 0) {
+        // Superadmin with no accounts — show all user listings
+        where = { publisherType: 'USER' };
+      } else {
+        where = {
+          publisherAccountId: { in: userAccountIds },
+          publisherType: 'USER',
+        };
+      }
     }
 
     // Apply search

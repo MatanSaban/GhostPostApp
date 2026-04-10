@@ -2,13 +2,18 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
-import { Link2, ExternalLink, Globe, Tag, Languages, Search, X, Shield, ShoppingBag, DollarSign, Plus, Loader2, Info } from 'lucide-react';
+import { Link2, ExternalLink, Globe, Tag, Languages, Search, X, Shield, ShoppingBag, DollarSign, Plus, Loader2, Info, LayoutGrid, List } from 'lucide-react';
 import { useLocale } from '@/app/context/locale-context';
 import { useUser } from '@/app/context/user-context';
 import { useSite } from '@/app/context/site-context';
 import { useModalResize, ModalResizeButton } from '@/app/components/ui/ModalResizeButton';
-import { Button } from '@/app/dashboard/components';
+import { Button, DataTable } from '@/app/dashboard/components';
 import styles from '../backlinks.module.css';
+
+// ── Currency symbol mapping ──
+const CURRENCY_SYMBOLS = { ILS: '₪', USD: '$', EUR: '€', GBP: '£' };
+const getCurrencySymbol = (code) => CURRENCY_SYMBOLS[code] || code;
+const getCurrencyName = (code, t) => t(`backlinks.currencyNames.${code}`) || code;
 
 // ──────────────────────────────────────────────
 // Create Listing Modal
@@ -363,7 +368,10 @@ function CreateListingModal({ userSites, t, onClose, onSubmit }) {
               <div className={styles.modalField}>
                 <label className={styles.modalLabel}>{t('backlinks.createListing.currency')}</label>
                 <select className={styles.modalSelect} value={currency} onChange={e => setCurrency(e.target.value)}>
-                  <option value="ILS">ILS</option>
+                  <option value="ILS">₪ ILS</option>
+                  <option value="USD">$ USD</option>
+                  <option value="EUR">€ EUR</option>
+                  <option value="GBP">£ GBP</option>
                 </select>
               </div>
               <div className={styles.modalField}>
@@ -573,7 +581,7 @@ function PurchaseModal({ listing, sites, stats, t, onClose, onPurchase }) {
                 <span className={styles.paymentDesc}>
                   {t('backlinks.purchase.directPurchaseDesc')
                     .replace('{price}', listing.price)
-                    .replace('{currency}', listing.currency)}
+                    .replace('{currency}', getCurrencySymbol(listing.currency))}
                 </span>
               </div>
             </div>
@@ -622,21 +630,18 @@ function PurchaseModal({ listing, sites, stats, t, onClose, onPurchase }) {
 // ──────────────────────────────────────────────
 // Listing Card
 // ──────────────────────────────────────────────
-function ListingCard({ listing, t, onPurchaseClick }) {
+function ListingCard({ listing, t, onPurchaseClick, isOwn, getDisplayTitle }) {
   const isSoldOut = listing.maxSlots && listing.soldCount >= listing.maxSlots;
   const hasPurchase = !!listing.purchase;
 
   return (
     <div className={styles.listingCard}>
-      {/* Header: domain + link type badge */}
+      {/* Header: domain */}
       <div className={styles.cardHeader}>
         <div className={styles.domainInfo}>
           <span className={styles.domainName}>{listing.domain?.startsWith('http') ? listing.domain : `https://${listing.domain}`}</span>
-          <span className={styles.cardTitle}>{listing.title}</span>
+          <span className={styles.cardTitle}>{getDisplayTitle(listing)}</span>
         </div>
-        <span className={`${styles.linkTypeBadge} ${listing.linkType === 'DOFOLLOW' ? styles.dofollow : styles.nofollow}`}>
-          {listing.linkType === 'DOFOLLOW' ? t('backlinks.card.dofollow') : t('backlinks.card.nofollow')}
-        </span>
       </div>
 
       {/* Metrics */}
@@ -670,25 +675,17 @@ function ListingCard({ listing, t, onPurchaseClick }) {
         )}
         {listing.language && (
           <span className={styles.tag}>
-            <Languages size={10} /> {listing.language.toUpperCase()}
+            <Languages size={10} /> {t('backlinks.siteInLanguage').replace('{language}', t(`backlinks.languageNames.${listing.language}`) || listing.language.toUpperCase())}
           </span>
         )}
-      </div>
-
-      {/* Publisher */}
-      <div className={styles.publisherRow}>
-        <span>{t('backlinks.card.publishedBy')}</span>
-        <span className={`${styles.publisherBadge} ${listing.publisherType === 'PLATFORM' ? styles.publisherPlatform : styles.publisherUser}`}>
-          {listing.publisherType === 'PLATFORM' ? t('backlinks.card.platform') : t('backlinks.card.user')}
-        </span>
       </div>
 
       {/* Footer: price + action */}
       <div className={styles.cardFooter}>
         <div className={styles.priceGroup}>
           {listing.price != null && (
-            <span className={styles.priceMain}>
-              {listing.currency === 'USD' ? '$' : listing.currency}{listing.price}
+            <span className={`${styles.priceMain} ${styles.hasTooltip}`} data-tooltip={getCurrencyName(listing.currency, t)}>
+              {getCurrencySymbol(listing.currency)}{listing.price}
             </span>
           )}
           {listing.aiCreditsPrice != null && (
@@ -701,7 +698,11 @@ function ListingCard({ listing, t, onPurchaseClick }) {
           )}
         </div>
 
-        {hasPurchase ? (
+        {isOwn ? (
+          <span className={`${styles.purchaseButton} ${styles.purchasedBadge}`}>
+            {t('backlinks.card.yourListing')}
+          </span>
+        ) : hasPurchase ? (
           <span className={`${styles.purchaseButton} ${styles.purchasedBadge}`}>
             {t('backlinks.card.purchased')}
           </span>
@@ -726,15 +727,16 @@ function ListingCard({ listing, t, onPurchaseClick }) {
 // Main Content
 // ──────────────────────────────────────────────
 export function BacklinksContent() {
-  const { t } = useLocale();
+  const { t, locale } = useLocale();
   const { user } = useUser();
   const { selectedSite } = useSite();
 
   const [listings, setListings] = useState([]);
+  const [titleTranslations, setTitleTranslations] = useState({});
   const [stats, setStats] = useState(null);
   const [sites, setSites] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [filter, setFilter] = useState('available');
+  const [filter, setFilter] = useState('all');
   const [search, setSearch] = useState('');
   const [sort, setSort] = useState('newest');
   const [page, setPage] = useState(1);
@@ -743,9 +745,15 @@ export function BacklinksContent() {
   const [createModal, setCreateModal] = useState(false);
   const [userSites, setUserSites] = useState([]);
   const [toast, setToast] = useState(null);
+  const [viewMode, setViewMode] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('gp_backlinks_view') || 'cards';
+    }
+    return 'cards';
+  });
 
-  // Get the current account ID
-  const accountId = user?.lastSelectedAccountId || user?.accountMemberships?.[0]?.accountId;
+  // Get the current account ID (user object from /api/user/me has a flat accountId)
+  const accountId = user?.accountId;
 
   // Fetch sites for the purchase modal site selector
   useEffect(() => {
@@ -758,8 +766,8 @@ export function BacklinksContent() {
 
   // Fetch stats
   useEffect(() => {
-    if (!accountId) return;
-    fetch(`/api/backlinks/stats?accountId=${accountId}`)
+    const params = accountId ? `?accountId=${accountId}` : '';
+    fetch(`/api/backlinks/stats${params}`)
       .then(r => r.json())
       .then(setStats)
       .catch(() => {});
@@ -767,20 +775,16 @@ export function BacklinksContent() {
 
   // Fetch listings
   const fetchListings = useCallback(async () => {
-    if (!accountId) {
-      setIsLoading(false);
-      return;
-    }
     setIsLoading(true);
     try {
       const params = new URLSearchParams({
-        accountId,
         filter,
         search,
         sort,
         page: page.toString(),
         limit: '20',
       });
+      if (accountId) params.set('accountId', accountId);
       const res = await fetch(`/api/backlinks?${params}`);
       const data = await res.json();
       setListings(data.listings || []);
@@ -795,6 +799,32 @@ export function BacklinksContent() {
   useEffect(() => {
     fetchListings();
   }, [fetchListings]);
+
+  // Translate listing titles to user's locale
+  useEffect(() => {
+    if (!listings.length || !locale) return;
+    const needsTranslation = listings.filter(l => l.language !== locale && !titleTranslations[l.id]);
+    if (needsTranslation.length === 0) return;
+
+    fetch('/api/backlinks/translate-title', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ listingIds: needsTranslation.map(l => l.id), targetLang: locale }),
+    })
+      .then(r => r.json())
+      .then(data => {
+        if (data.translations) {
+          setTitleTranslations(prev => ({ ...prev, ...data.translations }));
+        }
+      })
+      .catch(() => {}); // Silent fail — original titles still show
+  }, [listings, locale]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Get display title (translated or original)
+  const getDisplayTitle = useCallback((listing) => {
+    if (listing.language === locale) return listing.title;
+    return titleTranslations[listing.id] || listing.title;
+  }, [locale, titleTranslations]);
 
   // Reset page when filter/search/sort changes
   useEffect(() => {
@@ -849,6 +879,78 @@ export function BacklinksContent() {
     return () => clearTimeout(timer);
   }, [searchInput]);
 
+  // View mode toggle
+  const handleViewModeChange = (mode) => {
+    setViewMode(mode);
+    localStorage.setItem('gp_backlinks_view', mode);
+  };
+
+  // Table columns definition
+  const tableColumns = [
+    {
+      key: 'domain',
+      label: t('backlinks.card.domain'),
+      render: (_, row) => (
+        <div className={styles.tableDomainCell}>
+          <span className={styles.tableDomainName}>{row.domain}</span>
+          {row.title && <span className={styles.tableDomainTitle}>{getDisplayTitle(row)}</span>}
+        </div>
+      ),
+    },
+    {
+      key: 'domainAuthority',
+      label: t('backlinks.card.da'),
+      align: 'center',
+      render: (val) => val ?? '-',
+    },
+    {
+      key: 'domainRating',
+      label: t('backlinks.card.dr'),
+      align: 'center',
+      render: (val) => val ?? '-',
+    },
+    {
+      key: 'monthlyTraffic',
+      label: t('backlinks.card.traffic'),
+      align: 'center',
+      render: (val) => val != null ? val.toLocaleString() : '-',
+    },
+    {
+      key: 'category',
+      label: t('backlinks.card.category'),
+      render: (val) => val || '-',
+    },
+    {
+      key: 'price',
+      label: t('backlinks.card.price'),
+      align: 'center',
+      render: (_, row) => {
+        if (row.price != null) return <span className={styles.hasTooltip} data-tooltip={getCurrencyName(row.currency, t)}>{getCurrencySymbol(row.currency)}{row.price}</span>;
+        if (row.aiCreditsPrice != null) return `${row.aiCreditsPrice} ${t('backlinks.card.aiCreditsPrice')}`;
+        return t('backlinks.purchase.planAllocation');
+      },
+    },
+    {
+      key: 'actions',
+      label: '',
+      align: 'center',
+      width: '120px',
+      render: (_, row) => {
+        const isOwn = row.publisherAccountId === accountId;
+        const isSoldOut = row.maxSlots && row.soldCount >= row.maxSlots;
+        const hasPurchase = !!row.purchase;
+        if (isOwn) return <span className={styles.tableBadge}>{t('backlinks.card.yourListing')}</span>;
+        if (hasPurchase) return <span className={styles.tableBadge}>{t('backlinks.card.purchased')}</span>;
+        if (isSoldOut) return <span className={styles.tableBadgeMuted}>{t('backlinks.card.outOfStock')}</span>;
+        return (
+          <button className={`${styles.purchaseButton} ${styles.purchaseButtonPrimary} ${styles.purchaseButtonSmall}`} onClick={() => setPurchaseModal(row)}>
+            {t('backlinks.card.purchase')}
+          </button>
+        );
+      },
+    },
+  ];
+
   // Fetch user sites across all accounts (for create listing)
   const fetchUserSites = useCallback(async () => {
     try {
@@ -882,7 +984,8 @@ export function BacklinksContent() {
 
       showToast(t('backlinks.toast.listingCreated'));
       setCreateModal(false);
-      fetchListings();
+      setFilter('myListings'); // Switch to My Listings so user sees the new listing
+      // fetchListings() triggered automatically via useEffect when filter changes
       // Refresh stats
       fetch(`/api/backlinks/stats?accountId=${accountId}`)
         .then(r => r.json())
@@ -999,13 +1102,46 @@ export function BacklinksContent() {
           <option value="daHighest">{t('backlinks.sort.daHighest')}</option>
           <option value="drHighest">{t('backlinks.sort.drHighest')}</option>
         </select>
+
+        <div className={styles.viewToggle}>
+          <button
+            className={`${styles.viewButton} ${viewMode === 'table' ? styles.viewButtonActive : ''}`}
+            onClick={() => handleViewModeChange('table')}
+            title={t('backlinks.viewToggle.table')}
+          >
+            <List size={18} />
+          </button>
+          <button
+            className={`${styles.viewButton} ${viewMode === 'cards' ? styles.viewButtonActive : ''}`}
+            onClick={() => handleViewModeChange('cards')}
+            title={t('backlinks.viewToggle.cards')}
+          >
+            <LayoutGrid size={18} />
+          </button>
+        </div>
       </div>
 
       {/* Loading */}
-      {isLoading && (
+      {isLoading && viewMode === 'cards' && (
         <div className={styles.loadingGrid}>
           {Array.from({ length: 6 }).map((_, i) => (
             <div key={i} className={styles.skeletonCard} />
+          ))}
+        </div>
+      )}
+      {isLoading && viewMode === 'table' && (
+        <div className={styles.skeletonTableWrap}>
+          <div className={styles.skeletonTableHeader}>
+            {Array.from({ length: 7 }).map((_, i) => (
+              <div key={i} className={styles.skeletonHeaderCell} />
+            ))}
+          </div>
+          {Array.from({ length: 6 }).map((_, i) => (
+            <div key={i} className={styles.skeletonTableRow}>
+              {Array.from({ length: 7 }).map((_, j) => (
+                <div key={j} className={styles.skeletonTableCell} />
+              ))}
+            </div>
           ))}
         </div>
       )}
@@ -1018,20 +1154,36 @@ export function BacklinksContent() {
           <p className={styles.emptyDesc}>{t('backlinks.empty.description')}</p>
         </div>
       )}
-
-      {/* Listings Grid */}
+ 
+      {/* Listings */}
       {!isLoading && listings.length > 0 && (
         <>
-          <div className={styles.listingsGrid}>
-            {listings.map(listing => (
-              <ListingCard
-                key={listing.id}
-                listing={listing}
-                t={t}
-                onPurchaseClick={setPurchaseModal}
-              />
-            ))}
-          </div>
+          {viewMode === 'cards' ? (
+            <div className={styles.listingsGrid}>
+              {listings.map(listing => (
+                <ListingCard
+                  key={listing.id}
+                  listing={listing}
+                  t={t}
+                  onPurchaseClick={setPurchaseModal}
+                  isOwn={listing.publisherAccountId === accountId}
+                  getDisplayTitle={getDisplayTitle}
+                />
+              ))}
+            </div>
+          ) : (
+            <DataTable
+              columns={tableColumns}
+              data={listings}
+              onRowClick={(row) => {
+                const isOwn = row.publisherAccountId === accountId;
+                const isSoldOut = row.maxSlots && row.soldCount >= row.maxSlots;
+                const hasPurchase = !!row.purchase;
+                if (!isOwn && !hasPurchase && !isSoldOut) setPurchaseModal(row);
+              }}
+              emptyMessage={t('backlinks.empty.title')}
+            />
+          )}
 
           {/* Pagination */}
           {totalPages > 1 && (

@@ -24,27 +24,27 @@ export async function POST(request) {
 
     // Check if active
     if (!coupon.isActive) {
-      return NextResponse.json({ valid: false, error: 'This coupon is no longer active' }, { status: 400 });
+      return NextResponse.json({ valid: false, errorCode: 'notActive', error: 'This coupon is no longer active' }, { status: 400 });
     }
 
     // Check validity dates
     const now = new Date();
     if (coupon.validFrom && now < coupon.validFrom) {
-      return NextResponse.json({ valid: false, error: 'This coupon is not yet active' }, { status: 400 });
+      return NextResponse.json({ valid: false, errorCode: 'notYetActive', error: 'This coupon is not yet active' }, { status: 400 });
     }
     if (coupon.validUntil && now > coupon.validUntil) {
-      return NextResponse.json({ valid: false, error: 'This coupon has expired' }, { status: 400 });
+      return NextResponse.json({ valid: false, errorCode: 'expired', error: 'This coupon has expired' }, { status: 400 });
     }
 
     // Check max redemptions
     if (coupon.maxRedemptions && coupon._count.redemptions >= coupon.maxRedemptions) {
-      return NextResponse.json({ valid: false, error: 'This coupon has reached its usage limit' }, { status: 400 });
+      return NextResponse.json({ valid: false, errorCode: 'usageLimit', error: 'This coupon has reached its usage limit' }, { status: 400 });
     }
 
     // Check applicable plans
     if (planId && coupon.applicablePlanIds?.length > 0) {
       if (!coupon.applicablePlanIds.includes(planId)) {
-        return NextResponse.json({ valid: false, error: 'This coupon is not applicable to the selected plan' }, { status: 400 });
+        return NextResponse.json({ valid: false, errorCode: 'notApplicable', error: 'This coupon is not applicable to the selected plan' }, { status: 400 });
       }
     }
 

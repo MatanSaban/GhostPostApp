@@ -2799,6 +2799,10 @@
       "daHighest": "DA: Highest First",
       "drHighest": "DR: Highest First"
     },
+    "viewToggle": {
+      "table": "Table View",
+      "cards": "Cards View"
+    },
     "card": {
       "domain": "Domain",
       "da": "DA",
@@ -2820,7 +2824,24 @@
       "buyDirect": "Buy Direct",
       "viewDetails": "View Details",
       "outOfStock": "Out of Stock",
-      "purchased": "Purchased"
+      "purchased": "Purchased",
+      "yourListing": "Your Listing"
+    },
+    "currencyNames": {
+      "ILS": "Israeli New Shekel",
+      "USD": "US Dollar",
+      "EUR": "Euro",
+      "GBP": "British Pound"
+    },
+    "siteInLanguage": "Site in {language}",
+    "languageNames": {
+      "en": "English",
+      "he": "Hebrew",
+      "es": "Spanish",
+      "fr": "French",
+      "de": "German",
+      "pt": "Portuguese",
+      "ar": "Arabic"
     },
     "details": {
       "title": "Backlink Details",
@@ -5116,7 +5137,12 @@
         "error": "Failed to validate coupon",
         "discount": "Coupon Discount",
         "bonuses": "Coupon Bonuses",
-        "durationNote": "Applied for {months} months"
+        "durationNote": "Applied for {months} months",
+        "usageLimit": "This coupon has reached its usage limit",
+        "notActive": "This coupon is no longer active",
+        "notYetActive": "This coupon is not yet active",
+        "expired": "This coupon has expired",
+        "notApplicable": "This coupon is not applicable to the selected plan"
       },
       "limitations": {
         "maxSites": "Websites",
@@ -6250,7 +6276,12 @@
       "error": "Failed to validate coupon",
       "discount": "Coupon Discount",
       "bonuses": "Bonuses",
-      "durationNote": "Applied for {months} months"
+      "durationNote": "Applied for {months} months",
+      "usageLimit": "This coupon has reached its usage limit",
+      "notActive": "This coupon is no longer active",
+      "notYetActive": "This coupon is not yet active",
+      "expired": "This coupon has expired",
+      "notApplicable": "This coupon is not applicable to the selected plan"
     }
   },
   "proration": {
@@ -6647,7 +6678,11 @@
       "actionRedirectPlatform": "Redirect saved in platform",
       "actionPostTrashed": "Duplicate post moved to trash",
       "actionGscReindex": "Google re-index requested",
-      "actionGscReindexManual": "Manual re-index recommended via Google Search Console"
+      "actionGscReindexManual": "Manual re-index recommended via Google Search Console",
+      "actionLinkHealing": "Internal links updated",
+      "actionLinkHealingDetail": "{count} internal links updated → {url}",
+      "seoTitleLabel": "Title",
+      "seoDescriptionLabel": "Description"
     },
     "fixCannibalization": "Fix with AI",
     "cannibalizationIssue": "Cannibalization Issue",

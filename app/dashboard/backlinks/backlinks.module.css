@@ -870,6 +870,68 @@
   animation: shimmer 1.5s ease-in-out infinite;
 }
 
+/* ── Table Skeleton ──────────────────────── */
+.skeletonTableWrap {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+
+  .dark & {
+    background: var(--gradient-card);
+    border-color: rgba(123, 44, 191, 0.15);
+  }
+}
+
+.skeletonTableHeader {
+  display: grid;
+  grid-template-columns: 2fr repeat(4, 1fr) 1fr 120px;
+  gap: 1rem;
+  padding: 0.875rem 1.25rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.skeletonHeaderCell {
+  height: 14px;
+  border-radius: var(--radius-sm);
+  background: var(--muted);
+  opacity: 0.5;
+}
+
+.skeletonTableRow {
+  display: grid;
+  grid-template-columns: 2fr repeat(4, 1fr) 1fr 120px;
+  gap: 1rem;
+  padding: 0.875rem 1.25rem;
+  border-bottom: 1px solid var(--border);
+  position: relative;
+  overflow: hidden;
+
+  &:last-child {
+    border-bottom: none;
+  }
+
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      rgba(123, 44, 191, 0.04) 50%,
+      transparent 100%
+    );
+    animation: shimmer 1.5s ease-in-out infinite;
+  }
+}
+
+.skeletonTableCell {
+  height: 16px;
+  border-radius: var(--radius-sm);
+  background: var(--muted);
+  opacity: 0.3;
+}
+
 @keyframes shimmer {
   0% { transform: translateX(-100%); }
   100% { transform: translateX(100%); }
@@ -962,6 +1024,82 @@
     opacity: 1;
     transform: translateX(-50%) translateY(0);
   }
+}
+
+/* ── View Toggle ─────────────────────────── */
+.viewToggle {
+  display: flex;
+  gap: 0.25rem;
+  background: var(--muted);
+  padding: 0.25rem;
+  border-radius: var(--radius-md);
+}
+
+.viewButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem;
+  border-radius: var(--radius-sm);
+  color: var(--muted-foreground);
+  transition: all var(--transition-fast);
+  cursor: pointer;
+  border: none;
+  background: transparent;
+
+  &:hover {
+    color: var(--foreground);
+  }
+}
+
+.viewButtonActive {
+  background: var(--card);
+  color: var(--primary);
+  box-shadow: var(--shadow-sm);
+}
+
+/* ── Table View Overrides ────────────────── */
+.tableDomainCell {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+}
+
+.tableDomainName {
+  font-weight: 600;
+  font-size: 0.875rem;
+  color: var(--foreground);
+}
+
+.tableDomainTitle {
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+  max-width: 260px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.linkTypeBadgeSmall {
+  font-size: 0.7rem;
+  padding: 0.125rem 0.5rem;
+}
+
+.tableBadge {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--primary);
+}
+
+.tableBadgeMuted {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--muted-foreground);
+}
+
+.purchaseButtonSmall {
+  padding: 0.25rem 0.75rem;
+  font-size: 0.75rem;
 }
 
 /* ── Responsive ──────────────────────────── */

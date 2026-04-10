@@ -444,6 +444,8 @@ export default function FixPreviewModal({ open, onClose, insight, translations, 
           setFixPollingStatus(null);
           setIsGenerating(false);
           setIsApplying(false);
+          setShowPreview(false);
+          setGeneratedContent(null);
           setApplyResults(data.executionResult);
           if (data.executionResult?.success && onApplied) onApplied();
         } else if (status === 'FAILED') {
@@ -875,6 +877,7 @@ export default function FixPreviewModal({ open, onClose, insight, translations, 
         {/* Proposals list */}
         {!error && proposals.length > 0 && !showPreview && !isGenerating && (
           <>
+            {!allApplied && (
             <div className={styles.proposalsList}>
               {proposals.map((p, idx) => {
                 const isSkeleton = p.status === 'loading';
@@ -1499,6 +1502,7 @@ export default function FixPreviewModal({ open, onClose, insight, translations, 
                 );
               })}
             </div>
+            )}
 
             {/* Actions Summary — shown after merge apply */}
             {allApplied && applyResults?.actions?.length > 0 && (
@@ -1839,6 +1843,7 @@ const ACTION_ICONS = {
   redirect_wp: '↪️',
   redirect_platform: '📌',
   post_trashed: '🗑️',
+  link_healing: '🔗',
   gsc_reindex: '📡',
 };
 
@@ -1849,11 +1854,19 @@ const ACTION_DL_KEYS = {
   redirect_wp: 'actionRedirectWp',
   redirect_platform: 'actionRedirectPlatform',
   post_trashed: 'actionPostTrashed',
+  link_healing: 'actionLinkHealing',
   gsc_reindex: 'actionGscReindex',
 };
 
 function MergeActionsSummary({ actions, t, dl, styles }) {
   if (!actions?.length) return null;
+
+  const formatPath = (url) => {
+    if (!url) return '';
+    try {
+      return decodeURIComponent(new URL(url).pathname);
+    } catch { return url; }
+  };
 
   return (
     <div className={styles.actionsSummary}>
@@ -1869,19 +1882,87 @@ function MergeActionsSummary({ actions, t, dl, styles }) {
           const isSuccess = action.status === 'success';
           const isSkipped = action.status === 'skipped';
           const isFailed = action.status === 'failed';
+          const meta = action.meta || {};
 
           return (
             <li key={i} className={`${styles.actionItem} ${isSuccess ? styles.actionSuccess : isFailed ? styles.actionFailed : styles.actionSkipped}`}>
               <span className={styles.actionIcon}>
                 {isSuccess ? <CheckCircle2 size={14} /> : isFailed ? <XCircle size={14} /> : <AlertTriangle size={14} />}
               </span>
-              <span className={styles.actionLabel}>{icon} {label}</span>
-              {isFailed && action.detail && (
-                <span className={styles.actionDetail}>{action.detail}</span>
-              )}
-              {isSkipped && action.detail && (
-                <span className={styles.actionDetail}>{action.detail}</span>
-              )}
+              <div className={styles.actionContent}>
+                <span className={styles.actionLabel}>{icon} {label}</span>
+
+                {/* Post updated — show link to post */}
+                {isSuccess && action.type === 'post_updated' && meta.url && (
+                  <div className={styles.actionMeta}>
+                    <a href={meta.url} target="_blank" rel="noopener noreferrer" className={styles.actionLink}>{formatPath(meta.url)}</a>
+                  </div>
+                )}
+
+                {/* SEO updated — show old vs new title & description */}
+                {isSuccess && action.type === 'seo_updated' && (meta.oldTitle || meta.newTitle) && (
+                  <div className={styles.actionMeta}>
+                    {meta.oldTitle && meta.newTitle && meta.oldTitle !== meta.newTitle && (
+                      <div className={styles.actionDiff}>
+                        <span className={styles.actionDiffLabel}>{dl.seoTitleLabel || 'Title'}:</span>
+                        <span className={styles.actionOldValue}>{meta.oldTitle}</span>
+                        <span className={styles.actionDiffArrow}>→</span>
+                        <span className={styles.actionNewValue}>{meta.newTitle}</span>
+                      </div>
+                    )}
+                    {meta.oldDescription && meta.newDescription && meta.oldDescription !== meta.newDescription && (
+                      <div className={styles.actionDiff}>
+                        <span className={styles.actionDiffLabel}>{dl.seoDescriptionLabel || 'Description'}:</span>
+                        <span className={styles.actionOldValue}>{meta.oldDescription}</span>
+                        <span className={styles.actionDiffArrow}>→</span>
+                        <span className={styles.actionNewValue}>{meta.newDescription}</span>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Featured image — show thumbnail */}
+                {isSuccess && action.type === 'featured_image' && meta.imageUrl && (
+                  <div className={styles.actionMeta}>
+                    <img src={meta.imageUrl} alt="" className={styles.actionThumbnail} />
+                  </div>
+                )}
+
+                {/* Redirect — show from/to as links */}
+                {isSuccess && (action.type === 'redirect_wp' || action.type === 'redirect_platform') && meta.fromUrl && (
+                  <div className={styles.actionMeta}>
+                    <a href={meta.fromUrl} target="_blank" rel="noopener noreferrer" className={styles.actionLink}>{meta.fromPath || formatPath(meta.fromUrl)}</a>
+                    <span className={styles.actionDiffArrow}>→</span>
+                    <a href={meta.toUrl} target="_blank" rel="noopener noreferrer" className={styles.actionLink}>{meta.toPath || formatPath(meta.toUrl)}</a>
+                  </div>
+                )}
+
+                {/* Post trashed — show link */}
+                {isSuccess && action.type === 'post_trashed' && meta.url && (
+                  <div className={styles.actionMeta}>
+                    <span className={styles.actionOldValue}>{meta.title ? `${meta.title} — ` : ''}{formatPath(meta.url)}</span>
+                  </div>
+                )}
+
+                {/* Link healing — show count and target */}
+                {isSuccess && action.type === 'link_healing' && meta.targetUrl && (
+                  <div className={styles.actionMeta}>
+                    <span>{(dl.actionLinkHealingDetail || '{count} internal links updated → {url}').replace('{count}', meta.count).replace('{url}', formatPath(meta.targetUrl))}</span>
+                  </div>
+                )}
+
+                {/* GSC reindex — show URL */}
+                {isSuccess && action.type === 'gsc_reindex' && meta.url && (
+                  <div className={styles.actionMeta}>
+                    <a href={meta.url} target="_blank" rel="noopener noreferrer" className={styles.actionLink}>{formatPath(meta.url)}</a>
+                  </div>
+                )}
+
+                {/* Error/skipped details */}
+                {(isFailed || isSkipped) && action.detail && (
+                  <span className={styles.actionDetail}>{action.detail}</span>
+                )}
+              </div>
             </li>
           );
         })}

@@ -1815,6 +1815,9 @@ model BacklinkListing {
   // Publishing
   publishMode     String?              @default("manual") // "auto" (WordPress + plugin) or "manual"
 
+  // Cached AI translations: { "he": "translated title", "en": "..." }
+  titleTranslations Json?
+
   // Status
   status          BacklinkListingStatus @default(ACTIVE)
   isActive        Boolean              @default(true)

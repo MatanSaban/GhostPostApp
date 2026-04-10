@@ -37,66 +37,70 @@ export async function GET(request) {
     }
 
     const { searchParams } = new URL(request.url);
-    const accountId = searchParams.get('accountId');
+    const accountId = searchParams.get('accountId') || null;
 
-    if (!accountId) {
+    if (!accountId && !user.isSuperAdmin) {
       return NextResponse.json({ error: 'accountId is required' }, { status: 400 });
     }
 
-    const membership = user.accountMemberships.find(m => m.accountId === accountId);
-    if (!membership && !user.isSuperAdmin) {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    if (accountId) {
+      const membership = user.accountMemberships.find(m => m.accountId === accountId);
+      if (!membership && !user.isSuperAdmin) {
+        return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+      }
     }
 
-    // Available listings (not from this account)
-    const totalAvailable = await prisma.backlinkListing.count({
-      where: {
-        status: 'ACTIVE',
-        isActive: true,
-        NOT: { publisherAccountId: accountId },
-      },
-    });
+    // Available listings (exclude own if account exists)
+    const availableWhere = { status: 'ACTIVE', isActive: true };
+    if (accountId) {
+      availableWhere.NOT = { publisherAccountId: accountId };
+    }
+    const totalAvailable = await prisma.backlinkListing.count({ where: availableWhere });
 
-    // This account's purchases
-    const totalPurchased = await prisma.backlinkPurchase.count({
-      where: { buyerAccountId: accountId },
-    });
+    // Purchases for this account (0 if no account)
+    const totalPurchased = accountId
+      ? await prisma.backlinkPurchase.count({ where: { buyerAccountId: accountId } })
+      : 0;
 
     // Total spent (direct purchases)
-    const directSpent = await prisma.backlinkPurchase.aggregate({
-      where: {
-        buyerAccountId: accountId,
-        paymentMethod: 'DIRECT',
-        status: { not: 'CANCELED' },
-      },
-      _sum: { amountPaid: true },
-    });
+    const directSpent = accountId
+      ? await prisma.backlinkPurchase.aggregate({
+          where: {
+            buyerAccountId: accountId,
+            paymentMethod: 'DIRECT',
+            status: { not: 'CANCELED' },
+          },
+          _sum: { amountPaid: true },
+        })
+      : { _sum: { amountPaid: null } };
 
     // Plan quota
     let planQuota = { used: 0, limit: 0 };
-    const account = await prisma.account.findUnique({
-      where: { id: accountId },
-      include: {
-        subscription: {
-          include: { plan: true },
-        },
-      },
-    });
-
-    if (account?.subscription?.plan) {
-      const backlinkLimit = getLimitFromPlan(account.subscription.plan, 'backlinks') || 0;
-      const periodStart = account.subscription.currentPeriodStart;
-
-      const usedThisPeriod = await prisma.backlinkPurchase.count({
-        where: {
-          buyerAccountId: accountId,
-          paymentMethod: 'PLAN_ALLOCATION',
-          createdAt: { gte: periodStart },
-          status: { not: 'CANCELED' },
+    if (accountId) {
+      const account = await prisma.account.findUnique({
+        where: { id: accountId },
+        include: {
+          subscription: {
+            include: { plan: true },
+          },
         },
       });
 
-      planQuota = { used: usedThisPeriod, limit: backlinkLimit };
+      if (account?.subscription?.plan) {
+        const backlinkLimit = getLimitFromPlan(account.subscription.plan, 'backlinks') || 0;
+        const periodStart = account.subscription.currentPeriodStart;
+
+        const usedThisPeriod = await prisma.backlinkPurchase.count({
+          where: {
+            buyerAccountId: accountId,
+            paymentMethod: 'PLAN_ALLOCATION',
+            createdAt: { gte: periodStart },
+            status: { not: 'CANCELED' },
+          },
+        });
+
+        planQuota = { used: usedThisPeriod, limit: backlinkLimit };
+      }
     }
 
     return NextResponse.json({

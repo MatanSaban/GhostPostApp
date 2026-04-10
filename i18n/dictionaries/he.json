@@ -2799,6 +2799,10 @@
       "daHighest": "DA: הגבוה ביותר",
       "drHighest": "DR: הגבוה ביותר"
     },
+    "viewToggle": {
+      "table": "תצוגת טבלה",
+      "cards": "תצוגת כרטיסים"
+    },
     "card": {
       "domain": "דומיין",
       "da": "DA",
@@ -2820,7 +2824,24 @@
       "buyDirect": "רכישה ישירה",
       "viewDetails": "הצג פרטים",
       "outOfStock": "אזל",
-      "purchased": "נרכש"
+      "purchased": "נרכש",
+      "yourListing": "הרישום שלך"
+    },
+    "currencyNames": {
+      "ILS": "שקל חדש",
+      "USD": "דולר אמריקאי",
+      "EUR": "אירו",
+      "GBP": "לירה שטרלינג"
+    },
+    "siteInLanguage": "אתר ב{language}",
+    "languageNames": {
+      "en": "אנגלית",
+      "he": "עברית",
+      "es": "ספרדית",
+      "fr": "צרפתית",
+      "de": "גרמנית",
+      "pt": "פורטוגזית",
+      "ar": "ערבית"
     },
     "details": {
       "title": "פרטי קישור",
@@ -5116,7 +5137,12 @@
         "error": "שגיאה באימות הקופון",
         "discount": "הנחת קופון",
         "bonuses": "הטבות קופון",
-        "durationNote": "מוחל ל-{months} חודשים"
+        "durationNote": "מוחל ל-{months} חודשים",
+        "usageLimit": "קופון זה הגיע למגבלת השימוש שלו",
+        "notActive": "קופון זה אינו פעיל יותר",
+        "notYetActive": "קופון זה עדיין לא פעיל",
+        "expired": "פג תוקפו של קופון זה",
+        "notApplicable": "קופון זה אינו תקף לתוכנית הנבחרת"
       },
       "limitations": {
         "maxSites": "אתרים",
@@ -6249,7 +6275,12 @@
       "error": "שגיאה באימות הקופון",
       "discount": "הנחת קופון",
       "bonuses": "בונוסים",
-      "durationNote": "מוחל ל-{months} חודשים"
+      "durationNote": "מוחל ל-{months} חודשים",
+      "usageLimit": "קופון זה הגיע למגבלת השימוש שלו",
+      "notActive": "קופון זה אינו פעיל יותר",
+      "notYetActive": "קופון זה עדיין לא פעיל",
+      "expired": "פג תוקפו של קופון זה",
+      "notApplicable": "קופון זה אינו תקף לתוכנית הנבחרת"
     }
   },
   "proration": {
@@ -6646,7 +6677,11 @@
       "actionRedirectPlatform": "הפניה נשמרה במערכת",
       "actionPostTrashed": "הפוסט הכפול הועבר לאשפה",
       "actionGscReindex": "בקשת אינדוקס מחדש נשלחה לגוגל",
-      "actionGscReindexManual": "מומלץ לבצע אינדוקס מחדש ידנית דרך Google Search Console"
+      "actionGscReindexManual": "מומלץ לבצע אינדוקס מחדש ידנית דרך Google Search Console",
+      "actionLinkHealing": "קישורים פנימיים עודכנו",
+      "actionLinkHealingDetail": "{count} קישורים פנימיים עודכנו → {url}",
+      "seoTitleLabel": "כותרת",
+      "seoDescriptionLabel": "תיאור"
     },
     "fixCannibalization": "תקן עם AI",
     "cannibalizationIssue": "בעיית קניבליזציה",

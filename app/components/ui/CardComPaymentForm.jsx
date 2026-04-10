@@ -371,7 +371,8 @@ export default function CardComPaymentForm({
         setLowProfileId(null);
         iframeInitialized.current = false;
       } else {
-        setCouponError(data.error || t('payment.coupon.invalid') || 'Invalid or expired coupon code');
+        const errorMsg = data.errorCode ? t(`payment.coupon.${data.errorCode}`) : null;
+        setCouponError(errorMsg || data.error || t('payment.coupon.invalid') || 'Invalid or expired coupon code');
         setCouponData(null);
       }
     } catch {

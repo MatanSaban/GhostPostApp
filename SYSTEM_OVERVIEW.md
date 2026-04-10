@@ -96,8 +96,8 @@ The system is designed to be the "ultimate SEO platform" combining:
 ### AI
 - **Provider**: Google AI (Gemini)
 - **SDK**: Vercel AI SDK v6.0.50+
-- **Models**: `gemini-2.0-flash` (text), `imagen-3.0-generate-002` (images)
-- **Capabilities**: `generateText`, `streamText`, `generateObject` (Zod schemas), Function Calling
+- **Models**: `gemini-2.5-pro` (text), `gemini-3-pro-image-preview` (images), `gemini-3-pro-preview` (complex semantic reasoning)
+- **Capabilities**: `generateText`, `streamText`, `generateObject` (Zod v4 schemas), Function Calling
 
 ### Email & Notifications
 - **Provider**: nodemailer 7.0.13+
@@ -295,34 +295,40 @@ Three layers:
 
 ```javascript
 export const MODELS = {
-  TEXT: "gemini-2.0-flash",
-  IMAGE: "imagen-3.0-generate-002",
+  TEXT: "gemini-2.5-pro",
+  IMAGE: "gemini-3-pro-image-preview",
+  PRO_PREVIEW: "gemini-3-pro-preview",  // Maximum reasoning for complex semantic tasks
 };
 
 export function getTextModel() {
   return google(MODELS.TEXT);
 }
 
-// Simple text generation
-export async function generateTextResponse({ system, prompt, temperature = 0.7 }) {
+// Simple text generation (with AI credits logging)
+export async function generateTextResponse({ system, prompt, messages, maxTokens, temperature = 0.7, operation, metadata }) {
   const model = getTextModel();
-  const result = await generateText({ model, system, prompt, temperature });
+  const result = await generateText({ model, system, prompt, messages, maxTokens, temperature });
+  if (operation) logAIUsage(operation, metadata);
   return result.text;
 }
 
 // Streaming response (for API routes)
-export async function streamTextResponse({ system, prompt }) {
+export async function streamTextResponse({ system, prompt, messages, maxTokens, temperature }) {
   const model = getTextModel();
-  const result = streamText({ model, system, prompt });
+  const result = streamText({ model, system, prompt, messages, maxTokens, temperature });
   return result.toDataStreamResponse();
 }
 
-// Structured output with Zod validation
-export async function generateStructuredResponse({ system, prompt, schema }) {
-  const model = getTextModel();
-  const result = await generateObject({ model, system, prompt, schema });
+// Structured output with Zod v4 validation (supports modelOverride for PRO_PREVIEW)
+export async function generateStructuredResponse({ system, prompt, schema, temperature, maxTokens, operation, metadata, modelOverride }) {
+  const model = modelOverride ? google(modelOverride) : getTextModel();
+  const result = await generateObject({ model, system, prompt, schema: toJSONSchema(schema) });
+  if (operation) logAIUsage(operation, metadata);
   return result.object; // Type-safe!
 }
+
+// AI image generation (Nano Banana Pro with Picsum fallback)
+export async function generateImage({ prompt, aspectRatio, n, operation, metadata }) { ... }
 ```
 
 #### Layer 2 — Interview (`interview-ai.js`)
@@ -1358,16 +1364,26 @@ model AgentInsight {
   accountId       String          @db.ObjectId
   siteId          String          @db.ObjectId
   runId           String?         @db.ObjectId       // Which AgentRun generated this
+  batchId         String?                            // Groups insights from the same run
+  source          String                             // "cron", "manual", "realtime"
   category        InsightCategory                     // CONTENT, TRAFFIC, KEYWORDS, COMPETITORS, TECHNICAL
   type            InsightType                         // DISCOVERY, SUGGESTION, ACTION, ANALYSIS, ALERT
   title           String
+  titleKey        String                              // Translation key for short title (e.g. "cannibalization.title")
   description     String
+  descriptionKey  String                              // Translation key for description
   priority        Priority        @default(MEDIUM)    // HIGH, MEDIUM, LOW
   status          InsightStatus   @default(PENDING)   // PENDING, APPROVED, REJECTED, EXECUTED, FAILED, EXPIRED, RESOLVED
+  actionType      String?                             // e.g. "update_meta", "add_internal_link", "push_to_wp"
   actionPayload   Json?                               // Data needed to execute an ACTION-type insight
   metadata        Json?                               // Additional context (metrics, URLs, entity IDs)
-  expiresAt       DateTime?                           // Auto-expire stale insights (30 days)
+  executionResult Json?                               // Result from executing the action (fixStatus, actions, etc.)
+  approvedAt      DateTime?                           // When user approved
+  approvedBy      String?         @db.ObjectId        // Who approved
+  rejectedAt      DateTime?                           // When rejected
+  executedAt      DateTime?                           // When the action was executed
   resolvedAt      DateTime?                           // Auto-resolve when issue no longer detected
+  expiresAt       DateTime?                           // Auto-expire stale insights (30 days)
   createdAt       DateTime        @default(now())
   updatedAt       DateTime        @updatedAt
 }
@@ -1377,14 +1393,15 @@ model AgentRun {
   accountId       String          @db.ObjectId
   siteId          String          @db.ObjectId
   status          RunStatus       @default(RUNNING)   // RUNNING, COMPLETED, FAILED
-  insightsFound   Int             @default(0)
+  insightsCount   Int             @default(0)
+  summary         Json?                               // Run summary with per-module results
   startedAt       DateTime        @default(now())
   completedAt     DateTime?
   error           String?
 }
 ```
 
-### 14 Analysis Modules
+### 15 Analysis Modules
 
 All 15 modules run in parallel via `Promise.allSettled()` within `runSiteAnalysis()`:
 
@@ -1454,6 +1471,7 @@ Each insight has a **dedup key** that prevents duplicate insights across runs:
 ```
 buildDedupKey(titleKey, data):
   - Per-keyword insights → "keywordStrikeZone:{keyword}" (tracked individually)
+  - Cannibalization insights → "{titleKey}:{sortedUrls.join('|')}" (sorted URL paths)
   - Aggregate insights → "{titleKey}" (e.g., "staleContent" — one per site)
 ```
 
@@ -1465,30 +1483,102 @@ buildDedupKey(titleKey, data):
 5. **Stale** (old key not in current) → mark as `RESOLVED`
 6. **New** (key not in existing) → insert new insight
 
-### Cannibalization Engine (3-Layer Hybrid)
+**Cannibalization-specific deduplication:**
 
-A specialized multi-layer detection system inside the agent:
+`cannibalizationKeysOverlap(keyA, keyB)` — Extracts URLs from dedup keys. Returns `true` if **any** URL in keyB exists in keyA's URL set. This handles partial fixes where a 4-URL group becomes a 2-URL group after merging.
 
-**Layer 1 — Proactive** (no GSC needed):
-- Analyzes published entities for title/H1 similarity (Jaccard index), matching focus keywords, URL hierarchy overlap
-- Output type: `PROACTIVE`
+**EXECUTED → PENDING reset logic:** When an EXECUTED cannibalization insight overlaps with a newly-detected cluster but the URL set has changed (e.g., partial fix), the existing insight is updated with the new URL set, `status` is reset from `EXECUTED` → `PENDING`, and `executedAt`/`executionResult` are cleared. If no overlap → old insight is marked `RESOLVED`.
 
-**Layer 2 — Reactive** (GSC data):
-- Finds queries where multiple pages from the same site rank
-- Thresholds: minimum 25 impressions per query, each page ≥ 8 impressions
-- Output type: `REACTIVE_GSC`
+### Cannibalization Engine (3-Layer Hybrid + N-URL Groups)
 
-**Layer 3 — Semantic** (AI verification):
-- Feeds Layer 1 + Layer 2 candidates to Gemini for intent verification
-- AI confirms whether pages truly compete or serve different intents
-- Output type: `SEMANTIC_AI` or `AI_VERIFIED` (multi-layer confirmation)
-- Returns: confidence score (0–100), recommended action (`MERGE`, `CANONICAL`, `301_REDIRECT`, `DIFFERENTIATE`), detection signals
+**Path:** `lib/cannibalization-engine.js`
 
-**Each cannibalization issue includes:**
-- Competing URLs/entities with titles, H1s, focus keywords
-- Confidence percentage
-- Recommended action with reason
-- Verification checks (e.g., `SHARED_KEYWORDS: critical`, `TITLE_SIMILARITY: high`)
+A specialized multi-layer detection system that identifies pages competing for the same search intent. Supports **N-URL groups** (not just pairs) via Union-Find transitive grouping.
+
+#### Constants & Thresholds
+
+| Constant | Value | Purpose |
+|----------|-------|---------|
+| `PROACTIVE_SIMILARITY_THRESHOLD` | `0.60` | Min combined Jaccard similarity to flag a pair |
+| `GROUP_MERGE_THRESHOLD` | `50` | Min score for Union-Find transitive grouping |
+| `MAX_GROUP_SIZE` | `6` | Safety cap — groups exceeding this are split |
+| `HIGH_CONFIDENCE_SCORE` | `60` | Score threshold to bypass AI verification |
+| `HIGH_CONFIDENCE_URLS` | `3` | URL count threshold to bypass AI verification |
+| `GSC_ROW_LIMIT` | `5000` | Max GSC rows fetched (paginated) |
+| `IMPRESSION_SPLIT_THRESHOLD` | `0.25` | Min secondary/primary impression ratio |
+| `POSITION_DANCE_THRESHOLD` | `10` | Max position difference between competing pages |
+| `AI_VERIFICATION_BATCH_SIZE` | `10` | Max groups sent to AI per batch |
+
+#### Hebrew-Aware Text Normalization
+
+`normalizeText(text)` → `string[]`:
+1. NFD normalize + strip diacritics `[\u0300-\u036f]`
+2. Lowercase, remove punctuation/specials `[^\p{L}\p{N}\s]`
+3. Hebrew plural stemming (≥3 char stems): strip `ים` (masc.) and `ות` (fem.)
+4. Filter tokens with length ≤ 1 and stop words
+
+**STOP_WORDS:** 38 Hebrew words + 7 Hebrew prefix letters + 52 English words = ~97 total
+
+#### Similarity Functions
+
+| Function | Formula | Use |
+|----------|---------|-----|
+| `jaccardSimilarity(A, B)` | `intersection / union` | Title/H1 overall similarity |
+| `containmentSimilarity(A, B)` | `intersection / min(|A|, |B|)` | How much shorter text is contained in longer |
+| `bigramOverlap(A, B)` | `intersection / min(|A|, |B|)` | Adjacent token-pair overlap |
+| `extractBigrams(tokens)` | Adjacent pairs joined with `\|` | Input for bigramOverlap |
+| `hasPrefixMatch(A, B)` | First 2 normalized tokens match | Title/H1 prefix detection |
+
+#### Layer 1 — Proactive Detection (no GSC needed)
+
+Compares all published entities pairwise. A pair is flagged if **ANY** condition is true:
+
+| # | Condition | Score Bonus |
+|---|-----------|-------------|
+| 1 | `combinedSimilarity > 0.60` (avg title+H1 Jaccard) | Base: `similarity × 100` |
+| 2 | Title prefix match (first 2 tokens) | +20 |
+| 3 | H1 prefix match (first 2 tokens) | +15 |
+| 4 | `combinedContainment > 0.40` (avg title+H1) | +15 |
+| 5 | `combinedBigram > 0` (any title/H1 bigram overlap) | +20 |
+| 6 | Focus keyword match (identical normalized) | +25 |
+
+**Score formula:** `rawScore = combinedSimilarity × 100 + bonuses`, capped at 100.
+
+#### Layer 2 — Reactive GSC Detection
+
+Analyzes GSC query data to find queries where multiple site pages rank:
+
+- **Impression Split:** `secondaryImpressions / primaryImpressions >= 0.25` → score contribution: `min(ratio × 100, 50)`
+- **Position Dance:** `|primaryPosition - secondaryPosition| <= 10` → score contribution: `50 - (diff × 5)`
+- Pages grouped by query, sorted by impressions descending (primary = most impressions)
+
+#### Deduplication Across Tracks
+
+`deduplicateCandidates(proactive, reactive)`: keyed by sorted normalized URLs. If found by BOTH tracks: score = `avg(scores) + 15`, capped at 100. Merged data includes `gscData`.
+
+#### Union-Find Grouping
+
+Transitively merges pairs into multi-URL groups:
+1. **High-score pairs** (score ≥ `GROUP_MERGE_THRESHOLD` = 50) are union-ed
+2. **Low-score pairs** become standalone 2-URL groups
+3. Groups exceeding `MAX_GROUP_SIZE` = 6 are split by re-grouping using only top-scoring pairs
+
+#### AI Verification & High-Confidence Bypass
+
+Groups with `score >= 60` OR `urls.length >= 3` **bypass AI verification entirely** and are converted directly to issues. High-confidence action: `score >= 70 → MERGE`, else `DIFFERENTIATE`.
+
+Borderline groups (score < 60 AND < 3 URLs) go through `verifyGroupsWithAI()` using `gemini-3-pro-preview` model with structured Zod schema, `temperature: 0.3`.
+
+Additional score bonuses: multi-track detection → +10 confidence, 3+ URLs → +5 per extra URL.
+
+#### Orchestrator: `runCannibalizationEngine(site, getValidAccessToken, options)`
+
+1. **Track 1 — Proactive:** Fetch all PUBLISHED entities with enabled types → `detectProactive(entities)`
+2. **Track 2 — Reactive GSC:** If GSC connected, fetch 30-day data (paginated up to 5000 rows) → `detectReactiveGsc(gscData)` → scope-filter against enabled entity URLs
+3. **Track 3 — Deduplication:** `deduplicateCandidates(proactive, reactive)`
+4. **Track 4 — Grouping:** `groupCandidates(deduplicated)` via Union-Find
+5. **AI Verification:** Split into high-confidence (bypass) + borderline (AI-verified)
+6. **Return:** `{ issues: [...highConfidence, ...aiVerified], stats: { proactive, reactive, deduplicated, grouped, verified } }`
 
 ### AI Integration (Gemini)
 
@@ -1521,7 +1611,7 @@ The agent uses Gemini AI in two specific places:
    - Last run older than the plan's frequency threshold
 3. **Per-site analysis**:
    - Attempt entity sync (with lock mechanism to prevent concurrent syncs)
-   - Run all 14 analysis modules in parallel
+   - Run all 15 analysis modules in parallel
    - Deduplicate against existing insights
    - Insert only new insights; resolve stale ones
    - Notify account members if `agentConfig.notifyInsights` is enabled
@@ -1603,43 +1693,127 @@ Per-site settings stored in `site.toolSettings.agentConfig`:
 
 1. User views insight (type: `ACTION`, status: `PENDING`)
 2. User clicks "Fix with AI" → opens FixPreviewModal
-3. Modal calls `/api/agent/insights/{id}/fix` to generate fix proposals
-4. User reviews generated proposals (e.g., meta titles/descriptions)
-5. User approves → fix applied to WordPress via plugin API
-6. `executionResult` updated with results
-7. Status transitions: `PENDING` → `APPROVED` → `EXECUTED`
+3. Modal calls `/api/agent/insights/{id}/fix` with `mode: 'preview'` to generate fix proposals
+4. User reviews generated proposals (e.g., meta titles/descriptions, merge instructions)
+5. For MERGE: user clicks "Generate Content" → `mode: 'generate'` (background, polls for GENERATED status)
+6. User reviews generated content in ContentPreview editor (3 modes: preview, parallel block editor, free TipTap editor)
+7. User approves → `mode: 'apply-generated'` (background, polls for COMPLETED status)
+8. `MergeActionsSummary` displays results with rich details per action type
+9. Status transitions: `PENDING` → `APPROVED` → `EXECUTED`
+
+#### FixPreviewModal (`app/dashboard/components/FixPreviewModal.jsx`)
+
+**ContentPreview** — 3 edit modes:
+
+| Mode | Key | UI |
+|------|-----|----|
+| Preview | `'preview'` | Raw HTML rendered via `dangerouslySetInnerHTML` |
+| Block Editor | `'parallel'` | Parsed HTML into blocks (headings, figures, content). Drag-and-drop reordering. Inline editing per block. |
+| Full Editor | `'free'` | TipTap WYSIWYG rich text editor |
+
+**MergeActionsSummary** — Renders 8 action types with icons and rich meta details:
+
+| Action Type | Icon | Rich Detail |
+|-------------|------|-------------|
+| `post_updated` | ✏️ | Clickable link to updated URL |
+| `seo_updated` | 🔍 | Old → new title and description diffs (strikethrough old, green new) |
+| `featured_image` | 🖼️ | Thumbnail image preview |
+| `redirect_wp` | ↪️ | From → to path as clickable links |
+| `redirect_platform` | 📌 | From → to path as clickable links |
+| `post_trashed` | 🗑️ | Post title + path |
+| `link_healing` | 🔗 | Count of updated links + target URL |
+| `gsc_reindex` | 📡 | Clickable URL link |
+
+**Proposals list visibility:** When all proposals are applied (`allApplied === true`), the proposals list is hidden and replaced by MergeActionsSummary + "All changes applied!" + Done button.
+
+**Polling mechanism:** `fixPollingStatus` state (`'GENERATING'` | `'APPLYING'` | `null`). `setInterval(3000)` polls GET `/api/agent/insights/{id}/fix`. On `GENERATED`: shows ContentPreview. On `COMPLETED`: shows MergeActionsSummary, calls `onApplied()`. On `FAILED`: shows error message.
 
 ### Cannibalization Fix Execution Flow
 
-The fix API (`/api/agent/insights/{id}/fix`) supports multiple modes for the full cannibalization resolution pipeline:
+**Path:** `lib/agent-fix.js` + `app/api/agent/insights/[id]/fix/route.js`
 
-| Mode | Description |
-|------|-------------|
-| `preview` | Generate AI fix proposals (action type, SEO changes, merge instructions) |
-| `regenerate` | Regenerate a single item's proposal |
-| `generate` | Generate full merged content for a MERGE proposal (title, body, SEO, images) |
-| `apply-generated` | Apply previously generated merged content to WordPress |
-| `apply` | Apply approved proposals directly (for non-MERGE fixes like DIFFERENTIATE) |
+The fix API (`/api/agent/insights/{id}/fix`) supports a full pipeline for cannibalization resolution, from AI proposal generation through WordPress application.
 
-**Fix Types & Actions:**
+#### Fix API Modes
+
+| Mode | Sync/Background | Status Transition | Description |
+|------|-----------------|-------------------|-------------|
+| `preview` | Sync → returns proposals | None | Generate AI fix proposals (action type, SEO changes, merge instructions) |
+| `regenerate` | Sync → returns single proposal | None | Regenerate a single item's proposal |
+| `generate` | Background (fire & forget) | `→ GENERATING → GENERATED` | Generate full merged content for a MERGE proposal |
+| `apply-generated` | Background | `→ APPLYING → COMPLETED` | Apply previously generated merged content to WordPress |
+| `apply` | Background (cannib) / Sync (others) | `→ APPLYING → COMPLETED` | Apply approved proposals directly (DIFFERENTIATE, CANONICAL, etc.) |
+
+#### Fix Status Lifecycle
+
+```
+null → GENERATING → GENERATED → APPLYING → COMPLETED
+                  ↘ FAILED      ↘ FAILED
+```
+
+**Concurrency guard:** If `fixStatus` is `GENERATING` or `APPLYING`, returns **409** ("Fix already in progress").
+
+**Polling:** GET handler returns `{ fixStatus, executionResult, insightStatus }`. Client polls every 3 seconds.
+
+#### `runFixInBackground(insightId, mode, executeFn)`
+- Executes `executeFn()` asynchronously
+- On `generate` success: stores `fixStatus: 'GENERATED'`, `generatedContent: result.post`
+- On `apply`/`apply-generated` success: merges results by `postId`, sets `fixStatus: 'COMPLETED'`, `actions: result.actions`. For cannibalization: also sets `insight.status = 'EXECUTED'`
+- On error: sets `fixStatus: 'FAILED'`, `fixError: error.message`
+
+#### Fix Types & Actions
 
 | Action | Description | WordPress Effects |
 |--------|-------------|-------------------|
-| `MERGE` | Combine two pages into one comprehensive post | Update primary post content/SEO, create 301 redirect from secondary, trash secondary post, request GSC re-index |
+| `MERGE` | Combine N pages into one comprehensive post | Update primary post content/SEO, create 301 redirects from all secondaries, trash secondaries, heal internal links, request GSC re-index |
 | `CANONICAL` | Set canonical tag on secondary page | Update canonical URL on secondary post via plugin |
 | `301_REDIRECT` | Redirect redundant page to authoritative one | Create 301 redirect via plugin, trash secondary post |
-| `DIFFERENTIATE` | Give each page distinct focus keywords/angles | Update SEO meta (title, description, focus keyword) on both posts |
+| `DIFFERENTIATE` | Give each page distinct focus keywords/angles | Update SEO meta (title, description, focus keyword) on all posts |
 
-**MERGE Flow (most complex):**
-1. `preview` → `generateCannibalizationFix()` analyzes both pages, recommends action, provides SEO proposals
-2. User reviews proposal in FixPreviewModal (primary page selection, merged SEO, merge instructions)
-3. `generate` → `generateMergedContent()` creates full article via Gemini (with optional featured/content images via AI generation)
-4. User reviews generated content in editor
-5. `apply-generated` → `applyMergedContent()` pushes to WordPress:
-   - Updates primary post with merged content + SEO
-   - Creates 301 redirect from secondary URL → primary URL
-   - Trashes secondary post
-   - Requests GSC URL re-indexing for primary page
+#### `generateCannibalizationFix({pages, originalAction, reason, locale})`
+
+Builds a detailed AI prompt with:
+- Full content, GSC metrics (top queries), GA4 metrics (sessions, engagement, conversions, top traffic sources)
+- Commercial signal detection (affiliate links, sponsored rel) per page
+- Protected page detection (`isProtected`)
+- **Weighted primary score:** Conversions (5x) > Sessions×Engagement (2x) > GSC clicks+impressions (1x)
+
+**Safety nets:** Protected page always becomes primary. Highest weighted-score page enforced as `primaryPostId`. `pagesChanges` padded to exact page count.
+
+Returns `CannibalizationFixSchema`: `{ recommendedAction, reasoning, pagesChanges[], primaryPostId, mergedPageChanges?, canonicalTarget?, mergeInstructions? }`
+
+#### `generateMergedContent(insight, site, proposal, options)`
+
+1. Fetch full HTML content from WordPress for primary + all secondary posts
+2. Build structured AI prompt with merge instructions, article type, word count, language
+3. Call `generateStructuredResponse` → `MergedArticleSchema` → `{ title, html, seoTitle, seoDescription, excerpt, contentImageDescriptions[] }`
+4. Post-process: truncate SEO fields (60/155 chars), replace stale years
+5. If `generateFeaturedImages`: generate image via `generateSingleImage()`, upload to WP
+6. If `contentImagesCount > 0`: generate N content images, insert into HTML via `insertContentImages()` (section-aware positioning at intro/H2 boundaries)
+7. Return `{ success, post: { title, html, seoTitle, seoDescription, excerpt, focusKeyword, featuredImage, featuredImageAlt, contentImages[], wordCount } }`
+
+#### `applyMergedContent()` — 7-Step Apply Flow (N-Page Support)
+
+Each step produces an entry in the `actions[]` array with `{ type, status, detail, meta }`:
+
+| Step | Action Type | What It Does | Meta Object |
+|------|-------------|--------------|-------------|
+| 1 | `post_updated` | `updatePost()` with title, HTML content, excerpt on primary | `{ url, title }` |
+| 2 | `seo_updated` | `updateSeoData()` with seoTitle, seoDescription, focusKeyword on primary | `{ oldTitle, newTitle, oldDescription, newDescription }` |
+| 3 | `featured_image` | Generate AI image + upload + set as featured (if opted in) | `{ imageUrl }` |
+| 4 | `redirect_wp` | `createRedirect(site, { source, target, type:'301' })` for **each** secondary → primary | `{ fromUrl, toUrl, fromPath, toPath }` |
+| 4b | `redirect_platform` | `prisma.redirection.upsert()` to save redirect in platform DB | `{ fromUrl, toUrl, fromPath, toPath }` |
+| 5 | `post_trashed` | `updatePost(site, type, id, { status: 'trash' })` for **each** secondary | `{ url, title }` |
+| 6 | `link_healing` | `healInternalLinks()` → `searchReplaceLinks(site, oldPath, newPath)` per trashed URL | `{ count, targetUrl }` |
+| 7 | `gsc_reindex` | `requestGscReindex()` → POST to Google Indexing API with `URL_UPDATED` | `{ url }` |
+
+Steps 4–6 iterate over **all** secondary pages (not just one pair).
+
+#### `healInternalLinks(site, trashedUrls, primaryUrl)`
+For each trashed URL: extracts pathname, calls `searchReplaceLinks(site, trashedPath, primaryPath)` which bulk-replaces all internal links across the entire WordPress site. Non-fatal — the 301 redirect serves as fallback.
+
+#### `requestGscReindex(accessToken, pageUrl)`
+POST to `https://indexing.googleapis.com/v3/urlNotifications:publish` with `{ url, type: 'URL_UPDATED' }`. Returns `{ success, detail }`. 403 = Indexing API scope not available, suggests manual re-indexing.
 
 **Credit Cost:** `CANNIBALIZATION_FIX` = 50 credits per fix execution
 
@@ -2179,6 +2353,8 @@ ghost-post-connector/
 
 ### Version Management
 - Single source: `app/api/plugin/version.js` — `PLUGIN_VERSION` + `PLUGIN_CHANGELOG`
+- Current version: **2.3.9**
+- Recent changelog: 2.3.7 (trailing slash matching), 2.3.8 (search-replace-links endpoint for link healing), 2.3.9 (link healing in templates)
 - Bump by 0.0.1 for every plugin change
 
 ### Connection Protocol
@@ -2536,7 +2712,7 @@ Status: READY_TO_PUBLISH → PUBLISHED
 | `account-utils.js` | Account ownership, limits, add-on management, AI credit operations |
 | `account-limits.js` | Resource usage tracking vs. plan limits (sites, members, credits, audits) |
 | `site-keys.js` | Site key/secret generation, HMAC-SHA256 signature creation & verification |
-| `wp-api-client.js` | WordPress REST API client — CRUD via HMAC-signed requests |
+| `wp-api-client.js` | WordPress REST API client — CRUD via HMAC-signed requests. All functions normalize plural post types (`'posts'`→`'post'`, `'pages'`→`'page'`). Key functions: `getPost()`, `getPosts()`, `getPostBySlug()`, `createPost()`, `updatePost()`, `getSeoData()`, `updateSeoData()`, `createRedirect()`, `searchReplaceLinks()` (bulk internal link replacement), `resolveUrl()`, `resolveMediaUrls()` |
 | `worker-auth.js` | Background worker authentication via HMAC signatures |
 | `cloudinary-upload.js` | Image & media upload to Cloudinary CDN |
 | `cardcom.js` | CardCom payment gateway integration |
@@ -2548,10 +2724,10 @@ Status: READY_TO_PUBLISH → PUBLISHED
 | `fetch-interceptor.js` | Global fetch wrapper — auto-logout on 401 |
 | `domain-metrics.js` | SEO metrics calculation and domain analysis |
 | `agent-analysis.js` | AI agent analysis engine — generates insights from site data |
-| `agent-fix.js` | AI agent fix execution — content merging, redirect creation, re-indexing |
+| `agent-fix.js` | AI agent fix execution — content merging (N-page support), redirect creation, link healing, GSC re-indexing. Produces enriched `actions[]` with `{type, status, detail, meta}` per step |
 | `competitor-scraper.js` | Competitor website scraping and analysis |
 | `entity-sync.js` | WordPress entity synchronization (posts, pages, custom types) |
-| `cannibalization-engine.js` | Content cannibalization detection — competing pages on same keywords |
+| `cannibalization-engine.js` | Content cannibalization detection — 3-layer hybrid (proactive/reactive/AI), Union-Find N-URL grouping, Hebrew-aware text normalization, high-confidence AI bypass |
 | `urlDisplay.js` | URL formatting and display utilities |
 | `ai/gemini.js` | Gemini model config, `generateTextResponse`, `streamTextResponse`, `generateStructuredResponse` |
 | `ai/interview-ai.js` | Interview-specific AI prompts and function calling |

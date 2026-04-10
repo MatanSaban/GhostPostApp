@@ -236,20 +236,20 @@ export function PaymentStep({ translations, selectedPlan, userData, onComplete }
               // Payment verified – proceed to finalize registration
               onComplete();
             } else {
-              setPaymentError(confirmData.error || translations.confirmFailed || 'Payment confirmation failed');
+              setPaymentError(confirmData.error || translations.confirmFailed);
             }
           } catch {
-            setPaymentError(translations.confirmFailed || 'Payment confirmation failed');
+            setPaymentError(translations.confirmFailed);
           }
         } else {
-          setPaymentError(data?.Description || translations.paymentFailed || 'Payment failed');
+          setPaymentError(data?.Description || translations.paymentFailed);
         }
         setIsProcessing(false);
         break;
       }
       case 'HandleEror': {
         setIsProcessing(false);
-        setPaymentError(msg.message || translations.paymentError || 'Payment error');
+        setPaymentError(msg.message || translations.paymentError);
         break;
       }
       case 'handleValidations': {
@@ -295,7 +295,7 @@ export function PaymentStep({ translations, selectedPlan, userData, onComplete }
 
     const masterFrame = masterFrameRef.current || document.getElementById('CardComMasterFrame');
     if (!masterFrame?.contentWindow) {
-      setPaymentError(translations.iframeError || 'Payment system not ready. Please refresh.');
+      setPaymentError(translations.iframeError);
       return;
     }
 
@@ -341,11 +341,12 @@ export function PaymentStep({ translations, selectedPlan, userData, onComplete }
         setLowProfileId(null);
         iframeInitialized.current = false;
       } else {
-        setCouponError(data.error || translations.coupon?.invalid || 'Invalid coupon code');
+        const errorMsg = data.errorCode ? translations.coupon?.[data.errorCode] : null;
+        setCouponError(errorMsg || data.error || translations.coupon?.invalid);
         setCouponData(null);
       }
     } catch {
-      setCouponError(translations.coupon?.error || 'Failed to validate coupon');
+      setCouponError(translations.coupon?.error);
     } finally {
       setCouponLoading(false);
     }
@@ -392,23 +393,23 @@ export function PaymentStep({ translations, selectedPlan, userData, onComplete }
               <span>{selectedPlan?.name}</span>
             </div>
             <div className={styles.orderRow}>
-              <span>{translations.subscriptionType || 'Subscription Type'}</span>
-              <span>{translations.monthly || 'Monthly'}</span>
+              <span>{translations.subscriptionType}</span>
+              <span>{translations.monthly}</span>
             </div>
             <div className={styles.orderRow}>
-              <span>{translations.planPrice || 'Plan Price'}</span>
+              <span>{translations.planPrice}</span>
               <span>₪{priceBreakdown.basePrice}</span>
             </div>
             {priceBreakdown.proration && priceBreakdown.proration.remainingDays < priceBreakdown.proration.totalDays && (
               <div className={styles.orderRow} style={{ fontSize: '0.75rem', opacity: 0.7 }}>
-                <span>{translations.prorated || 'Prorated'} ({priceBreakdown.proration.remainingDays}/{priceBreakdown.proration.totalDays} {translations.days || 'days'})</span>
+                <span>{translations.prorated} ({priceBreakdown.proration.remainingDays}/{priceBreakdown.proration.totalDays} {translations.days})</span>
               </div>
             )}
             {priceBreakdown.discount > 0 && (
               <div className={styles.orderRow} style={{ color: '#22c55e' }}>
                 <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
                   <Ticket size={14} />
-                  {translations.coupon?.discount || 'Coupon Discount'}
+                  {translations.coupon?.discount}
                   {couponData && (
                     <span style={{ fontSize: '0.75rem', opacity: 0.8 }}>
                       ({couponData.discountType === 'PERCENTAGE' ? `${couponData.discountValue}%` : `$${couponData.discountValue}`})
@@ -419,7 +420,7 @@ export function PaymentStep({ translations, selectedPlan, userData, onComplete }
               </div>
             )}
             <div className={styles.orderRow}>
-              <span>{translations.vat || 'VAT (18%)'}</span>
+              <span>{translations.vat}</span>
               <span>₪{priceBreakdown.vatAmount}</span>
             </div>
             <div className={`${styles.orderRow} ${styles.orderTotal}`}>
@@ -430,8 +431,8 @@ export function PaymentStep({ translations, selectedPlan, userData, onComplete }
 
           {/* Coupon Code Input */}
           <div style={{ marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid var(--border, #e5e7eb)' }}>
-            <label style={{ display: 'block', fontSize: '0.8125rem', fontWeight: 500, marginBottom: '0.5rem' }}>
-              {translations.coupon?.label || 'Coupon Code'}
+            <label style={{ display: 'block', fontSize: '0.8125rem', fontWeight: 500, marginBottom: '0.5rem', color: 'var(--foreground, #111)' }}>
+              {translations.coupon?.label}
             </label>
             {couponData ? (
               <div style={{ 
@@ -446,7 +447,7 @@ export function PaymentStep({ translations, selectedPlan, userData, onComplete }
                 {(couponData.hasLimitationOverrides || couponData.hasExtraFeatures) && (
                   <span style={{ position: 'relative', display: 'inline-flex' }} className="couponBonusWrap">
                     <span style={{ fontSize: '0.6875rem', color: '#22c55e', padding: '0.125rem 0.5rem', background: 'rgba(34,197,94,0.15)', borderRadius: '9999px', cursor: 'help' }}>
-                      + {translations.coupon?.bonuses || 'Bonuses'}
+                      + {translations.coupon?.bonuses}
                     </span>
                     <span style={{
                       position: 'absolute', bottom: 'calc(100% + 6px)', insetInlineStart: '50%', transform: 'translateX(-50%)',
@@ -484,14 +485,14 @@ export function PaymentStep({ translations, selectedPlan, userData, onComplete }
                   type="text"
                   value={couponCode}
                   onChange={(e) => { setCouponCode(e.target.value.toUpperCase()); setCouponError(''); }}
-                  placeholder={translations.coupon?.placeholder || 'Enter coupon code'}
+                  placeholder={translations.coupon?.placeholder}
                   dir="ltr"
                   style={{
                     flex: 1, padding: '0.5rem 0.75rem', fontSize: '0.875rem',
                     fontFamily: 'monospace', textTransform: 'uppercase',
-                    border: `1px solid ${couponError ? '#ef4444' : 'var(--border, #e5e7eb)'}`,
+                    border: `1px solid ${couponError ? '#ef4444' : 'var(--input-border, #e5e7eb)'}`,
                     borderRadius: '0.5rem', outline: 'none',
-                    background: 'var(--input, white)',
+                    background: 'var(--input-background, white)',
                     color: 'var(--foreground, #111)',
                   }}
                   onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleApplyCoupon(); } }}
@@ -507,7 +508,7 @@ export function PaymentStep({ translations, selectedPlan, userData, onComplete }
                     opacity: couponLoading || !couponCode.trim() ? 0.5 : 1,
                   }}
                 >
-                  {couponLoading ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : (translations.coupon?.apply || 'Apply')}
+                  {couponLoading ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : translations.coupon?.apply}
                 </button>
               </div>
             )}
@@ -518,9 +519,7 @@ export function PaymentStep({ translations, selectedPlan, userData, onComplete }
             )}
             {couponData?.durationMonths && (
               <p style={{ fontSize: '0.75rem', color: 'var(--muted-foreground, #6b7280)', marginTop: '0.25rem', margin: '0.25rem 0 0' }}>
-                {translations.coupon?.durationNote
-                  ? translations.coupon.durationNote.replace('{months}', couponData.durationMonths)
-                  : `Valid for ${couponData.durationMonths} month${couponData.durationMonths > 1 ? 's' : ''}`}
+                {translations.coupon?.durationNote?.replace('{months}', couponData.durationMonths)}
               </p>
             )}
           </div>
@@ -532,7 +531,7 @@ export function PaymentStep({ translations, selectedPlan, userData, onComplete }
           {isPaidPlan && isInitializing && (
             <div className={styles.paymentInitializing}>
               <Loader2 size={24} className={styles.spinIcon} />
-              <span>{translations.initializing || 'Setting up secure payment...'}</span>
+              <span>{translations.initializing}</span>
             </div>
           )}
 
@@ -575,7 +574,7 @@ export function PaymentStep({ translations, selectedPlan, userData, onComplete }
 
             <div className={styles.formGroup}>
               <label htmlFor="citizenId" className={styles.formLabel}>
-                  {translations.citizenId || 'ID Number'}
+                  {translations.citizenId}
               </label>
               <input
                 type="text"
@@ -583,7 +582,7 @@ export function PaymentStep({ translations, selectedPlan, userData, onComplete }
                 value={citizenId}
                 onChange={(e) => setCitizenId(e.target.value.replace(/\D/g, '').slice(0, 9))}
                 className={styles.formInput}
-                placeholder={translations.citizenIdPlaceholder || 'Enter ID number'}
+                placeholder={translations.citizenIdPlaceholder}
                 dir="ltr"
                 required
                 disabled={isProcessing}
@@ -592,7 +591,7 @@ export function PaymentStep({ translations, selectedPlan, userData, onComplete }
 
             <div className={styles.formGroup}>
               <label htmlFor="billingEmail" className={styles.formLabel}>
-                  {translations.billingEmail || 'Billing Email'}
+                  {translations.billingEmail}
               </label>
               <input
                 type="email"
@@ -601,7 +600,7 @@ export function PaymentStep({ translations, selectedPlan, userData, onComplete }
                 onChange={(e) => setBillingEmail(e.target.value)}
                 onBlur={updateCardOwnerDetails}
                 className={styles.formInput}
-                placeholder={translations.billingEmailPlaceholder || 'Email for invoices'}
+                placeholder={translations.billingEmailPlaceholder}
                 dir="ltr"
                 required
                 disabled={isProcessing}
@@ -610,7 +609,7 @@ export function PaymentStep({ translations, selectedPlan, userData, onComplete }
 
             <div className={styles.formGroup}>
               <label htmlFor="cardOwnerPhone" className={styles.formLabel}>
-                {translations.phone || 'Phone'}
+                {translations.phone}
               </label>
               <input
                 type="tel"
@@ -619,7 +618,7 @@ export function PaymentStep({ translations, selectedPlan, userData, onComplete }
                 onChange={(e) => setCardOwnerPhone(e.target.value.replace(/[^\d\-+]/g, '').slice(0, 15))}
                 onBlur={updateCardOwnerDetails}
                 className={styles.formInput}
-                placeholder={translations.phonePlaceholder || '050-0000000'}
+                placeholder={translations.phonePlaceholder}
                 dir="ltr"
                 disabled={isProcessing}
               />
@@ -649,7 +648,7 @@ export function PaymentStep({ translations, selectedPlan, userData, onComplete }
                 <div className={styles.formRow}>
                   <div className={styles.formGroup}>
                     <label className={styles.formLabel}>
-                      {translations.expMonth || 'Month'}
+                      {translations.expMonth}
                     </label>
                     <input
                       type="text"
@@ -665,7 +664,7 @@ export function PaymentStep({ translations, selectedPlan, userData, onComplete }
                   </div>
                   <div className={styles.formGroup}>
                     <label className={styles.formLabel}>
-                      {translations.expYear || 'Year'}
+                      {translations.expYear}
                     </label>
                     <input
                       type="text"
@@ -680,7 +679,7 @@ export function PaymentStep({ translations, selectedPlan, userData, onComplete }
                     />
                   </div>
                   <div className={styles.formGroup}>
-                    <label className={styles.formLabel}>CVV</label>
+                    <label className={styles.formLabel}>{translations.cvv}</label>
                     <div className={`${styles.iframeWrapper} ${cvvValid === false ? styles.iframeInvalid : ''}`}>
                       <iframe
                         id="CardComCvv"

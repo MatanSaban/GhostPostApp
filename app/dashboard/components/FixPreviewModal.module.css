@@ -2232,6 +2232,72 @@
   flex: 1;
 }
 
+.actionContent {
+  flex: 1;
+  min-width: 0;
+}
+
+.actionMeta {
+  margin-top: 4px;
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+}
+
+.actionLink {
+  color: var(--primary, #6366f1);
+  text-decoration: none;
+  word-break: break-all;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.actionDiff {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  margin-bottom: 2px;
+}
+
+.actionDiffLabel {
+  font-weight: 600;
+  color: var(--text-secondary);
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.actionDiffArrow {
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.actionOldValue {
+  text-decoration: line-through;
+  color: var(--text-muted);
+  opacity: 0.7;
+}
+
+.actionNewValue {
+  color: var(--success, #22c55e);
+  font-weight: 500;
+}
+
+.actionThumbnail {
+  width: 80px;
+  height: 48px;
+  object-fit: cover;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+}
+
 .actionDetail {
   font-size: 0.75rem;
   color: var(--text-muted);
