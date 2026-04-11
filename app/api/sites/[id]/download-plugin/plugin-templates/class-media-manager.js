@@ -578,7 +578,12 @@ class GP_Media_Manager {
              AND post_mime_type = 'image/webp'"
         );
         
-        $non_webp = $total - $webp;
+        // Count convertible non-WebP images (only types we can actually convert)
+        $non_webp = (int) $wpdb->get_var(
+            "SELECT COUNT(*) FROM {$wpdb->posts} 
+             WHERE post_type = 'attachment' 
+             AND post_mime_type IN ('image/jpeg', 'image/png', 'image/gif')"
+        );
         
         return new WP_REST_Response(array(
             'total' => $total,
@@ -1034,6 +1039,8 @@ class GP_Media_Manager {
                     $completed++;
                     break;
                 case 'failed':
+                case 'processing':
+                    // Count stuck "processing" items as failed (crashed mid-conversion)
                     $failed++;
                     break;
             }

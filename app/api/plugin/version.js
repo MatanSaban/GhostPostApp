@@ -10,10 +10,15 @@
  */
 
 // Current plugin version - increment this when making updates
-export const PLUGIN_VERSION = "2.4.5";
+export const PLUGIN_VERSION = "2.4.6";
 
 // Changelog for the current version
 export const PLUGIN_CHANGELOG = `
+= 2.4.6 =
+* FIX: Stats nonWebp count now matches modal (only counts convertible jpeg/png/gif, not svg/bmp/ico)
+* FIX: Queue status counts stuck "processing" items as failed (from previous PHP crashes)
+* FIX: Platform always refreshes stats after queue processing ends (success or error)
+
 = 2.4.5 =
 * FIX: wp_generate_attachment_metadata() now loaded in REST API context (was crashing WebP conversion and image rename)
 

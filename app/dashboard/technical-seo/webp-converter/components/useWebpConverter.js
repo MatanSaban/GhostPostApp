@@ -259,10 +259,6 @@ export function useWebpConverter() {
             message: `${t('tools.webp.conversionComplete') || 'Conversion complete'} — ${data.completed || 0} ${t('tools.webp.converted') || 'converted'}${data.failed ? `, ${data.failed} ${t('tools.webp.failed') || 'failed'}` : ''}`,
           });
           setQueueStatus({ pending: 0, completed: data.completed || 0, failed: data.failed || 0, total, is_processing: false });
-          // Refresh data
-          fetchStats();
-          fetchConversionHistory();
-          fetchQueueStatus();
           break;
         }
 
@@ -282,6 +278,10 @@ export function useWebpConverter() {
       });
     } finally {
       processingRef.current = false;
+      // Always refresh data when processing ends (success, error, or abort)
+      fetchStats();
+      fetchConversionHistory();
+      fetchQueueStatus();
     }
   }, [updateTask, fetchStats, fetchConversionHistory, fetchQueueStatus, t]);
 
