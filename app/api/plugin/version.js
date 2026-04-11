@@ -10,10 +10,16 @@
  */
 
 // Current plugin version - increment this when making updates
-export const PLUGIN_VERSION = "2.4.1";
+export const PLUGIN_VERSION = "2.4.2";
 
 // Changelog for the current version
 export const PLUGIN_CHANGELOG = `
+= 2.4.2 =
+* FIX: Featured image now set via direct update_post_meta instead of set_post_thumbnail
+* FIX: set_post_thumbnail was calling wp_get_attachment_image() which DELETES the thumbnail when image metadata is incomplete
+* FIX: Upload now detects actual MIME type from file content (AI generators may return JPEG with .png filename)
+* FIX: MIME mismatch auto-corrects file extension so wp_generate_attachment_metadata succeeds
+
 = 2.4.1 =
 * FIX: Featured image now verified after setting — re-reads post thumbnail to confirm it persisted
 * FIX: set_post_thumbnail false-negative handled (update_post_meta returns false when value unchanged)
