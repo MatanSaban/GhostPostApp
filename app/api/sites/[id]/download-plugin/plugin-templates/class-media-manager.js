@@ -823,6 +823,11 @@ class GP_Media_Manager {
      * @return bool|array|string True/array on success, error message on failure
      */
     private function convert_single_to_webp($attachment_id, $keep_backup = true) {
+        // Ensure admin image functions are available (not loaded in REST API context)
+        if (!function_exists('wp_generate_attachment_metadata')) {
+            require_once ABSPATH . 'wp-admin/includes/image.php';
+        }
+        
         $file_path = get_attached_file($attachment_id);
         
         if (!$file_path || !file_exists($file_path)) {
@@ -1584,6 +1589,11 @@ class GP_Media_Manager {
      * @return array|WP_Error Result with new URL and redirect info
      */
     private function rename_attachment($attachment_id, $new_name) {
+        // Ensure admin image functions are available (not loaded in REST API context)
+        if (!function_exists('wp_generate_attachment_metadata')) {
+            require_once ABSPATH . 'wp-admin/includes/image.php';
+        }
+        
         $file_path = get_attached_file($attachment_id);
         if (!$file_path || !file_exists($file_path)) {
             return new WP_Error('file_not_found', 'Attachment file not found');

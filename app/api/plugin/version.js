@@ -10,10 +10,13 @@
  */
 
 // Current plugin version - increment this when making updates
-export const PLUGIN_VERSION = "2.4.4";
+export const PLUGIN_VERSION = "2.4.5";
 
 // Changelog for the current version
 export const PLUGIN_CHANGELOG = `
+= 2.4.5 =
+* FIX: wp_generate_attachment_metadata() now loaded in REST API context (was crashing WebP conversion and image rename)
+
 = 2.4.4 =
 * NEW: Platform-driven WebP queue processing (replaces unreliable WP-Cron)
 * NEW: process-queue-item REST endpoint for synchronous single-item conversion
