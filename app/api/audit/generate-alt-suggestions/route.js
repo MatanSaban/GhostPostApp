@@ -101,9 +101,9 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Audit not found' }, { status: 404 });
     }
 
-    // Find issues with images missing alt text (exclude already-fixed)
+    // Find issues with images missing alt text
     const altIssues = (audit.issues || []).filter(
-      (i) => i.message === 'audit.issues.imagesNoAlt' && i.severity !== 'passed'
+      (i) => i.message === 'audit.issues.imagesNoAlt'
     );
 
     if (altIssues.length === 0) {

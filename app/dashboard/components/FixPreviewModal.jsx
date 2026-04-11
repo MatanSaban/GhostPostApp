@@ -204,11 +204,23 @@ export default function FixPreviewModal({ open, onClose, insight, translations, 
       type = 'cannibalization';
     }
 
+    // Build set of already-fixed items from executionResult so "fix all" skips them
+    const fixedResults = (insight.executionResult?.results || []).filter(r => r.status === 'fixed');
+    const fixedUrls = new Set(fixedResults.map(r => r.url).filter(Boolean));
+    const fixedPageIds = new Set(fixedResults.map(r => r.pageId).filter(Boolean));
+
     if (type === 'missingSeo') {
       const pages = insight.data?.pages || [];
       const seen = new Set();
       // If itemIndices is provided, only show those specific items
-      const indicesToUse = itemIndices || pages.map((_, i) => i);
+      let indicesToUse = itemIndices || pages.map((_, i) => i);
+      // When fixing all (itemIndices is null), skip already-fixed items
+      if (!itemIndices) {
+        indicesToUse = indicesToUse.filter(i => {
+          const p = pages[i];
+          return p && !fixedUrls.has(p.url);
+        });
+      }
       const filteredPages = indicesToUse
         .map(i => ({ page: pages[i], realIndex: i }))
         .filter(({ page }) => {
@@ -245,7 +257,13 @@ export default function FixPreviewModal({ open, onClose, insight, translations, 
     if (type === 'lowCtrForPosition') {
       const pages = insight.data?.pages || [];
       const seen = new Set();
-      const indicesToUse = itemIndices || pages.map((_, i) => i);
+      let indicesToUse = itemIndices || pages.map((_, i) => i);
+      if (!itemIndices) {
+        indicesToUse = indicesToUse.filter(i => {
+          const p = pages[i];
+          return p && !fixedUrls.has(p.page);
+        });
+      }
       const filteredPages = indicesToUse
         .map(i => ({ page: pages[i], realIndex: i }))
         .filter(({ page }) => {
@@ -296,7 +314,13 @@ export default function FixPreviewModal({ open, onClose, insight, translations, 
 
     if (type === 'missingFeaturedImage') {
       const pages = insight.data?.pages || [];
-      const indicesToUse = itemIndices || pages.map((_, i) => i);
+      let indicesToUse = itemIndices || pages.map((_, i) => i);
+      if (!itemIndices) {
+        indicesToUse = indicesToUse.filter(i => {
+          const p = pages[i];
+          return p && !fixedPageIds.has(p.id);
+        });
+      }
       return indicesToUse.map(i => {
         const page = pages[i];
         if (!page) return null;
@@ -315,7 +339,13 @@ export default function FixPreviewModal({ open, onClose, insight, translations, 
 
     if (type === 'insufficientContentImages') {
       const pages = insight.data?.pages || [];
-      const indicesToUse = itemIndices || pages.map((_, i) => i);
+      let indicesToUse = itemIndices || pages.map((_, i) => i);
+      if (!itemIndices) {
+        indicesToUse = indicesToUse.filter(i => {
+          const p = pages[i];
+          return p && !fixedPageIds.has(p.id);
+        });
+      }
       return indicesToUse.map(i => {
         const page = pages[i];
         if (!page) return null;

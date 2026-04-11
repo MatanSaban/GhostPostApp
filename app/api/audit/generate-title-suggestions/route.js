@@ -85,9 +85,9 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Audit not found' }, { status: 404 });
     }
 
-    // Find pages with titleTooShort issue (exclude already-fixed)
+    // Find pages with titleTooShort issue
     const titleIssues = (audit.issues || []).filter(
-      (i) => i.message === 'audit.issues.titleTooShort' && i.severity !== 'passed'
+      (i) => i.message === 'audit.issues.titleTooShort'
     );
     const affectedUrls = [...new Set(titleIssues.map((i) => i.url).filter(Boolean))];
 

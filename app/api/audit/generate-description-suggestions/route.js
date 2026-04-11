@@ -84,12 +84,11 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Audit not found' }, { status: 404 });
     }
 
-    // Find pages with noMetaDescription or metaDescriptionShort (exclude already-fixed)
+    // Find pages with noMetaDescription or metaDescriptionShort
     const descIssues = (audit.issues || []).filter(
       (i) =>
-        (i.message === 'audit.issues.noMetaDescription' ||
-        i.message === 'audit.issues.metaDescriptionShort') &&
-        i.severity !== 'passed'
+        i.message === 'audit.issues.noMetaDescription' ||
+        i.message === 'audit.issues.metaDescriptionShort'
     );
     const affectedUrls = [...new Set(descIssues.map((i) => i.url).filter(Boolean))];
 

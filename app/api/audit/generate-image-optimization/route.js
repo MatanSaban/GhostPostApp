@@ -97,7 +97,7 @@ export async function POST(request) {
     ]);
 
     const issues = (audit.issues || []).filter((i) =>
-      relevantIssueKeys.has(i.message) && i.severity !== 'passed'
+      relevantIssueKeys.has(i.message)
     );
 
     if (issues.length === 0) {

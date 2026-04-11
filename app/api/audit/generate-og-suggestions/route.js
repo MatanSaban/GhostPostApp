@@ -84,9 +84,9 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Audit not found' }, { status: 404 });
     }
 
-    // Find pages with missingOG issues (exclude already-fixed)
+    // Find pages with missingOG issues
     const ogIssues = (audit.issues || []).filter(
-      (i) => i.message === 'audit.issues.missingOG' && i.severity !== 'passed'
+      (i) => i.message === 'audit.issues.missingOG'
     );
     const affectedUrls = [...new Set(ogIssues.map((i) => i.url).filter(Boolean))];
 
