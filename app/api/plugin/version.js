@@ -10,10 +10,18 @@
  */
 
 // Current plugin version - increment this when making updates
-export const PLUGIN_VERSION = "2.4.2";
+export const PLUGIN_VERSION = "2.4.3";
 
 // Changelog for the current version
 export const PLUGIN_CHANGELOG = `
+= 2.4.3 =
+* CRITICAL FIX: Featured image fix now works — all changes applied to actual plugin templates (not reference PHP files)
+* FIX: Agent sends 'featured_image' field matching plugin template (was sending 'featured_image_id' which template ignored)
+* FIX: set_featured_image uses update_post_meta directly instead of set_post_thumbnail (which silently fails)
+* FIX: format_post now returns featuredImageId (numeric) for verification
+* FIX: Skip wp_update_post when only meta fields are being updated (e.g. featured image only)
+* FIX: Media upload detects actual MIME type from file content to prevent metadata generation failures
+
 = 2.4.2 =
 * FIX: Featured image now set via direct update_post_meta instead of set_post_thumbnail
 * FIX: set_post_thumbnail was calling wp_get_attachment_image() which DELETES the thumbnail when image metadata is incomplete

@@ -433,6 +433,24 @@ class GP_Media_Manager {
             return new WP_Error('invalid_base64', 'Invalid base64 data');
         }
         
+        // Detect actual MIME type from file content (don't rely on filename extension)
+        $finfo = new finfo(FILEINFO_MIME_TYPE);
+        $detected_mime = $finfo->buffer($decoded);
+        if ($detected_mime) {
+            $mime_ext_map = array(
+                'image/jpeg' => 'jpg',
+                'image/png' => 'png',
+                'image/gif' => 'gif',
+                'image/webp' => 'webp',
+                'image/svg+xml' => 'svg',
+            );
+            if (isset($mime_ext_map[$detected_mime])) {
+                $correct_ext = $mime_ext_map[$detected_mime];
+                // Fix filename extension if it doesn't match the actual content
+                $filename = preg_replace('/\\.[^.]+$/', '.' . $correct_ext, $filename);
+            }
+        }
+        
         // Create temp file
         $upload_dir = wp_upload_dir();
         $temp_file = $upload_dir['basedir'] . '/' . wp_unique_filename($upload_dir['basedir'], $filename);

@@ -206,11 +206,14 @@ class GP_Content_Manager {
         // Mark as gp-platform origin BEFORE update (save_post fires during wp_update_post)
         GP_Entity_Sync::mark_gp_origin();
         
-        $result = wp_update_post($post_data, true);
-        
-        if (is_wp_error($result)) {
-            GP_Entity_Sync::clear_gp_origin();
-            return new WP_REST_Response(array('error' => $result->get_error_message()), 400);
+        // Only call wp_update_post if there are actual post fields to update (not just meta/taxonomy/featured_image)
+        if (count($post_data) > 1) {
+            $result = wp_update_post($post_data, true);
+            
+            if (is_wp_error($result)) {
+                GP_Entity_Sync::clear_gp_origin();
+                return new WP_REST_Response(array('error' => $result->get_error_message()), 400);
+            }
         }
         
         // Update featured image
@@ -294,6 +297,7 @@ class GP_Content_Manager {
             'modified' => $post->post_modified,
             'author' => (int) $post->post_author,
             'featured_image' => get_the_post_thumbnail_url($post->ID, 'full'),
+            'featuredImageId' => get_post_thumbnail_id($post->ID) ?: null,
             'permalink' => get_permalink($post->ID),
         );
         
@@ -611,13 +615,26 @@ class GP_Content_Manager {
      */
     private function set_featured_image($post_id, $image) {
         if (is_numeric($image)) {
-            set_post_thumbnail($post_id, (int) $image);
+            // Use update_post_meta directly instead of set_post_thumbnail
+            // set_post_thumbnail can silently fail when image metadata is incomplete
+            $thumb_id = (int) $image;
+            $attachment = get_post($thumb_id);
+            if (!$attachment || $attachment->post_type !== 'attachment') {
+                error_log("GP set_featured_image: attachment $thumb_id not found for post $post_id");
+                return;
+            }
+            update_post_meta($post_id, '_thumbnail_id', $thumb_id);
+            // Verify it was set
+            $verify = get_post_meta($post_id, '_thumbnail_id', true);
+            if ((int) $verify !== $thumb_id) {
+                error_log("GP set_featured_image: verification failed for post $post_id - expected $thumb_id, got $verify");
+            }
         } elseif (filter_var($image, FILTER_VALIDATE_URL)) {
             // Download and attach image
             $media_manager = new GP_Media_Manager();
             $attachment_id = $media_manager->upload_from_url($image, $post_id);
             if ($attachment_id && !is_wp_error($attachment_id)) {
-                set_post_thumbnail($post_id, $attachment_id);
+                update_post_meta($post_id, '_thumbnail_id', (int) $attachment_id);
             }
         }
     }
