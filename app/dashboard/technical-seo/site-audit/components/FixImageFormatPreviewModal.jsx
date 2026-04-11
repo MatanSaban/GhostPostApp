@@ -303,7 +303,7 @@ export default function FixImageFormatPreviewModal({ open, onClose, auditId, sit
         {!isLoading && !error && suggestions.length > 0 && (
           <>
             <div className={styles.suggestionsList}>
-              {suggestions.map((s, idx) => {
+              {suggestions.filter((s) => fixStatus[s.imageUrl] !== 'done').map((s, idx) => {
                 const status = fixStatus[s.imageUrl] || 'idle';
                 return (
                   <div key={s.imageUrl || idx} className={styles.suggestionItem}>

@@ -391,7 +391,7 @@ export default function FixOGPreviewModal({ open, onClose, auditId, siteId, onAu
               </div>
             )}
             <div className={styles.suggestionsList}>
-              {suggestions.map((s, idx) => {
+              {suggestions.filter((s) => fixStatus[s.url] !== 'done').map((s, idx) => {
                 const status = fixStatus[s.url] || 'idle';
                 return (
                   <div key={s.url || idx} className={styles.suggestionItem}>

@@ -326,7 +326,7 @@ export default function FixBrokenLinkModal({ open, onClose, auditId, siteId, onA
                   </div>
                 )}
                 <div className={styles.suggestionsList}>
-                  {suggestions.map((s, idx) => {
+                  {suggestions.filter((s) => fixStatus[s.brokenUrl] !== 'done').map((s, idx) => {
                     const status = fixStatus[s.brokenUrl] || 'idle';
                     return (
                       <div key={s.brokenUrl || idx} className={styles.suggestionItem}>

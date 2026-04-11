@@ -318,7 +318,7 @@ export default function FixAltTextPreviewModal({ open, onClose, auditId, siteId,
         {!isLoading && !error && suggestions.length > 0 && (
           <>
             <div className={styles.suggestionsList}>
-              {suggestions.map((s, idx) => {
+              {suggestions.filter((s) => fixStatus[s.imageUrl] !== 'done').map((s, idx) => {
                 const status = fixStatus[s.imageUrl] || 'idle';
                 const isEditing = editingKey === s.imageUrl;
                 return (

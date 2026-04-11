@@ -328,7 +328,7 @@ export default function FixTitlePreviewModal({ open, onClose, auditId, siteId, o
               </div>
             )}
             <div className={styles.suggestionsList}>
-              {suggestions.map((s, idx) => {
+              {suggestions.filter((s) => fixStatus[s.url] !== 'done').map((s, idx) => {
                 const status = fixStatus[s.url] || 'idle';
                 return (
                   <div key={s.url || idx} className={styles.suggestionItem}>
