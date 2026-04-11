@@ -10,10 +10,16 @@
  */
 
 // Current plugin version - increment this when making updates
-export const PLUGIN_VERSION = "2.4.0";
+export const PLUGIN_VERSION = "2.4.1";
 
 // Changelog for the current version
 export const PLUGIN_CHANGELOG = `
+= 2.4.1 =
+* FIX: Featured image now verified after setting — re-reads post thumbnail to confirm it persisted
+* FIX: set_post_thumbnail false-negative handled (update_post_meta returns false when value unchanged)
+* FIX: Update response now returns actual featured_image_id for client-side verification
+* IMPROVE: Attachment existence validated before attempting set_post_thumbnail
+
 = 2.4.0 =
 * FIX: Featured image setting no longer silently fails when only featured_image_id is sent
 * FIX: set_post_thumbnail errors now return proper error responses instead of false success
