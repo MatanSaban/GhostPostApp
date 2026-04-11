@@ -281,6 +281,13 @@ class GP_API_Handler {
             'permission_callback' => array($this, 'validate_request'),
         ));
         
+        // Process next queue item (platform-driven, replaces WP-Cron dependency)
+        register_rest_route($namespace, '/media/process-queue-item', array(
+            'methods' => 'POST',
+            'callback' => array($this, 'process_queue_item'),
+            'permission_callback' => array($this, 'validate_request'),
+        ));
+        
         // AI Optimize Single Image
         register_rest_route($namespace, '/media/ai-optimize', array(
             'methods' => 'POST',
@@ -808,6 +815,13 @@ class GP_API_Handler {
             return new WP_REST_Response(array('error' => 'Permission denied'), 403);
         }
         return $this->media_manager->clear_queue();
+    }
+    
+    public function process_queue_item(WP_REST_Request $request) {
+        if (!gp_has_permission('MEDIA_UPLOAD')) {
+            return new WP_REST_Response(array('error' => 'Permission denied'), 403);
+        }
+        return $this->media_manager->process_queue_item();
     }
     
     public function ai_optimize_image(WP_REST_Request $request) {

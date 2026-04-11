@@ -1064,6 +1064,106 @@ class GP_Media_Manager {
     }
     
     /**
+     * Process next pending queue item (platform-driven, replaces WP-Cron dependency)
+     * Returns the result + current queue progress so the platform can show a progress bar.
+     */
+    public function process_queue_item() {
+        $queue = get_option(self::CONVERSION_QUEUE_OPTION, array());
+        
+        // Count totals for progress
+        $total = count($queue);
+        $pending = 0;
+        $completed = 0;
+        $failed = 0;
+        $item_key = null;
+        $item = null;
+        
+        foreach ($queue as $key => $queue_item) {
+            switch ($queue_item['status']) {
+                case 'pending':
+                    $pending++;
+                    if ($item === null) {
+                        $item_key = $key;
+                        $item = $queue_item;
+                    }
+                    break;
+                case 'completed':
+                    $completed++;
+                    break;
+                case 'failed':
+                    $failed++;
+                    break;
+            }
+        }
+        
+        // No pending items
+        if ($item === null) {
+            return new WP_REST_Response(array(
+                'done' => true,
+                'total' => $total,
+                'completed' => $completed,
+                'failed' => $failed,
+                'pending' => 0,
+            ), 200);
+        }
+        
+        // Mark as processing
+        $queue[$item_key]['status'] = 'processing';
+        update_option(self::CONVERSION_QUEUE_OPTION, $queue);
+        
+        // Get old URL before conversion (for URL replacement)
+        $old_url = wp_get_attachment_url($item['id']);
+        
+        // Convert the image
+        $result = $this->convert_single_to_webp($item['id'], $item['keep_backup']);
+        
+        $item_status = 'failed';
+        $item_error = null;
+        
+        if ((is_array($result) && isset($result['success']) && $result['success']) || $result === true) {
+            $item_status = 'completed';
+            $queue[$item_key]['status'] = 'completed';
+            $queue[$item_key]['completed_at'] = current_time('mysql');
+            $completed++;
+            
+            // Get new URL after conversion
+            $new_url = wp_get_attachment_url($item['id']);
+            
+            // Replace URLs in database if requested
+            if (!empty($item['replace_urls']) && $old_url !== $new_url) {
+                $this->replace_image_urls_in_content($old_url, $new_url);
+            }
+            
+            // Flush cache if requested
+            if (!empty($item['flush_cache'])) {
+                $this->flush_caches($item['id']);
+            }
+        } else {
+            $queue[$item_key]['status'] = 'failed';
+            $queue[$item_key]['error'] = is_string($result) ? $result : 'Conversion failed';
+            $queue[$item_key]['failed_at'] = current_time('mysql');
+            $item_error = $queue[$item_key]['error'];
+            $failed++;
+        }
+        
+        $pending--;
+        update_option(self::CONVERSION_QUEUE_OPTION, $queue);
+        
+        return new WP_REST_Response(array(
+            'done' => $pending <= 0,
+            'total' => $total,
+            'completed' => $completed,
+            'failed' => $failed,
+            'pending' => max(0, $pending),
+            'lastItem' => array(
+                'id' => $item['id'],
+                'status' => $item_status,
+                'error' => $item_error,
+            ),
+        ), 200);
+    }
+    
+    /**
      * Process conversion queue (called by cron)
      * Processes one image at a time to prevent server overload
      */

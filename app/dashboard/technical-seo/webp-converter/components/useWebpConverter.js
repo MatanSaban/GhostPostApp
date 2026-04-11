@@ -1,10 +1,15 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useSite } from '@/app/context/site-context';
+import { useBackgroundTasks } from '@/app/context/background-tasks-context';
+import { useLocale } from '@/app/context/locale-context';
 
 export function useWebpConverter() {
   const { selectedSite, isLoading: isSiteLoading } = useSite();
+  const { addTask, updateTask } = useBackgroundTasks();
+  const { t } = useLocale();
+  const processingRef = useRef(false);
   
   // Settings state
   const [autoConvert, setAutoConvert] = useState(false);
@@ -41,7 +46,6 @@ export function useWebpConverter() {
   
   // Queue state
   const [queueStatus, setQueueStatus] = useState(null);
-  const [useQueueMode, setUseQueueMode] = useState(true);
   
   // History state
   const [showHistory, setShowHistory] = useState(false);
@@ -151,11 +155,10 @@ export function useWebpConverter() {
     if (queueStatus?.is_processing || queueStatus?.pending > 0) {
       const interval = setInterval(() => {
         fetchQueueStatus();
-        fetchStats();
       }, 5000);
       return () => clearInterval(interval);
     }
-  }, [queueStatus?.is_processing, queueStatus?.pending, fetchQueueStatus, fetchStats]);
+  }, [queueStatus?.is_processing, queueStatus?.pending, fetchQueueStatus]);
 
   // Clear queue
   const handleClearQueue = async () => {
@@ -213,9 +216,82 @@ export function useWebpConverter() {
     }
   };
 
+  /**
+   * Drive queue processing from the platform.
+   * Calls process-queue-item sequentially until all items are done.
+   */
+  const driveQueueProcessing = useCallback(async (siteId, taskId, totalQueued) => {
+    if (processingRef.current) return;
+    processingRef.current = true;
+
+    let consecutiveErrors = 0;
+    const MAX_ERRORS = 5;
+
+    try {
+      while (processingRef.current) {
+        const res = await fetch(`/api/sites/${siteId}/tools/process-queue-item`, { method: 'POST' });
+        
+        if (!res.ok) {
+          consecutiveErrors++;
+          if (consecutiveErrors >= MAX_ERRORS) {
+            updateTask(taskId, {
+              status: 'error',
+              message: t('tools.webp.queueErrorTooMany') || 'Too many errors, stopping',
+            });
+            break;
+          }
+          // Brief pause before retry
+          await new Promise(r => setTimeout(r, 1000));
+          continue;
+        }
+
+        consecutiveErrors = 0;
+        const data = await res.json();
+
+        const processed = (data.completed || 0) + (data.failed || 0);
+        const total = data.total || totalQueued;
+        const progress = total > 0 ? Math.round((processed / total) * 100) : 0;
+
+        if (data.done) {
+          updateTask(taskId, {
+            status: 'completed',
+            progress: 100,
+            message: `${t('tools.webp.conversionComplete') || 'Conversion complete'} — ${data.completed || 0} ${t('tools.webp.converted') || 'converted'}${data.failed ? `, ${data.failed} ${t('tools.webp.failed') || 'failed'}` : ''}`,
+          });
+          setQueueStatus({ pending: 0, completed: data.completed || 0, failed: data.failed || 0, total, is_processing: false });
+          // Refresh data
+          fetchStats();
+          fetchConversionHistory();
+          fetchQueueStatus();
+          break;
+        }
+
+        updateTask(taskId, {
+          status: 'running',
+          progress,
+          message: `${processed}/${total} — ${data.completed || 0} ${t('tools.webp.converted') || 'converted'}${data.failed ? `, ${data.failed} ${t('tools.webp.failed') || 'failed'}` : ''}`,
+        });
+
+        setQueueStatus({ pending: data.pending || 0, completed: data.completed || 0, failed: data.failed || 0, total, is_processing: true });
+      }
+    } catch (err) {
+      console.error('Queue processing error:', err);
+      updateTask(taskId, {
+        status: 'error',
+        message: err.message || 'Processing failed',
+      });
+    } finally {
+      processingRef.current = false;
+    }
+  }, [updateTask, fetchStats, fetchConversionHistory, fetchQueueStatus, t]);
+
   // Convert selected images
-  const handleConvertSelected = async () => {
+  const handleConvertSelected = async ({ keepBackups: kb, flushCache: fc, replaceUrls: ru } = {}) => {
     if (!selectedSite?.id || converting || selectedImages.size === 0) return;
+    
+    const optKeepBackups = kb ?? keepBackups;
+    const optFlushCache = fc ?? flushCache;
+    const optReplaceUrls = ru ?? replaceUrls;
     
     setConverting(true);
     setConversionError(null);
@@ -223,63 +299,49 @@ export function useWebpConverter() {
     setConversionProgress({ current: 0, total: selectedImages.size, converted: 0, failed: 0 });
     
     try {
-      if (useQueueMode) {
-        const response = await fetch(`/api/sites/${selectedSite.id}/tools/queue-webp`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ 
-            ids: Array.from(selectedImages),
-            keepBackups,
-            flushCache,
-            replaceUrls,
-          }),
-        });
-        
-        if (!response.ok) {
-          const data = await response.json();
-          throw new Error(data.error || 'Failed to queue images');
-        }
-        
-        setConversionSuccess(true);
-        await fetchQueueStatus();
-        
-        setTimeout(() => {
-          setShowModal(false);
-          setConversionSuccess(false);
-        }, 2000);
-      } else {
-        const response = await fetch(`/api/sites/${selectedSite.id}/tools/convert-to-webp`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ ids: Array.from(selectedImages), keepBackups }),
-        });
-        
-        if (!response.ok) {
-          const data = await response.json();
-          throw new Error(data.error || 'Conversion failed');
-        }
-        
-        const result = await response.json();
-        setConversionProgress({
-          current: result.total,
-          total: result.total,
-          converted: result.converted,
-          failed: result.failed,
-        });
-        setConversionSuccess(true);
-        
-        await fetchStats();
-        await fetchConversionHistory();
-        
-        setTimeout(() => {
-          setShowModal(false);
-          setConversionSuccess(false);
-        }, 2000);
+      // Queue images on WordPress
+      const response = await fetch(`/api/sites/${selectedSite.id}/tools/queue-webp`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          ids: Array.from(selectedImages),
+          keepBackups: optKeepBackups,
+          flushCache: optFlushCache,
+          replaceUrls: optReplaceUrls,
+        }),
+      });
+      
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || 'Failed to queue images');
       }
+
+      const totalQueued = selectedImages.size;
+      
+      // Close modal immediately
+      setShowModal(false);
+      setConversionSuccess(false);
+      setConverting(false);
+
+      // Start background task with progress bar
+      const taskId = `webp-convert-${selectedSite.id}-${Date.now()}`;
+      addTask({
+        id: taskId,
+        type: 'webp-conversion',
+        title: `${t('tools.webp.title') || 'WebP Conversion'} — ${selectedSite.name}`,
+        message: `0/${totalQueued}`,
+        status: 'running',
+        progress: 0,
+        cancelable: false,
+        metadata: { siteId: selectedSite.id },
+      });
+
+      // Drive processing from the platform (don't await — runs in background)
+      driveQueueProcessing(selectedSite.id, taskId, totalQueued);
+
     } catch (error) {
       console.error('Conversion error:', error);
       setConversionError(error.message);
-    } finally {
       setConverting(false);
     }
   };
@@ -346,8 +408,6 @@ export function useWebpConverter() {
     handleConvertSelected,
     // Queue
     queueStatus,
-    useQueueMode,
-    setUseQueueMode,
     handleClearQueue,
     // History
     showHistory,

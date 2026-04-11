@@ -10,10 +10,15 @@
  */
 
 // Current plugin version - increment this when making updates
-export const PLUGIN_VERSION = "2.4.3";
+export const PLUGIN_VERSION = "2.4.4";
 
 // Changelog for the current version
 export const PLUGIN_CHANGELOG = `
+= 2.4.4 =
+* NEW: Platform-driven WebP queue processing (replaces unreliable WP-Cron)
+* NEW: process-queue-item REST endpoint for synchronous single-item conversion
+* IMPROVE: WebP conversion progress shown in background task notification bar
+
 = 2.4.3 =
 * CRITICAL FIX: Featured image fix now works — all changes applied to actual plugin templates (not reference PHP files)
 * FIX: Agent sends 'featured_image' field matching plugin template (was sending 'featured_image_id' which template ignored)

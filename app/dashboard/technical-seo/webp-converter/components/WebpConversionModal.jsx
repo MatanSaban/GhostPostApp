@@ -7,8 +7,6 @@ import {
   Loader2, 
   CheckCircle2, 
   Check, 
-  Clock, 
-  Play 
 } from 'lucide-react';
 import { useLocale } from '@/app/context/locale-context';
 import { useModalResize, ModalResizeButton } from '@/app/components/ui/ModalResizeButton';
@@ -33,8 +31,6 @@ export default function WebpConversionModal({
   setFlushCache,
   replaceUrls,
   setReplaceUrls,
-  useQueueMode,
-  setUseQueueMode,
   // Actions
   onConvert,
 }) {
@@ -101,7 +97,7 @@ export default function WebpConversionModal({
                     type="checkbox"
                     checked={flushCache}
                     onChange={(e) => setFlushCache(e.target.checked)}
-                    disabled={converting || !useQueueMode}
+                    disabled={converting}
                   />
                   <span>{t('tools.webp.flushCache')}</span>
                 </label>
@@ -111,37 +107,10 @@ export default function WebpConversionModal({
                     type="checkbox"
                     checked={replaceUrls}
                     onChange={(e) => setReplaceUrls(e.target.checked)}
-                    disabled={converting || !useQueueMode}
+                    disabled={converting}
                   />
                   <span>{t('tools.webp.replaceUrls')}</span>
                 </label>
-              </div>
-              
-              <div className={styles.modeToggle}>
-                <span className={styles.modeLabel}>{t('tools.webp.conversionMode')}</span>
-                <div className={styles.modeButtons}>
-                  <button
-                    className={`${styles.modeButton} ${useQueueMode ? styles.modeButtonActive : ''}`}
-                    onClick={() => setUseQueueMode(true)}
-                    disabled={converting}
-                  >
-                    <Clock />
-                    {t('tools.webp.queueMode')}
-                  </button>
-                  <button
-                    className={`${styles.modeButton} ${!useQueueMode ? styles.modeButtonActive : ''}`}
-                    onClick={() => setUseQueueMode(false)}
-                    disabled={converting}
-                  >
-                    <Play />
-                    {t('tools.webp.directMode')}
-                  </button>
-                </div>
-                <p className={styles.modeDescription}>
-                  {useQueueMode 
-                    ? t('tools.webp.queueModeDesc') 
-                    : t('tools.webp.directModeDesc')}
-                </p>
               </div>
               
               {/* Image Grid */}
@@ -177,13 +146,7 @@ export default function WebpConversionModal({
           {conversionSuccess ? (
             <div className={styles.successMessage}>
               <CheckCircle2 />
-              {useQueueMode 
-                ? t('tools.webp.addedToQueue', { count: selectedImages.size })
-                : t('tools.webp.conversionComplete', { 
-                    converted: conversionProgress.converted,
-                    failed: conversionProgress.failed 
-                  })
-              }
+              {t('tools.webp.addedToQueue', { count: selectedImages.size })}
             </div>
           ) : (
             <>
@@ -201,18 +164,12 @@ export default function WebpConversionModal({
                 {converting ? (
                   <>
                     <Loader2 className={styles.spinning} />
-                    {useQueueMode 
-                      ? t('tools.webp.addingToQueue')
-                      : t('tools.webp.converting') + ` (${conversionProgress.current}/${conversionProgress.total})`
-                    }
+                    {t('tools.webp.addingToQueue')}
                   </>
                 ) : (
                   <>
-                    {useQueueMode ? <Clock /> : <ImageIcon />}
-                    {useQueueMode 
-                      ? t('tools.webp.addToQueue', { count: selectedImages.size })
-                      : t('tools.webp.convertSelected') + ` (${selectedImages.size})`
-                    }
+                    <ImageIcon />
+                    {t('tools.webp.convertSelected')} ({selectedImages.size})
                   </>
                 )}
               </Button>

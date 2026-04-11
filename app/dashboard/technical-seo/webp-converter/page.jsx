@@ -152,8 +152,6 @@ export default function WebpConverterPage() {
         setFlushCache={setFlushCache}
         replaceUrls={replaceUrls}
         setReplaceUrls={setReplaceUrls}
-        useQueueMode={webp.useQueueMode}
-        setUseQueueMode={webp.setUseQueueMode}
         onConvert={() => webp.handleConvertSelected({ keepBackups, flushCache, replaceUrls })}
       />
       
