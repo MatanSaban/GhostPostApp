@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { prisma } from '@/lib/prisma';
 import { makePluginRequest } from '@/lib/wp-api-client';
 
 /**
@@ -9,6 +10,15 @@ export async function POST(req, { params }) {
   try {
     const { id } = await params;
     const body = await req.json();
+
+    const site = await prisma.site.findUnique({
+      where: { id },
+      select: { id: true, url: true, siteKey: true, siteSecret: true },
+    });
+
+    if (!site) {
+      return NextResponse.json({ error: 'Site not found' }, { status: 404 });
+    }
 
     // ids: array of image IDs to queue
     // keep_backups: whether to keep backups (default: true)
@@ -23,7 +33,7 @@ export async function POST(req, { params }) {
       );
     }
 
-    const result = await makePluginRequest(id, 'media/queue-webp', 'POST', {
+    const result = await makePluginRequest(site, '/media/queue-webp', 'POST', {
       ids,
       keep_backups: keepBackups,
       flush_cache: flushCache,
