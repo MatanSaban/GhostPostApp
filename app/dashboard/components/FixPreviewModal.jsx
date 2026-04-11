@@ -10,7 +10,7 @@ import TiptapPlaceholder from '@tiptap/extension-placeholder';
 import TiptapImage from '@tiptap/extension-image';
 import {
   X, Sparkles, Loader2, CheckCircle2, XCircle,
-  RefreshCw, ExternalLink, Pencil, Search, AlertTriangle, Image as ImageIcon, ChevronDown, Send,
+  RefreshCw, ExternalLink, Pencil, Search, AlertTriangle, Image as ImageIcon, ChevronDown, Send, Download,
   Eye, Edit3, AlignLeft, Bold, Italic, Underline as UnderlineIcon, List, ListOrdered,
   Link as LinkIcon, Unlink, Heading2, Heading3, Heading4, Heading5, Heading6,
   GripVertical, Check,
@@ -294,6 +294,48 @@ export default function FixPreviewModal({ open, onClose, insight, translations, 
       }).filter(Boolean);
     }
 
+    if (type === 'missingFeaturedImage') {
+      const pages = insight.data?.pages || [];
+      const indicesToUse = itemIndices || pages.map((_, i) => i);
+      return indicesToUse.map(i => {
+        const page = pages[i];
+        if (!page) return null;
+        return {
+          pageId: page.id,
+          title: page.title || page.slug,
+          url: page.url,
+          realIndex: i,
+          status: 'loading',
+          isImageFix: true,
+          imageFixType: 'featured',
+          previewImage: null,
+        };
+      }).filter(Boolean);
+    }
+
+    if (type === 'insufficientContentImages') {
+      const pages = insight.data?.pages || [];
+      const indicesToUse = itemIndices || pages.map((_, i) => i);
+      return indicesToUse.map(i => {
+        const page = pages[i];
+        if (!page) return null;
+        return {
+          pageId: page.id,
+          title: page.title || page.slug,
+          url: page.url,
+          realIndex: i,
+          wordCount: page.wordCount,
+          imageCount: page.imageCount,
+          recommendedImages: page.recommendedImages,
+          imagesToGenerate: Math.min((page.recommendedImages || 1) - (page.imageCount || 0), 3),
+          status: 'loading',
+          isImageFix: true,
+          imageFixType: 'content',
+          previewImage: null,
+        };
+      }).filter(Boolean);
+    }
+
     return [];
   }, [insight, itemIndices]);
 
@@ -349,7 +391,14 @@ export default function FixPreviewModal({ open, onClose, insight, translations, 
         .then(res => res.json())
         .then(data => {
           if (data.proposal) {
-            setProposals(prev => prev.map((p, j) => j === idx ? data.proposal : p));
+            setProposals(prev => prev.map((p, j) => {
+              if (j !== idx) return p;
+              // Preserve skeleton flags (isImageFix, imageFixType) that backend doesn't return
+              const merged = { ...data.proposal };
+              if (p.isImageFix) { merged.isImageFix = true; merged.imageFixType = p.imageFixType; }
+              if (p.isCannibalization) merged.isCannibalization = true;
+              return merged;
+            }));
             // Populate merge instructions immediately alongside proposals update
             if (data.proposal.recommendation?.mergeInstructions) {
               setMergeInstructions(prev => ({
@@ -479,7 +528,13 @@ export default function FixPreviewModal({ open, onClose, insight, translations, 
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Regeneration failed');
       if (data.proposal) {
-        setProposals(prev => prev.map((p, i) => i === idx ? data.proposal : p));
+        setProposals(prev => prev.map((p, i) => {
+          if (i !== idx) return p;
+          const merged = { ...data.proposal };
+          if (p.isImageFix) { merged.isImageFix = true; merged.imageFixType = p.imageFixType; }
+          if (p.isCannibalization) merged.isCannibalization = true;
+          return merged;
+        }));
         // Update merge instructions on regeneration
         if (data.proposal.recommendation?.mergeInstructions) {
           setMergeInstructions(prev => ({
@@ -497,7 +552,7 @@ export default function FixPreviewModal({ open, onClose, insight, translations, 
   // ─── Apply single item ──────────────────────────────────────
 
   // Helper to get unique key for tracking applied items
-  const getProposalKey = (p) => p.isCannibalization ? `cann-${p.issueIndex}` : p.postId;
+  const getProposalKey = (p) => p.isCannibalization ? `cann-${p.issueIndex}` : (p.postId || p.pageId);
 
   const handleApplySingle = async (idx) => {
     const proposal = proposals[idx];
@@ -889,7 +944,7 @@ export default function FixPreviewModal({ open, onClose, insight, translations, 
                   : (applyResults?.results?.find(r => r.postId === p.postId) || appliedItems[proposalKey]);
 
                 return (
-                  <div key={p.url || p.issueIndex || idx} className={`${styles.proposalItem} ${isSkipped ? styles.proposalItemSkipped : ''} ${p.isCannibalization ? styles.proposalItemCannibalization : ''}`}>
+                  <div key={`${proposalKey}-${idx}`} className={`${styles.proposalItem} ${isSkipped ? styles.proposalItemSkipped : ''} ${p.isCannibalization ? styles.proposalItemCannibalization : ''}`}>
                     {/* Header with URL + regenerate */}
                     <div className={styles.proposalHeader}>
                       <div className={styles.pageUrl}>
@@ -903,7 +958,7 @@ export default function FixPreviewModal({ open, onClose, insight, translations, 
                             <ExternalLink size={12} />
                           </a>
                         ) : (
-                          <span>{p.page}</span>
+                          <span>{p.page || p.title}</span>
                         )}
                       </div>
                       {/* Removed proposalActions - regenerate/apply buttons moved to footer */}
@@ -937,6 +992,17 @@ export default function FixPreviewModal({ open, onClose, insight, translations, 
                           <span className={styles.skeletonBar} style={{ width: '90%', height: '12px', marginTop: '8px' }} />
                         </div>
                       </div>
+                    ) : isSkeleton && p.isImageFix ? (
+                      <div className={styles.imageFixSkeleton}>
+                        <div className={styles.imageFixPreviewArea}>
+                          <span className={styles.skeletonBar} style={{ width: '100%', height: '140px', borderRadius: '8px' }} />
+                        </div>
+                        {p.imageFixType === 'content' && (
+                          <div className={styles.imageFixMeta}>
+                            <span className={styles.skeletonBar} style={{ width: '60%', height: '12px' }} />
+                          </div>
+                        )}
+                      </div>
                     ) : isSkeleton ? (
                       <div className={styles.skeletonFields}>
                         <div className={styles.seoField}>
@@ -960,6 +1026,76 @@ export default function FixPreviewModal({ open, onClose, insight, translations, 
                       </div>
                     ) : isSkipped ? (
                       <div className={styles.skipReason}>{p.reason || t.fixSkipped || 'Skipped'}</div>
+                    ) : p.isImageFix ? (
+                      <div className={styles.imageFixContent}>
+                        {/* Preview image */}
+                        {p.previewImage && (
+                          <div className={styles.imageFixPreviewArea}>
+                            <img
+                              src={p.previewImage.startsWith('data:') ? p.previewImage : `data:image/png;base64,${p.previewImage}`}
+                              alt={p.title || ''}
+                              className={styles.imageFixPreview}
+                            />
+                            <a
+                              className={styles.imageFixDownloadBtn}
+                              href={p.previewImage.startsWith('data:') ? p.previewImage : `data:image/png;base64,${p.previewImage}`}
+                              download={`${(p.title || 'image').replace(/[^a-zA-Z0-9_\- ]/g, '').slice(0, 60)}-${p.imageFixType || 'generated'}.png`}
+                            >
+                              <Download size={13} />
+                              {t.downloadImage || 'Download'}
+                            </a>
+                          </div>
+                        )}
+
+                        {/* Content image info */}
+                        {p.imageFixType === 'content' && (
+                          <div className={styles.imageFixMeta}>
+                            <span>{t.currentImages || 'Current images'}: {p.imageCount ?? '-'}</span>
+                            <span>{t.recommendedImages || 'Recommended'}: {p.recommendedImages ?? '-'}</span>
+                            <span>{t.imagesToGenerate || 'Will generate'}: {p.imagesToGenerate ?? '-'}</span>
+                          </div>
+                        )}
+
+                        {p.imageFixType === 'featured' && !p.previewImage && (
+                          <div className={styles.imageFixMeta}>
+                            <ImageIcon size={14} />
+                            <span>{t.featuredImageWillGenerate || 'A unique featured image will be generated'}</span>
+                          </div>
+                        )}
+
+                        {/* Regenerate button */}
+                        {!appliedResult && (
+                          <div className={styles.imageFixActions}>
+                            <button
+                              className={styles.imageFixRegenBtn}
+                              onClick={() => handleRegenerate(idx)}
+                              disabled={regeneratingIdx === idx}
+                            >
+                              {regeneratingIdx === idx
+                                ? <><Loader2 size={13} className={styles.spinning} /> {t.fixRegenerating || 'Regenerating...'}</>
+                                : <><RefreshCw size={13} /> {t.fixRegenerate || 'Regenerate'}</>}
+                            </button>
+                            <button
+                              className={styles.imageFixApplyBtn}
+                              onClick={() => handleApplySingle(idx)}
+                              disabled={applyingSingleIdx === idx || p.status !== 'ready'}
+                            >
+                              {applyingSingleIdx === idx
+                                ? <><Loader2 size={13} className={styles.spinning} /> {t.fixApplying || 'Applying...'}</>
+                                : <><Sparkles size={13} /> {t.fixApply || 'Apply'}</>}
+                            </button>
+                          </div>
+                        )}
+
+                        {/* Applied result */}
+                        {appliedResult && (
+                          <div className={`${styles.applyStatus} ${appliedResult.status === 'fixed' ? styles.applyStatusFixed : styles.applyStatusError}`}>
+                            {appliedResult.status === 'fixed'
+                              ? <><CheckCircle2 size={13} /> {t.fixItemApplied || 'Applied'}</>
+                              : <><XCircle size={13} /> {appliedResult.reason || (t.fixItemFailed || 'Failed')}</>}
+                          </div>
+                        )}
+                      </div>
                     ) : p.isCannibalization ? (
                       /* Cannibalization content - showing both pages and AI recommendation */
                       <div className={styles.cannibalizationContent}>

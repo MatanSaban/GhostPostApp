@@ -752,6 +752,13 @@
     "subtitle": "נתח את בריאות ה-SEO הטכני והביצועים של האתר שלך",
     "selectSite": "בחר אתר להרצת הבדיקה",
     "startScan": "הרץ בדיקה",
+    "maxPages": "מקסימום עמודים",
+    "entitySelector": {
+      "title": "תוכן לבדיקה",
+      "pages": "עמודים",
+      "cappedTo": "מוגבל ל",
+      "selectAll": "בחר הכל"
+    },
     "scanning": "סורק...",
     "runFirstScan": "הרץ את הבדיקה הראשונה שלך",
     "healthScore": "ציון בריאות",
@@ -6429,6 +6436,10 @@
     "fixItemFailed": "נכשל",
     "fixNoItems": "אין פריטים לתיקון.",
     "fixSkipped": "דולג",
+    "downloadImage": "הורדה",
+    "wordCount": "מילים",
+    "currentImages": "תמונות",
+    "recommendedImages": "מומלץ",
     "approved": "אושר",
     "rejected": "נדחה",
     "executed": "בוצע",
@@ -6567,6 +6578,14 @@
       "sgeTrafficTheft": {
         "title": "זוהתה גניבת תנועה על ידי SGE במילות מפתח מובילות",
         "description": "{count} מילות מפתח מובילות איבדו CTR משמעותי למרות מיקום ונפח חיפוש יציבים בין {periodStart} ל-{periodEnd} לעומת {comparePeriodStart} עד {comparePeriodEnd}. כ-{totalClicksLost} קליקים אבדו — ככל הנראה נבלעו על ידי סקירות AI של גוגל. הוסיפו ניסיון אישי, נתונים ייחודיים או דעות חזקות לעמודים אלו כדי להתמודד עם תשובות שנוצרו על ידי AI."
+      },
+      "missingFeaturedImage": {
+        "title": "פוסטים ללא תמונה ראשית",
+        "description": "{count} פוסטים מפורסמים ללא תמונה ראשית. תמונות ראשיות משפרות שיתוף ברשתות חברתיות, הופעה בתוצאות חיפוש ומעורבות משתמשים."
+      },
+      "insufficientContentImages": {
+        "title": "פוסטים זקוקים לעוד תמונות תוכן",
+        "description": "{count} פוסטים מכילים פחות תמונות מהמומלץ ביחס לאורך שלהם. הוספת תמונות רלוונטיות משפרת את הקריאות של תוכן ארוך."
       }
     },
     "detailLabels": {

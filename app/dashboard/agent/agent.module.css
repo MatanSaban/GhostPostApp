@@ -482,6 +482,7 @@
 /* Insight Detail Section */
 .detailSection {
   margin: 0.75rem 0;
+  overflow-x: auto;
 }
 
 .detailSubSection {
@@ -866,6 +867,11 @@
   font-size: 0.7175rem;
   color: var(--text-secondary);
   white-space: nowrap;
+}
+
+.missingImageIcon {
+  opacity: 0.4;
+  color: var(--text-secondary);
 }
 
 /* AI Suggest button for content without traffic */

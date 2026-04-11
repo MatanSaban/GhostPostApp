@@ -5,7 +5,7 @@ import Link from 'next/link';
 import {
   Bot, CheckCircle, XCircle, Clock, AlertTriangle, Lightbulb,
   TrendingUp, TrendingDown, Minus, Search, FileText, Users, Wrench, Loader2, Play,
-  ChevronDown, ChevronUp, Eye, EyeOff, ExternalLink, Sparkles, Calendar, Plus, Check, Pencil,
+  ChevronDown, ChevronUp, Eye, EyeOff, ExternalLink, Sparkles, Calendar, Plus, Check, Pencil, ImageIcon,
 } from 'lucide-react';
 import { useSite } from '@/app/context/site-context';
 import { useAgent } from '@/app/context/agent-context';
@@ -97,9 +97,15 @@ function InsightDetails({ insight, translations, pluginConnected, onOpenFixSingl
   const t = translations?.agent || {};
   const entityLabel = labels.entity || 'Entity';
   const type = getInsightType(insight.titleKey);
-  const canFix = pluginConnected && FIXABLE_INSIGHT_TYPES.has(type) && ['PENDING', 'APPROVED', 'FAILED', 'EXECUTED'].includes(insight.status);
+  // Show per-item fix buttons for fixable types regardless of plugin connection.
+  // The FixPreviewModal handles connection errors at action time.
+  const canFix = FIXABLE_INSIGHT_TYPES.has(type) && ['PENDING', 'APPROVED', 'FAILED', 'EXECUTED', 'EXPIRED'].includes(insight.status);
+  const fixedPostIds = new Set(
+    (insight.executionResult?.results || []).filter(r => r.status === 'fixed').map(r => r.postId)
+  );
 
   if (type === 'keywordStrikeZone') {
+    const isFixed = fixedPostIds.size > 0;
     return (
       <div className={styles.detailSection}>
         <div className={styles.detailStats}>
@@ -117,9 +123,18 @@ function InsightDetails({ insight, translations, pluginConnected, onOpenFixSingl
           </div>
         </div>
         {d.url && (
-          <a href={d.url} target="_blank" rel="noopener noreferrer" className={styles.detailLink}>
-            <bdi dir="ltr">{formatPageUrl(d.url)}</bdi> <ExternalLink size={12} />
-          </a>
+          <div className={styles.detailUrlRow}>
+            <a href={d.url} target="_blank" rel="noopener noreferrer" className={styles.detailLink}>
+              <bdi dir="ltr">{formatPageUrl(d.url)}</bdi> <ExternalLink size={12} />
+            </a>
+            {canFix && (
+              isFixed
+                ? <span className={styles.itemFixedBadge}><CheckCircle size={12} /> {t.fixItemApplied || 'Applied'}</span>
+                : <button className={styles.itemFixBtn} onClick={() => onOpenFixSingle?.(insight, [0])}>
+                    <Sparkles size={12} /> {t.fixWithAi || 'Fix with AI'}
+                  </button>
+            )}
+          </div>
         )}
       </div>
     );
@@ -147,7 +162,16 @@ function InsightDetails({ insight, translations, pluginConnected, onOpenFixSingl
           <thead><tr><th>{labels.page || 'Page'}</th><th>{labels.lastUpdated || 'Last Updated'}</th></tr></thead>
           <tbody>
             {d.oldestPages.slice(0, 5).map((p, i) => (
-              <tr key={i}><td>{p.title}</td><td>{p.updatedAt ? new Date(p.updatedAt).toLocaleDateString() : '-'}</td></tr>
+              <tr key={i}>
+                <td className={styles.detailPageTitle}>
+                  {p.url ? (
+                    <a href={p.url} target="_blank" rel="noopener noreferrer" className={styles.detailLink}>
+                      {p.title || p.slug} <ExternalLink size={12} />
+                    </a>
+                  ) : (p.title || p.slug)}
+                </td>
+                <td>{p.updatedAt ? new Date(p.updatedAt).toLocaleDateString() : '-'}</td>
+              </tr>
             ))}
           </tbody>
         </table>
@@ -191,6 +215,16 @@ function InsightDetails({ insight, translations, pluginConnected, onOpenFixSingl
                   <bdi dir="ltr">{formatPageUrl(p.url)}</bdi> <ExternalLink size={12} />
                 </a>
               )}
+              {canFix && (() => {
+                const itemResults = insight.executionResult?.results || [];
+                const itemFixed = itemResults.some(r => r.url === p.url && r.status === 'fixed');
+                const originalIndex = d.pages.indexOf(p);
+                return itemFixed
+                  ? <span className={styles.itemFixedBadge}><CheckCircle size={12} /> {t.fixItemApplied || 'Applied'}</span>
+                  : <button className={styles.itemFixBtn} onClick={() => onOpenFixSingle?.(insight, [originalIndex])}>
+                      <Sparkles size={12} /> {t.fixWithAi || 'Fix with AI'}
+                    </button>;
+              })()}
             </div>
           );})}
         </div>
@@ -202,7 +236,7 @@ function InsightDetails({ insight, translations, pluginConnected, onOpenFixSingl
     return (
       <div className={styles.detailSection}>
         <table className={styles.detailTable}>
-          <thead><tr><th>{labels.page || 'Page'}</th><th>{labels.url || 'URL'}</th></tr></thead>
+          <thead><tr><th>{labels.page || 'Page'}</th></tr></thead>
           <tbody>
             {d.pages.slice(0, 5).map((p, i) => {
               // Get best display title - prefer actual title over slug/URL
@@ -216,8 +250,13 @@ function InsightDetails({ insight, translations, pluginConnected, onOpenFixSingl
               }
               return (
               <tr key={i}>
-                <td>{displayTitle || <bdi dir="ltr">{formatPageUrl(p.url)}</bdi>}</td>
-                <td>{p.url && <a href={p.url} target="_blank" rel="noopener noreferrer" className={styles.detailLink}><bdi dir="ltr">{formatPageUrl(p.url)}</bdi> <ExternalLink size={12} /></a>}</td>
+                <td className={styles.detailPageTitle}>
+                  {p.url ? (
+                    <a href={p.url} target="_blank" rel="noopener noreferrer" className={styles.detailLink}>
+                      {displayTitle || <bdi dir="ltr">{formatPageUrl(p.url)}</bdi>} <ExternalLink size={12} />
+                    </a>
+                  ) : (displayTitle || '-')}
+                </td>
               </tr>
             );})}
           </tbody>
@@ -614,7 +653,6 @@ function InsightDetails({ insight, translations, pluginConnected, onOpenFixSingl
           <thead>
             <tr>
               <th>{labels.page || 'Page'}</th>
-              <th>{labels.url || 'URL'}</th>
               <th>{labels.publishedAt || 'Published'}</th>
               <th>{entityLabel}</th>
               <th>{labels.aiSuggestion || 'AI Suggestion'}</th>
@@ -623,13 +661,12 @@ function InsightDetails({ insight, translations, pluginConnected, onOpenFixSingl
           <tbody>
             {d.pages.map((p, i) => (
               <tr key={i}>
-                <td className={styles.detailPageTitle}>{p.title}</td>
-                <td>
-                  {p.url && (
+                <td className={styles.detailPageTitle}>
+                  {p.url ? (
                     <a href={p.url} target="_blank" rel="noopener noreferrer" className={styles.detailLink}>
-                      <bdi dir="ltr">{formatPageUrl(p.url)}</bdi> <ExternalLink size={12} />
+                      {p.title || <bdi dir="ltr">{formatPageUrl(p.url)}</bdi>} <ExternalLink size={12} />
                     </a>
-                  )}
+                  ) : (p.title || '-')}
                 </td>
                 <td>{p.publishedAt ? new Date(p.publishedAt).toLocaleDateString() : '-'}</td>
                 <td><EntityLinkCell url={p.url} siteId={siteId} translations={translations} /></td>
@@ -640,11 +677,6 @@ function InsightDetails({ insight, translations, pluginConnected, onOpenFixSingl
             ))}
           </tbody>
         </table>
-        {d.count > d.pages.length && (
-          <p className={styles.detailMore}>
-            {(labels.andMore || 'and {count} more...').replace('{count}', d.count - d.pages.length)}
-          </p>
-        )}
       </div>
     );
   }
@@ -765,6 +797,100 @@ function InsightDetails({ insight, translations, pluginConnected, onOpenFixSingl
     );
   }
 
+  // Missing Featured Image - list of posts
+  if (type === 'missingFeaturedImage' && d.pages?.length > 0) {
+    return (
+      <div className={styles.detailSection}>
+        <table className={styles.detailTable}>
+          <thead>
+            <tr>
+              <th></th>
+              <th>{labels.page || 'Page'}</th>
+              {canFix && <th>{t.fixWithAi || 'Fix with AI'}</th>}
+            </tr>
+          </thead>
+          <tbody>
+            {d.pages.map((p, i) => {
+              const itemFixed = (insight.executionResult?.results || []).some(r => r.pageId === p.id && r.status === 'fixed');
+              let displayTitle = p.title;
+              if (displayTitle) { try { displayTitle = decodeURIComponent(displayTitle); } catch { /* keep */ } }
+              return (
+                <tr key={i}>
+                  <td><ImageIcon size={14} style={{ opacity: 0.5 }} /></td>
+                  <td className={styles.detailPageTitle}>
+                    {p.url ? (
+                      <a href={p.url} target="_blank" rel="noopener noreferrer" className={styles.detailLink}>
+                        {displayTitle || p.slug} <ExternalLink size={12} />
+                      </a>
+                    ) : (displayTitle || p.slug)}
+                  </td>
+                  {canFix && (
+                    <td>
+                      {itemFixed
+                        ? <span className={styles.itemFixedBadge}><CheckCircle size={12} /> {t.fixItemApplied || 'Applied'}</span>
+                        : <button className={styles.itemFixBtn} onClick={() => onOpenFixSingle?.(insight, [i])}>
+                            <Sparkles size={12} /> {t.fixWithAi || 'Fix with AI'}
+                          </button>
+                      }
+                    </td>
+                  )}
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+    );
+  }
+
+  // Insufficient Content Images - posts needing more images
+  if (type === 'insufficientContentImages' && d.pages?.length > 0) {
+    return (
+      <div className={styles.detailSection}>
+        <table className={styles.detailTable}>
+          <thead>
+            <tr>
+              <th>{labels.page || 'Page'}</th>
+              <th>{t.currentImages || 'Images'}</th>
+              <th>{t.recommendedImages || 'Rec.'}</th>
+              {canFix && <th>{t.fixWithAi || 'Fix with AI'}</th>}
+            </tr>
+          </thead>
+          <tbody>
+            {d.pages.map((p, i) => {
+              const itemFixed = (insight.executionResult?.results || []).some(r => r.pageId === p.id && r.status === 'fixed');
+              let displayTitle = p.title;
+              if (displayTitle) { try { displayTitle = decodeURIComponent(displayTitle); } catch { /* keep */ } }
+              return (
+                <tr key={i}>
+                  <td className={styles.detailPageTitle}>
+                    {p.url ? (
+                      <a href={p.url} target="_blank" rel="noopener noreferrer" className={styles.detailLink}>
+                        {displayTitle || p.slug} <ExternalLink size={12} />
+                      </a>
+                    ) : (displayTitle || p.slug)}
+                  </td>
+                  <td>{p.imageCount}</td>
+                  <td>{p.recommendedImages}</td>
+                  {canFix && (
+                    <td>
+                      {itemFixed
+                        ? <span className={styles.itemFixedBadge}><CheckCircle size={12} /> {t.fixItemApplied || 'Applied'}</span>
+                        : <button className={styles.itemFixBtn} onClick={() => onOpenFixSingle?.(insight, [i])}>
+                            <Sparkles size={12} /> {t.fixWithAi || 'Fix with AI'}
+                          </button>
+                      }
+                    </td>
+                  )}
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+    );
+  }
+
   return null;
 }
 
@@ -864,7 +990,7 @@ function InsightItem({ insight, translations, onAction, onOpenFix, pluginConnect
 
   const isActionable = insight.status === 'PENDING' && insight.type === 'ACTION';
   const isPending = insight.status === 'PENDING' || insight.status === 'FAILED';
-  const canFix = pluginConnected && isFixableInsight(insight.titleKey) && ['PENDING', 'APPROVED', 'FAILED', 'EXECUTED'].includes(insight.status);
+  const canFix = pluginConnected && isFixableInsight(insight.titleKey) && ['PENDING', 'APPROVED', 'FAILED', 'EXECUTED', 'EXPIRED'].includes(insight.status);
   const showActions = isPending || canFix;
 
   const DirectionIcon = direction === 'up' ? TrendingUp : direction === 'down' ? TrendingDown : direction === 'equal' ? Minus : null;
@@ -920,6 +1046,18 @@ function InsightItem({ insight, translations, onAction, onOpenFix, pluginConnect
               <span>{new Date(insight.data.comparePeriodStart).toLocaleDateString()} – {new Date(insight.data.comparePeriodEnd).toLocaleDateString()}</span>
             </p>
           )}
+          {canFix && !['cannibalization'].includes(getInsightType(insight.titleKey)) && (
+            <div className={styles.insightActions}>
+              <button
+                className={`${styles.actionBtn} ${styles.fixBtn}`}
+                onClick={() => onOpenFix(insight)}
+                disabled={actionLoading}
+              >
+                <Sparkles size={14} />
+                {translations?.agent?.fixWithAi || 'Fix with AI'}
+              </button>
+            </div>
+          )}
           <InsightDetails
             insight={insight}
             translations={translations}
@@ -930,29 +1068,9 @@ function InsightItem({ insight, translations, onAction, onOpenFix, pluginConnect
             onAddKeyword={onAddKeyword}
             siteId={siteId}
           />
+          {/* TODO: Re-enable reject/dismiss when functionality is ready
           {showActions && (
             <div className={styles.insightActions}>
-              {canFix && getInsightType(insight.titleKey) !== 'cannibalization' && (
-                <button
-                  className={`${styles.actionBtn} ${styles.fixBtn}`}
-                  onClick={() => onOpenFix(insight)}
-                  disabled={actionLoading}
-                >
-                  <Sparkles size={14} />
-                  {translations?.agent?.fixWithAi || 'Fix with AI'}
-                </button>
-              )}
-              {isActionable && (
-                <button
-                  className={`${styles.actionBtn} ${styles.approveBtn}`}
-                  onClick={() => handleAction('approve')}
-                  disabled={actionLoading}
-                >
-                  <CheckCircle size={14} />
-                  {translations?.agent?.approve || 'Approve'}
-                </button>
-              )}
-              {/* TODO: Re-enable reject/dismiss when functionality is ready
               {isPending && (
                 <button
                   className={`${styles.actionBtn} ${styles.rejectBtn}`}
@@ -973,9 +1091,9 @@ function InsightItem({ insight, translations, onAction, onOpenFix, pluginConnect
                   {translations?.agent?.dismiss || 'Dismiss'}
                 </button>
               )}
-              */}
             </div>
           )}
+          */}
         </div>
       )}
     </div>

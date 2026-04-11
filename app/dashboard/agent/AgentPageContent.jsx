@@ -4,7 +4,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   Bot, CheckCircle, XCircle, Clock, AlertTriangle, Lightbulb,
   TrendingUp, TrendingDown, Minus, Search, FileText, Users, Wrench, Loader2, Play,
-  ChevronDown, ChevronUp, EyeOff, Filter, RefreshCw, ExternalLink, Sparkles, Calendar,
+  ChevronDown, ChevronUp, EyeOff, Filter, RefreshCw, ExternalLink, Sparkles, Calendar, ImageIcon,
 } from 'lucide-react';
 import { useSite } from '@/app/context/site-context';
 import { useAgent } from '@/app/context/agent-context';
@@ -179,7 +179,9 @@ function InsightDetails({ insight, translations, siteId, pluginConnected, onItem
   const t = translations?.agent || {};
   const entityLabel = labels.entity || 'Entity';
   const type = getInsightType(insight.titleKey);
-  const canFix = pluginConnected && FIXABLE_INSIGHT_TYPES.has(type) && ['PENDING', 'APPROVED', 'FAILED', 'EXECUTED'].includes(insight.status);
+  // Show per-item fix buttons for fixable types regardless of plugin connection.
+  // The FixPreviewModal handles connection errors at action time.
+  const canFix = FIXABLE_INSIGHT_TYPES.has(type) && ['PENDING', 'APPROVED', 'FAILED', 'EXECUTED', 'EXPIRED'].includes(insight.status);
 
   // Track which items have already been fixed from executionResult
   const fixedPostIds = new Set(
@@ -262,7 +264,13 @@ function InsightDetails({ insight, translations, siteId, pluginConnected, onItem
           <tbody>
             {d.oldestPages.map((p, i) => (
               <tr key={i}>
-                <td className={styles.detailPageTitle}>{p.title}</td>
+                <td className={styles.detailPageTitle}>
+                  {p.url ? (
+                    <a href={p.url} target="_blank" rel="noopener noreferrer" className={styles.detailLink}>
+                      {p.title || p.slug} <ExternalLink size={12} />
+                    </a>
+                  ) : (p.title || p.slug)}
+                </td>
                 <td>{p.updatedAt ? new Date(p.updatedAt).toLocaleDateString() : '-'}</td>
               </tr>
             ))}
@@ -288,7 +296,6 @@ function InsightDetails({ insight, translations, siteId, pluginConnected, onItem
           <thead>
             <tr>
               <th>{labels.page || 'Page'}</th>
-              <th>{labels.url || 'URL'}</th>
               <th>{labels.seoPriority || 'Priority'}</th>
               <th>{entityLabel}</th>
               {canFix && <th>{t.fixWithAi || 'Fix with AI'}</th>}
@@ -311,13 +318,12 @@ function InsightDetails({ insight, translations, siteId, pluginConnected, onItem
               }
               return (
                 <tr key={i}>
-                  <td className={styles.detailPageTitle}>{displayTitle || <bdi dir="ltr">{formatPageUrl(p.url)}</bdi>}</td>
-                  <td>
-                    {p.url && (
+                  <td className={styles.detailPageTitle}>
+                    {p.url ? (
                       <a href={p.url} target="_blank" rel="noopener noreferrer" className={styles.detailLink}>
-                        <bdi dir="ltr">{formatPageUrl(p.url)}</bdi> <ExternalLink size={12} />
+                        {displayTitle || <bdi dir="ltr">{formatPageUrl(p.url)}</bdi>} <ExternalLink size={12} />
                       </a>
-                    )}
+                    ) : (displayTitle || '-')}
                   </td>
                   <td>{p.seoPriority && <span className={`${styles.seoPriorityBadge} ${styles[`seoPriority_${p.seoPriority}`]}`}>{priorityLabel}</span>}</td>
                   <td><EntityLinkCell url={p.url} siteId={siteId} translations={translations} /></td>
@@ -338,11 +344,6 @@ function InsightDetails({ insight, translations, siteId, pluginConnected, onItem
             })}
           </tbody>
         </table>
-        {d.count > d.pages.length && (
-          <p className={styles.detailMore}>
-            {(labels.andMore || 'and {count} more...').replace('{count}', d.count - d.pages.length)}
-          </p>
-        )}
       </div>
     );
   }
@@ -355,31 +356,24 @@ function InsightDetails({ insight, translations, siteId, pluginConnected, onItem
           <thead>
             <tr>
               <th>{labels.page || 'Page'}</th>
-              <th>{labels.url || 'URL'}</th>
               <th>{entityLabel}</th>
             </tr>
           </thead>
           <tbody>
             {d.pages.map((p, i) => (
               <tr key={i}>
-                <td className={styles.detailPageTitle}>{p.title}</td>
-                <td>
-                  {p.url && (
+                <td className={styles.detailPageTitle}>
+                  {p.url ? (
                     <a href={p.url} target="_blank" rel="noopener noreferrer" className={styles.detailLink}>
-                      <bdi dir="ltr">{formatPageUrl(p.url)}</bdi> <ExternalLink size={12} />
+                      {p.title || <bdi dir="ltr">{formatPageUrl(p.url)}</bdi>} <ExternalLink size={12} />
                     </a>
-                  )}
+                  ) : (p.title || '-')}
                 </td>
                 <td><EntityLinkCell url={p.url} siteId={siteId} translations={translations} /></td>
               </tr>
             ))}
           </tbody>
         </table>
-        {d.count > d.pages.length && (
-          <p className={styles.detailMore}>
-            {(labels.andMore || 'and {count} more...').replace('{count}', d.count - d.pages.length)}
-          </p>
-        )}
       </div>
     );
   }
@@ -714,11 +708,6 @@ function InsightDetails({ insight, translations, siteId, pluginConnected, onItem
           </div>
         ))}
         
-        {d.count > d.issues.length && (
-          <p className={styles.detailMore}>
-            {(labels.andMore || 'and {count} more...').replace('{count}', d.count - d.issues.length)}
-          </p>
-        )}
       </div>
     );
   }
@@ -756,11 +745,6 @@ function InsightDetails({ insight, translations, siteId, pluginConnected, onItem
             </table>
           </div>
         ))}
-        {d.count > d.queries.length && (
-          <p className={styles.detailMore}>
-            {(labels.andMore || 'and {count} more...').replace('{count}', d.count - d.queries.length)}
-          </p>
-        )}
       </div>
     );
   }
@@ -791,11 +775,6 @@ function InsightDetails({ insight, translations, siteId, pluginConnected, onItem
             ))}
           </tbody>
         </table>
-        {d.count > d.queries.length && (
-          <p className={styles.detailMore}>
-            {(labels.andMore || 'and {count} more...').replace('{count}', d.count - d.queries.length)}
-          </p>
-        )}
       </div>
     );
   }
@@ -859,7 +838,6 @@ function InsightDetails({ insight, translations, siteId, pluginConnected, onItem
           <thead>
             <tr>
               <th>{labels.page || 'Page'}</th>
-              <th>{labels.url || 'URL'}</th>
               <th>{labels.publishedAt || 'Published'}</th>
               <th>{entityLabel}</th>
               <th>{labels.aiSuggestion || 'AI Suggestion'}</th>
@@ -868,13 +846,12 @@ function InsightDetails({ insight, translations, siteId, pluginConnected, onItem
           <tbody>
             {d.pages.map((p, i) => (
               <tr key={i}>
-                <td className={styles.detailPageTitle}>{p.title}</td>
-                <td>
-                  {p.url && (
+                <td className={styles.detailPageTitle}>
+                  {p.url ? (
                     <a href={p.url} target="_blank" rel="noopener noreferrer" className={styles.detailLink}>
-                      <bdi dir="ltr">{formatPageUrl(p.url)}</bdi> <ExternalLink size={12} />
+                      {p.title || <bdi dir="ltr">{formatPageUrl(p.url)}</bdi>} <ExternalLink size={12} />
                     </a>
-                  )}
+                  ) : (p.title || '-')}
                 </td>
                 <td>{p.publishedAt ? new Date(p.publishedAt).toLocaleDateString() : '-'}</td>
                 <td><EntityLinkCell url={p.url} siteId={siteId} translations={translations} /></td>
@@ -885,11 +862,6 @@ function InsightDetails({ insight, translations, siteId, pluginConnected, onItem
             ))}
           </tbody>
         </table>
-        {d.count > d.pages.length && (
-          <p className={styles.detailMore}>
-            {(labels.andMore || 'and {count} more...').replace('{count}', d.count - d.pages.length)}
-          </p>
-        )}
       </div>
     );
   }
@@ -1067,6 +1039,104 @@ function InsightDetails({ insight, translations, siteId, pluginConnected, onItem
     );
   }
 
+  // Missing Featured Image - list of posts without featured image
+  if (type === 'missingFeaturedImage' && d.pages?.length > 0) {
+    return (
+      <div className={styles.detailSection}>
+        <table className={styles.detailTable}>
+          <thead>
+            <tr>
+              <th></th>
+              <th>{labels.page || 'Page'}</th>
+              <th>{entityLabel}</th>
+              {canFix && <th>{t.fixWithAi || 'Fix with AI'}</th>}
+            </tr>
+          </thead>
+          <tbody>
+            {d.pages.map((p, i) => {
+              const itemFixed = (insight.executionResult?.results || []).some(r => r.pageId === p.id && r.status === 'fixed');
+              let displayTitle = p.title;
+              if (displayTitle) { try { displayTitle = decodeURIComponent(displayTitle); } catch { /* keep */ } }
+              return (
+                <tr key={i}>
+                  <td><ImageIcon size={14} className={styles.missingImageIcon} /></td>
+                  <td className={styles.detailPageTitle}>
+                    {p.url ? (
+                      <a href={p.url} target="_blank" rel="noopener noreferrer" className={styles.detailLink}>
+                        {displayTitle || p.slug} <ExternalLink size={12} />
+                      </a>
+                    ) : (displayTitle || p.slug)}
+                  </td>
+                  <td><EntityLinkCell url={p.url} siteId={siteId} translations={translations} /></td>
+                  {canFix && (
+                    <td>
+                      {itemFixed
+                        ? <span className={styles.itemFixedBadge}><CheckCircle size={12} /> {t.fixItemApplied || 'Applied'}</span>
+                        : <button className={styles.itemFixBtn} onClick={() => onOpenFixSingle?.(insight, [i])}>
+                            <Sparkles size={12} /> {t.fixWithAi || 'Fix with AI'}
+                          </button>
+                      }
+                    </td>
+                  )}
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+    );
+  }
+
+  // Insufficient Content Images - posts needing more images
+  if (type === 'insufficientContentImages' && d.pages?.length > 0) {
+    return (
+      <div className={styles.detailSection}>
+        <table className={styles.detailTable}>
+          <thead>
+            <tr>
+              <th>{labels.page || 'Page'}</th>
+              <th>{t.wordCount || 'Words'}</th>
+              <th>{t.currentImages || 'Images'}</th>
+              <th>{t.recommendedImages || 'Recommended'}</th>
+              {canFix && <th>{t.fixWithAi || 'Fix with AI'}</th>}
+            </tr>
+          </thead>
+          <tbody>
+            {d.pages.map((p, i) => {
+              const itemFixed = (insight.executionResult?.results || []).some(r => r.pageId === p.id && r.status === 'fixed');
+              let displayTitle = p.title;
+              if (displayTitle) { try { displayTitle = decodeURIComponent(displayTitle); } catch { /* keep */ } }
+              return (
+                <tr key={i}>
+                  <td className={styles.detailPageTitle}>
+                    {p.url ? (
+                      <a href={p.url} target="_blank" rel="noopener noreferrer" className={styles.detailLink}>
+                        {displayTitle || p.slug} <ExternalLink size={12} />
+                      </a>
+                    ) : (displayTitle || p.slug)}
+                  </td>
+                  <td>{p.wordCount?.toLocaleString()}</td>
+                  <td>{p.imageCount}</td>
+                  <td>{p.recommendedImages}</td>
+                  {canFix && (
+                    <td>
+                      {itemFixed
+                        ? <span className={styles.itemFixedBadge}><CheckCircle size={12} /> {t.fixItemApplied || 'Applied'}</span>
+                        : <button className={styles.itemFixBtn} onClick={() => onOpenFixSingle?.(insight, [i])}>
+                            <Sparkles size={12} /> {t.fixWithAi || 'Fix with AI'}
+                          </button>
+                      }
+                    </td>
+                  )}
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+    );
+  }
+
   return null;
 }
 
@@ -1169,7 +1239,7 @@ function InsightRow({ insight, translations, onAction, onOpenFix, siteId, plugin
   const isPending = insight.status === 'PENDING' || insight.status === 'FAILED';
   const isActionable = insight.status === 'PENDING' && insight.type === 'ACTION';
   const isFixable = isFixableInsight(insight.titleKey);
-  const canFix = pluginConnected && isFixable && ['PENDING', 'APPROVED', 'FAILED', 'EXECUTED'].includes(insight.status);
+  const canFix = pluginConnected && isFixable && ['PENDING', 'APPROVED', 'FAILED', 'EXECUTED', 'EXPIRED'].includes(insight.status);
   const showActions = isPending || canFix;
 
   const timeAgo = getTimeAgo(insight.createdAt, translations);
@@ -1226,22 +1296,20 @@ function InsightRow({ insight, translations, onAction, onOpenFix, siteId, plugin
             </p>
           )}
 
+          {canFix && !['cannibalization'].includes(getInsightType(insight.titleKey)) && (
+            <div className={styles.insightActions}>
+              <button className={`${styles.actionBtn} ${styles.fixBtn}`} onClick={() => onOpenFix(insight, null)} disabled={actionLoading}>
+                <Sparkles size={14} />
+                {translations?.agent?.fixWithAi || 'Fix with AI'}
+              </button>
+            </div>
+          )}
+
           <InsightDetails insight={insight} translations={translations} siteId={siteId} pluginConnected={pluginConnected} onItemFixed={onItemFixed} onOpenFixSingle={(i, indices) => onOpenFix(i, indices)} />
 
+          {/* TODO: Re-enable reject/dismiss when functionality is ready
           {showActions && (
             <div className={styles.insightActions}>
-              {canFix && getInsightType(insight.titleKey) !== 'cannibalization' && (
-                <button className={`${styles.actionBtn} ${styles.fixBtn}`} onClick={() => onOpenFix(insight, null)} disabled={actionLoading}>
-                  <Sparkles size={14} />
-                  {translations?.agent?.fixWithAi || 'Fix with AI'}
-                </button>
-              )}
-              {isActionable && (
-                <button className={`${styles.actionBtn} ${styles.approveBtn}`} onClick={() => handleAction('approve')} disabled={actionLoading}>
-                  <CheckCircle size={14} /> {translations?.approve || 'Approve'}
-                </button>
-              )}
-              {/* TODO: Re-enable reject/dismiss when functionality is ready
               {isPending && (
                 <button className={`${styles.actionBtn} ${styles.rejectBtn}`} onClick={() => handleAction('reject')} disabled={actionLoading}>
                   <XCircle size={14} /> {translations?.reject || 'Reject'}
@@ -1252,9 +1320,9 @@ function InsightRow({ insight, translations, onAction, onOpenFix, siteId, plugin
                   <EyeOff size={14} /> {translations?.dismiss || 'Dismiss'}
                 </button>
               )}
-              */}
             </div>
           )}
+          */}
         </div>
       )}
     </div>

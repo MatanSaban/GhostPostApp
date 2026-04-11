@@ -10,6 +10,8 @@ export const FIXABLE_INSIGHT_TYPES = new Set([
   'keywordStrikeZone',
   'lowCtrForPosition',
   'cannibalization',
+  'missingFeaturedImage',
+  'insufficientContentImages',
 ]);
 
 // Category icons mapping

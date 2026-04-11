@@ -807,6 +807,114 @@
   }
 }
 
+/* ─── Image Fix Styles ─── */
+
+.imageFixSkeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.imageFixContent {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.imageFixPreviewArea {
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--bg-hover);
+  max-width: 320px;
+  position: relative;
+}
+
+.imageFixPreview {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 8px;
+}
+
+.imageFixDownloadBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  margin: 6px;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  background: var(--bg-hover);
+  text-decoration: none;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+
+  &:hover {
+    background: var(--border);
+    color: var(--text-primary);
+  }
+}
+
+.imageFixMeta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  flex-wrap: wrap;
+
+  span {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+  }
+}
+
+.imageFixActions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.imageFixRegenBtn,
+.imageFixApplyBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  border: none;
+  cursor: pointer;
+  transition: background 0.15s;
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+.imageFixRegenBtn {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+
+  &:hover:not(:disabled) {
+    background: var(--border);
+  }
+}
+
+.imageFixApplyBtn {
+  background: var(--primary);
+  color: white;
+
+  &:hover:not(:disabled) {
+    opacity: 0.9;
+  }
+}
+
 /* ─── Merged Page Preview Styles ─── */
 
 .mergedPagePreview {

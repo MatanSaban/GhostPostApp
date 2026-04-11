@@ -3,6 +3,7 @@ import { cookies } from 'next/headers';
 import prisma from '@/lib/prisma';
 import { runSiteAudit } from '@/lib/audit/site-auditor';
 import { enforceResourceLimit } from '@/lib/account-limits';
+import { getLimitFromPlan } from '@/lib/account-utils';
 
 /**
  * Retry a Prisma query on transient MongoDB connection errors.
@@ -175,7 +176,23 @@ export async function GET(request) {
     // Also get the latest (for quick access)
     const latest = audits.length > 0 ? audits[0] : null;
 
-    return NextResponse.json({ audits, latest });
+    // Get plan max pages for UI display
+    const accountWithPlan = await prisma.site.findUnique({
+      where: { id: siteId },
+      select: {
+        account: {
+          select: {
+            subscription: {
+              select: { plan: { select: { limitations: true } } },
+            },
+          },
+        },
+      },
+    });
+    const planLimitations = accountWithPlan?.account?.subscription?.plan?.limitations;
+    const planMaxPages = getLimitFromPlan(planLimitations, 'maxAuditPages', 500) || 500;
+
+    return NextResponse.json({ audits, latest, planMaxPages });
   } catch (error) {
     console.error('[API/audit] GET error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
@@ -191,7 +208,7 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { siteId } = await request.json();
+    const { siteId, maxPages: requestedMaxPages, urls: requestedUrls } = await request.json();
 
     if (!siteId) {
       return NextResponse.json({ error: 'siteId is required' }, { status: 400 });
@@ -203,10 +220,22 @@ export async function POST(request) {
     }
 
     // ── Enforce siteAudits plan limit ────────────────────────
-    const accountId = (await prisma.site.findUnique({
+    const accountWithPlan = await prisma.site.findUnique({
       where: { id: siteId },
-      select: { accountId: true },
-    }))?.accountId;
+      select: {
+        accountId: true,
+        account: {
+          select: {
+            subscription: {
+              select: {
+                plan: { select: { limitations: true } },
+              },
+            },
+          },
+        },
+      },
+    });
+    const accountId = accountWithPlan?.accountId;
 
     if (accountId) {
       const limitCheck = await enforceResourceLimit(accountId, 'siteAudits');
@@ -214,6 +243,14 @@ export async function POST(request) {
         return NextResponse.json(limitCheck, { status: 403 });
       }
     }
+
+    // ── Determine max pages from plan ────────────────────────
+    const planLimitations = accountWithPlan?.account?.subscription?.plan?.limitations;
+    const planMaxPages = getLimitFromPlan(planLimitations, 'maxAuditPages', 500) || 500;
+    // User-requested limit, capped by plan
+    const maxPages = requestedMaxPages
+      ? Math.min(Math.max(1, Math.floor(Number(requestedMaxPages))), planMaxPages)
+      : planMaxPages;
 
     // Check if there's already a running audit for this site
     const runningAudits = await prisma.siteAudit.findMany({
@@ -277,16 +314,23 @@ export async function POST(request) {
     });
 
     // Start both audits in the background (fire & forget)
-    runSiteAudit(desktopAudit.id, site.url, siteId, 'desktop').catch(err => {
+    // Validate and sanitize URLs if provided
+    const urls = Array.isArray(requestedUrls)
+      ? requestedUrls.filter(u => typeof u === 'string' && u.startsWith('http')).slice(0, maxPages)
+      : null;
+    const auditOptions = { maxPages, ...(urls?.length ? { urls } : {}) };
+    runSiteAudit(desktopAudit.id, site.url, siteId, 'desktop', auditOptions).catch(err => {
       console.error(`[API/audit] Background desktop audit error for ${desktopAudit.id}:`, err);
     });
-    runSiteAudit(mobileAudit.id, site.url, siteId, 'mobile').catch(err => {
+    runSiteAudit(mobileAudit.id, site.url, siteId, 'mobile', auditOptions).catch(err => {
       console.error(`[API/audit] Background mobile audit error for ${mobileAudit.id}:`, err);
     });
 
     return NextResponse.json({
       audits: [desktopAudit, mobileAudit],
       message: 'Desktop and mobile audits started',
+      maxPages,
+      planMaxPages,
     });
   } catch (error) {
     console.error('[API/audit] POST error:', error);

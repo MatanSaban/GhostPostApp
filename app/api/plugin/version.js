@@ -10,10 +10,15 @@
  */
 
 // Current plugin version - increment this when making updates
-export const PLUGIN_VERSION = "2.3.9";
+export const PLUGIN_VERSION = "2.4.0";
 
 // Changelog for the current version
 export const PLUGIN_CHANGELOG = `
+= 2.4.0 =
+* FIX: Featured image setting no longer silently fails when only featured_image_id is sent
+* FIX: set_post_thumbnail errors now return proper error responses instead of false success
+* FIX: AI Agent reuses preview image when applying missing featured image fix (no regeneration)
+
 = 2.3.9 =
 * FIX: Internal link healing endpoint now included in generated plugin templates
 

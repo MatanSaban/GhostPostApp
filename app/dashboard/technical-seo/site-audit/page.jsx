@@ -38,6 +38,7 @@ import {
 import { useLocale } from '@/app/context/locale-context';
 import { useSite } from '@/app/context/site-context';
 import { useUser } from '@/app/context/user-context';
+import { useBackgroundTasks } from '@/app/context/background-tasks-context';
 import { PageHeaderSkeleton, StatsGridSkeleton } from '@/app/dashboard/components';
 import SmartActionButton from '@/app/components/ui/SmartActionButton';
 import { handleLimitError } from '@/app/context/limit-guard-context';
@@ -61,7 +62,9 @@ import FixImageFormatPreviewModal from './components/FixImageFormatPreviewModal'
 import FixBrokenLinkModal from './components/FixBrokenLinkModal';
 import SecurityHeadersModal from './components/SecurityHeadersModal';
 import IssueInfoPopup from './components/IssueInfoPopup';
+import AuditEntitySelector from './components/AuditEntitySelector';
 import { MediaModal } from '@/app/dashboard/components/MediaModal/MediaModal';
+import EntitiesRequiredModal from '@/app/dashboard/components/EntitiesRequiredModal/EntitiesRequiredModal';
 import { useModalResize, ModalResizeButton } from '@/app/components/ui/ModalResizeButton';
 import styles from './site-audit.module.css';
 
@@ -215,6 +218,7 @@ export default function SiteAuditPage() {
   const { t, locale } = useLocale();
   const { selectedSite, isLoading: isSiteLoading } = useSite();
   const { user } = useUser();
+  const { addTask, updateTask } = useBackgroundTasks();
   const { isMaximized: isPageDetailMaximized, toggleMaximize: togglePageDetailMaximize } = useModalResize();
 
   // Audit quota from plan
@@ -229,9 +233,13 @@ export default function SiteAuditPage() {
   const [latestAudit, setLatestAudit] = useState(null);
   const [auditHistory, setAuditHistory] = useState([]);
   const [isStarting, setIsStarting] = useState(false);
-  const [isPolling, setIsPolling] = useState(false);
+  const [pollingSiteIds, setPollingSiteIds] = useState(new Set());
   const [error, setError] = useState(null);
   const [isLoadingAudits, setIsLoadingAudits] = useState(true);
+
+  // Page limit controls
+  const [planMaxPages, setPlanMaxPages] = useState(500);
+  const [maxPages, setMaxPages] = useState(500);
 
   // Device toggle state - "desktop" or "mobile"
   const [activeDevice, setActiveDevice] = useState('desktop');
@@ -261,6 +269,12 @@ export default function SiteAuditPage() {
   const [isFixingSiteWide, setIsFixingSiteWide] = useState(false);
   const [fixingIssueKey, setFixingIssueKey] = useState(null);
 
+  // Entities required modal
+  const [showEntitiesRequired, setShowEntitiesRequired] = useState(false);
+
+  // Entity selection for audit
+  const [selectedEntityUrls, setSelectedEntityUrls] = useState(null); // null = use discovery, [] = explicit URLs
+
   // AI issue translations cache (for visual/UX tab)
   const [issueTranslations, setIssueTranslations] = useState({});
   const [isTranslatingIssues, setIsTranslatingIssues] = useState(false);
@@ -274,8 +288,9 @@ export default function SiteAuditPage() {
   // Issue info popup for "What is it?" and "How to fix?" buttons
   const [issueInfoPopup, setIssueInfoPopup] = useState(null); // { type, key, title } or null
 
-  const pollRef = useRef(null);
-  const stepIntervalRef = useRef(null);
+  const pollRefs = useRef({});       // siteId → intervalId
+  const stepIntervalRefs = useRef({}); // siteId → intervalId
+  const bgTaskIds = useRef({});       // siteId → taskId
   const hasRestoredFromUrl = useRef(false);
 
   // ─── URL State Sync ─────────────────────────────────────────
@@ -299,6 +314,12 @@ export default function SiteAuditPage() {
       const res = await fetch(`/api/audit?siteId=${siteId}&deviceType=${device || 'desktop'}`);
       if (!res.ok) throw new Error('Failed to fetch audits');
       const data = await res.json();
+
+      // Capture plan max pages if returned
+      if (data.planMaxPages) {
+        setPlanMaxPages(data.planMaxPages);
+        setMaxPages(prev => prev > data.planMaxPages ? data.planMaxPages : prev);
+      }
 
       let latest = data.latest;
 
@@ -329,6 +350,7 @@ export default function SiteAuditPage() {
 
   useEffect(() => {
     if (!selectedSite?.id) return;
+    const siteId = selectedSite.id;
 
     // Check cache first - restore instantly if we already have data for this device
     const cached = auditCacheRef.current[activeDevice];
@@ -340,11 +362,11 @@ export default function SiteAuditPage() {
       setError(null);
       setDrillDown(null);
       setPageDetail(null);
-      // If cached audit is still running, resume polling
+      // If cached audit is still running, resume polling for this site
       if (cached.latest && (cached.latest.status === 'PENDING' || cached.latest.status === 'RUNNING')) {
-        startPolling(selectedSite.id, activeDevice);
+        startPolling(siteId, activeDevice);
       }
-      return () => stopPolling();
+      return;
     }
 
     // No cache - fetch from DB
@@ -358,14 +380,13 @@ export default function SiteAuditPage() {
     setShowHistory(false);
     setIssueTranslations({});
 
-    fetchAudits(selectedSite.id, activeDevice).then((latest) => {
+    fetchAudits(siteId, activeDevice).then((latest) => {
       setIsLoadingAudits(false);
       if (latest && (latest.status === 'PENDING' || latest.status === 'RUNNING')) {
-        startPolling(selectedSite.id, activeDevice);
+        startPolling(siteId, activeDevice);
       }
     });
 
-    return () => stopPolling();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedSite?.id, activeDevice]);
 
@@ -420,35 +441,102 @@ export default function SiteAuditPage() {
   // ─── Polling ──────────────────────────────────────────────────
 
   const startPolling = useCallback((siteId, device) => {
-    setIsPolling(true);
+    // Don't duplicate polling for the same site
+    if (pollRefs.current[siteId]) return;
+
+    setPollingSiteIds(prev => new Set(prev).add(siteId));
     setScanStepIndex(0);
 
-    stepIntervalRef.current = setInterval(() => {
+    stepIntervalRefs.current[siteId] = setInterval(() => {
       setScanStepIndex(prev => (prev + 1) % SCAN_STEPS.length);
     }, 2500);
 
-    pollRef.current = setInterval(async () => {
-      const latest = await fetchAudits(siteId, device);
-      if (latest && latest.status !== 'PENDING' && latest.status !== 'RUNNING') {
-        stopPolling();
-      }
-    }, POLL_INTERVAL);
-  }, [fetchAudits]);
+    pollRefs.current[siteId] = setInterval(async () => {
+      // Lightweight status check — only updates page state if this is the active site
+      try {
+        const res = await fetch(`/api/audit?siteId=${siteId}&deviceType=${device || 'desktop'}`);
+        if (!res.ok) return;
+        const data = await res.json();
+        const latest = data.latest;
 
-  const stopPolling = useCallback(() => {
-    setIsPolling(false);
-    if (pollRef.current) { clearInterval(pollRef.current); pollRef.current = null; }
-    if (stepIntervalRef.current) { clearInterval(stepIntervalRef.current); stepIntervalRef.current = null; }
+        // Always sync progress to background task (even when viewing another site)
+        const taskId = bgTaskIds.current[siteId];
+        if (taskId && latest?.progress) {
+          updateTask(taskId, {
+            progress: latest.progress.percentage || 0,
+            message: latest.progress.labelKey || latest.progress.label || '',
+          });
+        }
+
+        if (latest && latest.status !== 'PENDING' && latest.status !== 'RUNNING') {
+          // Mark background task as completed/failed
+          if (taskId) {
+            updateTask(taskId, {
+              status: latest.status === 'COMPLETED' ? 'completed' : 'error',
+              progress: 100,
+              message: latest.status === 'COMPLETED'
+                ? (t('siteAudit.progress.complete') || 'Audit complete')
+                : (latest.progress?.failureReason || 'Audit failed'),
+            });
+            delete bgTaskIds.current[siteId];
+          }
+          stopPolling(siteId);
+        }
+      } catch { /* ignore poll errors */ }
+    }, POLL_INTERVAL);
+  }, [updateTask, t]);
+
+  const stopPolling = useCallback((siteId) => {
+    if (siteId) {
+      if (pollRefs.current[siteId]) { clearInterval(pollRefs.current[siteId]); delete pollRefs.current[siteId]; }
+      if (stepIntervalRefs.current[siteId]) { clearInterval(stepIntervalRefs.current[siteId]); delete stepIntervalRefs.current[siteId]; }
+      setPollingSiteIds(prev => { const next = new Set(prev); next.delete(siteId); return next; });
+    } else {
+      // Stop all
+      Object.values(pollRefs.current).forEach(clearInterval);
+      Object.values(stepIntervalRefs.current).forEach(clearInterval);
+      pollRefs.current = {};
+      stepIntervalRefs.current = {};
+      setPollingSiteIds(new Set());
+    }
   }, []);
 
   useEffect(() => {
     return () => stopPolling();
   }, [stopPolling]);
 
+  // When viewing a site that has active background polling, refresh UI on interval
+  useEffect(() => {
+    if (!selectedSite?.id || !pollingSiteIds.has(selectedSite.id)) return;
+    const siteId = selectedSite.id;
+    const device = activeDevice;
+    const uiPoll = setInterval(() => {
+      fetchAudits(siteId, device);
+    }, POLL_INTERVAL);
+    return () => clearInterval(uiPoll);
+  }, [selectedSite?.id, activeDevice, pollingSiteIds, fetchAudits]);
+
   // ─── Actions ──────────────────────────────────────────────────
 
   const handleStartAudit = async () => {
-    if (!selectedSite?.id || isStarting || isPolling) return;
+    if (!selectedSite?.id || isStarting) return;
+    // Prevent starting a duplicate audit for the same site
+    if (pollingSiteIds.has(selectedSite.id)) return;
+
+    // Check entities exist first
+    try {
+      const entRes = await fetch(`/api/entities?siteId=${selectedSite.id}`);
+      if (entRes.ok) {
+        const entData = await entRes.json();
+        if (!entData.entities?.length) {
+          setShowEntitiesRequired(true);
+          return;
+        }
+      }
+    } catch {
+      // If entity check fails, proceed anyway
+    }
+
     // Invalidate cache for both devices since POST creates both audits
     auditCacheRef.current = {};
     setIsStarting(true);
@@ -458,7 +546,11 @@ export default function SiteAuditPage() {
       const res = await fetch('/api/audit', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ siteId: selectedSite.id }),
+        body: JSON.stringify({
+          siteId: selectedSite.id,
+          maxPages,
+          ...(selectedEntityUrls?.length ? { urls: selectedEntityUrls } : {}),
+        }),
       });
       if (!res.ok) {
         const data = await res.json();
@@ -469,6 +561,21 @@ export default function SiteAuditPage() {
       // POST now returns { audits: [...] } - pick the one matching active device
       const deviceAudit = data.audits?.find(a => a.deviceType === activeDevice) || data.audits?.[0];
       setLatestAudit(deviceAudit);
+
+      // Register as a non-cancelable background task
+      const taskId = `site-audit-${selectedSite.id}-${Date.now()}`;
+      bgTaskIds.current[selectedSite.id] = taskId;
+      addTask({
+        id: taskId,
+        type: 'site-audit',
+        title: `${t('siteAudit.title')} — ${selectedSite.name}`,
+        message: t('siteAudit.scanning'),
+        status: 'running',
+        progress: 0,
+        cancelable: false,
+        metadata: { siteId: selectedSite.id, siteName: selectedSite.name },
+      });
+
       startPolling(selectedSite.id, activeDevice);
     } catch (err) {
       setError(err.message);
@@ -485,6 +592,7 @@ export default function SiteAuditPage() {
 
   // ─── Derived State ────────────────────────────────────────────
 
+  const isPolling = selectedSite?.id ? pollingSiteIds.has(selectedSite.id) : false;
   const isRunning = isPolling || latestAudit?.status === 'PENDING' || latestAudit?.status === 'RUNNING';
   const isCompleted = latestAudit?.status === 'COMPLETED';
   const isFailed = latestAudit?.status === 'FAILED';
@@ -878,6 +986,26 @@ export default function SiteAuditPage() {
           <p className={styles.subtitle}>{t('siteAudit.subtitle')}</p>
         </div>
         <div className={styles.headerActions}>
+          {!isRunning && (
+            <div className={styles.pageLimitControl}>
+              <label className={styles.pageLimitLabel} htmlFor="maxPagesInput">
+                {t('siteAudit.maxPages')}
+              </label>
+              <input
+                id="maxPagesInput"
+                type="number"
+                min={1}
+                max={planMaxPages}
+                value={maxPages}
+                onChange={(e) => {
+                  const val = Math.max(1, Math.min(planMaxPages, Math.floor(Number(e.target.value) || 1)));
+                  setMaxPages(val);
+                }}
+                className={styles.pageLimitInput}
+              />
+              <span className={styles.pageLimitMax}>/ {planMaxPages}</span>
+            </div>
+          )}
           {auditHistory.length > 1 && (
             <button
               className={styles.historyButton}
@@ -919,6 +1047,15 @@ export default function SiteAuditPage() {
             <span>{t('siteAudit.mobileAudit')}</span>
           </button>
         </div>
+      )}
+
+      {/* Entity Selection - shown when not running */}
+      {!isRunning && selectedSite?.id && (
+        <AuditEntitySelector
+          siteId={selectedSite.id}
+          maxPages={maxPages}
+          onSelectionChange={({ selectedUrls }) => setSelectedEntityUrls(selectedUrls)}
+        />
       )}
 
       {/* Error Banner */}
@@ -1524,6 +1661,24 @@ export default function SiteAuditPage() {
           <Activity className={styles.emptyIcon} />
           <h3 className={styles.emptyTitle}>{t('siteAudit.noScans')}</h3>
           <p className={styles.emptyDescription}>{t('siteAudit.noScansDescription')}</p>
+          <div className={styles.pageLimitControl} style={{ justifyContent: 'center', marginBottom: 12 }}>
+            <label className={styles.pageLimitLabel} htmlFor="maxPagesInputEmpty">
+              {t('siteAudit.maxPages')}
+            </label>
+            <input
+              id="maxPagesInputEmpty"
+              type="number"
+              min={1}
+              max={planMaxPages}
+              value={maxPages}
+              onChange={(e) => {
+                const val = Math.max(1, Math.min(planMaxPages, Math.floor(Number(e.target.value) || 1)));
+                setMaxPages(val);
+              }}
+              className={styles.pageLimitInput}
+            />
+            <span className={styles.pageLimitMax}>/ {planMaxPages}</span>
+          </div>
           <SmartActionButton
             resourceKey="siteAudits"
             accountId={user?.accountId}
@@ -1911,6 +2066,12 @@ export default function SiteAuditPage() {
       <PluginRequiredModal
         open={showPluginModal}
         onClose={() => setShowPluginModal(false)}
+      />
+
+      {/* Entities Required Modal */}
+      <EntitiesRequiredModal
+        open={showEntitiesRequired}
+        onClose={() => setShowEntitiesRequired(false)}
       />
 
       {/* AI Title Fix Preview Modal */}

@@ -394,6 +394,7 @@
 /* Detail sections within expanded insight */
 .detailSection {
   margin: 0.75rem 0;
+  overflow-x: auto;
 }
 
 .detailStats {
@@ -504,7 +505,7 @@
 }
 
 .detailPageTitle {
-  max-width: 300px;
+  max-width: 200px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -688,6 +689,14 @@
   background: rgba(239, 68, 68, 0.1);
   color: #ef4444;
   border: 1px solid rgba(239, 68, 68, 0.25);
+}
+
+.detailUrlRow {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+  flex-wrap: wrap;
 }
 
 .itemFixBtn {

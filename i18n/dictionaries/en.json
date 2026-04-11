@@ -752,6 +752,13 @@
     "subtitle": "Analyze your website's technical SEO health and performance",
     "selectSite": "Please select a site to run the audit",
     "startScan": "Run Audit",
+    "maxPages": "Max pages",
+    "entitySelector": {
+      "title": "Content to Audit",
+      "pages": "pages",
+      "cappedTo": "capped to",
+      "selectAll": "Select All"
+    },
     "scanning": "Scanning...",
     "runFirstScan": "Run Your First Audit",
     "healthScore": "Health Score",
@@ -6430,6 +6437,10 @@
     "fixItemFailed": "Failed",
     "fixNoItems": "No items to fix.",
     "fixSkipped": "Skipped",
+    "downloadImage": "Download",
+    "wordCount": "Words",
+    "currentImages": "Images",
+    "recommendedImages": "Recommended",
     "approved": "Approved",
     "rejected": "Rejected",
     "executed": "Executed",
@@ -6568,6 +6579,14 @@
       "sgeTrafficTheft": {
         "title": "SGE Traffic Theft Detected on Top Keywords",
         "description": "{count} top-ranking keywords lost significant CTR despite stable positions and impressions in {periodStart} to {periodEnd} vs {comparePeriodStart} to {comparePeriodEnd}. An estimated {totalClicksLost} clicks were lost — likely absorbed by Google's AI Overviews. Inject personal experience, proprietary data, or strong opinions into these pages to combat AI-generated answers."
+      },
+      "missingFeaturedImage": {
+        "title": "Posts Missing Featured Images",
+        "description": "{count} published posts have no featured image. Featured images improve social sharing, search appearance, and user engagement."
+      },
+      "insufficientContentImages": {
+        "title": "Posts Need More Content Images",
+        "description": "{count} posts have fewer images than recommended for their length. Adding relevant images improves readability for long-form content."
       }
     },
     "detailLabels": {
