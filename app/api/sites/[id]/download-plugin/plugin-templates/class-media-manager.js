@@ -564,13 +564,6 @@ class GP_Media_Manager {
     public function get_stats() {
         global $wpdb;
         
-        // Count total images
-        $total = (int) $wpdb->get_var(
-            "SELECT COUNT(*) FROM {$wpdb->posts} 
-             WHERE post_type = 'attachment' 
-             AND post_mime_type LIKE 'image/%'"
-        );
-        
         // Count WebP images
         $webp = (int) $wpdb->get_var(
             "SELECT COUNT(*) FROM {$wpdb->posts} 
@@ -584,6 +577,9 @@ class GP_Media_Manager {
              WHERE post_type = 'attachment' 
              AND post_mime_type IN ('image/jpeg', 'image/png', 'image/gif')"
         );
+        
+        // Total = webp + convertible (excludes svg, ico, bmp, etc. which can't be converted)
+        $total = $webp + $non_webp;
         
         return new WP_REST_Response(array(
             'total' => $total,
