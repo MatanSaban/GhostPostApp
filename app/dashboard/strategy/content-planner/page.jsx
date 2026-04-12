@@ -100,6 +100,9 @@ export default async function ContentPlannerPage() {
       republishTitle: t('contentPlanner.pipeline.republishTitle'),
       republishMessage: t('contentPlanner.pipeline.republishMessage'),
       republishConfirm: t('contentPlanner.pipeline.republishConfirm'),
+      generateNowTitle: t('contentPlanner.pipeline.generateNowTitle'),
+      generateNowMessage: t('contentPlanner.pipeline.generateNowMessage'),
+      generateNowConfirm: t('contentPlanner.pipeline.generateNowConfirm'),
     },
     createModal: {
       title: t('contentPlanner.campaigns.createModal.title'),

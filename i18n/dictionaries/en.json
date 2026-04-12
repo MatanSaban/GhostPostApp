@@ -1420,7 +1420,10 @@
       "rescheduleCancel": "Cancel",
       "republishTitle": "Publish Post Now",
       "republishMessage": "This will publish the post immediately on your website with the selected date. Continue?",
-      "republishConfirm": "Yes, Publish Now"
+      "republishConfirm": "Yes, Publish Now",
+      "generateNowTitle": "Generate Post Now?",
+      "generateNowMessage": "This post has not been generated yet. The selected time is soon or has already passed. Would you like to generate it now?",
+      "generateNowConfirm": "Yes, Generate Now"
     },
     "preview": {
       "title": "Post Preview",

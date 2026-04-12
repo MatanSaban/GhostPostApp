@@ -60,6 +60,8 @@ export function ContentPlannerView({ translations }) {
   const [loadingPipeline, setLoadingPipeline] = useState(true);
   const [pendingReschedule, setPendingReschedule] = useState(null); // { post, newScheduledAt }
   const [rescheduling, setRescheduling] = useState(false);
+  const [pendingGenerate, setPendingGenerate] = useState(null); // { post, newScheduledAt }
+  const [generating, setGenerating] = useState(false);
   const { selectedSite } = useSite();
   
   // Permission checks for content planner
@@ -190,26 +192,67 @@ export function ContentPlannerView({ translations }) {
         }).catch(() => {});
       }
     } else if (draggedPost.source === 'pipeline') {
+      const now = new Date();
+      const targetDate = new Date(newScheduledAt);
+      const msUntilTarget = targetDate - now;
+      const THIRTY_MIN = 30 * 60 * 1000;
+      const isNotGenerated = !draggedPost.aiResult?.html && !draggedPost.aiResult?.title;
+      const isPastOrSoon = msUntilTarget <= THIRTY_MIN;
+
+      // Not-yet-generated post dragged to past/soon → ask user to generate
+      if (isNotGenerated && isPastOrSoon) {
+        setPendingGenerate({ post: draggedPost, newScheduledAt });
+        return;
+      }
+
       if (draggedPost.statusKey === 'READY_TO_PUBLISH') {
-        setPipelineContents(prev => prev.map(c =>
-          c.id === draggedPost.id
-            ? { ...c, scheduledAt: newScheduledAt, status: 'READY_TO_PUBLISH', statusKey: 'READY_TO_PUBLISH', dotStatus: 'readyToPublish' }
-            : c
-        ));
-        fetch(`/api/contents/${draggedPost.id}/transition`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ targetStatus: 'READY_TO_PUBLISH', scheduledAt: newScheduledAt }),
-        }).catch(() => {});
+        // Ready-to-publish dragged within 30 min → auto-publish immediately
+        if (isPastOrSoon) {
+          setPipelineContents(prev => prev.map(c =>
+            c.id === draggedPost.id
+              ? { ...c, scheduledAt: newScheduledAt, status: 'PUBLISHED', statusKey: 'PUBLISHED', dotStatus: 'published' }
+              : c
+          ));
+          fetch(`/api/contents/${draggedPost.id}/transition`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ targetStatus: 'PUBLISHED', scheduledAt: newScheduledAt }),
+          }).catch(() => fetchPipeline());
+        } else {
+          setPipelineContents(prev => prev.map(c =>
+            c.id === draggedPost.id
+              ? { ...c, scheduledAt: newScheduledAt, status: 'READY_TO_PUBLISH', statusKey: 'READY_TO_PUBLISH', dotStatus: 'readyToPublish' }
+              : c
+          ));
+          fetch(`/api/contents/${draggedPost.id}/transition`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ targetStatus: 'READY_TO_PUBLISH', scheduledAt: newScheduledAt }),
+          }).catch(() => {});
+        }
       } else {
-        setPipelineContents(prev => prev.map(c =>
-          c.id === draggedPost.id ? { ...c, scheduledAt: newScheduledAt } : c
-        ));
-        fetch(`/api/contents/${draggedPost.id}`, {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ scheduledAt: newScheduledAt }),
-        }).catch(() => {});
+        // DRAFT/SCHEDULED — if within 30 min, start processing so it's ready in time
+        if (isPastOrSoon && !isNotGenerated) {
+          setPipelineContents(prev => prev.map(c =>
+            c.id === draggedPost.id
+              ? { ...c, scheduledAt: newScheduledAt, status: 'PROCESSING', statusKey: 'PROCESSING', dotStatus: 'processing' }
+              : c
+          ));
+          fetch(`/api/contents/${draggedPost.id}/transition`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ targetStatus: 'PROCESSING', scheduledAt: newScheduledAt }),
+          }).catch(() => fetchPipeline());
+        } else {
+          setPipelineContents(prev => prev.map(c =>
+            c.id === draggedPost.id ? { ...c, scheduledAt: newScheduledAt } : c
+          ));
+          fetch(`/api/contents/${draggedPost.id}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ scheduledAt: newScheduledAt }),
+          }).catch(() => {});
+        }
       }
     } else if (draggedPost.source === 'entity') {
       // Entity posts: update date and sync status to WP
@@ -324,6 +367,37 @@ export function ContentPlannerView({ translations }) {
     } finally {
       setRescheduling(false);
       setPendingReschedule(null);
+    }
+  };
+
+  // ── Generate ungenerated post (after confirmation from drag) ──
+  const executeGenerateFromDrag = async () => {
+    if (!pendingGenerate) return;
+    const { post, newScheduledAt } = pendingGenerate;
+    setGenerating(true);
+
+    try {
+      // First update the scheduledAt
+      setPipelineContents(prev => prev.map(c =>
+        c.id === post.id
+          ? { ...c, scheduledAt: newScheduledAt, status: 'PROCESSING', statusKey: 'PROCESSING', dotStatus: 'processing' }
+          : c
+      ));
+      const res = await fetch(`/api/contents/${post.id}/transition`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ targetStatus: 'PROCESSING', scheduledAt: newScheduledAt }),
+      });
+      if (res.ok) {
+        fetchPipeline();
+      } else {
+        fetchPipeline();
+      }
+    } catch {
+      fetchPipeline();
+    } finally {
+      setGenerating(false);
+      setPendingGenerate(null);
     }
   };
 
@@ -486,7 +560,10 @@ export function ContentPlannerView({ translations }) {
 
     // Add entity posts (from WordPress sync)
     posts.forEach(post => {
-      const dateStr = post.publishedAt || post.scheduledAt || post.createdAt;
+      // For scheduled entities, prefer scheduledAt; for published, prefer publishedAt
+      const dateStr = post.status === 'SCHEDULED'
+        ? (post.scheduledAt || post.publishedAt || post.createdAt)
+        : (post.publishedAt || post.scheduledAt || post.createdAt);
       if (!dateStr) return;
       const d = new Date(dateStr);
       if (d.getFullYear() !== year || d.getMonth() !== month) return;
@@ -1180,6 +1257,18 @@ export function ContentPlannerView({ translations }) {
         cancelText={translations.pipeline?.rescheduleCancel || 'Cancel'}
         variant="warning"
         isLoading={rescheduling}
+      />
+
+      <ConfirmDialog
+        isOpen={!!pendingGenerate}
+        onClose={() => setPendingGenerate(null)}
+        onConfirm={executeGenerateFromDrag}
+        title={translations.pipeline?.generateNowTitle || 'Generate Post Now?'}
+        message={translations.pipeline?.generateNowMessage || 'This post has not been generated yet. The selected time is soon or has already passed. Would you like to generate it now?'}
+        confirmText={translations.pipeline?.generateNowConfirm || 'Yes, Generate Now'}
+        cancelText={translations.pipeline?.rescheduleCancel || 'Cancel'}
+        variant="warning"
+        isLoading={generating}
       />
 
       <PostPopover

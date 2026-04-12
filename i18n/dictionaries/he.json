@@ -1420,7 +1420,10 @@
       "rescheduleCancel": "ביטול",
       "republishTitle": "פרסם פוסט עכשיו",
       "republishMessage": "פעולה זו תפרסם את הפוסט מידית באתר שלך עם התאריך שנבחר. להמשיך?",
-      "republishConfirm": "כן, פרסם עכשיו"
+      "republishConfirm": "כן, פרסם עכשיו",
+      "generateNowTitle": "לייצר פוסט עכשיו?",
+      "generateNowMessage": "פוסט זה עדיין לא נוצר. הזמן שנבחר קרוב או כבר עבר. לייצר אותו עכשיו?",
+      "generateNowConfirm": "כן, לייצר עכשיו"
     },
     "preview": {
       "title": "תצוגה מקדימה",

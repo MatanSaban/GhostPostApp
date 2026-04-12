@@ -280,11 +280,12 @@ export async function POST(request, { params }) {
     // ── PROCESSING or READY_TO_PUBLISH target: trigger generation ──
     if (targetStatus === 'PROCESSING' || targetStatus === 'READY_TO_PUBLISH') {
       // Set to SCHEDULED so generate-article worker can lock it to PROCESSING
-      // Keep the original scheduledAt — don't overwrite with today
+      // Update scheduledAt if provided (e.g. from drag-to-today)
       await prisma.content.update({
         where: { id },
         data: {
           status: 'SCHEDULED',
+          ...(body.scheduledAt && { scheduledAt: new Date(body.scheduledAt) }),
           processingAttempts: 0,
           errorMessage: null,
         },
