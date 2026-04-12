@@ -78,8 +78,8 @@ export default function PostPopover({
 
   if (!post || !rect) return null;
 
-  // Extract date
-  const dateStr = post.publishedAt || post.scheduledAt || post.createdAt;
+  // Extract date — for entity scheduled posts, prefer scheduledAt
+  const dateStr = post.scheduledAt || post.publishedAt || post.createdAt;
   const postDate = dateStr ? new Date(dateStr) : null;
   const timeStr = postDate
     ? `${String(postDate.getHours()).padStart(2, '0')}:${String(postDate.getMinutes()).padStart(2, '0')}`

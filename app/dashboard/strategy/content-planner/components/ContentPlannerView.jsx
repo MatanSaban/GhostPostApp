@@ -80,11 +80,12 @@ export function ContentPlannerView({ translations }) {
 
   // ── Update post date/time from popover ─────────────────────────
   const updatePostDate = (post, newDateStr) => {
-    if (!newDateStr || !/^\d{4}-\d{2}-\d{2}$/.test(newDateStr)) return; // Invalid date format
-    const oldDate = new Date(post.scheduledAt);
+    if (!newDateStr || !/^\d{4}-\d{2}-\d{2}$/.test(newDateStr)) return;
+    const baseDate = post.scheduledAt || post.publishedAt || post.createdAt;
+    const oldDate = new Date(baseDate);
     const [year, month, day] = newDateStr.split('-').map(Number);
     const newDate = new Date(year, month - 1, day, oldDate.getHours(), oldDate.getMinutes(), 0);
-    if (isNaN(newDate.getTime())) return; // Invalid date
+    if (isNaN(newDate.getTime())) return;
     const newScheduledAt = newDate.toISOString();
 
     if (post.source === 'plan') {
@@ -114,16 +115,19 @@ export function ContentPlannerView({ translations }) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ scheduledAt: newScheduledAt }),
       }).catch(() => {});
+    } else if (post.source === 'entity') {
+      updateEntityDateTime(post, newScheduledAt);
     }
   };
 
   const updatePostTime = (post, newTimeStr) => {
-    if (!newTimeStr || !/^\d{1,2}:\d{2}$/.test(newTimeStr)) return; // Invalid time format
-    const oldDate = new Date(post.scheduledAt);
+    if (!newTimeStr || !/^\d{1,2}:\d{2}$/.test(newTimeStr)) return;
+    const baseDate = post.scheduledAt || post.publishedAt || post.createdAt;
+    const oldDate = new Date(baseDate);
     const [h, m] = newTimeStr.split(':').map(Number);
     const newDate = new Date(oldDate);
     newDate.setHours(h, m, 0, 0);
-    if (isNaN(newDate.getTime())) return; // Invalid time
+    if (isNaN(newDate.getTime())) return;
     const newScheduledAt = newDate.toISOString();
 
     if (post.source === 'plan') {
@@ -152,6 +156,53 @@ export function ContentPlannerView({ translations }) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ scheduledAt: newScheduledAt }),
       }).catch(() => {});
+    } else if (post.source === 'entity') {
+      updateEntityDateTime(post, newScheduledAt);
+    }
+  };
+
+  // ── Shared entity date/time update with auto status change ────
+  const updateEntityDateTime = async (post, newScheduledAt) => {
+    const newDate = new Date(newScheduledAt);
+    const now = new Date();
+    const isFuture = newDate > now;
+    const newStatus = isFuture ? 'SCHEDULED' : 'PUBLISHED';
+    const statusToDotMap = { SCHEDULED: 'scheduled', PUBLISHED: 'published', DRAFT: 'draft', PENDING: 'draft', PRIVATE: 'published' };
+    const dotStatus = statusToDotMap[newStatus];
+    const prevStatus = post.status;
+    const prevScheduledAt = post.scheduledAt;
+    const prevPublishedAt = post.publishedAt;
+
+    // Optimistic UI
+    setPosts(prev => prev.map(p =>
+      p.id === post.id ? { ...p, status: newStatus, scheduledAt: newScheduledAt, publishedAt: isFuture ? p.publishedAt : newScheduledAt } : p
+    ));
+    setPopover(prev => prev ? {
+      ...prev,
+      post: { ...prev.post, scheduledAt: newScheduledAt, status: newStatus, statusKey: newStatus, dotStatus },
+    } : null);
+
+    try {
+      const res = await fetch(`/api/entities/${post.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: newStatus, scheduledAt: newScheduledAt }),
+      });
+      if (!res.ok) throw new Error('Failed');
+      // Refresh entities
+      fetch(`/api/entities?siteId=${selectedSite?.id}&type=posts`)
+        .then(r => r.json())
+        .then(data => setPosts(data.entities || []))
+        .catch(() => {});
+    } catch {
+      // Revert on failure
+      setPosts(prev => prev.map(p =>
+        p.id === post.id ? { ...p, status: prevStatus, scheduledAt: prevScheduledAt, publishedAt: prevPublishedAt } : p
+      ));
+      setPopover(prev => prev ? {
+        ...prev,
+        post: { ...prev.post, scheduledAt: prevScheduledAt, status: prevStatus, statusKey: prevStatus, dotStatus: statusToDotMap[prevStatus] || 'draft' },
+      } : null);
     }
   };
 
@@ -1349,16 +1400,18 @@ export function ContentPlannerView({ translations }) {
           deleted: translations.pipeline?.campaignDeleted || 'deleted',
         }}
         onDateChange={
-          popover?.post && 
-          (popover.post.source === 'plan' || popover.post.source === 'pipeline') &&
-          popover.post.dotStatus !== 'published'
+          popover?.post && (
+            popover.post.source === 'entity' ||
+            ((popover.post.source === 'plan' || popover.post.source === 'pipeline') && popover.post.dotStatus !== 'published')
+          )
             ? (date) => updatePostDate(popover.post, date)
             : undefined
         }
         onTimeChange={
-          popover?.post && 
-          (popover.post.source === 'plan' || popover.post.source === 'pipeline') &&
-          popover.post.dotStatus !== 'published'
+          popover?.post && (
+            popover.post.source === 'entity' ||
+            ((popover.post.source === 'plan' || popover.post.source === 'pipeline') && popover.post.dotStatus !== 'published')
+          )
             ? (time) => updatePostTime(popover.post, time)
             : undefined
         }
