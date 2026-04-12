@@ -537,6 +537,7 @@ export function ContentPlannerView({ translations }) {
       case 'SCHEDULED': return 'scheduled';
       case 'DRAFT': return 'draft';
       case 'PENDING': return 'draft';
+      case 'PRIVATE': return 'published';
       case 'PROCESSING': return 'processing';
       case 'READY_TO_PUBLISH': return 'readyToPublish';
       case 'FAILED': return 'failed';
@@ -571,7 +572,7 @@ export function ContentPlannerView({ translations }) {
       if (!status) return;
       const day = d.getDate();
       if (!map[day]) map[day] = [];
-      map[day].push({ ...post, title: post.title || translations.untitled, dotStatus: status, source: 'entity' });
+      map[day].push({ ...post, title: post.title || translations.untitled, dotStatus: status, statusKey: post.status, source: 'entity' });
     });
 
     // Add pipeline content (from Content records) - only filtered ones
@@ -593,7 +594,7 @@ export function ContentPlannerView({ translations }) {
         dotStatus: status,
         statusKey: content.status,
         source: 'pipeline',
-        campaignColor: content.campaign?.color,
+        campaignColor: content.campaign?.color || (content.campaignDeletedName ? '#999' : undefined),
         campaignName: content.campaign?.name || content.campaignDeletedName,
         campaignDeleted: !content.campaign && !!content.campaignDeletedName,
       });
@@ -701,7 +702,7 @@ export function ContentPlannerView({ translations }) {
       ...c,
       source: 'pipeline',
       dotStatus: statusToDot(c.status),
-      campaignColor: c.campaign?.color,
+      campaignColor: c.campaign?.color || (c.campaignDeletedName ? '#999' : undefined),
       campaignName: c.campaign?.name || c.campaignDeletedName,
       campaignDeleted: !c.campaign && !!c.campaignDeletedName,
     })),
@@ -831,9 +832,6 @@ export function ContentPlannerView({ translations }) {
   };
 
   const handleStatusChange = async (post, targetStatus) => {
-    if (post.source !== 'pipeline') return;
-
-    // Optimistic UI update for simple transitions
     const statusToDotMap = {
       DRAFT: 'draft',
       SCHEDULED: 'scheduled',
@@ -841,7 +839,56 @@ export function ContentPlannerView({ translations }) {
       READY_TO_PUBLISH: 'readyToPublish',
       PUBLISHED: 'published',
       FAILED: 'failed',
+      PENDING: 'draft',
+      PRIVATE: 'published',
     };
+
+    // --- Entity posts: PATCH /api/entities/{id} ---
+    if (post.source === 'entity') {
+      const prevStatus = post.status;
+      const dotStatus = statusToDotMap[targetStatus] || 'draft';
+
+      // Optimistic UI
+      setPosts(prev => prev.map(p =>
+        p.id === post.id ? { ...p, status: targetStatus } : p
+      ));
+      setPopover(prev => prev ? {
+        ...prev,
+        post: { ...prev.post, dotStatus, statusKey: targetStatus, status: targetStatus },
+      } : null);
+
+      try {
+        const body = { status: targetStatus };
+        // If scheduling, keep current scheduledAt
+        if (targetStatus === 'SCHEDULED' && post.scheduledAt) {
+          body.scheduledAt = post.scheduledAt;
+        }
+        const res = await fetch(`/api/entities/${post.id}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body),
+        });
+        if (!res.ok) throw new Error('Failed');
+        // Refresh entities
+        fetch(`/api/entities?siteId=${selectedSite?.id}&type=posts`)
+          .then(r => r.json())
+          .then(data => setPosts(data.entities || []))
+          .catch(() => {});
+      } catch {
+        // Revert on failure
+        setPosts(prev => prev.map(p =>
+          p.id === post.id ? { ...p, status: prevStatus } : p
+        ));
+        setPopover(prev => prev ? {
+          ...prev,
+          post: { ...prev.post, dotStatus: statusToDotMap[prevStatus] || 'draft', statusKey: prevStatus, status: prevStatus },
+        } : null);
+      }
+      return;
+    }
+
+    // --- Pipeline posts: transition API ---
+    if (post.source !== 'pipeline') return;
 
     // Call the transition API which handles side effects
     const res = await fetch(`/api/contents/${post.id}/transition`, {
@@ -1100,6 +1147,7 @@ export function ContentPlannerView({ translations }) {
             failed: tp.failed || 'Failed',
             draft: ts.draft || translations.draft || 'Draft',
           }}
+          deletedLabel={tp.campaignDeleted || 'deleted'}
           legendItems={[
             { icon: '/icons/letter-p.svg', alt: 'P', label: ts.published || translations.published || 'Published' },
             { icon: '/icons/letter-s.svg', alt: 'S', label: ts.scheduled || translations.scheduled || 'Scheduled' },
@@ -1170,6 +1218,7 @@ export function ContentPlannerView({ translations }) {
                       <span className={styles.contentMeta}>
                         {item.source === 'pipeline' ? (item.type || tp.defaultType || 'Post') : (item.entityType?.name || tp.defaultType || 'Post')}
                         {item.campaignName && ` · ${item.campaignName}`}
+                        {item.campaignDeleted && <span className={styles.campaignDeletedTag}> ({tp.campaignDeleted || 'deleted'})</span>}
                       </span>
                     </div>
                     <StatusBadge status={badgeStatus}>
@@ -1280,6 +1329,8 @@ export function ContentPlannerView({ translations }) {
           published: translations.published,
           scheduled: translations.scheduled,
           draft: translations.draft,
+          pending: translations.pipeline?.pending || 'Pending',
+          private: translations.pipeline?.private || 'Private',
           processing: translations.pipeline?.processing || 'Processing',
           readyToPublish: translations.pipeline?.readyToPublish || 'Ready to Publish',
           failed: translations.pipeline?.failed || 'Failed',
@@ -1318,7 +1369,7 @@ export function ContentPlannerView({ translations }) {
             : undefined
         }
         onStatusChange={
-          popover?.post && popover.post.source === 'pipeline'
+          popover?.post && (popover.post.source === 'pipeline' || popover.post.source === 'entity')
             ? (status) => handleStatusChange(popover.post, status)
             : undefined
         }

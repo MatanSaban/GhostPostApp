@@ -6,12 +6,20 @@ import { X, Check, Type, Tag, Calendar, Clock, Globe, ExternalLink, RefreshCw, L
 import { ConfirmDialog } from '@/app/dashboard/admin/components/AdminModal';
 import styles from './PostPopover.module.css';
 
-const ALL_STATUSES = [
+const PIPELINE_STATUSES = [
   { value: 'draft', key: 'DRAFT' },
   { value: 'scheduled', key: 'SCHEDULED' },
   { value: 'processing', key: 'PROCESSING' },
   { value: 'readyToPublish', key: 'READY_TO_PUBLISH' },
   { value: 'published', key: 'PUBLISHED' },
+];
+
+const ENTITY_STATUSES = [
+  { value: 'published', key: 'PUBLISHED' },
+  { value: 'draft', key: 'DRAFT' },
+  { value: 'pending', key: 'PENDING' },
+  { value: 'scheduled', key: 'SCHEDULED' },
+  { value: 'private', key: 'PRIVATE' },
 ];
 
 /**
@@ -95,7 +103,11 @@ export default function PostPopover({
     readyToPublish: t.readyToPublish || 'Ready to Publish',
     failed: t.failed || 'Failed',
     draft: t.draft || 'Draft',
+    pending: t.pending || 'Pending',
+    private: t.private || 'Private',
   };
+
+  const statusOptions = post.source === 'entity' ? ENTITY_STATUSES : PIPELINE_STATUSES;
 
   // Handle title save
   const handleTitleSave = async () => {
@@ -249,7 +261,7 @@ export default function PostPopover({
             <div className={styles.row}>
               <span className={`${styles.statusDot} ${styles[post.dotStatus]}`} />
               <span className={styles.label}>{t.status || 'Status'}</span>
-              {onStatusChange && post.source === 'pipeline' ? (
+              {onStatusChange && (post.source === 'pipeline' || post.source === 'entity') ? (
                 <div className={styles.statusSelectWrapper}>
                   {changingStatus && <Loader2 size={12} className={styles.spinner} />}
                   <select
@@ -258,7 +270,7 @@ export default function PostPopover({
                     onChange={handleStatusChange}
                     disabled={changingStatus}
                   >
-                    {ALL_STATUSES.map(s => (
+                    {statusOptions.map(s => (
                       <option key={s.key} value={s.key}>
                         {STATUS_LABELS[s.value] || s.value}
                       </option>

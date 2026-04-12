@@ -1423,7 +1423,9 @@
       "republishConfirm": "Yes, Publish Now",
       "generateNowTitle": "Generate Post Now?",
       "generateNowMessage": "This post has not been generated yet. The selected time is soon or has already passed. Would you like to generate it now?",
-      "generateNowConfirm": "Yes, Generate Now"
+      "generateNowConfirm": "Yes, Generate Now",
+      "pending": "Pending",
+      "private": "Private"
     },
     "preview": {
       "title": "Post Preview",

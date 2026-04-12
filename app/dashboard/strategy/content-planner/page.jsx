@@ -103,6 +103,8 @@ export default async function ContentPlannerPage() {
       generateNowTitle: t('contentPlanner.pipeline.generateNowTitle'),
       generateNowMessage: t('contentPlanner.pipeline.generateNowMessage'),
       generateNowConfirm: t('contentPlanner.pipeline.generateNowConfirm'),
+      pending: t('contentPlanner.pipeline.pending'),
+      private: t('contentPlanner.pipeline.private'),
     },
     createModal: {
       title: t('contentPlanner.campaigns.createModal.title'),

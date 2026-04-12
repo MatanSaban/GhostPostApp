@@ -1423,7 +1423,9 @@
       "republishConfirm": "כן, פרסם עכשיו",
       "generateNowTitle": "לייצר פוסט עכשיו?",
       "generateNowMessage": "פוסט זה עדיין לא נוצר. הזמן שנבחר קרוב או כבר עבר. לייצר אותו עכשיו?",
-      "generateNowConfirm": "כן, לייצר עכשיו"
+      "generateNowConfirm": "כן, לייצר עכשיו",
+      "pending": "ממתין",
+      "private": "פרטי"
     },
     "preview": {
       "title": "תצוגה מקדימה",

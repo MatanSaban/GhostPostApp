@@ -58,6 +58,7 @@ export default function CalendarGrid({
   onDrop,
   legendItems = [],
   statusLabels = {},
+  deletedLabel = 'deleted',
   cardClassName,
 }) {
   const [tooltip, setTooltip] = useState(null);
@@ -172,12 +173,15 @@ export default function CalendarGrid({
                         )}
                         {post.campaignColor && (
                           <span
-                            className={styles.dayPostCampaignDot}
+                            className={`${styles.dayPostCampaignDot} ${post.campaignDeleted ? styles.dayPostCampaignDeleted : ''}`}
                             style={{ background: post.campaignColor }}
                             onMouseEnter={(e) => {
                               if (!post.campaignName) return;
                               const rect = e.currentTarget.getBoundingClientRect();
-                              setTooltip({ text: post.campaignName, rect });
+                              const text = post.campaignDeleted
+                                ? `${post.campaignName} (${deletedLabel})`
+                                : post.campaignName;
+                              setTooltip({ text, rect });
                             }}
                             onMouseLeave={() => setTooltip(null)}
                           />
