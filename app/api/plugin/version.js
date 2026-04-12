@@ -10,10 +10,16 @@
  */
 
 // Current plugin version - increment this when making updates
-export const PLUGIN_VERSION = "2.4.8";
+export const PLUGIN_VERSION = "2.4.9";
 
 // Changelog for the current version
 export const PLUGIN_CHANGELOG = `
+= 2.4.9 =
+* FIX: Scheduling published posts now correctly sets future status on WordPress
+* FIX: Added edit_date flag so WordPress recalculates post_date_gmt on date changes
+* FIX: ISO 8601 dates sanitized to MySQL DATETIME format for WordPress compatibility
+* FIX: Both date and date_gmt sent when scheduling to ensure proper GMT handling
+
 = 2.4.8 =
 * NEW: AI image optimization now processes directly on platform (eliminates Ghost Post config dependency)
 * NEW: apply-ai-optimization REST endpoint for applying AI-suggested filenames and alt text
