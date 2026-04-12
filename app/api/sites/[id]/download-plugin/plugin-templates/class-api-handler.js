@@ -295,6 +295,13 @@ class GP_API_Handler {
             'permission_callback' => array($this, 'validate_request'),
         ));
         
+        // Apply AI optimization results (platform-driven, no plugin-to-platform callback)
+        register_rest_route($namespace, '/media/apply-ai-optimization', array(
+            'methods' => 'POST',
+            'callback' => array($this, 'apply_ai_optimization'),
+            'permission_callback' => array($this, 'validate_request'),
+        ));
+        
         // AI Optimize Batch
         register_rest_route($namespace, '/media/ai-optimize-batch', array(
             'methods' => 'POST',
@@ -829,6 +836,13 @@ class GP_API_Handler {
             return new WP_REST_Response(array('error' => 'Permission denied'), 403);
         }
         return $this->media_manager->ai_optimize_image($request->get_json_params());
+    }
+    
+    public function apply_ai_optimization(WP_REST_Request $request) {
+        if (!gp_has_permission('MEDIA_UPLOAD')) {
+            return new WP_REST_Response(array('error' => 'Permission denied'), 403);
+        }
+        return $this->media_manager->apply_ai_optimization($request->get_json_params());
     }
     
     public function ai_optimize_batch(WP_REST_Request $request) {

@@ -12,6 +12,7 @@ export async function GET(req, { params }) {
     const { id } = await params;
     const { searchParams } = new URL(req.url);
     const limit = parseInt(searchParams.get('limit') || '50', 10);
+    const page = parseInt(searchParams.get('page') || '1', 10);
 
     const site = await prisma.site.findUnique({
       where: { id },
@@ -36,7 +37,7 @@ export async function GET(req, { params }) {
       // Get media items from WordPress
       const result = await makePluginRequest(
         site, 
-        `/media?per_page=${limit}&mime_type=image`, 
+        `/media?per_page=${limit}&page=${page}&mime_type=image`, 
         'GET'
       );
 
@@ -48,9 +49,15 @@ export async function GET(req, { params }) {
         url: item.url,
         alt: item.alt || '',
         mimeType: item.mime_type || item.mimeType,
+        filename: item.filename || '',
       }));
 
-      return NextResponse.json({ items });
+      return NextResponse.json({ 
+        items, 
+        total: result.total || items.length,
+        pages: result.pages || 1,
+        page,
+      });
     } catch (pluginError) {
       console.warn('Media list not available:', pluginError.message);
       return NextResponse.json({ items: [] });

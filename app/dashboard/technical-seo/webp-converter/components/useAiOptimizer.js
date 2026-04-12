@@ -1,10 +1,15 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useSite } from '@/app/context/site-context';
+import { useBackgroundTasks } from '@/app/context/background-tasks-context';
+import { useLocale } from '@/app/context/locale-context';
 
 export function useAiOptimizer() {
   const { selectedSite } = useSite();
+  const { addTask, updateTask } = useBackgroundTasks();
+  const { t } = useLocale();
+  const processingRef = useRef(false);
   
   // AI Settings state
   const [aiSettings, setAiSettings] = useState({
@@ -21,6 +26,9 @@ export function useAiOptimizer() {
   const [aiImages, setAiImages] = useState([]);
   const [loadingAiImages, setLoadingAiImages] = useState(false);
   const [selectedAiImages, setSelectedAiImages] = useState(new Set());
+  const [aiImagesPage, setAiImagesPage] = useState(1);
+  const [aiImagesHasMore, setAiImagesHasMore] = useState(false);
+  const [loadingMoreImages, setLoadingMoreImages] = useState(false);
   
   // AI Optimization state
   const [aiOptimizing, setAiOptimizing] = useState(false);
@@ -107,15 +115,17 @@ export function useAiOptimizer() {
     }
   };
 
-  // Fetch AI images
+  // Fetch AI images (first page)
   const fetchAiImages = useCallback(async () => {
     if (!selectedSite?.id) return;
     setLoadingAiImages(true);
     try {
-      const response = await fetch(`/api/sites/${selectedSite.id}/tools/media-list?limit=50`);
+      const response = await fetch(`/api/sites/${selectedSite.id}/tools/media-list?limit=50&page=1`);
       if (response.ok) {
         const data = await response.json();
-        setAiImages(data.items ?? data.images ?? []);
+        setAiImages(data.items ?? []);
+        setAiImagesPage(1);
+        setAiImagesHasMore((data.page || 1) < (data.pages || 1));
       }
     } catch (error) {
       console.error('Error fetching images for AI:', error);
@@ -123,6 +133,27 @@ export function useAiOptimizer() {
       setLoadingAiImages(false);
     }
   }, [selectedSite?.id]);
+
+  // Load more images (next page)
+  const loadMoreAiImages = useCallback(async () => {
+    if (!selectedSite?.id || loadingMoreImages) return;
+    const nextPage = aiImagesPage + 1;
+    setLoadingMoreImages(true);
+    try {
+      const response = await fetch(`/api/sites/${selectedSite.id}/tools/media-list?limit=50&page=${nextPage}`);
+      if (response.ok) {
+        const data = await response.json();
+        const newItems = data.items ?? [];
+        setAiImages(prev => [...prev, ...newItems]);
+        setAiImagesPage(nextPage);
+        setAiImagesHasMore(nextPage < (data.pages || 1));
+      }
+    } catch (error) {
+      console.error('Error loading more images:', error);
+    } finally {
+      setLoadingMoreImages(false);
+    }
+  }, [selectedSite?.id, aiImagesPage, loadingMoreImages]);
 
   // Open AI modal
   const openAiModal = async () => {
@@ -155,53 +186,108 @@ export function useAiOptimizer() {
     }
   };
 
-  // AI Optimize
+  // AI Optimize — closes modal immediately, runs in background with progress bar
   const handleAiOptimize = async () => {
-    if (!selectedSite?.id || selectedAiImages.size === 0) return;
+    if (!selectedSite?.id || selectedAiImages.size === 0 || processingRef.current) return;
     
-    setAiOptimizing(true);
+    const imageIds = Array.from(selectedAiImages);
+    // Build image data map for the background processing
+    const imageDataMap = {};
+    for (const id of imageIds) {
+      const img = aiImages.find(i => i.id === id);
+      if (img) imageDataMap[id] = { url: img.url, filename: img.filename || img.title };
+    }
+    
+    // Close modal immediately
+    setShowAiModal(false);
     setAiError(null);
     setAiResults([]);
     
-    const imageIds = Array.from(selectedAiImages);
-    setAiProgress({ current: 0, total: imageIds.length });
+    // Start background task
+    const taskId = `ai-optimize-${selectedSite.id}-${Date.now()}`;
+    addTask({
+      id: taskId,
+      type: 'ai-optimization',
+      title: `${t('tools.ai.title') || 'AI Image Optimization'} — ${selectedSite.name}`,
+      message: `0/${imageIds.length}`,
+      status: 'running',
+      progress: 0,
+      cancelable: false,
+      metadata: { siteId: selectedSite.id },
+    });
     
-    const results = [];
-    
-    for (let i = 0; i < imageIds.length; i++) {
-      setAiProgress({ current: i + 1, total: imageIds.length });
-      
-      try {
-        const response = await fetch(`/api/sites/${selectedSite.id}/tools/ai-optimize-image`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            imageId: imageIds[i],
-            applyFilename,
-            applyAltText,
-            language: aiLanguage,
-          }),
-        });
-        
-        if (response.ok) {
-          const data = await response.json();
-          results.push({ imageId: imageIds[i], success: true, ...data });
-        } else {
-          const data = await response.json();
-          results.push({ imageId: imageIds[i], success: false, error: data.error || 'Failed' });
-        }
-      } catch (error) {
-        results.push({ imageId: imageIds[i], success: false, error: error.message });
-      }
-    }
-    
-    setAiResults(results);
-    setAiOptimizing(false);
-    
-    if (applyFilename) {
-      await fetchImageRedirects();
-    }
+    // Drive processing in the background
+    driveAiProcessing(selectedSite.id, taskId, imageIds, imageDataMap);
   };
+
+  /**
+   * Drive AI optimization from the platform.
+   * Processes images one by one: Gemini AI → WP plugin apply.
+   */
+  const driveAiProcessing = useCallback(async (siteId, taskId, imageIds, imageDataMap) => {
+    if (processingRef.current) return;
+    processingRef.current = true;
+    
+    let completed = 0;
+    let failed = 0;
+    const total = imageIds.length;
+    
+    try {
+      for (let i = 0; i < imageIds.length; i++) {
+        if (!processingRef.current) break;
+        
+        const imgId = imageIds[i];
+        const imgData = imageDataMap[imgId] || {};
+        
+        try {
+          const response = await fetch(`/api/sites/${siteId}/tools/ai-optimize-image`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              imageId: imgId,
+              imageUrl: imgData.url,
+              currentFilename: imgData.filename,
+              applyFilename,
+              applyAltText,
+              language: aiLanguage,
+            }),
+          });
+          
+          if (response.ok) {
+            completed++;
+          } else {
+            failed++;
+          }
+        } catch {
+          failed++;
+        }
+        
+        const processed = completed + failed;
+        const progress = Math.round((processed / total) * 100);
+        
+        updateTask(taskId, {
+          status: 'running',
+          progress,
+          message: `${processed}/${total} — ${completed} ${t('tools.ai.optimized') || 'optimized'}${failed ? `, ${failed} ${t('tools.webp.failed') || 'failed'}` : ''}`,
+        });
+      }
+      
+      updateTask(taskId, {
+        status: failed === total ? 'error' : 'completed',
+        progress: 100,
+        message: `${t('tools.ai.optimizationComplete') || 'Optimization complete'} — ${completed} ${t('tools.ai.optimized') || 'optimized'}${failed ? `, ${failed} ${t('tools.webp.failed') || 'failed'}` : ''}`,
+      });
+    } catch (err) {
+      console.error('AI processing error:', err);
+      updateTask(taskId, {
+        status: 'error',
+        message: err.message || 'Processing failed',
+      });
+    } finally {
+      processingRef.current = false;
+      if (applyFilename) fetchImageRedirects();
+    }
+  }, [updateTask, applyFilename, applyAltText, aiLanguage, fetchImageRedirects, t]);
 
   return {
     // Settings
@@ -214,6 +300,9 @@ export function useAiOptimizer() {
     setShowAiModal,
     aiImages,
     loadingAiImages,
+    loadingMoreImages,
+    aiImagesHasMore,
+    loadMoreAiImages,
     selectedAiImages,
     openAiModal,
     toggleAiImageSelection,

@@ -1476,6 +1476,58 @@ class GP_Media_Manager {
     }
     
     /**
+    /**
+     * Apply AI optimization results sent from the platform.
+     * The platform handles the AI call (Gemini), this method just applies the rename + alt text.
+     *
+     * @param array $params { image_id, suggested_filename, alt_text, apply_filename, apply_alt_text }
+     * @return WP_REST_Response
+     */
+    public function apply_ai_optimization($params) {
+        $image_id = isset($params['image_id']) ? (int) $params['image_id'] : 0;
+        $suggested_filename = isset($params['suggested_filename']) ? sanitize_text_field($params['suggested_filename']) : '';
+        $alt_text = isset($params['alt_text']) ? sanitize_text_field($params['alt_text']) : '';
+        $apply_filename = isset($params['apply_filename']) ? (bool) $params['apply_filename'] : false;
+        $apply_alt_text = isset($params['apply_alt_text']) ? (bool) $params['apply_alt_text'] : false;
+        
+        if (!$image_id) {
+            return new WP_REST_Response(array('error' => 'Image ID is required'), 400);
+        }
+        
+        $attachment = get_post($image_id);
+        if (!$attachment || $attachment->post_type !== 'attachment') {
+            return new WP_REST_Response(array('error' => 'Image not found'), 404);
+        }
+        
+        $result = array(
+            'success' => true,
+            'image_id' => $image_id,
+            'applied' => array(),
+        );
+        
+        // Apply filename rename if requested
+        if ($apply_filename && !empty($suggested_filename)) {
+            $rename_result = \$this->rename_attachment($image_id, $suggested_filename);
+            if (!is_wp_error($rename_result)) {
+                $result['applied']['filename'] = true;
+                $result['new_url'] = $rename_result['new_url'];
+                $result['redirect_created'] = $rename_result['redirect_created'];
+            } else {
+                $result['applied']['filename'] = false;
+                $result['filename_error'] = $rename_result->get_error_message();
+            }
+        }
+        
+        // Apply alt text if requested
+        if ($apply_alt_text && !empty($alt_text)) {
+            update_post_meta($image_id, '_wp_attachment_image_alt', $alt_text);
+            $result['applied']['alt_text'] = true;
+        }
+        
+        return new WP_REST_Response($result, 200);
+    }
+    
+    /**
      * Batch AI optimize multiple images
      * 
      * @param array $params Parameters: 'image_ids', 'apply_filename', 'apply_alt_text', 'language'

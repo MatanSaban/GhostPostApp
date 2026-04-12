@@ -39,6 +39,10 @@ export default function AiOptimizationModal({
   setAiLanguage,
   // Actions
   onOptimize,
+  // Load more
+  loadMoreImages,
+  hasMoreImages,
+  loadingMoreImages,
 }) {
   const { t } = useLocale();
   const { isMaximized, toggleMaximize } = useModalResize();
@@ -207,6 +211,22 @@ export default function AiOptimizationModal({
                   </div>
                 ))}
               </div>
+              
+              {hasMoreImages && (
+                <div className={styles.loadMoreContainer}>
+                  <Button
+                    variant="secondary"
+                    onClick={loadMoreImages}
+                    disabled={loadingMoreImages}
+                  >
+                    {loadingMoreImages ? (
+                      <><Loader2 className={styles.spinning} /> {t('common.loading')}</>
+                    ) : (
+                      t('tools.ai.loadMore')
+                    )}
+                  </Button>
+                </div>
+              )}
             </>
           )}
         </div>

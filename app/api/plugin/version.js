@@ -10,10 +10,17 @@
  */
 
 // Current plugin version - increment this when making updates
-export const PLUGIN_VERSION = "2.4.7";
+export const PLUGIN_VERSION = "2.4.8";
 
 // Changelog for the current version
 export const PLUGIN_CHANGELOG = `
+= 2.4.8 =
+* NEW: AI image optimization now processes directly on platform (eliminates Ghost Post config dependency)
+* NEW: apply-ai-optimization REST endpoint for applying AI-suggested filenames and alt text
+* NEW: AI optimization uses background task progress bar (like WebP converter)
+* NEW: Load more button in AI optimization modal (50 images per page)
+* FIX: "Ghost Post configuration incomplete" error eliminated (no more two-hop architecture)
+
 = 2.4.7 =
 * FIX: Stats total now only counts webp + convertible images (excludes svg/ico/bmp) so total = webp + nonWebp
 

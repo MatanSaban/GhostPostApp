@@ -178,6 +178,9 @@ export default function WebpConverterPage() {
         aiLanguage={ai.aiLanguage}
         setAiLanguage={ai.setAiLanguage}
         onOptimize={ai.handleAiOptimize}
+        loadMoreImages={ai.loadMoreAiImages}
+        hasMoreImages={ai.aiImagesHasMore}
+        loadingMoreImages={ai.loadingMoreImages}
       />
     </div>
   );
