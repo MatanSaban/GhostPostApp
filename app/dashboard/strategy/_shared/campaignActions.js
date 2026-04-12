@@ -29,7 +29,7 @@ export async function activateCampaign(campaign, options = {}) {
   try {
     const res = await fetch(`/api/campaigns/${campaign.id}/activate`, { method: 'POST' });
     const data = await res.json();
-    if (!res.ok) throw new Error(data.error || 'Activation failed');
+    if (!res.ok) throw new Error(data.error || tc.activationFailed || 'Activation failed');
     onSuccess?.('ACTIVE');
     return { success: true };
   } catch (err) {
@@ -47,12 +47,12 @@ export async function activateCampaign(campaign, options = {}) {
  * @returns {Promise<{ success: boolean, error?: string }>}
  */
 export async function pauseCampaign(campaign, options = {}) {
-  const { onSuccess, onError } = options;
+  const { translations = {}, onSuccess, onError } = options;
 
   try {
     const res = await fetch(`/api/campaigns/${campaign.id}/pause`, { method: 'POST' });
     const data = await res.json();
-    if (!res.ok) throw new Error(data.error || 'Pause failed');
+    if (!res.ok) throw new Error(data.error || translations.pauseFailed || 'Pause failed');
     onSuccess?.('PAUSED');
     return { success: true };
   } catch (err) {
@@ -70,12 +70,12 @@ export async function pauseCampaign(campaign, options = {}) {
  * @returns {Promise<{ success: boolean, error?: string }>}
  */
 export async function resumeCampaign(campaign, options = {}) {
-  const { onSuccess, onError } = options;
+  const { translations = {}, onSuccess, onError } = options;
 
   try {
     const res = await fetch(`/api/campaigns/${campaign.id}/activate`, { method: 'POST' });
     const data = await res.json();
-    if (!res.ok) throw new Error(data.error || 'Resume failed');
+    if (!res.ok) throw new Error(data.error || translations.resumeFailed || 'Resume failed');
     onSuccess?.('ACTIVE');
     return { success: true };
   } catch (err) {

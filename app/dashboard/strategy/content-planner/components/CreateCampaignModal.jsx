@@ -37,7 +37,7 @@ export default function CreateCampaignModal({ translations, onClose, onCreated }
 
       if (!res.ok) {
         const data = await res.json();
-        throw new Error(data.error || 'Failed to create campaign');
+        throw new Error(data.error || t.createError || 'Failed to create campaign');
       }
 
       const data = await res.json();

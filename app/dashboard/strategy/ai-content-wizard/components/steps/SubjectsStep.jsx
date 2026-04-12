@@ -55,7 +55,7 @@ export default function SubjectsStep({ state, dispatch, translations }) {
 
       if (!res.ok) {
         const data = await res.json();
-        throw new Error(data.error || 'Failed to generate');
+        throw new Error(data.error || t.errorGenerating || 'Failed to generate');
       }
 
       const data = await res.json();

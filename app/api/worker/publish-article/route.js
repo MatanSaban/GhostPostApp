@@ -213,7 +213,14 @@ export async function POST(request) {
       if (!aiResult) {
         throw new Error('aiResult is missing - nothing to publish');
       }
-      await pushToWordPress(site, aiResult, content);
+      const wpResult = await pushToWordPress(site, aiResult, content);
+      // Persist the WordPress post ID inside aiResult for future updates
+      if (wpResult?.id) {
+        await prisma.content.update({
+          where: { id: contentId },
+          data: { aiResult: { ...aiResult, wpPostId: wpResult.id } },
+        });
+      }
     }
 
     // ── Mark PUBLISHED ─────────────────────────────────────────────

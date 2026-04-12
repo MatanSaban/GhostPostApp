@@ -1316,6 +1316,7 @@ model Content {
   metaDescription String?
   wordCount       Int?
   aiGenerated     Boolean       @default(false)
+  campaignDeletedName String?     // Preserved campaign name after campaign deletion
 
   // Task queue fields
   processingAttempts Int        @default(0)      // Retry counter for AI generation

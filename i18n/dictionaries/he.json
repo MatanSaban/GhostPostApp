@@ -1359,6 +1359,9 @@
       "progress": "התקדמות",
       "of": "מתוך",
       "postsPublished": "פורסמו",
+      "activationFailed": "ההפעלה נכשלה",
+      "pauseFailed": "ההשהיה נכשלה",
+      "resumeFailed": "ההמשכה נכשלה",
       "createModal": {
         "title": "צור קמפיין",
         "description": "תן לקמפיין שם ובחר צבע כדי להתחיל",
@@ -1367,7 +1370,8 @@
         "colorLabel": "צבע",
         "reservedColor": "צבע זה שמור לסטטוסי פוסטים (טיוטה / פורסם / מתוזמן)",
         "cancel": "ביטול",
-        "create": "צור"
+        "create": "צור",
+        "createError": "יצירת הקמפיין נכשלה"
       },
       "editModal": {
         "title": "עריכת קמפיין",
@@ -1379,7 +1383,9 @@
         "deleteConfirm": "בטוח? פעולה זו תמחק את הקמפיין לצמיתות.",
         "confirmDelete": "מחק",
         "cancel": "ביטול",
-        "save": "שמור"
+        "save": "שמור",
+        "updateError": "עדכון הקמפיין נכשל",
+        "deleteError": "מחיקת הקמפיין נכשלה"
       }
     },
     "pipeline": {
@@ -1393,7 +1399,25 @@
       "retrying": "מנסה שוב...",
       "errorDetails": "פרטי שגיאה",
       "attempts": "ניסיונות",
-      "viewContent": "צפה בתוכן"
+      "viewContent": "צפה בתוכן",
+      "generate": "צור תוכן",
+      "generating": "יוצר תוכן...",
+      "titleSaveError": "שמירת הכותרת נכשלה",
+      "save": "שמור",
+      "cancel": "ביטול",
+      "deletePost": "מחק",
+      "deletePostTitle": "מחיקת פוסט",
+      "deletePostMessage": "האם אתה בטוח שברצונך להסיר פוסט זה מהקמפיין ומלוח השנה?",
+      "deletePostConfirm": "כן, מחק",
+      "deletePostCancel": "לא, השאר",
+      "campaignDeleted": "נמחק",
+      "postNumber": "פוסט",
+      "defaultType": "פוסט",
+      "wpTitleUpdateFailed": "עדכון הכותרת בוורדפרס נכשל",
+      "rescheduleTitle": "תזמון מחדש לפוסט מפורסם",
+      "rescheduleMessage": "פוסט זה מפורסם כרגע באתר שלך. העברתו לתאריך חדש תבטל את הפרסום ותתזמן אותו לפרסום מחדש בתאריך הנבחר. להמשיך?",
+      "rescheduleConfirm": "כן, תזמן מחדש",
+      "rescheduleCancel": "ביטול"
     },
     "preview": {
       "title": "תצוגה מקדימה",
@@ -4523,7 +4547,10 @@
       "readyToPublish": "מוכן",
       "failed": "נכשל",
       "draft": "טיוטה",
-      "viewPost": "צפה בפוסט"
+      "viewPost": "צפה בפוסט",
+      "source": "מקור",
+      "createCampaignError": "יצירת הקמפיין נכשלה",
+      "generatePlanError": "יצירת התוכנית נכשלה"
     },
     "nav": {
       "previous": "הקודם",

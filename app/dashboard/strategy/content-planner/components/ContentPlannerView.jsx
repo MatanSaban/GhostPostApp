@@ -11,6 +11,7 @@ import {
   FolderOpen,
   Loader2,
   Sparkles,
+  Plus,
   Pencil,
   FileText,
   Play,
@@ -24,6 +25,7 @@ import {
 import { useSite } from '@/app/context/site-context';
 import { usePermissions, MODULES } from '@/app/hooks/usePermissions';
 import { StatusBadge } from '../../../components';
+import { ConfirmDialog } from '@/app/dashboard/admin/components/AdminModal';
 import CalendarGrid from '../../_shared/CalendarGrid';
 import PostPopover from '../../_shared/PostPopover';
 import { activateCampaign, pauseCampaign, resumeCampaign } from '../../_shared/campaignActions';
@@ -56,6 +58,8 @@ export function ContentPlannerView({ translations }) {
   const [pipelineContents, setPipelineContents] = useState([]);
   const [pipelineStats, setPipelineStats] = useState(null);
   const [loadingPipeline, setLoadingPipeline] = useState(true);
+  const [pendingReschedule, setPendingReschedule] = useState(null); // { post, newScheduledAt }
+  const [rescheduling, setRescheduling] = useState(false);
   const { selectedSite } = useSite();
   
   // Permission checks for content planner
@@ -154,13 +158,20 @@ export function ContentPlannerView({ translations }) {
     const year = currentDate.getFullYear();
     const month = currentDate.getMonth();
     const targetDay = targetCell.day;
-    const oldDate = new Date(draggedPost.scheduledAt);
+    const oldDate = new Date(draggedPost.scheduledAt || draggedPost.publishedAt || draggedPost.createdAt);
     const newDate = new Date(year, month, targetDay, oldDate.getHours(), oldDate.getMinutes(), oldDate.getSeconds());
 
     // Same day - no-op
     if (oldDate.getDate() === targetDay && oldDate.getMonth() === month && oldDate.getFullYear() === year) return;
 
     const newScheduledAt = newDate.toISOString();
+    const isPublished = draggedPost.dotStatus === 'published' || draggedPost.statusKey === 'PUBLISHED' || draggedPost.status === 'PUBLISHED';
+
+    // Published posts require confirmation before rescheduling
+    if (isPublished) {
+      setPendingReschedule({ post: draggedPost, newScheduledAt });
+      return;
+    }
 
     if (draggedPost.source === 'plan') {
       const campaign = campaigns.find(c => c.id === draggedPost.campaignId);
@@ -179,16 +190,91 @@ export function ContentPlannerView({ translations }) {
         }).catch(() => {});
       }
     } else if (draggedPost.source === 'pipeline') {
-      setPipelineContents(prev => prev.map(c =>
-        c.id === draggedPost.id ? { ...c, scheduledAt: newScheduledAt } : c
+      if (draggedPost.statusKey === 'READY_TO_PUBLISH') {
+        setPipelineContents(prev => prev.map(c =>
+          c.id === draggedPost.id
+            ? { ...c, scheduledAt: newScheduledAt, status: 'READY_TO_PUBLISH', statusKey: 'READY_TO_PUBLISH', dotStatus: 'readyToPublish' }
+            : c
+        ));
+        fetch(`/api/contents/${draggedPost.id}/transition`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ targetStatus: 'READY_TO_PUBLISH', scheduledAt: newScheduledAt }),
+        }).catch(() => {});
+      } else {
+        setPipelineContents(prev => prev.map(c =>
+          c.id === draggedPost.id ? { ...c, scheduledAt: newScheduledAt } : c
+        ));
+        fetch(`/api/contents/${draggedPost.id}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ scheduledAt: newScheduledAt }),
+        }).catch(() => {});
+      }
+    } else if (draggedPost.source === 'entity') {
+      // Non-published entity posts: simple date update
+      setPosts(prev => prev.map(p =>
+        p.id === draggedPost.id ? { ...p, scheduledAt: newScheduledAt } : p
       ));
-      fetch(`/api/contents/${draggedPost.id}`, {
+      fetch(`/api/entities/${draggedPost.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ scheduledAt: newScheduledAt }),
       }).catch(() => {});
     }
   }, [currentDate, campaigns]);
+
+  // ── Reschedule published post (after confirmation) ───────────
+  const executeReschedule = async () => {
+    if (!pendingReschedule) return;
+    const { post, newScheduledAt } = pendingReschedule;
+    setRescheduling(true);
+
+    try {
+      if (post.source === 'pipeline') {
+        // Pipeline published post → transition to READY_TO_PUBLISH
+        setPipelineContents(prev => prev.map(c =>
+          c.id === post.id
+            ? { ...c, scheduledAt: newScheduledAt, status: 'READY_TO_PUBLISH', statusKey: 'READY_TO_PUBLISH', dotStatus: 'readyToPublish' }
+            : c
+        ));
+        const res = await fetch(`/api/contents/${post.id}/transition`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ targetStatus: 'READY_TO_PUBLISH', scheduledAt: newScheduledAt }),
+        });
+        if (!res.ok) {
+          // Revert optimistic update
+          fetchPipeline();
+        }
+      } else if (post.source === 'entity') {
+        // Entity published post → schedule on WP with new date
+        setPosts(prev => prev.map(p =>
+          p.id === post.id
+            ? { ...p, scheduledAt: newScheduledAt, publishedAt: null, status: 'SCHEDULED' }
+            : p
+        ));
+        const res = await fetch(`/api/entities/${post.id}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ status: 'SCHEDULED', scheduledAt: newScheduledAt }),
+        });
+        if (!res.ok) {
+          // Revert — refetch posts
+          fetch(`/api/entities?siteId=${selectedSite.id}&type=posts`)
+            .then(r => r.json())
+            .then(data => setPosts(data.entities || []))
+            .catch(() => {});
+        }
+      }
+    } catch {
+      // Network error — refetch
+      if (post.source === 'pipeline') fetchPipeline();
+    } finally {
+      setRescheduling(false);
+      setPendingReschedule(null);
+    }
+  };
 
   // Check WP connection on mount
   useEffect(() => {
@@ -281,8 +367,10 @@ export function ContentPlannerView({ translations }) {
   };
 
   const handlePause = async (campaign) => {
+    const tc = translations.campaigns || {};
     setPausingId(campaign.id);
     await pauseCampaign(campaign, {
+      translations: tc,
       onSuccess: (newStatus) => {
         setCampaigns(prev => prev.map(c => c.id === campaign.id ? { ...c, status: newStatus } : c));
       },
@@ -292,8 +380,10 @@ export function ContentPlannerView({ translations }) {
   };
 
   const handleResume = async (campaign) => {
+    const tc = translations.campaigns || {};
     setActivatingId(campaign.id);
     await resumeCampaign(campaign, {
+      translations: tc,
       onSuccess: (newStatus) => {
         setCampaigns(prev => prev.map(c => c.id === campaign.id ? { ...c, status: newStatus } : c));
       },
@@ -358,7 +448,10 @@ export function ContentPlannerView({ translations }) {
 
     // Add pipeline content (from Content records) - only filtered ones
     filteredPipelineContents.forEach(content => {
-      const dateStr = content.publishedAt || content.scheduledAt;
+      // For pipeline content, use scheduledAt as the calendar date.
+      // publishedAt is just a record of when it was published, not the calendar position.
+      // Only fall back to publishedAt if scheduledAt is missing (legacy data).
+      const dateStr = content.scheduledAt || content.publishedAt;
       if (!dateStr) return;
       const d = new Date(dateStr);
       if (d.getFullYear() !== year || d.getMonth() !== month) return;
@@ -370,9 +463,11 @@ export function ContentPlannerView({ translations }) {
         ...content,
         title: content.title || translations.untitled,
         dotStatus: status,
+        statusKey: content.status,
         source: 'pipeline',
         campaignColor: content.campaign?.color,
-        campaignName: content.campaign?.name,
+        campaignName: content.campaign?.name || content.campaignDeletedName,
+        campaignDeleted: !content.campaign && !!content.campaignDeletedName,
       });
     });
 
@@ -395,7 +490,7 @@ export function ContentPlannerView({ translations }) {
         if (!map[day]) map[day] = [];
         map[day].push({
           id: `plan-${campaign.id}-${i}`,
-          title: entry.title || `Post ${i + 1}`,
+          title: entry.title || `${tp.postNumber || 'Post'} ${i + 1}`,
           dotStatus: 'scheduled', // planned posts show as scheduled
           source: 'plan',
           type: entry.type,
@@ -459,7 +554,7 @@ export function ContentPlannerView({ translations }) {
     if (!Array.isArray(plan) || plan.length === 0) return [];
     return plan.map((entry, i) => ({
       id: `plan-${campaign.id}-${i}`,
-      title: entry.title || `Post ${i + 1}`,
+      title: entry.title || `${tp.postNumber || 'Post'} ${i + 1}`,
       status: 'SCHEDULED',
       dotStatus: 'scheduled',
       source: 'plan',
@@ -479,7 +574,8 @@ export function ContentPlannerView({ translations }) {
       source: 'pipeline',
       dotStatus: statusToDot(c.status),
       campaignColor: c.campaign?.color,
-      campaignName: c.campaign?.name,
+      campaignName: c.campaign?.name || c.campaignDeletedName,
+      campaignDeleted: !c.campaign && !!c.campaignDeletedName,
     })),
     ...plannedItems,
   ].sort((a, b) => {
@@ -518,12 +614,187 @@ export function ContentPlannerView({ translations }) {
     setCampaigns(prev => prev.map(c => c.id === updated.id ? { ...c, ...updated } : c));
   };
 
-  const handleCampaignDeleted = (id) => {
+  const handleCampaignDeleted = (id, deletedContentIds = []) => {
+    const deletedCampaign = campaigns.find(c => c.id === id);
     setCampaigns(prev => prev.filter(c => c.id !== id));
     if (selectedCampaignId === id) setSelectedCampaignId(null);
+
+    // Remove deleted (ungenerated) contents from pipeline state
+    // and mark kept contents with the deleted campaign name
+    setPipelineContents(prev => {
+      const deletedSet = new Set(deletedContentIds);
+      return prev
+        .filter(c => !deletedSet.has(c.id))
+        .map(c =>
+          c.campaignId === id
+            ? { ...c, campaignId: null, campaign: null, campaignDeletedName: deletedCampaign?.name || null }
+            : c
+        );
+    });
   };
 
   const openCreateModal = () => setShowCreateModal(true);
+
+  // ── Post editing handlers (for popover) ────────────────────────
+  const handleTitleChange = async (post, newTitle) => {
+    if (post.source === 'plan') {
+      const campaign = campaigns.find(c => c.id === post.campaignId);
+      if (!campaign) return;
+      const plan = [...(campaign.generatedPlan || [])];
+      if (plan[post.planIndex]) {
+        plan[post.planIndex] = { ...plan[post.planIndex], title: newTitle };
+        setCampaigns(prev => prev.map(c =>
+          c.id === post.campaignId ? { ...c, generatedPlan: plan } : c
+        ));
+        setPopover(prev => prev ? { ...prev, post: { ...prev.post, title: newTitle } } : null);
+        fetch(`/api/campaigns/${post.campaignId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ generatedPlan: plan }),
+        }).catch(() => {});
+      }
+    } else if (post.source === 'pipeline') {
+      // Published posts: update WordPress first, then refetch to get synced data
+      if (post.status === 'PUBLISHED' || post.dotStatus === 'published') {
+        const res = await fetch(`/api/contents/${post.id}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ title: newTitle }),
+        });
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({}));
+          throw new Error(data.error || tp.wpTitleUpdateFailed || 'Failed to update title on WordPress');
+        }
+        // WP updated — title will arrive via webhook. Refresh pipeline to pick it up.
+        fetchPipeline();
+        return;
+      }
+      // Non-published: optimistic update
+      setPipelineContents(prev => prev.map(c =>
+        c.id === post.id ? { ...c, title: newTitle } : c
+      ));
+      setPopover(prev => prev ? { ...prev, post: { ...prev.post, title: newTitle } } : null);
+      fetch(`/api/contents/${post.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title: newTitle }),
+      }).catch(() => {});
+    } else if (post.source === 'entity') {
+      // Entity posts (synced from WP): update via entity API, optimistic UI
+      setPosts(prev => prev.map(p =>
+        p.id === post.id ? { ...p, title: newTitle } : p
+      ));
+      setPopover(prev => prev ? { ...prev, post: { ...prev.post, title: newTitle } } : null);
+      const res = await fetch(`/api/entities/${post.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title: newTitle }),
+      });
+      if (!res.ok) {
+        // Revert optimistic update
+        setPosts(prev => prev.map(p =>
+          p.id === post.id ? { ...p, title: post.title } : p
+        ));
+        setPopover(prev => prev ? { ...prev, post: { ...prev.post, title: post.title } } : null);
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || tp.wpTitleUpdateFailed || 'Failed to update title on WordPress');
+      }
+    }
+  };
+
+  const handleStatusChange = async (post, targetStatus) => {
+    if (post.source !== 'pipeline') return;
+
+    // Optimistic UI update for simple transitions
+    const statusToDotMap = {
+      DRAFT: 'draft',
+      SCHEDULED: 'scheduled',
+      PROCESSING: 'processing',
+      READY_TO_PUBLISH: 'readyToPublish',
+      PUBLISHED: 'published',
+      FAILED: 'failed',
+    };
+
+    // Call the transition API which handles side effects
+    const res = await fetch(`/api/contents/${post.id}/transition`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ targetStatus }),
+    });
+
+    if (res.ok) {
+      const data = await res.json();
+      const finalStatus = data.content?.status || targetStatus;
+      const dotStatus = statusToDotMap[finalStatus] || 'draft';
+
+      // Update pipeline contents with the real final status
+      setPipelineContents(prev => prev.map(c =>
+        c.id === post.id ? { ...c, status: finalStatus, errorMessage: data.content?.errorMessage || null } : c
+      ));
+      setPopover(prev => prev ? {
+        ...prev,
+        post: { ...prev.post, dotStatus, statusKey: finalStatus, status: finalStatus },
+      } : null);
+
+      // Refresh pipeline to get latest state
+      fetchPipeline();
+    }
+  };
+
+  const handleGenerate = async (post) => {
+    if (post.source !== 'pipeline') return;
+
+    // Dispatch generation via transition API (target: PROCESSING triggers generate)
+    const res = await fetch(`/api/contents/${post.id}/transition`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ targetStatus: 'PROCESSING' }),
+    });
+
+    if (res.ok) {
+      const data = await res.json();
+      const finalStatus = data.content?.status || 'PROCESSING';
+      const statusToDotMap = {
+        DRAFT: 'draft', SCHEDULED: 'scheduled', PROCESSING: 'processing',
+        READY_TO_PUBLISH: 'readyToPublish', PUBLISHED: 'published', FAILED: 'failed',
+      };
+      const dotStatus = statusToDotMap[finalStatus] || 'processing';
+
+      setPipelineContents(prev => prev.map(c =>
+        c.id === post.id ? { ...c, status: finalStatus } : c
+      ));
+      setPopover(prev => prev ? {
+        ...prev,
+        post: { ...prev.post, dotStatus, statusKey: finalStatus, status: finalStatus, aiResult: data.content?.aiResult || post.aiResult },
+      } : null);
+
+      fetchPipeline();
+    }
+  };
+
+  const handleDelete = async (post) => {
+    if (post.source === 'pipeline') {
+      const res = await fetch(`/api/contents/${post.id}`, { method: 'DELETE' });
+      if (res.ok) {
+        setPipelineContents(prev => prev.filter(c => c.id !== post.id));
+        setPopover(null);
+      }
+    } else if (post.source === 'plan') {
+      const campaign = campaigns.find(c => c.id === post.campaignId);
+      if (!campaign) return;
+      const plan = [...(campaign.generatedPlan || [])];
+      plan.splice(post.planIndex, 1);
+      setCampaigns(prev => prev.map(c =>
+        c.id === post.campaignId ? { ...c, generatedPlan: plan } : c
+      ));
+      setPopover(null);
+      fetch(`/api/campaigns/${post.campaignId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ generatedPlan: plan }),
+      }).catch(() => {});
+    }
+  };
 
   return (
     <div className={styles.plannerLayout}>
@@ -534,7 +805,7 @@ export function ContentPlannerView({ translations }) {
           <h3 className={styles.sidebarTitle}>{tc.title || 'Campaigns'}</h3>
           {canCreateCampaign && (
             <button className={styles.sidebarAddBtn} onClick={openCreateModal} title={tc.createNew || 'Create campaign'}>
-              <Sparkles size={14} />
+              <Plus size={14} />
             </button>
           )}
         </div>
@@ -642,7 +913,7 @@ export function ContentPlannerView({ translations }) {
                   )}
                   {canEditCampaign && (
                     <button
-                      className={styles.campaignActionBtn}
+                      className={`${styles.campaignActionBtn} ${styles.campaignActionSecondary}`}
                       onClick={(e) => { e.stopPropagation(); setEditingCampaign(campaign); }}
                       title={tc.editCampaign || 'Edit campaign'}
                     >
@@ -651,7 +922,7 @@ export function ContentPlannerView({ translations }) {
                   )}
                   <Link
                     href={`/dashboard/strategy/ai-content-wizard?campaignId=${campaign.id}`}
-                    className={styles.campaignActionBtn}
+                    className={`${styles.campaignActionBtn} ${styles.campaignActionSecondary}`}
                     title={(campaign._count?.contents || 0) > 0 ? (tc.editPosts || 'Edit posts') : (tc.createPosts || 'Create posts')}
                     onClick={(e) => e.stopPropagation()}
                   >
@@ -769,7 +1040,7 @@ export function ContentPlannerView({ translations }) {
                     <div className={styles.contentInfo}>
                       <span className={styles.contentTitle}>{item.title}</span>
                       <span className={styles.contentMeta}>
-                        {item.source === 'pipeline' ? (item.type || 'Post') : (item.entityType?.name || 'Post')}
+                        {item.source === 'pipeline' ? (item.type || tp.defaultType || 'Post') : (item.entityType?.name || tp.defaultType || 'Post')}
                         {item.campaignName && ` · ${item.campaignName}`}
                       </span>
                     </div>
@@ -836,6 +1107,18 @@ export function ContentPlannerView({ translations }) {
         />
       )}
 
+      <ConfirmDialog
+        isOpen={!!pendingReschedule}
+        onClose={() => setPendingReschedule(null)}
+        onConfirm={executeReschedule}
+        title={translations.pipeline?.rescheduleTitle || 'Reschedule Post'}
+        message={translations.pipeline?.rescheduleMessage || 'This post is currently published. Moving it to a new date will unpublish it and schedule it for the selected date. Continue?'}
+        confirmText={translations.pipeline?.rescheduleConfirm || 'Yes, Reschedule'}
+        cancelText={translations.pipeline?.rescheduleCancel || 'Cancel'}
+        variant="warning"
+        isLoading={rescheduling}
+      />
+
       <PostPopover
         post={popover?.post}
         rect={popover?.rect}
@@ -846,9 +1129,21 @@ export function ContentPlannerView({ translations }) {
           scheduled: translations.scheduled,
           draft: translations.draft,
           processing: translations.pipeline?.processing || 'Processing',
-          readyToPublish: translations.pipeline?.readyToPublish || 'Ready',
+          readyToPublish: translations.pipeline?.readyToPublish || 'Ready to Publish',
           failed: translations.pipeline?.failed || 'Failed',
           retryPublish: translations.pipeline?.retryPublish || 'Retry',
+          generate: translations.pipeline?.generate || 'Generate',
+          generating: translations.pipeline?.generating || 'Generating...',
+          previewContent: translations.pipeline?.viewContent || 'Preview',
+          titleSaveError: translations.pipeline?.titleSaveError || 'Failed to save title',
+          save: translations.pipeline?.save || 'Save',
+          cancel: translations.pipeline?.cancel || 'Cancel',
+          deletePost: translations.pipeline?.deletePost || 'Delete',
+          deletePostTitle: translations.pipeline?.deletePostTitle || 'Delete Post',
+          deletePostMessage: translations.pipeline?.deletePostMessage || 'Are you sure you want to remove this post from the campaign and from the calendar?',
+          deletePostConfirm: translations.pipeline?.deletePostConfirm || 'Yes, Delete',
+          deletePostCancel: translations.pipeline?.deletePostCancel || 'No, Keep',
+          deleted: translations.pipeline?.campaignDeleted || 'deleted',
         }}
         onDateChange={
           popover?.post && 
@@ -865,6 +1160,26 @@ export function ContentPlannerView({ translations }) {
             : undefined
         }
         onRetrySuccess={fetchPipeline}
+        onTitleChange={
+          popover?.post && (popover.post.source === 'plan' || popover.post.source === 'pipeline' || popover.post.source === 'entity')
+            ? (title) => handleTitleChange(popover.post, title)
+            : undefined
+        }
+        onStatusChange={
+          popover?.post && popover.post.source === 'pipeline'
+            ? (status) => handleStatusChange(popover.post, status)
+            : undefined
+        }
+        onGenerate={
+          popover?.post && popover.post.source === 'pipeline' && !popover.post.aiResult
+            ? () => handleGenerate(popover.post)
+            : undefined
+        }
+        onDelete={
+          popover?.post && (popover.post.source === 'pipeline' || popover.post.source === 'plan') && popover.post.dotStatus !== 'published'
+            ? () => handleDelete(popover.post)
+            : undefined
+        }
       />
     </div>
   );

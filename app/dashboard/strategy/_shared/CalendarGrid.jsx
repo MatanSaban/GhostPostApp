@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { ChevronLeft, ChevronRight, GripVertical } from 'lucide-react';
 import styles from './CalendarGrid.module.css';
@@ -65,10 +65,8 @@ export default function CalendarGrid({
   const [dragOverIndex, setDragOverIndex] = useState(null);
 
   const canDrag = (post) => {
-    // Only plan/pipeline posts can be dragged, and only if not already published
     if (!onDrop) return false;
-    if (post.source !== 'plan' && post.source !== 'pipeline') return false;
-    if (post.dotStatus === 'published') return false;
+    if (post.source !== 'plan' && post.source !== 'pipeline' && post.source !== 'entity') return false;
     return true;
   };
 
@@ -101,9 +99,24 @@ export default function CalendarGrid({
     setDragOverIndex(null);
   };
 
+  const sentinelRef = useRef(null);
+  const [isStuck, setIsStuck] = useState(false);
+
+  useEffect(() => {
+    const sentinel = sentinelRef.current;
+    if (!sentinel) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => setIsStuck(!entry.isIntersecting),
+      { threshold: 0 }
+    );
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, []);
+
   return (
     <div className={`${styles.calendarCard} ${cardClassName || ''}`}>
-      <div className={styles.calendarHeader}>
+      <div ref={sentinelRef} className={styles.stickySentinel} />
+      <div className={`${styles.calendarHeader} ${isStuck ? styles.stuck : ''}`}>
         <h3 className={styles.calendarTitle}>{monthLabel}</h3>
         <div className={styles.calendarNav}>
           <button className={styles.calendarNavBtn} onClick={onPrevMonth}>

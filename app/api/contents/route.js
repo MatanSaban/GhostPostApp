@@ -82,6 +82,7 @@ export async function GET(request) {
         processingAttempts: true,
         publishAttempts: true,
         campaignId: true,
+        campaignDeletedName: true,
         keywordId: true,
         createdAt: true,
         campaign: {

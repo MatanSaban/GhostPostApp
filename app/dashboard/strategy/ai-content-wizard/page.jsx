@@ -296,6 +296,9 @@ export default async function AIContentWizardPage() {
       failed: t('aiWizard.summary.failed'),
       draft: t('aiWizard.summary.draft'),
       viewPost: t('aiWizard.summary.viewPost'),
+      source: t('aiWizard.summary.source'),
+      createCampaignError: t('aiWizard.summary.createCampaignError'),
+      generatePlanError: t('aiWizard.summary.generatePlanError'),
     },
     // Navigation
     nav: {

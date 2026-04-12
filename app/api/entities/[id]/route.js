@@ -203,7 +203,9 @@ export async function PUT(request, { params }) {
           console.log(`[Entity ${id}] WP sync data - title: ${body.title}, content length: ${processedContent.length}`);
 
           if (body.status === 'SCHEDULED' && body.scheduledAt) {
-            wpData.date = new Date(body.scheduledAt).toISOString();
+            const d = new Date(body.scheduledAt);
+            wpData.date = d.toISOString();
+            wpData.date_gmt = d.toISOString();
           }
 
           const wpResult = await updatePost(site, postType, wpPostId, wpData);
@@ -252,6 +254,102 @@ export async function PUT(request, { params }) {
       { error: 'Failed to update entity' },
       { status: 500 }
     );
+  }
+}
+
+// PATCH - Partial update (e.g. reschedule a published post)
+export async function PATCH(request, { params }) {
+  try {
+    const user = await getAuthenticatedUser();
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const { id } = await params;
+    const body = await request.json();
+
+    const accountIds = user.accountMemberships.map(m => m.accountId);
+
+    const existingEntity = await prisma.siteEntity.findUnique({
+      where: { id },
+      include: {
+        site: {
+          select: {
+            id: true,
+            url: true,
+            siteKey: true,
+            siteSecret: true,
+            accountId: true,
+            connectionStatus: true,
+          },
+        },
+        entityType: {
+          select: { id: true, name: true, slug: true },
+        },
+      },
+    });
+
+    if (!existingEntity) {
+      return NextResponse.json({ error: 'Entity not found' }, { status: 404 });
+    }
+
+    if (!accountIds.includes(existingEntity.site.accountId)) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
+    }
+
+    // Build partial update data
+    const data = { updatedAt: new Date() };
+    if (body.title !== undefined) data.title = body.title;
+    if (body.status !== undefined) data.status = body.status;
+    if (body.scheduledAt !== undefined) data.scheduledAt = body.scheduledAt ? new Date(body.scheduledAt) : null;
+
+    // Update entity in DB
+    const updatedEntity = await prisma.siteEntity.update({
+      where: { id },
+      data,
+      include: {
+        entityType: { select: { id: true, name: true, slug: true } },
+      },
+    });
+
+    // Sync status/schedule to WordPress
+    const shouldSyncWp = existingEntity.site.connectionStatus === 'CONNECTED' && existingEntity.externalId;
+    if (shouldSyncWp && (body.status !== undefined || body.scheduledAt !== undefined)) {
+      const site = existingEntity.site;
+      const postType = existingEntity.entityType?.slug || 'post';
+      const wpPostId = existingEntity.externalId;
+
+      try {
+        const statusToWp = {
+          'PUBLISHED': 'publish',
+          'DRAFT': 'draft',
+          'PENDING': 'pending',
+          'SCHEDULED': 'future',
+          'PRIVATE': 'private',
+          'TRASH': 'trash',
+        };
+
+        const wpData = {};
+        if (body.status) wpData.status = statusToWp[body.status] || 'draft';
+        if (body.status === 'SCHEDULED' && body.scheduledAt) {
+          const d = new Date(body.scheduledAt);
+          wpData.date = d.toISOString();
+          wpData.date_gmt = d.toISOString();
+        }
+
+        if (Object.keys(wpData).length > 0) {
+          await updatePost(site, postType, wpPostId, wpData);
+        }
+      } catch (wpErr) {
+        console.error(`[Entity PATCH ${id}] WP sync failed:`, wpErr.message);
+        // Don't fail the request — entity is already updated locally
+      }
+    }
+
+    return NextResponse.json({ entity: updatedEntity });
+  } catch (error) {
+    console.error('Failed to patch entity:', error);
+    return NextResponse.json({ error: 'Failed to update entity' }, { status: 500 });
   }
 }
 

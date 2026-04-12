@@ -129,7 +129,7 @@ export default function SummaryStep({ state, dispatch, translations }) {
           }),
         });
         const createData = await createRes.json();
-        if (!createRes.ok) throw new Error(createData.error || 'Failed to create campaign');
+        if (!createRes.ok) throw new Error(createData.error || t.createCampaignError || 'Failed to create campaign');
         campaignId = createData.campaign.id;
         dispatch({ type: 'SET_FIELD', field: 'campaignId', value: campaignId });
       } else {
@@ -161,7 +161,7 @@ export default function SummaryStep({ state, dispatch, translations }) {
         method: 'POST',
       });
       const planData = await planRes.json();
-      if (!planRes.ok) throw new Error(planData.error || 'Failed to generate plan');
+      if (!planRes.ok) throw new Error(planData.error || t.generatePlanError || 'Failed to generate plan');
 
       dispatch({ type: 'SET_FIELD', field: 'generatedPlan', value: planData.plan });
 
@@ -694,7 +694,7 @@ export default function SummaryStep({ state, dispatch, translations }) {
                       keyword: t.postKeyword,
                       date: t.postDate,
                       time: t.publishTime || t.postTime,
-                      source: 'Source',
+                      source: t.source || 'Source',
                       viewOnSite: t.viewPost || 'View on site',
                       published: t.published || 'Published',
                       scheduled: t.scheduled || 'Scheduled',

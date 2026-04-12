@@ -144,7 +144,7 @@ export async function PUT(request, { params }) {
   }
 }
 
-// DELETE - Delete campaign and unlink contents
+// DELETE - Delete campaign, remove ungenerated posts, preserve generated ones
 export async function DELETE(request, { params }) {
   try {
     const user = await getAuthenticatedUser();
@@ -156,7 +156,7 @@ export async function DELETE(request, { params }) {
 
     const existing = await prisma.campaign.findUnique({
       where: { id },
-      select: { siteId: true },
+      select: { siteId: true, name: true },
     });
 
     if (!existing) {
@@ -168,15 +168,44 @@ export async function DELETE(request, { params }) {
       return NextResponse.json({ error: 'No access' }, { status: 404 });
     }
 
-    // Unlink contents from campaign before deleting
-    await prisma.content.updateMany({
+    // Fetch all contents linked to this campaign
+    const contents = await prisma.content.findMany({
       where: { campaignId: id },
-      data: { campaignId: null },
+      select: { id: true, status: true, aiGenerated: true },
     });
+
+    // Split: ungenerated (DRAFT/SCHEDULED and not AI-generated) → delete
+    //        generated/published → unlink but preserve campaign name
+    const toDelete = contents.filter(
+      c => !c.aiGenerated && (c.status === 'DRAFT' || c.status === 'SCHEDULED')
+    );
+    const toKeep = contents.filter(
+      c => c.aiGenerated || (c.status !== 'DRAFT' && c.status !== 'SCHEDULED')
+    );
+
+    const deletedContentIds = toDelete.map(c => c.id);
+
+    // Delete ungenerated contents (ContentBody first, then Content)
+    if (deletedContentIds.length > 0) {
+      await prisma.contentBody.deleteMany({
+        where: { contentId: { in: deletedContentIds } },
+      });
+      await prisma.content.deleteMany({
+        where: { id: { in: deletedContentIds } },
+      });
+    }
+
+    // Unlink generated contents and store the deleted campaign name
+    if (toKeep.length > 0) {
+      await prisma.content.updateMany({
+        where: { id: { in: toKeep.map(c => c.id) } },
+        data: { campaignId: null, campaignDeletedName: existing.name },
+      });
+    }
 
     await prisma.campaign.delete({ where: { id } });
 
-    return NextResponse.json({ success: true });
+    return NextResponse.json({ success: true, deletedContentIds });
   } catch (error) {
     console.error('[Campaign API] DELETE error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });

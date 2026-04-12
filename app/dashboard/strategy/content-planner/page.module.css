@@ -140,13 +140,19 @@
   display: flex;
   align-items: center;
   gap: 0;
+  overflow: hidden;
+
+  &:hover .campaignActionSecondary {
+    display: flex;
+  }
 }
 
 .sidebarCampaignItem {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  width: 100%;
+  flex: 1;
+  min-width: 0;
   padding: 0.5rem 0.625rem;
   border: none;
   border-radius: var(--radius-md);
@@ -216,6 +222,12 @@
   gap: 0.125rem;
   flex-shrink: 0;
   padding-inline-end: 0.25rem;
+}
+
+.campaignActionSecondary {
+  display: none;
+  align-items: center;
+  justify-content: center;
 }
 
 .campaignActionBtn {

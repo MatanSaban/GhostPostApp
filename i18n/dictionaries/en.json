@@ -1359,6 +1359,9 @@
       "progress": "Progress",
       "of": "of",
       "postsPublished": "published",
+      "activationFailed": "Activation failed",
+      "pauseFailed": "Pause failed",
+      "resumeFailed": "Resume failed",
       "createModal": {
         "title": "Create Campaign",
         "description": "Give your campaign a name and pick a color to get started",
@@ -1367,7 +1370,8 @@
         "colorLabel": "Color",
         "reservedColor": "This color is reserved for post statuses (draft / published / scheduled)",
         "cancel": "Cancel",
-        "create": "Create"
+        "create": "Create",
+        "createError": "Failed to create campaign"
       },
       "editModal": {
         "title": "Edit Campaign",
@@ -1379,7 +1383,9 @@
         "deleteConfirm": "Are you sure? This will remove the campaign permanently.",
         "confirmDelete": "Delete",
         "cancel": "Cancel",
-        "save": "Save"
+        "save": "Save",
+        "updateError": "Failed to update campaign",
+        "deleteError": "Failed to delete campaign"
       }
     },
     "pipeline": {
@@ -1393,7 +1399,25 @@
       "retrying": "Retrying...",
       "errorDetails": "Error Details",
       "attempts": "attempts",
-      "viewContent": "View Content"
+      "viewContent": "View Content",
+      "generate": "Generate",
+      "generating": "Generating...",
+      "titleSaveError": "Failed to save title",
+      "save": "Save",
+      "cancel": "Cancel",
+      "deletePost": "Delete",
+      "deletePostTitle": "Delete Post",
+      "deletePostMessage": "Are you sure you want to remove this post from the campaign and from the calendar?",
+      "deletePostConfirm": "Yes, Delete",
+      "deletePostCancel": "No, Keep",
+      "campaignDeleted": "deleted",
+      "postNumber": "Post",
+      "defaultType": "Post",
+      "wpTitleUpdateFailed": "Failed to update title on WordPress",
+      "rescheduleTitle": "Reschedule Published Post",
+      "rescheduleMessage": "This post is currently published on your website. Moving it to a new date will unpublish it and schedule it for republishing on the selected date. Continue?",
+      "rescheduleConfirm": "Yes, Reschedule",
+      "rescheduleCancel": "Cancel"
     },
     "preview": {
       "title": "Post Preview",
@@ -4520,7 +4544,10 @@
       "readyToPublish": "Ready",
       "failed": "Failed",
       "draft": "Draft",
-      "viewPost": "View Post"
+      "viewPost": "View Post",
+      "source": "Source",
+      "createCampaignError": "Failed to create campaign",
+      "generatePlanError": "Failed to generate plan"
     },
     "nav": {
       "previous": "Previous",

@@ -30,7 +30,7 @@ export default function EditCampaignModal({ campaign, translations, onClose, onU
 
       if (!res.ok) {
         const data = await res.json();
-        throw new Error(data.error || 'Failed to update campaign');
+        throw new Error(data.error || t.updateError || 'Failed to update campaign');
       }
 
       const data = await res.json();
@@ -49,11 +49,11 @@ export default function EditCampaignModal({ campaign, translations, onClose, onU
 
     try {
       const res = await fetch(`/api/campaigns/${campaign.id}`, { method: 'DELETE' });
+      const data = await res.json();
       if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.error || 'Failed to delete campaign');
+        throw new Error(data.error || t.deleteError || 'Failed to delete campaign');
       }
-      onDeleted?.(campaign.id);
+      onDeleted?.(campaign.id, data.deletedContentIds || []);
       onClose();
     } catch (err) {
       setError(err.message);
