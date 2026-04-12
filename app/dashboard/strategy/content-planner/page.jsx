@@ -97,6 +97,9 @@ export default async function ContentPlannerPage() {
       rescheduleMessage: t('contentPlanner.pipeline.rescheduleMessage'),
       rescheduleConfirm: t('contentPlanner.pipeline.rescheduleConfirm'),
       rescheduleCancel: t('contentPlanner.pipeline.rescheduleCancel'),
+      republishTitle: t('contentPlanner.pipeline.republishTitle'),
+      republishMessage: t('contentPlanner.pipeline.republishMessage'),
+      republishConfirm: t('contentPlanner.pipeline.republishConfirm'),
     },
     createModal: {
       title: t('contentPlanner.campaigns.createModal.title'),

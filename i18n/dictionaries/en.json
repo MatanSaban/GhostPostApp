@@ -1417,7 +1417,10 @@
       "rescheduleTitle": "Reschedule Published Post",
       "rescheduleMessage": "This post is currently published on your website. Moving it to a new date will unpublish it and schedule it for republishing on the selected date. Continue?",
       "rescheduleConfirm": "Yes, Reschedule",
-      "rescheduleCancel": "Cancel"
+      "rescheduleCancel": "Cancel",
+      "republishTitle": "Publish Post Now",
+      "republishMessage": "This will publish the post immediately on your website with the selected date. Continue?",
+      "republishConfirm": "Yes, Publish Now"
     },
     "preview": {
       "title": "Post Preview",

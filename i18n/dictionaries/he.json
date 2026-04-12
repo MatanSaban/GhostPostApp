@@ -1417,7 +1417,10 @@
       "rescheduleTitle": "תזמון מחדש לפוסט מפורסם",
       "rescheduleMessage": "פוסט זה מפורסם כרגע באתר שלך. העברתו לתאריך חדש תבטל את הפרסום ותתזמן אותו לפרסום מחדש בתאריך הנבחר. להמשיך?",
       "rescheduleConfirm": "כן, תזמן מחדש",
-      "rescheduleCancel": "ביטול"
+      "rescheduleCancel": "ביטול",
+      "republishTitle": "פרסם פוסט עכשיו",
+      "republishMessage": "פעולה זו תפרסם את הפוסט מידית באתר שלך עם התאריך שנבחר. להמשיך?",
+      "republishConfirm": "כן, פרסם עכשיו"
     },
     "preview": {
       "title": "תצוגה מקדימה",

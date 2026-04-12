@@ -212,15 +212,32 @@ export function ContentPlannerView({ translations }) {
         }).catch(() => {});
       }
     } else if (draggedPost.source === 'entity') {
-      // Non-published entity posts: simple date update
-      setPosts(prev => prev.map(p =>
-        p.id === draggedPost.id ? { ...p, scheduledAt: newScheduledAt } : p
-      ));
-      fetch(`/api/entities/${draggedPost.id}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ scheduledAt: newScheduledAt }),
-      }).catch(() => {});
+      // Entity posts: update date and sync status to WP
+      const now = new Date();
+      const targetDate = new Date(newScheduledAt);
+      const shouldPublish = targetDate <= now;
+
+      if (shouldPublish) {
+        // Time already passed → publish
+        setPosts(prev => prev.map(p =>
+          p.id === draggedPost.id ? { ...p, scheduledAt: null, publishedAt: newScheduledAt, status: 'PUBLISHED' } : p
+        ));
+        fetch(`/api/entities/${draggedPost.id}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ status: 'PUBLISHED', scheduledAt: newScheduledAt }),
+        }).catch(() => {});
+      } else {
+        // Future time → schedule
+        setPosts(prev => prev.map(p =>
+          p.id === draggedPost.id ? { ...p, scheduledAt: newScheduledAt, publishedAt: null, status: 'SCHEDULED' } : p
+        ));
+        fetch(`/api/entities/${draggedPost.id}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ status: 'SCHEDULED', scheduledAt: newScheduledAt }),
+        }).catch(() => {});
+      }
     }
   }, [currentDate, campaigns]);
 
@@ -228,43 +245,77 @@ export function ContentPlannerView({ translations }) {
   const executeReschedule = async () => {
     if (!pendingReschedule) return;
     const { post, newScheduledAt } = pendingReschedule;
+    const now = new Date();
+    const targetDate = new Date(newScheduledAt);
+    const shouldPublishNow = targetDate <= now;
     setRescheduling(true);
 
     try {
       if (post.source === 'pipeline') {
-        // Pipeline published post → transition to READY_TO_PUBLISH
-        setPipelineContents(prev => prev.map(c =>
-          c.id === post.id
-            ? { ...c, scheduledAt: newScheduledAt, status: 'READY_TO_PUBLISH', statusKey: 'READY_TO_PUBLISH', dotStatus: 'readyToPublish' }
-            : c
-        ));
-        const res = await fetch(`/api/contents/${post.id}/transition`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ targetStatus: 'READY_TO_PUBLISH', scheduledAt: newScheduledAt }),
-        });
-        if (!res.ok) {
-          // Revert optimistic update
-          fetchPipeline();
+        if (shouldPublishNow) {
+          // Target time already passed → republish now
+          setPipelineContents(prev => prev.map(c =>
+            c.id === post.id
+              ? { ...c, scheduledAt: newScheduledAt, status: 'PUBLISHED', statusKey: 'PUBLISHED', dotStatus: 'published' }
+              : c
+          ));
+          const res = await fetch(`/api/contents/${post.id}/transition`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ targetStatus: 'PUBLISHED', scheduledAt: newScheduledAt }),
+          });
+          if (!res.ok) fetchPipeline();
+        } else {
+          // Future time → schedule
+          setPipelineContents(prev => prev.map(c =>
+            c.id === post.id
+              ? { ...c, scheduledAt: newScheduledAt, status: 'READY_TO_PUBLISH', statusKey: 'READY_TO_PUBLISH', dotStatus: 'readyToPublish' }
+              : c
+          ));
+          const res = await fetch(`/api/contents/${post.id}/transition`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ targetStatus: 'READY_TO_PUBLISH', scheduledAt: newScheduledAt }),
+          });
+          if (!res.ok) fetchPipeline();
         }
       } else if (post.source === 'entity') {
-        // Entity published post → schedule on WP with new date
-        setPosts(prev => prev.map(p =>
-          p.id === post.id
-            ? { ...p, scheduledAt: newScheduledAt, publishedAt: null, status: 'SCHEDULED' }
-            : p
-        ));
-        const res = await fetch(`/api/entities/${post.id}`, {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ status: 'SCHEDULED', scheduledAt: newScheduledAt }),
-        });
-        if (!res.ok) {
-          // Revert — refetch posts
-          fetch(`/api/entities?siteId=${selectedSite.id}&type=posts`)
-            .then(r => r.json())
-            .then(data => setPosts(data.entities || []))
-            .catch(() => {});
+        if (shouldPublishNow) {
+          // Target time already passed → republish now
+          setPosts(prev => prev.map(p =>
+            p.id === post.id
+              ? { ...p, scheduledAt: null, publishedAt: newScheduledAt, status: 'PUBLISHED' }
+              : p
+          ));
+          const res = await fetch(`/api/entities/${post.id}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ status: 'PUBLISHED', scheduledAt: newScheduledAt }),
+          });
+          if (!res.ok) {
+            fetch(`/api/entities?siteId=${selectedSite.id}&type=posts`)
+              .then(r => r.json())
+              .then(data => setPosts(data.entities || []))
+              .catch(() => {});
+          }
+        } else {
+          // Future time → schedule on WP with new date
+          setPosts(prev => prev.map(p =>
+            p.id === post.id
+              ? { ...p, scheduledAt: newScheduledAt, publishedAt: null, status: 'SCHEDULED' }
+              : p
+          ));
+          const res = await fetch(`/api/entities/${post.id}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ status: 'SCHEDULED', scheduledAt: newScheduledAt }),
+          });
+          if (!res.ok) {
+            fetch(`/api/entities?siteId=${selectedSite.id}&type=posts`)
+              .then(r => r.json())
+              .then(data => setPosts(data.entities || []))
+              .catch(() => {});
+          }
         }
       }
     } catch {
@@ -1111,9 +1162,21 @@ export function ContentPlannerView({ translations }) {
         isOpen={!!pendingReschedule}
         onClose={() => setPendingReschedule(null)}
         onConfirm={executeReschedule}
-        title={translations.pipeline?.rescheduleTitle || 'Reschedule Post'}
-        message={translations.pipeline?.rescheduleMessage || 'This post is currently published. Moving it to a new date will unpublish it and schedule it for the selected date. Continue?'}
-        confirmText={translations.pipeline?.rescheduleConfirm || 'Yes, Reschedule'}
+        title={
+          pendingReschedule && new Date(pendingReschedule.newScheduledAt) <= new Date()
+            ? (translations.pipeline?.republishTitle || 'Publish Post Now')
+            : (translations.pipeline?.rescheduleTitle || 'Reschedule Post')
+        }
+        message={
+          pendingReschedule && new Date(pendingReschedule.newScheduledAt) <= new Date()
+            ? (translations.pipeline?.republishMessage || 'This will publish the post immediately on your website with the selected date. Continue?')
+            : (translations.pipeline?.rescheduleMessage || 'This post is currently published. Moving it to a new date will unpublish it and schedule it for the selected date. Continue?')
+        }
+        confirmText={
+          pendingReschedule && new Date(pendingReschedule.newScheduledAt) <= new Date()
+            ? (translations.pipeline?.republishConfirm || 'Yes, Publish Now')
+            : (translations.pipeline?.rescheduleConfirm || 'Yes, Reschedule')
+        }
         cancelText={translations.pipeline?.rescheduleCancel || 'Cancel'}
         variant="warning"
         isLoading={rescheduling}

@@ -336,6 +336,11 @@ export async function PATCH(request, { params }) {
           wpData.date = d.toISOString();
           wpData.date_gmt = d.toISOString();
         }
+        if (body.status === 'PUBLISHED' && body.scheduledAt) {
+          const d = new Date(body.scheduledAt);
+          wpData.date = d.toISOString();
+          wpData.date_gmt = d.toISOString();
+        }
 
         if (Object.keys(wpData).length > 0) {
           await updatePost(site, postType, wpPostId, wpData);
