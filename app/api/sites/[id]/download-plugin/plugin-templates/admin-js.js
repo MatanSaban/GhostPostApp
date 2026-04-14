@@ -305,6 +305,56 @@ export function getAdminJs() {
         });
     });
 
+    // ========== Dashboard Widget: Sync button ==========
+
+    $(document).on('click', '#gp-widget-sync', function() {
+        var btn = $(this);
+        if (btn.hasClass('gp-syncing')) return;
+        btn.addClass('gp-syncing');
+
+        $.post(gpAdmin.ajaxUrl, {
+            action: 'gp_sync_widget',
+            nonce: gpAdmin.nonce
+        }, function(response) {
+            if (response.success && response.data && response.data.widgetData) {
+                var d = response.data.widgetData;
+                var body = btn.closest('.gp-widget').find('.gp-widget-body');
+                var html = '';
+
+                if (d.auditScore !== null && d.auditScore !== undefined) {
+                    var cls = d.auditScore >= 70 ? 'gp-score-good' : (d.auditScore >= 40 ? 'gp-score-ok' : 'gp-score-bad');
+                    html += '<div class="gp-widget-stat"><span class="gp-widget-stat-label">' +
+                        (gpAdmin.strings.site_health_score || 'Site Health Score') +
+                        '</span><span class="gp-widget-stat-value ' + cls + '">' +
+                        d.auditScore + '<small>/100</small></span></div>';
+                }
+
+                if (d.pendingInsights && d.pendingInsights > 0) {
+                    html += '<div class="gp-widget-insights"><span class="gp-widget-insights-icon">✨</span><span>' +
+                        d.pendingInsights + ' ' + (gpAdmin.strings.insights_waiting || 'AI Insights waiting') +
+                        '</span></div>';
+                }
+
+                if (d.recentActivity) {
+                    html += '<p class="gp-widget-activity">' + $('<span>').text(d.recentActivity).html() + '</p>';
+                }
+
+                if (!html) {
+                    html = '<p class="gp-widget-empty">' + (gpAdmin.strings.no_data_yet || 'No data yet. Stats will appear after the next sync.') + '</p>';
+                }
+
+                body.html(html);
+                $('#gp-widget-last-sync').text(gpAdmin.strings.sync_success || 'Widget updated!').show();
+                setTimeout(function() { $('#gp-widget-last-sync').fadeOut(); }, 3000);
+            }
+        }).fail(function() {
+            $('#gp-widget-last-sync').text(gpAdmin.strings.sync_failed || 'Sync failed').show();
+            setTimeout(function() { $('#gp-widget-last-sync').fadeOut(); }, 3000);
+        }).always(function() {
+            btn.removeClass('gp-syncing');
+        });
+    });
+
 })(jQuery);
 `;
 }

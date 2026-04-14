@@ -80,6 +80,7 @@ class Ghost_Post {
         add_action('wp_ajax_gp_save_language', array($this, 'ajax_save_language'));
         add_action('wp_ajax_gp_save_theme', array($this, 'ajax_save_theme'));
         add_action('wp_ajax_gp_deactivate_plugin', array($this, 'ajax_deactivate_plugin'));
+        add_action('wp_ajax_gp_sync_widget', array($this, 'ajax_sync_widget'));
         
         // Schedule ping cron
         add_action('gp_connector_ping', array($this, 'send_ping'));
@@ -219,6 +220,12 @@ class Ghost_Post {
                 'save_settings'       => __('Save Settings', 'ghost-post-connector'),
                 'settings_saved'      => __('Settings saved successfully!', 'ghost-post-connector'),
                 'theme_saved'         => __('Theme saved!', 'ghost-post-connector'),
+                'syncing'             => __('Syncing...', 'ghost-post-connector'),
+                'sync_success'        => __('Widget updated!', 'ghost-post-connector'),
+                'sync_failed'         => __('Sync failed', 'ghost-post-connector'),
+                'site_health_score'   => __('Site Health Score', 'ghost-post-connector'),
+                'insights_waiting'    => __('AI Insights waiting', 'ghost-post-connector'),
+                'no_data_yet'         => __('No data yet. Stats will appear after the next sync.', 'ghost-post-connector'),
             ),
         ));
     }
@@ -355,6 +362,9 @@ class Ghost_Post {
                 <?php else: ?>
                     <span class="gp-badge gp-badge-neutral"><?php esc_html_e('Disconnected', 'ghost-post-connector'); ?></span>
                 <?php endif; ?>
+                <button type="button" class="gp-widget-sync" id="gp-widget-sync" title="<?php esc_attr_e('Sync', 'ghost-post-connector'); ?>">
+                    <svg class="gp-widget-sync-icon" width="14" height="14" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+                </button>
             </div>
             
             <div class="gp-widget-body">
@@ -394,10 +404,31 @@ class Ghost_Post {
                 <a href="<?php echo esc_url($dashboard_url); ?>" class="gp-btn gp-btn-primary gp-btn-sm" target="_blank" rel="noopener">
                     <?php esc_html_e('Open GhostPost Dashboard', 'ghost-post-connector'); ?>
                 </a>
+                <p class="gp-widget-last-sync" id="gp-widget-last-sync"></p>
             </div>
             
         </div>
         <?php
+    }
+    
+    /**
+     * AJAX: Sync widget data (manual trigger from dashboard widget)
+     */
+    public function ajax_sync_widget() {
+        check_ajax_referer('gp_connector_nonce', 'nonce');
+        
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error('Permission denied');
+        }
+        
+        // Send ping which returns fresh widget data
+        $this->send_ping();
+        
+        // Return the updated widget data
+        $data = get_option('gp_dashboard_widget_data', array());
+        wp_send_json_success(array(
+            'widgetData' => $data,
+        ));
     }
     
     /**

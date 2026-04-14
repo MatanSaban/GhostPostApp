@@ -10,10 +10,15 @@
  */
 
 // Current plugin version - increment this when making updates
-export const PLUGIN_VERSION = "2.7.2";
+export const PLUGIN_VERSION = "2.8.0";
 
 // Changelog for the current version
 export const PLUGIN_CHANGELOG = `
+= 2.8.0 =
+* NEW: Platform pushes widget data automatically when audits complete, AI insights are created, or agent runs finish
+* NEW: Sync button on dashboard widget — click to fetch latest data instantly
+* NEW: Plugin REST endpoint /widget-data for platform-to-plugin data push
+
 = 2.7.2 =
 * FIX: CSS and JS now load correctly on Redirections and Settings pages (hook name mismatch after sidebar rename)
 * FIX: Dashboard widget persists in first column + top position even if user rearranges widgets

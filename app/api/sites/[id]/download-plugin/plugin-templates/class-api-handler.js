@@ -506,6 +506,13 @@ class GP_API_Handler {
             'callback' => array($this, 'convert_to_webp'),
             'permission_callback' => array($this, 'validate_request'),
         ));
+        
+        // Widget data push (platform → plugin)
+        register_rest_route($namespace, '/widget-data', array(
+            'methods' => 'POST',
+            'callback' => array($this, 'update_widget_data'),
+            'permission_callback' => array($this, 'validate_request'),
+        ));
     }
     
     /**
@@ -1506,6 +1513,38 @@ class GP_API_Handler {
             },
             $content
         );
+    }
+    
+    // ==========================================
+    // WIDGET DATA (platform push)
+    // ==========================================
+    
+    /**
+     * Receive widget data pushed from the platform
+     * Stores in wp_option for the dashboard widget to display
+     */
+    public function update_widget_data(WP_REST_Request $request) {
+        $body = $request->get_json_params();
+        
+        $widget_data = array();
+        if (isset($body['auditScore'])) {
+            $widget_data['auditScore'] = intval($body['auditScore']);
+        }
+        if (isset($body['pendingInsights'])) {
+            $widget_data['pendingInsights'] = intval($body['pendingInsights']);
+        }
+        if (isset($body['recentActivity'])) {
+            $widget_data['recentActivity'] = sanitize_text_field($body['recentActivity']);
+        }
+        
+        if (!empty($widget_data)) {
+            // Merge with existing data so partial pushes don't wipe other fields
+            $existing = get_option('gp_dashboard_widget_data', array());
+            $merged = array_merge($existing, $widget_data);
+            update_option('gp_dashboard_widget_data', $merged);
+        }
+        
+        return new WP_REST_Response(array('success' => true), 200);
     }
 }
 `;

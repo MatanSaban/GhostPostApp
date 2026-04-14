@@ -1441,6 +1441,42 @@ export function getAdminCss() {
     justify-content: center;
 }
 
+.gp-wrap .gp-widget-last-sync {
+    font-size: 11px;
+    color: var(--gp-text-muted);
+    margin: 6px 0 0;
+    display: none;
+}
+
+/* Widget Sync Button */
+.gp-wrap .gp-widget-sync {
+    margin-inline-start: auto;
+    background: none;
+    border: none;
+    padding: 4px;
+    cursor: pointer;
+    color: var(--gp-text-muted);
+    border-radius: 4px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.15s, background 0.15s;
+}
+
+.gp-wrap .gp-widget-sync:hover {
+    color: var(--gp-primary);
+    background: var(--gp-primary-light);
+}
+
+.gp-wrap .gp-widget-sync.gp-syncing .gp-widget-sync-icon {
+    animation: gp-spin 0.8s linear infinite;
+}
+
+@keyframes gp-spin {
+    from { transform: rotate(0deg); }
+    to   { transform: rotate(360deg); }
+}
+
 /* ==========================================
    RTL Overrides
    ========================================== */

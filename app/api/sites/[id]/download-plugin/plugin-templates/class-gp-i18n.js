@@ -143,6 +143,11 @@ class GP_I18n {
             '%d AI Insights are waiting for your approval!' => '%d תובנות AI ממתינות לאישורך!',
             'No data yet. Stats will appear after the next sync.' => 'אין נתונים עדיין. הסטטיסטיקות יופיעו לאחר הסנכרון הבא.',
             'Open GhostPost Dashboard' => 'פתח את לוח הבקרה של GhostPost',
+            'Sync' => 'סנכרון',
+            'Syncing...' => 'מסנכרן...',
+            'Widget updated!' => 'הווידג׳ט עודכן!',
+            'Sync failed' => 'הסנכרון נכשל',
+            'AI Insights waiting' => 'תובנות AI ממתינות',
             'Ghost Post' => 'Ghost Post',
             'Rank Math' => 'Rank Math',
 
