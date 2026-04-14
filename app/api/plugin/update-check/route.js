@@ -61,6 +61,10 @@ export async function GET(request) {
         installation: 'Upload the plugin files to your WordPress installation and activate it.',
         changelog: PLUGIN_CHANGELOG,
       },
+      icons: {
+        '1x': `${apiUrl}/logo.png`,
+        '2x': `${apiUrl}/logo.png`,
+      },
     });
   } catch (error) {
     console.error('Plugin update check error:', error);

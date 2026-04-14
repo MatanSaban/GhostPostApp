@@ -101,6 +101,10 @@ class GP_Updater {
                 'tested'      => $update_info['tested_wp'],
                 'requires'    => $update_info['requires_wp'],
                 'requires_php' => $update_info['requires_php'],
+                'icons'       => array(
+                    '1x'  => GP_API_URL . '/logo.png',
+                    '2x'  => GP_API_URL . '/logo.png',
+                ),
             );
         } else {
             // Make sure we're not falsely reporting an update
@@ -114,6 +118,10 @@ class GP_Updater {
                 'plugin'      => $this->plugin_basename,
                 'new_version' => $this->current_version,
                 'url'         => 'https://ghostpost.co.il',
+                'icons'       => array(
+                    '1x'  => GP_API_URL . '/logo.png',
+                    '2x'  => GP_API_URL . '/logo.png',
+                ),
             );
         }
 
@@ -175,6 +183,12 @@ class GP_Updater {
         $plugin_info->banners = array(
             'low' => '',
             'high' => '',
+        );
+
+        // Icons for plugin listing
+        $plugin_info->icons = array(
+            '1x'  => GP_API_URL . '/logo.png',
+            '2x'  => GP_API_URL . '/logo.png',
         );
 
         return $plugin_info;

@@ -1342,6 +1342,7 @@ export function getAdminCss() {
 .gp-wrap.gp-widget {
     margin: -11px -12px;
     padding: 0;
+    background: var(--gp-card-bg);
 }
 
 .gp-wrap .gp-widget-header {
@@ -1359,7 +1360,7 @@ export function getAdminCss() {
 .gp-wrap .gp-widget-title {
     font-size: 14px;
     font-weight: 700;
-    color: #111827;
+    color: var(--gp-text);
 }
 
 .gp-wrap .gp-widget-body {
@@ -1372,7 +1373,7 @@ export function getAdminCss() {
     justify-content: space-between;
     padding: 10px 14px;
     background: var(--gp-bg);
-    border-radius: var(--gp-radius);
+    border-radius: var(--gp-radius-md);
     margin-bottom: 12px;
 }
 
@@ -1405,7 +1406,7 @@ export function getAdminCss() {
     padding: 10px 14px;
     background: linear-gradient(135deg, rgba(155,77,224,0.08), rgba(155,77,224,0.16));
     border: 1px solid rgba(155,77,224,0.25);
-    border-radius: var(--gp-radius);
+    border-radius: var(--gp-radius-md);
     font-size: 13px;
     font-weight: 600;
     color: var(--gp-primary);
@@ -1475,6 +1476,28 @@ export function getAdminCss() {
 @keyframes gp-spin {
     from { transform: rotate(0deg); }
     to   { transform: rotate(360deg); }
+}
+
+/* Dark theme: override WP postbox container for widget.
+   Uses :has() to style parent postbox when dark theme is active
+   (dark = .gp-wrap without .gp-theme-light) */
+#gp_dashboard_widget:has(.gp-wrap.gp-widget:not(.gp-theme-light)),
+#gp_dashboard_widget:has(.gp-wrap.gp-widget:not(.gp-theme-light)) .postbox-header,
+#gp_dashboard_widget:has(.gp-wrap.gp-widget:not(.gp-theme-light)) .inside {
+    background: #1a1625;
+    color: #e5e7eb;
+}
+
+#gp_dashboard_widget:has(.gp-wrap.gp-widget:not(.gp-theme-light)) {
+    border-color: rgba(155, 77, 224, 0.18);
+}
+
+#gp_dashboard_widget:has(.gp-wrap.gp-widget:not(.gp-theme-light)) .postbox-header {
+    border-bottom-color: rgba(155, 77, 224, 0.18);
+}
+
+#gp_dashboard_widget:has(.gp-wrap.gp-widget:not(.gp-theme-light)) .hndle {
+    color: #e5e7eb;
 }
 
 /* ==========================================

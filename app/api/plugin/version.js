@@ -10,10 +10,15 @@
  */
 
 // Current plugin version - increment this when making updates
-export const PLUGIN_VERSION = "2.8.0";
+export const PLUGIN_VERSION = "2.8.1";
 
 // Changelog for the current version
 export const PLUGIN_CHANGELOG = `
+= 2.8.1 =
+* NEW: GhostPost logo now appears on WordPress Updates page and plugin details popup
+* FIX: Dashboard widget fully respects theme — dark mode colors postbox background, header, and title
+* FIX: Widget border-radius now resolves correctly (was using undefined CSS variable)
+
 = 2.8.0 =
 * NEW: Platform pushes widget data automatically when audits complete, AI insights are created, or agent runs finish
 * NEW: Sync button on dashboard widget — click to fetch latest data instantly
