@@ -10,10 +10,13 @@
  */
 
 // Current plugin version - increment this when making updates
-export const PLUGIN_VERSION = "2.8.1";
+export const PLUGIN_VERSION = "2.8.2";
 
 // Changelog for the current version
 export const PLUGIN_CHANGELOG = `
+= 2.8.2 =
+* FIX: Plural strings (e.g. AI Insights widget text) now translate to Hebrew correctly — added ngettext filter
+
 = 2.8.1 =
 * NEW: GhostPost logo now appears on WordPress Updates page and plugin details popup
 * FIX: Dashboard widget fully respects theme — dark mode colors postbox background, header, and title

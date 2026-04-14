@@ -44,6 +44,7 @@ class GP_I18n {
         if (self::$lang === 'he') {
             self::load_hebrew();
             add_filter('gettext', array(__CLASS__, 'filter_gettext'), 10, 3);
+            add_filter('ngettext', array(__CLASS__, 'filter_ngettext'), 10, 5);
         }
     }
 
@@ -55,6 +56,17 @@ class GP_I18n {
             return $translated;
         }
         return isset(self::$translations[$text]) ? self::$translations[$text] : $translated;
+    }
+
+    /**
+     * WordPress ngettext filter - translate plural strings for our text domain only.
+     */
+    public static function filter_ngettext($translation, $single, $plural, $number, $domain) {
+        if ($domain !== 'ghost-post-connector') {
+            return $translation;
+        }
+        $key = ($number === 1) ? $single : $plural;
+        return isset(self::$translations[$key]) ? self::$translations[$key] : $translation;
     }
 
     /**
