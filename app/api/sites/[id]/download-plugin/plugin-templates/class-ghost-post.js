@@ -99,7 +99,9 @@ class Ghost_Post {
      * Add admin menu - top-level menu with child pages
      */
     public function add_admin_menu() {
-        $icon = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMzUgMjg4Ij48cGF0aCBmaWxsPSIjOUI0REUwIiBkPSJNMzEzLjczNiAxMjcuNzQ3QzMxMy42ODEgMTIzLjIyOSAzMTEuOTI0IDExMi4zNjIgMzExLjA2NCAxMDcuNzE2QzMxMC4yMDQgMTAzLjA1MSAzMTQuNzk3IDkxLjgwMDcgMzE2LjgxOSA4My4yNjczQzMxOS41MjcgNzEuODMzOSAzMjAuMzQxIDYxLjU5OTEgMzE3LjE3NiA1Ni4wMzc3QzMxNC40NzcgNTEuMjkwOSAyOTEuOTYxIDUyLjUyNTggMjgyLjc3NSA1My42NTk2QzI3OS45ODUgNTQuMDA3NSAyNjguMjgzIDM1LjExMDUgMjQ0LjY2OSAyMS4zODE2QzIyMy42ODIgOS4xODkyIDE5MS44MjUgMiAxNzAuNjkxIDJDMTA5Ljc1OCAyIDU3LjYyNyAzOS4wNTI3IDM2LjM4MjggOTEuNDcxNkMzNi4yMTgxIDkxLjg4MzQgMzAuODkzNCA5MC40NDcxIDIyLjY3NzUgOTEuNzgyN0MxNC4yNDIyIDkzLjE1NDcgMi44OTczNyA5Ny4zNTMxIDIuMTEwNTQgMTAxLjM1QzEuMjc3OTggMTA1LjU1NyA1LjIzMDM1IDEyMC4wNDUgMTEuMjA0NyAxMzAuNTU1QzE3LjY4MjIgMTQxLjk0MyAyNS4zNDkxIDE0OS43NDUgMjUuMzk0OCAxNTAuODQyQzI3LjgzNzYgMjA0LjkxNiA2MS45ODE2IDI1MC42NDkgMTA5LjIgMjcyLjQ5MUMxMjIuNzk2IDI3OC43ODQgMTQ0LjE5NSAyODYuNzMyIDE3MC42OTEgMjg1Ljk0NkMyNDUuODA0IDI4My43MjMgMzAyLjk5NSAyMTMuNDY5IDMyNS4xNDQgMTQ1LjkwM0MzMzAuMDg1IDEzMC44MjkgMzMzLjE1IDExNi45MjYgMzMyLjk5NCAxMDguNzc3QzMzMi45ODUgMTA4LjExOCAzMzIuMjk5IDEwNy42ODkgMzMxLjY5NSAxMDcuOTcyQzMyNy42OTcgMTA5Ljg0NyAzMTYuMDg3IDExNi4wNjcgMzEzLjUyNSAxMTguNjgzWiIvPjwvc3ZnPg==';
+        // Use the actual SVG file URL so WP renders it as <img> (preserves purple fill).
+        // data:image/svg+xml URIs get converted to mask-image, losing the fill color.
+        $icon = GP_CONNECTOR_PLUGIN_URL . 'assets/icon.svg';
         
         // Top-level menu
         add_menu_page(
@@ -240,22 +242,13 @@ class Ghost_Post {
      */
     public function admin_head_styles() {
         echo '<style>
-            /* WP uses data-URI SVGs as mask-image on ::after, colored via currentColor.
-               Override the mask background-color to force purple. */
-            #adminmenu .toplevel_page_ghost-post-connector .wp-menu-image.svg::after {
-                background-color: #9B4DE0 !important;
-            }
-            #adminmenu .toplevel_page_ghost-post-connector:hover .wp-menu-image.svg::after,
-            #adminmenu .toplevel_page_ghost-post-connector.current .wp-menu-image.svg::after,
-            #adminmenu .toplevel_page_ghost-post-connector.wp-has-current-submenu .wp-menu-image.svg::after {
-                background-color: #B06AE8 !important;
-            }
-            /* Fallback for older WP that uses img instead of mask */
+            /* Using file URL icon, WP renders as <img> — remove grayscale filter */
             #adminmenu .toplevel_page_ghost-post-connector .wp-menu-image img {
                 filter: none !important;
                 opacity: 1 !important;
-                max-width: 20px !important;
-                padding: 0 !important;
+                width: 20px !important;
+                height: 20px !important;
+                padding: 7px 0 !important;
             }
             #adminmenu .toplevel_page_ghost-post-connector.wp-has-current-submenu,
             #adminmenu .toplevel_page_ghost-post-connector.current {

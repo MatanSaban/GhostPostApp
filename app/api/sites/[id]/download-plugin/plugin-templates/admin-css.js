@@ -13,21 +13,13 @@ export function getAdminCss() {
    (applied globally, not scoped to .gp-wrap)
    ========================================== */
 
-/* WP uses data-URI SVGs as mask-image on ::after — override background-color */
-#adminmenu .toplevel_page_ghost-post-connector .wp-menu-image.svg::after {
-    background-color: #9B4DE0 !important;
-}
-
-#adminmenu .toplevel_page_ghost-post-connector:hover .wp-menu-image.svg::after,
-#adminmenu .toplevel_page_ghost-post-connector.current .wp-menu-image.svg::after,
-#adminmenu .toplevel_page_ghost-post-connector.wp-has-current-submenu .wp-menu-image.svg::after {
-    background-color: #B06AE8 !important;
-}
-
-/* Fallback for older WP that uses img instead of mask */
+/* Using file URL icon → WP renders as <img> — remove grayscale filter */
 #adminmenu .toplevel_page_ghost-post-connector .wp-menu-image img {
     filter: none !important;
     opacity: 1 !important;
+    width: 20px !important;
+    height: 20px !important;
+    padding: 7px 0 !important;
 }
 
 #adminmenu .toplevel_page_ghost-post-connector:hover .wp-menu-image img,
