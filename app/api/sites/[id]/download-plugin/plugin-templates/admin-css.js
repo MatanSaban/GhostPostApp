@@ -1336,6 +1336,112 @@ export function getAdminCss() {
 }
 
 /* ==========================================
+   Dashboard Widget
+   ========================================== */
+
+.gp-wrap.gp-widget {
+    margin: -11px -12px;
+    padding: 0;
+}
+
+.gp-wrap .gp-widget-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--gp-border);
+}
+
+.gp-wrap .gp-widget-icon {
+    flex-shrink: 0;
+}
+
+.gp-wrap .gp-widget-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: #111827;
+}
+
+.gp-wrap .gp-widget-body {
+    padding: 16px;
+}
+
+.gp-wrap .gp-widget-stat {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 14px;
+    background: var(--gp-bg);
+    border-radius: var(--gp-radius);
+    margin-bottom: 12px;
+}
+
+.gp-wrap .gp-widget-stat-label {
+    font-size: 13px;
+    color: var(--gp-text-muted);
+    font-weight: 500;
+}
+
+.gp-wrap .gp-widget-stat-value {
+    font-size: 22px;
+    font-weight: 700;
+    line-height: 1;
+}
+
+.gp-wrap .gp-widget-stat-value small {
+    font-size: 13px;
+    font-weight: 400;
+    color: var(--gp-text-muted);
+}
+
+.gp-wrap .gp-score-good { color: #10b981; }
+.gp-wrap .gp-score-ok   { color: #f59e0b; }
+.gp-wrap .gp-score-bad  { color: #ef4444; }
+
+.gp-wrap .gp-widget-insights {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 14px;
+    background: linear-gradient(135deg, rgba(155,77,224,0.08), rgba(155,77,224,0.16));
+    border: 1px solid rgba(155,77,224,0.25);
+    border-radius: var(--gp-radius);
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--gp-primary);
+    margin-bottom: 12px;
+}
+
+.gp-wrap .gp-widget-insights-icon {
+    font-size: 18px;
+}
+
+.gp-wrap .gp-widget-activity {
+    font-size: 12px;
+    color: var(--gp-text-muted);
+    margin: 0 0 8px;
+}
+
+.gp-wrap .gp-widget-empty {
+    font-size: 13px;
+    color: var(--gp-text-muted);
+    text-align: center;
+    padding: 12px 0;
+    margin: 0;
+}
+
+.gp-wrap .gp-widget-footer {
+    padding: 12px 16px;
+    border-top: 1px solid var(--gp-border);
+    text-align: center;
+}
+
+.gp-wrap .gp-widget-footer .gp-btn {
+    width: 100%;
+    justify-content: center;
+}
+
+/* ==========================================
    RTL Overrides
    ========================================== */
 

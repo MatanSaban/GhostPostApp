@@ -78,9 +78,44 @@ export async function POST(request) {
       data: updateData,
     });
 
+    // Fetch widget data for the WP dashboard widget (zero-latency — piggybacks on ping)
+    const [latestAudit, pendingInsightsCount, recentRun] = await Promise.all([
+      prisma.siteAudit.findFirst({
+        where: { siteId: site.id },
+        orderBy: { createdAt: 'desc' },
+        select: { score: true },
+      }),
+      prisma.agentInsight.count({
+        where: {
+          siteId: site.id,
+          status: 'PENDING',
+        },
+      }),
+      prisma.agentRun.findFirst({
+        where: { siteId: site.id, status: 'COMPLETED' },
+        orderBy: { completedAt: 'desc' },
+        select: { summary: true, insightsCount: true },
+      }),
+    ]);
+
+    let recentActivity = '';
+    if (recentRun?.summary) {
+      const summary = typeof recentRun.summary === 'string'
+        ? JSON.parse(recentRun.summary)
+        : recentRun.summary;
+      if (summary.discoveries) {
+        recentActivity = `${summary.discoveries} discoveries found`;
+      }
+    }
+
     return NextResponse.json({
       success: true,
       timestamp: Date.now(),
+      widgetData: {
+        auditScore: latestAudit?.score ?? null,
+        pendingInsights: pendingInsightsCount,
+        recentActivity,
+      },
     });
   } catch (error) {
     console.error('WP ping error:', error);

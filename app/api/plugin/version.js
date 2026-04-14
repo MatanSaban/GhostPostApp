@@ -10,10 +10,14 @@
  */
 
 // Current plugin version - increment this when making updates
-export const PLUGIN_VERSION = "2.6.3";
+export const PLUGIN_VERSION = "2.7.0";
 
 // Changelog for the current version
 export const PLUGIN_CHANGELOG = `
+= 2.7.0 =
+* NEW: WordPress Dashboard Widget — shows site health score, pending AI insights, and quick link to GhostPost dashboard
+* Zero-latency: widget data piggybacks on existing hourly ping (no extra API calls)
+
 = 2.6.3 =
 * CHANGE: Sidebar menu name changed to "GhostPost"
 

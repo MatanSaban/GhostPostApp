@@ -136,6 +136,13 @@ class GP_I18n {
             'Not installed' => 'לא מותקן',
             'Manage' => 'נהל',
             'Powered by %s' => 'מופעל על ידי %s',
+
+            // ---- Dashboard Widget ----
+            'Site Health Score' => 'ציון בריאות האתר',
+            '%d AI Insight is waiting for your approval!' => 'תובנת AI אחת ממתינה לאישורך!',
+            '%d AI Insights are waiting for your approval!' => '%d תובנות AI ממתינות לאישורך!',
+            'No data yet. Stats will appear after the next sync.' => 'אין נתונים עדיין. הסטטיסטיקות יופיעו לאחר הסנכרון הבא.',
+            'Open GhostPost Dashboard' => 'פתח את לוח הבקרה של GhostPost',
             'Ghost Post' => 'Ghost Post',
             'Rank Math' => 'Rank Math',
 

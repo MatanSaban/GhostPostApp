@@ -60,6 +60,9 @@ class Ghost_Post {
         // Global admin head styles (sidebar icon)
         add_action('admin_head', array($this, 'admin_head_styles'));
         
+        // Dashboard widget
+        add_action('wp_dashboard_setup', array($this, 'register_dashboard_widget'));
+        
         // Frontend redirect execution
         add_action('template_redirect', array($this->redirections_manager, 'maybe_redirect'));
         
@@ -153,6 +156,7 @@ class Ghost_Post {
             'toplevel_page_ghost-post-connector',
             'ghost-post-connector_page_ghost-post-redirections',
             'ghost-post-connector_page_ghost-post-settings',
+            'index.php', // WP Dashboard — for the dashboard widget
         );
         
         if (!in_array($hook, $plugin_pages, true)) {
@@ -273,6 +277,88 @@ class Ghost_Post {
                 font-weight: 700 !important;
             }
         </style>';
+    }
+    
+    /**
+     * Register WordPress Dashboard Widget
+     */
+    public function register_dashboard_widget() {
+        wp_add_dashboard_widget(
+            'gp_dashboard_widget',
+            'GhostPost AI',
+            array($this, 'render_dashboard_widget')
+        );
+    }
+    
+    /**
+     * Render WordPress Dashboard Widget
+     */
+    public function render_dashboard_widget() {
+        $data = get_option('gp_dashboard_widget_data', array());
+        $status = get_option('gp_connector_connection_status', 'unknown');
+        $gp_theme = get_option('gp_connector_theme', 'light');
+        $theme_class = ($gp_theme === 'light') ? 'gp-theme-light' : '';
+        $dir = GP_I18n::dir_attr();
+        
+        $audit_score = isset($data['auditScore']) ? intval($data['auditScore']) : null;
+        $pending = isset($data['pendingInsights']) ? intval($data['pendingInsights']) : 0;
+        $activity = isset($data['recentActivity']) ? sanitize_text_field($data['recentActivity']) : '';
+        
+        $dashboard_url = GP_API_URL . '/dashboard?ref=wp_widget';
+        ?>
+        <div class="gp-wrap gp-widget <?php echo esc_attr($theme_class); ?>" dir="<?php echo esc_attr($dir); ?>">
+            
+            <div class="gp-widget-header">
+                <svg class="gp-widget-icon" width="22" height="22" viewBox="0 0 335 288" xmlns="http://www.w3.org/2000/svg"><path fill="#9B4DE0" d="M313.736 127.747C313.681 123.229 311.924 112.362 311.064 107.716C310.204 103.051 314.797 91.8007 316.819 83.2673C319.527 71.8339 320.341 61.5991 317.176 56.0377C314.477 51.2909 291.961 52.5258 282.775 53.6596C279.985 54.0075 268.283 35.1105 244.669 21.3816C223.682 9.1892 191.825 2 170.691 2C109.758 2 57.627 39.0527 36.3828 91.4716C36.2181 91.8834 30.8934 90.4471 22.6775 91.7827C14.2422 93.1547 2.89737 97.3531 2.11054 101.35C1.27798 105.557 5.23035 120.045 11.2047 130.555C17.6822 141.943 25.3491 149.745 25.3948 150.842C27.8376 204.916 61.9816 250.649 109.2 272.491C122.796 278.784 144.195 286.732 170.691 285.946C245.804 283.723 302.995 213.469 325.144 145.903C330.085 130.829 333.15 116.926 332.994 108.777C332.985 108.118 332.299 107.689 331.695 107.972C327.697 109.847 316.087 116.067 313.525 118.683Z"/></svg>
+                <span class="gp-widget-title">GhostPost</span>
+                <?php if ($status === 'connected'): ?>
+                    <span class="gp-badge gp-badge-success"><?php esc_html_e('Connected', 'ghost-post-connector'); ?></span>
+                <?php else: ?>
+                    <span class="gp-badge gp-badge-neutral"><?php esc_html_e('Disconnected', 'ghost-post-connector'); ?></span>
+                <?php endif; ?>
+            </div>
+            
+            <div class="gp-widget-body">
+                <?php if ($audit_score !== null): ?>
+                <div class="gp-widget-stat">
+                    <span class="gp-widget-stat-label"><?php esc_html_e('Site Health Score', 'ghost-post-connector'); ?></span>
+                    <span class="gp-widget-stat-value <?php echo $audit_score >= 70 ? 'gp-score-good' : ($audit_score >= 40 ? 'gp-score-ok' : 'gp-score-bad'); ?>">
+                        <?php echo esc_html($audit_score); ?><small>/100</small>
+                    </span>
+                </div>
+                <?php endif; ?>
+                
+                <?php if ($pending > 0): ?>
+                <div class="gp-widget-insights">
+                    <span class="gp-widget-insights-icon">✨</span>
+                    <span>
+                        <?php
+                        printf(
+                            esc_html(_n('%d AI Insight is waiting for your approval!', '%d AI Insights are waiting for your approval!', $pending, 'ghost-post-connector')),
+                            $pending
+                        );
+                        ?>
+                    </span>
+                </div>
+                <?php endif; ?>
+                
+                <?php if ($activity): ?>
+                <p class="gp-widget-activity"><?php echo esc_html($activity); ?></p>
+                <?php endif; ?>
+                
+                <?php if ($audit_score === null && $pending === 0 && !$activity): ?>
+                <p class="gp-widget-empty"><?php esc_html_e('No data yet. Stats will appear after the next sync.', 'ghost-post-connector'); ?></p>
+                <?php endif; ?>
+            </div>
+            
+            <div class="gp-widget-footer">
+                <a href="<?php echo esc_url($dashboard_url); ?>" class="gp-btn gp-btn-primary gp-btn-sm" target="_blank" rel="noopener">
+                    <?php esc_html_e('Open GhostPost Dashboard', 'ghost-post-connector'); ?>
+                </a>
+            </div>
+            
+        </div>
+        <?php
     }
     
     /**
@@ -561,6 +647,12 @@ class Ghost_Post {
         if (!is_wp_error($response) && wp_remote_retrieve_response_code($response) === 200) {
             update_option('gp_connector_last_ping', time());
             update_option('gp_connector_connection_status', 'connected');
+            
+            // Save widget data from ping response
+            $resp_body = json_decode(wp_remote_retrieve_body($response), true);
+            if (!empty($resp_body['widgetData'])) {
+                update_option('gp_dashboard_widget_data', $resp_body['widgetData']);
+            }
         }
     }
     
