@@ -288,6 +288,11 @@ class Ghost_Post {
             #adminmenu .toplevel_page_ghost-post-connector > a .wp-menu-name {
                 font-weight: 700 !important;
             }
+            /* Plugin icon on updates/plugins pages — prevent stretching */
+            tr[data-slug="ghost-post-connector"] .plugin-icon img,
+            .plugin-card-ghost-post-connector .plugin-icon img {
+                object-fit: contain;
+            }
         </style>';
     }
     
