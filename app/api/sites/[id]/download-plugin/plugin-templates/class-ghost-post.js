@@ -63,6 +63,9 @@ class Ghost_Post {
         // Dashboard widget
         add_action('wp_dashboard_setup', array($this, 'register_dashboard_widget'));
         
+        // Force widget to first column + top, even if user rearranged
+        add_filter('get_user_option_meta-box-order_dashboard', array($this, 'force_widget_position'));
+        
         // Frontend redirect execution
         add_action('template_redirect', array($this->redirections_manager, 'maybe_redirect'));
         
@@ -152,10 +155,12 @@ class Ghost_Post {
      */
     public function enqueue_admin_styles($hook) {
         // Load on our plugin pages only
+        // Note: submenu hooks use sanitize_title(menu_title) as prefix.
+        // Menu title is 'GhostPost' → sanitize_title = 'ghostpost'
         $plugin_pages = array(
             'toplevel_page_ghost-post-connector',
-            'ghost-post-connector_page_ghost-post-redirections',
-            'ghost-post-connector_page_ghost-post-settings',
+            'ghostpost_page_ghost-post-redirections',
+            'ghostpost_page_ghost-post-settings',
             'index.php', // WP Dashboard — for the dashboard widget
         );
         
@@ -289,12 +294,39 @@ class Ghost_Post {
             array($this, 'render_dashboard_widget')
         );
         
-        // Force widget to top of dashboard
+        // Force widget to top of dashboard (handles fresh installs without saved meta)
         global $wp_meta_boxes;
-        $dashboard = $wp_meta_boxes['dashboard']['normal']['core'];
-        $widget = array('gp_dashboard_widget' => $dashboard['gp_dashboard_widget']);
-        unset($dashboard['gp_dashboard_widget']);
-        $wp_meta_boxes['dashboard']['normal']['core'] = array_merge($widget, $dashboard);
+        if (isset($wp_meta_boxes['dashboard']['normal']['core']['gp_dashboard_widget'])) {
+            $dashboard = $wp_meta_boxes['dashboard']['normal']['core'];
+            $widget = array('gp_dashboard_widget' => $dashboard['gp_dashboard_widget']);
+            unset($dashboard['gp_dashboard_widget']);
+            $wp_meta_boxes['dashboard']['normal']['core'] = array_merge($widget, $dashboard);
+        }
+    }
+    
+    /**
+     * Force dashboard widget to first column, top position
+     * Overrides saved user meta-box ordering
+     */
+    public function force_widget_position($order) {
+        if (!is_array($order)) {
+            return $order;
+        }
+        
+        // Remove gp_dashboard_widget from all columns
+        foreach ($order as $column => $widget_ids) {
+            $ids = array_filter(
+                array_map('trim', explode(',', $widget_ids)),
+                function($id) { return $id !== '' && $id !== 'gp_dashboard_widget'; }
+            );
+            $order[$column] = implode(',', $ids);
+        }
+        
+        // Prepend to normal (first) column
+        $normal = isset($order['normal']) ? $order['normal'] : '';
+        $order['normal'] = $normal ? 'gp_dashboard_widget,' . $normal : 'gp_dashboard_widget';
+        
+        return $order;
     }
     
     /**

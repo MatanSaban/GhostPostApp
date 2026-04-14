@@ -10,10 +10,14 @@
  */
 
 // Current plugin version - increment this when making updates
-export const PLUGIN_VERSION = "2.7.1";
+export const PLUGIN_VERSION = "2.7.2";
 
 // Changelog for the current version
 export const PLUGIN_CHANGELOG = `
+= 2.7.2 =
+* FIX: CSS and JS now load correctly on Redirections and Settings pages (hook name mismatch after sidebar rename)
+* FIX: Dashboard widget persists in first column + top position even if user rearranges widgets
+
 = 2.7.1 =
 * CHANGE: Dashboard widget now appears first (top of dashboard) by default
 
