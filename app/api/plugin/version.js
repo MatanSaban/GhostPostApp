@@ -10,10 +10,14 @@
  */
 
 // Current plugin version - increment this when making updates
-export const PLUGIN_VERSION = "2.5.2";
+export const PLUGIN_VERSION = "2.5.3";
 
 // Changelog for the current version
 export const PLUGIN_CHANGELOG = `
+= 2.5.3 =
+* FIX: Sidebar icon now stays purple — overrides WP mask-image coloring system via ::after pseudo-element
+* FIX: Purple icon SVG asset correctly bundled in plugin ZIP
+
 = 2.5.2 =
 * FIX: Ghost icon SVG asset now purple (#9B4DE0) on all plugin pages and sidebar
 
