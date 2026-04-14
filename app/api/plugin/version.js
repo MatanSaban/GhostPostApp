@@ -10,10 +10,13 @@
  */
 
 // Current plugin version - increment this when making updates
-export const PLUGIN_VERSION = "2.5.1";
+export const PLUGIN_VERSION = "2.5.2";
 
 // Changelog for the current version
 export const PLUGIN_CHANGELOG = `
+= 2.5.2 =
+* FIX: Ghost icon SVG asset now purple (#9B4DE0) on all plugin pages and sidebar
+
 = 2.5.1 =
 * CHANGE: Light theme is now the default (dark theme still available in Settings)
 * NEW: Segmented theme picker (dark/light buttons) replaces basic toggle
