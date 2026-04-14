@@ -10,10 +10,14 @@
  */
 
 // Current plugin version - increment this when making updates
-export const PLUGIN_VERSION = "2.5.8";
+export const PLUGIN_VERSION = "2.5.9";
 
 // Changelog for the current version
 export const PLUGIN_CHANGELOG = `
+= 2.5.9 =
+* FIX: Header title+logo now aligned right in RTL mode
+* FIX: Header title always black in both dark and light themes
+
 = 2.5.8 =
 * CHANGE: Status hero moved inside Connection card on Settings page
 * NEW: Check for Updates button added to Connection section in Settings page

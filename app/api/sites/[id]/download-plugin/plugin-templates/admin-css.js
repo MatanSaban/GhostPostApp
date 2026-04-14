@@ -210,7 +210,7 @@ export function getAdminCss() {
 .gp-wrap .gp-header-title {
     font-size: 22px;
     font-weight: 700;
-    color: var(--gp-text);
+    color: #111827;
     letter-spacing: -0.025em;
     margin: 0;
     padding: 0;
@@ -1312,7 +1312,7 @@ export function getAdminCss() {
    ========================================== */
 
 [dir="rtl"] .gp-wrap .gp-header {
-    flex-direction: row-reverse;
+    direction: rtl;
 }
 
 [dir="rtl"] .gp-wrap .gp-status-hero {
