@@ -10,10 +10,14 @@
  */
 
 // Current plugin version - increment this when making updates
-export const PLUGIN_VERSION = "2.5.6";
+export const PLUGIN_VERSION = "2.5.7";
 
 // Changelog for the current version
 export const PLUGIN_CHANGELOG = `
+= 2.5.7 =
+* FIX: Page header icons now use inline SVG instead of <img> — eliminates all file/browser caching issues
+* FIX: Sidebar icon uses data URI + CSS mask coloring — purple on all states
+
 = 2.5.4 =
 * FIX: Sidebar icon now uses file URL instead of data URI — WP renders <img> tag preserving purple SVG fill
 * FIX: Removed mask-image workarounds, using direct <img> approach

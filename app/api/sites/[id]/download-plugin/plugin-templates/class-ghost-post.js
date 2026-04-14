@@ -99,9 +99,8 @@ class Ghost_Post {
      * Add admin menu - top-level menu with child pages
      */
     public function add_admin_menu() {
-        // Use the actual SVG file URL so WP renders it as <img> (preserves purple fill).
-        // data:image/svg+xml URIs get converted to mask-image, losing the fill color.
-        $icon = GP_CONNECTOR_PLUGIN_URL . 'assets/icon.svg';
+        // Use base64 data URI — WP converts it to a mask, then we color the mask purple via CSS.
+        $icon = 'data:image/svg+xml;base64,' . base64_encode('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 335 288"><path fill="#9B4DE0" d="M313.736 127.747C313.681 123.229 311.924 112.362 311.064 107.716C310.204 103.051 314.797 91.8007 316.819 83.2673C319.527 71.8339 320.341 61.5991 317.176 56.0377C314.477 51.2909 291.961 52.5258 282.775 53.6596C279.985 54.0075 268.283 35.1105 244.669 21.3816C223.682 9.1892 191.825 2 170.691 2C109.758 2 57.627 39.0527 36.3828 91.4716C36.2181 91.8834 30.8934 90.4471 22.6775 91.7827C14.2422 93.1547 2.89737 97.3531 2.11054 101.35C1.27798 105.557 5.23035 120.045 11.2047 130.555C17.6822 141.943 25.3491 149.745 25.3948 150.842C27.8376 204.916 61.9816 250.649 109.2 272.491C122.796 278.784 144.195 286.732 170.691 285.946C245.804 283.723 302.995 213.469 325.144 145.903C330.085 130.829 333.15 116.926 332.994 108.777C332.985 108.118 332.299 107.689 331.695 107.972C327.697 109.847 316.087 116.067 313.525 118.683Z"/></svg>');
         
         // Top-level menu
         add_menu_page(
@@ -242,7 +241,13 @@ class Ghost_Post {
      */
     public function admin_head_styles() {
         echo '<style>
-            /* Using file URL icon, WP renders as <img> — remove grayscale filter */
+            /* WP converts data URI SVG to mask-image — color the mask purple */
+            #adminmenu .toplevel_page_ghost-post-connector .wp-menu-image.svg {
+                background-color: #9B4DE0 !important;
+            }
+            #adminmenu .toplevel_page_ghost-post-connector .wp-menu-image.svg::after {
+                background-color: #9B4DE0 !important;
+            }
             #adminmenu .toplevel_page_ghost-post-connector .wp-menu-image img {
                 filter: none !important;
                 opacity: 1 !important;
