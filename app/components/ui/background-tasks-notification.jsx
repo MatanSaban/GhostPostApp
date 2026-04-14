@@ -93,10 +93,15 @@ export function BackgroundTasksNotification() {
           </div>
           {(task.status === 'running' || task.status === 'pending') && task.progress > 0 && (
             <div className={styles.progressContainer}>
-              <div 
-                className={styles.progressBar} 
-                style={{ width: `${task.progress}%` }}
-              />
+              <div className={styles.progressRow}>
+                <div className={styles.progressTrack}>
+                  <div 
+                    className={styles.progressBar} 
+                    style={{ width: `${task.progress}%` }}
+                  />
+                </div>
+                <span className={styles.progressPercent}>{Math.round(task.progress)}%</span>
+              </div>
             </div>
           )}
         </div>

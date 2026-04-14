@@ -97,6 +97,20 @@ export function BackgroundTasksProvider({ children }) {
     return tasks.find(t => t.id === taskId) || null;
   }, [tasks]);
 
+  /**
+   * Find a running/pending task by type and optional metadata match
+   * @param {string} type - Task type (e.g., 'site-audit')
+   * @param {Object} metadata - Metadata fields to match
+   * @returns {Object|null} Task object or null
+   */
+  const findActiveTask = useCallback((type, metadata = {}) => {
+    return tasks.find(t => {
+      if (t.type !== type) return false;
+      if (t.status !== 'running' && t.status !== 'pending') return false;
+      return Object.entries(metadata).every(([k, v]) => t.metadata?.[k] === v);
+    }) || null;
+  }, [tasks]);
+
   // Auto-remove completed tasks after 10 seconds
   useEffect(() => {
     const completedTasks = tasks.filter(t => t.status === 'completed' || t.status === 'cancelled');
@@ -119,7 +133,8 @@ export function BackgroundTasksProvider({ children }) {
       updateTask, 
       removeTask, 
       cancelTask,
-      getTask 
+      getTask,
+      findActiveTask,
     }}>
       {children}
     </BackgroundTasksContext.Provider>

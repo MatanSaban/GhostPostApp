@@ -218,7 +218,7 @@ export default function SiteAuditPage() {
   const { t, locale } = useLocale();
   const { selectedSite, isLoading: isSiteLoading } = useSite();
   const { user } = useUser();
-  const { addTask, updateTask } = useBackgroundTasks();
+  const { addTask, updateTask, findActiveTask } = useBackgroundTasks();
   const { isMaximized: isPageDetailMaximized, toggleMaximize: togglePageDetailMaximize } = useModalResize();
 
   // Audit quota from plan
@@ -352,6 +352,16 @@ export default function SiteAuditPage() {
     if (!selectedSite?.id) return;
     const siteId = selectedSite.id;
 
+    // Reconnect to existing background task if one exists for this site
+    const reconnectBgTask = (siteId) => {
+      if (!bgTaskIds.current[siteId]) {
+        const existingTask = findActiveTask('site-audit', { siteId });
+        if (existingTask) {
+          bgTaskIds.current[siteId] = existingTask.id;
+        }
+      }
+    };
+
     // Check cache first - restore instantly if we already have data for this device
     const cached = auditCacheRef.current[activeDevice];
     if (cached) {
@@ -364,6 +374,7 @@ export default function SiteAuditPage() {
       setPageDetail(null);
       // If cached audit is still running, resume polling for this site
       if (cached.latest && (cached.latest.status === 'PENDING' || cached.latest.status === 'RUNNING')) {
+        reconnectBgTask(siteId);
         startPolling(siteId, activeDevice);
       }
       return;
@@ -383,7 +394,20 @@ export default function SiteAuditPage() {
     fetchAudits(siteId, activeDevice).then((latest) => {
       setIsLoadingAudits(false);
       if (latest && (latest.status === 'PENDING' || latest.status === 'RUNNING')) {
+        reconnectBgTask(siteId);
         startPolling(siteId, activeDevice);
+      } else if (latest && (latest.status === 'COMPLETED' || latest.status === 'FAILED')) {
+        // Audit finished while we were away — mark background task as done
+        const existingTask = findActiveTask('site-audit', { siteId });
+        if (existingTask) {
+          updateTask(existingTask.id, {
+            status: latest.status === 'COMPLETED' ? 'completed' : 'error',
+            progress: 100,
+            message: latest.status === 'COMPLETED'
+              ? (t('siteAudit.progress.complete') || 'Audit complete')
+              : (latest.progress?.failureReason || 'Audit failed'),
+          });
+        }
       }
     });
 

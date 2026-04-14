@@ -905,7 +905,8 @@
       "plugin": "Plugin",
       "wp-api": "WP API",
       "sitemap": "Sitemap",
-      "crawl": "Crawl"
+      "crawl": "Crawl",
+      "explicit": "Manual"
     },
     "status": {
       "pending": "Pending",

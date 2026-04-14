@@ -905,7 +905,8 @@
       "plugin": "תוסף",
       "wp-api": "WP API",
       "sitemap": "מפת אתר",
-      "crawl": "סריקה"
+      "crawl": "סריקה",
+      "explicit": "ידני"
     },
     "status": {
       "pending": "ממתין",
