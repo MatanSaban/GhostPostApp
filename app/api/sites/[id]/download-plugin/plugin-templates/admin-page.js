@@ -16,6 +16,8 @@ if (!defined('ABSPATH')) {
 $status = get_option('gp_connector_connection_status', 'unknown');
 $last_ping = get_option('gp_connector_last_ping', null);
 $dir = GP_I18n::dir_attr();
+$gp_theme = get_option('gp_connector_theme', 'dark');
+$theme_class = ($gp_theme === 'light') ? 'gp-theme-light' : '';
 
 // Get redirect plugin detection
 $redir_manager = new GP_Redirections_Manager();
@@ -30,13 +32,14 @@ $status_labels = array(
 $status_text = $status_labels[$status] ?? __('Unknown', 'ghost-post-connector');
 ?>
 
-<div class="wrap gp-wrap gp-dashboard-page" dir="<?php echo esc_attr($dir); ?>">
+<div class="wrap gp-wrap gp-dashboard-page <?php echo esc_attr($theme_class); ?>" dir="<?php echo esc_attr($dir); ?>">
 
     <!-- Header -->
     <div class="gp-header">
         <img src="<?php echo esc_url(GP_CONNECTOR_PLUGIN_URL . 'assets/icon.svg'); ?>"
              alt="Ghost Post"
              class="gp-header-icon"
+             width="36" height="36"
              onerror="this.style.display='none'">
         <h1 class="gp-header-title"><?php esc_html_e('Ghost Post', 'ghost-post-connector'); ?></h1>
         <span class="gp-header-subtitle">v<?php echo esc_html(GP_CONNECTOR_VERSION); ?></span>
@@ -64,7 +67,7 @@ $status_text = $status_labels[$status] ?? __('Unknown', 'ghost-post-connector');
         <!-- Site Information Card -->
         <div class="gp-card">
             <div class="gp-card-header">
-                <svg class="gp-card-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+                <svg class="gp-card-icon" width="20" height="20" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
                 <h2 class="gp-card-title"><?php esc_html_e('Site Information', 'ghost-post-connector'); ?></h2>
             </div>
 
@@ -104,7 +107,7 @@ $status_text = $status_labels[$status] ?? __('Unknown', 'ghost-post-connector');
         <!-- Detected Plugins Card -->
         <div class="gp-card">
             <div class="gp-card-header">
-                <svg class="gp-card-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+                <svg class="gp-card-icon" width="20" height="20" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
                 <h2 class="gp-card-title"><?php esc_html_e('Detected Plugins', 'ghost-post-connector'); ?></h2>
             </div>
 

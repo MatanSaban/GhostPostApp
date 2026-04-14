@@ -16,6 +16,8 @@ $status = get_option('gp_connector_connection_status', 'unknown');
 $last_ping = get_option('gp_connector_last_ping', null);
 $last_error = get_option('gp_connector_last_error', null);
 $current_lang = get_option('gp_connector_language', 'auto');
+$gp_theme = get_option('gp_connector_theme', 'dark');
+$theme_class = ($gp_theme === 'light') ? 'gp-theme-light' : '';
 $dir = GP_I18n::dir_attr();
 
 // Status helpers
@@ -27,13 +29,14 @@ $status_labels = array(
 $status_text = $status_labels[$status] ?? __('Unknown', 'ghost-post-connector');
 ?>
 
-<div class="wrap gp-wrap gp-settings-page" dir="<?php echo esc_attr($dir); ?>">
+<div class="wrap gp-wrap gp-settings-page <?php echo esc_attr($theme_class); ?>" dir="<?php echo esc_attr($dir); ?>">
 
     <!-- Header -->
     <div class="gp-header">
         <img src="<?php echo esc_url(GP_CONNECTOR_PLUGIN_URL . 'assets/icon.svg'); ?>"
              alt="Ghost Post"
              class="gp-header-icon"
+             width="36" height="36"
              onerror="this.style.display='none'">
         <h1 class="gp-header-title"><?php esc_html_e('Settings', 'ghost-post-connector'); ?></h1>
     </div>
@@ -56,12 +59,29 @@ $status_text = $status_labels[$status] ?? __('Unknown', 'ghost-post-connector');
 
     <div class="gp-card-grid">
 
-        <!-- Language Settings Card -->
+        <!-- Appearance Card -->
         <div class="gp-card">
             <div class="gp-card-header">
-                <svg class="gp-card-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
-                <h2 class="gp-card-title"><?php esc_html_e('Language', 'ghost-post-connector'); ?></h2>
+                <svg class="gp-card-icon" width="20" height="20" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+                <h2 class="gp-card-title"><?php esc_html_e('Appearance', 'ghost-post-connector'); ?></h2>
             </div>
+
+            <div class="gp-form-group">
+                <label><?php esc_html_e('Theme', 'ghost-post-connector'); ?></label>
+                <div class="gp-theme-switcher">
+                    <!-- Moon icon (dark) -->
+                    <svg class="gp-theme-icon <?php echo $gp_theme !== 'light' ? 'gp-active-icon' : ''; ?>" width="16" height="16" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+                    <label class="gp-toggle">
+                        <input type="checkbox" id="gp-theme-toggle" <?php checked($gp_theme, 'light'); ?>>
+                        <span class="gp-toggle-track"></span>
+                    </label>
+                    <!-- Sun icon (light) -->
+                    <svg class="gp-theme-icon <?php echo $gp_theme === 'light' ? 'gp-active-icon' : ''; ?>" width="16" height="16" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+                </div>
+                <p class="gp-form-hint"><?php esc_html_e('Toggle between dark and light theme.', 'ghost-post-connector'); ?></p>
+            </div>
+
+            <hr class="gp-divider">
 
             <form id="gp-language-form">
                 <div class="gp-form-group">
@@ -83,13 +103,13 @@ $status_text = $status_labels[$status] ?? __('Unknown', 'ghost-post-connector');
         <!-- Connection Actions Card -->
         <div class="gp-card">
             <div class="gp-card-header">
-                <svg class="gp-card-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+                <svg class="gp-card-icon" width="20" height="20" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
                 <h2 class="gp-card-title"><?php esc_html_e('Connection', 'ghost-post-connector'); ?></h2>
             </div>
 
             <?php if ($last_error): ?>
             <div class="gp-alert gp-alert-error">
-                <svg class="gp-alert-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+                <svg class="gp-alert-icon" width="18" height="18" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
                 <?php echo esc_html($last_error); ?>
             </div>
             <?php endif; ?>
@@ -114,7 +134,7 @@ $status_text = $status_labels[$status] ?? __('Unknown', 'ghost-post-connector');
     <!-- Permissions Card (full width) -->
     <div class="gp-card">
         <div class="gp-card-header">
-            <svg class="gp-card-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            <svg class="gp-card-icon" width="20" height="20" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
             <h2 class="gp-card-title"><?php esc_html_e('Permissions', 'ghost-post-connector'); ?></h2>
             <span class="gp-badge gp-badge-primary" style="margin-inline-start: auto;">
                 <?php
@@ -149,7 +169,7 @@ $status_text = $status_labels[$status] ?? __('Unknown', 'ghost-post-connector');
 
             foreach ($permissions as $perm) {
                 $label = $permission_labels[$perm] ?? $perm;
-                echo '<li><svg class="gp-perm-check" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>' . esc_html($label) . '</li>';
+                echo '<li><svg class="gp-perm-check" width="16" height="16" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>' . esc_html($label) . '</li>';
             }
             ?>
         </ul>

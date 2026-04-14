@@ -4,29 +4,142 @@
 export function getAdminCss() {
   return `/**
  * Ghost Post Connector — Premium Admin Styles
+ * Dark theme by default, light theme via .gp-theme-light
  * Scoped under .gp-wrap to avoid WordPress conflicts
  */
 
 /* ==========================================
-   Design Tokens (CSS Variables)
+   WordPress Sidebar — Purple Branding
+   (applied globally, not scoped to .gp-wrap)
+   ========================================== */
+
+#adminmenu .toplevel_page_ghost-post-connector .wp-menu-image img {
+    filter: none !important;
+    opacity: 1 !important;
+}
+
+#adminmenu .toplevel_page_ghost-post-connector:hover .wp-menu-image img,
+#adminmenu .toplevel_page_ghost-post-connector.current .wp-menu-image img,
+#adminmenu .toplevel_page_ghost-post-connector.wp-has-current-submenu .wp-menu-image img {
+    filter: brightness(1.15) !important;
+    opacity: 1 !important;
+}
+
+#adminmenu .toplevel_page_ghost-post-connector.current,
+#adminmenu .toplevel_page_ghost-post-connector.wp-has-current-submenu {
+    background: rgba(155, 77, 224, 0.15) !important;
+}
+
+#adminmenu .toplevel_page_ghost-post-connector.current > a,
+#adminmenu .toplevel_page_ghost-post-connector.wp-has-current-submenu > a {
+    color: #B06AE8 !important;
+}
+
+#adminmenu .toplevel_page_ghost-post-connector .wp-submenu a:hover,
+#adminmenu .toplevel_page_ghost-post-connector .wp-submenu a.current {
+    color: #B06AE8 !important;
+}
+
+/* ==========================================
+   Design Tokens — DARK theme (default)
    ========================================== */
 
 .gp-wrap {
-    --gp-primary: #4f46e5;
-    --gp-primary-hover: #4338ca;
-    --gp-primary-light: #eef2ff;
-    --gp-primary-ring: rgba(79, 70, 229, 0.25);
+    /* Primary purple — matches Ghost Post platform */
+    --gp-primary: #9B4DE0;
+    --gp-primary-hover: #B06AE8;
+    --gp-primary-dark: #7B2CBF;
+    --gp-primary-light: rgba(155, 77, 224, 0.15);
+    --gp-primary-ring: rgba(155, 77, 224, 0.3);
 
-    --gp-slate-50: #f8fafc;
-    --gp-slate-100: #f1f5f9;
-    --gp-slate-200: #e2e8f0;
-    --gp-slate-300: #cbd5e1;
-    --gp-slate-400: #94a3b8;
-    --gp-slate-500: #64748b;
-    --gp-slate-600: #475569;
-    --gp-slate-700: #334155;
-    --gp-slate-800: #1e293b;
-    --gp-slate-900: #0f172a;
+    /* Backgrounds */
+    --gp-bg: #0A0A0A;
+    --gp-card-bg: #111111;
+    --gp-card-bg-hover: #161616;
+    --gp-surface: #1a1a1a;
+
+    /* Text */
+    --gp-text: #f9fafb;
+    --gp-text-secondary: #9ca3af;
+    --gp-text-muted: #6b7280;
+
+    /* Borders */
+    --gp-border: rgba(155, 77, 224, 0.2);
+    --gp-border-light: rgba(155, 77, 224, 0.1);
+    --gp-border-strong: rgba(155, 77, 224, 0.35);
+
+    /* Inputs */
+    --gp-input-bg: rgba(0, 0, 0, 0.4);
+    --gp-input-border: rgba(155, 77, 224, 0.3);
+
+    /* Code */
+    --gp-code-bg: rgba(155, 77, 224, 0.1);
+    --gp-code-border: rgba(155, 77, 224, 0.2);
+    --gp-code-text: #c4b5fd;
+
+    /* Status colors */
+    --gp-emerald: #4ade80;
+    --gp-emerald-light: rgba(74, 222, 128, 0.1);
+    --gp-emerald-dark: #22c55e;
+
+    --gp-rose: #f87171;
+    --gp-rose-light: rgba(248, 113, 113, 0.1);
+    --gp-rose-dark: #ef4444;
+
+    --gp-amber: #fbbf24;
+    --gp-amber-light: rgba(251, 191, 36, 0.1);
+    --gp-amber-dark: #f59e0b;
+
+    /* Radii */
+    --gp-radius-sm: 6px;
+    --gp-radius-md: 10px;
+    --gp-radius-lg: 12px;
+    --gp-radius-xl: 16px;
+    --gp-radius-full: 999px;
+
+    /* Shadows */
+    --gp-shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+    --gp-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.4), 0 1px 2px -1px rgba(0, 0, 0, 0.3);
+    --gp-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -2px rgba(0, 0, 0, 0.3);
+    --gp-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.5), 0 4px 6px -4px rgba(0, 0, 0, 0.4);
+
+    /* Typography */
+    --gp-font: system-ui, -apple-system, 'Inter', 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+
+    /* Motion */
+    --gp-transition: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ==========================================
+   Design Tokens — LIGHT theme override
+   ========================================== */
+
+.gp-wrap.gp-theme-light {
+    --gp-primary: #7B2CBF;
+    --gp-primary-hover: #9B4DE0;
+    --gp-primary-dark: #5A1A9A;
+    --gp-primary-light: rgba(123, 44, 191, 0.08);
+    --gp-primary-ring: rgba(123, 44, 191, 0.25);
+
+    --gp-bg: #ffffff;
+    --gp-card-bg: #ffffff;
+    --gp-card-bg-hover: #faf9ff;
+    --gp-surface: #f3f4f6;
+
+    --gp-text: #111827;
+    --gp-text-secondary: #6b7280;
+    --gp-text-muted: #9ca3af;
+
+    --gp-border: #e5e7eb;
+    --gp-border-light: #f3f4f6;
+    --gp-border-strong: #d1d5db;
+
+    --gp-input-bg: #f9fafb;
+    --gp-input-border: #d1d5db;
+
+    --gp-code-bg: #f3f4f6;
+    --gp-code-border: #e5e7eb;
+    --gp-code-text: #7B2CBF;
 
     --gp-emerald: #10b981;
     --gp-emerald-light: #ecfdf5;
@@ -40,20 +153,10 @@ export function getAdminCss() {
     --gp-amber-light: #fffbeb;
     --gp-amber-dark: #d97706;
 
-    --gp-radius-sm: 6px;
-    --gp-radius-md: 10px;
-    --gp-radius-lg: 12px;
-    --gp-radius-xl: 16px;
-    --gp-radius-full: 999px;
-
     --gp-shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
     --gp-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1);
     --gp-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
     --gp-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
-
-    --gp-font: system-ui, -apple-system, 'Inter', 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-
-    --gp-transition: 150ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* ==========================================
@@ -63,7 +166,7 @@ export function getAdminCss() {
 .gp-wrap {
     max-width: 960px;
     font-family: var(--gp-font);
-    color: var(--gp-slate-700);
+    color: var(--gp-text);
     -webkit-font-smoothing: antialiased;
 }
 
@@ -71,6 +174,15 @@ export function getAdminCss() {
 .gp-wrap *::before,
 .gp-wrap *::after {
     box-sizing: border-box;
+}
+
+/* Force inline SVGs to respect sizing */
+.gp-wrap svg {
+    display: inline-block;
+    vertical-align: middle;
+    flex-shrink: 0;
+    max-width: 100%;
+    height: auto;
 }
 
 /* ==========================================
@@ -88,13 +200,13 @@ export function getAdminCss() {
     width: 36px;
     height: 36px;
     flex-shrink: 0;
-    filter: drop-shadow(0 1px 2px rgba(0,0,0,0.08));
+    filter: drop-shadow(0 1px 2px rgba(0,0,0,0.15));
 }
 
 .gp-wrap .gp-header-title {
     font-size: 22px;
     font-weight: 700;
-    color: var(--gp-slate-900);
+    color: var(--gp-text);
     letter-spacing: -0.025em;
     margin: 0;
     padding: 0;
@@ -104,7 +216,7 @@ export function getAdminCss() {
 
 .gp-wrap .gp-header-subtitle {
     font-size: 14px;
-    color: var(--gp-slate-400);
+    color: var(--gp-text-muted);
     font-weight: 400;
     margin-inline-start: auto;
 }
@@ -114,17 +226,18 @@ export function getAdminCss() {
    ========================================== */
 
 .gp-wrap .gp-card {
-    background: #fff;
-    border: 1px solid var(--gp-slate-200);
+    background: var(--gp-card-bg);
+    border: 1px solid var(--gp-border);
     border-radius: var(--gp-radius-lg);
     padding: 24px;
     margin-bottom: 20px;
     box-shadow: var(--gp-shadow);
-    transition: box-shadow var(--gp-transition);
+    transition: box-shadow var(--gp-transition), background var(--gp-transition);
 }
 
 .gp-wrap .gp-card:hover {
     box-shadow: var(--gp-shadow-md);
+    background: var(--gp-card-bg-hover);
 }
 
 .gp-wrap .gp-card-header {
@@ -133,12 +246,16 @@ export function getAdminCss() {
     gap: 10px;
     margin-bottom: 20px;
     padding-bottom: 16px;
-    border-bottom: 1px solid var(--gp-slate-100);
+    border-bottom: 1px solid var(--gp-border-light);
 }
 
 .gp-wrap .gp-card-icon {
     width: 20px;
     height: 20px;
+    min-width: 20px;
+    min-height: 20px;
+    max-width: 20px;
+    max-height: 20px;
     color: var(--gp-primary);
     flex-shrink: 0;
 }
@@ -146,7 +263,7 @@ export function getAdminCss() {
 .gp-wrap .gp-card-title {
     font-size: 15px;
     font-weight: 600;
-    color: var(--gp-slate-800);
+    color: var(--gp-text);
     margin: 0;
     padding: 0;
     border: none;
@@ -176,33 +293,52 @@ export function getAdminCss() {
     padding: 20px 24px;
     border-radius: var(--gp-radius-lg);
     margin-bottom: 20px;
-    border: 1px solid var(--gp-slate-200);
+    border: 1px solid var(--gp-border);
     box-shadow: var(--gp-shadow);
 }
 
 .gp-wrap .gp-status-hero.gp-status-connected {
-    background: linear-gradient(135deg, var(--gp-emerald-light) 0%, #d1fae5 100%);
-    border-color: #a7f3d0;
+    background: var(--gp-emerald-light);
+    border-color: rgba(74, 222, 128, 0.25);
 }
 
 .gp-wrap .gp-status-hero.gp-status-disconnected {
-    background: linear-gradient(135deg, var(--gp-amber-light) 0%, #fef3c7 100%);
-    border-color: #fde68a;
+    background: var(--gp-amber-light);
+    border-color: rgba(251, 191, 36, 0.25);
 }
 
 .gp-wrap .gp-status-hero.gp-status-error {
-    background: linear-gradient(135deg, var(--gp-rose-light) 0%, #ffe4e6 100%);
-    border-color: #fecdd3;
+    background: var(--gp-rose-light);
+    border-color: rgba(248, 113, 113, 0.25);
 }
 
 .gp-wrap .gp-status-hero.gp-status-unknown {
-    background: linear-gradient(135deg, var(--gp-slate-50) 0%, var(--gp-slate-100) 100%);
-    border-color: var(--gp-slate-200);
+    background: var(--gp-surface);
+    border-color: var(--gp-border);
+}
+
+/* Light theme overrides for status hero */
+.gp-wrap.gp-theme-light .gp-status-hero.gp-status-connected {
+    background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+    border-color: #a7f3d0;
+}
+.gp-wrap.gp-theme-light .gp-status-hero.gp-status-disconnected {
+    background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+    border-color: #fde68a;
+}
+.gp-wrap.gp-theme-light .gp-status-hero.gp-status-error {
+    background: linear-gradient(135deg, #fff1f2 0%, #ffe4e6 100%);
+    border-color: #fecdd3;
+}
+.gp-wrap.gp-theme-light .gp-status-hero.gp-status-unknown {
+    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+    border-color: #e2e8f0;
 }
 
 .gp-wrap .gp-status-pulse {
     width: 14px;
     height: 14px;
+    min-width: 14px;
     border-radius: 50%;
     flex-shrink: 0;
     position: relative;
@@ -218,7 +354,7 @@ export function getAdminCss() {
 
 .gp-wrap .gp-status-connected .gp-status-pulse {
     background: var(--gp-emerald);
-    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2);
+    box-shadow: 0 0 0 3px rgba(74, 222, 128, 0.2);
 }
 
 .gp-wrap .gp-status-connected .gp-status-pulse::after {
@@ -228,17 +364,17 @@ export function getAdminCss() {
 
 .gp-wrap .gp-status-disconnected .gp-status-pulse {
     background: var(--gp-amber);
-    box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.2);
+    box-shadow: 0 0 0 3px rgba(251, 191, 36, 0.2);
 }
 
 .gp-wrap .gp-status-error .gp-status-pulse {
     background: var(--gp-rose);
-    box-shadow: 0 0 0 3px rgba(244, 63, 94, 0.2);
+    box-shadow: 0 0 0 3px rgba(248, 113, 113, 0.2);
 }
 
 .gp-wrap .gp-status-unknown .gp-status-pulse {
-    background: var(--gp-slate-400);
-    box-shadow: 0 0 0 3px rgba(148, 163, 184, 0.2);
+    background: var(--gp-text-muted);
+    box-shadow: 0 0 0 3px rgba(107, 114, 128, 0.2);
 }
 
 @keyframes gp-pulse {
@@ -251,16 +387,22 @@ export function getAdminCss() {
     font-weight: 600;
 }
 
-.gp-wrap .gp-status-connected .gp-status-label { color: var(--gp-emerald-dark); }
-.gp-wrap .gp-status-disconnected .gp-status-label { color: var(--gp-amber-dark); }
-.gp-wrap .gp-status-error .gp-status-label { color: var(--gp-rose-dark); }
-.gp-wrap .gp-status-unknown .gp-status-label { color: var(--gp-slate-500); }
+.gp-wrap .gp-status-connected .gp-status-label { color: var(--gp-emerald); }
+.gp-wrap .gp-status-disconnected .gp-status-label { color: var(--gp-amber); }
+.gp-wrap .gp-status-error .gp-status-label { color: var(--gp-rose); }
+.gp-wrap .gp-status-unknown .gp-status-label { color: var(--gp-text-muted); }
+
+/* Light theme uses darker status label colors */
+.gp-wrap.gp-theme-light .gp-status-connected .gp-status-label { color: #059669; }
+.gp-wrap.gp-theme-light .gp-status-disconnected .gp-status-label { color: #d97706; }
+.gp-wrap.gp-theme-light .gp-status-error .gp-status-label { color: #e11d48; }
+.gp-wrap.gp-theme-light .gp-status-unknown .gp-status-label { color: #64748b; }
 
 .gp-wrap .gp-status-meta {
     margin-inline-start: auto;
     text-align: end;
     font-size: 13px;
-    color: var(--gp-slate-500);
+    color: var(--gp-text-secondary);
     line-height: 1.5;
 }
 
@@ -283,28 +425,33 @@ export function getAdminCss() {
 
 .gp-wrap .gp-badge-success {
     background: var(--gp-emerald-light);
-    color: var(--gp-emerald-dark);
+    color: var(--gp-emerald);
 }
 
 .gp-wrap .gp-badge-error {
     background: var(--gp-rose-light);
-    color: var(--gp-rose-dark);
+    color: var(--gp-rose);
 }
 
 .gp-wrap .gp-badge-warning {
     background: var(--gp-amber-light);
-    color: var(--gp-amber-dark);
+    color: var(--gp-amber);
 }
 
 .gp-wrap .gp-badge-neutral {
-    background: var(--gp-slate-100);
-    color: var(--gp-slate-600);
+    background: var(--gp-surface);
+    color: var(--gp-text-secondary);
 }
 
 .gp-wrap .gp-badge-primary {
     background: var(--gp-primary-light);
     color: var(--gp-primary);
 }
+
+/* Light theme badge overrides for stronger contrast */
+.gp-wrap.gp-theme-light .gp-badge-success { color: #059669; }
+.gp-wrap.gp-theme-light .gp-badge-error { color: #e11d48; }
+.gp-wrap.gp-theme-light .gp-badge-warning { color: #d97706; }
 
 /* ==========================================
    Buttons
@@ -348,20 +495,19 @@ export function getAdminCss() {
 }
 
 .gp-wrap .gp-btn-secondary {
-    background: #fff;
-    color: var(--gp-slate-700);
-    border-color: var(--gp-slate-300);
+    background: var(--gp-surface);
+    color: var(--gp-text);
+    border-color: var(--gp-border);
     box-shadow: var(--gp-shadow-sm);
 }
 
 .gp-wrap .gp-btn-secondary:hover {
-    background: var(--gp-slate-50);
-    border-color: var(--gp-slate-400);
-    color: var(--gp-slate-800);
+    background: var(--gp-card-bg-hover);
+    border-color: var(--gp-border-strong);
 }
 
 .gp-wrap .gp-btn-danger {
-    background: #fff;
+    background: transparent;
     color: var(--gp-rose);
     border-color: var(--gp-rose);
 }
@@ -395,7 +541,7 @@ export function getAdminCss() {
 .gp-wrap .gp-info-table th,
 .gp-wrap .gp-info-table td {
     padding: 12px 0;
-    border-bottom: 1px solid var(--gp-slate-100);
+    border-bottom: 1px solid var(--gp-border-light);
     text-align: start;
     font-size: 14px;
     vertical-align: middle;
@@ -408,23 +554,23 @@ export function getAdminCss() {
 
 .gp-wrap .gp-info-table th {
     width: 170px;
-    color: var(--gp-slate-500);
+    color: var(--gp-text-secondary);
     font-weight: 500;
 }
 
 .gp-wrap .gp-info-table td {
-    color: var(--gp-slate-800);
+    color: var(--gp-text);
     font-weight: 500;
 }
 
 .gp-wrap .gp-info-table code {
-    background: var(--gp-slate-50);
-    border: 1px solid var(--gp-slate-200);
+    background: var(--gp-code-bg);
+    border: 1px solid var(--gp-code-border);
     padding: 3px 8px;
     border-radius: var(--gp-radius-sm);
     font-size: 12px;
     font-family: 'SF Mono', 'Cascadia Code', Consolas, monospace;
-    color: var(--gp-slate-600);
+    color: var(--gp-code-text);
     word-break: break-all;
 }
 
@@ -446,22 +592,27 @@ export function getAdminCss() {
     align-items: center;
     gap: 8px;
     padding: 8px 12px;
-    background: var(--gp-slate-50);
-    border: 1px solid var(--gp-slate-100);
+    background: var(--gp-surface);
+    border: 1px solid var(--gp-border-light);
     border-radius: var(--gp-radius-sm);
     font-size: 13px;
-    color: var(--gp-slate-700);
+    color: var(--gp-text);
     transition: background var(--gp-transition);
 }
 
 .gp-wrap .gp-permissions-grid li:hover {
     background: var(--gp-primary-light);
-    border-color: rgba(79, 70, 229, 0.15);
+    border-color: var(--gp-primary-ring);
 }
 
 .gp-wrap .gp-perm-check {
-    width: 18px;
-    height: 18px;
+    width: 16px;
+    height: 16px;
+    min-width: 16px;
+    min-height: 16px;
+    max-width: 16px;
+    max-height: 16px;
+    padding: 2px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -469,14 +620,6 @@ export function getAdminCss() {
     background: var(--gp-emerald);
     color: #fff;
     flex-shrink: 0;
-    font-size: 11px;
-    line-height: 1;
-}
-
-.gp-wrap .gp-permissions-note {
-    color: var(--gp-slate-400);
-    font-size: 13px;
-    margin-top: 16px;
 }
 
 /* ==========================================
@@ -494,7 +637,7 @@ export function getAdminCss() {
     align-items: center;
     gap: 10px;
     padding: 12px 0;
-    border-bottom: 1px solid var(--gp-slate-100);
+    border-bottom: 1px solid var(--gp-border-light);
     font-size: 14px;
 }
 
@@ -505,28 +648,29 @@ export function getAdminCss() {
 .gp-wrap .gp-plugin-status {
     width: 8px;
     height: 8px;
+    min-width: 8px;
     border-radius: 50%;
     flex-shrink: 0;
 }
 
 .gp-wrap .gp-plugin-active {
     background: var(--gp-emerald);
-    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15);
+    box-shadow: 0 0 0 3px rgba(74, 222, 128, 0.15);
 }
 
 .gp-wrap .gp-plugin-inactive {
-    background: var(--gp-slate-300);
+    background: var(--gp-text-muted);
 }
 
 .gp-wrap .gp-plugin-name {
     font-weight: 500;
-    color: var(--gp-slate-700);
+    color: var(--gp-text);
 }
 
 .gp-wrap .gp-plugin-version {
     margin-inline-start: auto;
     font-size: 12px;
-    color: var(--gp-slate-400);
+    color: var(--gp-text-muted);
     font-family: 'SF Mono', 'Cascadia Code', Consolas, monospace;
 }
 
@@ -543,7 +687,7 @@ export function getAdminCss() {
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.08em;
-    color: var(--gp-slate-400);
+    color: var(--gp-text-muted);
     margin-top: 20px;
     margin-bottom: 10px;
 }
@@ -560,7 +704,7 @@ export function getAdminCss() {
     display: block;
     font-size: 13px;
     font-weight: 600;
-    color: var(--gp-slate-700);
+    color: var(--gp-text);
     margin-bottom: 6px;
 }
 
@@ -569,12 +713,12 @@ export function getAdminCss() {
 .gp-wrap .gp-form-group input[type="url"] {
     min-width: 260px;
     padding: 8px 12px;
-    border: 1px solid var(--gp-slate-300);
+    border: 1px solid var(--gp-input-border);
     border-radius: var(--gp-radius-sm);
     font-size: 14px;
     font-family: var(--gp-font);
-    color: var(--gp-slate-700);
-    background: #fff;
+    color: var(--gp-text);
+    background: var(--gp-input-bg);
     transition: border-color var(--gp-transition), box-shadow var(--gp-transition);
 }
 
@@ -588,7 +732,7 @@ export function getAdminCss() {
 .gp-wrap .gp-form-hint {
     margin-top: 6px;
     font-size: 13px;
-    color: var(--gp-slate-400);
+    color: var(--gp-text-muted);
     font-style: normal;
 }
 
@@ -603,7 +747,7 @@ export function getAdminCss() {
     cursor: pointer;
     gap: 10px;
     font-size: 14px;
-    color: var(--gp-slate-700);
+    color: var(--gp-text);
 }
 
 .gp-wrap .gp-toggle input[type="checkbox"] {
@@ -616,7 +760,7 @@ export function getAdminCss() {
 .gp-wrap .gp-toggle-track {
     width: 44px;
     height: 24px;
-    background: var(--gp-slate-300);
+    background: var(--gp-text-muted);
     border-radius: 12px;
     position: relative;
     transition: background var(--gp-transition);
@@ -632,7 +776,7 @@ export function getAdminCss() {
     height: 20px;
     background: #fff;
     border-radius: 50%;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
     transition: transform var(--gp-transition);
 }
 
@@ -646,6 +790,30 @@ export function getAdminCss() {
 
 .gp-wrap .gp-toggle input:focus-visible + .gp-toggle-track {
     box-shadow: 0 0 0 3px var(--gp-primary-ring);
+}
+
+/* ==========================================
+   Theme Switcher
+   ========================================== */
+
+.gp-wrap .gp-theme-switcher {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.gp-wrap .gp-theme-switcher .gp-theme-icon {
+    width: 16px;
+    height: 16px;
+    min-width: 16px;
+    min-height: 16px;
+    max-width: 16px;
+    max-height: 16px;
+    color: var(--gp-text-muted);
+}
+
+.gp-wrap .gp-theme-switcher .gp-theme-icon.gp-active-icon {
+    color: var(--gp-primary);
 }
 
 /* ==========================================
@@ -663,28 +831,49 @@ export function getAdminCss() {
     line-height: 1.5;
 }
 
+.gp-wrap .gp-alert-icon {
+    width: 18px;
+    height: 18px;
+    min-width: 18px;
+    min-height: 18px;
+    max-width: 18px;
+    max-height: 18px;
+    flex-shrink: 0;
+}
+
 .gp-wrap .gp-alert-error {
     background: var(--gp-rose-light);
-    border: 1px solid #fecdd3;
-    color: var(--gp-rose-dark);
+    border: 1px solid rgba(248, 113, 113, 0.25);
+    color: var(--gp-rose);
 }
 
 .gp-wrap .gp-alert-success {
     background: var(--gp-emerald-light);
-    border: 1px solid #a7f3d0;
-    color: var(--gp-emerald-dark);
+    border: 1px solid rgba(74, 222, 128, 0.25);
+    color: var(--gp-emerald);
 }
 
 .gp-wrap .gp-alert-warning {
     background: var(--gp-amber-light);
-    border: 1px solid #fde68a;
-    color: var(--gp-amber-dark);
+    border: 1px solid rgba(251, 191, 36, 0.25);
+    color: var(--gp-amber);
 }
 
-.gp-wrap .gp-alert-icon {
-    flex-shrink: 0;
-    font-size: 18px;
-    line-height: 1;
+/* Light theme alert overrides */
+.gp-wrap.gp-theme-light .gp-alert-error {
+    background: #fff1f2;
+    border-color: #fecdd3;
+    color: #e11d48;
+}
+.gp-wrap.gp-theme-light .gp-alert-success {
+    background: #ecfdf5;
+    border-color: #a7f3d0;
+    color: #059669;
+}
+.gp-wrap.gp-theme-light .gp-alert-warning {
+    background: #fffbeb;
+    border-color: #fde68a;
+    color: #d97706;
 }
 
 /* Result box (AJAX feedback) */
@@ -697,14 +886,14 @@ export function getAdminCss() {
 
 .gp-wrap .gp-result-box.gp-result-success {
     background: var(--gp-emerald-light);
-    color: var(--gp-emerald-dark);
-    border: 1px solid #a7f3d0;
+    color: var(--gp-emerald);
+    border: 1px solid rgba(74, 222, 128, 0.25);
 }
 
 .gp-wrap .gp-result-box.gp-result-error {
     background: var(--gp-rose-light);
-    color: var(--gp-rose-dark);
-    border: 1px solid #fecdd3;
+    color: var(--gp-rose);
+    border: 1px solid rgba(248, 113, 113, 0.25);
 }
 
 /* ==========================================
@@ -713,7 +902,7 @@ export function getAdminCss() {
 
 .gp-wrap .gp-divider {
     border: none;
-    border-top: 1px solid var(--gp-slate-100);
+    border-top: 1px solid var(--gp-border-light);
     margin: 20px 0;
 }
 
@@ -725,7 +914,7 @@ export function getAdminCss() {
     text-align: center;
     padding: 16px 0 8px;
     font-size: 12px;
-    color: var(--gp-slate-400);
+    color: var(--gp-text-muted);
 }
 
 .gp-wrap .gp-footer a {
@@ -787,14 +976,19 @@ export function getAdminCss() {
 
 /* Recommendation Banner */
 .gp-wrap .gp-recommendation-banner {
-    background: linear-gradient(135deg, var(--gp-amber-light) 0%, #fef3c7 100%);
-    border: 1px solid #fde68a;
+    background: var(--gp-amber-light);
+    border: 1px solid rgba(251, 191, 36, 0.25);
     border-radius: var(--gp-radius-lg);
     padding: 18px 24px;
     margin-bottom: 20px;
     display: flex;
     align-items: center;
     gap: 16px;
+}
+
+.gp-wrap.gp-theme-light .gp-recommendation-banner {
+    background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+    border-color: #fde68a;
 }
 
 .gp-wrap .gp-recommendation-banner .gp-rec-icon {
@@ -806,12 +1000,12 @@ export function getAdminCss() {
 .gp-wrap .gp-recommendation-banner h3 {
     margin: 0 0 4px;
     font-size: 14px;
-    color: var(--gp-amber-dark);
+    color: var(--gp-amber);
 }
 
 .gp-wrap .gp-recommendation-banner p {
     margin: 0;
-    color: var(--gp-slate-500);
+    color: var(--gp-text-secondary);
     font-size: 13px;
 }
 
@@ -828,8 +1022,8 @@ export function getAdminCss() {
 }
 
 .gp-wrap .gp-stat-card {
-    background: #fff;
-    border: 1px solid var(--gp-slate-200);
+    background: var(--gp-card-bg);
+    border: 1px solid var(--gp-border);
     border-radius: var(--gp-radius-lg);
     padding: 20px;
     text-align: center;
@@ -845,14 +1039,14 @@ export function getAdminCss() {
 .gp-wrap .gp-stat-value {
     font-size: 28px;
     font-weight: 700;
-    color: var(--gp-slate-800);
+    color: var(--gp-text);
     display: block;
     line-height: 1.2;
 }
 
 .gp-wrap .gp-stat-label {
     font-size: 12px;
-    color: var(--gp-slate-400);
+    color: var(--gp-text-muted);
     margin-top: 4px;
     display: block;
     text-transform: uppercase;
@@ -877,18 +1071,19 @@ export function getAdminCss() {
     font-weight: 600;
     margin-bottom: 6px;
     font-size: 13px;
-    color: var(--gp-slate-600);
+    color: var(--gp-text-secondary);
 }
 
 .gp-wrap .gp-redirect-form-grid .gp-form-group input,
 .gp-wrap .gp-redirect-form-grid .gp-form-group select {
     padding: 8px 12px;
-    border: 1px solid var(--gp-slate-300);
+    border: 1px solid var(--gp-input-border);
     border-radius: var(--gp-radius-sm);
     width: 100%;
     font-family: var(--gp-font);
     font-size: 14px;
-    color: var(--gp-slate-700);
+    color: var(--gp-text);
+    background: var(--gp-input-bg);
     transition: border-color var(--gp-transition), box-shadow var(--gp-transition);
 }
 
@@ -929,9 +1124,9 @@ export function getAdminCss() {
 .gp-wrap .gp-redirects-table th {
     text-align: start;
     padding: 10px 12px;
-    border-bottom: 2px solid var(--gp-slate-200);
+    border-bottom: 2px solid var(--gp-border);
     font-weight: 600;
-    color: var(--gp-slate-600);
+    color: var(--gp-text-secondary);
     font-size: 12px;
     text-transform: uppercase;
     letter-spacing: 0.04em;
@@ -939,14 +1134,14 @@ export function getAdminCss() {
 
 .gp-wrap .gp-redirects-table td {
     padding: 12px;
-    border-bottom: 1px solid var(--gp-slate-100);
+    border-bottom: 1px solid var(--gp-border-light);
     vertical-align: middle;
     font-size: 14px;
-    color: var(--gp-slate-700);
+    color: var(--gp-text);
 }
 
 .gp-wrap .gp-redirects-table tr:hover {
-    background: var(--gp-slate-50);
+    background: var(--gp-surface);
 }
 
 .gp-wrap .gp-redirects-table tr.gp-inactive {
@@ -954,12 +1149,13 @@ export function getAdminCss() {
 }
 
 .gp-wrap .gp-redirects-table td code {
-    background: var(--gp-slate-50);
-    border: 1px solid var(--gp-slate-200);
+    background: var(--gp-code-bg);
+    border: 1px solid var(--gp-code-border);
     padding: 2px 6px;
     border-radius: 4px;
     font-size: 12px;
     font-family: 'SF Mono', 'Cascadia Code', Consolas, monospace;
+    color: var(--gp-code-text);
     word-break: break-all;
 }
 
@@ -974,7 +1170,7 @@ export function getAdminCss() {
 
 .gp-wrap .gp-type-301 {
     background: var(--gp-emerald-light);
-    color: var(--gp-emerald-dark);
+    color: var(--gp-emerald);
 }
 
 .gp-wrap .gp-type-302 {
@@ -984,7 +1180,7 @@ export function getAdminCss() {
 
 .gp-wrap .gp-type-307 {
     background: var(--gp-amber-light);
-    color: var(--gp-amber-dark);
+    color: var(--gp-amber);
 }
 
 /* Status Toggle */
@@ -999,11 +1195,12 @@ export function getAdminCss() {
     padding: 4px 8px;
     border-radius: var(--gp-radius-sm);
     font-family: var(--gp-font);
+    color: var(--gp-text);
     transition: background var(--gp-transition);
 }
 
 .gp-wrap .gp-status-toggle:hover {
-    background: var(--gp-slate-100);
+    background: var(--gp-surface);
 }
 
 .gp-wrap .gp-status-toggle .gp-dot {
@@ -1046,14 +1243,14 @@ export function getAdminCss() {
 .gp-wrap .gp-empty-state {
     text-align: center;
     padding: 48px 20px;
-    color: var(--gp-slate-400);
+    color: var(--gp-text-muted);
 }
 
 .gp-wrap .gp-empty-state .dashicons {
     font-size: 48px;
     width: 48px;
     height: 48px;
-    color: var(--gp-slate-200);
+    color: var(--gp-border);
     margin-bottom: 12px;
 }
 

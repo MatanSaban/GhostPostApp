@@ -164,6 +164,37 @@ export function getAdminJs() {
         });
     });
 
+    // ========== Settings: Theme toggle ==========
+
+    $(document).on('change', '#gp-theme-toggle', function() {
+        var isLight = $(this).is(':checked');
+        var theme = isLight ? 'light' : 'dark';
+        var wrap = $('.gp-wrap');
+
+        // Apply theme immediately
+        if (isLight) {
+            wrap.addClass('gp-theme-light');
+        } else {
+            wrap.removeClass('gp-theme-light');
+        }
+
+        // Update icon highlights
+        var icons = $(this).closest('.gp-theme-switcher').find('.gp-theme-icon');
+        icons.removeClass('gp-active-icon');
+        if (isLight) {
+            icons.last().addClass('gp-active-icon');
+        } else {
+            icons.first().addClass('gp-active-icon');
+        }
+
+        // Save to server
+        $.post(gpAdmin.ajaxUrl, {
+            action: 'gp_save_theme',
+            nonce: gpAdmin.nonce,
+            theme: theme,
+        });
+    });
+
     // ========== Settings: Language save ==========
 
     $(document).on('submit', '#gp-language-form', function(e) {

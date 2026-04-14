@@ -10,10 +10,18 @@
  */
 
 // Current plugin version - increment this when making updates
-export const PLUGIN_VERSION = "2.4.9";
+export const PLUGIN_VERSION = "2.5.0";
 
 // Changelog for the current version
 export const PLUGIN_CHANGELOG = `
+= 2.5.0 =
+* NEW: Dark theme by default matching the Ghost Post platform design
+* NEW: Light theme option with toggle in Settings page
+* NEW: Purple color scheme (#9B4DE0/#7B2CBF) consistent with platform branding
+* NEW: Purple sidebar icon in WordPress admin menu
+* FIX: SVG icons no longer stretch to 100% width
+* FIX: Redirections page now uses unified theme system
+
 = 2.4.9 =
 * FIX: Scheduling published posts now correctly sets future status on WordPress
 * FIX: Added edit_date flag so WordPress recalculates post_date_gmt on date changes

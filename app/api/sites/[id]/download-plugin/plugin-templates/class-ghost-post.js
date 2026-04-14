@@ -57,6 +57,9 @@ class Ghost_Post {
         // Admin styles and scripts
         add_action('admin_enqueue_scripts', array($this, 'enqueue_admin_styles'));
         
+        // Global admin head styles (sidebar icon)
+        add_action('admin_head', array($this, 'admin_head_styles'));
+        
         // Frontend redirect execution
         add_action('template_redirect', array($this->redirections_manager, 'maybe_redirect'));
         
@@ -69,6 +72,7 @@ class Ghost_Post {
         add_action('wp_ajax_gp_delete_redirect', array($this, 'ajax_delete_redirect'));
         add_action('wp_ajax_gp_toggle_redirect', array($this, 'ajax_toggle_redirect'));
         add_action('wp_ajax_gp_save_language', array($this, 'ajax_save_language'));
+        add_action('wp_ajax_gp_save_theme', array($this, 'ajax_save_theme'));
         add_action('wp_ajax_gp_deactivate_plugin', array($this, 'ajax_deactivate_plugin'));
         
         // Schedule ping cron
@@ -95,7 +99,7 @@ class Ghost_Post {
      * Add admin menu - top-level menu with child pages
      */
     public function add_admin_menu() {
-        $icon = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMzUgMjg4Ij48cGF0aCBmaWxsPSJibGFjayIgZD0iTTMxMy43MzYgMTI3Ljc0N0MzMTMuNjgxIDEyMy4yMjkgMzExLjkyNCAxMTIuMzYyIDMxMS4wNjQgMTA3LjcxNkMzMTAuMjA0IDEwMy4wNTEgMzE0Ljc5NyA5MS44MDA3IDMxNi44MTkgODMuMjY3M0MzMTkuNTI3IDcxLjgzMzkgMzIwLjM0MSA2MS41OTkxIDMxNy4xNzYgNTYuMDM3N0MzMTQuNDc3IDUxLjI5MDkgMjkxLjk2MSA1Mi41MjU4IDI4Mi43NzUgNTMuNjU5NkMyNzkuOTg1IDU0LjAwNzUgMjY4LjI4MyAzNS4xMTA1IDI0NC42NjkgMjEuMzgxNkMyMjMuNjgyIDkuMTg5MiAxOTEuODI1IDIgMTcwLjY5MSAyQzEwOS43NTggMiA1Ny42MjcgMzkuMDUyNyAzNi4zODI4IDkxLjQ3MTZDMzYuMjE4MSA5MS44ODM0IDMwLjg5MzQgOTAuNDQ3MSAyMi42Nzc1IDkxLjc4MjdDMTQuMjQyMiA5My4xNTQ3IDIuODk3MzcgOTcuMzUzMSAyLjExMDU0IDEwMS4zNUMxLjI3Nzk4IDEwNS41NTcgNS4yMzAzNSAxMjAuMDQ1IDExLjIwNDcgMTMwLjU1NUMxNy42ODIyIDE0MS45NDMgMjUuMzQ5MSAxNDkuNzQ1IDI1LjM5NDggMTUwLjg0MkMyNy44Mzc2IDIwNC45MTYgNjEuOTgxNiAyNTAuNjQ5IDEwOS4yIDI3Mi40OTFDMTIyLjc5NiAyNzguNzg0IDE0NC4xOTUgMjg2LjczMiAxNzAuNjkxIDI4NS45NDZDMjQ1LjgwNCAyODMuNzIzIDMwMi45OTUgMjEzLjQ2OSAzMjUuMTQ0IDE0NS45MDNDMzMwLjA4NSAxMzAuODI5IDMzMy4xNSAxMTYuOTI2IDMzMi45OTQgMTA4Ljc3N0MzMzIuOTg1IDEwOC4xMTggMzMyLjI5OSAxMDcuNjg5IDMzMS42OTUgMTA3Ljk3MkMzMjcuNjk3IDEwOS44NDcgMzE2LjA4NyAxMTYuMDY3IDMxMy41MjUgMTE4LjY4M1oiLz48L3N2Zz4=';
+        $icon = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMzUgMjg4Ij48cGF0aCBmaWxsPSIjOUI0REUwIiBkPSJNMzEzLjczNiAxMjcuNzQ3QzMxMy42ODEgMTIzLjIyOSAzMTEuOTI0IDExMi4zNjIgMzExLjA2NCAxMDcuNzE2QzMxMC4yMDQgMTAzLjA1MSAzMTQuNzk3IDkxLjgwMDcgMzE2LjgxOSA4My4yNjczQzMxOS41MjcgNzEuODMzOSAzMjAuMzQxIDYxLjU5OTEgMzE3LjE3NiA1Ni4wMzc3QzMxNC40NzcgNTEuMjkwOSAyOTEuOTYxIDUyLjUyNTggMjgyLjc3NSA1My42NTk2QzI3OS45ODUgNTQuMDA3NSAyNjguMjgzIDM1LjExMDUgMjQ0LjY2OSAyMS4zODE2QzIyMy42ODIgOS4xODkyIDE5MS44MjUgMiAxNzAuNjkxIDJDMTA5Ljc1OCAyIDU3LjYyNyAzOS4wNTI3IDM2LjM4MjggOTEuNDcxNkMzNi4yMTgxIDkxLjg4MzQgMzAuODkzNCA5MC40NDcxIDIyLjY3NzUgOTEuNzgyN0MxNC4yNDIyIDkzLjE1NDcgMi44OTczNyA5Ny4zNTMxIDIuMTEwNTQgMTAxLjM1QzEuMjc3OTggMTA1LjU1NyA1LjIzMDM1IDEyMC4wNDUgMTEuMjA0NyAxMzAuNTU1QzE3LjY4MjIgMTQxLjk0MyAyNS4zNDkxIDE0OS43NDUgMjUuMzk0OCAxNTAuODQyQzI3LjgzNzYgMjA0LjkxNiA2MS45ODE2IDI1MC42NDkgMTA5LjIgMjcyLjQ5MUMxMjIuNzk2IDI3OC43ODQgMTQ0LjE5NSAyODYuNzMyIDE3MC42OTEgMjg1Ljk0NkMyNDUuODA0IDI4My43MjMgMzAyLjk5NSAyMTMuNDY5IDMyNS4xNDQgMTQ1LjkwM0MzMzAuMDg1IDEzMC44MjkgMzMzLjE1IDExNi45MjYgMzMyLjk5NCAxMDguNzc3QzMzMi45ODUgMTA4LjExOCAzMzIuMjk5IDEwNy42ODkgMzMxLjY5NSAxMDcuOTcyQzMyNy42OTcgMTA5Ljg0NyAzMTYuMDg3IDExNi4wNjcgMzEzLjUyNSAxMTguNjgzWiIvPjwvc3ZnPg==';
         
         // Top-level menu
         add_menu_page(
@@ -204,6 +208,7 @@ class Ghost_Post {
                 'saving'              => __('Saving...', 'ghost-post-connector'),
                 'save_settings'       => __('Save Settings', 'ghost-post-connector'),
                 'settings_saved'      => __('Settings saved successfully!', 'ghost-post-connector'),
+                'theme_saved'         => __('Theme saved!', 'ghost-post-connector'),
             ),
         ));
     }
@@ -228,6 +233,55 @@ class Ghost_Post {
      */
     public function render_settings_page() {
         include GP_CONNECTOR_PLUGIN_DIR . 'admin/views/settings-page.php';
+    }
+    
+    /**
+     * Print global admin styles (sidebar icon styling — runs on ALL admin pages)
+     */
+    public function admin_head_styles() {
+        echo '<style>
+            #adminmenu .toplevel_page_ghost-post-connector .wp-menu-image img {
+                filter: none !important;
+                opacity: 1 !important;
+            }
+            #adminmenu .toplevel_page_ghost-post-connector:hover .wp-menu-image img,
+            #adminmenu .toplevel_page_ghost-post-connector.current .wp-menu-image img,
+            #adminmenu .toplevel_page_ghost-post-connector.wp-has-current-submenu .wp-menu-image img {
+                filter: brightness(1.15) !important;
+                opacity: 1 !important;
+            }
+            #adminmenu .toplevel_page_ghost-post-connector.wp-has-current-submenu,
+            #adminmenu .toplevel_page_ghost-post-connector.current {
+                background: rgba(155, 77, 224, 0.15) !important;
+            }
+            #adminmenu .toplevel_page_ghost-post-connector.wp-has-current-submenu > a,
+            #adminmenu .toplevel_page_ghost-post-connector.current > a {
+                color: #B06AE8 !important;
+            }
+            #adminmenu .toplevel_page_ghost-post-connector .wp-submenu a:hover,
+            #adminmenu .toplevel_page_ghost-post-connector .wp-submenu a.current {
+                color: #B06AE8 !important;
+            }
+        </style>';
+    }
+    
+    /**
+     * AJAX: Save theme preference
+     */
+    public function ajax_save_theme() {
+        check_ajax_referer('gp_connector_nonce', 'nonce');
+        
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error('Permission denied');
+        }
+        
+        $theme = sanitize_text_field($_POST['theme'] ?? 'dark');
+        if (!in_array($theme, array('dark', 'light'), true)) {
+            $theme = 'dark';
+        }
+        
+        update_option('gp_connector_theme', $theme);
+        wp_send_json_success(array('theme' => $theme));
     }
     
     /**

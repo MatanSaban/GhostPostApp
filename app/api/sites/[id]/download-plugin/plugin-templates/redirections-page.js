@@ -20,9 +20,11 @@ $has_external_plugin = !empty($detected_plugins);
 $connection_status = get_option('gp_connector_connection_status', '');
 $is_connected = $connection_status === 'connected';
 $dir = GP_I18n::dir_attr();
+$gp_theme = get_option('gp_connector_theme', 'dark');
+$theme_class = ($gp_theme === 'light') ? 'gp-theme-light' : '';
 ?>
 
-<div class="wrap gp-settings-page gp-redirections-page" dir="<?php echo esc_attr($dir); ?>">
+<div class="wrap gp-wrap gp-redirections-page <?php echo esc_attr($theme_class); ?>" dir="<?php echo esc_attr($dir); ?>">
     <h1>
         <span class="dashicons dashicons-randomize"></span>
         <?php esc_html_e('Redirections', 'ghost-post-connector'); ?>
