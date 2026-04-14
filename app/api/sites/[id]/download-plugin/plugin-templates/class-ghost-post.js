@@ -288,6 +288,13 @@ class Ghost_Post {
             'GhostPost AI',
             array($this, 'render_dashboard_widget')
         );
+        
+        // Force widget to top of dashboard
+        global $wp_meta_boxes;
+        $dashboard = $wp_meta_boxes['dashboard']['normal']['core'];
+        $widget = array('gp_dashboard_widget' => $dashboard['gp_dashboard_widget']);
+        unset($dashboard['gp_dashboard_widget']);
+        $wp_meta_boxes['dashboard']['normal']['core'] = array_merge($widget, $dashboard);
     }
     
     /**

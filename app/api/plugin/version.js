@@ -10,10 +10,13 @@
  */
 
 // Current plugin version - increment this when making updates
-export const PLUGIN_VERSION = "2.7.0";
+export const PLUGIN_VERSION = "2.7.1";
 
 // Changelog for the current version
 export const PLUGIN_CHANGELOG = `
+= 2.7.1 =
+* CHANGE: Dashboard widget now appears first (top of dashboard) by default
+
 = 2.7.0 =
 * NEW: WordPress Dashboard Widget — shows site health score, pending AI insights, and quick link to GhostPost dashboard
 * Zero-latency: widget data piggybacks on existing hourly ping (no extra API calls)
