@@ -10,10 +10,13 @@
  */
 
 // Current plugin version - increment this when making updates
-export const PLUGIN_VERSION = "2.6.2";
+export const PLUGIN_VERSION = "2.6.3";
 
 // Changelog for the current version
 export const PLUGIN_CHANGELOG = `
+= 2.6.3 =
+* CHANGE: Sidebar menu name changed to "GhostPost"
+
 = 2.6.2 =
 * FIX: Sidebar icon bypasses WP mask system entirely — uses direct background-image with purple SVG
 

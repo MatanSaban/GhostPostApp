@@ -105,7 +105,7 @@ class Ghost_Post {
         // Top-level menu
         add_menu_page(
             __('Ghost Post Connector', 'ghost-post-connector'),
-            __('Ghost Post Connector', 'ghost-post-connector'),
+            'GhostPost',
             'manage_options',
             'ghost-post-connector',
             array($this, 'render_admin_page'),
