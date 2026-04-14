@@ -170,7 +170,7 @@ export default function ScannedPageRow({
       if (!res.ok) {
         if (handleLimitError(data)) return; // shows global modal
         console.error('[QuickFix] Error:', data.error);
-        alert(data.error || 'Quick fix failed');
+        alert(data.error || t('siteAudit.actions.quickFixFailed'));
         return;
       }
 

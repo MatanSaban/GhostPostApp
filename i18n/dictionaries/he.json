@@ -805,7 +805,8 @@
       "rescan": "סרוק דף זה מחדש",
       "viewLive": "צפה בדף החי",
       "viewDetails": "צפה בפרטי הביקורת",
-      "quickFix": "תיקון מהיר AI"
+      "quickFix": "תיקון מהיר AI",
+      "quickFixFailed": "התיקון המהיר נכשל"
     },
     "credit": "קרדיט",
     "credits": "קרדיטים",
@@ -960,7 +961,8 @@
       "fileName": "שם קובץ",
       "viewFull": "צפה בתמונה המלאה",
       "suggestedAlt": "טקסט חלופי מוצע",
-      "generateAlt": "צור טקסט חלופי"
+      "generateAlt": "צור טקסט חלופי",
+      "fixFailed": "התיקון נכשל"
     },
     "aiFix": {
       "label": "תיקון AI",

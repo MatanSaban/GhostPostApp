@@ -78,7 +78,7 @@ export default function AccessibilityIssueCard({
       const data = await res.json();
       if (!res.ok) {
         if (handleLimitError(data)) return; // shows global modal
-        alert(data.error || 'Fix failed');
+        alert(data.error || t('siteAudit.a11y.fixFailed'));
         return;
       }
 

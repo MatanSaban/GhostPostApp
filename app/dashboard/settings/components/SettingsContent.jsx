@@ -3869,10 +3869,10 @@ function AddonsSettings({ translations, canEdit = true }) {
           setPurchasedAddons(purchasesData.purchases || []);
         }
       } else {
-        setPurchaseMessages(prev => ({ ...prev, [addon.id]: { type: 'error', text: data.error || 'Purchase failed' } }));
+        setPurchaseMessages(prev => ({ ...prev, [addon.id]: { type: 'error', text: data.error || translate('addCreditsModal.purchaseFailed') } }));
       }
     } catch (error) {
-      setPurchaseMessages(prev => ({ ...prev, [addon.id]: { type: 'error', text: 'Purchase failed' } }));
+      setPurchaseMessages(prev => ({ ...prev, [addon.id]: { type: 'error', text: translate('addCreditsModal.purchaseFailed') } }));
     } finally {
       setPurchasing(prev => ({ ...prev, [addon.id]: false }));
     }
@@ -4799,7 +4799,7 @@ function AccountSettings({ translations, canEdit = true }) {
   const [deleteError, setDeleteError] = useState(null);
   
   // The confirmation text required (language-specific)
-  const requiredConfirmText = locale === 'he' ? 'מחיקת חשבון' : 'DELETE ACCOUNT';
+  const requiredConfirmText = t('settings.accountSection.deleteAccountConfirmText');
   const canDelete = deleteConfirmText === requiredConfirmText;
 
   // Fetch current account on mount

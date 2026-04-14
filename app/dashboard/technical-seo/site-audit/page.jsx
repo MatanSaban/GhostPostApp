@@ -863,9 +863,9 @@ export default function SiteAuditPage() {
           const data = await res.json();
           if (!res.ok) {
             if (data.error === 'pluginUpdateRequired') {
-              setError(t('audit.errors.pluginUpdateRequired') || 'The WordPress plugin needs to be updated to support this fix. Please update the Ghost Post plugin.');
+              setError(t('audit.errors.pluginUpdateRequired'));
             } else {
-              setError(data.message || data.error || 'Fix failed');
+              setError(data.message || data.error || t('siteAudit.a11y.fixFailed'));
             }
             console.error('[FixNoindex] Failed:', data.error);
             return;

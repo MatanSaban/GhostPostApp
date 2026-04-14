@@ -714,7 +714,7 @@ export function InterviewContent({ translations }) {
             value={editValue}
             onChange={(e) => setEditValue(e.target.value)}
             rows={4}
-            placeholder="הזן כתובת URL של מתחרה בכל שורה"
+            placeholder={t('interview.placeholders.competitors')}
           />
         );
       case 'articles':

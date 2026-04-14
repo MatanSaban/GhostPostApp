@@ -805,7 +805,8 @@
       "rescan": "Rescan this page",
       "viewLive": "View live page",
       "viewDetails": "View audit details",
-      "quickFix": "AI Quick Fix"
+      "quickFix": "AI Quick Fix",
+      "quickFixFailed": "Quick fix failed"
     },
     "credit": "Credit",
     "credits": "Credits",
@@ -960,7 +961,8 @@
       "fileName": "File Name",
       "viewFull": "View Full Image",
       "suggestedAlt": "Suggested Alt Text",
-      "generateAlt": "Generate Alt Text"
+      "generateAlt": "Generate Alt Text",
+      "fixFailed": "Fix failed"
     },
     "aiFix": {
       "label": "AI Fix",
