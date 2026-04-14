@@ -10,10 +10,13 @@
  */
 
 // Current plugin version - increment this when making updates
-export const PLUGIN_VERSION = "2.6.1";
+export const PLUGIN_VERSION = "2.6.2";
 
 // Changelog for the current version
 export const PLUGIN_CHANGELOG = `
+= 2.6.2 =
+* FIX: Sidebar icon bypasses WP mask system entirely — uses direct background-image with purple SVG
+
 = 2.6.1 =
 * FIX: Sidebar icon forced purple on all WP states (hover, active, current-submenu, opensub)
 
