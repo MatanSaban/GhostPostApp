@@ -10,10 +10,14 @@
  */
 
 // Current plugin version - increment this when making updates
-export const PLUGIN_VERSION = "2.5.7";
+export const PLUGIN_VERSION = "2.5.8";
 
 // Changelog for the current version
 export const PLUGIN_CHANGELOG = `
+= 2.5.8 =
+* CHANGE: Status hero moved inside Connection card on Settings page
+* NEW: Check for Updates button added to Connection section in Settings page
+
 = 2.5.7 =
 * FIX: Page header icons now use inline SVG instead of <img> — eliminates all file/browser caching issues
 * FIX: Sidebar icon uses data URI + CSS mask coloring — purple on all states

@@ -37,22 +37,6 @@ $status_text = $status_labels[$status] ?? __('Unknown', 'ghost-post-connector');
         <h1 class="gp-header-title"><?php esc_html_e('Settings', 'ghost-post-connector'); ?></h1>
     </div>
 
-    <!-- Connection Status Hero -->
-    <div class="gp-status-hero gp-status-<?php echo esc_attr($status); ?>">
-        <span class="gp-status-pulse"></span>
-        <span class="gp-status-label"><?php echo esc_html($status_text); ?></span>
-        <?php if ($last_ping): ?>
-        <span class="gp-status-meta">
-            <?php
-            printf(
-                esc_html__('Last ping %s ago', 'ghost-post-connector'),
-                human_time_diff($last_ping)
-            );
-            ?>
-        </span>
-        <?php endif; ?>
-    </div>
-
     <div class="gp-card-grid">
 
         <!-- Appearance Card -->
@@ -103,6 +87,22 @@ $status_text = $status_labels[$status] ?? __('Unknown', 'ghost-post-connector');
                 <h2 class="gp-card-title"><?php esc_html_e('Connection', 'ghost-post-connector'); ?></h2>
             </div>
 
+            <!-- Status Hero inside Connection card -->
+            <div class="gp-status-hero gp-status-<?php echo esc_attr($status); ?>">
+                <span class="gp-status-pulse"></span>
+                <span class="gp-status-label"><?php echo esc_html($status_text); ?></span>
+                <?php if ($last_ping): ?>
+                <span class="gp-status-meta">
+                    <?php
+                    printf(
+                        esc_html__('Last ping %s ago', 'ghost-post-connector'),
+                        human_time_diff($last_ping)
+                    );
+                    ?>
+                </span>
+                <?php endif; ?>
+            </div>
+
             <?php if ($last_error): ?>
             <div class="gp-alert gp-alert-error">
                 <svg class="gp-alert-icon" width="18" height="18" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
@@ -122,6 +122,18 @@ $status_text = $status_labels[$status] ?? __('Unknown', 'ghost-post-connector');
                     <?php esc_html_e('Disconnect', 'ghost-post-connector'); ?>
                 </button>
                 <?php endif; ?>
+            </div>
+
+            <hr class="gp-divider">
+
+            <div class="gp-form-group">
+                <label><?php esc_html_e('Plugin', 'ghost-post-connector'); ?></label>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <span><?php echo esc_html(GP_CONNECTOR_VERSION); ?></span>
+                    <button type="button" class="gp-btn gp-btn-secondary gp-btn-sm" id="gp-check-updates">
+                        <?php esc_html_e('Check for Updates', 'ghost-post-connector'); ?>
+                    </button>
+                </div>
             </div>
         </div>
 
