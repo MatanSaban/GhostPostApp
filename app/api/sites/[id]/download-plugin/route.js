@@ -160,13 +160,17 @@ export async function GET(request, { params }) {
     });
 
     // Return as downloadable file
-    // Use short key identifier in filename (first 8 chars of siteKey)
-    const shortKey = siteKey.replace('gp_site_', '').substring(0, 8);
+    // Build filename: Ghost-Post-Connector-{siteName}_{version}.zip
+    const safeName = (site.name || 'site')
+      .replace(/[^a-zA-Z0-9\u0590-\u05FF\s-]/g, '')
+      .trim()
+      .replace(/\s+/g, '-');
+    const fileName = `Ghost-Post-Connector-${safeName}_${PLUGIN_VERSION}.zip`;
     return new NextResponse(zipBuffer, {
       status: 200,
       headers: {
         'Content-Type': 'application/zip',
-        'Content-Disposition': `attachment; filename="ghost-post-connector-${shortKey}.zip"`,
+        'Content-Disposition': `attachment; filename="${encodeURIComponent(fileName)}"; filename*=UTF-8''${encodeURIComponent(fileName)}`,
         'Content-Length': zipBuffer.length.toString(),
       },
     });
