@@ -10,10 +10,13 @@
  */
 
 // Current plugin version - increment this when making updates
-export const PLUGIN_VERSION = "2.6.0";
+export const PLUGIN_VERSION = "2.6.1";
 
 // Changelog for the current version
 export const PLUGIN_CHANGELOG = `
+= 2.6.1 =
+* FIX: Sidebar icon forced purple on all WP states (hover, active, current-submenu, opensub)
+
 = 2.6.0 =
 * NEW: Site Key and Site ID are blurred by default with eye toggle to reveal
 

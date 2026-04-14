@@ -241,11 +241,21 @@ class Ghost_Post {
      */
     public function admin_head_styles() {
         echo '<style>
-            /* WP converts data URI SVG to mask-image — color the mask purple */
-            #adminmenu .toplevel_page_ghost-post-connector .wp-menu-image.svg {
-                background-color: #9B4DE0 !important;
-            }
-            #adminmenu .toplevel_page_ghost-post-connector .wp-menu-image.svg::after {
+            /* WP converts data URI SVG to mask-image — force purple on ALL states */
+            #adminmenu .toplevel_page_ghost-post-connector .wp-menu-image.svg,
+            #adminmenu .toplevel_page_ghost-post-connector .wp-menu-image.svg:before,
+            #adminmenu .toplevel_page_ghost-post-connector .wp-menu-image.svg:after,
+            #adminmenu .toplevel_page_ghost-post-connector:hover .wp-menu-image.svg,
+            #adminmenu .toplevel_page_ghost-post-connector:hover .wp-menu-image.svg:before,
+            #adminmenu .toplevel_page_ghost-post-connector:hover .wp-menu-image.svg:after,
+            #adminmenu .toplevel_page_ghost-post-connector:focus .wp-menu-image.svg,
+            #adminmenu .toplevel_page_ghost-post-connector:focus .wp-menu-image.svg:after,
+            #adminmenu .toplevel_page_ghost-post-connector.current .wp-menu-image.svg,
+            #adminmenu .toplevel_page_ghost-post-connector.current .wp-menu-image.svg:after,
+            #adminmenu .toplevel_page_ghost-post-connector.wp-has-current-submenu .wp-menu-image.svg,
+            #adminmenu .toplevel_page_ghost-post-connector.wp-has-current-submenu .wp-menu-image.svg:after,
+            #adminmenu .toplevel_page_ghost-post-connector.opensub .wp-menu-image.svg,
+            #adminmenu .toplevel_page_ghost-post-connector.opensub .wp-menu-image.svg:after {
                 background-color: #9B4DE0 !important;
             }
             #adminmenu .toplevel_page_ghost-post-connector .wp-menu-image img {
