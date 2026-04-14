@@ -166,25 +166,20 @@ export function getAdminJs() {
 
     // ========== Settings: Theme toggle ==========
 
-    $(document).on('change', '#gp-theme-toggle', function() {
-        var isLight = $(this).is(':checked');
-        var theme = isLight ? 'light' : 'dark';
+    $(document).on('click', '.gp-theme-option', function() {
+        var btn = $(this);
+        var theme = btn.data('theme');
         var wrap = $('.gp-wrap');
 
-        // Apply theme immediately
-        if (isLight) {
-            wrap.addClass('gp-theme-light');
-        } else {
-            wrap.removeClass('gp-theme-light');
-        }
+        // Update segmented picker UI
+        btn.siblings('.gp-theme-option').removeClass('gp-active-option');
+        btn.addClass('gp-active-option');
 
-        // Update icon highlights
-        var icons = $(this).closest('.gp-theme-switcher').find('.gp-theme-icon');
-        icons.removeClass('gp-active-icon');
-        if (isLight) {
-            icons.last().addClass('gp-active-icon');
+        // Apply theme immediately
+        if (theme === 'dark') {
+            wrap.removeClass('gp-theme-light');
         } else {
-            icons.first().addClass('gp-active-icon');
+            wrap.addClass('gp-theme-light');
         }
 
         // Save to server

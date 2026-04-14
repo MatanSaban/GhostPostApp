@@ -4,7 +4,7 @@
 export function getAdminCss() {
   return `/**
  * Ghost Post Connector — Premium Admin Styles
- * Dark theme by default, light theme via .gp-theme-light
+ * Light theme by default, dark theme available via settings
  * Scoped under .gp-wrap to avoid WordPress conflicts
  */
 
@@ -793,27 +793,51 @@ export function getAdminCss() {
 }
 
 /* ==========================================
-   Theme Switcher
+   Theme Switcher (Segmented Picker)
    ========================================== */
 
 .gp-wrap .gp-theme-switcher {
-    display: flex;
+    display: inline-flex;
     align-items: center;
-    gap: 12px;
+    background: var(--gp-surface);
+    border: 1px solid var(--gp-border);
+    border-radius: var(--gp-radius-full);
+    padding: 3px;
+    gap: 0;
 }
 
-.gp-wrap .gp-theme-switcher .gp-theme-icon {
-    width: 16px;
-    height: 16px;
-    min-width: 16px;
-    min-height: 16px;
-    max-width: 16px;
-    max-height: 16px;
+.gp-wrap .gp-theme-switcher .gp-theme-option {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 16px;
+    border-radius: var(--gp-radius-full);
+    font-size: 13px;
+    font-weight: 500;
+    font-family: var(--gp-font);
     color: var(--gp-text-muted);
+    cursor: pointer;
+    border: none;
+    background: transparent;
+    transition: all var(--gp-transition);
+    white-space: nowrap;
 }
 
-.gp-wrap .gp-theme-switcher .gp-theme-icon.gp-active-icon {
-    color: var(--gp-primary);
+.gp-wrap .gp-theme-switcher .gp-theme-option:hover {
+    color: var(--gp-text-secondary);
+}
+
+.gp-wrap .gp-theme-switcher .gp-theme-option.gp-active-option {
+    background: var(--gp-primary);
+    color: #fff;
+    box-shadow: var(--gp-shadow-sm);
+}
+
+.gp-wrap .gp-theme-switcher .gp-theme-option svg {
+    width: 14px;
+    height: 14px;
+    min-width: 14px;
+    max-width: 14px;
 }
 
 /* ==========================================
@@ -1014,7 +1038,7 @@ export function getAdminCss() {
 }
 
 /* Stats Row */
-.gp-wrap .gp-stats-row {
+.gp-wrap .gp-redirections-stats {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
     gap: 16px;
@@ -1184,7 +1208,7 @@ export function getAdminCss() {
 }
 
 /* Status Toggle */
-.gp-wrap .gp-status-toggle {
+.gp-wrap .gp-toggle-status {
     cursor: pointer;
     display: inline-flex;
     align-items: center;
@@ -1199,22 +1223,22 @@ export function getAdminCss() {
     transition: background var(--gp-transition);
 }
 
-.gp-wrap .gp-status-toggle:hover {
+.gp-wrap .gp-toggle-status:hover {
     background: var(--gp-surface);
 }
 
-.gp-wrap .gp-status-toggle .gp-dot {
+.gp-wrap .gp-toggle-status .gp-dot {
     width: 8px;
     height: 8px;
     border-radius: 50%;
     display: inline-block;
 }
 
-.gp-wrap .gp-status-toggle.gp-active .gp-dot {
+.gp-wrap .gp-toggle-status.gp-active .gp-dot {
     background: var(--gp-emerald);
 }
 
-.gp-wrap .gp-status-toggle.gp-not-active .gp-dot {
+.gp-wrap .gp-toggle-status.gp-not-active .gp-dot {
     background: var(--gp-rose);
 }
 
@@ -1266,7 +1290,7 @@ export function getAdminCss() {
         max-width: 100%;
     }
 
-    .gp-wrap .gp-stats-row {
+    .gp-wrap .gp-redirections-stats {
         grid-template-columns: repeat(2, 1fr);
     }
 
@@ -1320,6 +1344,102 @@ export function getAdminCss() {
 [dir="rtl"] .gp-wrap .gp-redirects-table td code {
     direction: ltr;
     unicode-bidi: embed;
+}
+
+/* ==========================================
+   WordPress Native Overrides
+   (override WP defaults inside .gp-wrap)
+   ========================================== */
+
+/* Override WP widefat table for dark theme */
+.gp-wrap .widefat {
+    background: var(--gp-card-bg);
+    border-color: var(--gp-border);
+}
+
+.gp-wrap .widefat thead th,
+.gp-wrap .widefat thead td {
+    background: var(--gp-surface);
+    color: var(--gp-text-secondary);
+    border-color: var(--gp-border);
+}
+
+.gp-wrap .widefat tbody td {
+    background: var(--gp-card-bg);
+    color: var(--gp-text);
+    border-color: var(--gp-border-light);
+}
+
+.gp-wrap .widefat tbody tr:hover td {
+    background: var(--gp-surface);
+}
+
+.gp-wrap .widefat tbody tr.gp-inactive-row td {
+    opacity: 0.45;
+}
+
+/* Override WP native .button within our wrapper */
+.gp-wrap .button,
+.gp-wrap .button-secondary {
+    background: var(--gp-surface) !important;
+    color: var(--gp-text) !important;
+    border-color: var(--gp-border) !important;
+    box-shadow: var(--gp-shadow-sm) !important;
+    border-radius: var(--gp-radius-sm) !important;
+    font-family: var(--gp-font) !important;
+    transition: all var(--gp-transition) !important;
+}
+
+.gp-wrap .button:hover,
+.gp-wrap .button-secondary:hover {
+    background: var(--gp-card-bg-hover) !important;
+    border-color: var(--gp-border-strong) !important;
+    color: var(--gp-text) !important;
+}
+
+.gp-wrap .button-primary {
+    background: var(--gp-primary) !important;
+    color: #fff !important;
+    border-color: var(--gp-primary) !important;
+    box-shadow: var(--gp-shadow-sm) !important;
+    border-radius: var(--gp-radius-sm) !important;
+    font-family: var(--gp-font) !important;
+    transition: all var(--gp-transition) !important;
+}
+
+.gp-wrap .button-primary:hover {
+    background: var(--gp-primary-hover) !important;
+    border-color: var(--gp-primary-hover) !important;
+    color: #fff !important;
+}
+
+/* Override WP dashicons color within our wrapper */
+.gp-wrap .dashicons {
+    color: var(--gp-text-secondary);
+}
+
+/* Override WP notice within our wrapper */
+.gp-wrap .notice {
+    background: var(--gp-card-bg);
+    border-color: var(--gp-border);
+    color: var(--gp-text);
+    box-shadow: var(--gp-shadow-sm);
+}
+
+.gp-wrap .notice-success {
+    border-left-color: var(--gp-emerald);
+}
+
+.gp-wrap .notice-error {
+    border-left-color: var(--gp-rose);
+}
+
+/* ==========================================
+   Sidebar Branding
+   ========================================== */
+
+#adminmenu .toplevel_page_ghost-post-connector > a .wp-menu-name {
+    font-weight: 700 !important;
 }
 `;
 }

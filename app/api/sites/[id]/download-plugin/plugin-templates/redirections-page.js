@@ -20,15 +20,21 @@ $has_external_plugin = !empty($detected_plugins);
 $connection_status = get_option('gp_connector_connection_status', '');
 $is_connected = $connection_status === 'connected';
 $dir = GP_I18n::dir_attr();
-$gp_theme = get_option('gp_connector_theme', 'dark');
+$gp_theme = get_option('gp_connector_theme', 'light');
 $theme_class = ($gp_theme === 'light') ? 'gp-theme-light' : '';
 ?>
 
 <div class="wrap gp-wrap gp-redirections-page <?php echo esc_attr($theme_class); ?>" dir="<?php echo esc_attr($dir); ?>">
-    <h1>
-        <span class="dashicons dashicons-randomize"></span>
-        <?php esc_html_e('Redirections', 'ghost-post-connector'); ?>
-    </h1>
+
+    <!-- Header -->
+    <div class="gp-header">
+        <img src="<?php echo esc_url(GP_CONNECTOR_PLUGIN_URL . 'assets/icon.svg'); ?>"
+             alt="Ghost Post"
+             class="gp-header-icon"
+             width="36" height="36"
+             onerror="this.style.display='none'">
+        <h1 class="gp-header-title"><?php esc_html_e('Redirections', 'ghost-post-connector'); ?></h1>
+    </div>
     
     <?php if ($has_external_plugin && $primary_plugin !== 'ghost-post'): ?>
     <!-- Recommendation Banner -->
@@ -62,7 +68,7 @@ $theme_class = ($gp_theme === 'light') ? 'gp-theme-light' : '';
                 </div>
             </div>
             <div class="gp-recommendation-actions">
-                <button type="button" id="gp-import-redirects" class="button button-primary">
+                <button type="button" id="gp-import-redirects" class="gp-btn gp-btn-primary">
                     <span class="dashicons dashicons-download"></span>
                     <?php printf(
                         esc_html__('Import %d Redirects', 'ghost-post-connector'),
@@ -71,7 +77,7 @@ $theme_class = ($gp_theme === 'light') ? 'gp-theme-light' : '';
                 </button>
                 <?php foreach ($detected_plugins as $dp): ?>
                 <?php if (!empty($dp['file'])): ?>
-                <button type="button" class="button gp-deactivate-plugin" data-slug="<?php echo esc_attr($dp['file']); ?>" data-name="<?php echo esc_attr($dp['name']); ?>">
+                <button type="button" class="gp-btn gp-btn-secondary gp-deactivate-plugin" data-slug="<?php echo esc_attr($dp['file']); ?>" data-name="<?php echo esc_attr($dp['name']); ?>">
                     <span class="dashicons dashicons-no"></span>
                     <?php printf(esc_html__('Deactivate %s', 'ghost-post-connector'), esc_html($dp['name'])); ?>
                 </button>
@@ -135,11 +141,11 @@ $theme_class = ($gp_theme === 'light') ? 'gp-theme-light' : '';
                     </select>
                 </div>
                 <div class="gp-form-group gp-form-actions">
-                    <button type="submit" class="button button-primary" id="gp-save-redirect">
+                    <button type="submit" class="gp-btn gp-btn-primary" id="gp-save-redirect">
                         <span class="dashicons dashicons-plus-alt2"></span>
                         <?php esc_html_e('Add Redirect', 'ghost-post-connector'); ?>
                     </button>
-                    <button type="button" class="button" id="gp-cancel-edit" style="display: none;">
+                    <button type="button" class="gp-btn gp-btn-secondary" id="gp-cancel-edit" style="display: none;">
                         <?php esc_html_e('Cancel', 'ghost-post-connector'); ?>
                     </button>
                 </div>
@@ -196,14 +202,14 @@ $theme_class = ($gp_theme === 'light') ? 'gp-theme-light' : '';
                             <?php echo intval($redirect['hit_count']); ?>
                         </td>
                         <td class="gp-col-actions">
-                            <button type="button" class="button gp-edit-redirect" 
+                            <button type="button" class="gp-btn gp-btn-secondary gp-btn-sm gp-edit-redirect" 
                                 data-id="<?php echo esc_attr($redirect['id']); ?>"
                                 data-source="<?php echo esc_attr($redirect['source']); ?>"
                                 data-target="<?php echo esc_attr($redirect['target']); ?>"
                                 data-type="<?php echo esc_attr($redirect['type']); ?>">
                                 <span class="dashicons dashicons-edit"></span>
                             </button>
-                            <button type="button" class="button gp-delete-redirect" data-id="<?php echo esc_attr($redirect['id']); ?>">
+                            <button type="button" class="gp-btn gp-btn-danger gp-btn-sm gp-delete-redirect" data-id="<?php echo esc_attr($redirect['id']); ?>">
                                 <span class="dashicons dashicons-trash"></span>
                             </button>
                         </td>
@@ -212,6 +218,16 @@ $theme_class = ($gp_theme === 'light') ? 'gp-theme-light' : '';
                 </tbody>
             </table>
         <?php endif; ?>
+    </div>
+
+    <!-- Footer -->
+    <div class="gp-footer">
+        <?php
+        printf(
+            esc_html__('Powered by %s', 'ghost-post-connector'),
+            '<a href="https://ghostpost.co.il" target="_blank" rel="noopener">Ghost Post</a>'
+        );
+        ?>
     </div>
 </div>
 `;

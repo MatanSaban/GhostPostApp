@@ -16,7 +16,7 @@ if (!defined('ABSPATH')) {
 $status = get_option('gp_connector_connection_status', 'unknown');
 $last_ping = get_option('gp_connector_last_ping', null);
 $dir = GP_I18n::dir_attr();
-$gp_theme = get_option('gp_connector_theme', 'dark');
+$gp_theme = get_option('gp_connector_theme', 'light');
 $theme_class = ($gp_theme === 'light') ? 'gp-theme-light' : '';
 
 // Get redirect plugin detection

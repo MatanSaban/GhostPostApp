@@ -243,6 +243,8 @@ class Ghost_Post {
             #adminmenu .toplevel_page_ghost-post-connector .wp-menu-image img {
                 filter: none !important;
                 opacity: 1 !important;
+                max-width: 20px !important;
+                padding: 0 !important;
             }
             #adminmenu .toplevel_page_ghost-post-connector:hover .wp-menu-image img,
             #adminmenu .toplevel_page_ghost-post-connector.current .wp-menu-image img,
@@ -262,6 +264,9 @@ class Ghost_Post {
             #adminmenu .toplevel_page_ghost-post-connector .wp-submenu a.current {
                 color: #B06AE8 !important;
             }
+            #adminmenu .toplevel_page_ghost-post-connector > a .wp-menu-name {
+                font-weight: 700 !important;
+            }
         </style>';
     }
     
@@ -275,9 +280,9 @@ class Ghost_Post {
             wp_send_json_error('Permission denied');
         }
         
-        $theme = sanitize_text_field($_POST['theme'] ?? 'dark');
+        $theme = sanitize_text_field($_POST['theme'] ?? 'light');
         if (!in_array($theme, array('dark', 'light'), true)) {
-            $theme = 'dark';
+            $theme = 'light';
         }
         
         update_option('gp_connector_theme', $theme);

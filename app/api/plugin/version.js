@@ -10,10 +10,21 @@
  */
 
 // Current plugin version - increment this when making updates
-export const PLUGIN_VERSION = "2.5.0";
+export const PLUGIN_VERSION = "2.5.1";
 
 // Changelog for the current version
 export const PLUGIN_CHANGELOG = `
+= 2.5.1 =
+* CHANGE: Light theme is now the default (dark theme still available in Settings)
+* NEW: Segmented theme picker (dark/light buttons) replaces basic toggle
+* NEW: Bold sidebar menu text and improved purple icon rendering
+* FIX: Redirections stats now display as horizontal grid (4 cubes in a row)
+* FIX: Dark theme — table rows, buttons, and notices now properly themed
+* FIX: WordPress native elements (.widefat, .button) properly themed within plugin
+* FIX: Added missing Hebrew translations (Appearance, Theme, Connection, etc.)
+* FIX: White-on-white text issues resolved with proper CSS variable usage
+* FIX: Redirections page uses platform-style header and buttons
+
 = 2.5.0 =
 * NEW: Dark theme by default matching the Ghost Post platform design
 * NEW: Light theme option with toggle in Settings page
