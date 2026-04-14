@@ -1,43 +1,46 @@
-'use client';
+﻿'use client';
 
 import { useState, useCallback, useEffect, useRef } from 'react';
-import { createPortal } from 'react-dom';
 import {
   BookOpen, Sparkles, Loader2, RefreshCw, PenLine, Check,
-  ChevronDown, Plus, X, Search as SearchIcon, AlertTriangle,
+  ChevronDown, Plus, X, BrainCircuit,
 } from 'lucide-react';
 import { useLocale } from '@/app/context/locale-context';
 import { useSite } from '@/app/context/site-context';
-import { ARTICLE_TYPE_KEY_MAP } from '../../wizardConfig';
+import { ARTICLE_TYPE_KEY_MAP, translateIntent } from '../../wizardConfig';
 import styles from '../../page.module.css';
 
 export default function SubjectsStep({ state, dispatch, translations }) {
   const t = translations.subjects;
   const tTypes = translations.articleTypes.types;
+  const intentsMap = t.intents || {};
   const { selectedSite } = useSite();
   const { locale } = useLocale();
   const [generating, setGenerating] = useState(false);
   const [error, setError] = useState(null);
-  // Which keyword accordion is open (index or null)
-  const [openKeyword, setOpenKeyword] = useState(0);
-  // Which subject is expanded to show explanation (key: `${kwIdx}-${subjIdx}`)
   const [expandedSubject, setExpandedSubject] = useState(null);
-  // Custom subject form state
   const [customTitle, setCustomTitle] = useState('');
   const [customExplanation, setCustomExplanation] = useState('');
   const [customArticleType, setCustomArticleType] = useState('');
-  const [validationPopup, setValidationPopup] = useState(null);
+  const [recommending, setRecommending] = useState(false);
+  const [recommendation, setRecommendation] = useState(null); // { explanation }
+  const prevLocaleRef = useRef(locale);
 
-  const totalKeywords = state.selectedKeywordIds.length + state.manualKeywords.length;
   const hasData = state.subjectSuggestions?.length > 0;
   const maxSelections = state.postsCount;
   const selectedCount = state.subjects.length;
   const canSelectMore = selectedCount < maxSelections;
+  const hasMainKeyword = !!state.mainKeyword?.trim();
 
   const handleGenerate = useCallback(async () => {
-    if (!selectedSite?.id) return;
+    if (!selectedSite?.id || !hasMainKeyword) return;
     setGenerating(true);
     setError(null);
+    setRecommendation(null);
+
+    // Clear previous suggestions when regenerating
+    dispatch({ type: 'SET_FIELD', field: 'subjectSuggestions', value: [] });
+    dispatch({ type: 'SET_FIELD', field: 'subjects', value: [] });
 
     try {
       const res = await fetch('/api/campaigns/generate-subjects', {
@@ -45,8 +48,8 @@ export default function SubjectsStep({ state, dispatch, translations }) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           siteId: selectedSite.id,
-          selectedKeywordIds: state.selectedKeywordIds,
-          manualKeywords: state.manualKeywords,
+          mainKeyword: state.mainKeyword,
+          pillarPageUrl: state.pillarPageUrl || '',
           articleTypes: state.articleTypes,
           postsCount: state.postsCount,
           locale,
@@ -58,69 +61,142 @@ export default function SubjectsStep({ state, dispatch, translations }) {
         throw new Error(data.error || t.errorGenerating || 'Failed to generate');
       }
 
-      const data = await res.json();
-      const suggestions = data.suggestions || [];
+      // Parse SSE stream
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      const collected = [];
+      let buffer = '';
 
-      // Store AI suggestions separately, clear selections
-      dispatch({ type: 'SET_FIELD', field: 'subjectSuggestions', value: suggestions });
-      dispatch({ type: 'SET_FIELD', field: 'subjects', value: [] });
-      setOpenKeyword(0);
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split('\n');
+        buffer = lines.pop() || '';
+
+        for (const line of lines) {
+          const trimmed = line.trim();
+          if (!trimmed.startsWith('data: ')) continue;
+          const payload = trimmed.slice(6);
+          if (payload === '[DONE]') continue;
+
+          try {
+            const parsed = JSON.parse(payload);
+            if (parsed.error) {
+              throw new Error(parsed.error);
+            }
+            collected.push(parsed);
+            dispatch({ type: 'SET_FIELD', field: 'subjectSuggestions', value: [...collected] });
+          } catch (parseErr) {
+            if (parseErr.message && !parseErr.message.includes('JSON')) {
+              throw parseErr;
+            }
+          }
+        }
+      }
     } catch (err) {
       console.error('Failed to generate subjects:', err);
       setError(err.message);
     } finally {
       setGenerating(false);
     }
-  }, [selectedSite?.id, state.selectedKeywordIds, state.manualKeywords, state.articleTypes, state.postsCount, locale, dispatch]);
+  }, [selectedSite?.id, state.mainKeyword, state.pillarPageUrl, state.articleTypes, state.postsCount, locale, dispatch, hasMainKeyword, t.errorGenerating]);
 
   // Auto-generate on first visit (no suggestions yet)
   const autoGenerated = useRef(false);
   useEffect(() => {
-    if (!hasData && !autoGenerated.current && !generating && totalKeywords > 0) {
+    if (!hasData && !autoGenerated.current && !generating && hasMainKeyword) {
       autoGenerated.current = true;
       handleGenerate();
     }
-  }, [hasData, generating, totalKeywords, handleGenerate]);
+  }, [hasData, generating, hasMainKeyword, handleGenerate]);
 
-  // Check if a subject is selected
-  const isSelected = (keyword, subjectIndex) => {
-    return state.subjects.some(
-      s => !s.isCustom && s.keyword === keyword && s.subjectIndex === subjectIndex
-    );
+  // Ask AI to recommend the best subjects and auto-select them
+  const handleRecommend = useCallback(async (subjects, currentLocale) => {
+    if (!subjects?.length || !state.mainKeyword) return;
+    setRecommending(true);
+
+    try {
+      const res = await fetch('/api/campaigns/recommend-subjects', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          mainKeyword: state.mainKeyword,
+          subjects,
+          postsCount: state.postsCount,
+          locale: currentLocale,
+        }),
+      });
+
+      if (!res.ok) return;
+
+      const data = await res.json();
+      setRecommendation({ explanation: data.explanation });
+
+      // Auto-select the recommended subjects (only if user hasn't manually selected any)
+      if (state.subjects.length === 0 && data.recommendedIndices?.length > 0) {
+        const selected = data.recommendedIndices
+          .filter(i => i >= 0 && i < subjects.length)
+          .map(i => ({
+            subjectIndex: i,
+            title: subjects[i].title,
+            explanation: subjects[i].explanation,
+            articleType: subjects[i].articleType,
+            intent: subjects[i].intent || '',
+            isCustom: false,
+          }));
+        dispatch({ type: 'SET_FIELD', field: 'subjects', value: selected });
+      }
+    } catch (err) {
+      console.error('Failed to get recommendation:', err);
+    } finally {
+      setRecommending(false);
+    }
+  }, [state.mainKeyword, state.postsCount, state.subjects.length, dispatch]);
+
+  // Auto-recommend after generation completes
+  const prevGenerating = useRef(false);
+  useEffect(() => {
+    if (prevGenerating.current && !generating && hasData) {
+      handleRecommend(state.subjectSuggestions, locale);
+    }
+    prevGenerating.current = generating;
+  }, [generating, hasData, state.subjectSuggestions, locale, handleRecommend]);
+
+  // Re-fetch recommendation when locale changes (cached in DB per locale)
+  useEffect(() => {
+    if (prevLocaleRef.current !== locale && hasData && !generating) {
+      prevLocaleRef.current = locale;
+      handleRecommend(state.subjectSuggestions, locale);
+    }
+  }, [locale, hasData, generating, state.subjectSuggestions, handleRecommend]);
+
+  const isSelected = (subjIdx) => {
+    return state.subjects.some(s => !s.isCustom && s.subjectIndex === subjIdx);
   };
 
-  // Toggle selection of an AI-generated subject
-  const toggleSubject = (keyword, subjectIndex, subject) => {
-    const existing = state.subjects.findIndex(
-      s => !s.isCustom && s.keyword === keyword && s.subjectIndex === subjectIndex
-    );
+  const toggleSubject = (subjIdx, subject) => {
+    const existing = state.subjects.findIndex(s => !s.isCustom && s.subjectIndex === subjIdx);
 
     if (existing >= 0) {
-      // Deselect
       dispatch({
         type: 'SET_FIELD',
         field: 'subjects',
         value: state.subjects.filter((_, i) => i !== existing),
       });
     } else if (canSelectMore) {
-      // Check if keyword already has a selected subject
-      const keywordHasSelection = state.subjects.some(s => s.keyword === keyword);
-      if (keywordHasSelection) {
-        setValidationPopup(t.onePerKeyword);
-        return;
-      }
-      // Select
       dispatch({
         type: 'SET_FIELD',
         field: 'subjects',
         value: [
           ...state.subjects,
           {
-            keyword,
-            subjectIndex,
+            subjectIndex: subjIdx,
             title: subject.title,
             explanation: subject.explanation,
             articleType: subject.articleType,
+            intent: subject.intent || '',
             isCustom: false,
           },
         ],
@@ -128,26 +204,19 @@ export default function SubjectsStep({ state, dispatch, translations }) {
     }
   };
 
-  // Add a custom subject under a keyword
-  const addCustomSubject = (keyword) => {
+  const addCustomSubject = () => {
     if (!customTitle.trim() || !canSelectMore) return;
-    // Check if keyword already has a selected subject
-    const keywordHasSelection = state.subjects.some(s => s.keyword === keyword);
-    if (keywordHasSelection) {
-      setValidationPopup(t.onePerKeyword);
-      return;
-    }
     dispatch({
       type: 'SET_FIELD',
       field: 'subjects',
       value: [
         ...state.subjects,
         {
-          keyword,
           subjectIndex: -1,
           title: customTitle.trim(),
           explanation: customExplanation.trim(),
           articleType: customArticleType || state.articleTypes[0]?.id || 'BLOG_POST',
+          intent: '',
           isCustom: true,
         },
       ],
@@ -157,7 +226,6 @@ export default function SubjectsStep({ state, dispatch, translations }) {
     setCustomArticleType('');
   };
 
-  // Remove a selected subject
   const removeSelected = (index) => {
     dispatch({
       type: 'SET_FIELD',
@@ -166,33 +234,18 @@ export default function SubjectsStep({ state, dispatch, translations }) {
     });
   };
 
-  const toggleKeywordAccordion = (idx) => {
-    setOpenKeyword(openKeyword === idx ? null : idx);
-  };
-
   const toggleSubjectExpand = (key) => {
     setExpandedSubject(expandedSubject === key ? null : key);
   };
 
-  // Update an AI suggestion's title or explanation
-  const updateSuggestion = (kwIdx, subjIdx, field, value) => {
-    const updated = state.subjectSuggestions.map((kw, ki) => {
-      if (ki !== kwIdx) return kw;
-      return {
-        ...kw,
-        subjects: kw.subjects.map((s, si) => {
-          if (si !== subjIdx) return s;
-          return { ...s, [field]: value };
-        }),
-      };
+  const updateSuggestion = (subjIdx, field, value) => {
+    const updated = state.subjectSuggestions.map((s, i) => {
+      if (i !== subjIdx) return s;
+      return { ...s, [field]: value };
     });
     dispatch({ type: 'SET_FIELD', field: 'subjectSuggestions', value: updated });
 
-    // Also update in selected subjects if this one is selected
-    const keyword = state.subjectSuggestions[kwIdx].keyword;
-    const selIdx = state.subjects.findIndex(
-      s => !s.isCustom && s.keyword === keyword && s.subjectIndex === subjIdx
-    );
+    const selIdx = state.subjects.findIndex(s => !s.isCustom && s.subjectIndex === subjIdx);
     if (selIdx >= 0) {
       const updatedSubjects = [...state.subjects];
       updatedSubjects[selIdx] = { ...updatedSubjects[selIdx], [field]: value };
@@ -219,10 +272,10 @@ export default function SubjectsStep({ state, dispatch, translations }) {
         </div>
       </div>
 
-      {/* No keywords warning */}
-      {totalKeywords === 0 && (
+      {/* No main keyword warning */}
+      {!hasMainKeyword && (
         <div className={styles.subjectWarning}>
-          {t.noKeywordsWarning}
+          {t.noMainKeywordWarning}
         </div>
       )}
 
@@ -238,7 +291,7 @@ export default function SubjectsStep({ state, dispatch, translations }) {
       )}
 
       {/* Generate button */}
-      {totalKeywords > 0 && (
+      {hasMainKeyword && (
         <button
           className={styles.generateSubjectsBtn}
           onClick={handleGenerate}
@@ -270,148 +323,143 @@ export default function SubjectsStep({ state, dispatch, translations }) {
         </div>
       )}
 
-      {/* Keywords accordion */}
+      {/* AI recommendation banner */}
+      {recommending && (
+        <div className={styles.aiRecommendationBanner}>
+          <Loader2 size={16} className={styles.spinner} />
+          <span>{t.aiRecommending || 'AI is choosing the best subjects...'}</span>
+        </div>
+      )}
+      {recommendation && !recommending && (
+        <div className={styles.aiRecommendationBanner}>
+          <BrainCircuit size={16} className={styles.aiRecommendationIcon} />
+          <span>{recommendation.explanation}</span>
+        </div>
+      )}
+
+      {/* Flat suggestions list */}
       {hasData && (
-        <div className={styles.subjectKeywordsList}>
-          {state.subjectSuggestions.map((kwData, kwIdx) => {
-            const isOpen = openKeyword === kwIdx;
-            const kwSelectedCount = state.subjects.filter(s => s.keyword === kwData.keyword).length;
+        <div className={styles.subjectFlatList}>
+          {state.subjectSuggestions.map((subj, subjIdx) => {
+            const selected = isSelected(subjIdx);
+            const isExpanded = expandedSubject === subjIdx;
+            const disabled = !selected && !canSelectMore;
 
             return (
               <div
-                key={kwIdx}
-                className={`${styles.subjectKeywordItem} ${isOpen ? styles.subjectKeywordItemOpen : ''}`}
+                key={subjIdx}
+                className={`${styles.subjectSuggestion} ${selected ? styles.subjectSuggestionSelected : ''} ${disabled ? styles.subjectSuggestionDisabled : ''}`}
               >
-                {/* Keyword accordion header */}
-                <button
-                  className={styles.subjectKeywordHeader}
-                  onClick={() => toggleKeywordAccordion(kwIdx)}
-                >
-                  <SearchIcon size={16} className={styles.subjectKeywordIcon} />
-                  <span className={styles.subjectKeywordLabel}>{kwData.keyword}</span>
-                  {kwSelectedCount > 0 && (
-                    <span className={styles.subjectKeywordBadge}>{kwSelectedCount}</span>
-                  )}
-                  <ChevronDown
-                    size={16}
-                    className={`${styles.subjectKeywordChevron} ${isOpen ? styles.subjectKeywordChevronOpen : ''}`}
-                  />
-                </button>
+                <div className={styles.subjectSuggestionMain}>
+                  <button
+                    className={styles.subjectCheckBtn}
+                    onClick={() => toggleSubject(subjIdx, subj)}
+                    disabled={disabled}
+                  >
+                    <span className={`${styles.subjectCheckbox} ${selected ? styles.subjectCheckboxChecked : ''}`}>
+                      {selected && <Check size={12} />}
+                    </span>
+                  </button>
+                  <div
+                    className={styles.subjectSuggestionContent}
+                    onClick={() => toggleSubjectExpand(subjIdx)}
+                  >
+                    <span className={styles.subjectSuggestionTitle}>{subj.title}</span>
+                    <div className={styles.subjectSuggestionBadges}>
+                      <span className={styles.subjectSuggestionTypeBadge}>
+                        {getArticleTypeLabel(subj.articleType)}
+                      </span>
+                      {subj.intent && (
+                        <span className={styles.subjectIntentBadge}>
+                          {translateIntent(subj.intent, intentsMap)}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  <button
+                    className={`${styles.subjectExpandBtn} ${isExpanded ? styles.subjectExpandBtnOpen : ''}`}
+                    onClick={() => toggleSubjectExpand(subjIdx)}
+                  >
+                    <ChevronDown size={14} />
+                  </button>
+                </div>
 
-                {/* Keyword accordion body */}
-                {isOpen && (
-                  <div className={styles.subjectKeywordBody}>
-                    {/* AI-generated subjects */}
-                    {kwData.subjects.map((subj, subjIdx) => {
-                      const selected = isSelected(kwData.keyword, subjIdx);
-                      const expandKey = `${kwIdx}-${subjIdx}`;
-                      const isExpanded = expandedSubject === expandKey;
-                      const disabled = !selected && !canSelectMore;
-
-                      return (
-                        <div
-                          key={subjIdx}
-                          className={`${styles.subjectSuggestion} ${selected ? styles.subjectSuggestionSelected : ''} ${disabled ? styles.subjectSuggestionDisabled : ''}`}
-                        >
-                          <div className={styles.subjectSuggestionMain}>
-                            <button
-                              className={styles.subjectCheckBtn}
-                              onClick={() => toggleSubject(kwData.keyword, subjIdx, subj)}
-                              disabled={disabled}
-                            >
-                              <span className={`${styles.subjectCheckbox} ${selected ? styles.subjectCheckboxChecked : ''}`}>
-                                {selected && <Check size={12} />}
-                              </span>
-                            </button>
-                            <div
-                              className={styles.subjectSuggestionContent}
-                              onClick={() => toggleSubjectExpand(expandKey)}
-                            >
-                              <span className={styles.subjectSuggestionTitle}>{subj.title}</span>
-                              <span className={styles.subjectSuggestionTypeBadge}>
-                                {getArticleTypeLabel(subj.articleType)}
-                              </span>
-                            </div>
-                            <button
-                              className={`${styles.subjectExpandBtn} ${isExpanded ? styles.subjectExpandBtnOpen : ''}`}
-                              onClick={() => toggleSubjectExpand(expandKey)}
-                            >
-                              <ChevronDown size={14} />
-                            </button>
-                          </div>
-
-                          {isExpanded && (
-                            <div className={styles.subjectExplanation}>
-                              <input
-                                type="text"
-                                className={styles.subjectEditTitle}
-                                value={subj.title}
-                                onChange={(e) => updateSuggestion(kwIdx, subjIdx, 'title', e.target.value)}
-                                onClick={(e) => e.stopPropagation()}
-                              />
-                              <textarea
-                                className={styles.subjectEditExplanation}
-                                value={subj.explanation}
-                                onChange={(e) => updateSuggestion(kwIdx, subjIdx, 'explanation', e.target.value)}
-                                onClick={(e) => e.stopPropagation()}
-                                rows={2}
-                              />
-                              <span className={styles.subjectExplanationType}>
-                                {getArticleTypeLabel(subj.articleType)}
-                              </span>
-                            </div>
-                          )}
-                        </div>
-                      );
-                    })}
-
-                    {/* Custom subject form */}
-                    <div className={styles.subjectCustomForm}>
-                      <div className={styles.subjectCustomFormHeader}>
-                        <PenLine size={14} />
-                        <span>{t.addCustom}</span>
-                      </div>
-                      <input
-                        type="text"
-                        className={styles.subjectCustomInput}
-                        value={customTitle}
-                        onChange={(e) => setCustomTitle(e.target.value)}
-                        placeholder={t.customPlaceholder}
-                      />
-                      <textarea
-                        className={styles.subjectCustomTextarea}
-                        value={customExplanation}
-                        onChange={(e) => setCustomExplanation(e.target.value)}
-                        placeholder={t.explanationPlaceholder}
-                        rows={2}
-                      />
-                      <div className={styles.subjectCustomActions}>
-                        <select
-                          className={styles.subjectCustomSelect}
-                          value={customArticleType || state.articleTypes[0]?.id || ''}
-                          onChange={(e) => setCustomArticleType(e.target.value)}
-                        >
-                          {state.articleTypes.map(at => (
-                            <option key={at.id} value={at.id}>
-                              {getArticleTypeLabel(at.id)}
-                            </option>
-                          ))}
-                        </select>
-                        <button
-                          className={styles.subjectCustomAddBtn}
-                          onClick={() => addCustomSubject(kwData.keyword)}
-                          disabled={!customTitle.trim() || !canSelectMore}
-                        >
-                          <Plus size={14} />
-                          {t.addSubject}
-                        </button>
-                      </div>
+                {isExpanded && (
+                  <div className={styles.subjectExplanation}>
+                    <input
+                      type="text"
+                      className={styles.subjectEditTitle}
+                      value={subj.title}
+                      onChange={(e) => updateSuggestion(subjIdx, 'title', e.target.value)}
+                      onClick={(e) => e.stopPropagation()}
+                    />
+                    <textarea
+                      className={styles.subjectEditExplanation}
+                      value={subj.explanation}
+                      onChange={(e) => updateSuggestion(subjIdx, 'explanation', e.target.value)}
+                      onClick={(e) => e.stopPropagation()}
+                      rows={2}
+                    />
+                    <div className={styles.subjectExplanationMeta}>
+                      <span className={styles.subjectExplanationType}>
+                        {getArticleTypeLabel(subj.articleType)}
+                      </span>
+                      {subj.intent && (
+                        <span className={styles.subjectIntentBadge}>
+                          {translateIntent(subj.intent, intentsMap)}
+                        </span>
+                      )}
                     </div>
                   </div>
                 )}
               </div>
             );
           })}
+        </div>
+      )}
+
+      {/* Custom subject form */}
+      {hasData && (
+        <div className={styles.subjectCustomForm}>
+          <div className={styles.subjectCustomFormHeader}>
+            <PenLine size={14} />
+            <span>{t.addCustom}</span>
+          </div>
+          <input
+            type="text"
+            className={styles.subjectCustomInput}
+            value={customTitle}
+            onChange={(e) => setCustomTitle(e.target.value)}
+            placeholder={t.customPlaceholder}
+          />
+          <textarea
+            className={styles.subjectCustomTextarea}
+            value={customExplanation}
+            onChange={(e) => setCustomExplanation(e.target.value)}
+            placeholder={t.explanationPlaceholder}
+            rows={2}
+          />
+          <div className={styles.subjectCustomActions}>
+            <select
+              className={styles.subjectCustomSelect}
+              value={customArticleType || state.articleTypes[0]?.id || ''}
+              onChange={(e) => setCustomArticleType(e.target.value)}
+            >
+              {state.articleTypes.map(at => (
+                <option key={at.id} value={at.id}>
+                  {getArticleTypeLabel(at.id)}
+                </option>
+              ))}
+            </select>
+            <button
+              className={styles.subjectCustomAddBtn}
+              onClick={addCustomSubject}
+              disabled={!customTitle.trim() || !canSelectMore}
+            >
+              <Plus size={14} />
+              {t.addSubject}
+            </button>
+          </div>
         </div>
       )}
 
@@ -425,8 +473,9 @@ export default function SubjectsStep({ state, dispatch, translations }) {
                 <div className={styles.subjectSelectedInfo}>
                   <span className={styles.subjectSelectedItemTitle}>{subj.title}</span>
                   <span className={styles.subjectSelectedItemMeta}>
-                    {subj.keyword} · {getArticleTypeLabel(subj.articleType)}
-                    {subj.isCustom && ` · ${t.custom}`}
+                    {getArticleTypeLabel(subj.articleType)}
+                    {subj.intent && ` \u00b7 ${translateIntent(subj.intent, intentsMap)}`}
+                    {subj.isCustom && ` \u00b7 ${t.custom}`}
                   </span>
                 </div>
                 <button
@@ -455,25 +504,6 @@ export default function SubjectsStep({ state, dispatch, translations }) {
             </span>
           )}
         </div>
-      )}
-
-      {/* One-per-keyword validation popup */}
-      {validationPopup && createPortal(
-        <div className={styles.modalOverlay} onClick={() => setValidationPopup(null)}>
-          <div className={styles.validationPopup} onClick={(e) => e.stopPropagation()}>
-            <button className={styles.validationPopupClose} onClick={() => setValidationPopup(null)}>
-              <X size={18} />
-            </button>
-            <div className={styles.validationPopupIcon}>
-              <AlertTriangle size={28} />
-            </div>
-            <p className={styles.validationPopupMessage}>{validationPopup}</p>
-            <button className={styles.validationPopupBtn} onClick={() => setValidationPopup(null)}>
-              {t.gotIt}
-            </button>
-          </div>
-        </div>,
-        document.body
       )}
     </div>
   );

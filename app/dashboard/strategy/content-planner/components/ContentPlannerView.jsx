@@ -211,7 +211,12 @@ export function ContentPlannerView({ translations }) {
     const year = currentDate.getFullYear();
     const month = currentDate.getMonth();
     const targetDay = targetCell.day;
-    const oldDate = new Date(draggedPost.scheduledAt || draggedPost.publishedAt || draggedPost.createdAt);
+    // Match the date-selection logic used by getPostsByDate so the "same day"
+    // check compares against the day the post is actually displayed on.
+    const oldDateStr = (draggedPost.source === 'entity' && draggedPost.statusKey !== 'SCHEDULED')
+      ? (draggedPost.publishedAt || draggedPost.scheduledAt || draggedPost.createdAt)
+      : (draggedPost.scheduledAt || draggedPost.publishedAt || draggedPost.createdAt);
+    const oldDate = new Date(oldDateStr);
     const newDate = new Date(year, month, targetDay, oldDate.getHours(), oldDate.getMinutes(), oldDate.getSeconds());
 
     // Same day - no-op
@@ -610,6 +615,10 @@ export function ContentPlannerView({ translations }) {
     const month = currentDate.getMonth();
     const map = {};
 
+    // Collect entity slugs for deduplication — published pipeline Content
+    // records already appear as entity posts, so we skip them below.
+    const entitySlugs = new Set(posts.map(p => p.slug).filter(Boolean));
+
     // Add entity posts (from WordPress sync)
     posts.forEach(post => {
       // For scheduled entities, prefer scheduledAt; for published, prefer publishedAt
@@ -628,6 +637,8 @@ export function ContentPlannerView({ translations }) {
 
     // Add pipeline content (from Content records) - only filtered ones
     filteredPipelineContents.forEach(content => {
+      // Skip PUBLISHED pipeline posts that already appear as entity posts
+      if (content.status === 'PUBLISHED' && content.slug && entitySlugs.has(content.slug)) return;
       // For pipeline content, use scheduledAt as the calendar date.
       // publishedAt is just a record of when it was published, not the calendar position.
       // Only fall back to publishedAt if scheduledAt is missing (legacy data).
@@ -747,16 +758,21 @@ export function ContentPlannerView({ translations }) {
   });
 
   // Merge entity posts + pipeline contents + planned posts for the list view
+  // (same deduplication as getPostsByDate — skip PUBLISHED pipeline posts
+  //  that already appear as entity posts)
+  const entitySlugSet = new Set(posts.map(p => p.slug).filter(Boolean));
   const allListItems = [
     ...posts.map(p => ({ ...p, source: 'entity', dotStatus: statusToDot(p.status) })),
-    ...filteredPipelineContents.map(c => ({
-      ...c,
-      source: 'pipeline',
-      dotStatus: statusToDot(c.status),
-      campaignColor: c.campaign?.color || (c.campaignDeletedName ? '#999' : undefined),
-      campaignName: c.campaign?.name || c.campaignDeletedName,
-      campaignDeleted: !c.campaign && !!c.campaignDeletedName,
-    })),
+    ...filteredPipelineContents
+      .filter(c => !(c.status === 'PUBLISHED' && c.slug && entitySlugSet.has(c.slug)))
+      .map(c => ({
+        ...c,
+        source: 'pipeline',
+        dotStatus: statusToDot(c.status),
+        campaignColor: c.campaign?.color || (c.campaignDeletedName ? '#999' : undefined),
+        campaignName: c.campaign?.name || c.campaignDeletedName,
+        campaignDeleted: !c.campaign && !!c.campaignDeletedName,
+      })),
     ...plannedItems,
   ].sort((a, b) => {
     const dateA = new Date(a.scheduledAt || a.publishedAt || a.createdAt || 0);

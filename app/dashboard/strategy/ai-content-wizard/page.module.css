@@ -1872,6 +1872,35 @@
   text-align: center;
 }
 
+/* AI Recommendation Banner */
+.aiRecommendationBanner {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.625rem;
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius-md);
+  background: rgba(147, 51, 234, 0.06);
+  border: 1px solid rgba(147, 51, 234, 0.2);
+  font-size: 0.85rem;
+  line-height: 1.55;
+  color: var(--foreground);
+
+  :global(.dark) & {
+    background: rgba(167, 139, 250, 0.08);
+    border-color: rgba(167, 139, 250, 0.2);
+  }
+}
+
+.aiRecommendationIcon {
+  color: rgb(147, 51, 234);
+  flex-shrink: 0;
+  margin-top: 0.125rem;
+
+  :global(.dark) & {
+    color: rgb(167, 139, 250);
+  }
+}
+
 /* Keyword Accordion */
 .subjectKeywordsList {
   display: flex;
@@ -3238,6 +3267,452 @@
   :global(.dark) & {
     background: rgba(123, 44, 191, 0.25) !important;
   }
+}
+
+/* ── Pillar Page Step ────────────────────────────────── */
+.pillarPageSelector {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.pillarCombobox {
+  position: relative;
+}
+
+.pillarSearchBox {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--card);
+  transition: border-color 0.15s;
+
+  &:focus-within {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 2px rgba(123, 44, 191, 0.15);
+  }
+}
+
+.pillarSearchIcon {
+  color: var(--muted-foreground);
+  flex-shrink: 0;
+}
+
+.pillarSearchInput {
+  flex: 1;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: var(--foreground);
+  font-size: 0.875rem;
+
+  &::placeholder {
+    color: var(--muted-foreground);
+  }
+}
+
+.pillarDropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  max-height: 240px;
+  overflow-y: auto;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  z-index: 20;
+
+  :global(.dark) & {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  }
+}
+
+.pillarDropdownItem {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  padding: 0.5rem 0.75rem;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  text-align: start;
+  transition: background 0.1s;
+
+  &:hover {
+    background: var(--accent);
+  }
+
+  &:not(:last-child) {
+    border-bottom: 1px solid var(--border);
+  }
+}
+
+.pillarDropdownTitle {
+  font-size: 0.85rem;
+  color: var(--foreground);
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+.pillarDropdownSlug {
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+}
+
+.pillarDropdownLoading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.25rem;
+  color: var(--muted-foreground);
+}
+
+.pillarDropdownEmpty {
+  padding: 1rem;
+  text-align: center;
+  font-size: 0.8rem;
+  color: var(--muted-foreground);
+}
+
+.pillarSelectedCard {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  border: 1px solid var(--primary);
+  border-radius: var(--radius-md);
+  background: rgba(123, 44, 191, 0.04);
+
+  :global(.dark) & {
+    background: rgba(123, 44, 191, 0.1);
+  }
+}
+
+.pillarSelectedInfo {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+}
+
+.pillarSelectedTitle {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--foreground);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pillarSelectedUrl {
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pillarClearBtn {
+  border: none;
+  background: none;
+  padding: 0.25rem;
+  cursor: pointer;
+  color: var(--muted-foreground);
+  border-radius: var(--radius-sm);
+  transition: color 0.15s;
+  flex-shrink: 0;
+
+  &:hover {
+    color: var(--foreground);
+  }
+}
+
+.pillarCustomUrl {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.pillarUrlInputWrapper {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--card);
+  transition: border-color 0.15s;
+
+  &:focus-within {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 2px rgba(123, 44, 191, 0.15);
+  }
+}
+
+.pillarUrlIcon {
+  color: var(--muted-foreground);
+  flex-shrink: 0;
+}
+
+.pillarUrlInput {
+  flex: 1;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: var(--foreground);
+  font-size: 0.875rem;
+
+  &::placeholder {
+    color: var(--muted-foreground);
+  }
+}
+
+.pillarPreview {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: var(--radius-md);
+  background: rgba(123, 44, 191, 0.06);
+  color: var(--primary);
+  font-size: 0.8rem;
+
+  :global(.dark) & {
+    background: rgba(123, 44, 191, 0.12);
+  }
+}
+
+.pillarPreviewUrl {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ── Topic Cluster Info ────────────────────────────────── */
+.topicClusterInfo {
+  padding: 0.75rem;
+  border-radius: var(--radius-md);
+  background: rgba(123, 44, 191, 0.05);
+  border: 1px solid rgba(123, 44, 191, 0.15);
+
+  :global(.dark) & {
+    background: rgba(123, 44, 191, 0.1);
+    border-color: rgba(123, 44, 191, 0.25);
+  }
+}
+
+.topicClusterInfoHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--primary);
+  margin-bottom: 0.375rem;
+}
+
+.topicClusterInfoText {
+  font-size: 0.8rem;
+  color: var(--muted-foreground);
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* ── Subject Flat List & Intent Badges ────────────────── */
+.subjectFlatList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.subjectSuggestionBadges {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  flex-wrap: wrap;
+}
+
+.subjectIntentBadge {
+  font-size: 0.7rem;
+  padding: 0.125rem 0.5rem;
+  border-radius: 9999px;
+  background: rgba(59, 130, 246, 0.1);
+  color: rgb(59, 130, 246);
+  font-weight: 500;
+
+  :global(.dark) & {
+    background: rgba(96, 165, 250, 0.15);
+    color: rgb(96, 165, 250);
+  }
+}
+
+/* ── Pillar Dropdown Extras ───────────────────────────── */
+.pillarDropdownItemTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.pillarDropdownTypeBadge {
+  font-size: 0.65rem;
+  padding: 0.0625rem 0.375rem;
+  border-radius: 9999px;
+  background: rgba(147, 51, 234, 0.1);
+  color: rgb(147, 51, 234);
+  font-weight: 500;
+  white-space: nowrap;
+  flex-shrink: 0;
+
+  :global(.dark) & {
+    background: rgba(167, 139, 250, 0.15);
+    color: rgb(167, 139, 250);
+  }
+}
+
+/* ── Keyword Suggestion (AI) ─────────────────────────── */
+.keywordSuggestSection {
+  margin-top: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.keywordSuggestBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border: 1px solid rgba(147, 51, 234, 0.3);
+  border-radius: var(--radius-md);
+  background: rgba(147, 51, 234, 0.06);
+  color: rgb(147, 51, 234);
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+  width: fit-content;
+
+  &:hover:not(:disabled) {
+    background: rgba(147, 51, 234, 0.12);
+    border-color: rgba(147, 51, 234, 0.5);
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  :global(.dark) & {
+    border-color: rgba(167, 139, 250, 0.3);
+    background: rgba(167, 139, 250, 0.08);
+    color: rgb(167, 139, 250);
+
+    &:hover:not(:disabled) {
+      background: rgba(167, 139, 250, 0.15);
+      border-color: rgba(167, 139, 250, 0.5);
+    }
+  }
+}
+
+.keywordSuggestError {
+  font-size: 0.8rem;
+  color: var(--color-danger);
+  margin: 0;
+}
+
+.keywordSuggestions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.keywordSuggestionItem {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 0.625rem 0.875rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--card);
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+
+  &:hover {
+    border-color: rgba(147, 51, 234, 0.4);
+    background: rgba(147, 51, 234, 0.03);
+  }
+}
+
+.keywordSuggestionItemActive {
+  border-color: rgb(147, 51, 234);
+  background: rgba(147, 51, 234, 0.06);
+
+  :global(.dark) & {
+    border-color: rgb(167, 139, 250);
+    background: rgba(167, 139, 250, 0.1);
+  }
+}
+
+.keywordSuggestionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.keywordSuggestionKeyword {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--foreground);
+}
+
+.keywordSuggestionCheck {
+  color: rgb(34, 197, 94);
+  flex-shrink: 0;
+}
+
+.keywordSuggestionExplanation {
+  font-size: 0.78rem;
+  color: var(--muted-foreground);
+  line-height: 1.5;
+}
+
+.subjectExplanationMeta {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+/* ── Content Settings in Article Types Step ──────────── */
+.contentSettingsSection {
+  margin-top: 1.5rem;
+  padding-top: 1.25rem;
+  border-top: 1px dashed var(--border);
+}
+
+.contentSettingsSectionHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--foreground);
+  margin-bottom: 0.25rem;
+}
+
+.contentSettingsSectionDesc {
+  font-size: 0.8rem;
+  color: var(--muted-foreground);
+  margin: 0 0 0.75rem 0;
 }
 
 .planDayPostPlanned {

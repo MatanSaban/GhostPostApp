@@ -37,6 +37,16 @@ export const ARTICLE_TYPE_KEY_MAP = {
 export const WEEK_DAYS = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
 
 /**
+ * Translate an intent string like "Informational - How-to" using the intents map.
+ * Splits on " - ", translates each part, falls back to the original if no match.
+ */
+export function translateIntent(intentStr, intentsMap) {
+  if (!intentStr || !intentsMap) return intentStr || '';
+  const parts = intentStr.split(' - ');
+  return parts.map(p => intentsMap[p.trim()] || p.trim()).join(' - ');
+}
+
+/**
  * Initial wizard state
  */
 export const INITIAL_WIZARD_STATE = {
@@ -47,10 +57,29 @@ export const INITIAL_WIZARD_STATE = {
   campaignStatus: 'DRAFT',
   isNewCampaign: true,
 
-  // Step 2 - Post count
+  // Step 2 - Pillar Page
+  pillarPageUrl: '',
+  pillarEntityId: null,
+
+  // Step 3 - Main Keyword
+  mainKeyword: '',
+
+  // Step 4 - Post count
   postsCount: 4,
 
-  // Step 3 - Schedule
+  // Step 5 - Article types + content settings (merged)
+  articleTypes: [{ id: 'SEO', count: 4 }],
+  contentSettings: {},
+
+  // Step 6 - Subjects
+  subjects: [],
+  subjectSuggestions: [],
+
+  // Step 7 - Prompts
+  textPrompt: '',
+  imagePrompt: '',
+
+  // Step 8 - Schedule
   startDate: '',
   endDate: '',
   publishDays: ['sun', 'mon', 'tue', 'wed', 'thu'],
@@ -58,37 +87,23 @@ export const INITIAL_WIZARD_STATE = {
   publishTimeStart: '09:00',
   publishTimeEnd: '18:00',
 
-  // Step 4 - Article types
-  articleTypes: [{ id: 'SEO', count: 4 }],
-
-  // Step 5 - Content settings (per article type)
-  contentSettings: {},
-
-  // Step 6 - Keywords  
-  selectedKeywordIds: [],
-  manualKeywords: [],
-
-  // Step 7 - Subjects
-  subjects: [],
-  subjectSuggestions: [],
-
-  // Step 8 - Prompts
-  textPrompt: '',
-  imagePrompt: '',
-
   // Step 9 - Generated plan
   generatedPlan: null,
   planNeedsRegeneration: false,
+
+  // DEPRECATED — kept for backward compat with old campaigns
+  selectedKeywordIds: [],
+  manualKeywords: [],
 };
 
 export const WIZARD_STEPS = [
   { id: 1, key: 'campaign', iconName: 'FolderOpen' },
-  { id: 2, key: 'postCount', iconName: 'Hash' },
-  { id: 3, key: 'schedule', iconName: 'Calendar' },
-  { id: 4, key: 'articleTypes', iconName: 'FileText' },
-  { id: 5, key: 'contentSettings', iconName: 'Settings' },
-  { id: 6, key: 'keywords', iconName: 'Search' },
-  { id: 7, key: 'subjects', iconName: 'BookOpen' },
-  { id: 8, key: 'prompts', iconName: 'MessageSquare' },
+  { id: 2, key: 'pillarPage', iconName: 'Globe' },
+  { id: 3, key: 'mainKeyword', iconName: 'Search' },
+  { id: 4, key: 'postCount', iconName: 'Hash' },
+  { id: 5, key: 'articleTypes', iconName: 'FileText' },
+  { id: 6, key: 'subjects', iconName: 'BookOpen' },
+  { id: 7, key: 'prompts', iconName: 'MessageSquare' },
+  { id: 8, key: 'schedule', iconName: 'Calendar' },
   { id: 9, key: 'summary', iconName: 'Sparkles' },
 ];

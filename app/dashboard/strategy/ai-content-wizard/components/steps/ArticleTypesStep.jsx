@@ -1,10 +1,31 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { FileText, Plus, Minus, Info, X } from 'lucide-react';
+import { FileText, Plus, Minus, Info, X, Settings, ChevronDown } from 'lucide-react';
 import { ARTICLE_TYPES, ARTICLE_TYPE_KEY_MAP } from '../../wizardConfig';
+import { useSite } from '@/app/context/site-context';
 import styles from '../../page.module.css';
+
+const DEFAULT_TYPE_SETTINGS = {
+  wordCount: 0,
+  featuredImage: true,
+  contentImages: true,
+  contentImagesCount: 2,
+  hebrewSlug: false,
+  metaTitle: true,
+  metaDescription: true,
+  faq: true,
+};
+
+function getTypeSettings(settings, typeId, typeDef) {
+  const saved = settings[typeId];
+  if (saved) return saved;
+  return {
+    ...DEFAULT_TYPE_SETTINGS,
+    wordCount: Math.floor((typeDef.minWords + typeDef.maxWords) / 2),
+  };
+}
 
 function ArticleTypeInfoPopup({ type, typeT, wordRange, onClose, t }) {
   return createPortal(
@@ -48,9 +69,14 @@ function ArticleTypeInfoPopup({ type, typeT, wordRange, onClose, t }) {
 
 export default function ArticleTypesStep({ state, dispatch, translations }) {
   const t = translations.articleTypes;
+  const tSettings = translations.contentSettings;
   const isSinglePost = state.postsCount === 1;
   const [infoType, setInfoType] = useState(null);
   const [maxTypesPopup, setMaxTypesPopup] = useState(false);
+  const { selectedSite } = useSite();
+  const isHebrew = selectedSite?.contentLanguage === 'he';
+  const settings = state.contentSettings;
+  const [openAccordion, setOpenAccordion] = useState(null);
 
   const selectedIds = new Set(state.articleTypes.map(at => at.id));
   const totalAllocated = state.articleTypes.reduce((sum, at) => sum + at.count, 0);
@@ -230,6 +256,196 @@ export default function ArticleTypesStep({ state, dispatch, translations }) {
         </div>,
         document.body
       )}
+
+      {/* Content Settings Section */}
+      {state.articleTypes.length > 0 && (
+        <div className={styles.contentSettingsSection}>
+          <div className={styles.contentSettingsSectionHeader}>
+            <Settings size={18} />
+            <h3>{tSettings.title}</h3>
+          </div>
+          <p className={styles.contentSettingsSectionDesc}>{tSettings.description}</p>
+
+          <div className={styles.accordionList}>
+            {state.articleTypes.map(({ id: typeId, count }) => {
+              const typeDef = ARTICLE_TYPES.find(at => at.id === typeId);
+              if (!typeDef) return null;
+              const key = ARTICLE_TYPE_KEY_MAP[typeId];
+              const typeT = t.types[key];
+              const typeLabel = typeT?.label || typeId;
+              const isOpen = openAccordion === typeId;
+              const ts = getTypeSettings(settings, typeId, typeDef);
+              const maxImages = Math.max(1, Math.floor(ts.wordCount / 500));
+
+              const updateTypeSetting = (settingKey, value) => {
+                const current = getTypeSettings(settings, typeId, typeDef);
+                dispatch({
+                  type: 'SET_FIELD',
+                  field: 'contentSettings',
+                  value: { ...settings, [typeId]: { ...current, [settingKey]: value } },
+                });
+              };
+
+              return (
+                <AccordionItem
+                  key={typeId}
+                  isOpen={isOpen}
+                  onToggle={() => setOpenAccordion(prev => prev === typeId ? null : typeId)}
+                  label={typeLabel}
+                  count={count}
+                  postsLabel={t.postsOfType}
+                >
+                  <div className={styles.accordionBody}>
+                    <div className={styles.accordionSettingRow}>
+                      <label className={styles.settingLabel}>
+                        {tSettings.wordCountLabel.replace('{type}', typeLabel)}
+                      </label>
+                      <span className={styles.settingHint}>
+                        {tSettings.recommended
+                          .replace('{min}', typeDef.minWords.toLocaleString())
+                          .replace('{max}', typeDef.maxWords.toLocaleString())}
+                      </span>
+                      <div className={styles.wordCountInput}>
+                        <input
+                          type="range"
+                          min={typeDef.minWords}
+                          max={typeDef.maxWords}
+                          step={50}
+                          value={ts.wordCount}
+                          onChange={(e) => updateTypeSetting('wordCount', parseInt(e.target.value))}
+                          className={styles.rangeInput}
+                        />
+                        <input
+                          type="number"
+                          className={styles.numberInput}
+                          min={typeDef.minWords}
+                          max={typeDef.maxWords}
+                          value={ts.wordCount}
+                          onChange={(e) => updateTypeSetting('wordCount', parseInt(e.target.value) || 0)}
+                          onBlur={(e) => {
+                            const clamped = Math.max(typeDef.minWords, Math.min(typeDef.maxWords, parseInt(e.target.value) || typeDef.minWords));
+                            updateTypeSetting('wordCount', clamped);
+                          }}
+                        />
+                        <span className={styles.wordCountHint}>{tSettings.words}</span>
+                      </div>
+                    </div>
+
+                    <div className={styles.settingsToggles}>
+                      <ToggleSetting
+                        checked={ts.featuredImage}
+                        onChange={(v) => updateTypeSetting('featuredImage', v)}
+                        label={tSettings.featuredImage}
+                      />
+                      <ToggleSetting
+                        checked={ts.contentImages}
+                        onChange={(v) => updateTypeSetting('contentImages', v)}
+                        label={tSettings.contentImages}
+                      />
+                      {ts.contentImages && (
+                        <div className={styles.subSettingRow}>
+                          <label className={styles.settingLabel}>{tSettings.contentImagesCount}</label>
+                          <div className={styles.contentImagesRange}>
+                            <input
+                              type="range"
+                              min={1}
+                              max={maxImages}
+                              value={Math.min(ts.contentImagesCount, maxImages)}
+                              onChange={(e) => updateTypeSetting('contentImagesCount', parseInt(e.target.value))}
+                              className={styles.rangeInput}
+                            />
+                            <span className={styles.rangeValue}>{ts.contentImagesCount} {tSettings.images}</span>
+                          </div>
+                        </div>
+                      )}
+                      {isHebrew && (
+                        <ToggleSetting
+                          checked={ts.hebrewSlug}
+                          onChange={(v) => updateTypeSetting('hebrewSlug', v)}
+                          label={tSettings.hebrewSlug}
+                          hint={tSettings.hebrewSlugHint}
+                        />
+                      )}
+                      <ToggleSetting
+                        checked={ts.metaTitle}
+                        onChange={(v) => updateTypeSetting('metaTitle', v)}
+                        label={tSettings.metaTitle}
+                      />
+                      <ToggleSetting
+                        checked={ts.metaDescription}
+                        onChange={(v) => updateTypeSetting('metaDescription', v)}
+                        label={tSettings.metaDescription}
+                      />
+                      <ToggleSetting
+                        checked={ts.faq}
+                        onChange={(v) => updateTypeSetting('faq', v)}
+                        label={tSettings.faq}
+                      />
+                    </div>
+                  </div>
+                </AccordionItem>
+              );
+            })}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function AccordionItem({ isOpen, onToggle, label, count, postsLabel, children }) {
+  const contentRef = useRef(null);
+  const [height, setHeight] = useState(isOpen ? 'auto' : '0px');
+
+  useEffect(() => {
+    if (!contentRef.current) return;
+    if (isOpen) {
+      setHeight(`${contentRef.current.scrollHeight}px`);
+      const timeout = setTimeout(() => setHeight('auto'), 250);
+      return () => clearTimeout(timeout);
+    } else {
+      setHeight(`${contentRef.current.scrollHeight}px`);
+      requestAnimationFrame(() => setHeight('0px'));
+    }
+  }, [isOpen]);
+
+  return (
+    <div className={`${styles.accordionItem} ${isOpen ? styles.accordionItemOpen : ''}`}>
+      <button className={styles.accordionHeader} onClick={onToggle}>
+        <div className={styles.accordionHeaderLeft}>
+          <FileText size={18} className={styles.accordionTypeIcon} />
+          <span className={styles.accordionLabel}>{label}</span>
+          <span className={styles.accordionBadge}>{count} {postsLabel}</span>
+        </div>
+        <ChevronDown
+          size={18}
+          className={`${styles.accordionChevron} ${isOpen ? styles.accordionChevronOpen : ''}`}
+        />
+      </button>
+      <div
+        ref={contentRef}
+        className={styles.accordionContent}
+        style={{ maxHeight: height }}
+      >
+        {children}
+      </div>
+    </div>
+  );
+}
+
+function ToggleSetting({ checked, onChange, label, hint }) {
+  return (
+    <div className={styles.toggleRow}>
+      <div className={styles.toggleInfo}>
+        <span className={styles.toggleLabel}>{label}</span>
+        {hint && <span className={styles.toggleHint}>{hint}</span>}
+      </div>
+      <button
+        className={`${styles.toggleSwitch} ${checked ? styles.active : ''}`}
+        onClick={() => onChange(!checked)}
+      >
+        <div className={styles.toggleKnob} />
+      </button>
     </div>
   );
 }

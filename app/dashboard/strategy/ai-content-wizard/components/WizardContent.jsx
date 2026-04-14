@@ -6,7 +6,7 @@ import {
   FolderOpen, Hash, Calendar, FileText,
   Settings, BookOpen, Search, MessageSquare,
   Sparkles, Check, ArrowLeft, ArrowRight,
-  AlertTriangle, X, Loader2, Play, Pause,
+  AlertTriangle, X, Loader2, Play, Pause, Globe,
 } from 'lucide-react';
 import { useLocale } from '@/app/context/locale-context';
 import { useSite } from '@/app/context/site-context';
@@ -17,9 +17,9 @@ import {
   PostCountStep,
   ScheduleStep,
   ArticleTypesStep,
-  ContentSettingsStep,
   SubjectsStep,
-  KeywordsStep,
+  PillarPageStep,
+  MainKeywordStep,
   PromptsStep,
   SummaryStep,
 } from './steps';
@@ -27,27 +27,8 @@ import styles from '../page.module.css';
 
 const iconMap = {
   FolderOpen, Hash, Calendar, FileText,
-  Settings, BookOpen, Search, MessageSquare, Sparkles,
+  Settings, BookOpen, Search, MessageSquare, Sparkles, Globe,
 };
-
-/**
- * Reconstruct subjectSuggestions from saved subjects so the Subjects step
- * recognises there is existing data and does NOT auto-regenerate.
- */
-function buildSuggestionsFromSubjects(subjects) {
-  if (!subjects || subjects.length === 0) return [];
-  const byKeyword = {};
-  for (const s of subjects) {
-    const kw = s.keyword || 'unknown';
-    if (!byKeyword[kw]) byKeyword[kw] = { keyword: kw, subjects: [] };
-    byKeyword[kw].subjects.push({
-      title: s.title || '',
-      explanation: s.explanation || '',
-      articleType: s.articleType || '',
-    });
-  }
-  return Object.values(byKeyword);
-}
 
 function wizardReducer(state, action) {
   switch (action.type) {
@@ -101,6 +82,9 @@ function wizardReducer(state, action) {
         campaignColor: c.color,
         campaignStatus: c.status || 'DRAFT',
         isNewCampaign: false,
+        pillarPageUrl: c.pillarPageUrl || '',
+        pillarEntityId: c.pillarEntityId || null,
+        mainKeyword: c.mainKeyword || '',
         startDate: c.startDate ? new Date(c.startDate).toISOString().split('T')[0] : '',
         endDate: c.endDate ? new Date(c.endDate).toISOString().split('T')[0] : '',
         publishDays: c.publishDays?.length ? c.publishDays : ['sun', 'mon', 'tue', 'wed', 'thu'],
@@ -111,8 +95,7 @@ function wizardReducer(state, action) {
         articleTypes: c.articleTypes || [{ id: 'SEO', count: 4 }],
         contentSettings: c.contentSettings || INITIAL_WIZARD_STATE.contentSettings,
         subjects: c.subjects || [],
-        // Use saved suggestions if available, otherwise reconstruct from selected subjects
-        subjectSuggestions: c.subjectSuggestions || buildSuggestionsFromSubjects(c.subjects || []),
+        subjectSuggestions: c.subjectSuggestions || [],
         selectedKeywordIds: c.keywordIds || [],
         textPrompt: c.textPrompt || '',
         imagePrompt: c.imagePrompt || '',
@@ -128,13 +111,13 @@ function wizardReducer(state, action) {
 
 const stepComponents = [
   CampaignStep,       // 1
-  PostCountStep,      // 2
-  ScheduleStep,       // 3
-  ArticleTypesStep,   // 4
-  ContentSettingsStep, // 5
-  KeywordsStep,       // 6
-  SubjectsStep,       // 7
-  PromptsStep,        // 8
+  PillarPageStep,     // 2
+  MainKeywordStep,    // 3
+  PostCountStep,      // 4
+  ArticleTypesStep,   // 5
+  SubjectsStep,       // 6
+  PromptsStep,        // 7
+  ScheduleStep,       // 8
   SummaryStep,        // 9
 ];
 
@@ -238,6 +221,8 @@ export function WizardContent({ translations }) {
               contentSettings: state.contentSettings,
               subjects: [],
               keywordIds: [],
+              pillarPageUrl: state.pillarPageUrl || '',
+              mainKeyword: state.mainKeyword || '',
               textPrompt: '',
               imagePrompt: '',
             }),
@@ -256,8 +241,24 @@ export function WizardContent({ translations }) {
       }
     }
 
-    // Step 4 validation: all posts must be allocated to article types
-    if (currentStep === 4) {
+    // Step 2 validation: pillar page URL required
+    if (currentStep === 2) {
+      if (!state.pillarPageUrl?.trim()) {
+        setValidationPopup(translations.pillarPage.required);
+        return;
+      }
+    }
+
+    // Step 3 validation: main keyword required
+    if (currentStep === 3) {
+      if (!state.mainKeyword?.trim()) {
+        setValidationPopup(translations.mainKeyword.required);
+        return;
+      }
+    }
+
+    // Step 5 validation: all posts must be allocated to article types
+    if (currentStep === 5) {
       const totalAllocated = state.articleTypes.reduce((sum, at) => sum + at.count, 0);
       if (totalAllocated !== state.postsCount) {
         const remaining = state.postsCount - totalAllocated;

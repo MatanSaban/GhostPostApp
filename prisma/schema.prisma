@@ -1212,20 +1212,25 @@ model Campaign {
   publishTimeStart  String?        // e.g. "09:00"
   publishTimeEnd    String?        // e.g. "18:00"
 
+  // Topic Cluster
+  pillarPageUrl     String?          // URL of the pillar page (entity or custom)
+  mainKeyword       String?          // Anchor text / cluster keyword
+  pillarEntityId    String?        @db.ObjectId // Optional ref to SiteEntity
+
   // Content plan
   postsCount        Int
   articleTypes      Json           // [{id: string, count: number}]
   contentSettings   Json           // {wordCounts, featuredImage, contentImages, ...}
   subjects          String[]       @default([])
-  subjectSuggestions Json?          // All generated suggestions [{keyword, subjects: [{title, explanation, articleType}]}]
-  keywordIds        String[]       @db.ObjectId
+  subjectSuggestions Json?          // All generated suggestions [{title, explanation, articleType, intent}]
+  keywordIds        String[]       @db.ObjectId // DEPRECATED - kept for backward compat
 
   // AI prompts
   textPrompt        String?        @default("")
   imagePrompt       String?        @default("")
 
   // Generated content plan
-  generatedPlan       Json?          // [{index, title, type, subject, keywordId, keywordText, scheduledAt}]
+  generatedPlan       Json?          // [{index, title, type, subject, scheduledAt}]
   lastCompletedStep   Int?           @default(1) // Tracks wizard progress (1-9)
 
   createdAt         DateTime       @default(now())
@@ -1296,6 +1301,28 @@ model GscKeywordCache {
 
   @@unique([siteId, rangeKey])
   @@map("gsc_keyword_caches")
+}
+
+// ==========================================
+// KEYWORD VOLUME CACHE (Google Ads API)
+// ==========================================
+// Caches real search volume data from Google Ads Keyword Planner.
+// Keyed by keyword+geo+language, refreshed every 30 days.
+
+model KeywordVolumeCache {
+  id                    String   @id @default(auto()) @map("_id") @db.ObjectId
+  keyword               String
+  geo                   String   @default("IL") // ISO country code
+  language              String   @default("1027") // Google Ads language criterion ID
+  avgMonthlySearches    Int      @default(0)
+  competition           String?  // LOW, MEDIUM, HIGH, UNSPECIFIED
+  competitionIndex      Int?     // 0-100
+  lowTopOfPageBidMicros Int?
+  highTopOfPageBidMicros Int?
+  fetchedAt             DateTime @default(now())
+
+  @@unique([keyword, geo, language])
+  @@map("keyword_volume_caches")
 }
 
 model Content {
@@ -1790,8 +1817,10 @@ model BacklinkListing {
 
   // Domain & SEO metrics
   domain          String                                  // e.g. "example.com"
+  websiteName     String?                                 // Display name of the website
   domainAuthority Int?                                    // Moz DA (0-100)
   domainRating    Int?                                    // Ahrefs DR (0-100)
+  urlRating       Int?                                    // Ahrefs UR (0-100)
   monthlyTraffic  Int?                                    // Estimated monthly organic traffic
 
   // Listing details
@@ -2234,4 +2263,21 @@ enum WebsiteContentStatus {
   DRAFT
   PUBLISHED
   ARCHIVED
+}
+
+// ==========================================
+// AI Cache
+// ==========================================
+
+// Generic cache for AI-generated text that should persist across sessions
+// Used for e.g. recommendation explanations per locale
+model AiCache {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  key       String   // Hash or composite key identifying the content
+  locale    String   // Language code (e.g., "en", "he")
+  content   Json     // Cached AI output (flexible structure)
+  createdAt DateTime @default(now())
+
+  @@unique([key, locale])
+  @@map("ai_cache")
 }

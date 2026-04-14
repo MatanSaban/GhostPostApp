@@ -144,37 +144,21 @@ export async function POST(request, { params }) {
     const subjects = (campaign.subjects || []).map((s) => {
       try { return typeof s === 'string' ? JSON.parse(s) : s; } catch { return s; }
     });
-    const keywordIds = campaign.keywordIds || [];
-
-    // Fetch keyword data for context
-    let keywords = [];
-    if (keywordIds.length > 0) {
-      keywords = await prisma.keyword.findMany({
-        where: { id: { in: keywordIds } },
-        select: { id: true, keyword: true },
-      });
-    }
 
     // Build planned posts
     const plannedPosts = scheduledDates.map((date, i) => {
       const subject = subjects.length > 0 ? subjects[i % subjects.length] : null;
-      const keyword = keywords.length > 0 ? keywords[i % keywords.length] : null;
       const type = typeAssignments[i];
 
-      // Subject may be an object { title, keyword, articleType, explanation } or a string
+      // Subject may be an object { title, articleType, explanation, intent } or a string
       const subjectTitle = typeof subject === 'object' ? subject?.title : subject;
-      const titleParts = [subjectTitle, keyword?.keyword].filter(Boolean);
-      const title = titleParts.length > 0
-        ? titleParts.join(' - ')
-        : `Post ${i + 1}`;
+      const title = subjectTitle || `Post ${i + 1}`;
 
       return {
         index: i,
         title,
         type,
         subject,
-        keywordId: keyword?.id || null,
-        keywordText: keyword?.keyword || null,
         scheduledAt: date.toISOString(),
       };
     });

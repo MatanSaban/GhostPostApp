@@ -113,6 +113,7 @@ export async function PUT(request, { params }) {
       'postsCount', 'articleTypes', 'contentSettings',
       'subjects', 'subjectSuggestions', 'keywordIds', 'textPrompt', 'imagePrompt',
       'generatedPlan', 'lastCompletedStep',
+      'pillarPageUrl', 'mainKeyword', 'pillarEntityId',
     ];
 
     for (const field of allowedFields) {

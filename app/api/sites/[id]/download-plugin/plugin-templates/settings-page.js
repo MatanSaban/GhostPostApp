@@ -5,6 +5,7 @@ export function getSettingsPage() {
   return `<?php
 /**
  * Ghost Post Connector - Settings Page
+ * Premium SaaS-style admin interface
  */
 
 if (!defined('ABSPATH')) {
@@ -16,105 +17,115 @@ $last_ping = get_option('gp_connector_last_ping', null);
 $last_error = get_option('gp_connector_last_error', null);
 $current_lang = get_option('gp_connector_language', 'auto');
 $dir = GP_I18n::dir_attr();
+
+// Status helpers
+$status_labels = array(
+    'connected'    => __('Connected', 'ghost-post-connector'),
+    'disconnected' => __('Disconnected', 'ghost-post-connector'),
+    'error'        => __('Connection Error', 'ghost-post-connector'),
+);
+$status_text = $status_labels[$status] ?? __('Unknown', 'ghost-post-connector');
 ?>
 
-<div class="wrap gp-connector-settings gp-settings-page" dir="<?php echo esc_attr($dir); ?>">
-    <h1>
+<div class="wrap gp-wrap gp-settings-page" dir="<?php echo esc_attr($dir); ?>">
+
+    <!-- Header -->
+    <div class="gp-header">
         <img src="<?php echo esc_url(GP_CONNECTOR_PLUGIN_URL . 'assets/icon.svg'); ?>"
              alt="Ghost Post"
-             class="gp-logo"
+             class="gp-header-icon"
              onerror="this.style.display='none'">
-        <?php esc_html_e('Settings', 'ghost-post-connector'); ?>
-    </h1>
-
-    <!-- Language Settings -->
-    <div class="gp-card">
-        <h2><?php esc_html_e('Language', 'ghost-post-connector'); ?></h2>
-        <form id="gp-language-form">
-            <div class="gp-form-group">
-                <label for="gp-language-select"><?php esc_html_e('Plugin Display Language', 'ghost-post-connector'); ?></label>
-                <select id="gp-language-select" name="language">
-                    <option value="auto" <?php selected($current_lang, 'auto'); ?>><?php esc_html_e('Auto (match WordPress)', 'ghost-post-connector'); ?></option>
-                    <option value="en" <?php selected($current_lang, 'en'); ?>><?php esc_html_e('English', 'ghost-post-connector'); ?></option>
-                    <option value="he" <?php selected($current_lang, 'he'); ?>><?php esc_html_e('Hebrew', 'ghost-post-connector'); ?></option>
-                </select>
-                <p class="description"><?php esc_html_e('The plugin language will update after saving. When set to Auto, it follows the WordPress dashboard language.', 'ghost-post-connector'); ?></p>
-            </div>
-            <div class="gp-form-actions">
-                <button type="submit" class="button button-primary" id="gp-save-language">
-                    <?php esc_html_e('Save Settings', 'ghost-post-connector'); ?>
-                </button>
-            </div>
-        </form>
-        <div id="gp-language-result" class="gp-result-box" style="display: none;"></div>
+        <h1 class="gp-header-title"><?php esc_html_e('Settings', 'ghost-post-connector'); ?></h1>
     </div>
 
-    <!-- Connection Status -->
-    <div class="gp-card">
-        <h2><?php esc_html_e('Connection Status', 'ghost-post-connector'); ?></h2>
+    <!-- Connection Status Hero -->
+    <div class="gp-status-hero gp-status-<?php echo esc_attr($status); ?>">
+        <span class="gp-status-pulse"></span>
+        <span class="gp-status-label"><?php echo esc_html($status_text); ?></span>
+        <?php if ($last_ping): ?>
+        <span class="gp-status-meta">
+            <?php
+            printf(
+                esc_html__('Last ping %s ago', 'ghost-post-connector'),
+                human_time_diff($last_ping)
+            );
+            ?>
+        </span>
+        <?php endif; ?>
+    </div>
 
-        <div class="gp-status-indicator gp-status-<?php echo esc_attr($status); ?>">
-            <span class="gp-status-dot"></span>
-            <span class="gp-status-text">
+    <div class="gp-card-grid">
+
+        <!-- Language Settings Card -->
+        <div class="gp-card">
+            <div class="gp-card-header">
+                <svg class="gp-card-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+                <h2 class="gp-card-title"><?php esc_html_e('Language', 'ghost-post-connector'); ?></h2>
+            </div>
+
+            <form id="gp-language-form">
+                <div class="gp-form-group">
+                    <label for="gp-language-select"><?php esc_html_e('Plugin Display Language', 'ghost-post-connector'); ?></label>
+                    <select id="gp-language-select" name="language">
+                        <option value="auto" <?php selected($current_lang, 'auto'); ?>><?php esc_html_e('Auto (match WordPress)', 'ghost-post-connector'); ?></option>
+                        <option value="en" <?php selected($current_lang, 'en'); ?>><?php esc_html_e('English', 'ghost-post-connector'); ?></option>
+                        <option value="he" <?php selected($current_lang, 'he'); ?>><?php esc_html_e('Hebrew', 'ghost-post-connector'); ?></option>
+                    </select>
+                    <p class="gp-form-hint"><?php esc_html_e('When set to Auto, it follows the WordPress dashboard language.', 'ghost-post-connector'); ?></p>
+                </div>
+                <button type="submit" class="gp-btn gp-btn-primary" id="gp-save-language">
+                    <?php esc_html_e('Save Settings', 'ghost-post-connector'); ?>
+                </button>
+            </form>
+            <div id="gp-language-result" class="gp-result-box" style="display: none;"></div>
+        </div>
+
+        <!-- Connection Actions Card -->
+        <div class="gp-card">
+            <div class="gp-card-header">
+                <svg class="gp-card-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+                <h2 class="gp-card-title"><?php esc_html_e('Connection', 'ghost-post-connector'); ?></h2>
+            </div>
+
+            <?php if ($last_error): ?>
+            <div class="gp-alert gp-alert-error">
+                <svg class="gp-alert-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+                <?php echo esc_html($last_error); ?>
+            </div>
+            <?php endif; ?>
+
+            <div class="gp-btn-group">
+                <button type="button" class="gp-btn gp-btn-primary" id="gp-test-connection">
+                    <?php esc_html_e('Test Connection', 'ghost-post-connector'); ?>
+                </button>
+                <button type="button" class="gp-btn gp-btn-secondary" id="gp-send-ping">
+                    <?php esc_html_e('Send Ping', 'ghost-post-connector'); ?>
+                </button>
+                <?php if ($status === 'connected'): ?>
+                <button type="button" class="gp-btn gp-btn-danger" id="gp-disconnect">
+                    <?php esc_html_e('Disconnect', 'ghost-post-connector'); ?>
+                </button>
+                <?php endif; ?>
+            </div>
+        </div>
+
+    </div><!-- .gp-card-grid -->
+
+    <!-- Permissions Card (full width) -->
+    <div class="gp-card">
+        <div class="gp-card-header">
+            <svg class="gp-card-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            <h2 class="gp-card-title"><?php esc_html_e('Permissions', 'ghost-post-connector'); ?></h2>
+            <span class="gp-badge gp-badge-primary" style="margin-inline-start: auto;">
                 <?php
-                switch ($status) {
-                    case 'connected':
-                        esc_html_e('Connected', 'ghost-post-connector');
-                        break;
-                    case 'disconnected':
-                        esc_html_e('Disconnected', 'ghost-post-connector');
-                        break;
-                    case 'error':
-                        esc_html_e('Error', 'ghost-post-connector');
-                        break;
-                    default:
-                        esc_html_e('Unknown', 'ghost-post-connector');
-                }
+                $permissions = unserialize(GP_PERMISSIONS);
+                printf(esc_html__('%d active', 'ghost-post-connector'), count($permissions));
                 ?>
             </span>
         </div>
 
-        <?php if ($last_ping): ?>
-        <p class="gp-last-ping">
+        <ul class="gp-permissions-grid">
             <?php
-            printf(
-                esc_html__('Last ping: %s', 'ghost-post-connector'),
-                human_time_diff($last_ping) . ' ' . esc_html__('ago', 'ghost-post-connector')
-            );
-            ?>
-        </p>
-        <?php endif; ?>
-
-        <?php if ($last_error): ?>
-        <div class="gp-error-message">
-            <strong><?php esc_html_e('Last Error:', 'ghost-post-connector'); ?></strong>
-            <?php echo esc_html($last_error); ?>
-        </div>
-        <?php endif; ?>
-
-        <div class="gp-actions">
-            <button type="button" class="button button-primary" id="gp-test-connection">
-                <?php esc_html_e('Test Connection', 'ghost-post-connector'); ?>
-            </button>
-            <button type="button" class="button" id="gp-send-ping">
-                <?php esc_html_e('Send Ping', 'ghost-post-connector'); ?>
-            </button>
-            <?php if ($status === 'connected'): ?>
-            <button type="button" class="button button-link-delete" id="gp-disconnect">
-                <?php esc_html_e('Disconnect', 'ghost-post-connector'); ?>
-            </button>
-            <?php endif; ?>
-        </div>
-    </div>
-
-    <!-- Permissions -->
-    <div class="gp-card">
-        <h2><?php esc_html_e('Permissions', 'ghost-post-connector'); ?></h2>
-        <p><?php esc_html_e('Ghost Post has the following permissions on this site:', 'ghost-post-connector'); ?></p>
-
-        <ul class="gp-permissions-list">
-            <?php
-            $permissions = unserialize(GP_PERMISSIONS);
             $permission_labels = array(
                 'CONTENT_READ'    => __('Read content', 'ghost-post-connector'),
                 'CONTENT_CREATE'  => __('Create content', 'ghost-post-connector'),
@@ -138,15 +149,26 @@ $dir = GP_I18n::dir_attr();
 
             foreach ($permissions as $perm) {
                 $label = $permission_labels[$perm] ?? $perm;
-                echo '<li><span class="dashicons dashicons-yes-alt"></span> ' . esc_html($label) . '</li>';
+                echo '<li><svg class="gp-perm-check" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>' . esc_html($label) . '</li>';
             }
             ?>
         </ul>
 
-        <p class="gp-permissions-note">
+        <p class="gp-form-hint" style="margin-top: 16px;">
             <?php esc_html_e('To modify permissions, go to your Ghost Post dashboard.', 'ghost-post-connector'); ?>
         </p>
     </div>
+
+    <!-- Footer -->
+    <div class="gp-footer">
+        <?php
+        printf(
+            esc_html__('Powered by %s', 'ghost-post-connector'),
+            '<a href="https://ghostpost.co.il" target="_blank" rel="noopener">Ghost Post</a>'
+        );
+        ?>
+    </div>
+
 </div>
 `;
 }

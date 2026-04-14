@@ -1,0 +1,39 @@
+Note: Our tool is externally accessible at https://app.ghostpost.co.il
+Screenshots of the tool are included below.
+
+
+Company Name: Ghost Post
+
+Business Model: Ghost Post is a SaaS platform for SEO content management. We help businesses manage their website content, track keyword rankings, and optimize for search engines. We do not run Google Ads campaigns or manage ads for anyone. We only use the Google Ads API to retrieve keyword search volume data for our users' SEO keyword research.
+
+Tool Access/Use: Our tool is used by our platform's customers (businesses and content managers) to track keyword rankings and plan content strategy. Users log into our platform at https://app.ghostpost.co.il and view a keywords dashboard that displays search volume, ranking position, clicks, and impressions for their tracked keywords. The search volume data is fetched from the Google Ads Keyword Planner API using our platform's own MCC account credentials. Individual users do not need a Google Ads account — all API calls are made server-side using our platform's single set of credentials.
+
+Tool Design: When a user adds keywords to track (either manually or through our AI-powered site interview), our backend server sends those keywords to the Google Ads API's GenerateKeywordIdeas endpoint to retrieve real monthly search volume data. The results are cached in our MongoDB database for 30 days to minimize API calls. Our UI pulls from this cache to display search volume on the keywords dashboard. Users can also click a "Refresh Search Volume" button to re-fetch updated data.
+
+We batch keywords in groups of up to 20 per API request and cache all results for 30 days per keyword + country + language combination. Estimated daily API usage is under 50 requests.
+
+API Services Called:
+  - Retrieve keyword search volume metrics via KeywordPlanIdeaService (GenerateKeywordIdeas)
+    https://developers.google.com/google-ads/api/reference/rpc/v23/KeywordPlanIdeaService
+
+This is the only API service we use. We do not call any other Google Ads API services.
+
+Tool Mockups: Below is a mockup of our keywords dashboard where the search volume data is displayed.
+
+[INSERT SCREENSHOT OF YOUR KEYWORDS PAGE HERE]
+
+The "Volume" column displays the average monthly search volume retrieved from the Google Ads Keyword Planner API. Additional columns show Google Search Console data (position, clicks, impressions) which come from a separate integration.
+
++------------------------------------------------------------------+
+|  Keywords                                                         |
++------------------------------------------------------------------+
+|  Keyword        | Position | Volume | Clicks | Impressions | CTR  |
+|-----------------|----------|--------|--------|-------------|------|
+|  שיווק דיגיטלי  |    #3    | 12,100 |   890  |   15,400    | 5.8% |
+|  קידום אתרים    |    #7    |  8,100 |   320  |    9,200    | 3.5% |
+|  בניית אתרים    |    #12   |  6,600 |   110  |    4,800    | 2.3% |
+|  SEO            |    #5    | 22,200 |  1,200 |   28,000    | 4.3% |
++------------------------------------------------------------------+
+
+Volume = Google Ads Keyword Planner API (GenerateKeywordIdeas)
+Position, Clicks, Impressions, CTR = Google Search Console API (separate integration)

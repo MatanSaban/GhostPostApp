@@ -192,6 +192,7 @@ export function KeywordsContent() {
   const [gscCustomEnd, setGscCustomEnd] = useState('');
   const [sortBy, setSortBy] = useState('keyword'); // keyword, position, clicks, impressions, ctr, status
   const [sortDir, setSortDir] = useState('asc'); // asc, desc
+  const [refreshingVolume, setRefreshingVolume] = useState(false);
   const dropdownRef = useRef(null);
 
   // Close dropdowns when clicking outside
@@ -304,6 +305,37 @@ export function KeywordsContent() {
       console.error('Error fetching GSC data:', err);
     } finally {
       setGscLoading(false);
+    }
+  };
+
+  const handleRefreshVolume = async () => {
+    if (!selectedSite?.id || keywords.length === 0 || refreshingVolume) return;
+    setRefreshingVolume(true);
+    try {
+      const res = await fetch('/api/keywords/search-volume', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          siteId: selectedSite.id,
+          keywords: keywords.map(k => k.keyword),
+        }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.results) {
+          setKeywords(prev => prev.map(kw => {
+            const vol = data.results[kw.keyword.toLowerCase().trim()];
+            if (vol?.avgMonthlySearches != null) {
+              return { ...kw, searchVolume: vol.avgMonthlySearches };
+            }
+            return kw;
+          }));
+        }
+      }
+    } catch (err) {
+      console.error('Error refreshing search volume:', err);
+    } finally {
+      setRefreshingVolume(false);
     }
   };
 
@@ -836,6 +868,17 @@ export function KeywordsContent() {
               {filteredKeywords.length} {t('keywordStrategy.keywordsFound')}
             </p>
           </div>
+          {keywords.length > 0 && (
+            <button
+              className={styles.addKeywordToggle}
+              onClick={handleRefreshVolume}
+              disabled={refreshingVolume}
+              title={t('keywordStrategy.refreshVolume')}
+            >
+              {refreshingVolume ? <Loader2 size={14} className={styles.spinner} /> : <BarChart3 size={14} />}
+              {t('keywordStrategy.refreshVolume')}
+            </button>
+          )}
         </div>
 
         {filteredKeywords.length === 0 ? (
@@ -886,7 +929,7 @@ export function KeywordsContent() {
                 const isUpdating = updatingKeywords.has(kw.id);
                 const gsc = getGSCMetrics(kw.keyword);
                 const position = gsc?.position ?? kw.position;
-                const volume = gsc?.impressions ?? kw.searchVolume;
+                const volume = kw.searchVolume;
                 return (
                   <div key={kw.id} className={styles.tableRow}>
                     <div className={styles.keywordCell}>

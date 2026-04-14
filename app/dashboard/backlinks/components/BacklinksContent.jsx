@@ -2,12 +2,13 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
-import { Link2, ExternalLink, Globe, Tag, Languages, Search, X, Shield, ShoppingBag, DollarSign, Plus, Loader2, Info, LayoutGrid, List } from 'lucide-react';
+import { Link2, ExternalLink, Globe, Tag, Languages, Search, X, Shield, ShoppingBag, DollarSign, Plus, Loader2, Info, LayoutGrid, List, Upload } from 'lucide-react';
 import { useLocale } from '@/app/context/locale-context';
 import { useUser } from '@/app/context/user-context';
 import { useSite } from '@/app/context/site-context';
 import { useModalResize, ModalResizeButton } from '@/app/components/ui/ModalResizeButton';
 import { Button, DataTable } from '@/app/dashboard/components';
+import BulkAddListingsModal from './BulkAddListingsModal';
 import styles from '../backlinks.module.css';
 
 // ── Currency symbol mapping ──
@@ -743,6 +744,7 @@ export function BacklinksContent() {
   const [totalPages, setTotalPages] = useState(1);
   const [purchaseModal, setPurchaseModal] = useState(null); // listing object or null
   const [createModal, setCreateModal] = useState(false);
+  const [bulkModal, setBulkModal] = useState(false);
   const [userSites, setUserSites] = useState([]);
   const [toast, setToast] = useState(null);
   const [viewMode, setViewMode] = useState(() => {
@@ -1079,6 +1081,16 @@ export function BacklinksContent() {
           {t('backlinks.createListing.button')}
         </button>
 
+        {user?.isSuperAdmin && (
+          <button
+            className={`${styles.purchaseButton} ${styles.addListingButton}`}
+            onClick={() => setBulkModal(true)}
+          >
+            <Upload size={16} />
+            {t('backlinks.bulk.button') || 'Bulk Add'}
+          </button>
+        )}
+
         <div className={styles.filterGroup}>
           {['all', 'available', 'purchased', 'myListings'].map(f => (
             <button
@@ -1215,6 +1227,15 @@ export function BacklinksContent() {
           t={t}
           onClose={() => setCreateModal(false)}
           onSubmit={handleCreateListing}
+        />
+      )}
+
+      {/* Bulk Add Modal (admin only) */}
+      {bulkModal && (
+        <BulkAddListingsModal
+          t={t}
+          onClose={() => setBulkModal(false)}
+          onDone={fetchListings}
         />
       )}
 

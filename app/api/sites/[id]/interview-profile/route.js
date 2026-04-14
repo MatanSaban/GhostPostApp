@@ -366,6 +366,15 @@ export async function PATCH(request, { params }) {
         });
         const existingSet = new Set(existingKeywords.map(k => k.keyword.toLowerCase().trim()));
 
+        // Delete keywords that were removed
+        const newValueSet = new Set(value.map(kw => typeof kw === 'string' ? kw.toLowerCase().trim() : '').filter(Boolean));
+        const keywordsToDelete = existingKeywords.filter(k => !newValueSet.has(k.keyword.toLowerCase().trim()));
+        if (keywordsToDelete.length > 0) {
+          await prisma.keyword.deleteMany({
+            where: { id: { in: keywordsToDelete.map(k => k.id) } },
+          });
+        }
+
         // Add new keywords that don't exist
         const newKeywords = value
           .filter(kw => typeof kw === 'string' && kw.trim() && !existingSet.has(kw.toLowerCase().trim()))

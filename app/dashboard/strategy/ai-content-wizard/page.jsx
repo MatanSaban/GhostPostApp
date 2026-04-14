@@ -1,20 +1,24 @@
 import { WizardContent } from './components';
-import { getTranslations } from '@/i18n/server';
+import { getTranslations, getLocaleInfo } from '@/i18n/server';
 import styles from './page.module.css';
 
 export default async function AIContentWizardPage() {
   const t = await getTranslations();
+  const { dictionary } = await getLocaleInfo();
+
+  // Get the intents map directly from the dictionary (it's an object, not a string)
+  const intentsMap = dictionary?.aiWizard?.subjects?.intents || {};
 
   const translations = {
     // Step names
     steps: {
       campaign: t('aiWizard.steps.campaign'),
+      pillarPage: t('aiWizard.steps.pillarPage'),
+      mainKeyword: t('aiWizard.steps.mainKeyword'),
       postCount: t('aiWizard.steps.postCount'),
       schedule: t('aiWizard.steps.schedule'),
       articleTypes: t('aiWizard.steps.articleTypes'),
-      contentSettings: t('aiWizard.steps.contentSettings'),
       subjects: t('aiWizard.steps.subjects'),
-      keywords: t('aiWizard.steps.keywords'),
       prompts: t('aiWizard.steps.prompts'),
       summary: t('aiWizard.steps.summary'),
     },
@@ -44,6 +48,36 @@ export default async function AIContentWizardPage() {
       selectOrCreateError: t('aiWizard.campaign.selectOrCreateError'),
       createError: t('aiWizard.campaign.createError'),
       existingCampaigns: t('aiWizard.campaign.existingCampaigns'),
+      topicClusterInfoTitle: t('aiWizard.campaign.topicClusterInfoTitle'),
+      topicClusterInfoText: t('aiWizard.campaign.topicClusterInfoText'),
+    },
+    // Pillar page step
+    pillarPage: {
+      title: t('aiWizard.pillarPage.title'),
+      description: t('aiWizard.pillarPage.description'),
+      selectEntity: t('aiWizard.pillarPage.selectEntity'),
+      customUrl: t('aiWizard.pillarPage.customUrl'),
+      customUrlLabel: t('aiWizard.pillarPage.customUrlLabel'),
+      customUrlPlaceholder: t('aiWizard.pillarPage.customUrlPlaceholder'),
+      customUrlHint: t('aiWizard.pillarPage.customUrlHint'),
+      searchPlaceholder: t('aiWizard.pillarPage.searchPlaceholder'),
+      noResults: t('aiWizard.pillarPage.noResults'),
+      required: t('aiWizard.pillarPage.required'),
+      selectedLabel: t('aiWizard.pillarPage.selectedLabel'),
+      orDivider: t('aiWizard.pillarPage.orDivider'),
+    },
+    // Main keyword step
+    mainKeyword: {
+      title: t('aiWizard.mainKeyword.title'),
+      description: t('aiWizard.mainKeyword.description'),
+      label: t('aiWizard.mainKeyword.label'),
+      placeholder: t('aiWizard.mainKeyword.placeholder'),
+      hint: t('aiWizard.mainKeyword.hint'),
+      helpText: t('aiWizard.mainKeyword.helpText'),
+      required: t('aiWizard.mainKeyword.required'),
+      suggestWithAI: t('aiWizard.mainKeyword.suggestWithAI'),
+      suggesting: t('aiWizard.mainKeyword.suggesting'),
+      suggestError: t('aiWizard.mainKeyword.suggestError'),
     },
     // Post count step
     postCount: {
@@ -201,7 +235,7 @@ export default async function AIContentWizardPage() {
       generate: t('aiWizard.subjects.generate'),
       regenerate: t('aiWizard.subjects.regenerate'),
       generating: t('aiWizard.subjects.generating'),
-      noKeywordsWarning: t('aiWizard.subjects.noKeywordsWarning'),
+      noMainKeywordWarning: t('aiWizard.subjects.noMainKeywordWarning'),
       errorGenerating: t('aiWizard.subjects.errorGenerating'),
       selectedCount: t('aiWizard.subjects.selectedCount'),
       addCustom: t('aiWizard.subjects.addCustom'),
@@ -212,35 +246,10 @@ export default async function AIContentWizardPage() {
       selectedSubjects: t('aiWizard.subjects.selectedSubjects'),
       allSelected: t('aiWizard.subjects.allSelected'),
       selectRemaining: t('aiWizard.subjects.selectRemaining'),
-      onePerKeyword: t('aiWizard.subjects.onePerKeyword'),
+      intent: t('aiWizard.subjects.intent'),
       gotIt: t('aiWizard.subjects.gotIt'),
-    },
-    // Keywords step
-    keywords: {
-      title: t('aiWizard.keywords.title'),
-      description: t('aiWizard.keywords.description'),
-      selectFromList: t('aiWizard.keywords.selectFromList'),
-      fromGSC: t('aiWizard.keywords.fromGSC'),
-      addManual: t('aiWizard.keywords.addManual'),
-      manualPlaceholder: t('aiWizard.keywords.manualPlaceholder'),
-      selected: t('aiWizard.keywords.selected'),
-      noKeywords: t('aiWizard.keywords.noKeywords'),
-      noGSC: t('aiWizard.keywords.noGSC'),
-      noGSCData: t('aiWizard.keywords.noGSCData'),
-      noResults: t('aiWizard.keywords.noResults'),
-      connectGSC: t('aiWizard.keywords.connectGSC'),
-      searchPlaceholder: t('aiWizard.keywords.searchPlaceholder'),
-      clicks: t('aiWizard.keywords.clicks'),
-      impressions: t('aiWizard.keywords.impressions'),
-      selectGSCSite: t('aiWizard.keywords.selectGSCSite'),
-      selectGSCSiteDesc: t('aiWizard.keywords.selectGSCSiteDesc'),
-      noGSCSites: t('aiWizard.keywords.noGSCSites'),
-      permOwner: t('aiWizard.keywords.permOwner'),
-      permFull: t('aiWizard.keywords.permFull'),
-      permRestricted: t('aiWizard.keywords.permRestricted'),
-      permUnverified: t('aiWizard.keywords.permUnverified'),
-      domainProperty: t('aiWizard.keywords.domainProperty'),
-      cancel: t('aiWizard.keywords.cancel'),
+      aiRecommending: t('aiWizard.subjects.aiRecommending'),
+      intents: intentsMap,
     },
     // Prompts step
     prompts: {
@@ -258,23 +267,23 @@ export default async function AIContentWizardPage() {
       title: t('aiWizard.summary.title'),
       description: t('aiWizard.summary.description'),
       campaignName: t('aiWizard.summary.campaignName'),
+      pillarPage: t('aiWizard.summary.pillarPage'),
+      mainKeyword: t('aiWizard.summary.mainKeyword'),
       totalPosts: t('aiWizard.summary.totalPosts'),
       dateRange: t('aiWizard.summary.dateRange'),
       publishDays: t('aiWizard.summary.publishDays'),
       publishTime: t('aiWizard.summary.publishTime'),
       articleTypes: t('aiWizard.summary.articleTypes'),
-      keywords: t('aiWizard.summary.keywords'),
       plannedPosts: t('aiWizard.summary.plannedPosts'),
       generatePlan: t('aiWizard.summary.generatePlan'),
       generatingPlan: t('aiWizard.summary.generatingPlan'),
       postTitle: t('aiWizard.summary.postTitle'),
       postType: t('aiWizard.summary.postType'),
       postDate: t('aiWizard.summary.postDate'),
-      postKeyword: t('aiWizard.summary.postKeyword'),
       postSubject: t('aiWizard.summary.postSubject'),
+      postIntent: t('aiWizard.summary.postIntent'),
       editTitle: t('aiWizard.summary.editTitle'),
       noSubject: t('aiWizard.summary.noSubject'),
-      noKeyword: t('aiWizard.summary.noKeyword'),
       expandAll: t('aiWizard.summary.expandAll'),
       collapseAll: t('aiWizard.summary.collapseAll'),
       random: t('aiWizard.summary.random'),

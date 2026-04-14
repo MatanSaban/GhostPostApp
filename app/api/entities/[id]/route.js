@@ -302,6 +302,11 @@ export async function PATCH(request, { params }) {
     if (body.title !== undefined) data.title = body.title;
     if (body.status !== undefined) data.status = body.status;
     if (body.scheduledAt !== undefined) data.scheduledAt = body.scheduledAt ? new Date(body.scheduledAt) : null;
+    // When status is PUBLISHED and a date is provided, also update publishedAt
+    // so the calendar shows the post on the correct day after refresh.
+    if (body.status === 'PUBLISHED' && body.scheduledAt) {
+      data.publishedAt = new Date(body.scheduledAt);
+    }
 
     // Update entity in DB
     const updatedEntity = await prisma.siteEntity.update({

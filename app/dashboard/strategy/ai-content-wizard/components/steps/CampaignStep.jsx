@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { FolderOpen, Plus, Trash2, Loader2, AlertTriangle, X } from 'lucide-react';
+import { FolderOpen, Plus, Trash2, Loader2, AlertTriangle, X, Info } from 'lucide-react';
 import { useSite } from '@/app/context/site-context';
 import { usePermissions, MODULES } from '@/app/hooks/usePermissions';
 import CampaignForm from '../../../_shared/CampaignForm';
@@ -68,6 +68,17 @@ export default function CampaignStep({ state, dispatch, translations, onLoadCamp
           <h2 className={styles.stepTitle}>{t.title}</h2>
           <p className={styles.stepDescription}>{t.description}</p>
         </div>
+      </div>
+
+      {/* Topic Cluster Info Box */}
+      <div className={styles.topicClusterInfo}>
+        <div className={styles.topicClusterInfoHeader}>
+          <Info size={18} />
+          <span>{translations.campaign.topicClusterInfoTitle}</span>
+        </div>
+        <p className={styles.topicClusterInfoText}>
+          {translations.campaign.topicClusterInfoText}
+        </p>
       </div>
 
       {/* Create New / Toggle */}

@@ -1107,6 +1107,84 @@ model SiteAudit {
 }
 ```
 
+### Campaign (AI Content Wizard)
+
+Stores all wizard state for topic-cluster content campaigns.
+
+```prisma
+model Campaign {
+  id                String         @id @default(auto()) @map("_id") @db.ObjectId
+  siteId            String         @db.ObjectId
+  name              String
+  color             String         @default("#6366f1")          // Hex color for calendar
+  status            CampaignStatus @default(DRAFT)              // DRAFT | ACTIVE | PAUSED | COMPLETED
+
+  // Schedule
+  startDate         DateTime
+  endDate           DateTime
+  publishDays       String[]                                     // ["sun","mon","tue",...]
+  publishTimeMode   String         @default("random")           // "random" | "fixed"
+  publishTimeStart  String?                                      // e.g. "09:00"
+  publishTimeEnd    String?                                      // e.g. "18:00"
+
+  // Topic Cluster / Pillar Page
+  pillarPageUrl     String?                                      // URL of selected pillar page
+  mainKeyword       String?                                      // Anchor/seed keyword for the cluster
+  pillarEntityId    String?        @db.ObjectId                 // Optional ref to SiteEntity
+
+  // Content Planning
+  postsCount        Int                                          // Number of posts to generate
+  articleTypes      Json                                         // [{id: string, count: number}]
+  contentSettings   Json                                         // {wordCounts, featuredImage, contentImages, ...}
+  subjects          String[]       @default([])                 // Selected subject titles
+  subjectSuggestions Json?                                       // All AI-generated suggestions [{title, explanation, articleType, intent}]
+  keywordIds        String[]       @db.ObjectId @default([])   // DEPRECATED — was keyword-based flow
+
+  // AI Prompts
+  textPrompt        String?        @default("")                 // Custom text generation prompt
+  imagePrompt       String?        @default("")                 // Custom image generation prompt
+
+  // Generated Content Plan
+  generatedPlan     Json?                                        // [{index, title, type, subject, scheduledAt}]
+  lastCompletedStep Int?           @default(1)                 // Wizard progress tracker (1-9)
+
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+
+  site     Site      @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  contents Content[]
+
+  @@index([siteId])
+}
+
+enum CampaignStatus {
+  DRAFT      // Wizard in progress
+  ACTIVE     // Content being generated/published
+  PAUSED     // Manually paused
+  COMPLETED  // All content published
+}
+```
+
+### AI Cache
+
+Locale-aware cache for AI recommendation results (e.g., subject recommendations).
+
+```prisma
+model AiCache {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  key       String                          // SHA256 hash of cache identifier
+  locale    String                          // Language code ("en", "he")
+  content   Json                            // Cached AI output (flexible structure)
+  createdAt DateTime @default(now())
+
+  @@unique([key, locale])                   // Same key cached separately per locale
+  @@map("ai_cache")
+}
+```
+
+**Cache Key Format:** `SHA256(recommend:${mainKeyword}:${postsCount}:${sortedSubjectTitles})`
+**Usage:** The `recommend-subjects` API checks this cache before calling AI. On cache hit, returns stored recommendation instantly. On miss, generates and stores for future requests.
+
 ---
 
 ## 10. Internationalization System
@@ -1920,19 +1998,122 @@ DRAFT → SCHEDULED → PROCESSING → READY_TO_PUBLISH → PUBLISHED
 
 ### 15e. AI Content Wizard (`strategy/ai-content-wizard/`)
 
-A **9-step wizard** for bulk AI content generation:
+A **9-step topic-cluster wizard** for bulk AI content generation built around a pillar page strategy.
 
-| Step | Name | Description |
-|------|------|-------------|
-| 1 | Campaign | Create new or select existing campaign |
-| 2 | Post Count | Number of articles to generate |
-| 3 | Schedule | Start/end dates, publishing days, publish time (fixed or random range) |
-| 4 | Article Types | Mix of content types (SEO Article, Blog Post, Guide, How-To, Listicle, Comparison, Review, News, Tutorial, Case Study) |
-| 5 | Content Settings | Word count range (min/max), featured image toggle, content images toggle, custom prompt |
-| 6 | Subjects | Main topics for content pieces |
-| 7 | Keywords | Target keywords (one per article) |
-| 8 | Prompts | Additional custom instructions for the AI |
-| 9 | Summary | Review all settings before creating |
+**Architecture:** Server component (`page.jsx`) loads translations via `getTranslations()` + `getLocaleInfo()` and passes them to the `WizardContent` client component. Step components live in `components/steps/`. Configuration constants are in `wizardConfig.js`.
+
+**File Structure:**
+```
+ai-content-wizard/
+  ├── page.jsx                  // Server component — loads i18n, passes translations
+  ├── page.module.css
+  ├── wizardConfig.js           // WIZARD_STEPS, INITIAL_WIZARD_STATE, ARTICLE_TYPES, translateIntent()
+  ├── loading.jsx
+  └── components/
+      ├── WizardContent.jsx     // Client orchestrator — manages wizard state, step navigation
+      └── steps/
+          ├── CampaignStep.jsx      (Step 1)
+          ├── PillarPageStep.jsx    (Step 2)
+          ├── MainKeywordStep.jsx   (Step 3)
+          ├── PostCountStep.jsx     (Step 4)
+          ├── ArticleTypesStep.jsx  (Step 5 — merged article types + content settings)
+          ├── SubjectsStep.jsx      (Step 6)
+          ├── PromptsStep.jsx       (Step 7)
+          ├── ScheduleStep.jsx      (Step 8)
+          └── SummaryStep.jsx       (Step 9)
+```
+
+#### Wizard Steps
+
+| Step | Key | Icon | Component | Description |
+|------|-----|------|-----------|-------------|
+| 1 | `campaign` | FolderOpen | CampaignStep | Create new or select existing campaign |
+| 2 | `pillarPage` | Globe | PillarPageStep | Select anchor/pillar page from ALL entity types (posts, pages, products, etc.) or enter a custom URL. Entity type badges, decoded Hebrew URLs (via `decodeUrl()`) |
+| 3 | `mainKeyword` | Search | MainKeywordStep | Enter main keyword for the topic cluster. AI auto-suggests 3 keywords based on pillar page analysis (title, slug, excerpt, SEO data) via `/api/campaigns/suggest-keyword` |
+| 4 | `postCount` | Hash | PostCountStep | Number of articles to generate |
+| 5 | `articleTypes` | FileText | ArticleTypesStep | Merged step — mix of content types (SEO Article, Blog Post, Guide, How-To, Listicle, Comparison, Review, News, Tutorial, Case Study) + word count range, featured image toggle, content images toggle, custom prompt |
+| 6 | `subjects` | BookOpen | SubjectsStep | AI generates 3× `postsCount` subject suggestions via **SSE streaming**. AI auto-recommends the best combination and auto-selects them. Shows translated intent badges. Explanation banner with AI reasoning |
+| 7 | `prompts` | MessageSquare | PromptsStep | Custom text and image generation prompts for the AI |
+| 8 | `schedule` | Calendar | ScheduleStep | Start/end dates, publishing days (checkboxes), publish time mode (fixed time or random range) |
+| 9 | `summary` | Sparkles | SummaryStep | Review all settings — decoded Hebrew URLs, translated intent badges, article type distribution, schedule preview |
+
+#### Topic Cluster Architecture
+
+The wizard is built around the **pillar page → topic cluster** strategy:
+1. User selects an existing content piece (from any entity type) or enters a custom URL as the **pillar page**
+2. AI suggests **main keywords** based on the pillar page's title, slug, excerpt, and SEO metadata
+3. AI generates **subject ideas** that form a content cluster around the pillar page, ensuring each piece targets a distinct search intent
+4. **3-layer anti-cannibalization** prevents overlap with existing site content and other campaigns
+
+#### Key Features
+
+**AI Keyword Suggestions (Step 3):**
+- On mount, calls `POST /api/campaigns/suggest-keyword` with pillar page context
+- Returns 3 ranked keyword suggestions with explanations
+- User can click a suggestion to auto-fill or type manually
+
+**SSE Streaming Subject Generation (Step 6):**
+- Calls `POST /api/campaigns/generate-subjects` which uses Vercel AI SDK `streamText()` + `Output.object()`
+- Subjects stream incrementally via Server-Sent Events — each suggestion appears in the UI as soon as all 4 fields are complete (title, explanation, articleType, intent)
+- Generates 3× `postsCount` options for user to choose from
+- Sends `[DONE]` signal on completion
+
+**AI Auto-Recommendation (Step 6):**
+- After streaming completes, automatically calls `POST /api/campaigns/recommend-subjects`
+- AI picks the best `postsCount` subjects from the full list and explains why
+- Recommended subjects are auto-selected with checkmarks
+- Explanation displayed in a banner with AI icon
+- Results cached per locale in `AiCache` (SHA256 key + locale) — re-fetches on locale change
+
+**Anti-Cannibalization (3 Layers in generate-subjects):**
+1. **Data Fetching Layer** — Fetches all published entities on the site + all active/draft campaign subjects to build existing content context
+2. **Prompt Engineering Layer** — Strict rules: no semantic overlap with existing/planned content, intra-cluster intent separation, relevance to pillar page
+3. **Output Verification Layer** — Each suggestion includes an `intent` field (e.g., "Informational - How-to", "Transactional - Comparison") for separation verification
+
+**Intent Translation System:**
+- `translateIntent(intentStr, intentsMap)` in `wizardConfig.js` splits intent strings by `' - '` and translates each part using the locale's intents map (30 terms in EN/HE)
+- Used in SubjectsStep (3 display points) and SummaryStep (2 display points)
+- Intent maps loaded from `dictionary.aiWizard.subjects.intents` via `getLocaleInfo()`
+
+**Hebrew URL Decoding:**
+- `decodeUrl()` helper decodes percent-encoded Hebrew URLs throughout the wizard
+- Applied in PillarPageStep dropdown, SubjectsStep, and SummaryStep
+
+#### Wizard State (`INITIAL_WIZARD_STATE`)
+
+```javascript
+{
+  campaignId: null, campaignName: '', campaignColor: '#6366f1',
+  campaignStatus: 'DRAFT', isNewCampaign: true,
+  pillarPageUrl: '', pillarEntityId: null,
+  mainKeyword: '',
+  postsCount: 4,
+  articleTypes: [{ id: 'SEO', count: 4 }],
+  contentSettings: {},
+  subjects: [], subjectSuggestions: [],
+  textPrompt: '', imagePrompt: '',
+  startDate: '', endDate: '',
+  publishDays: ['sun', 'mon', 'tue', 'wed', 'thu'],
+  publishTimeMode: 'random', publishTimeStart: '09:00', publishTimeEnd: '18:00',
+  generatedPlan: null, planNeedsRegeneration: false,
+  selectedKeywordIds: [], manualKeywords: [],  // DEPRECATED — backward compat
+}
+```
+
+#### Article Types Configuration
+
+| Type | Min Words | Max Words |
+|------|-----------|-----------|
+| SEO Article | 1,500 | 3,000 |
+| Blog Post | 800 | 2,000 |
+| Guide | 2,000 | 5,000 |
+| How-To | 1,000 | 2,500 |
+| Listicle | 800 | 2,000 |
+| Comparison | 1,200 | 3,000 |
+| Review | 1,000 | 2,500 |
+| News | 400 | 1,000 |
+| Tutorial | 1,500 | 4,000 |
+| Case Study | 1,200 | 3,000 |
 
 ---
 
@@ -2287,91 +2468,493 @@ Split into **Website Settings** (per-site) and **Account Settings** (per-account
 
 ## 24. WordPress Plugin System
 
-### Dynamic Plugin Generation
+The Ghost Post platform integrates with WordPress via a **custom plugin that is dynamically generated per-site**. Each downloaded plugin ZIP is unique — it contains site-specific credentials (Site ID, Site Key, Site Secret) baked directly into the code. The plugin enables bidirectional communication: the platform pushes content to WordPress, and WordPress pushes real-time entity/redirect changes back to the platform.
 
-The plugin is **dynamically generated per-site** from JavaScript template files at:
-`app/api/sites/[id]/download-plugin/plugin-templates/`
+### 24a. Plugin Architecture Overview
 
-Each template is a JS function that returns PHP code with site-specific configuration baked in.
+**11 PHP classes** working together via WordPress hooks and a REST API namespace (`ghost-post/v1`):
 
-### Generated ZIP Structure
+| Class | File | Purpose |
+|-------|------|---------|
+| `Ghost_Post` | `class-ghost-post.php` | Main orchestrator — initializes all managers, registers REST routes, admin menu |
+| `GP_API_Handler` | `class-gp-api-handler.php` | Registers 30+ REST API endpoints, routes requests to appropriate managers |
+| `GP_Request_Validator` | `class-gp-request-validator.php` | HMAC-SHA256 signature validation with timestamp replay protection |
+| `GP_Content_Manager` | `class-gp-content-manager.php` | Posts/Pages CRUD — get_items, get_item, create, update, delete |
+| `GP_Media_Manager` | `class-gp-media-manager.php` | Image upload, WebP/AVIF auto-conversion, AI image optimization, queue processing |
+| `GP_SEO_Manager` | `class-gp-seo-manager.php` | Yoast + RankMath meta extraction and updates (title, description, OG, Twitter, keywords) |
+| `GP_CPT_Manager` | `class-gp-cpt-manager.php` | Custom Post Types CRUD — get_post_types, create/read/update/delete |
+| `GP_ACF_Manager` | `class-gp-acf-manager.php` | Advanced Custom Fields read/write — detects ACF, reads field groups and values |
+| `GP_Entity_Sync` | `class-gp-entity-sync.php` | Real-time webhook push on post create/update/trash/delete to platform |
+| `GP_Redirections_Manager` | `class-gp-redirections-manager.php` | Native redirect management + 3rd-party plugin detection and import |
+| `GP_Updater` | `class-gp-updater.php` | WordPress-native auto-update checking against the Ghost Post platform |
+| `GP_I18n` | `class-gp-i18n.php` | Internationalization — English + Hebrew (RTL) without .po/.mo files |
+
+### 24b. Dynamic Plugin Generation (Per-Site)
+
+The plugin is **not a static download** — it is **generated dynamically** from JavaScript template files for each site.
+
+**Template Location:** `app/api/sites/[id]/download-plugin/plugin-templates/`
+
+Each template is a JavaScript function that returns PHP source code, with site-specific values injected at generation time.
+
+**21 Template Files → Generated Files Mapping:**
+
+| Template (JS) | Export Function | Generated File (PHP/Other) |
+|----------------|----------------|---------------------------|
+| `main.js` | `getPluginMainFile()` | `ghost-post-connector.php` |
+| `config.js` | `getPluginConfigFile()` | `includes/config.php` |
+| `class-ghost-post.js` | `getClassGhostPost()` | `includes/class-ghost-post.php` |
+| `class-api-handler.js` | `getClassApiHandler()` | `includes/class-gp-api-handler.php` |
+| `class-request-validator.js` | `getClassRequestValidator()` | `includes/class-gp-request-validator.php` |
+| `class-content-manager.js` | `getClassContentManager()` | `includes/class-gp-content-manager.php` |
+| `class-media-manager.js` | `getClassMediaManager()` | `includes/class-gp-media-manager.php` |
+| `class-seo-manager.js` | `getClassSeoManager()` | `includes/class-gp-seo-manager.php` |
+| `class-cpt-manager.js` | `getClassCptManager()` | `includes/class-gp-cpt-manager.php` |
+| `class-acf-manager.js` | `getClassAcfManager()` | `includes/class-gp-acf-manager.php` |
+| `class-updater.js` | `getClassUpdater()` | `includes/class-gp-updater.php` |
+| `class-entity-sync.js` | `getClassEntitySync()` | `includes/class-gp-entity-sync.php` |
+| `class-redirections-manager.js` | `getClassRedirectionsManager()` | `includes/class-gp-redirections-manager.php` |
+| `class-gp-i18n.js` | `getClassI18n()` | `includes/class-gp-i18n.php` |
+| `admin-page.js` | `getAdminPage()` | `admin/views/dashboard-page.php` |
+| `settings-page.js` | `getSettingsPage()` | `admin/views/settings-page.php` |
+| `redirections-page.js` | `getRedirectionsPage()` | `admin/views/redirections-page.php` |
+| `admin-css.js` | `getAdminCss()` | `admin/css/admin.css` |
+| `admin-js.js` | `getAdminJs()` | `admin/js/admin.js` |
+| `readme.js` | `getPluginReadme()` | `readme.txt` |
+| `uninstall.js` | `getPluginUninstall()` | `uninstall.php` |
+
+**Site-Specific Injections (in `config.php`):**
+```php
+define('GP_SITE_ID', '{mongodb_site_id}');
+define('GP_SITE_KEY', 'gp_site_{32_hex_chars}');
+define('GP_SITE_SECRET', '{64_char_hex_secret}');
+define('GP_API_URL', 'https://app.ghostpost.co.il');
+define('GP_PERMISSIONS', serialize(array(
+  'CONTENT_READ', 'CONTENT_CREATE', 'CONTENT_UPDATE', 'CONTENT_DELETE', 'CONTENT_PUBLISH',
+  'MEDIA_UPLOAD', 'MEDIA_DELETE',
+  'SEO_UPDATE', 'REDIRECTS_MANAGE', 'SITE_INFO_READ',
+  'CPT_READ', 'CPT_CREATE', 'CPT_UPDATE', 'CPT_DELETE',
+  'ACF_READ', 'ACF_UPDATE',
+  'TAXONOMY_READ', 'TAXONOMY_MANAGE'
+)));
+
+function gp_has_permission($permission) {
+  $permissions = unserialize(GP_PERMISSIONS);
+  return in_array($permission, $permissions, true);
+}
+```
+
+### 24c. Download Plugin API (`GET /api/sites/[id]/download-plugin`)
+
+**Authentication:** User session cookie + account membership verification
+
+**Process:**
+1. Verify user has access to the site
+2. Generate `siteKey` + `siteSecret` if not already set (for pre-v2.4 sites)
+3. Update site record with new keys and default permissions if needed
+4. Call each of the 21 template functions to generate PHP source code
+5. Inject site-specific values into `config.php` (Site ID, Site Key, Site Secret, API URL, permissions)
+6. Build ZIP using JSZip with DEFLATE compression (level 9)
+7. Add `assets/icon.svg` (ghost icon)
+8. Return ZIP with filename: `ghost-post-connector-{short-key}.zip`
+
+**API URL Resolution:** `GP_PLUGIN_API_URL` env → `NEXT_PUBLIC_BASE_URL` env → default `https://app.ghostpost.co.il`
+
+### 24d. Generated ZIP Structure
+
 ```
 ghost-post-connector/
-├── ghost-post-connector.php              (main entry point)
+├── ghost-post-connector.php              // Main plugin entry point (WordPress header, hooks, init)
+├── readme.txt                            // WordPress plugin readme with changelog
+├── uninstall.php                         // Cleanup on uninstall (deletes options/transients)
 ├── includes/
-│   ├── config.php                        (site-specific: ID, key, secret, API URL)
-│   ├── class-ghost-post.php              (main orchestrator)
-│   ├── class-gp-api-handler.php          (HTTP communication)
-│   ├── class-gp-request-validator.php    (HMAC signature verification)
-│   ├── class-gp-content-manager.php      (post/page CRUD)
-│   ├── class-gp-media-manager.php        (image upload)
-│   ├── class-gp-seo-manager.php          (Yoast + Rank Math)
-│   ├── class-gp-cpt-manager.php          (custom post types)
-│   ├── class-gp-acf-manager.php          (ACF fields)
-│   ├── class-gp-updater.php              (auto-update mechanism)
-│   ├── class-gp-entity-sync.php          (webhook-based entity sync)
-│   ├── class-gp-redirections-manager.php (redirect CRUD + matching)
-│   └── class-gp-i18n.php                (translation support)
+│   ├── config.php                        // Site-specific: GP_SITE_ID, GP_SITE_KEY, GP_SITE_SECRET, GP_API_URL, GP_PERMISSIONS
+│   ├── class-ghost-post.php              // Main orchestrator class
+│   ├── class-gp-api-handler.php          // REST API routing (30+ endpoints)
+│   ├── class-gp-request-validator.php    // HMAC-SHA256 validation
+│   ├── class-gp-content-manager.php      // Post/page CRUD
+│   ├── class-gp-media-manager.php        // Media upload + WebP conversion
+│   ├── class-gp-seo-manager.php          // Yoast + Rank Math meta
+│   ├── class-gp-cpt-manager.php          // Custom Post Types
+│   ├── class-gp-acf-manager.php          // Advanced Custom Fields
+│   ├── class-gp-updater.php              // Auto-update from platform
+│   ├── class-gp-entity-sync.php          // Real-time webhook push
+│   ├── class-gp-redirections-manager.php // Redirect management + import
+│   └── class-gp-i18n.php                // English + Hebrew translations
 ├── admin/
 │   ├── views/
-│   │   ├── dashboard-page.php
-│   │   ├── redirections-page.php
-│   │   └── settings-page.php
-│   ├── css/admin.css
-│   └── js/admin.js
-├── readme.txt
-└── uninstall.php
+│   │   ├── dashboard-page.php            // Connection status, site info, permissions
+│   │   ├── settings-page.php             // Language, connection, last ping, errors
+│   │   └── redirections-page.php         // Redirect plugin detection, import, CRUD
+│   ├── css/
+│   │   └── admin.css                     // Cards, status indicators, forms, tables
+│   └── js/
+│       └── admin.js                      // Redirect CRUD, form handling, AJAX
+└── assets/
+    └── icon.svg                          // Ghost icon
 ```
 
-### Plugin REST Endpoints (WordPress side)
-- `POST /wp-json/ghost-post/v1/posts` — Receive and publish content
-- `POST /wp-json/ghost-post/v1/entities/sync` — Real-time entity updates
-- `GET /wp-json/ghost-post/v1/check-update` — Version check
+### 24e. Plugin Initialization
 
-### Security
-- HMAC-SHA256 signature on all incoming requests
-- Site key + site secret pair
-- Timestamp validation (prevents replay attacks)
-- WordPress nonce for admin actions
+```php
+// ghost-post-connector.php (main entry point)
 
-### SEO Plugin Compatibility
-- **Yoast SEO**: `_yoast_wpseo_title`, `_yoast_wpseo_metadesc`, etc.
-- **Rank Math**: `rank_math_title`, `rank_math_description`, etc.
+// Plugin Header
+Plugin Name: Ghost Post Connector
+Plugin URI: https://ghostpost.co.il
+Version: 2.4.9
+Requires at least: 5.6
+Requires PHP: 7.4
 
-### Redirect Management (Plugin-Side)
-- `sanitize_redirect_url()` — Decodes percent-encoded URLs to Unicode
-- `normalize_path()` — Strips trailing slashes
+// Constants
+define('GP_CONNECTOR_VERSION', '2.4.9');
+define('GP_CONNECTOR_PLUGIN_DIR', plugin_dir_path(__FILE__));
+define('GP_CONNECTOR_PLUGIN_URL', plugin_dir_url(__FILE__));
+
+// Load config.php → site credentials
+require_once GP_CONNECTOR_PLUGIN_DIR . 'includes/config.php';
+
+// Load all class files
+require_once GP_CONNECTOR_PLUGIN_DIR . 'includes/class-ghost-post.php';
+// ... (all other class files)
+
+// Initialize on plugins_loaded
+add_action('plugins_loaded', 'gp_connector_init');
+function gp_connector_init() {
+    $ghost_post = new Ghost_Post();
+    $ghost_post->init();
+}
+
+// Activation → verify connection with platform
+register_activation_hook(__FILE__, 'gp_connector_activate');
+
+// Deactivation → notify platform of disconnection
+register_deactivation_hook(__FILE__, 'gp_connector_deactivate');
+```
+
+### 24f. HMAC-SHA256 Authentication
+
+Every request between the platform and WordPress plugin is cryptographically signed.
+
+**Request Headers:**
+```
+X-GP-Site-Key:   gp_site_abc123def456...     (public identifier)
+X-GP-Timestamp:  1706450000                   (unix epoch seconds)
+X-GP-Signature:  {HMAC-SHA256 hex digest}     (signature of timestamp.body)
+Content-Type:    application/json
+```
+
+**Validation Process (both sides):**
+1. Extract `siteKey` → look up `siteSecret` from config (plugin) or database (platform)
+2. Verify timestamp within ±5 minutes (replay protection) with ±60 seconds clock skew tolerance
+3. Recalculate signature: `HMAC-SHA256(timestamp + '.' + requestBody, siteSecret)`
+4. Compare using **timing-safe comparison** (`hash_equals` in PHP, `crypto.timingSafeEqual` in Node.js)
+5. Reject if any check fails (401 Unauthorized)
+
+**Platform-Side Key Functions (`lib/site-keys.js`):**
+
+| Function | Purpose |
+|----------|---------|
+| `generateSiteKey()` | Creates `gp_site_{32-hex-chars}` via `crypto.randomBytes(16)` |
+| `generateSiteSecret()` | Creates 64-char hex via `crypto.randomBytes(32)` |
+| `createSignature(payload, timestamp, secret)` | HMAC-SHA256 of `{timestamp}.{payload}` |
+| `verifySignature(payload, timestamp, signature, secret, maxAge=300)` | Validates timestamp + verifies signature |
+| `encryptCredential(text, key)` | AES-256-GCM encryption (for auto-install credentials) |
+| `decryptCredential(encryptedBase64, key)` | Decrypts AES-256-GCM |
+| `clearSiteCredentials(prisma, siteId)` | Removes temporary auto-install credentials |
+| `generateConnectionToken(siteId, siteKey)` | Base64url JWT with 30-min expiration |
+| `validateConnectionToken(token)` | Decodes and validates expiration |
+
+### 24g. Plugin REST Endpoints (WordPress Side — `ghost-post/v1` namespace)
+
+30+ REST API endpoints registered via `register_rest_route()`:
+
+**Content (Posts/Pages):**
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET/POST | `/posts` | List / create posts |
+| GET/PUT/DELETE | `/posts/{id}` | Read / update / delete post |
+| GET/POST | `/pages` | List / create pages |
+| GET/PUT/DELETE | `/pages/{id}` | Read / update / delete page |
+
+**Custom Post Types:**
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET/POST | `/cpt/{type}` | List / create CPT items |
+| GET/PUT/DELETE | `/cpt/{type}/{id}` | Read / update / delete CPT item |
+
+**Media (Images):**
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET/POST | `/media` | List / upload media |
+| GET/PUT/DELETE | `/media/{id}` | Read / update / delete media |
+| POST | `/media/convert-to-webp` | Batch WebP conversion |
+| POST | `/media/convert-image-format` | Multi-format conversion (WebP/AVIF) |
+| POST | `/media/ai-optimize` | AI image enhancement |
+| POST | `/media/apply-ai-optimization` | Apply platform AI suggestions (filename, alt text) |
+| GET | `/media/queue-status` | Conversion queue progress |
+| POST | `/media/process-queue-item` | Process platform-driven conversion queue item |
+| GET | `/media/stats` | WebP conversion statistics |
+| GET/DELETE | `/media/redirects` | Image URL redirect tracking (old→new) |
+
+**SEO & Metadata:**
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET/PUT | `/seo/{id}` | Get/update SEO meta (resolves Yoast/RankMath templates) |
+| GET/PUT | `/acf/{id}` | Get/update Advanced Custom Fields |
+| GET | `/taxonomies` | List registered taxonomies |
+| GET/POST | `/taxonomies/{tax}/terms` | List / create taxonomy terms |
+| GET | `/menus` | List WordPress menus |
+
+**Redirects:**
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET/POST | `/redirects` | List / create redirects |
+| PUT/DELETE | `/redirects/{id}` | Update / delete redirect |
+
+**System:**
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/verify` | Connection verification (activation hook) |
+| GET | `/site-info` | WordPress/plugin/PHP version info |
+
+### 24h. Connection Protocol & Lifecycle
+
+```
+1. CREATE SITE
+   User creates site → POST /api/sites
+   Platform generates unique siteKey (gp_site_{32-hex}) + siteSecret (64-hex)
+   Site record created with connectionStatus: PENDING
+
+2. DOWNLOAD PLUGIN
+   User downloads plugin → GET /api/sites/[id]/download-plugin
+   Platform generates ZIP with site-specific config.php (credentials baked in)
+   User installs ZIP in WordPress (wp-admin → Plugins → Upload)
+
+3. ACTIVATE PLUGIN
+   WordPress activation hook fires → gp_connector_activate()
+   Plugin sends: POST /api/public/wp/verify
+     Headers: X-GP-Site-Key, X-GP-Timestamp, X-GP-Signature
+     Body: { wpVersion, phpVersion, pluginVersion, wpTimezone, wpLocale, siteUrl, adminEmail }
+   Platform validates signature → sets connectionStatus: CONNECTED
+   Returns: permissions array + shouldSync flag (true if first connection)
+
+4. RUNTIME (Ongoing)
+   a. Heartbeat: WordPress cron fires hourly
+      → POST /api/public/wp/ping { pluginVersion, wpVersion }
+      → Platform updates lastPingAt, confirms CONNECTED status
+   
+   b. Entity Sync: WordPress post create/update/trash/delete triggers webhook
+      → POST /api/public/wp/entity-updated { action, post_type, post: {...full data...} }
+      → Platform syncs entity via syncSingleEntity()
+   
+   c. Redirect Sync: WordPress redirect changes trigger webhook
+      → POST /api/public/wp/redirect-updated { action, redirect: {...}, source }
+      → Platform upserts/deletes in Redirection model
+   
+   d. Platform → WordPress: Content publishing, media upload, SEO updates
+      → Platform calls /wp-json/ghost-post/v1/{endpoint} with HMAC signature
+   
+   e. Auto-Update: Plugin checks for updates
+      → GET /api/plugin/update-check?site_key=xxx&current_version=2.4.8
+      → WordPress-native update notice if new version available
+
+5. DEACTIVATE PLUGIN
+   WordPress deactivation hook fires → gp_connector_deactivate()
+   Plugin sends: POST /api/public/wp/disconnect
+   Platform sets connectionStatus: DISCONNECTED
+```
+
+### 24i. Auto-Install Feature (`POST /api/sites/[id]/auto-install`)
+
+Alternative to manual plugin installation:
+
+1. User provides WordPress admin URL + credentials on the platform Connect page
+2. Platform encrypts credentials with AES-256-GCM (5-minute TTL)
+3. Platform checks REST API reachability (`GET /wp-json/` with 15s timeout)
+4. Authenticates via Basic Auth (`GET /wp-json/wp/v2/users/me`)
+5. Verifies `activate_plugins` capability
+6. Searches for existing `ghost-post-connector` plugin
+7. If found → activates it; if not found → returns `MANUAL_INSTALL_REQUIRED`
+8. Credentials cleared immediately after attempt
+
+**Error Codes:** `REST_API_UNREACHABLE`, `AUTH_FAILED`, `INSUFFICIENT_PERMISSIONS`, `MANUAL_INSTALL_REQUIRED`, `ACTIVATION_FAILED`
+
+### 24j. Real-Time Entity Sync (Bidirectional)
+
+**WordPress → Platform (Webhooks):**
+1. `on_post_saved()` / `on_post_trashed()` / `on_post_deleted()` hook fires in `GP_Entity_Sync`
+2. Skips if: autosave, revision, excluded post type, or **originated from gp-platform** (`is_gp_api_request` flag)
+3. Builds complete entity payload: title, content, slug, status, SEO data, ACF fields, taxonomies, featured image, author
+4. Creates HMAC signature
+5. Non-blocking webhook `POST /api/public/wp/entity-updated` with full data
+6. Platform routes to `syncSingleEntity()` or `deleteSingleEntity()`
+
+**Platform → WordPress (REST API):**
+- Content publishing: `POST /wp-json/ghost-post/v1/posts`
+- Media upload: `POST /wp-json/ghost-post/v1/media`
+- SEO updates: `PUT /wp-json/ghost-post/v1/seo/{id}`
+- All requests signed with HMAC; plugin sets `is_gp_api_request = true` to prevent echo-back
+
+**Conflict Prevention:**
+- `GP_Entity_Sync::$is_gp_api_request` flag prevents webhook loops on platform-originated changes
+- Redirect sync checks `source` field — skips webhook if `source === 'gp-platform'`
+- Platform uses sync locks to prevent concurrent syncs:
+  ```
+  acquireSyncLock(siteId, 'cron'|'manual'|'webhook')
+  releaseSyncLock(siteId, 'COMPLETED'|'ERROR', error)
+  // 10-minute max timeout on stale locks
+  // Progress tracked: entitySyncProgress (0-100), entitySyncMessage
+  ```
+
+### 24k. Platform Public Plugin API Routes
+
+All routes under `app/api/public/wp/` — require HMAC-SHA256 signature validation:
+
+| Method | Route | When | Updates |
+|--------|-------|------|---------|
+| POST | `/api/public/wp/verify` | Plugin activation | connectionStatus→CONNECTED, stores WP/PHP/plugin versions, returns permissions + shouldSync |
+| POST | `/api/public/wp/ping` | Hourly WordPress cron | lastPingAt, connectionStatus→CONNECTED |
+| POST | `/api/public/wp/disconnect` | Plugin deactivation | connectionStatus→DISCONNECTED |
+| POST | `/api/public/wp/entity-updated` | Post create/update/trash/delete | Syncs entity to platform database via syncSingleEntity() |
+| POST | `/api/public/wp/redirect-updated` | Redirect create/update/delete | Upserts/deletes in Redirection model, URL normalization |
+
+### 24l. SEO Plugin Compatibility
+
+The plugin auto-detects and supports multiple SEO plugins:
+
+**Yoast SEO:**
+- Meta fields: `_yoast_wpseo_title`, `_yoast_wpseo_metadesc`, `_yoast_wpseo_focuskw`
+- Open Graph: `_yoast_wpseo_opengraph-title`, `_yoast_wpseo_opengraph-description`, `_yoast_wpseo_opengraph-image`
+- Twitter: `_yoast_wpseo_twitter-title`, `_yoast_wpseo_twitter-description`, `_yoast_wpseo_twitter-image`
+- Resolves Yoast variable templates (e.g., `%%title%%`, `%%sitename%%`) with actual values
+
+**Rank Math:**
+- Meta fields: `rank_math_title`, `rank_math_description`, `rank_math_focus_keyword`
+- Open Graph: `rank_math_facebook_title`, `rank_math_facebook_description`, `rank_math_facebook_image`
+- Twitter: `rank_math_twitter_title`, `rank_math_twitter_description`
+- Schema: `rank_math_schema_Article`, `rank_math_rich_snippet`
+
+### 24m. Redirect Management (Plugin-Side)
+
+**URL Processing:**
+- `sanitize_redirect_url()` — Decodes percent-encoded URLs to Unicode (Hebrew support)
+- `normalize_path()` — Strips trailing slashes for consistent matching
 - `maybe_redirect()` — Hooks into `template_redirect`, matches with trailing-slash tolerance + Unicode decode
-- `push_redirect_webhook()` — Pushes changes back to platform
-- Detects: Redirection, Yoast Premium, Rank Math, Safe Redirect Manager, Simple 301 Redirects
 
-### Auto-Update System
-- Checks platform's `/api/plugin/version` endpoint
-- Compares current vs latest version
-- Displays WordPress-native update notice
-- `after_update()` cleans WP's `update_plugins` transient
+**3rd-Party Plugin Detection:** Detects and recommends importing from:
+- Redirection, Yoast Premium Redirects, Rank Math Redirects, Safe Redirect Manager, Simple 301 Redirects
 
-### Version Management
-- Single source: `app/api/plugin/version.js` — `PLUGIN_VERSION` + `PLUGIN_CHANGELOG`
-- Current version: **2.3.9**
-- Recent changelog: 2.3.7 (trailing slash matching), 2.3.8 (search-replace-links endpoint for link healing), 2.3.9 (link healing in templates)
-- Bump by 0.0.1 for every plugin change
+**Bidirectional Sync:**
+- `push_redirect_webhook()` — Pushes changes back to platform via `POST /api/public/wp/redirect-updated`
+- Platform pushes redirects via `POST /wp-json/ghost-post/v1/redirects`
+- Source field prevents infinite loops
 
-### Connection Protocol
+### 24n. Media Conversion Pipeline
 
+**WebP Auto-Conversion:**
+1. Image uploaded via `wp_handle_upload` filter
+2. Check if auto-convert enabled in settings
+3. Use Imagick or GD to convert to WebP
+4. Generate WebP thumbnail versions
+5. Store original alongside WebP
+6. Track in conversion history
+
+**Platform-Driven Queue (for batch operations):**
+- Platform batches images for conversion
+- Calls `/media/process-queue-item` one-at-a-time (reliable — no WP-Cron dependency)
+- Progress tracked via `/media/queue-status` endpoint
+
+**AI Image Optimization:**
+- Platform analyzes images → suggests optimized filenames + alt text
+- Calls `/media/apply-ai-optimization` with suggestions
+- Plugin updates attachment metadata
+
+### 24o. Version Management & Auto-Updates
+
+**Single Source of Truth:** `app/api/plugin/version.js`
+```javascript
+export const PLUGIN_VERSION = "2.4.9";
+export const PLUGIN_CHANGELOG = `= 2.4.9 =\n* FIX: Scheduling published posts...`;
 ```
-1. User creates Site → POST /api/sites → generates siteKey + siteSecret
-2. Installs WordPress plugin → enters siteKey
-3. Plugin calls POST /api/plugin/auth/verify {siteKey}
-4. Platform returns siteSecret + site info
-5. Plugin stores siteSecret encrypted in wp_options
-6. Plugin sends signed verification:
-   Headers: X-Site-Key, X-Signature (HMAC of body)
-   Body: { verified: true, permissions: [...] }
-7. Platform verifies HMAC → updates connectionStatus: CONNECTED
-8. Plugin starts heartbeat (every 5 minutes) → POST /api/plugin/ping
-9. Bidirectional sync is now active
+
+**Update Workflow:**
+1. Modify plugin template files in `plugin-templates/` directory
+2. Increment `PLUGIN_VERSION` in `app/api/plugin/version.js` (by 0.0.1)
+3. Add changelog entry to `PLUGIN_CHANGELOG`
+4. Run: `node scripts/sync-plugin-version.mjs` (syncs version to main.php template header + constant)
+5. Deploy platform — all new plugin downloads automatically get the new version
+
+**WordPress Auto-Update:**
+- `GP_Updater` hooks into WordPress `pre_set_site_transient_update_plugins`
+- Checks: `GET /api/plugin/update-check?site_key=xxx&current_version=X.Y.Z`
+- Platform compares versions (splits by `.`, compares numeric parts left-to-right)
+- Returns WordPress-compatible update response with download URL, changelog, requirements
+- WordPress displays native update notice in Plugins screen
+
+**Current Version:** 2.4.9
+
+### 24p. Database Schema (Site Model — Plugin-Related Fields)
+
+```prisma
+model Site {
+  // Plugin Authentication
+  siteKey              String?              // gp_site_{32-hex} — public identifier
+  siteSecret           String?              // 64-hex — HMAC signing key (never returned from API)
+  connectionStatus     SiteConnectionStatus // PENDING | CONNECTING | CONNECTED | DISCONNECTED | ERROR
+  lastPingAt           DateTime?            // Last successful heartbeat
+  sitePermissions      SitePermission[]     // Array of allowed operations (18 permissions)
+
+  // WordPress Environment
+  pluginVersion        String?              // Currently installed plugin version
+  wpVersion            String?              // WordPress version
+  phpVersion           String?              // PHP version
+  wpTimezone           String?              // e.g. "Asia/Jerusalem"
+  wpLocale             String?              // e.g. "he_IL"
+
+  // Auto-Install (temporary, encrypted)
+  wpAdminUrl           String?
+  wpAdminUsername       String?              // AES-256-GCM encrypted
+  wpAdminPassword      String?              // AES-256-GCM encrypted
+  autoInstallExpiresAt DateTime?            // 5-minute TTL
+
+  // Entity Sync Tracking
+  entitySyncStatus     EntitySyncStatus     // NEVER | SYNCING | COMPLETED | ERROR
+  entitySyncProgress   Int?                 // 0-100%
+  entitySyncMessage    String?              // Current action description
+  lastEntitySyncAt     DateTime?
+  entitySyncError      String?
+}
+
+enum SiteConnectionStatus {
+  PENDING        // Created, awaiting plugin installation
+  CONNECTING     // Auto-install in progress
+  CONNECTED      // Verified & operational (heartbeat active)
+  DISCONNECTED   // Was connected, plugin deactivated or unreachable
+  ERROR          // Connection failed
+}
+
+enum SitePermission {
+  CONTENT_READ, CONTENT_CREATE, CONTENT_UPDATE, CONTENT_DELETE, CONTENT_PUBLISH,
+  MEDIA_UPLOAD, MEDIA_DELETE,
+  SEO_UPDATE, REDIRECTS_MANAGE, SITE_INFO_READ,
+  CPT_READ, CPT_CREATE, CPT_UPDATE, CPT_DELETE,
+  ACF_READ, ACF_UPDATE,
+  TAXONOMY_READ, TAXONOMY_MANAGE
+}
 ```
+
+### 24q. Security Layers Summary
+
+1. **HTTPS Only** — All communication encrypted in transit
+2. **siteSecret Never Transmitted** — Only embedded in downloaded `config.php`, never returned from any API
+3. **HMAC-SHA256 + Timestamp** — Each request uniquely signed, prevents tampering
+4. **5-Minute Replay Window** — With ±60s clock skew tolerance
+5. **Timing-Safe Comparison** — `crypto.timingSafeEqual()` / `hash_equals()` prevents timing attacks
+6. **Permission Scoping** — Platform enforces what operations are allowed per site
+7. **Connection Status Tracking** — Alerts if plugin goes silent (missed heartbeats)
+8. **Auto-Install Credential Encryption** — AES-256-GCM with 5-minute TTL, cleared after use
+9. **Conflict Prevention** — Source flags and sync locks prevent bidirectional echo loops
 
 ---
 
@@ -2583,7 +3166,10 @@ Status: READY_TO_PUBLISH → PUBLISHED
 | GET | `/api/campaigns` | List campaigns |
 | POST | `/api/campaigns` | Create campaign |
 | POST | `/api/campaigns/[id]` | Update campaign |
-| POST | `/api/campaigns/generate-subjects` | AI subject generation |
+| POST | `/api/campaigns/generate-subjects` | AI subject generation (SSE streaming via `streamText`) |
+| POST | `/api/campaigns/suggest-keyword` | AI keyword suggestions for pillar page (returns 3 ranked keywords) |
+| POST | `/api/campaigns/recommend-subjects` | AI recommends best subjects from generated list (cached per locale in AiCache) |
+| POST | `/api/campaigns/[id]/generate-plan` | Generate publishing schedule & article distribution for campaign |
 | GET | `/api/content` | List content items |
 
 ### Audit
@@ -2790,20 +3376,36 @@ Status: READY_TO_PUBLISH → PUBLISHED
 ### WordPress Plugin Connection Flow
 
 ```
-1. Create Site → POST /api/sites → siteKey + siteSecret generated
-2. Install plugin → enter siteKey in settings
-3. Plugin calls POST /api/plugin/auth/verify → gets siteSecret
-4. Plugin stores siteSecret encrypted in wp_options
-5. Plugin sends signed verification → HMAC(body, siteSecret)
-6. Platform verifies → connectionStatus: CONNECTED
-7. Plugin starts heartbeat (every 5 min) → POST /api/plugin/ping
-8. Bidirectional sync active via HMAC-signed REST API calls
+1. Create Site → POST /api/sites → siteKey + siteSecret generated, connectionStatus: PENDING
+2. Download plugin → GET /api/sites/[id]/download-plugin → custom ZIP with credentials in config.php
+3. Install plugin in WordPress → wp-admin → Plugins → Upload Plugin
+4. Activate plugin → activation hook fires:
+   → POST /api/public/wp/verify { wpVersion, phpVersion, pluginVersion, wpTimezone, wpLocale }
+   → Platform validates HMAC signature → connectionStatus: CONNECTED
+   → Returns permissions array + shouldSync flag
+5. Hourly heartbeat → WordPress cron → POST /api/public/wp/ping
+   → Platform updates lastPingAt, confirms CONNECTED
+6. Bidirectional sync active:
+   → WordPress entity changes → POST /api/public/wp/entity-updated (webhooks)
+   → Platform content publishing → POST /wp-json/ghost-post/v1/posts (HMAC-signed)
+   → Conflict prevention via source flags + sync locks
+7. (Optional) Auto-install: POST /api/sites/[id]/auto-install
+   → Platform checks REST API, authenticates, activates existing plugin
+   → Credentials encrypted (AES-256-GCM) with 5-minute TTL
 ```
 
 ### Content Generation with AI Flow
 
 ```
-1. User creates campaign via AI Content Wizard (9 steps)
+1. User creates campaign via AI Content Wizard (9-step topic cluster flow):
+   a. Select/create campaign
+   b. Choose pillar page (from all entity types or custom URL)
+   c. Set main keyword (with AI suggestions from pillar page analysis)
+   d. Configure post count, article types, content settings
+   e. AI generates 3× subject suggestions via SSE streaming
+   f. AI auto-recommends best subjects (cached per locale in AiCache)
+   g. Set custom prompts, schedule (dates, days, time mode)
+   h. Review summary → generate plan
 2. Content items created as SCHEDULED with target dates
 3. [Cron: process-content] picks up due items
    ├── SCHEDULED → PROCESSING

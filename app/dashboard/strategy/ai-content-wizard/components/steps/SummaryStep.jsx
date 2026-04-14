@@ -8,14 +8,21 @@ import {
 } from 'lucide-react';
 import { useSite } from '@/app/context/site-context';
 import CalendarGrid from '../../../_shared/CalendarGrid';
+
+/** Safely decode a URI that may contain percent-encoded Hebrew/Unicode */
+function decodeUrl(url) {
+  if (!url) return '';
+  try { return decodeURIComponent(url); } catch { return url; }
+}
 import PostPopover from '../../../_shared/PostPopover';
-import { ARTICLE_TYPE_KEY_MAP, ARTICLE_TYPES, WEEK_DAYS } from '../../wizardConfig';
+import { ARTICLE_TYPE_KEY_MAP, ARTICLE_TYPES, WEEK_DAYS, translateIntent } from '../../wizardConfig';
 import styles from '../../page.module.css';
 
 export default function SummaryStep({ state, dispatch, translations }) {
   const t = translations.summary;
   const scheduleT = translations.schedule;
   const articleTypesT = translations.articleTypes;
+  const intentsMap = translations.subjects?.intents || {};
   const months = translations.months || [];
   const dayNames = translations.dayNames || ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
   const { selectedSite } = useSite();
@@ -88,10 +95,10 @@ export default function SummaryStep({ state, dispatch, translations }) {
     return state.subjects.map(s => {
       if (!s || typeof s === 'string') return s; // backward compat
       return {
-        keyword: s.keyword,
         articleType: s.articleType,
         title: s.title || '',
         explanation: s.explanation || '',
+        intent: s.intent || '',
       };
     }).filter(s => s && (typeof s === 'string' ? s : s.title));
   };
@@ -124,6 +131,9 @@ export default function SummaryStep({ state, dispatch, translations }) {
             subjects: resolveSubjects(),
             subjectSuggestions: state.subjectSuggestions || [],
             keywordIds: state.selectedKeywordIds,
+            pillarPageUrl: state.pillarPageUrl || '',
+            mainKeyword: state.mainKeyword || '',
+            pillarEntityId: state.pillarEntityId || null,
             textPrompt: state.textPrompt,
             imagePrompt: state.imagePrompt,
           }),
@@ -150,6 +160,9 @@ export default function SummaryStep({ state, dispatch, translations }) {
             subjects: resolveSubjects(),
             subjectSuggestions: state.subjectSuggestions || [],
             keywordIds: state.selectedKeywordIds,
+            pillarPageUrl: state.pillarPageUrl || '',
+            mainKeyword: state.mainKeyword || '',
+            pillarEntityId: state.pillarEntityId || null,
             textPrompt: state.textPrompt,
             imagePrompt: state.imagePrompt,
           }),
@@ -456,6 +469,18 @@ export default function SummaryStep({ state, dispatch, translations }) {
               {state.campaignName || '-'}
             </span>
           </div>
+          {state.pillarPageUrl && (
+            <div className={styles.summaryRow}>
+              <span className={styles.summaryLabel}>{t.pillarPage}</span>
+              <span className={styles.summaryValue}>{decodeUrl(state.pillarPageUrl)}</span>
+            </div>
+          )}
+          {state.mainKeyword && (
+            <div className={styles.summaryRow}>
+              <span className={styles.summaryLabel}>{t.mainKeyword}</span>
+              <span className={styles.summaryValue}>{state.mainKeyword}</span>
+            </div>
+          )}
           <div className={styles.summaryRow}>
             <span className={styles.summaryLabel}>{t.totalPosts}</span>
             <span className={styles.summaryValue}>{state.postsCount}</span>
@@ -517,7 +542,7 @@ export default function SummaryStep({ state, dispatch, translations }) {
                     <div className={styles.summarySubjectHeaderInfo}>
                       <span className={styles.summarySubjectTitle}>{subject.title}</span>
                       <span className={styles.summarySubjectHeaderMeta}>
-                        {subject.keyword} · {typeLabel}
+                        {typeLabel}{subject.intent ? ` · ${translateIntent(subject.intent, intentsMap)}` : ''}
                         {subject.isCustom && <span className={styles.summarySubjectCustomBadge}>{t.custom}</span>}
                       </span>
                     </div>
@@ -537,13 +562,15 @@ export default function SummaryStep({ state, dispatch, translations }) {
                       )}
 
                       <div className={styles.summarySubjectDetailRow}>
-                        <div className={styles.summarySubjectDetail}>
-                          <Tag size={14} className={styles.summarySubjectDetailIcon} />
-                          <div>
-                            <span className={styles.summarySubjectDetailLabel}>{t.postKeyword}</span>
-                            <span className={styles.summarySubjectDetailValue}>{subject.keyword}</span>
+                        {subject.intent && (
+                          <div className={styles.summarySubjectDetail}>
+                            <Tag size={14} className={styles.summarySubjectDetailIcon} />
+                            <div>
+                              <span className={styles.summarySubjectDetailLabel}>{t.postIntent || 'Intent'}</span>
+                              <span className={styles.summarySubjectDetailValue}>{translateIntent(subject.intent, intentsMap)}</span>
+                            </div>
                           </div>
-                        </div>
+                        )}
 
                         <div className={styles.summarySubjectDetail}>
                           <Type size={14} className={styles.summarySubjectDetailIcon} />
@@ -766,10 +793,6 @@ export default function SummaryStep({ state, dispatch, translations }) {
                           <div className={styles.detailRow}>
                             <label className={styles.detailLabel}>{t.postSubject}</label>
                             <span>{typeof post.subject === 'object' ? post.subject?.title : post.subject || t.noSubject}</span>
-                          </div>
-                          <div className={styles.detailRow}>
-                            <label className={styles.detailLabel}>{t.postKeyword}</label>
-                            <span>{post.keywordText || t.noKeyword}</span>
                           </div>
                         </div>
                       )}
