@@ -567,6 +567,34 @@ export function getAdminCss() {
     font-weight: 500;
 }
 
+/* Secret blur toggle */
+.gp-wrap .gp-secret-wrap {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+.gp-wrap .gp-secret-value {
+    transition: filter 0.2s ease;
+}
+.gp-wrap .gp-secret-value.gp-blurred {
+    filter: blur(5px);
+    user-select: none;
+}
+.gp-wrap .gp-secret-toggle {
+    background: none;
+    border: none;
+    padding: 2px;
+    cursor: pointer;
+    color: var(--gp-text-muted);
+    display: inline-flex;
+    align-items: center;
+    border-radius: 4px;
+    transition: color 0.15s;
+}
+.gp-wrap .gp-secret-toggle:hover {
+    color: var(--gp-primary);
+}
+
 .gp-wrap .gp-info-table code {
     background: var(--gp-code-bg);
     border: 1px solid var(--gp-code-border);

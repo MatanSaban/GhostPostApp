@@ -215,6 +215,17 @@ export function getAdminJs() {
         });
     });
 
+    // ========== Secret blur toggle ==========
+
+    $(document).on('click', '.gp-secret-toggle', function() {
+        var wrap = $(this).closest('.gp-secret-wrap');
+        var val = wrap.find('.gp-secret-value');
+        var isBlurred = val.hasClass('gp-blurred');
+        val.toggleClass('gp-blurred');
+        $(this).find('.gp-eye-icon').toggle(isBlurred);
+        $(this).find('.gp-eye-off-icon').toggle(!isBlurred);
+    });
+
     // ========== Dashboard & Settings: Connection actions ==========
 
     $(document).on('click', '#gp-check-updates', function() {
