@@ -3,6 +3,7 @@ import { cookies } from 'next/headers';
 import prisma from '@/lib/prisma';
 import { MODELS } from '@/lib/ai/gemini';
 import { logAIUsage } from '@/lib/ai/credits.js';
+import { trackAIUsage } from '@/lib/ai/credits-service.js';
 import { google } from '@/lib/ai/vertex-provider.js';
 import { streamText, Output, jsonSchema } from 'ai';
 import { z } from 'zod';
@@ -25,7 +26,7 @@ async function verifySiteAccess(siteId, user) {
     ? { id: siteId }
     : { id: siteId, account: { members: { some: { userId: user.id } } } };
   return prisma.site.findFirst({ where,
-    select: { id: true } });
+    select: { id: true, accountId: true } });
 }
 
 /**
@@ -250,6 +251,20 @@ Return exactly ${totalSuggestions} suggestions as a flat array.`;
             model: MODELS.TEXT,
             metadata: { siteId, postsCount, mainKeyword },
           });
+
+          // Persist to database
+          if (site?.accountId) {
+            trackAIUsage({
+              accountId: site.accountId,
+              userId: user.id,
+              siteId,
+              operation: 'GENERATE_SUBJECTS',
+              inputTokens: usage?.promptTokens || 0,
+              outputTokens: usage?.completionTokens || 0,
+              totalTokens: usage?.totalTokens || 0,
+              metadata: { model: MODELS.TEXT, siteId, postsCount, mainKeyword },
+            }).catch(err => console.error('[AI] trackAIUsage error:', err.message));
+          }
 
           controller.enqueue(encoder.encode('data: [DONE]\n\n'));
           controller.close();

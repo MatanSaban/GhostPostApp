@@ -18,7 +18,7 @@ async function getAuthenticatedUser() {
 
     const user = await prisma.user.findUnique({
       where: { id: userId },
-      select: { id: true, email: true, name: true },
+      select: { id: true, email: true, name: true, accountMemberships: { select: { accountId: true }, take: 1 } },
     });
 
     return user;
@@ -142,6 +142,8 @@ export async function POST(request) {
         messages: conversationHistory,
         systemPrompt,
         botActions,
+        accountId: user.accountMemberships?.[0]?.accountId,
+        userId: user.id,
       });
 
       // If AI wants to call a tool/action
@@ -162,6 +164,8 @@ export async function POST(request) {
           toolCall: aiResponse.toolCall,
           toolResult: result.result,
           botActions,
+          accountId: user.accountMemberships?.[0]?.accountId,
+          userId: user.id,
         });
 
         aiResponse.content = continuedResponse.content;

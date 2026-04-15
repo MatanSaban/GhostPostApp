@@ -137,6 +137,9 @@ Respond in the same language as the page content (if Hebrew content, respond in 
       temperature: 0.4,
       operation: 'AGENT_SUGGEST_TRAFFIC',
       metadata: { siteId, url },
+      accountId: site.accountId,
+      userId: user.id,
+      siteId,
     });
 
     return NextResponse.json({ success: true, ...result });

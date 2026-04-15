@@ -34,6 +34,9 @@ export async function POST(request) {
       return NextResponse.json({ error: 'siteId and pillarPageUrl are required' }, { status: 400 });
     }
 
+    // Fetch site accountId for credit tracking
+    const site = await prisma.site.findUnique({ where: { id: siteId }, select: { accountId: true } });
+
     // Fetch entity data if we have an entity ID (for title, content, etc.)
     let entityContext = '';
     if (pillarEntityId) {
@@ -88,6 +91,9 @@ Return 3 keyword suggestions.`;
       temperature: 0.5,
       operation: 'SUGGEST_KEYWORD',
       metadata: { siteId, pillarPageUrl },
+      accountId: site?.accountId,
+      userId: user.id,
+      siteId,
     });
 
     return NextResponse.json(result);

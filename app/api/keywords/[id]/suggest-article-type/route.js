@@ -57,7 +57,7 @@ export async function POST(request, { params }) {
 
     const keyword = await prisma.keyword.findUnique({
       where: { id: keywordId },
-      select: { keyword: true, intents: true, tags: true, aiSuggestion: true, site: { select: { id: true, name: true } } },
+      select: { keyword: true, intents: true, tags: true, aiSuggestion: true, site: { select: { id: true, name: true, accountId: true } } },
     });
 
     if (!keyword) {
@@ -109,6 +109,9 @@ What is the best article type for this keyword? Write your reasoning and content
       temperature: 0.3,
       operation: 'SUGGEST_ARTICLE_TYPE',
       metadata: { keyword: keyword.keyword, intent: primaryIntent },
+      accountId: keyword.site.accountId,
+      userId: user.id,
+      siteId: keyword.site.id,
     });
 
     // Cache the suggestion on the keyword

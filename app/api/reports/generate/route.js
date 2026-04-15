@@ -91,7 +91,7 @@ async function uploadPdfToCloudinary(buffer, folder, publicId) {
 /**
  * Generate AI executive summary
  */
-async function generateAiSummary(siteName, currentScore, previousScore, executedActions, locale = 'en') {
+async function generateAiSummary(siteName, currentScore, previousScore, executedActions, locale = 'en', { accountId, userId, siteId } = {}) {
   const delta = currentScore != null && previousScore != null 
     ? currentScore - previousScore 
     : null;
@@ -148,6 +148,9 @@ Keep it professional, encouraging, and focused on ROI. Output plain text only, n
       temperature: 0.7,
       operation: 'REPORT_SUMMARY',
       metadata: { siteName, currentScore, actionsCount: executedActions?.length || 0, locale },
+      accountId,
+      userId,
+      siteId,
     });
     
     return summary.trim();
@@ -280,7 +283,8 @@ export async function POST(request) {
         currentAudit?.score,
         previousAudit?.score,
         executedActions,
-        locale
+        locale,
+        { accountId: member.accountId, userId: member.userId, siteId }
       );
     }
     
