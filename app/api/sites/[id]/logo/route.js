@@ -1,14 +1,14 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { v2 as cloudinary } from 'cloudinary';
-import { google } from '@ai-sdk/google';
+import { google } from '@/lib/ai/vertex-provider.js';
 import { generateText } from 'ai';
 import prisma from '@/lib/prisma';
 import { logAIUsage } from '@/lib/ai/credits.js';
 
 const SESSION_COOKIE = 'user_session';
 const LOGO_REFRESH_DAYS = 7;
-const VISION_MODEL = 'gemini-2.0-flash';
+const VISION_MODEL = 'gemini-2.5-pro';
 const MAX_CANDIDATES = 8;
 
 let _cloudinaryConfigured = false;

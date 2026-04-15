@@ -1,23 +1,31 @@
 'use client';
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
+import Link from 'next/link';
 import {
   Bot, CheckCircle, XCircle, Clock, AlertTriangle, Lightbulb,
   TrendingUp, TrendingDown, Minus, Search, FileText, Users, Wrench, Loader2, Play,
   ChevronDown, ChevronUp, EyeOff, Filter, RefreshCw, ExternalLink, Sparkles, Calendar, ImageIcon,
+  Plus, Check, Pencil,
 } from 'lucide-react';
 import { useSite } from '@/app/context/site-context';
 import { useAgent } from '@/app/context/agent-context';
 import { PageHeader } from '../components';
+import { DashboardCard } from '../components/DashboardCard';
+import { ArrowIcon } from '@/app/components/ui/arrow-icon';
 import FixPreviewModal from '../components/FixPreviewModal';
+import DifferentiationModal from '../components/DifferentiationModal';
+import DifferentiationToast from '../components/DifferentiationToast';
 import AiSuggestModal from '../components/AiSuggestModal';
 import EntitiesRequiredModal from '../components/EntitiesRequiredModal/EntitiesRequiredModal';
+import { useBackgroundJobPolling } from '@/app/hooks/useBackgroundJobPolling';
 import { formatPageUrl } from '@/lib/urlDisplay';
 import {
   FIXABLE_INSIGHT_TYPES,
   CATEGORY_ICONS,
   CATEGORIES,
   STATUSES,
+  PRIORITY_ORDER,
   isFixableInsight,
   getInsightType,
   getInsightSentiment,
@@ -171,7 +179,7 @@ function AiSuggestButton({ page, siteId, translations }) {
   );
 }
 
-function InsightDetails({ insight, translations, siteId, pluginConnected, onItemFixed, onOpenFixSingle }) {
+function InsightDetails({ insight, translations, siteId, pluginConnected, onItemFixed, onOpenFixSingle, trackedKeywords, addingKeyword, onAddKeyword }) {
   const d = insight.data;
   if (!d) return null;
 
@@ -764,15 +772,39 @@ function InsightDetails({ insight, translations, siteId, pluginConnected, onItem
             </tr>
           </thead>
           <tbody>
-            {d.queries.map((q, i) => (
-              <tr key={i}>
-                <td>{q.query}</td>
-                <td>{q.clicks?.toLocaleString()}</td>
-                <td>{q.impressions?.toLocaleString()}</td>
-                <td>{q.ctr}%</td>
-                <td>{q.position ? Math.round(parseFloat(q.position)) : '-'}</td>
-              </tr>
-            ))}
+            {d.queries.map((q, i) => {
+              const key = q.query?.toLowerCase().trim();
+              const isTracked = trackedKeywords?.has(key);
+              const isAdding = addingKeyword?.has(q.query);
+              return (
+                <tr key={i} className={styles.kwRow}>
+                  <td>
+                    <span className={styles.kwCell}>
+                      {isTracked ? (
+                        <span className={styles.kwTrackedIcon} title={t.alreadyTracked || 'Already tracked'}>
+                          <Check size={12} />
+                        </span>
+                      ) : onAddKeyword ? (
+                        <button
+                          className={styles.kwAddBtn}
+                          onClick={() => onAddKeyword(q.query)}
+                          disabled={isAdding}
+                          title={t.addToKeywords || 'Add to keywords'}
+                        >
+                          {isAdding ? <Loader2 size={11} className={styles.spinning} /> : <Plus size={11} />}
+                          <span>{t.track || 'Track'}</span>
+                        </button>
+                      ) : null}
+                      <span className={styles.kwText}>{q.query}</span>
+                    </span>
+                  </td>
+                  <td>{q.clicks?.toLocaleString()}</td>
+                  <td>{q.impressions?.toLocaleString()}</td>
+                  <td>{q.ctr}%</td>
+                  <td>{q.position ? Math.round(parseFloat(q.position)) : '-'}</td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>
@@ -1210,7 +1242,7 @@ function InsightLegend({ translations }) {
   );
 }
 
-function InsightRow({ insight, translations, onAction, onOpenFix, siteId, pluginConnected, onItemFixed }) {
+function InsightRow({ insight, translations, onAction, onOpenFix, siteId, pluginConnected, onItemFixed, trackedKeywords, addingKeyword, onAddKeyword }) {
   const [expanded, setExpanded] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
   const bodyRef = useRef(null);
@@ -1305,7 +1337,7 @@ function InsightRow({ insight, translations, onAction, onOpenFix, siteId, plugin
             </div>
           )}
 
-          <InsightDetails insight={insight} translations={translations} siteId={siteId} pluginConnected={pluginConnected} onItemFixed={onItemFixed} onOpenFixSingle={(i, indices) => onOpenFix(i, indices)} />
+          <InsightDetails insight={insight} translations={translations} siteId={siteId} pluginConnected={pluginConnected} onItemFixed={onItemFixed} onOpenFixSingle={(i, indices) => onOpenFix(i, indices)} trackedKeywords={trackedKeywords} addingKeyword={addingKeyword} onAddKeyword={onAddKeyword} />
 
           {/* TODO: Re-enable reject/dismiss when functionality is ready
           {showActions && (
@@ -1329,7 +1361,8 @@ function InsightRow({ insight, translations, onAction, onOpenFix, siteId, plugin
   );
 }
 
-export default function AgentPageContent({ translations }) {
+export default function AgentPageContent({ translations, mode = 'full', onInsightsLoaded }) {
+  const isCompact = mode === 'compact';
   const t = translations;
   const { selectedSite } = useSite();
   const { runningAnalysis, lastAnalysisTs, runAnalysis, entitiesRequired, setEntitiesRequired } = useAgent();
@@ -1341,12 +1374,16 @@ export default function AgentPageContent({ translations }) {
   const [hasMore, setHasMore] = useState(false);
   const [cursor, setCursor] = useState(null);
 
-  // Filters
+  // Filters (full mode only)
   const [filterCategory, setFilterCategory] = useState('');
   const [filterStatus, setFilterStatus] = useState('');
   const [filterFixStatus, setFilterFixStatus] = useState('unfixed'); // '' | 'unfixed' | 'fixed'
 
   const [runs, setRuns] = useState([]);
+
+  // Keyword tracking state
+  const [trackedKeywords, setTrackedKeywords] = useState(new Map());
+  const [addingKeyword, setAddingKeyword] = useState(new Set());
 
   const dedup = (items) => {
     const seen = new Set();
@@ -1367,19 +1404,28 @@ export default function AgentPageContent({ translations }) {
 
     try {
       if (!append) setLoading(true);
-      const params = new URLSearchParams({ siteId: selectedSite.id, limit: '30' });
-      if (filterCategory) params.set('category', filterCategory);
-      if (filterStatus) params.set('status', filterStatus);
-      if (append && cursor) params.set('cursor', cursor);
+      const limit = isCompact ? '10' : '30';
+      const params = new URLSearchParams({ siteId: selectedSite.id, limit });
+      if (!isCompact) {
+        if (filterCategory) params.set('category', filterCategory);
+        if (filterStatus) params.set('status', filterStatus);
+        if (append && cursor) params.set('cursor', cursor);
+      }
 
       const res = await fetch(`/api/agent/insights?${params}`);
       if (!res.ok) throw new Error('Failed to fetch');
       const data = await res.json();
 
-      if (append) {
+      let items = dedup(data.items || []);
+      if (isCompact) {
+        // Dashboard compact mode: only show items that still need attention
+        items = items.filter(i => !isInsightFullyFixed(i));
+        setInsights(items);
+        onInsightsLoaded?.(items.length > 0);
+      } else if (append) {
         setInsights(prev => dedup([...prev, ...(data.items || [])]));
       } else {
-        setInsights(dedup(data.items || []));
+        setInsights(items);
       }
       setTotalCount(data.totalCount || 0);
       setPendingCount(data.pendingCount || 0);
@@ -1390,11 +1436,11 @@ export default function AgentPageContent({ translations }) {
     } finally {
       setLoading(false);
     }
-  }, [selectedSite?.id, filterCategory, filterStatus, cursor]);
+  }, [selectedSite?.id, filterCategory, filterStatus, cursor, isCompact, onInsightsLoaded]);
 
-  // Fetch runs
+  // Fetch runs (full mode only)
   const fetchRuns = useCallback(async () => {
-    if (!selectedSite?.id) return;
+    if (!selectedSite?.id || isCompact) return;
     try {
       const res = await fetch(`/api/agent/runs?siteId=${selectedSite.id}&limit=5`);
       if (res.ok) {
@@ -1402,13 +1448,59 @@ export default function AgentPageContent({ translations }) {
         setRuns(data.runs || []);
       }
     } catch {}
-  }, [selectedSite?.id]);
+  }, [selectedSite?.id, isCompact]);
 
   useEffect(() => {
     setCursor(null);
     fetchInsights();
     fetchRuns();
   }, [selectedSite?.id, filterCategory, filterStatus, lastAnalysisTs]);
+
+  // Fetch tracked keywords for the current site
+  const fetchTrackedKeywords = useCallback(async () => {
+    if (!selectedSite?.id) return;
+    try {
+      const res = await fetch(`/api/keywords?siteId=${selectedSite.id}`);
+      if (res.ok) {
+        const data = await res.json();
+        const kwMap = new Map();
+        (data.keywords || []).forEach(kw => {
+          kwMap.set(kw.keyword?.toLowerCase().trim(), kw);
+        });
+        setTrackedKeywords(kwMap);
+      }
+    } catch (err) {
+      console.error('[AgentPage] Error fetching tracked keywords:', err);
+    }
+  }, [selectedSite?.id]);
+
+  useEffect(() => {
+    fetchTrackedKeywords();
+  }, [fetchTrackedKeywords]);
+
+  // Handler for adding keyword to tracking
+  const handleAddKeyword = async (query) => {
+    if (!selectedSite?.id || addingKeyword.has(query)) return;
+    setAddingKeyword(prev => new Set([...prev, query]));
+    try {
+      const res = await fetch('/api/keywords', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ siteId: selectedSite.id, keywords: query }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        const kw = data.keywords?.[0];
+        if (kw) {
+          setTrackedKeywords(prev => new Map([...prev, [query.toLowerCase().trim(), kw]]));
+        }
+      }
+    } catch (err) {
+      console.error('[AgentPage] Error adding keyword:', err);
+    } finally {
+      setAddingKeyword(prev => { const next = new Set(prev); next.delete(query); return next; });
+    }
+  };
 
   const handleAction = async (insightId, action) => {
     try {
@@ -1428,13 +1520,205 @@ export default function AgentPageContent({ translations }) {
   const [fixModalInsight, setFixModalInsight] = useState(null);
   const [fixModalItemIndices, setFixModalItemIndices] = useState(null);
 
+  // Content Differentiation state
+  const [diffJobId, setDiffJobId] = useState(null);
+  const [diffModalOpen, setDiffModalOpen] = useState(false);
+  const [diffExecuting, setDiffExecuting] = useState(false);
+  const { job: diffJob } = useBackgroundJobPolling(diffJobId);
+
+  // Auto-open modal when differentiation job completes
+  useEffect(() => {
+    if (diffJob?.status === 'COMPLETED' && !diffModalOpen) {
+      setDiffModalOpen(true);
+    }
+  }, [diffJob?.status]);
+
+  const startDifferentiationJob = useCallback(async (insight, itemIndices) => {
+    const issueIndex = itemIndices?.[0] ?? 0;
+    const issue = insight?.data?.issues?.[issueIndex];
+    if (!issue) return;
+
+    // Collect page URLs from the issue (entities may not have IDs)
+    const pageUrls = issue.urls?.filter(Boolean);
+    if (!pageUrls || pageUrls.length < 2) {
+      console.error('[Agent] Cannot start differentiation: need at least 2 URLs');
+      return;
+    }
+
+    try {
+      const res = await fetch('/api/content-differentiation', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          pageUrls,
+          siteId: selectedSite?.id,
+          siteLanguage: selectedSite?.language || selectedSite?.locale,
+        }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || 'Failed to start differentiation job');
+      }
+      const { jobId } = await res.json();
+      setDiffJobId(jobId);
+      setDiffModalOpen(true);
+    } catch (err) {
+      console.error('[Agent] Differentiation start error:', err);
+    }
+  }, [selectedSite?.id, selectedSite?.language, selectedSite?.locale]);
+
+  const handleDiffExecute = useCallback(async () => {
+    if (!diffJobId || !selectedSite?.id) return;
+    setDiffExecuting(true);
+    try {
+      const res = await fetch('/api/content-differentiation/execute', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ jobId: diffJobId, siteId: selectedSite.id }),
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || 'Execution failed');
+      }
+      await fetchInsights();
+    } catch (err) {
+      console.error('[Agent] Differentiation execute error:', err);
+    } finally {
+      setDiffExecuting(false);
+    }
+  }, [diffJobId, selectedSite?.id, fetchInsights]);
+
+  // Pre-confirmation state for differentiation
+  const [confirmDiffData, setConfirmDiffData] = useState(null);
+
   const openFixModal = useCallback((insight, itemIndices = null) => {
+    // Check if this is a DIFFERENTIATE cannibalization action
+    const issueIndex = itemIndices?.[0] ?? 0;
+    const issue = insight?.data?.issues?.[issueIndex];
+    if (issue?.action === 'DIFFERENTIATE') {
+      // Show pre-confirmation step instead of starting immediately
+      setConfirmDiffData({ insight, itemIndices });
+      setDiffModalOpen(true);
+      return;
+    }
     setFixModalInsight(insight);
     setFixModalItemIndices(itemIndices);
   }, []);
 
+  const handleConfirmDifferentiation = useCallback(() => {
+    if (!confirmDiffData) return;
+    startDifferentiationJob(confirmDiffData.insight, confirmDiffData.itemIndices);
+    setConfirmDiffData(null);
+  }, [confirmDiffData, startDifferentiationJob]);
+
   const handleRunAnalysis = () => runAnalysis(selectedSite?.id);
 
+  const insightRowProps = {
+    translations: t,
+    onAction: handleAction,
+    onOpenFix: openFixModal,
+    siteId: selectedSite?.id,
+    pluginConnected,
+    onItemFixed: fetchInsights,
+    trackedKeywords,
+    addingKeyword,
+    onAddKeyword: handleAddKeyword,
+  };
+
+  const modals = (
+    <>
+      <FixPreviewModal
+        open={!!fixModalInsight}
+        onClose={() => { setFixModalInsight(null); setFixModalItemIndices(null); }}
+        insight={fixModalInsight}
+        translations={t}
+        onApplied={fetchInsights}
+        itemIndices={fixModalItemIndices}
+      />
+      <DifferentiationModal
+        open={diffModalOpen}
+        onClose={() => { setDiffModalOpen(false); setDiffJobId(null); setConfirmDiffData(null); }}
+        job={diffJob}
+        onExecute={handleDiffExecute}
+        isExecuting={diffExecuting}
+        translations={t}
+        confirmData={confirmDiffData}
+        onConfirmStart={handleConfirmDifferentiation}
+      />
+      {diffJob?.status === 'COMPLETED' && !diffModalOpen && (
+        <DifferentiationToast
+          show
+          message={diffJob?.resultData?.supportingPages?.length
+            ? (t?.agent?.differentiation?.toast?.pagesDifferentiated || '{count} pages differentiated').replace('{count}', diffJob.resultData.supportingPages.length)
+            : (t?.agent?.differentiation?.toast?.completed || 'Content differentiation completed')}
+          onClick={() => setDiffModalOpen(true)}
+          onDismiss={() => setDiffJobId(null)}
+        />
+      )}
+      <EntitiesRequiredModal open={entitiesRequired} onClose={() => setEntitiesRequired(false)} />
+    </>
+  );
+
+  // ── Compact mode (Dashboard Card) ──
+  if (isCompact) {
+    const headerRight = (
+      <button
+        className={styles.runButton}
+        onClick={handleRunAnalysis}
+        disabled={runningAnalysis || !selectedSite?.id}
+      >
+        {runningAnalysis ? (
+          <><Loader2 size={14} className={styles.spinning} /> {t?.agent?.running || 'Analyzing...'}</>
+        ) : (
+          <><Play size={14} /> {t?.agent?.runAnalysis || 'Run Analysis'}</>
+        )}
+      </button>
+    );
+
+    return (
+      <DashboardCard
+        title={t?.agent?.title || t?.aiAgentActivity || 'AI Agent Activity'}
+        headerRight={headerRight}
+      >
+        <div className={styles.compactContainer}>
+          {loading ? (
+            <div className={styles.compactLoading}>
+              <Loader2 size={24} className={styles.spinning} />
+            </div>
+          ) : insights.length === 0 ? (
+            <div className={styles.compactEmpty}>
+              <Bot size={32} className={styles.compactEmptyIcon} />
+              <p>{t?.agent?.noInsights || 'No insights yet.'}</p>
+            </div>
+          ) : (
+            <>
+              {pendingCount > 0 && (
+                <div className={styles.pendingBanner}>
+                  <AlertTriangle size={14} />
+                  <span>{(t?.agent?.pendingApproval || '{count} pending approval').replace('{count}', pendingCount)}</span>
+                </div>
+              )}
+              <InsightLegend translations={t} />
+              <div className={styles.insightsList}>
+                {insights.map(insight => (
+                  <InsightRow key={insight.id} insight={insight} {...insightRowProps} />
+                ))}
+              </div>
+            </>
+          )}
+        </div>
+
+        <Link href="/dashboard/agent" className={styles.viewAllLink}>
+          {t?.agent?.viewAll || t?.viewAllActivity || 'View All Activity'}
+          <ArrowIcon size={16} />
+        </Link>
+
+        {modals}
+      </DashboardCard>
+    );
+  }
+
+  // ── Full mode (Agent Page) ──
   const lastRun = runs[0];
 
   return (
@@ -1565,16 +1849,7 @@ export default function AgentPageContent({ translations }) {
           <>
             <InsightLegend translations={t} />
             {filtered.map(insight => (
-              <InsightRow
-                key={insight.id}
-                insight={insight}
-                translations={t}
-                onAction={handleAction}
-                onOpenFix={openFixModal}
-                siteId={selectedSite?.id}
-                pluginConnected={pluginConnected}
-                onItemFixed={fetchInsights}
-              />
+              <InsightRow key={insight.id} insight={insight} {...insightRowProps} />
             ))}
             {hasMore && (
               <button className={styles.loadMoreBtn} onClick={() => fetchInsights(true)}>
@@ -1586,15 +1861,7 @@ export default function AgentPageContent({ translations }) {
         })()}
       </div>
 
-      <FixPreviewModal
-        open={!!fixModalInsight}
-        onClose={() => { setFixModalInsight(null); setFixModalItemIndices(null); }}
-        insight={fixModalInsight}
-        translations={t}
-        onApplied={fetchInsights}
-        itemIndices={fixModalItemIndices}
-      />
-      <EntitiesRequiredModal open={entitiesRequired} onClose={() => setEntitiesRequired(false)} />
+      {modals}
     </>
   );
 }

@@ -197,7 +197,7 @@
 
   th {
     padding: 0.75rem 1rem;
-    font-size: 0.8125rem;
+    font-size: 0.875rem;
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.05em;
@@ -266,7 +266,7 @@
 .typeBadge {
   display: inline-flex;
   padding: 0.25rem 0.5rem;
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   font-weight: 500;
   border-radius: var(--radius-md);
 
@@ -505,7 +505,7 @@
 }
 
 .statLabel {
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   color: var(--muted-foreground);
 }
 
@@ -529,7 +529,7 @@
   align-items: center;
   gap: 0.4rem;
   padding: 0.3rem 0.6rem;
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   font-weight: 500;
   border: 1px solid transparent;
   border-radius: var(--radius-full, 99px);

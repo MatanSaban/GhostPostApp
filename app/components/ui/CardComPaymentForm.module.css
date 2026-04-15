@@ -241,7 +241,7 @@
 }
 
 .couponBonusBadge {
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   font-weight: 600;
   color: #7b2cbf;
   background: rgba(123, 44, 191, 0.1);
@@ -307,13 +307,13 @@
 
 .couponErrorMsg {
   margin-top: 0.375rem;
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   color: #ef4444;
 }
 
 .couponDuration {
   margin-top: 0.25rem;
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   color: var(--muted-foreground, #6b7280);
   font-style: italic;
 }
@@ -449,7 +449,7 @@
   align-items: center;
   justify-content: center;
   gap: 0.375rem;
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   color: var(--muted-foreground, #6b7280);
   padding: 0.25rem 0;
 }

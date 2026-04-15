@@ -96,7 +96,7 @@ The system is designed to be the "ultimate SEO platform" combining:
 ### AI
 - **Provider**: Google AI (Gemini)
 - **SDK**: Vercel AI SDK v6.0.50+
-- **Models**: `gemini-2.5-pro` (text), `gemini-3-pro-image-preview` (images), `gemini-3-pro-preview` (complex semantic reasoning)
+- **Models**: `gemini-2.5-pro` (text), `gemini-3-pro-image-preview` (images), `gemini-3.1-pro-preview` (complex semantic reasoning)
 - **Capabilities**: `generateText`, `streamText`, `generateObject` (Zod v4 schemas), Function Calling
 
 ### Email & Notifications
@@ -297,7 +297,7 @@ Three layers:
 export const MODELS = {
   TEXT: "gemini-2.5-pro",
   IMAGE: "gemini-3-pro-image-preview",
-  PRO_PREVIEW: "gemini-3-pro-preview",  // Maximum reasoning for complex semantic tasks
+  PRO_PREVIEW: "gemini-3.1-pro-preview",  // Maximum reasoning for complex semantic tasks
 };
 
 export function getTextModel() {
@@ -1645,7 +1645,7 @@ Transitively merges pairs into multi-URL groups:
 
 Groups with `score >= 60` OR `urls.length >= 3` **bypass AI verification entirely** and are converted directly to issues. High-confidence action: `score >= 70 → MERGE`, else `DIFFERENTIATE`.
 
-Borderline groups (score < 60 AND < 3 URLs) go through `verifyGroupsWithAI()` using `gemini-3-pro-preview` model with structured Zod schema, `temperature: 0.3`.
+Borderline groups (score < 60 AND < 3 URLs) go through `verifyGroupsWithAI()` using `gemini-3.1-pro-preview` model with structured Zod schema, `temperature: 0.3`.
 
 Additional score bonuses: multi-track detection → +10 confidence, 3+ URLs → +5 per extra URL.
 
@@ -1894,6 +1894,156 @@ For each trashed URL: extracts pathname, calls `searchReplaceLinks(site, trashed
 POST to `https://indexing.googleapis.com/v3/urlNotifications:publish` with `{ url, type: 'URL_UPDATED' }`. Returns `{ success, detail }`. 403 = Indexing API scope not available, suggests manual re-indexing.
 
 **Credit Cost:** `CANNIBALIZATION_FIX` = 50 credits per fix execution
+
+### Content Differentiation Engine (Asynchronous AI Resolving)
+
+**Path:** `lib/actions/content-differentiation.js`
+
+A specialized asynchronous engine that resolves cannibalization by giving each page a unique focus intent. Unlike the synchronous MERGE/CANONICAL/301 flows, Content Differentiation runs as a background job, enabling the user to continue working while AI processes N pages.
+
+#### Architecture: Asynchronous Non-Blocking Flow
+
+```
+User selects N pages → POST /api/content-differentiation
+  ↓
+BackgroundJob created (status: PENDING → PROCESSING)
+  ↓
+processDifferentiationJob() runs async (fire-and-forget Promise)
+  ↓
+Client polls GET /api/background-jobs/{id} every 3 seconds
+  ↓
+BackgroundJobWidget shows progress (0% → 100%)
+  ↓
+On COMPLETED → DifferentiationModal opens with surgical diff viewer
+  ↓
+User reviews Alpha Page + supporting page diffs
+  ↓
+"Approve & Execute" → POST /api/content-differentiation/execute
+  ↓
+Deduct credits (25/page) → Update SiteEntity → Push to WordPress
+```
+
+#### BackgroundJob Model
+
+```prisma
+model BackgroundJob {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId      String   @db.ObjectId
+  accountId   String   @db.ObjectId
+  siteId      String?  @db.ObjectId
+  type        String                         // "CONTENT_DIFFERENTIATION"
+  status      String   @default("PENDING")   // PENDING → PROCESSING → COMPLETED / FAILED
+  progress    Int      @default(0)           // 0–100 percentage
+  message     String?                        // Human-readable status message
+  inputData   Json?                          // Original request payload
+  resultData  Json?                          // Full result (alpha page, supporting pages, diffs)
+  error       String?                        // Error message on FAILED
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  @@index([userId, status])
+  @@index([accountId, status])
+  @@index([status, createdAt])
+}
+```
+
+#### Alpha Page Algorithm
+
+Selects the authoritative page that keeps its current focus intent. All other pages are re-differentiated around it.
+
+**Selection Hierarchy (first valid wins):**
+
+| Priority | Signal | Source | Logic |
+|----------|--------|--------|-------|
+| 1 | **GSC Clicks** | Google Search Console | Page with most clicks in last 28 days |
+| 2 | **GA Traffic** | Google Analytics | Page with most sessions |
+| 3 | **Internal Links** | SiteEntity metadata | Highest `internalLinksCount` |
+| 4 | **Content Length** | SiteEntity metadata | Longest `contentLength` |
+
+If all signals are equal, the first page in the input list wins.
+
+#### 3-Layer Anti-Cannibalization Safety Net
+
+Ensures every newly generated intent is unique across the entire site, not just the current group.
+
+| Layer | Name | Mechanism | When |
+|-------|------|-----------|------|
+| 1 | **Pre-Check Against DB** | `preCheckIntent()` — queries all SiteEntity records for the site, checks if any existing page's `seoTitle`, `focusKeyword`, or `slug` matches the proposed new intent (normalized word overlap) | Before AI generation |
+| 2 | **Negative Prompting** | Injects a `BLACKLIST` of all existing focus intents into the AI prompt. AI is instructed: "Do NOT use or rephrase any blacklisted intent" | During AI generation |
+| 3 | **Post-Generation Validation** | `validateNoOverlap()` — tokenizes the generated H1 and compares against every blacklisted intent using word overlap. Threshold: >50% overlap = rejection → retry with higher temperature | After AI generation |
+
+**Retry Logic:** Max 2 retries (`MAX_AI_RETRIES`). Temperature increases on each retry (+0.1) to encourage more creative differentiation. If all retries fail, the page result includes `error: "Could not generate unique intent"`.
+
+#### AI Generation Pipeline
+
+For each supporting page (not the alpha):
+
+1. **Build Blacklist:** All existing focus intents from SiteEntity DB + all already-generated intents from previous pages in this batch
+2. **Call Gemini AI** (`gemini-3.1-pro-preview`, structured output via Zod):
+   - Input: supporting page content, alpha page content, blacklist, site language
+   - Output: `DifferentiationOutputSchema` →
+     - `newFocusIntent` — unique keyword/angle
+     - `newH1` — rewritten H1 reflecting new intent
+     - `contentDiffs[]` — array of `{ location, oldSnippet, newSnippet }` paragraph-level changes
+     - `internalLinkSentence` — suggested sentence linking back to alpha page
+3. **Validate:** Layer 3 overlap check against blacklist
+4. **Update Progress:** Job progress incremented per page (30% → 80% range)
+
+**Credit Cost:** `CREDITS_PER_PAGE` = 25 credits per supporting page
+
+#### Surgical Diff Modal (`DifferentiationModal.jsx`)
+
+An 80vw × 80vh modal rendered via `createPortal` showing the full differentiation result:
+
+| Section | Visual Treatment |
+|---------|-----------------|
+| **Alpha Page Box** | 👑 Crown icon, golden `#f59e0b` border, displays current H1 and focus intent — unchanged |
+| **Supporting Pages** | Accordion (expand/collapse per page) |
+| **H1 Diff** | Old H1 in red strikethrough → New H1 in green |
+| **Content Diffs** | Per-paragraph: "Old" badge (red bg) + "New" badge (green bg) with location label |
+| **Internal Link** | Preview of suggested linking sentence to alpha page |
+| **Footer** | "Approve & Execute Fixes (X Credits)" button — calculates total from supporting page count × 25 |
+
+**States:**
+- **Processing:** Centered spinner + progress bar + status message (mirrors BackgroundJobWidget)
+- **Completed:** Full diff view with approve button
+- **Failed:** Error message with dismiss option
+- **Already Executed:** Green banner replacing the approve button
+
+#### Background Job Widget (`BackgroundJobWidget.jsx`)
+
+Sticky sidebar widget displayed in the AI Agent dashboard area:
+
+| State | Visual |
+|-------|--------|
+| **Running** | Spinner animation + purple gradient progress bar + status message |
+| **Completed** | ✅ checkmark + "Review Results" button (opens DifferentiationModal) |
+| **Failed** | ❌ icon + error message |
+
+#### Completion Toast (`DifferentiationToast.jsx`)
+
+Global toast notification (fixed bottom-right, RTL: bottom-left):
+- Triggers when background job transitions to `COMPLETED`
+- Auto-dismisses after 10 seconds
+- Click opens the DifferentiationModal for review
+- Slide-in animation via CSS keyframes
+
+#### Execution Flow (`executeDifferentiationFixes`)
+
+1. **Validate:** Fetch job, verify `COMPLETED` status, verify user authorization
+2. **Deduct Credits:** `deductAiCredits({ amount: supportingPages × 25, source: 'CONTENT_DIFFERENTIATION' })`
+3. **Per Supporting Page:**
+   - Update `SiteEntity` in DB: `focusKeyword`, `seoTitle` (from new H1)
+   - Push to WordPress: `updateSeoData(site, type, wpId, { seo_title, focus_keyword })`
+4. **Mark Job:** `resultData.executed = true`, `resultData.executedAt = timestamp`
+
+#### Polling Hook (`useBackgroundJobPolling`)
+
+```javascript
+const { job, isLoading, error, refetch } = useBackgroundJobPolling(jobId);
+// Polls GET /api/background-jobs/{id} every 3 seconds
+// Auto-stops when status is COMPLETED or FAILED
+// Returns null job if no jobId provided
+```
 
 ### Entity Check Before Analysis
 
@@ -2960,6 +3110,22 @@ enum SitePermission {
 
 ## 25. Background Jobs & Content Pipeline
 
+### Asynchronous Background Jobs Architecture
+
+The platform uses a **BackgroundJob** model for long-running AI operations that would exceed typical HTTP timeout limits. This pattern enables fire-and-forget async processing with client-side polling.
+
+**Pattern:**
+1. Client sends POST to start the job → receives `jobId` immediately
+2. Server creates `BackgroundJob` record (status: `PENDING`) and fires async processor via detached Promise
+3. Processor updates `progress` (0–100) and `message` as it works
+4. Client polls `GET /api/background-jobs/{id}` every 3 seconds via `useBackgroundJobPolling` hook
+5. On `COMPLETED`: `resultData` contains the full output; on `FAILED`: `error` contains the message
+
+**Currently used by:**
+- **Content Differentiation Engine** (`type: "CONTENT_DIFFERENTIATION"`) — processes N-page differentiation with Alpha Page selection and AI generation
+
+**Hook:** `useBackgroundJobPolling(jobId)` — returns `{ job, isLoading, error, refetch }`. Auto-starts/stops polling based on job status.
+
 ### Content Lifecycle
 
 ```
@@ -3100,6 +3266,9 @@ Status: READY_TO_PUBLISH → PUBLISHED
 | `DashboardContent.jsx` | Main dashboard: charts, KPIs, tables, agent section |
 | `FailedPublishModal.jsx` | Failed publish error details |
 | `FixPreviewModal.jsx` | WYSIWYG preview for AI fixes with merge/apply |
+| `BackgroundJobWidget.jsx` | Sticky sidebar widget for async job progress (spinner, progress bar, completion state) |
+| `DifferentiationModal.jsx` | 80vw×80vh surgical diff viewer for content differentiation results (Alpha Page box, accordion diffs) |
+| `DifferentiationToast.jsx` | Global completion toast — auto-dismisses after 10s, click opens modal |
 | `KpiSlider.jsx` | Horizontal scrollable KPI slider |
 | `QuickActions.jsx` | Quick action toolbar |
 | `MediaModal/` | Media selection and management |
@@ -3272,6 +3441,9 @@ Status: READY_TO_PUBLISH → PUBLISHED
 ### Background Jobs
 | Method | Route | Description |
 |--------|-------|-------------|
+| GET | `/api/background-jobs/[id]` | Poll job status, progress, and results |
+| POST | `/api/content-differentiation` | Start content differentiation background job |
+| POST | `/api/content-differentiation/execute` | Execute approved differentiation fixes |
 | POST | `/api/cron/sync-entities` | Entity sync dispatcher |
 | POST | `/api/cron/process-content` | Content generation dispatcher |
 | POST | `/api/cron/publish-content` | Content publishing dispatcher |
@@ -3314,6 +3486,7 @@ Status: READY_TO_PUBLISH → PUBLISHED
 | `competitor-scraper.js` | Competitor website scraping and analysis |
 | `entity-sync.js` | WordPress entity synchronization (posts, pages, custom types) |
 | `cannibalization-engine.js` | Content cannibalization detection — 3-layer hybrid (proactive/reactive/AI), Union-Find N-URL grouping, Hebrew-aware text normalization, high-confidence AI bypass |
+| `actions/content-differentiation.js` | Content Differentiation Engine — Alpha Page Algorithm, 3-Layer Anti-Cannibalization Safety Net, async background job processing, surgical diff generation, WordPress execution |
 | `urlDisplay.js` | URL formatting and display utilities |
 | `ai/gemini.js` | Gemini model config, `generateTextResponse`, `streamTextResponse`, `generateStructuredResponse` |
 | `ai/interview-ai.js` | Interview-specific AI prompts and function calling |
@@ -3442,7 +3615,7 @@ Status: READY_TO_PUBLISH → PUBLISHED
 7. **AI-Powered Interview** — 12 question types, bot actions, flow engine
 8. **Full i18n** — 12 languages, RTL support
 9. **AI Credits Economy** — Precise tracking, logging, refills
-10. **Automated Content Pipeline** — Cron dispatchers + worker executors
-11. **Complete Technical SEO** — Redirections, WebP conversion, site audits
+10. **Automated Content Pipeline** — Cron dispatchers + worker executors + async background jobs
+11. **Complete Technical SEO** — Redirections, WebP conversion, site audits, content differentiation
 12. **Competitor Intelligence** — Discovery, scanning, gap analysis
 13. **Scalability** — Ready for thousands of accounts and millions of entities

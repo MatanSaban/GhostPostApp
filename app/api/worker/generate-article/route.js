@@ -103,6 +103,8 @@ Reply ONLY with a JSON object (no markdown fences) containing exactly these fiel
       type: content.type,
       keyword: keywordText,
     },
+    accountId: site.accountId,
+    siteId: site.id,
   });
 
   const cleaned = raw.replace(/^```json\s*/i, '').replace(/```\s*$/i, '').trim();
@@ -169,6 +171,8 @@ async function generateFeaturedImage(result, site, imageContext, imagePromptOver
     aspectRatio: '16:9',
     operation: 'GENERATE_IMAGE',
     metadata: { type: 'featured', siteId: site.id },
+    accountId: site.accountId,
+    siteId: site.id,
   });
 
   if (!images.length) return null;
@@ -220,6 +224,8 @@ async function generateContentImages(html, result, site, imageContext, imageProm
         aspectRatio: '16:9',
         operation: 'GENERATE_IMAGE',
         metadata: { type: 'content', index: i, siteId: site.id },
+        accountId: site.accountId,
+        siteId: site.id,
       });
 
       if (images.length) {
@@ -301,6 +307,7 @@ export async function POST(request) {
             writingStyle: true,
             crawledData: true,
             seoStrategy: true,
+            accountId: true,
           },
         },
         campaign: {

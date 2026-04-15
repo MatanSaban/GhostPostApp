@@ -4,7 +4,7 @@ import prisma from '@/lib/prisma';
 import { deductAiCredits } from '@/lib/account-utils';
 import { createRedirect } from '@/lib/wp-api-client';
 import { generateObject } from 'ai';
-import { google } from '@ai-sdk/google';
+import { google } from '@/lib/ai/vertex-provider.js';
 import { z } from 'zod';
 
 const SESSION_COOKIE = 'user_session';
@@ -184,7 +184,7 @@ For each broken link:
 Return redirect suggestions for each broken link. Use the FULL URL for suggestedUrl (including the domain).`;
 
   const result = await generateObject({
-    model: google('gemini-2.0-flash'),
+    model: google('gemini-2.5-pro'),
     schema: suggestionsSchema,
     messages: [{ role: 'user', content: prompt }],
     temperature: 0.3,

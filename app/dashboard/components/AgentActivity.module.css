@@ -39,7 +39,7 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0.5rem 0.75rem;
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   font-weight: 500;
   color: #f59e0b;
   background: rgba(245, 158, 11, 0.1);
@@ -203,7 +203,7 @@
   background: var(--card-nested, var(--background));
   border: none;
   cursor: pointer;
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   font-weight: 500;
   color: var(--muted-foreground);
 
@@ -370,7 +370,7 @@
 }
 
 .insightDescription {
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   line-height: 1.6;
   color: var(--muted-foreground);
   margin: 0.75rem 0;
@@ -559,7 +559,7 @@
 }
 
 .seoPageTitle {
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   font-weight: 500;
   color: var(--foreground);
 }
@@ -618,7 +618,7 @@
   align-items: center;
   gap: 0.375rem;
   padding: 0.375rem 0.75rem;
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   font-weight: 500;
   border: 1px solid transparent;
   border-radius: var(--radius-md);
@@ -675,7 +675,7 @@
 .fixResult {
   padding: 0.5rem 0.75rem;
   border-radius: var(--radius-md);
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   margin-bottom: 0.5rem;
 }
 
@@ -783,7 +783,7 @@
 }
 
 .cannibalizationReason {
-  font-size: 0.85rem;
+  font-size: 0.875rem;
   color: var(--foreground);
   margin: 0.75rem 0;
   line-height: 1.5;
@@ -874,7 +874,7 @@
   width: 100%;
   margin-top: 1rem;
   padding: 0.6rem 1rem;
-  font-size: 0.85rem;
+  font-size: 0.875rem;
   font-weight: 600;
   color: #fff;
   background: linear-gradient(135deg, var(--primary), #a855f7);
@@ -915,7 +915,7 @@
   align-items: center;
   gap: 0.375rem;
   padding: 0.375rem 0.75rem;
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   font-weight: 500;
   color: var(--primary);
   background: rgba(123, 44, 191, 0.1);

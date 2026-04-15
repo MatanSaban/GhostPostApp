@@ -3,7 +3,7 @@ import { cookies } from 'next/headers';
 import prisma from '@/lib/prisma';
 import { deductAiCredits } from '@/lib/account-utils';
 import { generateText } from 'ai';
-import { google } from '@ai-sdk/google';
+import { google } from '@/lib/ai/vertex-provider.js';
 import { makePluginRequest } from '@/lib/wp-api-client';
 
 const SESSION_COOKIE = 'user_session';
@@ -129,7 +129,7 @@ Respond with ONLY the alt text, nothing else.`,
     }
 
     const result = await generateText({
-      model: google('gemini-2.0-flash'),
+      model: google('gemini-2.5-pro'),
       messages,
       temperature: 0.3,
       maxTokens: 200,

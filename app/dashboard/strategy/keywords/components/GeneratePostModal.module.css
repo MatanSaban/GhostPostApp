@@ -1995,7 +1995,7 @@
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    font-size: 0.8125rem;
+    font-size: 0.875rem;
     color: var(--foreground);
 
     svg {
@@ -2100,7 +2100,7 @@
   border: 1px solid var(--destructive);
   border-radius: var(--radius-md);
   color: var(--destructive);
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   width: 100%;
   justify-content: center;
 }

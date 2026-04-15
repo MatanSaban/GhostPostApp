@@ -2,12 +2,12 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import prisma from '@/lib/prisma';
 import { generateObject } from 'ai';
-import { google } from '@ai-sdk/google';
+import { google } from '@/lib/ai/vertex-provider.js';
 import { z } from 'zod';
 import { logAIUsage } from '@/lib/ai/credits.js';
 
 const SESSION_COOKIE = 'user_session';
-const MODEL = 'gemini-2.0-flash';
+const MODEL = 'gemini-2.5-pro';
 
 async function getAuthenticatedUser() {
   try {

@@ -91,7 +91,7 @@
   border-radius: 20px;
   background: var(--warning-bg, rgba(234, 179, 8, 0.1));
   color: var(--warning, #eab308);
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   font-weight: 600;
 }
 

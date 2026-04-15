@@ -28,7 +28,7 @@ const PICSUM_URL = 'https://picsum.photos';
  * @param {{ width: number, height: number }} fallbackSize - Picsum dimensions
  * @returns {Promise<{ url: string, alt: string, isAI: boolean }>}
  */
-async function generateSingleImage(prompt, aspectRatio, fallbackSeed, fallbackSize = { width: 800, height: 450 }) {
+async function generateSingleImage(prompt, aspectRatio, fallbackSeed, fallbackSize = { width: 800, height: 450 }, trackingCtx = {}) {
   try {
     console.log(`[generate-post] Generating image with ${MODELS.IMAGE}, prompt length: ${prompt.length}`);
     const images = await generateImage({
@@ -37,6 +37,7 @@ async function generateSingleImage(prompt, aspectRatio, fallbackSeed, fallbackSi
       n: 1,
       operation: 'GENERATE_POST_IMAGE',
       metadata: { prompt: prompt.slice(0, 200) },
+      ...trackingCtx,
     });
 
     if (images && images.length > 0 && images[0].base64) {
@@ -275,6 +276,9 @@ export async function POST(request, { params }) {
         temperature: 0.7,
         operation: 'GENERATE_POST',
         metadata: { keywordId, articleType, wordCount },
+        accountId: keyword.site.accountId,
+        userId: user.id,
+        siteId,
       });
 
       // Parse JSON from response
@@ -328,7 +332,8 @@ export async function POST(request, { params }) {
         featuredPrompt,
         '16:9',
         keyword.keyword,
-        { width: 1200, height: 630 }
+        { width: 1200, height: 630 },
+        { accountId: keyword.site.accountId, userId: user.id, siteId }
       );
       featuredImageUrl = result.url;
       featuredImageIsAI = result.isAI;
@@ -380,7 +385,7 @@ export async function POST(request, { params }) {
         
         // Store the AI-provided description (in content language) for alt/caption
         contentImagePromises.push(
-          generateSingleImage(imagePrompt, '16:9', `${keyword.keyword}-${i}`, { width: 800, height: 450 })
+          generateSingleImage(imagePrompt, '16:9', `${keyword.keyword}-${i}`, { width: 800, height: 450 }, { accountId: keyword.site.accountId, userId: user.id, siteId })
             .then(result => ({ ...result, alt: description }))
         );
       }
@@ -662,7 +667,8 @@ ${existingPost.html}${userInstruction}`;
         imgPrompt,
         '16:9',
         `${keyword.keyword}-${Date.now()}`,
-        { width: 1200, height: 630 }
+        { width: 1200, height: 630 },
+        { accountId: keyword.site.accountId, userId: user.id, siteId }
       );
       return { ...existingPost, featuredImage: imgResult.url, featuredImageIsAI: imgResult.isAI };
     }

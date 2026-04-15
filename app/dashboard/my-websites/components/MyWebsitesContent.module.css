@@ -122,7 +122,7 @@
   text-align: start;
   font-weight: 600;
   color: var(--muted-foreground);
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   text-transform: uppercase;
   letter-spacing: 0.05em;
   white-space: nowrap;
@@ -159,7 +159,7 @@
   align-items: center;
   gap: 0.35rem;
   color: var(--muted-foreground);
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   transition: color var(--transition-fast);
   max-width: 250px;
   overflow: hidden;
@@ -172,12 +172,12 @@
 }
 
 .platform {
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   color: var(--muted-foreground);
 }
 
 .dateCell {
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   color: var(--muted-foreground);
   white-space: nowrap;
 }
@@ -189,7 +189,7 @@
   gap: 0.35rem;
   padding: 0.25rem 0.625rem;
   border-radius: 999px;
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   font-weight: 500;
   white-space: nowrap;
 }
@@ -304,7 +304,7 @@
   align-items: center;
   gap: 0.35rem;
   color: var(--muted-foreground);
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   transition: color var(--transition-fast);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -323,7 +323,7 @@
 }
 
 .cardMetaItem {
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   color: var(--muted-foreground);
 }
 
@@ -343,7 +343,7 @@
   background: var(--gradient-primary);
   color: #fff;
   border-radius: var(--radius-md);
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   font-weight: 500;
   transition: opacity var(--transition-fast);
 }

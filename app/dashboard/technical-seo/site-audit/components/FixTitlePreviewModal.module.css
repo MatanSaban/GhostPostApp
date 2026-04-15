@@ -91,7 +91,7 @@
   border-radius: 20px;
   background: var(--warning-bg, rgba(234, 179, 8, 0.1));
   color: var(--warning, #eab308);
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   font-weight: 600;
 }
 
@@ -198,7 +198,7 @@
 }
 
 .pageUrl {
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   color: var(--text-tertiary, var(--text-secondary));
   margin-bottom: 10px;
   direction: ltr;
@@ -245,7 +245,7 @@
 .titleLabel {
   flex-shrink: 0;
   font-weight: 600;
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   padding: 2px 8px;
   border-radius: 4px;
   min-width: 44px;

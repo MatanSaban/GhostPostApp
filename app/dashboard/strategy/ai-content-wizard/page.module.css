@@ -342,7 +342,7 @@
   background: transparent;
   color: var(--muted-foreground);
   cursor: pointer;
-  font-size: 0.85rem;
+  font-size: 0.875rem;
   font-weight: 500;
   transition: all 0.2s;
 
@@ -608,7 +608,7 @@
 }
 
 .scheduleSubdesc {
-  font-size: 0.85rem;
+  font-size: 0.875rem;
   color: var(--muted-foreground);
   margin-bottom: 0.75rem;
 }
@@ -668,7 +668,7 @@
 }
 
 .scheduleDayLabel {
-  font-size: 0.85rem;
+  font-size: 0.875rem;
   font-weight: 500;
   color: var(--foreground);
 }
@@ -821,7 +821,7 @@
 }
 
 .calendarCellDay {
-  font-size: 0.85rem;
+  font-size: 0.875rem;
   font-weight: 500;
   color: var(--foreground);
   position: relative;
@@ -1025,7 +1025,7 @@
   background: none;
   border: none;
   color: var(--primary);
-  font-size: 0.85rem;
+  font-size: 0.875rem;
   font-weight: 500;
   cursor: pointer;
   text-decoration: underline;
@@ -1272,7 +1272,7 @@
 }
 
 .countValue {
-  font-size: 0.85rem;
+  font-size: 0.875rem;
   font-weight: 500;
   color: var(--foreground);
   flex: 1;
@@ -1800,7 +1800,7 @@
 }
 
 .rangeValue {
-  font-size: 0.85rem;
+  font-size: 0.875rem;
   font-weight: 500;
   color: var(--foreground);
   white-space: nowrap;
@@ -1815,7 +1815,7 @@
   border: 1px solid rgba(234, 179, 8, 0.3);
   border-radius: var(--radius-md);
   color: var(--foreground);
-  font-size: 0.85rem;
+  font-size: 0.875rem;
   text-align: center;
 }
 
@@ -1868,7 +1868,7 @@
   border: 1px solid rgba(239, 68, 68, 0.3);
   border-radius: var(--radius-md);
   color: var(--color-danger);
-  font-size: 0.85rem;
+  font-size: 0.875rem;
   text-align: center;
 }
 
@@ -1881,7 +1881,7 @@
   border-radius: var(--radius-md);
   background: rgba(147, 51, 234, 0.06);
   border: 1px solid rgba(147, 51, 234, 0.2);
-  font-size: 0.85rem;
+  font-size: 0.875rem;
   line-height: 1.55;
   color: var(--foreground);
 
@@ -2097,7 +2097,7 @@
   border-radius: var(--radius-md);
   background: var(--card);
   color: var(--foreground);
-  font-size: 0.85rem;
+  font-size: 0.875rem;
   font-weight: 500;
   outline: none;
 
@@ -2155,7 +2155,7 @@
   border-radius: var(--radius-sm);
   background: var(--card);
   color: var(--foreground);
-  font-size: 0.85rem;
+  font-size: 0.875rem;
   outline: none;
   box-sizing: border-box;
 
@@ -2239,7 +2239,7 @@
 .subjectSelectedTitle {
   margin: 0;
   padding: 0.625rem 1rem;
-  font-size: 0.85rem;
+  font-size: 0.875rem;
   font-weight: 600;
   color: var(--foreground);
   background: var(--muted);
@@ -2272,7 +2272,7 @@
 }
 
 .subjectSelectedItemTitle {
-  font-size: 0.85rem;
+  font-size: 0.875rem;
   font-weight: 500;
   color: var(--foreground);
 }
@@ -2308,13 +2308,13 @@
   align-items: center;
   gap: 0.375rem;
   color: var(--color-success);
-  font-size: 0.85rem;
+  font-size: 0.875rem;
   font-weight: 500;
 }
 
 .subjectStatusIncomplete {
   color: var(--muted-foreground);
-  font-size: 0.85rem;
+  font-size: 0.875rem;
 }
 
 /* =========================================
@@ -2324,7 +2324,7 @@
   padding: 0.5rem 0.75rem;
   background: rgba(123, 44, 191, 0.08);
   border-radius: var(--radius-md);
-  font-size: 0.85rem;
+  font-size: 0.875rem;
   font-weight: 500;
   color: var(--primary);
   text-align: center;
@@ -2346,7 +2346,7 @@
   background: transparent;
   color: var(--muted-foreground);
   cursor: pointer;
-  font-size: 0.85rem;
+  font-size: 0.875rem;
   font-weight: 500;
   transition: all 0.2s;
 
@@ -2387,7 +2387,7 @@
   border-radius: var(--radius-md);
   background: var(--background-input);
   color: var(--foreground);
-  font-size: 0.85rem;
+  font-size: 0.875rem;
 
   :global([dir='rtl']) & {
     padding: 0.5rem 2.25rem 0.5rem 0.75rem;
@@ -2446,7 +2446,7 @@
   text-align: center;
   color: var(--muted-foreground);
   padding: 2rem;
-  font-size: 0.85rem;
+  font-size: 0.875rem;
 }
 
 .manualKeywordsSection {
@@ -2489,7 +2489,7 @@
   background: rgba(123, 44, 191, 0.08);
   border: 1px solid rgba(123, 44, 191, 0.2);
   border-radius: 2rem;
-  font-size: 0.85rem;
+  font-size: 0.875rem;
   color: var(--primary);
 }
 
@@ -2544,7 +2544,7 @@
   border-radius: var(--radius-md);
   background: var(--primary);
   color: var(--primary-foreground);
-  font-size: 0.85rem;
+  font-size: 0.875rem;
   font-weight: 500;
   text-decoration: none;
   cursor: pointer;
@@ -2569,7 +2569,7 @@
 }
 
 .gscPickerDesc {
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   color: var(--muted-foreground);
   margin: 0 0 1rem;
 }
@@ -2583,7 +2583,7 @@
 
 .gscPickerEmpty {
   text-align: center;
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   color: var(--muted-foreground);
   padding: 1.5rem 0;
 }
@@ -2655,7 +2655,7 @@
   display: flex;
   align-items: center;
   gap: 0.375rem;
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   color: var(--muted-foreground);
 }
 
@@ -2714,13 +2714,13 @@
 }
 
 .summaryLabel {
-  font-size: 0.85rem;
+  font-size: 0.875rem;
   color: var(--muted-foreground);
   white-space: nowrap;
 }
 
 .summaryValue {
-  font-size: 0.85rem;
+  font-size: 0.875rem;
   font-weight: 500;
   color: var(--foreground);
   text-align: end;
@@ -2906,7 +2906,7 @@
 }
 
 .summarySubjectDetailValue {
-  font-size: 0.85rem;
+  font-size: 0.875rem;
   color: var(--foreground);
   margin: 0;
   line-height: 1.45;
@@ -3084,7 +3084,7 @@
   justify-content: flex-start;
   padding: 0.25rem;
   border-radius: var(--radius-md);
-  font-size: 0.85rem;
+  font-size: 0.875rem;
   color: var(--foreground);
   background: var(--background);
   border: 1px solid transparent;
@@ -3354,7 +3354,7 @@
 }
 
 .pillarDropdownTitle {
-  font-size: 0.85rem;
+  font-size: 0.875rem;
   color: var(--foreground);
   font-weight: 500;
   line-height: 1.4;
@@ -3512,7 +3512,7 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  font-size: 0.85rem;
+  font-size: 0.875rem;
   font-weight: 600;
   color: var(--primary);
   margin-bottom: 0.375rem;
@@ -3594,7 +3594,7 @@
   border-radius: var(--radius-md);
   background: rgba(147, 51, 234, 0.06);
   color: rgb(147, 51, 234);
-  font-size: 0.85rem;
+  font-size: 0.875rem;
   font-weight: 500;
   cursor: pointer;
   transition: background 0.15s, border-color 0.15s;
@@ -3807,7 +3807,7 @@
   border: 1px solid rgba(16, 185, 129, 0.2);
   border-radius: var(--radius-md);
   color: #10b981;
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   font-weight: 500;
   text-decoration: none;
   transition: all 0.15s;
@@ -3944,7 +3944,7 @@
 }
 
 .postPopoverTitle {
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   font-weight: 600;
   color: var(--foreground);
   line-height: 1.4;
@@ -3983,7 +3983,7 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   color: var(--muted-foreground);
 
   svg {
@@ -4011,7 +4011,7 @@
   border-radius: var(--radius-md);
   background: var(--background);
   color: var(--foreground);
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   font-family: inherit;
   outline: none;
   transition: border-color 0.15s;
@@ -4052,7 +4052,7 @@
   border-radius: var(--radius-sm);
   background: transparent;
   color: var(--muted-foreground);
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   font-weight: 500;
   cursor: pointer;
   transition: all var(--transition-fast);
@@ -4074,7 +4074,7 @@
 }
 
 .expandToggle {
-  font-size: 0.85rem;
+  font-size: 0.875rem;
   color: var(--primary);
   background: none;
   border: none;
@@ -4157,13 +4157,13 @@
   gap: 0.75rem;
 
   span {
-    font-size: 0.85rem;
+    font-size: 0.875rem;
     color: var(--foreground);
   }
 }
 
 .detailLabel {
-  font-size: 0.85rem;
+  font-size: 0.875rem;
   font-weight: 500;
   color: var(--muted-foreground);
   min-width: 100px;
@@ -4200,7 +4200,7 @@
   background: rgba(234, 179, 8, 0.1);
   border: 1px solid rgba(234, 179, 8, 0.3);
   color: var(--foreground);
-  font-size: 0.85rem;
+  font-size: 0.875rem;
   line-height: 1.45;
 }
 

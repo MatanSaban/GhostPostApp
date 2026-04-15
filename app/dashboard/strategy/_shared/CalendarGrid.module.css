@@ -91,7 +91,7 @@
   justify-content: flex-start;
   padding: 0.25rem;
   border-radius: var(--radius-md);
-  font-size: 0.85rem;
+  font-size: 0.875rem;
   color: var(--foreground);
   background: var(--background);
   border: 1px solid transparent;

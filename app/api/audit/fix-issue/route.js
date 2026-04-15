@@ -3,7 +3,7 @@ import { cookies } from 'next/headers';
 import prisma from '@/lib/prisma';
 import { deductAiCredits } from '@/lib/account-utils';
 import { generateObject } from 'ai';
-import { google } from '@ai-sdk/google';
+import { google } from '@/lib/ai/vertex-provider.js';
 import { z } from 'zod';
 import { makePluginRequest } from '@/lib/wp-api-client';
 
@@ -125,7 +125,7 @@ export async function POST(request) {
     const prompt = buildFixPrompt(issueType, pageUrl, site.name, currentTitle, currentDesc);
 
     const result = await generateObject({
-      model: google('gemini-2.0-flash'),
+      model: google('gemini-2.5-pro'),
       schema: fixSchema,
       messages: [{ role: 'user', content: prompt }],
       temperature: 0.3,

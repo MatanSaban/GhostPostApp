@@ -130,7 +130,7 @@
 }
 
 .remaining {
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   color: var(--muted-foreground);
 }
 
@@ -176,7 +176,7 @@
 
 .errorText {
   margin-top: 0.75rem;
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   color: #ef4444;
 }
 
@@ -259,7 +259,7 @@
 }
 
 .competitorDomainSmall {
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   color: var(--muted-foreground);
   font-weight: 400;
 }
@@ -268,7 +268,7 @@
   display: flex;
   align-items: center;
   gap: 0.25rem;
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   color: var(--muted-foreground);
   text-decoration: none;
   max-width: 400px;
@@ -287,7 +287,7 @@
   align-items: center;
   gap: 0.375rem;
   padding: 0.375rem 0.75rem;
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   font-weight: 500;
   border-radius: var(--radius-md);
   white-space: nowrap;
@@ -361,7 +361,7 @@
 }
 
 .metricLabel {
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   color: var(--muted-foreground);
 }
 
@@ -377,7 +377,7 @@
   align-items: center;
   gap: 0.375rem;
   padding: 0.5rem 0.75rem;
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   font-weight: 500;
   color: var(--muted-foreground);
   background: transparent;
@@ -502,7 +502,7 @@
 }
 
 .columnLabel {
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   text-transform: uppercase;
   color: var(--muted-foreground);
 }
@@ -585,7 +585,7 @@
 }
 
 .metricDivider {
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   color: var(--muted-foreground);
 }
 
@@ -670,7 +670,7 @@
 
 .gapReason {
   flex: 1;
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   color: var(--muted-foreground);
 }
 
@@ -922,7 +922,7 @@
 }
 
 .keywordsSearched {
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   color: var(--muted-foreground);
   display: flex;
   flex-wrap: wrap;
@@ -937,7 +937,7 @@
 .keywordTag {
   display: inline-flex;
   padding: 0.25rem 0.625rem;
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   font-weight: 500;
   background: var(--primary);
   color: white;
@@ -1027,7 +1027,7 @@
 }
 
 .discoveredMeta {
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   color: var(--muted-foreground);
 }
 
@@ -1208,13 +1208,13 @@
   gap: 0.125rem;
 
   strong {
-    font-size: 0.8125rem;
+    font-size: 0.875rem;
     font-weight: 600;
     color: var(--foreground);
   }
 
   span {
-    font-size: 0.8125rem;
+    font-size: 0.875rem;
     color: var(--muted-foreground);
   }
 }
@@ -1236,7 +1236,7 @@
   }
 
   li {
-    font-size: 0.8125rem;
+    font-size: 0.875rem;
     color: var(--muted-foreground);
     line-height: 1.4;
 
@@ -1356,7 +1356,7 @@
     font-weight: 600;
     color: var(--muted-foreground);
     background: var(--muted);
-    font-size: 0.8125rem;
+    font-size: 0.875rem;
     text-transform: uppercase;
     letter-spacing: 0.05em;
   }
@@ -1406,7 +1406,7 @@
   display: inline-flex;
   align-items: center;
   gap: 0.25rem;
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   color: var(--muted-foreground);
   text-decoration: none;
 

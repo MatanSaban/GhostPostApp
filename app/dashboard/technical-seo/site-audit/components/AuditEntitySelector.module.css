@@ -15,7 +15,7 @@
   border: none;
   cursor: pointer;
   color: var(--foreground);
-  font-size: 0.85rem;
+  font-size: 0.875rem;
   transition: background 0.15s;
 
   &:hover {
@@ -55,7 +55,7 @@
   gap: 10px;
   padding: 6px 14px;
   cursor: pointer;
-  font-size: 0.85rem;
+  font-size: 0.875rem;
   transition: background 0.12s;
 
   &:hover {

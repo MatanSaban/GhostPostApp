@@ -202,14 +202,14 @@
 }
 
 .previewAlt {
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   color: var(--muted-foreground);
   margin: 0;
 }
 
 .previewSize,
 .previewMime {
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   color: var(--muted-foreground);
   margin: 0;
 }
@@ -409,7 +409,7 @@
 }
 
 .dropzoneHint {
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   color: var(--muted-foreground);
 }
 
@@ -452,7 +452,7 @@
 }
 
 .fieldLabel {
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   font-weight: 500;
   color: var(--muted-foreground);
 }
@@ -538,7 +538,7 @@
   color: var(--foreground);
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   cursor: pointer;
   transition: all 0.15s;
   

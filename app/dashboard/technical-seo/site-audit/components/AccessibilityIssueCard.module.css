@@ -161,7 +161,7 @@
   color: var(--text-secondary);
   text-decoration: none;
   font-weight: 400;
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   max-width: 220px;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -231,7 +231,7 @@
   align-items: center;
   gap: 4px;
   padding: 4px 10px;
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   color: var(--text-secondary);
   text-decoration: none;
   direction: ltr;
@@ -358,7 +358,7 @@
 
 .selectorValue {
   font-family: monospace;
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   color: var(--text-primary);
   background: var(--bg-subtle, rgba(0, 0, 0, 0.04));
   padding: 2px 6px;
@@ -401,7 +401,7 @@
   margin-inline-start: auto;
   color: var(--primary);
   text-decoration: none;
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   font-weight: 500;
 }
 
@@ -484,7 +484,7 @@
   align-items: center;
   gap: 3px;
   opacity: 0.7;
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
 }
 
 .spinning {

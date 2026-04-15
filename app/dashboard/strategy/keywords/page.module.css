@@ -57,7 +57,7 @@
   border: 1px solid rgba(99, 102, 241, 0.35);
   border-radius: 8px;
   color: #a5b4fc;
-  font-size: 0.85rem;
+  font-size: 0.875rem;
   font-weight: 500;
   text-decoration: none;
   cursor: pointer;
@@ -210,7 +210,7 @@
 }
 
 .statLabel {
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   color: var(--muted-foreground);
   font-weight: 500;
   margin-top: 0.5rem;
@@ -242,7 +242,7 @@
 
 .chartDateSelect {
   padding: 0.3rem 1.75rem 0.3rem 0.5rem;
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   border: 1px solid var(--border);
   border-radius: var(--radius, 0.5rem);
   background: var(--background);
@@ -269,7 +269,7 @@
 
 .chartDateInput {
   padding: 0.3rem 0.5rem;
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   border: 1px solid var(--border);
   border-radius: var(--radius, 0.5rem);
   background: var(--background);
@@ -356,7 +356,7 @@
   min-width: 1.25rem;
   height: 1.25rem;
   padding: 0 0.375rem;
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   font-weight: 600;
   border-radius: 9999px;
   background: var(--muted);
@@ -460,7 +460,7 @@
 
 .addError {
   margin-top: 0.5rem;
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   color: #ef4444;
 }
 
@@ -551,7 +551,7 @@
   display: flex;
   align-items: center;
   gap: 0.25rem;
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   color: var(--muted-foreground);
 }
 
@@ -595,7 +595,7 @@
 .targetButton {
   width: 100%;
   padding: 0.5rem;
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   font-weight: 500;
   color: var(--primary);
   background: rgba(123, 44, 191, 0.1);
@@ -623,7 +623,7 @@
   grid-template-columns: 2fr 0.7fr 0.7fr 0.7fr 0.7fr 0.6fr 1fr 0.8fr 1fr 0.5fr;
   gap: 0.75rem;
   padding: 0.75rem 1rem;
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   font-weight: 500;
   color: var(--muted-foreground);
   text-transform: uppercase;
@@ -757,7 +757,7 @@
   align-items: center;
   gap: 0.25rem;
   padding: 0.25rem 0.5rem;
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   font-weight: 600;
   border-radius: var(--radius-md);
 
@@ -800,7 +800,7 @@
   display: flex;
   align-items: center;
   gap: 0.25rem;
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   font-weight: 500;
 
   &.up {
@@ -848,7 +848,7 @@
 .statusBadge {
   display: inline-flex;
   padding: 0.25rem 0.625rem;
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   font-weight: 500;
   border-radius: var(--radius-md);
   text-transform: capitalize;
@@ -1074,7 +1074,7 @@
   gap: 0.5rem;
   width: 100%;
   padding: 0.5rem 0.75rem;
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   color: var(--foreground);
   background: transparent;
   border: none;
@@ -1266,7 +1266,7 @@
   flex-direction: column;
   align-items: flex-start;
   gap: 0.15rem;
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   color: var(--muted-foreground);
   font-variant-numeric: tabular-nums;
 

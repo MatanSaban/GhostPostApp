@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import prisma from '@/lib/prisma';
 import { generateObject } from 'ai';
-import { google } from '@ai-sdk/google';
+import { google } from '@/lib/ai/vertex-provider.js';
 import { z } from 'zod';
 
 const SESSION_COOKIE = 'user_session';
@@ -148,7 +148,7 @@ export async function POST(request) {
 
     // Use AI to recommend optimal format per image
     const result = await generateObject({
-      model: google('gemini-2.0-flash'),
+      model: google('gemini-2.5-pro'),
       schema: imageOptimizationSchema,
       messages: [
         {

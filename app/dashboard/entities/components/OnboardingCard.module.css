@@ -101,7 +101,7 @@
   border-radius: 50%;
   background: var(--primary);
   color: white;
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   font-weight: 600;
   flex-shrink: 0;
 }

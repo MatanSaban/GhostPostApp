@@ -23,28 +23,28 @@ model Account {
   industry        String?
   timezone        String   @default("UTC")
   defaultLanguage Language @default(EN)
-  billingEmail    String   // Email for invoices and billing notifications
-  generalEmail    String   // General contact email for the account
+  billingEmail    String // Email for invoices and billing notifications
+  generalEmail    String // General contact email for the account
   isActive        Boolean  @default(true)
-  
+
   // AI Credits tracking
-  aiCreditsBalance   Int      @default(0)     // Current available AI credits
-  aiCreditsUsedTotal Int      @default(0)     // Total AI credits ever used
-  
+  aiCreditsBalance   Int @default(0) // Current available AI credits
+  aiCreditsUsedTotal Int @default(0) // Total AI credits ever used
+
   // White-label reporting configuration
   // Structure: { logoUrl: string|null, agencyName: string, primaryColor: string, replyToEmail: string }
-  whiteLabelConfig  Json?    // Agency branding for PDF reports
-  
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  whiteLabelConfig Json? // Agency branding for PDF reports
+
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
   // Relations
-  members         AccountMember[]
-  sites           Site[]
-  subscription    Subscription?
-  payments        Payment[]
-  roles           Role[]
-  aiCreditsLogs   AiCreditsLog[]
-  reportArchives  ReportArchive[]
+  members        AccountMember[]
+  sites          Site[]
+  subscription   Subscription?
+  payments       Payment[]
+  roles          Role[]
+  aiCreditsLogs  AiCreditsLog[]
+  reportArchives ReportArchive[]
 }
 
 // ==========================================
@@ -52,18 +52,18 @@ model Account {
 // ==========================================
 
 model Role {
-  id              String       @id @default(auto()) @map("_id") @db.ObjectId
-  accountId       String       @db.ObjectId
-  key             String?      // Unique key identifier (English only, e.g., "editor", "content_manager")
-  name            String
-  description     String?
-  permissions     Permission[]
-  isSystemRole    Boolean      @default(false)  // true for Owner, Admin, Editor, Viewer
-  createdAt       DateTime     @default(now())
-  updatedAt       DateTime     @updatedAt
+  id           String       @id @default(auto()) @map("_id") @db.ObjectId
+  accountId    String       @db.ObjectId
+  key          String? // Unique key identifier (English only, e.g., "editor", "content_manager")
+  name         String
+  description  String?
+  permissions  Permission[]
+  isSystemRole Boolean      @default(false) // true for Owner, Admin, Editor, Viewer
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
 
-  account         Account        @relation(fields: [accountId], references: [id], onDelete: Cascade)
-  members         AccountMember[]
+  account Account         @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  members AccountMember[]
 
   @@unique([accountId, name])
 }
@@ -191,24 +191,24 @@ enum Permission {
 }
 
 model AccountMember {
-  id                 String            @id @default(auto()) @map("_id") @db.ObjectId
-  accountId          String            @db.ObjectId
-  userId             String?           @db.ObjectId      // Optional for PENDING invites
-  roleId             String            @db.ObjectId
-  isOwner            Boolean           @default(false)   // true for account creator
-  lastSelectedSiteId String?           @db.ObjectId      // Last site selected in this account
-  invitedBy          String?           @db.ObjectId
+  id                 String       @id @default(auto()) @map("_id") @db.ObjectId
+  accountId          String       @db.ObjectId
+  userId             String?      @db.ObjectId // Optional for PENDING invites
+  roleId             String       @db.ObjectId
+  isOwner            Boolean      @default(false) // true for account creator
+  lastSelectedSiteId String?      @db.ObjectId // Last site selected in this account
+  invitedBy          String?      @db.ObjectId
   invitedAt          DateTime?
-  inviteEmail        String?                             // Email for pending invites
-  inviteToken        String?                             // Token for accepting invite
-  inviteLanguage     String?                             // Language code for invite email (EN, HE, etc.)
-  joinedAt           DateTime          @default(now())
-  status             MemberStatus      @default(ACTIVE)
+  inviteEmail        String? // Email for pending invites
+  inviteToken        String? // Token for accepting invite
+  inviteLanguage     String? // Language code for invite email (EN, HE, etc.)
+  joinedAt           DateTime     @default(now())
+  status             MemberStatus @default(ACTIVE)
 
-  account            Account           @relation(fields: [accountId], references: [id], onDelete: Cascade)
-  user               User?             @relation(fields: [userId], references: [id], onDelete: Cascade)
-  role               Role              @relation(fields: [roleId], references: [id])
-  siteMembers        SiteMember[]      // Sites this member is assigned to
+  account     Account      @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  user        User?        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role        Role         @relation(fields: [roleId], references: [id])
+  siteMembers SiteMember[] // Sites this member is assigned to
 
   @@unique([accountId, userId])
   @@unique([accountId, inviteEmail])
@@ -216,14 +216,14 @@ model AccountMember {
   // This is enforced at the application level since MongoDB doesn't support
   // partial unique indexes through Prisma. See lib/account-utils.js for validation.
   @@index([userId, isOwner])
-  @@index([inviteToken])  // Index for fast lookup, not unique (allows null)
+  @@index([inviteToken]) // Index for fast lookup, not unique (allows null)
 }
 
 enum MemberStatus {
-  PENDING    // Invited but not accepted
-  ACTIVE     // Active member
-  SUSPENDED  // Temporarily suspended
-  REMOVED    // Removed from account
+  PENDING // Invited but not accepted
+  ACTIVE // Active member
+  SUSPENDED // Temporarily suspended
+  REMOVED // Removed from account
 }
 
 // ==========================================
@@ -231,27 +231,27 @@ enum MemberStatus {
 // ==========================================
 
 model User {
-  id                    String             @id @default(auto()) @map("_id") @db.ObjectId
-  email                 String             @unique
+  id                    String           @id @default(auto()) @map("_id") @db.ObjectId
+  email                 String           @unique
   firstName             String?
   lastName              String?
   phoneNumber           String?
-  password              String?            // Hashed, for email/password auth
+  password              String? // Hashed, for email/password auth
   image                 String?
   emailVerified         DateTime?
   phoneVerified         DateTime?
-  primaryAuthMethod     AuthMethod         @default(EMAIL)
-  selectedLanguage      Language?          // Overrides account default if set
-  preferredCurrency     Currency?          // Overrides language-based default if set
-  lastSelectedAccountId String?            @db.ObjectId  // Last account user was working in
-  registrationStep      RegistrationStep   @default(VERIFY)  // Track incomplete registration
-  consentGiven          Boolean            @default(false)
+  primaryAuthMethod     AuthMethod       @default(EMAIL)
+  selectedLanguage      Language? // Overrides account default if set
+  preferredCurrency     Currency? // Overrides language-based default if set
+  lastSelectedAccountId String?          @db.ObjectId // Last account user was working in
+  registrationStep      RegistrationStep @default(VERIFY) // Track incomplete registration
+  consentGiven          Boolean          @default(false)
   consentDate           DateTime?
-  isActive              Boolean            @default(true)
-  isSuperAdmin          Boolean            @default(false)  // Platform-level admin (developer access)
+  isActive              Boolean          @default(true)
+  isSuperAdmin          Boolean          @default(false) // Platform-level admin (developer access)
   lastLoginAt           DateTime?
-  createdAt             DateTime           @default(now())
-  updatedAt             DateTime           @updatedAt
+  createdAt             DateTime         @default(now())
+  updatedAt             DateTime         @updatedAt
 
   // Relations
   authProviders      AuthProvider[]
@@ -264,12 +264,12 @@ model User {
 }
 
 enum RegistrationStep {
-  VERIFY        // OTP verification pending
+  VERIFY // OTP verification pending
   ACCOUNT_SETUP // Account/organization setup pending
-  INTERVIEW     // Site interview pending
-  PLAN          // Plan selection pending
-  PAYMENT       // Payment pending
-  COMPLETED     // Registration complete
+  INTERVIEW // Site interview pending
+  PLAN // Plan selection pending
+  PAYMENT // Payment pending
+  COMPLETED // Registration complete
 }
 
 enum AuthMethod {
@@ -284,25 +284,25 @@ enum AuthMethod {
 // RTL languages: HE, AR
 // LTR languages: EN, ES, FR, DE, PT, IT, RU, ZH, JA, KO
 enum Language {
-  EN  // English - LTR
-  HE  // Hebrew - RTL
-  AR  // Arabic - RTL
-  ES  // Spanish - LTR
-  FR  // French - LTR
-  DE  // German - LTR
-  PT  // Portuguese - LTR
-  IT  // Italian - LTR
-  RU  // Russian - LTR
-  ZH  // Chinese - LTR
-  JA  // Japanese - LTR
-  KO  // Korean - LTR
+  EN // English - LTR
+  HE // Hebrew - RTL
+  AR // Arabic - RTL
+  ES // Spanish - LTR
+  FR // French - LTR
+  DE // German - LTR
+  PT // Portuguese - LTR
+  IT // Italian - LTR
+  RU // Russian - LTR
+  ZH // Chinese - LTR
+  JA // Japanese - LTR
+  KO // Korean - LTR
 }
 
 enum Currency {
-  USD  // US Dollar
-  ILS  // Israeli Shekel
-  EUR  // Euro
-  GBP  // British Pound
+  USD // US Dollar
+  ILS // Israeli Shekel
+  EUR // Euro
+  GBP // British Pound
 }
 
 model AuthProvider {
@@ -347,18 +347,18 @@ model VerificationToken {
 }
 
 model OtpCode {
-  id         String    @id @default(auto()) @map("_id") @db.ObjectId
-  userId     String?   @db.ObjectId
-  tempRegId  String?   @db.ObjectId  // For temp registration flow
-  code       String
-  method     OtpMethod
-  expiresAt  DateTime
-  verified   Boolean   @default(false)
-  attempts   Int       @default(0)
-  createdAt  DateTime  @default(now())
+  id        String    @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String?   @db.ObjectId
+  tempRegId String?   @db.ObjectId // For temp registration flow
+  code      String
+  method    OtpMethod
+  expiresAt DateTime
+  verified  Boolean   @default(false)
+  attempts  Int       @default(0)
+  createdAt DateTime  @default(now())
 
-  user       User?            @relation(fields: [userId], references: [id], onDelete: Cascade)
-  tempReg    TempRegistration? @relation(fields: [tempRegId], references: [id], onDelete: Cascade)
+  user    User?             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tempReg TempRegistration? @relation(fields: [tempRegId], references: [id], onDelete: Cascade)
 }
 
 enum OtpMethod {
@@ -371,57 +371,57 @@ enum OtpMethod {
 // ==========================================
 
 model TempRegistration {
-  id              String            @id @default(auto()) @map("_id") @db.ObjectId
-  
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+
   // Step 1: Form data
-  email           String            @unique
-  firstName       String
-  lastName        String
-  phoneNumber     String?
-  password        String?           // Hashed - optional for OAuth registration
-  consentGiven    Boolean           @default(false)
-  consentDate     DateTime?
-  
+  email        String    @unique
+  firstName    String
+  lastName     String
+  phoneNumber  String?
+  password     String? // Hashed - optional for OAuth registration
+  consentGiven Boolean   @default(false)
+  consentDate  DateTime?
+
   // OAuth provider data (for Google registration)
-  authMethod      AuthMethod        @default(EMAIL)
-  googleId        String?           // Google provider account ID
-  image           String?           // Profile image from OAuth
-  
+  authMethod AuthMethod @default(EMAIL)
+  googleId   String? // Google provider account ID
+  image      String? // Profile image from OAuth
+
   // Step 2: OTP verification
-  emailVerified   DateTime?
-  phoneVerified   DateTime?
-  otpMethod       OtpMethod?
-  
+  emailVerified DateTime?
+  phoneVerified DateTime?
+  otpMethod     OtpMethod?
+
   // Step 3: Account setup
-  accountName     String?
-  accountSlug     String?
-  
+  accountName String?
+  accountSlug String?
+
   // Step 4: Interview data (stored as JSON)
-  interviewData   Json?
-  
+  interviewData Json?
+
   // Step 5: Selected plan
-  selectedPlanId  String?           @db.ObjectId
-  
+  selectedPlanId String? @db.ObjectId
+
   // Step 5b: Coupon code (optional)
-  couponCode      String?
-  
+  couponCode String?
+
   // Tracking
-  currentStep     TempRegStep       @default(FORM)
-  expiresAt       DateTime          // Auto-delete after X days
-  createdAt       DateTime          @default(now())
-  updatedAt       DateTime          @updatedAt
-  
+  currentStep TempRegStep @default(FORM)
+  expiresAt   DateTime // Auto-delete after X days
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
   // Relations
-  otpCodes        OtpCode[]
+  otpCodes OtpCode[]
 }
 
 enum TempRegStep {
-  FORM           // Initial form submitted
-  VERIFY         // OTP verification pending
-  ACCOUNT_SETUP  // Account setup pending
-  INTERVIEW      // Interview pending
-  PLAN           // Plan selection pending
-  PAYMENT        // Payment pending
+  FORM // Initial form submitted
+  VERIFY // OTP verification pending
+  ACCOUNT_SETUP // Account setup pending
+  INTERVIEW // Interview pending
+  PLAN // Plan selection pending
+  PAYMENT // Payment pending
 }
 
 // ==========================================
@@ -429,27 +429,27 @@ enum TempRegStep {
 // ==========================================
 
 model Plan {
-  id            String          @id @default(auto()) @map("_id") @db.ObjectId
-  name          String          @unique
-  slug          String          @unique
-  description   String?
-  price         Float           // Monthly price
-  yearlyPrice   Float?          // Yearly price (optional, if null = price * 10)
-  currency      String          @default("USD")
-  interval      BillingInterval @default(MONTHLY)
-  
+  id          String          @id @default(auto()) @map("_id") @db.ObjectId
+  name        String          @unique
+  slug        String          @unique
+  description String?
+  price       Float // Monthly price
+  yearlyPrice Float? // Yearly price (optional, if null = price * 10)
+  currency    String          @default("USD")
+  interval    BillingInterval @default(MONTHLY)
+
   // Features - JSON array of {key, label} for plan capabilities
-  features      Json            @default("[]")
-  
+  features Json @default("[]")
+
   // Limitations - JSON array of {key, label, value?, type?}
   // All plan limitations are managed dynamically through this array
   // Keys like 'maxSites', 'maxMembers', 'aiCredits' are used for enforcement
-  limitations   Json?           @default("[]")
-  
-  isActive      Boolean         @default(true)
-  sortOrder     Int             @default(0)
-  createdAt     DateTime        @default(now())
-  updatedAt     DateTime        @updatedAt
+  limitations Json? @default("[]")
+
+  isActive  Boolean  @default(true)
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   subscriptions Subscription[]
   translations  PlanTranslation[]
@@ -461,12 +461,12 @@ model PlanTranslation {
   language    Language
   name        String
   description String?
-  features    Json?    // Translated features: [{key, label}]
-  limitations Json?    // Translated limitation labels: [{key, label}]
+  features    Json? // Translated features: [{key, label}]
+  limitations Json? // Translated limitation labels: [{key, label}]
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  plan        Plan     @relation(fields: [planId], references: [id], onDelete: Cascade)
+  plan Plan @relation(fields: [planId], references: [id], onDelete: Cascade)
 
   @@unique([planId, language])
 }
@@ -481,7 +481,7 @@ model Subscription {
   accountId          String             @unique @db.ObjectId
   planId             String             @db.ObjectId
   status             SubscriptionStatus @default(ACTIVE)
-  billingInterval    BillingInterval    @default(MONTHLY)  // Current billing interval
+  billingInterval    BillingInterval    @default(MONTHLY) // Current billing interval
   currentPeriodStart DateTime
   currentPeriodEnd   DateTime
   cancelAtPeriodEnd  Boolean            @default(false)
@@ -489,10 +489,10 @@ model Subscription {
   createdAt          DateTime           @default(now())
   updatedAt          DateTime           @updatedAt
 
-  account            Account            @relation(fields: [accountId], references: [id], onDelete: Cascade)
-  plan               Plan               @relation(fields: [planId], references: [id])
-  payments           Payment[]
-  addOnPurchases     AddOnPurchase[]    // Purchased add-ons for this subscription
+  account        Account         @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  plan           Plan            @relation(fields: [planId], references: [id])
+  payments       Payment[]
+  addOnPurchases AddOnPurchase[] // Purchased add-ons for this subscription
 }
 
 enum SubscriptionStatus {
@@ -509,28 +509,28 @@ enum SubscriptionStatus {
 
 // Add-on product definitions (managed by admin)
 model AddOn {
-  id              String        @id @default(auto()) @map("_id") @db.ObjectId
-  name            String        @unique
-  slug            String        @unique
-  description     String?
-  type            AddOnType                     // Type of add-on
-  
+  id          String    @id @default(auto()) @map("_id") @db.ObjectId
+  name        String    @unique
+  slug        String    @unique
+  description String?
+  type        AddOnType // Type of add-on
+
   // Pricing
-  price           Float                         // Price per unit
-  currency        String        @default("USD")
-  billingType     AddOnBillingType @default(RECURRING) // One-time or recurring
-  
+  price       Float // Price per unit
+  currency    String           @default("USD")
+  billingType AddOnBillingType @default(RECURRING) // One-time or recurring
+
   // For quantity-based add-ons (e.g., AI Credits packs)
   // null means add-on adds +1 of the resource
-  quantity        Int?                          // Quantity provided (e.g., 10000 for AI credits pack)
-  
-  isActive        Boolean       @default(true)
-  sortOrder       Int           @default(0)
-  createdAt       DateTime      @default(now())
-  updatedAt       DateTime      @updatedAt
+  quantity Int? // Quantity provided (e.g., 10000 for AI credits pack)
 
-  purchases       AddOnPurchase[]
-  translations    AddOnTranslation[]
+  isActive  Boolean  @default(true)
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  purchases    AddOnPurchase[]
+  translations AddOnTranslation[]
 }
 
 model AddOnTranslation {
@@ -542,55 +542,55 @@ model AddOnTranslation {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  addOn       AddOn    @relation(fields: [addOnId], references: [id], onDelete: Cascade)
+  addOn AddOn @relation(fields: [addOnId], references: [id], onDelete: Cascade)
 
   @@unique([addOnId, language])
 }
 
 // Active add-on purchases for a subscription
 model AddOnPurchase {
-  id              String        @id @default(auto()) @map("_id") @db.ObjectId
-  subscriptionId  String        @db.ObjectId
-  addOnId         String        @db.ObjectId
-  quantity        Int           @default(1)     // How many of this add-on purchased
-  status          AddOnPurchaseStatus @default(ACTIVE)
-  
-  // For one-time purchases (like AI credits)
-  creditsRemaining Int?                         // Remaining credits from one-time purchase
-  
-  purchasedAt     DateTime      @default(now())
-  expiresAt       DateTime?                     // For recurring add-ons, matches subscription period
-  canceledAt      DateTime?
-  createdAt       DateTime      @default(now())
-  updatedAt       DateTime      @updatedAt
+  id             String              @id @default(auto()) @map("_id") @db.ObjectId
+  subscriptionId String              @db.ObjectId
+  addOnId        String              @db.ObjectId
+  quantity       Int                 @default(1) // How many of this add-on purchased
+  status         AddOnPurchaseStatus @default(ACTIVE)
 
-  subscription    Subscription  @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
-  addOn           AddOn         @relation(fields: [addOnId], references: [id])
+  // For one-time purchases (like AI credits)
+  creditsRemaining Int? // Remaining credits from one-time purchase
+
+  purchasedAt DateTime  @default(now())
+  expiresAt   DateTime? // For recurring add-ons, matches subscription period
+  canceledAt  DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  subscription Subscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+  addOn        AddOn        @relation(fields: [addOnId], references: [id])
 
   @@index([subscriptionId])
   @@index([addOnId])
 }
 
 enum AddOnType {
-  SEATS           // Additional team members
-  SITES           // Additional websites
-  AI_CREDITS      // AI Credits pack
-  STORAGE         // Additional storage
-  KEYWORDS        // Additional keywords tracking
-  CONTENT         // Additional content items
-  SITE_AUDITS     // Additional site audits
+  SEATS // Additional team members
+  SITES // Additional websites
+  AI_CREDITS // AI Credits pack
+  STORAGE // Additional storage
+  KEYWORDS // Additional keywords tracking
+  CONTENT // Additional content items
+  SITE_AUDITS // Additional site audits
 }
 
 enum AddOnBillingType {
-  RECURRING       // Billed every billing cycle
-  ONE_TIME        // One-time purchase (e.g., AI credits pack)
+  RECURRING // Billed every billing cycle
+  ONE_TIME // One-time purchase (e.g., AI credits pack)
 }
 
 enum AddOnPurchaseStatus {
   ACTIVE
   EXPIRED
   CANCELED
-  DEPLETED        // For one-time add-ons that are used up
+  DEPLETED // For one-time add-ons that are used up
 }
 
 // ==========================================
@@ -598,89 +598,89 @@ enum AddOnPurchaseStatus {
 // ==========================================
 
 model Coupon {
-  id              String        @id @default(auto()) @map("_id") @db.ObjectId
-  code            String        @unique               // Unique coupon code (e.g. "LAUNCH50")
-  description     String?                             // Internal description for admin
-  
+  id          String  @id @default(auto()) @map("_id") @db.ObjectId
+  code        String  @unique // Unique coupon code (e.g. "LAUNCH50")
+  description String? // Internal description for admin
+
   // Discount settings
-  discountType    DiscountType  @default(PERCENTAGE)  // Percentage or fixed amount
-  discountValue   Float         @default(0)           // Discount value (e.g. 50 for 50% or 50 for $50)
-  
+  discountType  DiscountType @default(PERCENTAGE) // Percentage or fixed amount
+  discountValue Float        @default(0) // Discount value (e.g. 50 for 50% or 50 for $50)
+
   // Limitation overrides – JSON array of {key, value} that OVERRIDE plan limitations
   // e.g. [{"key":"aiCredits","value":50000},{"key":"maxSites","value":10}]
   // These provide more generous limits than the plan's base limits
-  limitationOverrides Json?     @default("[]")
-  
+  limitationOverrides Json? @default("[]")
+
   // Extra features – JSON array of feature keys granted by this coupon
   // e.g. ["prioritySupport","advancedAnalytics"]
-  extraFeatures   Json?         @default("[]")
-  
+  extraFeatures Json? @default("[]")
+
   // Usage constraints
-  maxRedemptions  Int?                                // Max total uses (null = unlimited)
-  maxPerAccount   Int           @default(1)           // Max uses per account
-  
+  maxRedemptions Int? // Max total uses (null = unlimited)
+  maxPerAccount  Int  @default(1) // Max uses per account
+
   // Validity
-  validFrom       DateTime      @default(now())
-  validUntil      DateTime?                           // null = no expiry
-  
+  validFrom  DateTime  @default(now())
+  validUntil DateTime? // null = no expiry
+
   // Applicable plans (empty = all plans)
-  applicablePlanIds String[]    @db.ObjectId
-  
+  applicablePlanIds String[] @db.ObjectId
+
   // Duration of benefits (in billing cycles, null = lifetime of subscription)
-  durationMonths  Int?                                // How many months the coupon benefits last
-  
-  isActive        Boolean       @default(true)
-  createdAt       DateTime      @default(now())
-  updatedAt       DateTime      @updatedAt
-  
-  redemptions     CouponRedemption[]
-  translations    CouponTranslation[]
+  durationMonths Int? // How many months the coupon benefits last
+
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  redemptions  CouponRedemption[]
+  translations CouponTranslation[]
 }
 
 model CouponTranslation {
   id          String   @id @default(auto()) @map("_id") @db.ObjectId
   couponId    String   @db.ObjectId
   language    Language
-  description String?  // Translated description (user-facing coupon text)
+  description String? // Translated description (user-facing coupon text)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  coupon      Coupon   @relation(fields: [couponId], references: [id], onDelete: Cascade)
+  coupon Coupon @relation(fields: [couponId], references: [id], onDelete: Cascade)
 
   @@unique([couponId, language])
 }
 
 model CouponRedemption {
-  id              String        @id @default(auto()) @map("_id") @db.ObjectId
-  couponId        String        @db.ObjectId
-  accountId       String        @db.ObjectId
-  subscriptionId  String?       @db.ObjectId
-  
+  id             String  @id @default(auto()) @map("_id") @db.ObjectId
+  couponId       String  @db.ObjectId
+  accountId      String  @db.ObjectId
+  subscriptionId String? @db.ObjectId
+
   // Snapshot of what was applied
-  discountType    DiscountType
-  discountValue   Float
-  limitationOverrides Json?     // Snapshot of overrides at time of redemption
-  extraFeatures   Json?         // Snapshot of extra features at time of redemption
-  
+  discountType        DiscountType
+  discountValue       Float
+  limitationOverrides Json? // Snapshot of overrides at time of redemption
+  extraFeatures       Json? // Snapshot of extra features at time of redemption
+
   // Duration tracking
-  durationMonths  Int?                                // Inherited from coupon
-  activatedAt     DateTime      @default(now())
-  expiresAt       DateTime?                           // When coupon benefits expire
-  
-  status          CouponRedemptionStatus @default(ACTIVE)
-  createdAt       DateTime      @default(now())
-  updatedAt       DateTime      @updatedAt
-  
-  coupon          Coupon        @relation(fields: [couponId], references: [id], onDelete: Cascade)
-  
+  durationMonths Int? // Inherited from coupon
+  activatedAt    DateTime  @default(now())
+  expiresAt      DateTime? // When coupon benefits expire
+
+  status    CouponRedemptionStatus @default(ACTIVE)
+  createdAt DateTime               @default(now())
+  updatedAt DateTime               @updatedAt
+
+  coupon Coupon @relation(fields: [couponId], references: [id], onDelete: Cascade)
+
   @@index([couponId])
   @@index([accountId])
   @@index([subscriptionId])
 }
 
 enum DiscountType {
-  PERCENTAGE      // e.g. 50% off
-  FIXED_AMOUNT    // e.g. $50 off
+  PERCENTAGE // e.g. 50% off
+  FIXED_AMOUNT // e.g. $50 off
 }
 
 enum CouponRedemptionStatus {
@@ -690,17 +690,17 @@ enum CouponRedemptionStatus {
 }
 
 model Payment {
-  id              String        @id @default(auto()) @map("_id") @db.ObjectId
-  accountId       String        @db.ObjectId
-  subscriptionId  String?       @db.ObjectId
-  amount          Float
-  currency        String        @default("USD")
-  status          PaymentStatus @default(PENDING)
-  paymentMethod   String?
-  transactionId   String?
-  metadata        Json?
-  createdAt       DateTime      @default(now())
-  updatedAt       DateTime      @updatedAt
+  id             String        @id @default(auto()) @map("_id") @db.ObjectId
+  accountId      String        @db.ObjectId
+  subscriptionId String?       @db.ObjectId
+  amount         Float
+  currency       String        @default("USD")
+  status         PaymentStatus @default(PENDING)
+  paymentMethod  String?
+  transactionId  String?
+  metadata       Json?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
 
   account      Account       @relation(fields: [accountId], references: [id], onDelete: Cascade)
   subscription Subscription? @relation(fields: [subscriptionId], references: [id])
@@ -715,32 +715,32 @@ enum PaymentStatus {
 
 // AI Credits usage log for tracking and auditing
 model AiCreditsLog {
-  id          String          @id @default(auto()) @map("_id") @db.ObjectId
-  accountId   String          @db.ObjectId
-  userId      String?         @db.ObjectId  // User who triggered the usage (optional)
-  siteId      String?         @db.ObjectId  // Site context (optional)
-  
-  type        AiCreditsLogType              // Credit or debit
-  amount      Int                           // Number of credits
-  balance     Int                           // Balance after this transaction
-  
-  // Source tracking
-  source      String                        // e.g., "plan_renewal", "addon_purchase", "content_generation"
-  sourceId    String?                       // Related entity ID (addOnPurchaseId, contentId, etc.)
-  description String?                       // Human-readable description
-  
-  metadata    Json?                         // Additional context
-  createdAt   DateTime        @default(now())
+  id        String  @id @default(auto()) @map("_id") @db.ObjectId
+  accountId String  @db.ObjectId
+  userId    String? @db.ObjectId // User who triggered the usage (optional)
+  siteId    String? @db.ObjectId // Site context (optional)
 
-  account     Account         @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  type    AiCreditsLogType // Credit or debit
+  amount  Int // Number of credits
+  balance Int // Balance after this transaction
+
+  // Source tracking
+  source      String // e.g., "plan_renewal", "addon_purchase", "content_generation"
+  sourceId    String? // Related entity ID (addOnPurchaseId, contentId, etc.)
+  description String? // Human-readable description
+
+  metadata  Json? // Additional context
+  createdAt DateTime @default(now())
+
+  account Account @relation(fields: [accountId], references: [id], onDelete: Cascade)
 
   @@index([accountId])
   @@index([createdAt])
 }
 
 enum AiCreditsLogType {
-  CREDIT      // Adding credits (purchase, plan renewal)
-  DEBIT       // Using credits (AI generation, etc.)
+  CREDIT // Adding credits (purchase, plan renewal)
+  DEBIT // Using credits (AI generation, etc.)
 }
 
 // ==========================================
@@ -754,85 +754,85 @@ model Site {
   url             String
   isActive        Boolean  @default(true)
   maintenanceMode Boolean  @default(false)
-  platform        String?  // wordpress, custom, shopify, etc.
+  platform        String? // wordpress, custom, shopify, etc.
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
   // Interview-derived data
-  contentLanguage      String?              // "en", "he", "es", etc.
+  contentLanguage      String? // "en", "he", "es", etc.
   businessName         String?
   businessPhone        String?
   businessEmail        String?
-  businessAbout        String?              // Description / about text
+  businessAbout        String? // Description / about text
   businessCategory     String?
   businessAddress      String?
-  targetLocations      String[]             @default([])  // ["IL", "US", "worldwide"]
-  writingStyle         String?              // "professional", "casual", "technical", etc.
-  internalLinksPer1000 Int?                 // Internal links per 1000 words preference
-  seoStrategy          Json?                // AI-generated SEO strategy from interview
+  targetLocations      String[] @default([]) // ["IL", "US", "worldwide"]
+  writingStyle         String? // "professional", "casual", "technical", etc.
+  internalLinksPer1000 Int? // Internal links per 1000 words preference
+  seoStrategy          Json? // AI-generated SEO strategy from interview
 
   // WordPress Plugin Connection
-  siteKey              String?                    // Public identifier: "gp_site_abc123"
-  siteSecret           String?                    // Private key for HMAC signing
-  connectionStatus     SiteConnectionStatus @default(PENDING)
-  lastPingAt           DateTime?
-  pluginVersion        String?
-  wpVersion            String?
-  phpVersion           String?
-  wpTimezone           String?
-  wpLocale             String?
-  sitePermissions      SitePermission[]
+  siteKey          String? // Public identifier: "gp_site_abc123"
+  siteSecret       String? // Private key for HMAC signing
+  connectionStatus SiteConnectionStatus @default(PENDING)
+  lastPingAt       DateTime?
+  pluginVersion    String?
+  wpVersion        String?
+  phpVersion       String?
+  wpTimezone       String?
+  wpLocale         String?
+  sitePermissions  SitePermission[]
 
   // Auto-install credentials (temporary, deleted after install)
-  wpAdminUrl           String?                    // WP admin URL for auto-install
-  wpAdminUsername      String?                    // Encrypted, temporary
-  wpAdminPassword      String?                    // Encrypted, temporary
-  autoInstallExpiresAt DateTime?                  // Credentials expire after this time
+  wpAdminUrl           String? // WP admin URL for auto-install
+  wpAdminUsername      String? // Encrypted, temporary
+  wpAdminPassword      String? // Encrypted, temporary
+  autoInstallExpiresAt DateTime? // Credentials expire after this time
 
   // Entity sync tracking
-  entitySyncStatus     EntitySyncStatus @default(NEVER)
-  entitySyncProgress   Int?                       // 0-100 percentage
-  entitySyncMessage    String?                    // Current sync action (e.g., "Syncing posts...")
-  lastEntitySyncAt     DateTime?                  // Last successful sync
-  entitySyncError      String?                    // Last sync error if any
+  entitySyncStatus   EntitySyncStatus @default(NEVER)
+  entitySyncProgress Int? // 0-100 percentage
+  entitySyncMessage  String? // Current sync action (e.g., "Syncing posts...")
+  lastEntitySyncAt   DateTime? // Last successful sync
+  entitySyncError    String? // Last sync error if any
 
   // Tool settings (WebP conversion, etc.)
-  toolSettings         Json?                      // { autoConvertToWebp: boolean, ... }
+  toolSettings Json? // { autoConvertToWebp: boolean, ... }
 
   // Client reporting configuration
-  reportConfig         Json?                      // { enabled, recipients[], deliveryMode, includeAiSummary, etc. }
+  reportConfig Json? // { enabled, recipients[], deliveryMode, includeAiSummary, etc. }
 
   // Cached crawl data from interview (to avoid re-crawling with AI every time)
-  crawledData          Json?                      // Full crawl result including AI-extracted data
-  crawledAt            DateTime?                  // When the crawl data was fetched
+  crawledData Json? // Full crawl result including AI-extracted data
+  crawledAt   DateTime? // When the crawl data was fetched
 
   // Favicon
-  favicon              String?                    // Cloudinary URL of the site's favicon
-  faviconCheckedAt     DateTime?                  // Last time favicon was checked/refreshed
+  favicon          String? // Cloudinary URL of the site's favicon
+  faviconCheckedAt DateTime? // Last time favicon was checked/refreshed
 
   // Logo
-  logo                 String?                    // Cloudinary URL of the site's logo
-  logoCheckedAt        DateTime?                  // Last time logo was checked/refreshed
-  logoBgLight          String?                    // AI-determined background for logo in light theme (CSS color)
-  logoBgDark           String?                    // AI-determined background for logo in dark theme (CSS color)
+  logo          String? // Cloudinary URL of the site's logo
+  logoCheckedAt DateTime? // Last time logo was checked/refreshed
+  logoBgLight   String? // AI-determined background for logo in light theme (CSS color)
+  logoBgDark    String? // AI-determined background for logo in dark theme (CSS color)
 
-  account         Account               @relation(fields: [accountId], references: [id], onDelete: Cascade)
-  interview       Interview?
-  keywords        Keyword[]
-  contents        Content[]
-  campaigns       Campaign[]
-  redirections    Redirection[]
-  audits          SiteAudit[]
-  entityTypes     SiteEntityType[]
-  entities        SiteEntity[]
-  userPreferences UserSitePreference[]
-  menus           SiteMenu[]
-  sitemaps        SiteSitemap[]
-  competitors     Competitor[]
+  account           Account              @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  interview         Interview?
+  keywords          Keyword[]
+  contents          Content[]
+  campaigns         Campaign[]
+  redirections      Redirection[]
+  audits            SiteAudit[]
+  entityTypes       SiteEntityType[]
+  entities          SiteEntity[]
+  userPreferences   UserSitePreference[]
+  menus             SiteMenu[]
+  sitemaps          SiteSitemap[]
+  competitors       Competitor[]
   googleIntegration GoogleIntegration?
-  members         SiteMember[]
-  gscKeywordCaches GscKeywordCache[]
-  scrapeQueue     ScrapeQueue[]
+  members           SiteMember[]
+  gscKeywordCaches  GscKeywordCache[]
+  scrapeQueue       ScrapeQueue[]
 
   @@index([siteKey])
 }
@@ -844,17 +844,17 @@ model Site {
 // Assigns account members to specific sites
 // Members can only see/access sites they're assigned to (unless they're owner)
 model SiteMember {
-  id              String   @id @default(auto()) @map("_id") @db.ObjectId
-  siteId          String   @db.ObjectId
-  accountMemberId String   @db.ObjectId
-  
+  id              String @id @default(auto()) @map("_id") @db.ObjectId
+  siteId          String @db.ObjectId
+  accountMemberId String @db.ObjectId
+
   // When the member was assigned to this site
-  assignedAt      DateTime @default(now())
-  assignedBy      String?  @db.ObjectId  // userId who assigned them
-  
-  site            Site           @relation(fields: [siteId], references: [id], onDelete: Cascade)
-  accountMember   AccountMember  @relation(fields: [accountMemberId], references: [id], onDelete: Cascade)
-  
+  assignedAt DateTime @default(now())
+  assignedBy String?  @db.ObjectId // userId who assigned them
+
+  site          Site          @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  accountMember AccountMember @relation(fields: [accountMemberId], references: [id], onDelete: Cascade)
+
   @@unique([siteId, accountMemberId])
   @@index([accountMemberId])
 }
@@ -864,31 +864,31 @@ model SiteMember {
 // ==========================================
 
 model GoogleIntegration {
-  id              String   @id @default(auto()) @map("_id") @db.ObjectId
-  siteId          String   @unique @db.ObjectId
-  connectedBy     String   @db.ObjectId          // userId who connected
+  id          String @id @default(auto()) @map("_id") @db.ObjectId
+  siteId      String @unique @db.ObjectId
+  connectedBy String @db.ObjectId // userId who connected
 
   // OAuth tokens (encrypted at rest in production)
-  accessToken     String
-  refreshToken    String?
-  tokenExpiresAt  DateTime?
+  accessToken    String
+  refreshToken   String?
+  tokenExpiresAt DateTime?
 
   // Google Analytics
-  gaConnected     Boolean  @default(false)
-  gaPropertyId    String?                         // e.g. "properties/123456789"
-  gaPropertyName  String?                         // e.g. "My Website - GA4"
+  gaConnected    Boolean @default(false)
+  gaPropertyId   String? // e.g. "properties/123456789"
+  gaPropertyName String? // e.g. "My Website - GA4"
 
   // Google Search Console
-  gscConnected    Boolean  @default(false)
-  gscSiteUrl      String?                         // e.g. "https://example.com/"
+  gscConnected Boolean @default(false)
+  gscSiteUrl   String? // e.g. "https://example.com/"
 
   // Metadata
-  googleEmail     String?                         // Google account email used
-  scopes          String[]                        // Granted scopes
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  googleEmail String? // Google account email used
+  scopes      String[] // Granted scopes
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
-  site            Site     @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  site Site @relation(fields: [siteId], references: [id], onDelete: Cascade)
 
   @@map("google_integrations")
 }
@@ -898,50 +898,50 @@ model GoogleIntegration {
 // ==========================================
 
 model Competitor {
-  id              String            @id @default(auto()) @map("_id") @db.ObjectId
-  siteId          String            @db.ObjectId
-  url             String            // Competitor page URL
-  domain          String            // Extracted domain (e.g., "example.com")
-  name            String?           // Business/competitor name (from discovery or manual)
-  favicon         String?           // Favicon URL (auto-fetched)
-  
-  // Discovery source
-  source          CompetitorSource  @default(MANUAL)
-  discoveryKeyword String?          // Keyword used to discover (for SERP source)
-  serpPosition    Int?              // Position in SERP when discovered
-  
-  // Scraped metrics (updated on each scan)
-  wordCount       Int?
-  h1Count         Int?
-  h2Count         Int?
-  h3Count         Int?
-  imageCount      Int?
-  videoCount      Int?
-  internalLinks   Int?
-  externalLinks   Int?
-  ttfb            Int?              // Time to First Byte in ms
-  
-  // Content structure (for AI analysis)
-  title           String?           // Page title
-  metaDescription String?
-  headings        Json?             // Array of {tag, text} for all headings
-  mainContent     String?           // Extracted main content text (for AI)
-  
-  // AI-generated insights
-  topicsCovered   Json?             // Array of topics identified by AI
-  contentGaps     Json?             // Compared to user's page
-  aiSummary       String?           // Brief AI summary of the page
-  
-  // Scan tracking
-  scanStatus      CompetitorScanStatus @default(PENDING)
-  lastScannedAt   DateTime?
-  scanError       String?
-  
-  isActive        Boolean           @default(true)
-  createdAt       DateTime          @default(now())
-  updatedAt       DateTime          @updatedAt
+  id      String  @id @default(auto()) @map("_id") @db.ObjectId
+  siteId  String  @db.ObjectId
+  url     String // Competitor page URL
+  domain  String // Extracted domain (e.g., "example.com")
+  name    String? // Business/competitor name (from discovery or manual)
+  favicon String? // Favicon URL (auto-fetched)
 
-  site            Site              @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  // Discovery source
+  source           CompetitorSource @default(MANUAL)
+  discoveryKeyword String? // Keyword used to discover (for SERP source)
+  serpPosition     Int? // Position in SERP when discovered
+
+  // Scraped metrics (updated on each scan)
+  wordCount     Int?
+  h1Count       Int?
+  h2Count       Int?
+  h3Count       Int?
+  imageCount    Int?
+  videoCount    Int?
+  internalLinks Int?
+  externalLinks Int?
+  ttfb          Int? // Time to First Byte in ms
+
+  // Content structure (for AI analysis)
+  title           String? // Page title
+  metaDescription String?
+  headings        Json? // Array of {tag, text} for all headings
+  mainContent     String? // Extracted main content text (for AI)
+
+  // AI-generated insights
+  topicsCovered Json? // Array of topics identified by AI
+  contentGaps   Json? // Compared to user's page
+  aiSummary     String? // Brief AI summary of the page
+
+  // Scan tracking
+  scanStatus    CompetitorScanStatus @default(PENDING)
+  lastScannedAt DateTime?
+  scanError     String?
+
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  site Site @relation(fields: [siteId], references: [id], onDelete: Cascade)
 
   @@unique([siteId, url])
   @@index([siteId, isActive])
@@ -949,24 +949,24 @@ model Competitor {
 }
 
 enum CompetitorSource {
-  MANUAL    // User added manually
-  SERP      // Discovered via SERP scraping
-  AI        // Suggested by AI analysis
+  MANUAL // User added manually
+  SERP // Discovered via SERP scraping
+  AI // Suggested by AI analysis
 }
 
 enum CompetitorScanStatus {
-  PENDING     // Not yet scanned
-  SCANNING    // Currently being scanned
-  COMPLETED   // Successfully scanned
-  ERROR       // Scan failed
+  PENDING // Not yet scanned
+  SCANNING // Currently being scanned
+  COMPLETED // Successfully scanned
+  ERROR // Scan failed
 }
 
 enum SiteConnectionStatus {
-  PENDING      // Site created, waiting for plugin install
-  CONNECTING   // Auto-install in progress
-  CONNECTED    // Plugin installed and verified
+  PENDING // Site created, waiting for plugin install
+  CONNECTING // Auto-install in progress
+  CONNECTED // Plugin installed and verified
   DISCONNECTED // Plugin was connected but now unreachable
-  ERROR        // Connection error
+  ERROR // Connection error
 }
 
 enum SitePermission {
@@ -992,17 +992,17 @@ enum SitePermission {
 
 // User-specific preferences per site (language, timezone overrides)
 model UserSitePreference {
-  id       String    @id @default(auto()) @map("_id") @db.ObjectId
-  userId   String    @db.ObjectId
-  siteId   String    @db.ObjectId
-  language Language? // Overrides user's default language for this site
-  timezone String?   // Overrides account's default timezone for this site
+  id            String    @id @default(auto()) @map("_id") @db.ObjectId
+  userId        String    @db.ObjectId
+  siteId        String    @db.ObjectId
+  language      Language? // Overrides user's default language for this site
+  timezone      String? // Overrides account's default timezone for this site
   uiPreferences Json? // UI preferences like view modes { competitorsView: 'list' | 'table', ... }
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
 
-  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  site     Site      @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  site Site @relation(fields: [siteId], references: [id], onDelete: Cascade)
 
   @@unique([userId, siteId])
 }
@@ -1011,11 +1011,11 @@ model UserSitePreference {
 model SiteEntityType {
   id          String   @id @default(auto()) @map("_id") @db.ObjectId
   siteId      String   @db.ObjectId
-  name        String   // Display name (e.g., "Blog Posts", "Projects")
-  slug        String   // URL slug (e.g., "posts", "projects")
-  apiEndpoint String?  // WordPress REST API endpoint (e.g., "posts", "pages", "project")
+  name        String // Display name (e.g., "Blog Posts", "Projects")
+  slug        String // URL slug (e.g., "posts", "projects")
+  apiEndpoint String? // WordPress REST API endpoint (e.g., "posts", "pages", "project")
   sitemaps    String[] // Sitemap URLs for this entity type
-  labels      Json?    // Per-language display names: { "en": "Posts", "he": "מאמרים" }
+  labels      Json? // Per-language display names: { "en": "Posts", "he": "מאמרים" }
   isEnabled   Boolean  @default(true)
   sortOrder   Int      @default(0)
   createdAt   DateTime @default(now())
@@ -1030,9 +1030,9 @@ model SiteEntityType {
 
 // Website entity (individual content items)
 model SiteEntity {
-  id            String   @id @default(auto()) @map("_id") @db.ObjectId
-  siteId        String   @db.ObjectId
-  entityTypeId  String   @db.ObjectId
+  id            String       @id @default(auto()) @map("_id") @db.ObjectId
+  siteId        String       @db.ObjectId
+  entityTypeId  String       @db.ObjectId
   title         String
   slug          String
   url           String?
@@ -1040,21 +1040,21 @@ model SiteEntity {
   content       String?
   status        EntityStatus @default(PUBLISHED)
   featuredImage String?
-  metadata      Json?        // General metadata
-  seoData       Json?        // Yoast/RankMath SEO data
-  acfData       Json?        // ACF field data
-  isProtected   Boolean      @default(false)  // Protected from MERGE/301 in cannibalization fixes
-  externalId    String?      // ID from the original CMS (WordPress, etc.)
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  metadata      Json? // General metadata
+  seoData       Json? // Yoast/RankMath SEO data
+  acfData       Json? // ACF field data
+  isProtected   Boolean      @default(false) // Protected from MERGE/301 in cannibalization fixes
+  externalId    String? // ID from the original CMS (WordPress, etc.)
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
   publishedAt   DateTime?
-  scheduledAt   DateTime?    // For scheduled posts - when to publish
+  scheduledAt   DateTime? // For scheduled posts - when to publish
 
   site       Site           @relation(fields: [siteId], references: [id], onDelete: Cascade)
   entityType SiteEntityType @relation(fields: [entityTypeId], references: [id], onDelete: Cascade)
 
   @@unique([siteId, entityTypeId, slug])
-  @@index([siteId, externalId])  // Index for fast lookup, not unique (allows null)
+  @@index([siteId, externalId]) // Index for fast lookup, not unique (allows null)
   @@index([siteId, entityTypeId])
 }
 
@@ -1069,24 +1069,24 @@ enum EntityStatus {
 }
 
 enum EntitySyncStatus {
-  NEVER       // Never synced
-  SYNCING     // Sync in progress
-  COMPLETED   // Sync completed successfully
-  ERROR       // Sync failed
-  CANCELLED   // Sync cancelled by user
+  NEVER // Never synced
+  SYNCING // Sync in progress
+  COMPLETED // Sync completed successfully
+  ERROR // Sync failed
+  CANCELLED // Sync cancelled by user
 }
 
 // WordPress menus (important for SEO - shows site structure)
 model SiteMenu {
-  id          String   @id @default(auto()) @map("_id") @db.ObjectId
-  siteId      String   @db.ObjectId
-  name        String   // Menu name (e.g., "Main Menu", "Footer Menu")
-  slug        String   // Menu slug/location
-  externalId  String?  // WordPress menu ID
-  location    String?  // Theme location (e.g., "primary", "footer")
-  items       Json     // Menu items with hierarchy
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  siteId     String   @db.ObjectId
+  name       String // Menu name (e.g., "Main Menu", "Footer Menu")
+  slug       String // Menu slug/location
+  externalId String? // WordPress menu ID
+  location   String? // Theme location (e.g., "primary", "footer")
+  items      Json // Menu items with hierarchy
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 
   site Site @relation(fields: [siteId], references: [id], onDelete: Cascade)
 
@@ -1096,60 +1096,60 @@ model SiteMenu {
 
 // Sitemap discovered during entity scan
 model SiteSitemap {
-  id            String          @id @default(auto()) @map("_id") @db.ObjectId
-  siteId        String          @db.ObjectId
-  url           String          // Full sitemap URL
-  type          SitemapType     @default(STANDARD)
-  isIndex       Boolean         @default(false)  // True if this is a sitemap index
-  parentId      String?         @db.ObjectId     // Parent sitemap if discovered from index
-  urlCount      Int             @default(0)      // Number of URLs in this sitemap
-  content       String?         // Raw XML content (stored for reference)
-  entityTypes   String[]        // Entity types this sitemap contains (e.g., ["posts", "pages"])
-  lastScannedAt DateTime?       // Last time this sitemap was scanned
-  lastScannedBy String?         @db.ObjectId     // User who triggered the scan (null = system)
+  id            String            @id @default(auto()) @map("_id") @db.ObjectId
+  siteId        String            @db.ObjectId
+  url           String // Full sitemap URL
+  type          SitemapType       @default(STANDARD)
+  isIndex       Boolean           @default(false) // True if this is a sitemap index
+  parentId      String?           @db.ObjectId // Parent sitemap if discovered from index
+  urlCount      Int               @default(0) // Number of URLs in this sitemap
+  content       String? // Raw XML content (stored for reference)
+  entityTypes   String[] // Entity types this sitemap contains (e.g., ["posts", "pages"])
+  lastScannedAt DateTime? // Last time this sitemap was scanned
+  lastScannedBy String?           @db.ObjectId // User who triggered the scan (null = system)
   scanStatus    SitemapScanStatus @default(PENDING)
-  scanError     String?         // Error message if scan failed
-  createdAt     DateTime        @default(now())
-  updatedAt     DateTime        @updatedAt
+  scanError     String? // Error message if scan failed
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
 
-  site          Site            @relation(fields: [siteId], references: [id], onDelete: Cascade)
-  parent        SiteSitemap?    @relation("SitemapHierarchy", fields: [parentId], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  children      SiteSitemap[]   @relation("SitemapHierarchy")
-  scannedByUser User?           @relation(fields: [lastScannedBy], references: [id])
+  site          Site          @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  parent        SiteSitemap?  @relation("SitemapHierarchy", fields: [parentId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  children      SiteSitemap[] @relation("SitemapHierarchy")
+  scannedByUser User?         @relation(fields: [lastScannedBy], references: [id])
 
   @@unique([siteId, url])
   @@index([siteId])
 }
 
 enum SitemapType {
-  STANDARD     // Regular sitemap
-  INDEX        // Sitemap index pointing to other sitemaps
-  NEWS         // Google News sitemap
-  IMAGE        // Image sitemap
-  VIDEO        // Video sitemap
+  STANDARD // Regular sitemap
+  INDEX // Sitemap index pointing to other sitemaps
+  NEWS // Google News sitemap
+  IMAGE // Image sitemap
+  VIDEO // Video sitemap
 }
 
 enum SitemapScanStatus {
-  PENDING      // Not yet scanned
-  SCANNING     // Scan in progress
-  COMPLETED    // Scan completed successfully
-  ERROR        // Scan failed
+  PENDING // Not yet scanned
+  SCANNING // Scan in progress
+  COMPLETED // Scan completed successfully
+  ERROR // Scan failed
 }
 
 // Queue for async page scraping (used by sitemap delta sync)
 model ScrapeQueue {
-  id           String            @id @default(auto()) @map("_id") @db.ObjectId
-  siteId       String            @db.ObjectId
-  entityId     String?           @db.ObjectId  // Set for UPDATED entities, null for NEW
+  id           String       @id @default(auto()) @map("_id") @db.ObjectId
+  siteId       String       @db.ObjectId
+  entityId     String?      @db.ObjectId // Set for UPDATED entities, null for NEW
   url          String
-  lastmod      String?           // lastmod from sitemap (ISO string)
-  action       ScrapeAction      // NEW or UPDATED
-  status       ScrapeStatus      @default(PENDING)
+  lastmod      String? // lastmod from sitemap (ISO string)
+  action       ScrapeAction // NEW or UPDATED
+  status       ScrapeStatus @default(PENDING)
   error        String?
-  attempts     Int               @default(0)
-  entityTypeId String?           @db.ObjectId  // Entity type for NEW entities
+  attempts     Int          @default(0)
+  entityTypeId String?      @db.ObjectId // Entity type for NEW entities
   processedAt  DateTime?
-  createdAt    DateTime          @default(now())
+  createdAt    DateTime     @default(now())
 
   site Site @relation(fields: [siteId], references: [id], onDelete: Cascade)
 
@@ -1198,43 +1198,43 @@ enum InterviewStatus {
 // ==========================================
 
 model Campaign {
-  id                String         @id @default(auto()) @map("_id") @db.ObjectId
-  siteId            String         @db.ObjectId
-  name              String
-  color             String         @default("#6366f1") // Hex color for calendar dots
-  status            CampaignStatus @default(DRAFT)
+  id     String         @id @default(auto()) @map("_id") @db.ObjectId
+  siteId String         @db.ObjectId
+  name   String
+  color  String         @default("#6366f1") // Hex color for calendar dots
+  status CampaignStatus @default(DRAFT)
 
   // Schedule
-  startDate         DateTime
-  endDate           DateTime
-  publishDays       String[]       // ["sun","mon","tue",...]
-  publishTimeMode   String         @default("random") // "random" | "fixed"
-  publishTimeStart  String?        // e.g. "09:00"
-  publishTimeEnd    String?        // e.g. "18:00"
+  startDate        DateTime
+  endDate          DateTime
+  publishDays      String[] // ["sun","mon","tue",...]
+  publishTimeMode  String   @default("random") // "random" | "fixed"
+  publishTimeStart String? // e.g. "09:00"
+  publishTimeEnd   String? // e.g. "18:00"
 
   // Topic Cluster
-  pillarPageUrl     String?          // URL of the pillar page (entity or custom)
-  mainKeyword       String?          // Anchor text / cluster keyword
-  pillarEntityId    String?        @db.ObjectId // Optional ref to SiteEntity
+  pillarPageUrl  String? // URL of the pillar page (entity or custom)
+  mainKeyword    String? // Anchor text / cluster keyword
+  pillarEntityId String? @db.ObjectId // Optional ref to SiteEntity
 
   // Content plan
-  postsCount        Int
-  articleTypes      Json           // [{id: string, count: number}]
-  contentSettings   Json           // {wordCounts, featuredImage, contentImages, ...}
-  subjects          String[]       @default([])
-  subjectSuggestions Json?          // All generated suggestions [{title, explanation, articleType, intent}]
-  keywordIds        String[]       @db.ObjectId // DEPRECATED - kept for backward compat
+  postsCount         Int
+  articleTypes       Json // [{id: string, count: number}]
+  contentSettings    Json // {wordCounts, featuredImage, contentImages, ...}
+  subjects           String[] @default([])
+  subjectSuggestions Json? // All generated suggestions [{title, explanation, articleType, intent}]
+  keywordIds         String[] @db.ObjectId // DEPRECATED - kept for backward compat
 
   // AI prompts
-  textPrompt        String?        @default("")
-  imagePrompt       String?        @default("")
+  textPrompt  String? @default("")
+  imagePrompt String? @default("")
 
   // Generated content plan
-  generatedPlan       Json?          // [{index, title, type, subject, scheduledAt}]
-  lastCompletedStep   Int?           @default(1) // Tracks wizard progress (1-9)
+  generatedPlan     Json? // [{index, title, type, subject, scheduledAt}]
+  lastCompletedStep Int?  @default(1) // Tracks wizard progress (1-9)
 
-  createdAt         DateTime       @default(now())
-  updatedAt         DateTime       @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   site     Site      @relation(fields: [siteId], references: [id], onDelete: Cascade)
   contents Content[]
@@ -1261,7 +1261,7 @@ model Keyword {
   url          String?
   status       KeywordStatus   @default(TRACKING)
   tags         String[]
-  aiSuggestion Json?           // Cached AI article type suggestion { articleType, reasoning, briefPlan, locale, analyzedAt }
+  aiSuggestion Json? // Cached AI article type suggestion { articleType, reasoning, briefPlan, locale, analyzedAt }
   createdAt    DateTime        @default(now())
   updatedAt    DateTime        @updatedAt
 
@@ -1291,13 +1291,13 @@ enum KeywordStatus {
 // Fresh for 12 hours; after that the API re-fetches from GSC.
 
 model GscKeywordCache {
-  id          String   @id @default(auto()) @map("_id") @db.ObjectId
-  siteId      String   @db.ObjectId
-  rangeKey    String   // e.g. "7d", "30d", "90d", "180d", "365d", or "custom:2025-01-01:2025-03-01"
-  data        Json     // Array of tracked query results
-  fetchedAt   DateTime @default(now())
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  siteId    String   @db.ObjectId
+  rangeKey  String // e.g. "7d", "30d", "90d", "180d", "365d", or "custom:2025-01-01:2025-03-01"
+  data      Json // Array of tracked query results
+  fetchedAt DateTime @default(now())
 
-  site        Site     @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  site Site @relation(fields: [siteId], references: [id], onDelete: Cascade)
 
   @@unique([siteId, rangeKey])
   @@map("gsc_keyword_caches")
@@ -1310,72 +1310,72 @@ model GscKeywordCache {
 // Keyed by keyword+geo+language, refreshed every 30 days.
 
 model KeywordVolumeCache {
-  id                    String   @id @default(auto()) @map("_id") @db.ObjectId
-  keyword               String
-  geo                   String   @default("IL") // ISO country code
-  language              String   @default("1027") // Google Ads language criterion ID
-  avgMonthlySearches    Int      @default(0)
-  competition           String?  // LOW, MEDIUM, HIGH, UNSPECIFIED
-  competitionIndex      Int?     // 0-100
-  lowTopOfPageBidMicros Int?
+  id                     String   @id @default(auto()) @map("_id") @db.ObjectId
+  keyword                String
+  geo                    String   @default("IL") // ISO country code
+  language               String   @default("1027") // Google Ads language criterion ID
+  avgMonthlySearches     Int      @default(0)
+  competition            String? // LOW, MEDIUM, HIGH, UNSPECIFIED
+  competitionIndex       Int? // 0-100
+  lowTopOfPageBidMicros  Int?
   highTopOfPageBidMicros Int?
-  fetchedAt             DateTime @default(now())
+  fetchedAt              DateTime @default(now())
 
   @@unique([keyword, geo, language])
   @@map("keyword_volume_caches")
 }
 
 model Content {
-  id              String        @id @default(auto()) @map("_id") @db.ObjectId
-  siteId          String        @db.ObjectId
-  campaignId      String?       @db.ObjectId
-  keywordId       String?       @db.ObjectId
-  title           String
-  slug            String?
-  content         String?
-  excerpt         String?
-  featuredImage   String?       // Cloudinary URL of the featured image
-  status          ContentStatus @default(DRAFT)
-  type            ContentType   @default(BLOG_POST)
-  publishedAt     DateTime?
-  scheduledAt     DateTime?
-  metaTitle       String?
-  metaDescription String?
-  wordCount       Int?
-  aiGenerated     Boolean       @default(false)
-  campaignDeletedName String?     // Preserved campaign name after campaign deletion
+  id                  String        @id @default(auto()) @map("_id") @db.ObjectId
+  siteId              String        @db.ObjectId
+  campaignId          String?       @db.ObjectId
+  keywordId           String?       @db.ObjectId
+  title               String
+  slug                String?
+  content             String?
+  excerpt             String?
+  featuredImage       String? // Cloudinary URL of the featured image
+  status              ContentStatus @default(DRAFT)
+  type                ContentType   @default(BLOG_POST)
+  publishedAt         DateTime?
+  scheduledAt         DateTime?
+  metaTitle           String?
+  metaDescription     String?
+  wordCount           Int?
+  aiGenerated         Boolean       @default(false)
+  campaignDeletedName String? // Preserved campaign name after campaign deletion
 
   // Task queue fields
-  processingAttempts Int        @default(0)      // Retry counter for AI generation
-  publishAttempts    Int        @default(0)      // Retry counter for WordPress publishing
-  lastAttemptAt      DateTime?                   // Timestamp of last worker attempt
-  errorMessage       String?                     // Short error summary when FAILED (for UI display)
-  aiResult           Json?                       // Generated HTML/title before push (failsafe)
+  processingAttempts Int       @default(0) // Retry counter for AI generation
+  publishAttempts    Int       @default(0) // Retry counter for WordPress publishing
+  lastAttemptAt      DateTime? // Timestamp of last worker attempt
+  errorMessage       String? // Short error summary when FAILED (for UI display)
+  aiResult           Json? // Generated HTML/title before push (failsafe)
 
-  createdAt       DateTime      @default(now())
-  updatedAt       DateTime      @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  site     Site      @relation(fields: [siteId], references: [id], onDelete: Cascade)
-  campaign Campaign? @relation(fields: [campaignId], references: [id])
-  keyword  Keyword?  @relation(fields: [keywordId], references: [id])
+  site     Site         @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  campaign Campaign?    @relation(fields: [campaignId], references: [id])
+  keyword  Keyword?     @relation(fields: [keywordId], references: [id])
   body     ContentBody?
 
   @@index([campaignId])
-  @@index([siteId, status])       // Fan-out dispatcher: filter by site + status
-  @@index([status, scheduledAt])  // Cron queries: find due items by status
+  @@index([siteId, status]) // Fan-out dispatcher: filter by site + status
+  @@index([status, scheduledAt]) // Cron queries: find due items by status
 }
 
 // Heavy payload separated from Content for lean dashboard queries.
 // Only loaded when editing a single post or during AI generation / publishing.
 model ContentBody {
-  id              String   @id @default(auto()) @map("_id") @db.ObjectId
-  contentId       String   @unique @db.ObjectId
-  generatedHtml   String?  // Full AI-generated HTML body
-  aiPrompt        String?  // The exact prompt sent to the AI model
-  rawAiResponse   String?  // Raw AI response text before parsing
+  id               String   @id @default(auto()) @map("_id") @db.ObjectId
+  contentId        String   @unique @db.ObjectId
+  generatedHtml    String? // Full AI-generated HTML body
+  aiPrompt         String? // The exact prompt sent to the AI model
+  rawAiResponse    String? // Raw AI response text before parsing
   featuredImageAlt String? // AI-suggested alt-text for featured image
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
 
   content Content @relation(fields: [contentId], references: [id], onDelete: Cascade)
 }
@@ -1383,16 +1383,16 @@ model ContentBody {
 // Structured log for worker errors, cron failures, and system events.
 // Keeps error details out of the Content table.
 model SystemLog {
-  id          String         @id @default(auto()) @map("_id") @db.ObjectId
-  level       SystemLogLevel @default(ERROR)
-  source      String         // e.g. "worker:generate-article", "worker:publish-article", "cron:process-content"
-  contentId   String?        @db.ObjectId
-  siteId      String?        @db.ObjectId
-  accountId   String?        @db.ObjectId
-  message     String         // Short human-readable error message
-  stack       String?        // Full error stack trace
-  metadata    Json?          // Arbitrary context (attempt number, request/response snippets, etc.)
-  createdAt   DateTime       @default(now())
+  id        String         @id @default(auto()) @map("_id") @db.ObjectId
+  level     SystemLogLevel @default(ERROR)
+  source    String // e.g. "worker:generate-article", "worker:publish-article", "cron:process-content"
+  contentId String?        @db.ObjectId
+  siteId    String?        @db.ObjectId
+  accountId String?        @db.ObjectId
+  message   String // Short human-readable error message
+  stack     String? // Full error stack trace
+  metadata  Json? // Arbitrary context (attempt number, request/response snippets, etc.)
+  createdAt DateTime       @default(now())
 
   @@index([source, createdAt])
   @@index([contentId])
@@ -1409,11 +1409,11 @@ enum SystemLogLevel {
 
 enum ContentStatus {
   DRAFT
-  SCHEDULED        // Waiting in the queue for its scheduled time
-  PROCESSING       // Locked by a worker - AI is currently generating
+  SCHEDULED // Waiting in the queue for its scheduled time
+  PROCESSING // Locked by a worker - AI is currently generating
   READY_TO_PUBLISH // AI generation complete, waiting to push to target site
-  PUBLISHED        // Successfully pushed to WordPress/client site
-  FAILED           // Error during generation or publishing
+  PUBLISHED // Successfully pushed to WordPress/client site
+  FAILED // Error during generation or publishing
   ARCHIVED
 }
 
@@ -1457,30 +1457,30 @@ model Redirection {
 enum RedirectionType {
   PERMANENT // 301
   TEMPORARY // 302
-  FOUND     // 307
+  FOUND // 307
 }
 
 model SiteAudit {
-  id                    String            @id @default(auto()) @map("_id") @db.ObjectId
-  siteId                String            @db.ObjectId
-  status                AuditStatus       @default(PENDING)
-  score                 Int?
-  deviceType            String?           // "desktop" | "mobile" - separates audits by device
-  issues                AuditIssue[]
-  categoryScores        Json?             // { technical: 80, performance: 75, visual: 90 }
-  pagesScanned          Int?
-  pagesFound            Int?
-  discoveryMethod       String?           // "plugin" | "wp-api" | "sitemap" | "crawl"
-  pageResults           AuditPageResult[]
-  screenshots           Json?             // { desktop: cloudinaryUrl, mobile: cloudinaryUrl }
-  summary               String?           // AI-generated audit summary (default language)
-  summaryTranslations   Json?             // { "en": "...", "he": "..." }
-  issueTranslations     Json?             // { "<locale>": { "<msgHash>": { message, suggestion } } }
-  progress              Json?             // { currentStep, totalSteps, label, percentage }
-  startedAt             DateTime?
-  completedAt           DateTime?
-  createdAt             DateTime          @default(now())
-  updatedAt             DateTime          @updatedAt
+  id                  String            @id @default(auto()) @map("_id") @db.ObjectId
+  siteId              String            @db.ObjectId
+  status              AuditStatus       @default(PENDING)
+  score               Int?
+  deviceType          String? // "desktop" | "mobile" - separates audits by device
+  issues              AuditIssue[]
+  categoryScores      Json? // { technical: 80, performance: 75, visual: 90 }
+  pagesScanned        Int?
+  pagesFound          Int?
+  discoveryMethod     String? // "plugin" | "wp-api" | "sitemap" | "crawl"
+  pageResults         AuditPageResult[]
+  screenshots         Json? // { desktop: cloudinaryUrl, mobile: cloudinaryUrl }
+  summary             String? // AI-generated audit summary (default language)
+  summaryTranslations Json? // { "en": "...", "he": "..." }
+  issueTranslations   Json? // { "<locale>": { "<msgHash>": { message, suggestion } } }
+  progress            Json? // { currentStep, totalSteps, label, percentage }
+  startedAt           DateTime?
+  completedAt         DateTime?
+  createdAt           DateTime          @default(now())
+  updatedAt           DateTime          @updatedAt
 
   site Site @relation(fields: [siteId], references: [id], onDelete: Cascade)
 
@@ -1488,16 +1488,16 @@ model SiteAudit {
 }
 
 type AuditIssue {
-  type            String    // "technical" | "performance" | "visual"
-  severity        String    // "error" | "warning" | "info" | "passed"
-  message         String    // translation key or raw text (for AI-generated)
-  url             String?   // page URL this issue applies to
-  suggestion      String?   // translation key or raw text
-  source          String?   // "html" | "playwright" | "psi" | "ai-vision" | "system"
-  details         String?   // concrete metric value (e.g. "4.2s", "312KB", "5 images")
-  detailedSources Json?     // Array of concrete source items: scripts[], images[], errors[]
-  device          String?   // "desktop" | "mobile" | "both" - which device the issue was found on
-  boundingBox     Json?     // { x, y, width, height } - AI Vision region marker
+  type            String // "technical" | "performance" | "visual"
+  severity        String // "error" | "warning" | "info" | "passed"
+  message         String // translation key or raw text (for AI-generated)
+  url             String? // page URL this issue applies to
+  suggestion      String? // translation key or raw text
+  source          String? // "html" | "playwright" | "psi" | "ai-vision" | "system"
+  details         String? // concrete metric value (e.g. "4.2s", "312KB", "5 images")
+  detailedSources Json? // Array of concrete source items: scripts[], images[], errors[]
+  device          String? // "desktop" | "mobile" | "both" - which device the issue was found on
+  boundingBox     Json? // { x, y, width, height } - AI Vision region marker
 }
 
 type AuditPageResult {
@@ -1505,7 +1505,7 @@ type AuditPageResult {
   statusCode         Int?
   title              String?
   metaDescription    String?
-  robotsMeta         String?   // Content of <meta name="robots"> tag (e.g. "noindex, nofollow")
+  robotsMeta         String? // Content of <meta name="robots"> tag (e.g. "noindex, nofollow")
   ttfb               Int?
   performanceScore   Int?
   lcp                Float?
@@ -1514,12 +1514,12 @@ type AuditPageResult {
   jsErrors           String[]
   brokenResources    String[]
   issueCount         Int?
-  screenshotDesktop  String?   // Cloudinary URL - desktop screenshot (or legacy base64)
-  screenshotMobile   String?   // Cloudinary URL - mobile screenshot (or legacy base64)
-  screenshotsDesktop String[]  // Cloudinary URLs - viewport-height segment captures
-  screenshotsMobile  String[]  // Cloudinary URLs - viewport-height segment captures
-  filmstripDesktop   Json?     // [{ stage, url }] - Cloudinary URLs (or legacy [{ stage, base64 }])
-  filmstripMobile    Json?     // [{ stage, url }] - Cloudinary URLs (or legacy [{ stage, base64 }])
+  screenshotDesktop  String? // Cloudinary URL - desktop screenshot (or legacy base64)
+  screenshotMobile   String? // Cloudinary URL - mobile screenshot (or legacy base64)
+  screenshotsDesktop String[] // Cloudinary URLs - viewport-height segment captures
+  screenshotsMobile  String[] // Cloudinary URLs - viewport-height segment captures
+  filmstripDesktop   Json? // [{ stage, url }] - Cloudinary URLs (or legacy [{ stage, base64 }])
+  filmstripMobile    Json? // [{ stage, url }] - Cloudinary URLs (or legacy [{ stage, base64 }])
 }
 
 enum AuditStatus {
@@ -1535,20 +1535,20 @@ enum AuditStatus {
 
 // Question Types for the interview flow
 enum InterviewQuestionType {
-  GREETING          // Display only, no input
-  INPUT             // Single input field (text, url, email, number, etc.)
-  INPUT_WITH_AI     // Input field that triggers AI analysis after submit (e.g., competitors)
-  CONFIRMATION      // Yes/No with data preview
-  SELECTION         // Single choice (dropdown, radio, cards)
-  MULTI_SELECTION   // Multiple choices (checkboxes, tags)
-  DYNAMIC           // Options loaded from API/previous answers
-  EDITABLE_DATA     // Show data that user can edit (e.g., crawled business info)
-  FILE_UPLOAD       // Upload files
-  SLIDER            // Numeric range slider
-  AI_SUGGESTION     // AI generates options based on context
-  AUTO_ACTION       // Automatically runs an action and advances (no user input)
+  GREETING // Display only, no input
+  INPUT // Single input field (text, url, email, number, etc.)
+  INPUT_WITH_AI // Input field that triggers AI analysis after submit (e.g., competitors)
+  CONFIRMATION // Yes/No with data preview
+  SELECTION // Single choice (dropdown, radio, cards)
+  MULTI_SELECTION // Multiple choices (checkboxes, tags)
+  DYNAMIC // Options loaded from API/previous answers
+  EDITABLE_DATA // Show data that user can edit (e.g., crawled business info)
+  FILE_UPLOAD // Upload files
+  SLIDER // Numeric range slider
+  AI_SUGGESTION // AI generates options based on context
+  AUTO_ACTION // Automatically runs an action and advances (no user input)
   GOOGLE_INTEGRATION // Google OAuth integration step (GA4 + GSC)
-  WORDPRESS_PLUGIN   // Offer WordPress plugin installation (conditional on platform)
+  WORDPRESS_PLUGIN // Offer WordPress plugin installation (conditional on platform)
 }
 
 // User Interview Session status
@@ -1561,34 +1561,34 @@ enum UserInterviewStatus {
 
 // Interview Question Templates (Admin-managed)
 model InterviewQuestion {
-  id              String                @id @default(auto()) @map("_id") @db.ObjectId
-  order           Int                   @default(0)
-  translationKey  String                @unique    // e.g., "interview.greeting", "interview.websiteUrl"
-  questionType    InterviewQuestionType @default(INPUT)
-  
+  id             String                @id @default(auto()) @map("_id") @db.ObjectId
+  order          Int                   @default(0)
+  translationKey String                @unique // e.g., "interview.greeting", "interview.websiteUrl"
+  questionType   InterviewQuestionType @default(INPUT)
+
   // Input configuration (JSON)
   // For INPUT: { inputType: "url", placeholder: "https://...", fieldName: "websiteUrl" }
   // For SELECTION: { selectionMode: "radio", fieldName: "platform", options: [...] }
   // For DYNAMIC: { selectionMode: "tags", fieldName: "keywords", optionsSource: "crawledKeywords" }
-  inputConfig     Json?
-  
+  inputConfig Json?
+
   // Validation rules (JSON)
   // { required: true, minLength: 3, maxLength: 100, pattern: "...", errorKey: "..." }
-  validation      Json?
-  
+  validation Json?
+
   // AI Bot configuration
-  aiPromptHint    String?               // Hint for AI on how to present this question
-  allowedActions  String[]              @default([])  // Actions AI can trigger: ["CRAWL_WEBSITE", "SAVE_FIELD"]
-  autoActions     Json?                 // Actions to auto-execute: [{ action: "CRAWL_WEBSITE", triggerOn: "submit" }]
-  saveToField     String?               // Auto-save response to this field in UserInterview.responses
-  
+  aiPromptHint   String? // Hint for AI on how to present this question
+  allowedActions String[] @default([]) // Actions AI can trigger: ["CRAWL_WEBSITE", "SAVE_FIELD"]
+  autoActions    Json? // Actions to auto-execute: [{ action: "CRAWL_WEBSITE", triggerOn: "submit" }]
+  saveToField    String? // Auto-save response to this field in UserInterview.responses
+
   // Conditional display
-  dependsOn       String?               @db.ObjectId  // Previous question ID
-  showCondition   Json?                 // { field: "platform", operator: "equals", value: "wordpress" }
-  
-  isActive        Boolean               @default(true)
-  createdAt       DateTime              @default(now())
-  updatedAt       DateTime              @updatedAt
+  dependsOn     String? @db.ObjectId // Previous question ID
+  showCondition Json? // { field: "platform", operator: "equals", value: "wordpress" }
+
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([order])
   @@map("interview_questions")
@@ -1596,57 +1596,57 @@ model InterviewQuestion {
 
 // Bot Actions (Admin-managed)
 model BotAction {
-  id            String   @id @default(auto()) @map("_id") @db.ObjectId
-  name          String   @unique    // "CRAWL_WEBSITE", "CREATE_ACCOUNT"
-  description   String              // Human-readable description for AI
-  handler       String              // Function name: "crawlWebsite", "createAccount"
-  
+  id          String @id @default(auto()) @map("_id") @db.ObjectId
+  name        String @unique // "CRAWL_WEBSITE", "CREATE_ACCOUNT"
+  description String // Human-readable description for AI
+  handler     String // Function name: "crawlWebsite", "createAccount"
+
   // JSON Schema for parameters AI must provide
   // { type: "object", required: ["url"], properties: { url: { type: "string" } } }
-  parameters    Json
-  
+  parameters Json
+
   // JSON Schema for what the handler returns
   // { type: "object", properties: { success: { type: "boolean" }, data: { ... } } }
-  returns       Json
-  
+  returns Json
+
   // Example for AI context
-  example       Json?               // { input: { url: "..." }, output: { ... } }
-  
-  requiresAuth  Boolean             @default(true)
-  isActive      Boolean             @default(true)
-  createdAt     DateTime            @default(now())
-  updatedAt     DateTime            @updatedAt
+  example Json? // { input: { url: "..." }, output: { ... } }
+
+  requiresAuth Boolean  @default(true)
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
   @@map("bot_actions")
 }
 
 // User Interview Session
 model UserInterview {
-  id            String              @id @default(auto()) @map("_id") @db.ObjectId
-  userId        String              @db.ObjectId
-  siteId        String?             @db.ObjectId   // Created site account ID (after completion)
-  
-  status        UserInterviewStatus @default(NOT_STARTED)
-  currentStep   Int                 @default(0)    // Current question order
-  
+  id     String  @id @default(auto()) @map("_id") @db.ObjectId
+  userId String  @db.ObjectId
+  siteId String? @db.ObjectId // Created site account ID (after completion)
+
+  status      UserInterviewStatus @default(NOT_STARTED)
+  currentStep Int                 @default(0) // Current question order
+
   // All user responses stored as JSON
   // { websiteUrl: "...", platform: "wordpress", language: "en", keywords: [...] }
-  responses     Json                @default("{}")
-  
+  responses Json @default("{}")
+
   // Data from external sources (crawl, API calls, etc.)
   // { crawledData: { title, description, ... }, keywordSuggestions: [...] }
-  externalData  Json?
-  
+  externalData Json?
+
   // AI conversation context for continuity
-  aiContext     Json?               // { lastMessage: "...", personality: "..." }
-  
-  startedAt     DateTime            @default(now())
-  completedAt   DateTime?
-  updatedAt     DateTime            @updatedAt
+  aiContext Json? // { lastMessage: "...", personality: "..." }
+
+  startedAt   DateTime  @default(now())
+  completedAt DateTime?
+  updatedAt   DateTime  @updatedAt
 
   // Relations
-  user          User                @relation(fields: [userId], references: [id], onDelete: Cascade)
-  messages      InterviewMessage[]
+  user     User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  messages InterviewMessage[]
 
   @@index([userId])
   @@index([status])
@@ -1655,24 +1655,24 @@ model UserInterview {
 
 // Interview Conversation History
 model InterviewMessage {
-  id            String          @id @default(auto()) @map("_id") @db.ObjectId
-  interviewId   String          @db.ObjectId
-  
-  role          MessageRole     // USER, ASSISTANT, SYSTEM, FUNCTION
-  content       String          // Message text
-  
-  // For function calls/results
-  functionCall  Json?           // { name: "CRAWL_WEBSITE", parameters: { url: "..." } }
-  functionResult Json?          // { success: true, data: { ... } }
-  
-  // UI component to show (if any)
-  uiComponent   Json?           // { type: "input", config: { ... } }
-  
-  questionId    String?         @db.ObjectId   // Related question ID
-  
-  createdAt     DateTime        @default(now())
+  id          String @id @default(auto()) @map("_id") @db.ObjectId
+  interviewId String @db.ObjectId
 
-  interview     UserInterview   @relation(fields: [interviewId], references: [id], onDelete: Cascade)
+  role    MessageRole // USER, ASSISTANT, SYSTEM, FUNCTION
+  content String // Message text
+
+  // For function calls/results
+  functionCall   Json? // { name: "CRAWL_WEBSITE", parameters: { url: "..." } }
+  functionResult Json? // { success: true, data: { ... } }
+
+  // UI component to show (if any)
+  uiComponent Json? // { type: "input", config: { ... } }
+
+  questionId String? @db.ObjectId // Related question ID
+
+  createdAt DateTime @default(now())
+
+  interview UserInterview @relation(fields: [interviewId], references: [id], onDelete: Cascade)
 
   @@index([interviewId])
   @@map("interview_messages")
@@ -1690,34 +1690,34 @@ enum MessageRole {
 // ==========================================
 
 model InterviewCategory {
-  id        String              @id @default(auto()) @map("_id") @db.ObjectId
-  name      String              @unique
-  nameKey   String?             // Translation key for the name (e.g., "businessGoals")
-  order     Int                 @default(0)
-  isActive  Boolean             @default(true)
-  createdAt DateTime            @default(now())
-  updatedAt DateTime            @updatedAt
-  
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  name      String   @unique
+  nameKey   String? // Translation key for the name (e.g., "businessGoals")
+  order     Int      @default(0)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   questions LegacyInterviewQuestion[]
 }
 
 model LegacyInterviewQuestion {
-  id          String              @id @default(auto()) @map("_id") @db.ObjectId
-  categoryId  String              @db.ObjectId
-  question    String              // Default question text
-  questionKey String?             // Translation key (e.g., "businessGoals", "industry")
-  type        LegacyQuestionType  @default(TEXT)
+  id          String             @id @default(auto()) @map("_id") @db.ObjectId
+  categoryId  String             @db.ObjectId
+  question    String // Default question text
+  questionKey String? // Translation key (e.g., "businessGoals", "industry")
+  type        LegacyQuestionType @default(TEXT)
   placeholder String?
-  options     String[]            // For select, multiselect, radio, checkbox types
-  scaleMin    Int?                // For scale type
-  scaleMax    Int?                // For scale type
-  required    Boolean             @default(false)
-  order       Int                 @default(0)
-  isActive    Boolean             @default(true)
-  createdAt   DateTime            @default(now())
-  updatedAt   DateTime            @updatedAt
+  options     String[] // For select, multiselect, radio, checkbox types
+  scaleMin    Int? // For scale type
+  scaleMax    Int? // For scale type
+  required    Boolean            @default(false)
+  order       Int                @default(0)
+  isActive    Boolean            @default(true)
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
 
-  category    InterviewCategory   @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  category InterviewCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
 }
 
 enum LegacyQuestionType {
@@ -1755,8 +1755,8 @@ model I18nLanguage {
 
 // Application types for i18n translations
 enum I18nApplication {
-  PLATFORM  // gp-platform dashboard translations
-  WEBSITE   // gp-ws marketing website translations
+  PLATFORM // gp-platform dashboard translations
+  WEBSITE // gp-ws marketing website translations
 }
 
 model I18nKey {
@@ -1780,10 +1780,10 @@ model I18nTranslation {
   id          String            @id @default(auto()) @map("_id") @db.ObjectId
   keyId       String            @db.ObjectId
   languageId  String            @db.ObjectId
-  key         String            // Denormalized key string
-  namespace   String            // Denormalized namespace
-  application I18nApplication   @default(PLATFORM)  // Denormalized application
-  locale      String            // Denormalized locale
+  key         String // Denormalized key string
+  namespace   String // Denormalized namespace
+  application I18nApplication   @default(PLATFORM) // Denormalized application
+  locale      String // Denormalized locale
   value       String
   status      TranslationStatus @default(APPROVED)
   version     Int               @default(1)
@@ -1791,8 +1791,8 @@ model I18nTranslation {
   createdAt   DateTime          @default(now())
   updatedAt   DateTime          @updatedAt
 
-  keyRel      I18nKey           @relation(fields: [keyId], references: [id], onDelete: Cascade)
-  language    I18nLanguage      @relation(fields: [languageId], references: [id], onDelete: Cascade)
+  keyRel   I18nKey      @relation(fields: [keyId], references: [id], onDelete: Cascade)
+  language I18nLanguage @relation(fields: [languageId], references: [id], onDelete: Cascade)
 
   @@index([languageId, namespace, status])
   @@index([locale, namespace, status])
@@ -1808,54 +1808,54 @@ model I18nTranslation {
 
 // A backlink listing published by the platform or a user
 model BacklinkListing {
-  id              String              @id @default(auto()) @map("_id") @db.ObjectId
+  id String @id @default(auto()) @map("_id") @db.ObjectId
 
   // Publisher info – either the platform or a user's site
-  publisherType   BacklinkPublisher   @default(PLATFORM) // PLATFORM or USER
-  publisherAccountId String?          @db.ObjectId        // Account that owns the site (null for platform listings)
-  publisherSiteId    String?          @db.ObjectId        // The connected site offering the backlink (null for platform listings)
+  publisherType      BacklinkPublisher @default(PLATFORM) // PLATFORM or USER
+  publisherAccountId String?           @db.ObjectId // Account that owns the site (null for platform listings)
+  publisherSiteId    String?           @db.ObjectId // The connected site offering the backlink (null for platform listings)
 
   // Domain & SEO metrics
-  domain          String                                  // e.g. "example.com"
-  websiteName     String?                                 // Display name of the website
-  domainAuthority Int?                                    // Moz DA (0-100)
-  domainRating    Int?                                    // Ahrefs DR (0-100)
-  urlRating       Int?                                    // Ahrefs UR (0-100)
-  monthlyTraffic  Int?                                    // Estimated monthly organic traffic
+  domain          String // e.g. "example.com"
+  websiteName     String? // Display name of the website
+  domainAuthority Int? // Moz DA (0-100)
+  domainRating    Int? // Ahrefs DR (0-100)
+  urlRating       Int? // Ahrefs UR (0-100)
+  monthlyTraffic  Int? // Estimated monthly organic traffic
 
   // Listing details
-  title           String                                  // Short title for the listing
-  description     String?                                 // Detailed description
-  category        String?                                 // Niche / category (e.g. "Technology", "Health")
-  language        String?              @default("en")     // Primary site language
-  linkType        BacklinkLinkType     @default(DOFOLLOW) // Dofollow / Nofollow
-  turnaroundDays  Int?                 @default(7)        // Expected turnaround in days
-  sampleUrl       String?                                 // Example article URL on the publishing site
-  contentRequirements String?                             // Publisher's content guidelines
+  title               String // Short title for the listing
+  description         String? // Detailed description
+  category            String? // Niche / category (e.g. "Technology", "Health")
+  language            String?          @default("en") // Primary site language
+  linkType            BacklinkLinkType @default(DOFOLLOW) // Dofollow / Nofollow
+  turnaroundDays      Int?             @default(7) // Expected turnaround in days
+  sampleUrl           String? // Example article URL on the publishing site
+  contentRequirements String? // Publisher's content guidelines
 
   // Pricing
-  price           Float?                                  // Direct purchase price (null = not available)
-  currency        String               @default("USD")
-  aiCreditsPrice  Int?                                    // AI credits price (null = not available)
+  price          Float? // Direct purchase price (null = not available)
+  currency       String @default("USD")
+  aiCreditsPrice Int? // AI credits price (null = not available)
 
   // Inventory
-  maxSlots        Int?                                    // Max backlinks to sell (null = unlimited)
-  soldCount       Int                  @default(0)
+  maxSlots  Int? // Max backlinks to sell (null = unlimited)
+  soldCount Int  @default(0)
 
   // Publishing
-  publishMode     String?              @default("manual") // "auto" (WordPress + plugin) or "manual"
+  publishMode String? @default("manual") // "auto" (WordPress + plugin) or "manual"
 
   // Cached AI translations: { "he": "translated title", "en": "..." }
   titleTranslations Json?
 
   // Status
-  status          BacklinkListingStatus @default(ACTIVE)
-  isActive        Boolean              @default(true)
-  createdAt       DateTime             @default(now())
-  updatedAt       DateTime             @updatedAt
+  status    BacklinkListingStatus @default(ACTIVE)
+  isActive  Boolean               @default(true)
+  createdAt DateTime              @default(now())
+  updatedAt DateTime              @updatedAt
 
   // Relations
-  purchases       BacklinkPurchase[]
+  purchases BacklinkPurchase[]
 
   @@index([publisherAccountId])
   @@index([publisherSiteId])
@@ -1866,34 +1866,34 @@ model BacklinkListing {
 
 // A purchase / order of a backlink
 model BacklinkPurchase {
-  id              String                @id @default(auto()) @map("_id") @db.ObjectId
+  id String @id @default(auto()) @map("_id") @db.ObjectId
 
   // Who bought it
-  buyerAccountId  String                @db.ObjectId
-  buyerSiteId     String                @db.ObjectId  // The site the backlink points to
-  listingId       String                @db.ObjectId
+  buyerAccountId String @db.ObjectId
+  buyerSiteId    String @db.ObjectId // The site the backlink points to
+  listingId      String @db.ObjectId
 
   // Purchase details
-  paymentMethod   BacklinkPaymentMethod               // PLAN_ALLOCATION, DIRECT, AI_CREDITS
-  amountPaid      Float?                              // Money paid (for DIRECT)
-  currency        String                @default("USD")
-  creditsPaid     Int?                                // AI credits paid (for AI_CREDITS)
+  paymentMethod BacklinkPaymentMethod // PLAN_ALLOCATION, DIRECT, AI_CREDITS
+  amountPaid    Float? // Money paid (for DIRECT)
+  currency      String                @default("USD")
+  creditsPaid   Int? // AI credits paid (for AI_CREDITS)
 
   // Link details provided by buyer
-  targetUrl       String                              // URL on buyer's site to link to
-  anchorText      String?                             // Preferred anchor text
+  targetUrl  String // URL on buyer's site to link to
+  anchorText String? // Preferred anchor text
 
   // Fulfillment
-  status          BacklinkPurchaseStatus @default(PENDING)
-  publishedUrl    String?                             // URL where the backlink was placed
-  publishedAt     DateTime?
-  rejectedReason  String?
+  status         BacklinkPurchaseStatus @default(PENDING)
+  publishedUrl   String? // URL where the backlink was placed
+  publishedAt    DateTime?
+  rejectedReason String?
 
-  createdAt       DateTime              @default(now())
-  updatedAt       DateTime              @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   // Relations
-  listing         BacklinkListing       @relation(fields: [listingId], references: [id])
+  listing BacklinkListing @relation(fields: [listingId], references: [id])
 
   @@index([buyerAccountId])
   @@index([buyerSiteId])
@@ -1902,8 +1902,8 @@ model BacklinkPurchase {
 }
 
 enum BacklinkPublisher {
-  PLATFORM    // Listed by the platform itself
-  USER        // Listed by a user selling from their connected site
+  PLATFORM // Listed by the platform itself
+  USER // Listed by a user selling from their connected site
 }
 
 enum BacklinkLinkType {
@@ -1920,18 +1920,18 @@ enum BacklinkListingStatus {
 }
 
 enum BacklinkPaymentMethod {
-  PLAN_ALLOCATION   // Uses monthly backlink quota from plan
-  DIRECT            // Direct monetary payment
-  AI_CREDITS        // Paid with AI credits
+  PLAN_ALLOCATION // Uses monthly backlink quota from plan
+  DIRECT // Direct monetary payment
+  AI_CREDITS // Paid with AI credits
 }
 
 enum BacklinkPurchaseStatus {
-  PENDING           // Awaiting publisher action
-  APPROVED          // Publisher approved, pending placement
-  PUBLISHED         // Backlink is live
-  REJECTED          // Publisher rejected the order
-  REFUNDED          // Purchase was refunded
-  CANCELED          // Buyer canceled
+  PENDING // Awaiting publisher action
+  APPROVED // Publisher approved, pending placement
+  PUBLISHED // Backlink is live
+  REJECTED // Publisher rejected the order
+  REFUNDED // Purchase was refunded
+  CANCELED // Buyer canceled
 }
 
 // ==========================================
@@ -1939,16 +1939,16 @@ enum BacklinkPurchaseStatus {
 // ==========================================
 
 model Notification {
-  id          String   @id @default(auto()) @map("_id") @db.ObjectId
-  userId      String   @db.ObjectId
-  accountId   String   @db.ObjectId
-  type        String   // "audit_complete" | "audit_failed" | ...
-  title       String   // translation key, e.g. "notifications.auditComplete.title"
-  message     String   // translation key, e.g. "notifications.auditComplete.message"
-  link        String?  // e.g. "/dashboard/technical-seo/site-audit"
-  data        Json?    // extra payload: { siteId, siteName, score, deviceType, auditId }
-  read        Boolean  @default(false)
-  createdAt   DateTime @default(now())
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String   @db.ObjectId
+  accountId String   @db.ObjectId
+  type      String // "audit_complete" | "audit_failed" | ...
+  title     String // translation key, e.g. "notifications.auditComplete.title"
+  message   String // translation key, e.g. "notifications.auditComplete.message"
+  link      String? // e.g. "/dashboard/technical-seo/site-audit"
+  data      Json? // extra payload: { siteId, siteName, score, deviceType, auditId }
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
 
   @@index([userId, read, createdAt(sort: Desc)])
   @@index([accountId, createdAt(sort: Desc)])
@@ -1961,31 +1961,31 @@ model Notification {
 
 // Questions that superadmin can push to users on the site-profile page
 model PushQuestion {
-  id              String              @id @default(auto()) @map("_id") @db.ObjectId
-  order           Int                 @default(0)
-  question        String              // The question text (English - base language)
-  description     String?             // Optional description/hint
-  questionType    PushQuestionType    @default(TEXT)
-  
-  // For CHOICE/MULTI_CHOICE types - options as JSON array of strings
-  options         Json?               // ["option1", "option2", ...]
-  
-  // Targeting - who sees this question
-  targetAll       Boolean             @default(true)  // Show to all sites
-  targetSiteIds   String[]            @db.ObjectId    // Specific site IDs if not targetAll
-  
-  // Whether this question is required or can be skipped
-  required        Boolean             @default(false)
-  
-  // Category for grouping in admin UI
-  category        String?
-  
-  isActive        Boolean             @default(true)
-  createdAt       DateTime            @default(now())
-  updatedAt       DateTime            @updatedAt
+  id           String           @id @default(auto()) @map("_id") @db.ObjectId
+  order        Int              @default(0)
+  question     String // The question text (English - base language)
+  description  String? // Optional description/hint
+  questionType PushQuestionType @default(TEXT)
 
-  answers         PushQuestionAnswer[]
-  translations    PushQuestionTranslation[]
+  // For CHOICE/MULTI_CHOICE types - options as JSON array of strings
+  options Json? // ["option1", "option2", ...]
+
+  // Targeting - who sees this question
+  targetAll     Boolean  @default(true) // Show to all sites
+  targetSiteIds String[] @db.ObjectId // Specific site IDs if not targetAll
+
+  // Whether this question is required or can be skipped
+  required Boolean @default(false)
+
+  // Category for grouping in admin UI
+  category String?
+
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  answers      PushQuestionAnswer[]
+  translations PushQuestionTranslation[]
 
   @@index([isActive, order])
   @@map("push_questions")
@@ -1996,9 +1996,9 @@ model PushQuestionTranslation {
   id          String   @id @default(auto()) @map("_id") @db.ObjectId
   questionId  String   @db.ObjectId
   language    Language
-  question    String   // Translated question text
-  description String?  // Translated description
-  options     Json?    // Translated options for CHOICE/MULTI_CHOICE
+  question    String // Translated question text
+  description String? // Translated description
+  options     Json? // Translated options for CHOICE/MULTI_CHOICE
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -2010,21 +2010,21 @@ model PushQuestionTranslation {
 
 // User answers to push questions
 model PushQuestionAnswer {
-  id              String   @id @default(auto()) @map("_id") @db.ObjectId
-  questionId      String   @db.ObjectId
-  siteId          String   @db.ObjectId
-  userId          String   @db.ObjectId
-  
-  // The answer value - text for TEXT type, JSON array for MULTI_CHOICE
-  answer          String?
-  
-  // Whether user skipped this question
-  skipped         Boolean  @default(false)
-  
-  answeredAt      DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  id         String @id @default(auto()) @map("_id") @db.ObjectId
+  questionId String @db.ObjectId
+  siteId     String @db.ObjectId
+  userId     String @db.ObjectId
 
-  question        PushQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  // The answer value - text for TEXT type, JSON array for MULTI_CHOICE
+  answer String?
+
+  // Whether user skipped this question
+  skipped Boolean @default(false)
+
+  answeredAt DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  question PushQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
 
   @@unique([questionId, siteId])
   @@index([siteId])
@@ -2033,12 +2033,12 @@ model PushQuestionAnswer {
 }
 
 enum PushQuestionType {
-  TEXT          // Free text input
-  TEXTAREA      // Multi-line text
-  CHOICE        // Single choice (radio)
-  MULTI_CHOICE  // Multiple choice (checkboxes)
-  NUMBER        // Numeric input
-  URL           // URL input
+  TEXT // Free text input
+  TEXTAREA // Multi-line text
+  CHOICE // Single choice (radio)
+  MULTI_CHOICE // Multiple choice (checkboxes)
+  NUMBER // Numeric input
+  URL // URL input
 }
 
 // ==========================================
@@ -2048,40 +2048,40 @@ enum PushQuestionType {
 // An AI agent insight, suggestion, or action.
 // This is the core model for the Ghost AI Agent.
 model AgentInsight {
-  id            String              @id @default(auto()) @map("_id") @db.ObjectId
-  siteId        String              @db.ObjectId
-  accountId     String              @db.ObjectId
+  id        String @id @default(auto()) @map("_id") @db.ObjectId
+  siteId    String @db.ObjectId
+  accountId String @db.ObjectId
 
   // Classification
-  category      AgentInsightCategory   // CONTENT, TRAFFIC, KEYWORDS, COMPETITORS, TECHNICAL
-  type          AgentInsightType       // DISCOVERY, SUGGESTION, ACTION, ANALYSIS, ALERT
-  priority      AgentInsightPriority   @default(MEDIUM)
+  category AgentInsightCategory // CONTENT, TRAFFIC, KEYWORDS, COMPETITORS, TECHNICAL
+  type     AgentInsightType // DISCOVERY, SUGGESTION, ACTION, ANALYSIS, ALERT
+  priority AgentInsightPriority @default(MEDIUM)
 
   // Content
-  titleKey      String           // Translation key for short title
-  descriptionKey String          // Translation key for description
-  data          Json?            // Dynamic payload: { keywordId, entityId, position, ctr, etc. }
+  titleKey       String // Translation key for short title
+  descriptionKey String // Translation key for description
+  data           Json? // Dynamic payload: { keywordId, entityId, position, ctr, etc. }
 
   // For ACTION type insights that need user approval
-  status        AgentInsightStatus   @default(PENDING)
-  actionType    String?              // "update_meta", "add_internal_link", "push_to_wp", etc.
-  actionPayload Json?               // Data needed to execute the action
-  approvedAt    DateTime?
-  approvedBy    String?              @db.ObjectId
-  rejectedAt    DateTime?
-  executedAt    DateTime?
-  executionResult Json?             // Result from executing the action
+  status          AgentInsightStatus @default(PENDING)
+  actionType      String? // "update_meta", "add_internal_link", "push_to_wp", etc.
+  actionPayload   Json? // Data needed to execute the action
+  approvedAt      DateTime?
+  approvedBy      String?            @db.ObjectId
+  rejectedAt      DateTime?
+  executedAt      DateTime?
+  executionResult Json? // Result from executing the action
 
   // Source tracking
-  source        String               @default("cron")  // "cron" | "manual" | "realtime"
-  batchId       String?              // Groups insights generated in the same run
+  source  String  @default("cron") // "cron" | "manual" | "realtime"
+  batchId String? // Groups insights generated in the same run
 
   // Lifecycle
-  dismissedAt   DateTime?
-  resolvedAt    DateTime?            // When the issue was auto-resolved (not found in latest analysis)
-  expiresAt     DateTime?            // Auto-dismiss stale insights
-  createdAt     DateTime             @default(now())
-  updatedAt     DateTime             @updatedAt
+  dismissedAt DateTime?
+  resolvedAt  DateTime? // When the issue was auto-resolved (not found in latest analysis)
+  expiresAt   DateTime? // Auto-dismiss stale insights
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 
   @@index([siteId, status, createdAt(sort: Desc)])
   @@index([accountId, createdAt(sort: Desc)])
@@ -2091,35 +2091,35 @@ model AgentInsight {
 
 // Overall agent run log - one per cron/manual run per site.
 model AgentRun {
-  id            String          @id @default(auto()) @map("_id") @db.ObjectId
-  siteId        String          @db.ObjectId
-  accountId     String          @db.ObjectId
-  source        String          @default("cron")  // "cron" | "manual"
-  status        AgentRunStatus  @default(RUNNING)
-  startedAt     DateTime        @default(now())
+  id            String         @id @default(auto()) @map("_id") @db.ObjectId
+  siteId        String         @db.ObjectId
+  accountId     String         @db.ObjectId
+  source        String         @default("cron") // "cron" | "manual"
+  status        AgentRunStatus @default(RUNNING)
+  startedAt     DateTime       @default(now())
   completedAt   DateTime?
   error         String?
-  insightsCount Int             @default(0)
-  summary       Json?           // { discoveries: 2, suggestions: 1, alerts: 0, ... }
+  insightsCount Int            @default(0)
+  summary       Json? // { discoveries: 2, suggestions: 1, alerts: 0, ... }
 
   @@index([siteId, startedAt(sort: Desc)])
   @@map("agent_runs")
 }
 
 enum AgentInsightCategory {
-  CONTENT       // Content optimization, thin content, outdated posts
-  TRAFFIC       // Traffic spikes/drops, session patterns
-  KEYWORDS      // Ranking opportunities, cannibalization
-  COMPETITORS   // Competitor changes, content gaps
-  TECHNICAL     // Missing meta, broken links, audit issues
+  CONTENT // Content optimization, thin content, outdated posts
+  TRAFFIC // Traffic spikes/drops, session patterns
+  KEYWORDS // Ranking opportunities, cannibalization
+  COMPETITORS // Competitor changes, content gaps
+  TECHNICAL // Missing meta, broken links, audit issues
 }
 
 enum AgentInsightType {
-  DISCOVERY     // Agent found something noteworthy
-  SUGGESTION    // Agent recommends an action
-  ACTION        // Agent can perform an action (needs approval)
-  ANALYSIS      // Periodic report/summary
-  ALERT         // Something urgent needs attention
+  DISCOVERY // Agent found something noteworthy
+  SUGGESTION // Agent recommends an action
+  ACTION // Agent can perform an action (needs approval)
+  ANALYSIS // Periodic report/summary
+  ALERT // Something urgent needs attention
 }
 
 enum AgentInsightPriority {
@@ -2130,13 +2130,13 @@ enum AgentInsightPriority {
 }
 
 enum AgentInsightStatus {
-  PENDING       // Waiting for user review (default)
-  APPROVED      // User approved the action
-  REJECTED      // User dismissed/rejected
-  EXECUTED      // Action was executed successfully
-  FAILED        // Action execution failed
-  EXPIRED       // Auto-expired after expiresAt
-  RESOLVED      // Issue no longer detected in latest analysis (auto-resolved)
+  PENDING // Waiting for user review (default)
+  APPROVED // User approved the action
+  REJECTED // User dismissed/rejected
+  EXECUTED // Action was executed successfully
+  FAILED // Action execution failed
+  EXPIRED // Auto-expired after expiresAt
+  RESOLVED // Issue no longer detected in latest analysis (auto-resolved)
 }
 
 enum AgentRunStatus {
@@ -2154,17 +2154,17 @@ model ReportArchive {
   siteId      String       @db.ObjectId
   accountId   String       @db.ObjectId
   generatedAt DateTime     @default(now())
-  pdfUrl      String       // Cloudinary secure URL
-  recipients  String[]     // Email addresses the report was sent to
+  pdfUrl      String // Cloudinary secure URL
+  recipients  String[] // Email addresses the report was sent to
   status      ReportStatus @default(DRAFT)
-  month       String       // e.g., "October 2026"
-  metadata    Json?        // Additional data: { score, delta, actionsCount, etc. }
-  sentAt      DateTime?    // When the report was actually sent
-  error       String?      // Error message if status is ERROR
+  month       String // e.g., "October 2026"
+  metadata    Json? // Additional data: { score, delta, actionsCount, etc. }
+  sentAt      DateTime? // When the report was actually sent
+  error       String? // Error message if status is ERROR
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
 
-  account     Account      @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  account Account @relation(fields: [accountId], references: [id], onDelete: Cascade)
 
   @@index([siteId, generatedAt(sort: Desc)])
   @@index([accountId, generatedAt(sort: Desc)])
@@ -2172,9 +2172,9 @@ model ReportArchive {
 }
 
 enum ReportStatus {
-  DRAFT     // Generated but not sent (for review)
-  SENT      // Successfully sent to recipients
-  ERROR     // Failed to send
+  DRAFT // Generated but not sent (for review)
+  SENT // Successfully sent to recipients
+  ERROR // Failed to send
 }
 
 // ==========================================
@@ -2183,77 +2183,77 @@ enum ReportStatus {
 
 // Site-wide SEO configuration
 model WebsiteSeo {
-  id              String   @id @default(auto()) @map("_id") @db.ObjectId
-  websiteId       String   @default("gp-ws")
-  
+  id        String @id @default(auto()) @map("_id") @db.ObjectId
+  websiteId String @default("gp-ws")
+
   // Site-wide defaults
-  siteName        Json     // { en: "Ghost Post", he: "גוסט פוסט", fr: "Ghost Post" }
-  siteUrl         String   @default("https://ghostpost.co.il")
-  defaultOgImage  String?
-  twitterHandle   String?
-  
+  siteName       Json // { en: "Ghost Post", he: "גוסט פוסט", fr: "Ghost Post" }
+  siteUrl        String  @default("https://ghostpost.co.il")
+  defaultOgImage String?
+  twitterHandle  String?
+
   // Robots defaults
-  defaultRobots   String   @default("index, follow, max-video-preview:-1, max-image-preview:large, max-snippet:-1")
-  
-  updatedAt       DateTime @updatedAt
-  updatedBy       String?  @db.ObjectId
-  
+  defaultRobots String @default("index, follow, max-video-preview:-1, max-image-preview:large, max-snippet:-1")
+
+  updatedAt DateTime @updatedAt
+  updatedBy String?  @db.ObjectId
+
   @@unique([websiteId])
   @@map("website_seo")
 }
 
 // Content and SEO per locale
 model WebsiteLocale {
-  id        String   @id @default(auto()) @map("_id") @db.ObjectId
-  websiteId String   @default("gp-ws")
-  locale    String   // "en", "he", "fr"
-  
+  id        String @id @default(auto()) @map("_id") @db.ObjectId
+  websiteId String @default("gp-ws")
+  locale    String // "en", "he", "fr"
+
   // Full content dictionary (matches gp-ws i18n structure)
-  content   Json
-  
+  content Json
+
   // Page-level SEO per locale
   // { home: { title, description, canonical, ogImage, ogTitle, ogDescription, robots, jsonLd }, ... }
-  seo       Json?
-  
+  seo Json?
+
   // Draft system for preview before publish
   contentDraft Json?
   seoDraft     Json?
-  
+
   // Versioning and audit
   version   Int      @default(1)
   updatedAt DateTime @updatedAt
   updatedBy String?  @db.ObjectId
-  
+
   @@unique([websiteId, locale])
   @@map("website_locales")
 }
 
 // Blog posts managed from CMS (future expansion)
 model WebsiteBlogPost {
-  id          String   @id @default(auto()) @map("_id") @db.ObjectId
-  websiteId   String   @default("gp-ws")
-  slug        String
-  
+  id        String @id @default(auto()) @map("_id") @db.ObjectId
+  websiteId String @default("gp-ws")
+  slug      String
+
   // Content per locale
-  content     Json     // { en: { title, excerpt, content, ... }, he: {...}, fr: {...} }
-  
+  content Json // { en: { title, excerpt, content, ... }, he: {...}, fr: {...} }
+
   // SEO per locale
-  seo         Json?    // { en: { title, description, ogImage, ... }, he: {...}, fr: {...} }
-  
+  seo Json? // { en: { title, description, ogImage, ... }, he: {...}, fr: {...} }
+
   // Metadata
-  author      String?
-  category    String?
-  tags        String[]
+  author        String?
+  category      String?
+  tags          String[]
   featuredImage String?
-  
+
   // Publishing
   status      WebsiteContentStatus @default(DRAFT)
   publishedAt DateTime?
-  
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  updatedBy   String?  @db.ObjectId
-  
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  updatedBy String?  @db.ObjectId
+
   @@unique([websiteId, slug])
   @@index([websiteId, status])
   @@map("website_blog_posts")
@@ -2273,11 +2273,38 @@ enum WebsiteContentStatus {
 // Used for e.g. recommendation explanations per locale
 model AiCache {
   id        String   @id @default(auto()) @map("_id") @db.ObjectId
-  key       String   // Hash or composite key identifying the content
-  locale    String   // Language code (e.g., "en", "he")
-  content   Json     // Cached AI output (flexible structure)
+  key       String // Hash or composite key identifying the content
+  locale    String // Language code (e.g., "en", "he")
+  content   Json // Cached AI output (flexible structure)
   createdAt DateTime @default(now())
 
   @@unique([key, locale])
   @@map("ai_cache")
+}
+
+// ==========================================
+// BACKGROUND JOBS (Async Processing)
+// ==========================================
+
+// Database-driven background job queue for long-running AI operations
+// that exceed Vercel serverless function timeout limits.
+// Used by: Content Differentiation Engine, future async AI features.
+model BackgroundJob {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId     String   @db.ObjectId
+  accountId  String   @db.ObjectId
+  siteId     String?  @db.ObjectId
+  type       String // Job type: 'CANNIBALIZATION_FIX', 'CONTENT_DIFFERENTIATION', etc.
+  status     String   @default("PENDING") // 'PENDING', 'PROCESSING', 'COMPLETED', 'FAILED'
+  progress   Int      @default(0) // 0-100 percentage
+  message    String? // Current step description for UI display
+  inputData  Json? // Input payload (e.g., pageIds, siteId, options)
+  resultData Json? // Output payload (e.g., AI diffs, alpha page, proposals)
+  error      String? // Error message if failed
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([userId, status])
+  @@index([accountId, status])
+  @@index([status, createdAt])
 }

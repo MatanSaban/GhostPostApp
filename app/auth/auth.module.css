@@ -572,7 +572,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   font-weight: 600;
   background: var(--muted);
   color: var(--muted-foreground);
@@ -609,7 +609,7 @@
 }
 
 .progressStepLabel {
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   color: var(--muted-foreground);
   white-space: nowrap;
   display: none;
@@ -963,7 +963,7 @@
   display: flex;
   justify-content: flex-end;
   margin-bottom: 0.5rem;
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   color: var(--muted-foreground);
 }
 
@@ -1303,7 +1303,7 @@
 }
 
 .planDescription {
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   color: var(--muted-foreground);
 }
 
@@ -1575,7 +1575,7 @@
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   color: var(--muted-foreground);
   margin-top: 0.5rem;
 }
@@ -1689,7 +1689,7 @@
 }
 
 .successPlanLabel {
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   color: var(--muted-foreground);
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -1808,19 +1808,19 @@
 }
 
 .fieldError {
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   color: #ef4444;
   margin-top: 0.25rem;
 }
 
 .fieldSuccess {
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   color: #10b981;
   margin-top: 0.25rem;
 }
 
 .fieldHint {
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   color: var(--muted-foreground);
   margin-top: 0.25rem;
 }
@@ -2290,7 +2290,7 @@
 }
 
 .analysisUrl {
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   color: var(--muted-foreground);
   margin: 0;
   word-break: break-all;
@@ -2319,7 +2319,7 @@
   max-height: 200px;
   overflow-y: auto;
   font-family: 'SF Mono', 'Consolas', monospace;
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   padding: 0.75rem;
   background: var(--bg-subtle);
   border: 1px solid var(--border-light);
@@ -2377,7 +2377,7 @@
   border: 1px solid var(--danger);
   border-radius: var(--radius-md);
   color: var(--danger);
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
 }
 
 /* ============================================
@@ -2582,7 +2582,7 @@
 }
 
 .competitorRanking {
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   color: var(--muted-foreground);
 }
 
@@ -2613,7 +2613,7 @@
 
 .competitorManualLabel {
   width: 100%;
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   color: var(--muted-foreground);
   margin-bottom: 0.25rem;
 }
@@ -2626,7 +2626,7 @@
   background: rgba(0, 255, 157, 0.1);
   border: 1px solid var(--accent);
   border-radius: var(--radius-full);
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   color: var(--foreground);
 }
 
@@ -2686,7 +2686,7 @@
   border: none;
   border-radius: var(--radius-md);
   color: white;
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   cursor: pointer;
   
   &:hover {
@@ -2721,7 +2721,7 @@
   border: 1px dashed var(--border);
   border-radius: var(--radius-md);
   color: var(--muted-foreground);
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   cursor: pointer;
   width: 100%;
   justify-content: center;
@@ -2737,13 +2737,13 @@
   padding: 0.5rem 0.75rem;
   background: rgba(239, 68, 68, 0.1);
   border-radius: var(--radius-md);
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   color: var(--destructive);
 }
 
 .competitorCount {
   margin-top: 0.75rem;
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   color: var(--muted-foreground);
   text-align: center;
 }

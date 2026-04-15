@@ -99,7 +99,7 @@
 }
 
 .formHint {
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   color: var(--muted-foreground);
   margin: 0;
 }
@@ -194,7 +194,7 @@
   background: rgba(123, 44, 191, 0.1);
   color: var(--primary);
   border-radius: var(--radius-full);
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   font-weight: 500;
 
   &.platformBadgeWarning {
@@ -259,7 +259,7 @@
   border: 1px solid rgba(123, 44, 191, 0.3);
   border-radius: var(--radius-md);
   color: var(--primary);
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   font-weight: 500;
   white-space: nowrap;
   transition: all var(--transition-fast);

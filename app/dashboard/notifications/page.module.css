@@ -64,7 +64,7 @@
   align-items: center;
   gap: 0.375rem;
   padding: 0.5rem 0.8125rem;
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   font-weight: 500;
   border-radius: var(--radius-lg, 0.625rem);
   border: 1px solid var(--border);
@@ -124,7 +124,7 @@
 
 .filterChip {
   padding: 0.375rem 0.8125rem;
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   font-weight: 500;
   border-radius: 50px;
   border: 1px solid var(--border);
@@ -178,7 +178,7 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   color: var(--muted-foreground);
 }
 
@@ -236,7 +236,7 @@
 }
 
 .groupLabel {
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -381,7 +381,7 @@
 }
 
 .notificationTime {
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   color: var(--muted-foreground);
   opacity: 0.7;
   white-space: nowrap;
@@ -389,7 +389,7 @@
 }
 
 .notificationMessage {
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   color: var(--muted-foreground);
   line-height: 1.5;
   margin: 0;
@@ -516,7 +516,7 @@
   justify-content: center;
   gap: 0.5rem;
   padding: 1.5rem;
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   color: var(--muted-foreground);
 }
 

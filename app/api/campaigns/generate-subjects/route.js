@@ -3,7 +3,7 @@ import { cookies } from 'next/headers';
 import prisma from '@/lib/prisma';
 import { MODELS } from '@/lib/ai/gemini';
 import { logAIUsage } from '@/lib/ai/credits.js';
-import { google } from '@ai-sdk/google';
+import { google } from '@/lib/ai/vertex-provider.js';
 import { streamText, Output, jsonSchema } from 'ai';
 import { z } from 'zod';
 import { toJSONSchema } from 'zod/v4';

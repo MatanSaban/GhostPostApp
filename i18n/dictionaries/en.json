@@ -6837,6 +6837,57 @@
       "high": "High",
       "medium": "Medium",
       "low": "Low"
+    },
+    "differentiation": {
+      "confirm": {
+        "title": "Content Differentiation",
+        "subtitle": "AI-powered content differentiation for competing pages",
+        "description": "Our AI will analyze your competing pages and create a unique content strategy for each one, so they stop cannibalizing each other in search results.",
+        "whatHappens": "What will happen?",
+        "step1": "AI identifies your strongest page (Alpha Page) based on traffic, backlinks, and content quality",
+        "step2": "Each supporting page gets a new, unique search intent and differentiated content",
+        "step3": "H1 tags and key paragraphs are rewritten to target different angles of the topic",
+        "step4": "Internal links are added from supporting pages to the Alpha Page",
+        "creditsCost": "Credits Cost",
+        "creditsExplanation": "This process costs {creditsPerPage} AI credits per supporting page. For {pageCount} competing pages, the analysis will cost {analysisCost} credits. Execution costs will be shown before approval.",
+        "estimatedTime": "Estimated Time",
+        "timeExplanation": "The AI analysis typically takes 1-3 minutes depending on content length. You can navigate away — the process runs in the background and you'll be notified when it's ready.",
+        "whileRunning": "While Running",
+        "whileRunningExplanation": "You can continue using the platform normally. The analysis runs in the background. A notification will appear when the strategy is ready for your review.",
+        "reviewBefore": "Review Before Applying",
+        "reviewExplanation": "No changes are made to your site until you review and approve them. You'll see a detailed preview of every proposed change before anything is executed.",
+        "requirements": "Requirements",
+        "requirementsExplanation": "Your WordPress plugin must be connected for changes to be applied. If not connected, you can still review the strategy and apply changes manually.",
+        "startButton": "Start Differentiation",
+        "cancelButton": "Cancel"
+      },
+      "modal": {
+        "processingTitle": "Content Differentiation in Progress",
+        "completedTitle": "Content Differentiation Strategy Ready",
+        "failedTitle": "Differentiation Failed",
+        "successSummary": "{success} of {total} supporting pages differentiated",
+        "failedSuffix": "({failed} failed)",
+        "processingHint": "You can close this window — the process continues in the background.",
+        "alphaDescription": "This is your strongest page. It will not be altered. Other pages will link to it.",
+        "gscClicks": "{clicks} GSC clicks",
+        "supportingTitle": "Supporting Pages — Proposed Changes",
+        "newIntent": "New Search Intent",
+        "h1Change": "H1 Change",
+        "contentChanges": "Content Changes ({count} paragraph)",
+        "contentChangesPlural": "Content Changes ({count} paragraphs)",
+        "internalLink": "Internal Link to Alpha Page",
+        "closeButton": "Close",
+        "executingButton": "Executing...",
+        "executeButton": "Approve & Execute Fixes ({credits} Credits)",
+        "executedBanner": "Fixes executed on {date} — {credits} credits used",
+        "failedMessage": "An unexpected error occurred",
+        "diffOld": "Old",
+        "diffNew": "New"
+      },
+      "toast": {
+        "completed": "Content differentiation strategy is ready for review!",
+        "pagesDifferentiated": "{count} pages differentiated"
+      }
     }
   }
 }

@@ -89,7 +89,7 @@
 }
 
 .loadingText {
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   color: var(--text-secondary);
 }
 
@@ -157,7 +157,7 @@
 }
 
 .pageUrl {
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   color: var(--text-tertiary, var(--text-secondary));
   direction: ltr;
   text-align: start;
@@ -249,7 +249,7 @@
 }
 
 .pageName {
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   font-weight: 500;
   color: var(--text-primary);
   margin-bottom: 8px;
@@ -445,7 +445,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   color: var(--text-secondary);
   cursor: pointer;
   padding: 8px 12px;
@@ -602,7 +602,7 @@
 }
 
 .cannibalizationReasoning {
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   line-height: 1.5;
   color: var(--text-primary);
   padding: 10px 12px;
@@ -672,7 +672,7 @@
 }
 
 .cannibalizationPageTitle {
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   font-weight: 500;
   color: var(--text-primary);
   line-height: 1.4;
@@ -713,7 +713,7 @@
 }
 
 .cannibalizationInstructions {
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   padding: 10px 12px;
   background: var(--bg-hover);
   border-radius: 6px;
@@ -758,7 +758,7 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   font-weight: 600;
   color: var(--text-primary);
   
@@ -939,7 +939,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   font-weight: 600;
   color: var(--text-primary);
 }
@@ -983,7 +983,7 @@
 }
 
 .mergedPageFieldValue {
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   color: var(--text-primary);
   line-height: 1.5;
   padding: 6px 10px;
@@ -1025,7 +1025,7 @@
 .editTextarea {
   width: 100%;
   min-height: 60px;
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   padding: 8px 10px;
   border-radius: 6px;
   border: 1px solid var(--primary);
@@ -1056,7 +1056,7 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   font-weight: 500;
   color: var(--text-primary);
 }
@@ -1238,7 +1238,7 @@
 .aiPromptInput {
   width: 100%;
   padding: 8px 10px;
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   border: 1px solid var(--border);
   border-radius: 6px;
   background: var(--bg-card);
@@ -1278,7 +1278,7 @@
 .instructionsList {
   margin: 8px 0 0 0;
   padding-inline-start: 20px;
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   line-height: 1.6;
   color: var(--text-primary);
   
@@ -1313,7 +1313,7 @@
 .articleTypeSelect {
   appearance: none;
   padding: 8px 32px 8px 12px;
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   border: 1px solid var(--border);
   border-radius: 6px;
   background: var(--bg-card);
@@ -1366,7 +1366,7 @@
 .wordCountInput {
   width: 70px;
   padding: 6px 8px;
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   border: 1px solid var(--border);
   border-radius: 6px;
   background: var(--bg-card);
@@ -1404,7 +1404,7 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   font-weight: 600;
   color: var(--text-primary);
   margin-bottom: 6px;
@@ -1420,7 +1420,7 @@
 .mergeInstructionsTextarea {
   width: 100%;
   padding: 10px 12px;
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   line-height: 1.5;
   border: 1px solid var(--border);
   border-radius: 6px;
@@ -1479,7 +1479,7 @@
   align-items: center;
   gap: 6px;
   padding: 6px 12px;
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   color: var(--text-secondary);
   background: var(--bg-hover);
   border: 1px solid var(--border);
@@ -1530,7 +1530,7 @@
 }
 
 .previewIntentBadge {
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   line-height: 1.5;
   color: var(--text-primary);
   padding: 8px 12px;
@@ -1589,7 +1589,7 @@
 }
 
 .previewImageAlt {
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   line-height: 1.4;
   color: var(--text-secondary);
   padding: 8px 10px;
@@ -1670,7 +1670,7 @@
   }
 
   figcaption {
-    font-size: 0.8125rem;
+    font-size: 0.875rem;
     color: var(--text-muted);
     text-align: center;
     margin-top: 0.5em;
@@ -2326,7 +2326,7 @@
   display: flex;
   align-items: flex-start;
   gap: 8px;
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   line-height: 1.4;
   padding: 4px 0;
 }

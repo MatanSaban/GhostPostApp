@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import prisma from '@/lib/prisma';
 import { generateObject } from 'ai';
-import { google } from '@ai-sdk/google';
+import { google } from '@/lib/ai/vertex-provider.js';
 import { z } from 'zod';
 
 const SESSION_COOKIE = 'user_session';
@@ -135,7 +135,7 @@ ${pagesContext}
 Generate a new meta description for each page.`;
 
     const result = await generateObject({
-      model: google('gemini-2.0-flash'),
+      model: google('gemini-2.5-pro'),
       schema: suggestionsSchema,
       messages: [{ role: 'user', content: prompt }],
       temperature: 0.4,

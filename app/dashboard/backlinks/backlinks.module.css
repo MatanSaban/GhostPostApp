@@ -137,7 +137,7 @@
 }
 
 .statLabel {
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   color: var(--muted-foreground);
   font-weight: 500;
   margin-top: 0.5rem;
@@ -218,7 +218,7 @@
   border-radius: var(--radius-sm);
   background: transparent;
   color: var(--muted-foreground);
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   font-weight: 500;
   cursor: pointer;
   transition: all var(--transition-fast);
@@ -246,7 +246,7 @@
   border: 1px solid var(--input-border);
   border-radius: var(--radius-md);
   color: var(--foreground);
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   cursor: pointer;
   outline: none;
   transition: border-color var(--transition-fast);
@@ -322,7 +322,7 @@
 }
 
 .cardTitle {
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   color: var(--muted-foreground);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -435,7 +435,7 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   color: var(--muted-foreground);
 }
 
@@ -512,7 +512,7 @@
   padding: 0.5rem 1rem;
   border: none;
   border-radius: var(--radius-md);
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   font-weight: 500;
   cursor: pointer;
   transition: all var(--transition-fast);
@@ -783,7 +783,7 @@
 }
 
 .paymentDesc {
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   color: var(--muted-foreground);
 }
 
@@ -955,7 +955,7 @@
   border-radius: var(--radius-md);
   background: var(--card);
   color: var(--foreground);
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   cursor: pointer;
   transition: all var(--transition-fast);
 
@@ -975,7 +975,7 @@
 }
 
 .pageInfo {
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   color: var(--muted-foreground);
   padding: 0 0.5rem;
 }
@@ -1215,7 +1215,7 @@
 
 /* ── Field Hint ──────────────────────────── */
 .fieldHint {
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   color: #f59e0b;
 
   .dark & {
@@ -1448,7 +1448,7 @@
   color: var(--primary-foreground);
   border: none;
   border-radius: var(--radius-md);
-  font-size: 0.85rem;
+  font-size: 0.875rem;
   font-weight: 500;
   cursor: pointer;
   transition: opacity var(--transition-fast);

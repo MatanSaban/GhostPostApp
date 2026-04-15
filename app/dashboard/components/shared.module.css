@@ -603,7 +603,7 @@
 }
 
 .activityTime {
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   color: var(--muted-foreground);
 }
 
@@ -614,7 +614,7 @@
   gap: 0.25rem;
   padding: 0.25rem 0.75rem;
   border-radius: 9999px;
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   font-weight: 500;
 
   &.active {
@@ -830,7 +830,7 @@
 .tableHeader {
   display: grid;
   padding: 0.5rem 1rem;
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   color: var(--muted-foreground);
   border-bottom: 1px solid var(--border-light);
 
@@ -1199,7 +1199,7 @@
 
 .tableHeaderCell {
   padding: 0.8125rem 1rem;
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -1352,12 +1352,12 @@
 }
 
 .formHint {
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   color: var(--muted-foreground);
 }
 
 .formError {
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   color: #ef4444;
 }
 

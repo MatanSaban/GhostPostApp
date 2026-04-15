@@ -106,7 +106,7 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0.5rem 0.75rem;
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   font-weight: 600;
   color: var(--muted-foreground);
   background: transparent;
@@ -286,7 +286,7 @@
 }
 
 .formHint {
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   color: var(--muted-foreground);
   margin-top: -0.25rem;
 }
@@ -430,7 +430,7 @@
 }
 
 .toggleDescription {
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   color: var(--muted-foreground);
 }
 
@@ -517,7 +517,7 @@
 .rangeLabels {
   display: flex;
   justify-content: space-between;
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   color: var(--muted-foreground);
 }
 
@@ -593,7 +593,7 @@
   align-items: center;
   gap: 1rem;
   margin-top: 0.25rem;
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   color: var(--muted-foreground);
 }
 
@@ -616,7 +616,7 @@
 
 .editButton {
   padding: 0.5rem 1rem;
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   font-weight: 600;
   display: flex;
   align-items: center;
@@ -670,14 +670,14 @@
 }
 
 .memberEmail {
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   color: var(--muted-foreground);
 }
 
 .roleBadge {
   display: inline-flex;
   padding: 0.25rem 0.75rem;
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   font-weight: 500;
   border-radius: var(--radius-md);
   background: var(--muted);
@@ -724,7 +724,7 @@
   align-items: center;
   gap: 0.25rem;
   padding: 0.25rem 0.75rem;
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   font-weight: 500;
   background: rgba(16, 185, 129, 0.1);
   color: #10b981;
@@ -1013,7 +1013,7 @@
   align-items: center;
   gap: 0.375rem;
   width: fit-content;
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   color: #10b981;
   background: rgba(16, 185, 129, 0.1);
   padding: 0.25rem 0.625rem;
@@ -1032,7 +1032,7 @@
 
 /* Addon purchase count badge */
 .addonPurchaseCountBadge {
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   font-weight: 700;
   padding: 0.125rem 0.5rem;
   background: rgba(123, 44, 191, 0.15);
@@ -1073,7 +1073,7 @@
   display: inline-flex;
   align-items: center;
   gap: 0.25rem;
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   color: #10b981;
 }
 
@@ -1081,7 +1081,7 @@
   display: inline-flex;
   align-items: center;
   gap: 0.25rem;
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   color: #ef4444;
 }
 
@@ -1117,7 +1117,7 @@
   display: inline-flex;
   align-items: center;
   gap: 0.25rem;
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   color: #10b981;
 
   .dark & {
@@ -1346,7 +1346,7 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0.5rem 1rem;
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   font-weight: 600;
   color: white;
   background: var(--primary);
@@ -1406,7 +1406,7 @@
 }
 
 .warningDescription {
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   color: var(--muted-foreground);
 }
 
@@ -1444,7 +1444,7 @@
 .fieldHint {
   display: block;
   margin-top: 0.375rem;
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   color: var(--muted-foreground);
 }
 
@@ -1617,7 +1617,7 @@
   display: inline-flex;
   align-items: center;
   padding: 0.25rem 0.625rem;
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   font-weight: 500;
   border-radius: var(--radius-full);
 }
@@ -1747,7 +1747,7 @@
 }
 
 .categoryCount {
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   color: var(--muted-foreground);
 }
 
@@ -1779,7 +1779,7 @@
 }
 
 .permissionLabel {
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   color: var(--foreground);
 }
 
@@ -1824,7 +1824,7 @@
 
   th {
     background: var(--muted);
-    font-size: 0.8125rem;
+    font-size: 0.875rem;
     font-weight: 600;
     color: var(--muted-foreground);
     text-transform: uppercase;
@@ -1870,7 +1870,7 @@
   gap: 0.375rem;
 
   span {
-    font-size: 0.8125rem;
+    font-size: 0.875rem;
   }
 }
 
@@ -2087,7 +2087,7 @@
   gap: 1rem;
   padding: 0.8125rem 1.5rem;
   background: var(--muted);
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   font-weight: 600;
   text-transform: uppercase;
   color: var(--muted-foreground);
@@ -2177,7 +2177,7 @@
 }
 
 .userEmail {
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   color: var(--muted-foreground);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -2218,7 +2218,7 @@
   @media (max-width: 1024px) {
     &::before {
       content: attr(data-label);
-      font-size: 0.8125rem;
+      font-size: 0.875rem;
       font-weight: 500;
       color: var(--muted-foreground);
       margin-right: 0.5rem;
@@ -2231,7 +2231,7 @@
   align-items: center;
   gap: 0.375rem;
   padding: 0.25rem 0.625rem;
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   font-weight: 500;
   border-radius: var(--radius-md);
 }
@@ -2271,7 +2271,7 @@
 }
 
 .dateCell {
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   color: var(--muted-foreground);
 }
 
@@ -2743,7 +2743,7 @@
 }
 
 .logoHint {
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   color: var(--muted-foreground);
   line-height: 1.5;
   max-width: 300px;
@@ -2751,7 +2751,7 @@
 
 /* Input Hint */
 .inputHint {
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   color: var(--muted-foreground);
   margin-top: 0.25rem;
 }
@@ -2994,7 +2994,7 @@
 }
 
 .profileAvatarFormats {
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   color: var(--muted-foreground);
 }
 
@@ -3082,7 +3082,7 @@
   align-items: center;
   gap: 0.25rem;
   padding: 0.25rem 0.5rem;
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   font-weight: 500;
   color: #10b981;
   background: rgba(16, 185, 129, 0.1);
@@ -3090,7 +3090,7 @@
 }
 
 .profileInputHint {
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   color: var(--muted-foreground);
 }
 
@@ -3221,7 +3221,7 @@
 }
 
 .profileRequirementsTitle {
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   font-weight: 500;
   color: var(--muted-foreground);
   margin-bottom: 0.5rem;
@@ -3230,7 +3230,7 @@
 .profileRequirementsList {
   list-style: disc;
   padding-left: 1.25rem;
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   color: var(--muted-foreground);
 
   li {
@@ -3336,7 +3336,7 @@
 }
 
 .profileProviderEmail {
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   color: var(--muted-foreground);
 }
 
@@ -3351,7 +3351,7 @@
   align-items: center;
   gap: 0.375rem;
   padding: 0.375rem 0.75rem;
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   font-weight: 500;
   color: #10b981;
   background: rgba(16, 185, 129, 0.1);
@@ -3440,7 +3440,7 @@
 }
 
 .profileTwoFactorValue {
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   color: var(--muted-foreground);
 }
 
@@ -3473,7 +3473,7 @@
 .profileComingSoon {
   margin-top: 0.75rem;
   padding: 0.5rem 0.75rem;
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   font-style: italic;
   color: var(--muted-foreground);
   background: rgba(123, 44, 191, 0.05);
@@ -3598,7 +3598,7 @@
 }
 
 .usageLogActionDescription {
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   color: var(--muted-foreground);
   margin-top: 2px;
 }
@@ -3768,7 +3768,7 @@
   align-items: center;
   gap: 0.25rem;
   padding: 0.25rem 0.625rem;
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   font-weight: 600;
   border-radius: 50px;
   background: rgba(16, 185, 129, 0.15);
@@ -3788,7 +3788,7 @@
 }
 
 .connectedEmail {
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   color: var(--muted-foreground);
 }
 
@@ -3797,7 +3797,7 @@
   align-items: center;
   gap: 0.375rem;
   padding: 0.375rem 0.75rem;
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   font-weight: 500;
   border: 1px solid rgba(239, 68, 68, 0.3);
   border-radius: var(--radius-md);
@@ -3844,7 +3844,7 @@
   align-items: center;
   gap: 0.5rem;
   flex: 1;
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   color: var(--muted-foreground);
 
   svg {
@@ -3858,7 +3858,7 @@
   align-items: center;
   gap: 0.375rem;
   padding: 0.375rem 0.8125rem;
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   font-weight: 600;
   border: none;
   border-radius: var(--radius-md);
@@ -3900,7 +3900,7 @@
   padding: 0.75rem 1rem;
   background: var(--muted);
   border-bottom: 1px solid var(--border);
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   font-weight: 600;
   color: var(--foreground);
 
@@ -3932,7 +3932,7 @@
 .pickerEmpty {
   padding: 1.5rem;
   text-align: center;
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   color: var(--muted-foreground);
 }
 
@@ -3993,7 +3993,7 @@
   display: flex;
   align-items: center;
   gap: 0.375rem;
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   color: var(--muted-foreground);
   margin-top: 0.25rem;
 }
@@ -4040,7 +4040,7 @@
   gap: 0.5rem;
   padding: 0.75rem 1rem;
   border-radius: var(--radius-lg);
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   font-weight: 500;
   margin-bottom: 1rem;
 }

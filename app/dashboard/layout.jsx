@@ -479,14 +479,20 @@ export default function DashboardLayout({ children }) {
           {/* Admin Section - Only visible to super admins */}
           {!isUserLoading && isSuperAdmin && (
             <div className={styles.navGroup}>
-              <button
-                className={`${styles.navItem} ${styles.navGroupToggle} ${styles.adminNavItem} ${pathname.startsWith('/dashboard/admin') ? styles.active : ''}`}
-                onClick={handleAdminChevronClick}
+              <Link
+                href="/dashboard/admin"
+                className={`${styles.navItem} ${styles.navGroupToggle} ${styles.adminNavItem} ${pathname === '/dashboard/admin' ? styles.active : ''}`}
               >
                 <Shield className={styles.navIcon} />
                 <span className={styles.navLabel}>{t('nav.admin.title')}</span>
-                <ChevronRight className={`${styles.navChevron} ${openMenu === 'admin' ? styles.navChevronOpen : ''}`} />
-              </button>
+                <button
+                  className={styles.navChevronButton}
+                  onClick={handleAdminChevronClick}
+                  aria-label={openMenu === 'admin' ? t('common.collapse') : t('common.expand')}
+                >
+                  <ChevronRight className={`${styles.navChevron} ${openMenu === 'admin' ? styles.navChevronOpen : ''}`} />
+                </button>
+              </Link>
               <div className={`${styles.navGroupItems} ${openMenu === 'admin' ? styles.navGroupItemsOpen : ''}`}>
                 <div className={styles.navGroupItemsInner}>
                   {adminMenuItemsConfig.map((item) => {

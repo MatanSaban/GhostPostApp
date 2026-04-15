@@ -17,7 +17,7 @@
     "seed": "node prisma/seed.js"
   },
   "dependencies": {
-    "@ai-sdk/google": "^3.0.13",
+    "@ai-sdk/google-vertex": "^4.0.109",
     "@axe-core/playwright": "^4.11.1",
     "@floating-ui/dom": "^1.7.5",
     "@playwright/test": "^1.58.2",
@@ -51,6 +51,7 @@
     "playwright-core": "^1.58.2",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
+    "recharts": "^3.8.1",
     "swiper": "^12.1.1",
     "xlsx": "^0.18.5",
     "zod": "^4.3.6"

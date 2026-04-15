@@ -169,7 +169,7 @@
 }
 
 .headerSubtitle {
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   color: var(--muted-foreground);
 }
 
@@ -909,7 +909,7 @@
 }
 
 .detectedBadge {
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   margin-right: 0.25rem;
 }
 
@@ -1133,7 +1133,7 @@
 }
 
 .dataCardLabel {
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -1196,7 +1196,7 @@
 }
 
 .dataLabel {
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   font-weight: 500;
   color: var(--muted-foreground);
   text-transform: uppercase;
@@ -1268,7 +1268,7 @@
 }
 
 .seoLabel {
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   font-weight: 500;
   color: var(--text-muted);
   text-transform: uppercase;

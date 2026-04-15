@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import prisma from '@/lib/prisma';
 import { generateObject } from 'ai';
-import { google } from '@ai-sdk/google';
+import { google } from '@/lib/ai/vertex-provider.js';
 import { z } from 'zod';
 
 const SESSION_COOKIE = 'user_session';
@@ -170,7 +170,7 @@ export async function POST(request) {
 
           try {
             const result = await generateObject({
-              model: google('gemini-3.1-pro-preview'),
+              model: google('gemini-2.5-pro'),
               schema: altTextSchema,
               messages: [
                 {
