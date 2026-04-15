@@ -14,6 +14,7 @@ async function getAuthenticatedUser() {
       where: { id: userId },
       select: {
         id: true,
+        isSuperAdmin: true,
         accountMemberships: { select: { accountId: true } },
       },
     });

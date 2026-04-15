@@ -66,10 +66,7 @@ export async function GET(request, { params }) {
     } else {
       const accountIds = user.accountMemberships.map(m => m.accountId);
       site = await prisma.site.findFirst({
-        where: {
-          id: siteId,
-          accountId: { in: accountIds },
-        },
+        where: user.isSuperAdmin ? { id: siteId } : { id: siteId, accountId: { in: accountIds } },
         select: {
           id: true,
           url: true,
@@ -311,10 +308,7 @@ export async function PATCH(request, { params }) {
     } else {
       const accountIds = user.accountMemberships.map(m => m.accountId);
       site = await prisma.site.findFirst({
-        where: {
-          id: siteId,
-          accountId: { in: accountIds },
-        },
+        where: user.isSuperAdmin ? { id: siteId } : { id: siteId, accountId: { in: accountIds } },
         select: { id: true },
       });
     }

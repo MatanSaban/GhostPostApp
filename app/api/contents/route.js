@@ -10,18 +10,16 @@ async function getAuthenticatedUser() {
   if (!userId) return null;
   return prisma.user.findUnique({
     where: { id: userId },
-    select: { id: true, email: true },
+    select: { id: true, email: true, isSuperAdmin: true },
   });
 }
 
-async function verifySiteAccess(siteId, userId) {
-  return prisma.site.findFirst({
-    where: {
-      id: siteId,
-      account: { members: { some: { userId } } },
-    },
-    select: { id: true },
-  });
+async function verifySiteAccess(siteId, user) {
+  const where = user.isSuperAdmin
+    ? { id: siteId }
+    : { id: siteId, account: { members: { some: { userId: user.id } } } };
+  return prisma.site.findFirst({ where,
+    select: { id: true } });
 }
 
 /**
@@ -46,7 +44,7 @@ export async function GET(request) {
       return NextResponse.json({ error: 'siteId is required' }, { status: 400 });
     }
 
-    const site = await verifySiteAccess(siteId, user.id);
+    const site = await verifySiteAccess(siteId, user);
     if (!site) {
       return NextResponse.json({ error: 'Site not found or no access' }, { status: 404 });
     }

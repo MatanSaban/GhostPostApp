@@ -77,7 +77,7 @@ export async function GET(request, { params }) {
     }
 
     // Verify user has access to this site's account
-    const hasAccess = user.accountMemberships.some(m => m.accountId === site.accountId);
+    const hasAccess = user.isSuperAdmin || user.accountMemberships.some(m => m.accountId === site.accountId);
     if (!hasAccess) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
     }

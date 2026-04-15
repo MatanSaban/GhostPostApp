@@ -19,6 +19,7 @@ async function getAuthenticatedUser() {
       select: { 
         id: true, 
         email: true, 
+        isSuperAdmin: true,
         lastSelectedAccountId: true,
         accountMemberships: {
           where: { status: 'ACTIVE' },
@@ -36,6 +37,7 @@ async function getAuthenticatedUser() {
     return {
       id: user.id,
       email: user.email,
+      isSuperAdmin: user.isSuperAdmin,
       accountId,
     };
   } catch (error) {
@@ -61,10 +63,9 @@ export async function GET(request) {
 
     // Verify the user has access to this site
     const site = await prisma.site.findFirst({
-      where: {
-        id: siteId,
-        accountId: user.accountId,
-      },
+      where: user.isSuperAdmin
+        ? { id: siteId }
+        : { id: siteId, accountId: user.accountId },
     });
 
     if (!site) {
@@ -124,10 +125,9 @@ export async function POST(request) {
 
     // Verify the user has access to this site
     const site = await prisma.site.findFirst({
-      where: {
-        id: siteId,
-        accountId: user.accountId,
-      },
+      where: user.isSuperAdmin
+        ? { id: siteId }
+        : { id: siteId, accountId: user.accountId },
     });
 
     if (!site) {

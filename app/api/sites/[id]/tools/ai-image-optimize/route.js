@@ -22,6 +22,7 @@ async function verifyUserSiteAccess(siteId) {
       where: { id: userId },
       select: {
         id: true,
+        isSuperAdmin: true,
         accountMemberships: {
           select: { accountId: true },
         },
@@ -32,13 +33,11 @@ async function verifyUserSiteAccess(siteId) {
       return { authorized: false, error: 'User not found' };
     }
 
-    const accountIds = user.accountMemberships.map(m => m.accountId);
-
-    const site = await prisma.site.findFirst({
-      where: {
-        id: siteId,
-        accountId: { in: accountIds },
-      },
+    const siteWhere = user.isSuperAdmin
+        ? { id: siteId }
+        : { id: siteId, accountId: { in: user.accountMemberships.map(m => m.accountId) } };
+          const site = await prisma.site.findFirst({
+        where: siteWhere,
       select: { id: true, name: true, url: true, accountId: true },
     });
 

@@ -17,6 +17,7 @@ async function getAuthenticatedUser() {
       where: { id: userId },
       select: {
         id: true,
+        isSuperAdmin: true,
         accountMemberships: {
           select: { accountId: true },
         },
@@ -163,7 +164,7 @@ export async function POST(request) {
 
     const accountIds = user.accountMemberships.map((m) => m.accountId);
     const site = await prisma.site.findFirst({
-      where: { id: siteId, accountId: { in: accountIds } },
+      where: user.isSuperAdmin ? { id: siteId } : { id: siteId, accountId: { in: accountIds } },
       select: {
         id: true,
         url: true,

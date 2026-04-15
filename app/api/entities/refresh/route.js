@@ -357,13 +357,11 @@ export async function POST(request) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
-    const accountIds = user.accountMemberships.map(m => m.accountId);
-
-    const site = await prisma.site.findFirst({
-      where: {
-        id: siteId,
-        accountId: { in: accountIds },
-      },
+    const siteWhere = user.isSuperAdmin
+        ? { id: siteId }
+        : { id: siteId, accountId: { in: user.accountMemberships.map(m => m.accountId) } };
+          const site = await prisma.site.findFirst({
+        where: siteWhere,
     });
 
     if (!site) {

@@ -195,10 +195,7 @@ export async function POST(request) {
 
     // Get the site and verify access
     const site = await prisma.site.findFirst({
-      where: { 
-        id: siteId,
-        accountId: { in: accountIds },
-      },
+      where: user.isSuperAdmin ? { id: siteId } : { id: siteId, accountId: { in: accountIds } },
     });
 
     if (!site) {

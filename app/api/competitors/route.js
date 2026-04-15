@@ -17,7 +17,8 @@ async function getAuthenticatedUser() {
     const user = await prisma.user.findUnique({
       where: { id: userId },
       select: { 
-        id: true, 
+        id: true,
+        isSuperAdmin: true, 
         email: true, 
         accountMemberships: {
           select: {
@@ -85,10 +86,9 @@ export async function GET(request) {
 
     // Verify the user has access to this site
     const site = await prisma.site.findFirst({
-      where: {
-        id: siteId,
-        accountId: { in: accountIds },
-      },
+      where: user.isSuperAdmin
+        ? { id: siteId }
+        : { id: siteId, accountId: { in: accountIds } },
     });
 
     if (!site) {
@@ -160,10 +160,9 @@ export async function POST(request) {
 
     // Verify the user has access to this site
     const site = await prisma.site.findFirst({
-      where: {
-        id: siteId,
-        accountId: { in: accountIds },
-      },
+      where: user.isSuperAdmin
+        ? { id: siteId }
+        : { id: siteId, accountId: { in: accountIds } },
     });
 
     if (!site) {
@@ -273,10 +272,9 @@ export async function DELETE(request) {
 
     // Verify the user has access to this site
     const site = await prisma.site.findFirst({
-      where: {
-        id: siteId,
-        accountId: { in: accountIds },
-      },
+      where: user.isSuperAdmin
+        ? { id: siteId }
+        : { id: siteId, accountId: { in: accountIds } },
     });
 
     if (!site) {

@@ -19,7 +19,8 @@ async function getAuthenticatedUser() {
     const user = await prisma.user.findUnique({
       where: { id: userId },
       select: { 
-        id: true, 
+        id: true,
+        isSuperAdmin: true, 
         email: true, 
         accountMemberships: {
           select: {

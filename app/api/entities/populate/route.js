@@ -72,10 +72,7 @@ export async function POST(request) {
 
     // Get site with connection details
     const site = await prisma.site.findFirst({
-      where: {
-        id: siteId,
-        accountId: { in: accountIds },
-      },
+      where: user.isSuperAdmin ? { id: siteId } : { id: siteId, accountId: { in: accountIds } },
     });
 
     if (!site) {
@@ -194,13 +191,11 @@ export async function GET(request) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
-    const accountIds = user.accountMemberships.map(m => m.accountId);
-
-    const site = await prisma.site.findFirst({
-      where: {
-        id: siteId,
-        accountId: { in: accountIds },
-      },
+    const siteWhere = user.isSuperAdmin
+        ? { id: siteId }
+        : { id: siteId, accountId: { in: user.accountMemberships.map(m => m.accountId) } };
+          const site = await prisma.site.findFirst({
+        where: siteWhere,
       select: {
         entitySyncStatus: true,
         entitySyncProgress: true,
@@ -276,11 +271,9 @@ export async function DELETE(request) {
 
     // Update the site to cancel the sync
     const site = await prisma.site.updateMany({
-      where: {
-        id: siteId,
-        accountId: { in: accountIds },
-        entitySyncStatus: 'SYNCING',
-      },
+      where: user.isSuperAdmin
+        ? { id: siteId, entitySyncStatus: 'SYNCING' }
+        : { id: siteId, accountId: { in: accountIds }, entitySyncStatus: 'SYNCING' },
       data: {
         entitySyncStatus: 'CANCELLED',
         entitySyncProgress: 0,

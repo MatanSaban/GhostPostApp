@@ -14,7 +14,7 @@ async function getAuthenticatedUser() {
   if (!userId) return null;
   return prisma.user.findUnique({
     where: { id: userId },
-    select: { id: true, email: true },
+    select: { id: true, isSuperAdmin: true, email: true },
   });
 }
 
@@ -34,15 +34,11 @@ export async function GET(request) {
     }
 
     // Verify user has access to this site
-    const site = await prisma.site.findFirst({
-      where: {
-        id: siteId,
-        account: {
-          members: {
-            some: { userId: user.id },
-          },
-        },
-      },
+    const siteWhere = user.isSuperAdmin
+        ? { id: siteId }
+        : { id: siteId, account: { members: { some: { userId: user.id } } } };
+      const site = await prisma.site.findFirst({
+        where: siteWhere,
       select: { id: true },
     });
 
@@ -137,15 +133,11 @@ export async function POST(request) {
     }
 
     // Verify user has access to this site
-    const site = await prisma.site.findFirst({
-      where: {
-        id: siteId,
-        account: {
-          members: {
-            some: { userId: user.id },
-          },
-        },
-      },
+    const siteWhere = user.isSuperAdmin
+        ? { id: siteId }
+        : { id: siteId, account: { members: { some: { userId: user.id } } } };
+      const site = await prisma.site.findFirst({
+        where: siteWhere,
       select: { id: true },
     });
 
@@ -228,16 +220,7 @@ export async function PATCH(request) {
 
     // Verify keyword exists and user has access
     const keyword = await prisma.keyword.findFirst({
-      where: {
-        id: keywordId,
-        site: {
-          account: {
-            members: {
-              some: { userId: user.id },
-            },
-          },
-        },
-      },
+        where: user.isSuperAdmin ? { id: keywordId } : { id: keywordId, site: { account: { members: { some: { userId: user.id } } } } },
       select: { id: true, siteId: true, keyword: true, site: { select: { accountId: true } } },
     });
 
@@ -337,16 +320,7 @@ export async function DELETE(request) {
 
     // Verify keyword exists and user has access
     const keyword = await prisma.keyword.findFirst({
-      where: {
-        id: keywordId,
-        site: {
-          account: {
-            members: {
-              some: { userId: user.id },
-            },
-          },
-        },
-      },
+        where: user.isSuperAdmin ? { id: keywordId } : { id: keywordId, site: { account: { members: { some: { userId: user.id } } } } },
       select: { id: true },
     });
 

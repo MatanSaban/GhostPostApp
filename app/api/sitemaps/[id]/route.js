@@ -60,7 +60,7 @@ export async function GET(request, { params }) {
     }
 
     const accountIds = user.accountMemberships.map(m => m.accountId);
-    if (!accountIds.includes(sitemap.site.accountId)) {
+    if (!user.isSuperAdmin && !accountIds.includes(sitemap.site.accountId)) {
       return NextResponse.json({ error: 'Access denied' }, { status: 403 });
     }
 

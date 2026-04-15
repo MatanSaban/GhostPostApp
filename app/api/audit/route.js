@@ -62,6 +62,7 @@ async function getAuthenticatedUser() {
       where: { id: userId },
       select: {
         id: true,
+        isSuperAdmin: true,
         accountMemberships: {
           select: {
             accountId: true,
@@ -80,12 +81,11 @@ async function getAuthenticatedUser() {
  * Verify user has access to the given site
  */
 async function verifySiteAccess(user, siteId) {
-  const accountIds = user.accountMemberships.map(m => m.accountId);
-  const site = await prisma.site.findFirst({
-    where: {
-      id: siteId,
-      accountId: { in: accountIds },
-    },
+  const siteWhere = user.isSuperAdmin
+      ? { id: siteId }
+      : { id: siteId, accountId: { in: user.accountMemberships.map(m => m.accountId) } };
+      const site = await prisma.site.findFirst({
+      where: siteWhere,
     select: { id: true, url: true, name: true },
   });
   return site;

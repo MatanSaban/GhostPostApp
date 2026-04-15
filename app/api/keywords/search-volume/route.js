@@ -13,7 +13,7 @@ async function getAuthenticatedUser() {
   if (!userId) return null;
   return prisma.user.findUnique({
     where: { id: userId },
-    select: { id: true },
+    select: { id: true, isSuperAdmin: true },
   });
 }
 
@@ -41,10 +41,9 @@ export async function POST(request) {
 
     // Verify user has access to this site
     const site = await prisma.site.findFirst({
-      where: {
-        id: siteId,
-        account: { members: { some: { userId: user.id } } },
-      },
+      where: user.isSuperAdmin
+        ? { id: siteId }
+        : { id: siteId, account: { members: { some: { userId: user.id } } } },
       select: { id: true, defaultLanguage: true },
     });
 

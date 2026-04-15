@@ -14,6 +14,7 @@ async function getAuthenticatedUser() {
       where: { id: userId },
       select: {
         id: true,
+        isSuperAdmin: true,
         lastSelectedAccountId: true,
         accountMemberships: { select: { accountId: true } },
       },
@@ -127,7 +128,7 @@ export async function GET(request, { params }) {
       return NextResponse.json({ error: 'Site not found' }, { status: 404 });
     }
 
-    const hasAccess = user.accountMemberships.some(m => m.accountId === site.accountId);
+    const hasAccess = user.isSuperAdmin || user.accountMemberships.some(m => m.accountId === site.accountId);
     if (!hasAccess) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
@@ -198,7 +199,7 @@ export async function POST(request, { params }) {
       return NextResponse.json({ error: 'Site not found' }, { status: 404 });
     }
 
-    const hasAccess = user.accountMemberships.some(m => m.accountId === site.accountId);
+    const hasAccess = user.isSuperAdmin || user.accountMemberships.some(m => m.accountId === site.accountId);
     if (!hasAccess) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }

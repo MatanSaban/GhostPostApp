@@ -14,6 +14,7 @@ async function getAuthenticatedUser() {
       where: { id: userId },
       select: {
         id: true,
+        isSuperAdmin: true,
         accountMemberships: { select: { accountId: true } },
       },
     });
@@ -25,7 +26,7 @@ async function getAuthenticatedUser() {
 async function verifySiteAccess(user, siteId) {
   const accountIds = user.accountMemberships.map(m => m.accountId);
   return prisma.site.findFirst({
-    where: { id: siteId, accountId: { in: accountIds } },
+    where: user.isSuperAdmin ? { id: siteId } : { id: siteId, accountId: { in: accountIds } },
     select: { id: true },
   });
 }
