@@ -13,7 +13,7 @@ async function getAuthenticatedUser() {
     if (!userId) return null;
     return prisma.user.findUnique({
       where: { id: userId },
-      select: { id: true, accountMemberships: { select: { accountId: true } } },
+      select: { id: true, isSuperAdmin: true, accountMemberships: { select: { accountId: true } } },
     });
   } catch {
     return null;
@@ -43,10 +43,12 @@ export async function POST(request) {
       return NextResponse.json({ error: 'siteId and topLandingPages required' }, { status: 400 });
     }
 
-    // permission check: user must belong to the site's account
-    const accountIds = user.accountMemberships.map(m => m.accountId);
+    // permission check: user must belong to the site's account (superadmin bypasses)
+    const siteWhere = user.isSuperAdmin
+      ? { id: siteId }
+      : { id: siteId, accountId: { in: user.accountMemberships.map(m => m.accountId) } };
     const site = await prisma.site.findFirst({
-      where: { id: siteId, accountId: { in: accountIds } },
+      where: siteWhere,
       select: { id: true },
     });
 

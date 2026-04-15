@@ -18,7 +18,7 @@ async function getAuthenticatedUser() {
     if (!userId) return null;
     return prisma.user.findUnique({
       where: { id: userId },
-      select: { id: true, accountMemberships: { select: { accountId: true } } },
+      select: { id: true, isSuperAdmin: true, accountMemberships: { select: { accountId: true } } },
     });
   } catch {
     return null;
@@ -50,12 +50,11 @@ export async function GET(request) {
       return NextResponse.json({ error: 'siteId required' }, { status: 400 });
     }
 
-    const accountIds = user.accountMemberships.map(m => m.accountId);
+    const siteWhere = user.isSuperAdmin
+      ? { id: siteId }
+      : { id: siteId, accountId: { in: user.accountMemberships.map(m => m.accountId) } };
     const site = await prisma.site.findFirst({
-      where: {
-        id: siteId,
-        accountId: { in: accountIds },
-      },
+      where: siteWhere,
       include: { googleIntegration: true },
     });
 
