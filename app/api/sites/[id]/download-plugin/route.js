@@ -156,7 +156,7 @@ export async function GET(request, { params }) {
     const zipBuffer = await zip.generateAsync({ 
       type: 'nodebuffer',
       compression: 'DEFLATE',
-      compressionOptions: { level: 9 },
+      compressionOptions: { level: 6 },
     });
 
     // Return as downloadable file

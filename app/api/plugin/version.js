@@ -10,10 +10,13 @@
  */
 
 // Current plugin version - increment this when making updates
-export const PLUGIN_VERSION = "2.8.4";
+export const PLUGIN_VERSION = "2.8.5";
 
 // Changelog for the current version
 export const PLUGIN_CHANGELOG = `
+= 2.8.5 =
+* FIX: Faster plugin download — reduced ZIP compression level for quicker generation
+
 = 2.8.4 =
 * NEW: H1 update support for Elementor, Beaver Builder, shortcodes, and raw HTML — when platform detects H1 lives in a page builder, the plugin updates it in-place
 
