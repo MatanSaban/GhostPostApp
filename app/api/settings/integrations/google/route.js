@@ -20,7 +20,7 @@ async function getAuthenticatedUser() {
     if (!userId) return null;
     return prisma.user.findUnique({
       where: { id: userId },
-      select: { id: true, accountMemberships: { select: { accountId: true } } },
+      select: { id: true, isSuperAdmin: true, accountMemberships: { select: { accountId: true } } },
     });
   } catch {
     return null;
@@ -42,11 +42,11 @@ export async function GET(request) {
     if (!siteId) return NextResponse.json({ error: 'siteId required' }, { status: 400 });
 
     // Verify user has access to this site
+    const siteWhere = user.isSuperAdmin
+      ? { id: siteId }
+      : { id: siteId, accountId: { in: user.accountMemberships.map((m) => m.accountId) } };
     const site = await prisma.site.findFirst({
-      where: {
-        id: siteId,
-        accountId: { in: user.accountMemberships.map((m) => m.accountId) },
-      },
+      where: siteWhere,
       select: { id: true, url: true },
     });
     if (!site) return NextResponse.json({ error: 'Site not found' }, { status: 404 });
@@ -219,11 +219,11 @@ export async function POST(request) {
     if (!siteId) return NextResponse.json({ error: 'siteId required' }, { status: 400 });
 
     // Verify access
+    const siteWhere = user.isSuperAdmin
+      ? { id: siteId }
+      : { id: siteId, accountId: { in: user.accountMemberships.map((m) => m.accountId) } };
     const site = await prisma.site.findFirst({
-      where: {
-        id: siteId,
-        accountId: { in: user.accountMemberships.map((m) => m.accountId) },
-      },
+      where: siteWhere,
     });
     if (!site) return NextResponse.json({ error: 'Site not found' }, { status: 404 });
 

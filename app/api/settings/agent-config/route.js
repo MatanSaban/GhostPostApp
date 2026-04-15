@@ -26,6 +26,7 @@ async function getAuthenticatedUser() {
       where: { id: userId },
       select: {
         id: true,
+        isSuperAdmin: true,
         accountMemberships: {
           select: { accountId: true },
         },
@@ -60,7 +61,7 @@ export async function GET(request) {
     }
 
     // Verify user has access to this site's account
-    const hasAccess = user.accountMemberships.some(m => m.accountId === site.accountId);
+    const hasAccess = user.isSuperAdmin || user.accountMemberships.some(m => m.accountId === site.accountId);
     if (!hasAccess) {
       return NextResponse.json({ error: 'Access denied' }, { status: 403 });
     }
@@ -103,7 +104,7 @@ export async function PUT(request) {
       return NextResponse.json({ error: 'Site not found' }, { status: 404 });
     }
 
-    const hasAccess = user.accountMemberships.some(m => m.accountId === site.accountId);
+    const hasAccess = user.isSuperAdmin || user.accountMemberships.some(m => m.accountId === site.accountId);
     if (!hasAccess) {
       return NextResponse.json({ error: 'Access denied' }, { status: 403 });
     }

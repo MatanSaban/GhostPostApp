@@ -21,6 +21,7 @@ async function getAuthenticatedUser() {
         email: true, 
         firstName: true, 
         lastName: true,
+        isSuperAdmin: true,
         lastSelectedAccountId: true,
         accountMemberships: {
           select: {
@@ -82,7 +83,7 @@ export async function GET(request) {
     }
 
     // Verify user has access to this site's account
-    const hasAccess = user.accountMemberships.some(m => m.accountId === site.accountId);
+    const hasAccess = user.isSuperAdmin || user.accountMemberships.some(m => m.accountId === site.accountId);
     if (!hasAccess) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
     }
@@ -154,7 +155,7 @@ export async function PUT(request) {
     }
 
     // Verify user has access to this site's account
-    const hasAccess = user.accountMemberships.some(m => m.accountId === site.accountId);
+    const hasAccess = user.isSuperAdmin || user.accountMemberships.some(m => m.accountId === site.accountId);
     if (!hasAccess) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
     }

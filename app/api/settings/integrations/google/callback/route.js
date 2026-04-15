@@ -56,14 +56,14 @@ export async function GET(request) {
     // Verify user has access to this site
     const user = await prisma.user.findUnique({
       where: { id: userId },
-      select: { id: true, accountMemberships: { select: { accountId: true } } },
+      select: { id: true, isSuperAdmin: true, accountMemberships: { select: { accountId: true } } },
     });
 
+    const siteWhere = user.isSuperAdmin
+      ? { id: siteId }
+      : { id: siteId, accountId: { in: user.accountMemberships.map((m) => m.accountId) } };
     const site = await prisma.site.findFirst({
-      where: {
-        id: siteId,
-        accountId: { in: user.accountMemberships.map((m) => m.accountId) },
-      },
+      where: siteWhere,
     });
 
     if (!site) {
