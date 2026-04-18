@@ -35,6 +35,7 @@ export async function POST(request) {
         id: true,
         siteSecret: true,
         connectionStatus: true,
+        pluginLanguage: true,
       },
     });
 
@@ -71,6 +72,9 @@ export async function POST(request) {
     }
     if (data.wpVersion) {
       updateData.wpVersion = data.wpVersion;
+    }
+    if (data.wpLocale) {
+      updateData.wpLocale = data.wpLocale;
     }
 
     await prisma.site.update({
@@ -111,6 +115,7 @@ export async function POST(request) {
     return NextResponse.json({
       success: true,
       timestamp: Date.now(),
+      pluginLanguage: site.pluginLanguage || 'auto',
       widgetData: {
         auditScore: latestAudit?.score ?? null,
         pendingInsights: pendingInsightsCount,

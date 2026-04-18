@@ -784,6 +784,7 @@ model Site {
   phpVersion       String?
   wpTimezone       String?
   wpLocale         String?
+  pluginLanguage   String?  @default("auto")
   sitePermissions  SitePermission[]
 
   // Auto-install credentials (temporary, deleted after install)
