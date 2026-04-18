@@ -1000,6 +1000,266 @@ export function getAdminCss() {
 }
 
 /* ==========================================
+   Update Button (Topbar)
+   ========================================== */
+.gp-btn-update {
+    background: #ef4444;
+    color: #fff !important;
+    padding: 6px 16px;
+    font-size: 12px;
+    font-weight: 600;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    text-decoration: none;
+    animation: gp-pulse-update 2s infinite;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.gp-btn-update:hover {
+    background: #dc2626;
+    color: #fff !important;
+}
+
+@keyframes gp-pulse-update {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
+    50% { box-shadow: 0 0 0 6px rgba(239, 68, 68, 0); }
+}
+
+.gp-btn-sm {
+    padding: 5px 12px;
+    font-size: 12px;
+}
+
+/* ==========================================
+   Version Section
+   ========================================== */
+.gp-version-info {
+    margin-top: 8px;
+}
+
+.gp-version-badge {
+    display: inline-block;
+    padding: 3px 10px;
+    font-size: 13px;
+    font-weight: 600;
+    border-radius: 6px;
+    background: rgba(155, 77, 224, 0.12);
+    color: var(--gp-primary);
+}
+
+.gp-version-badge.gp-version-new {
+    background: rgba(239, 68, 68, 0.12);
+    color: #ef4444;
+}
+
+.gp-up-to-date {
+    color: var(--gp-success);
+    font-size: 13px;
+    font-weight: 600;
+    margin-left: 8px;
+}
+
+.gp-text-muted {
+    color: var(--gp-text-muted);
+}
+
+/* ==========================================
+   SEO Insights Tab
+   ========================================== */
+.gp-seo-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 24px;
+}
+
+.gp-seo-stats-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.gp-chart-card {
+    margin-bottom: 24px;
+}
+
+.gp-chart-container {
+    position: relative;
+    height: 300px;
+}
+
+.gp-seo-two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    margin-top: 24px;
+}
+
+.gp-seo-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.gp-seo-table th,
+.gp-seo-table td {
+    padding: 8px 12px;
+    text-align: left;
+    border-bottom: 1px solid var(--gp-border-light);
+    font-size: 13px;
+    color: var(--gp-text);
+}
+
+.gp-seo-table th {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--gp-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.gp-change-up { color: var(--gp-success); }
+.gp-change-down { color: var(--gp-danger); }
+
+.gp-issues-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.gp-issue {
+    padding: 12px 16px;
+    border-radius: 8px;
+    margin-bottom: 8px;
+    border-left: 3px solid var(--gp-border);
+}
+
+.gp-issue-critical { border-left-color: var(--gp-danger); background: var(--gp-danger-bg); }
+.gp-issue-warning { border-left-color: var(--gp-warning); background: var(--gp-warning-bg); }
+.gp-issue-info { border-left-color: var(--gp-primary); background: var(--gp-code-bg); }
+
+.gp-issue strong { display: block; margin-bottom: 4px; font-size: 13px; }
+.gp-issue p { margin: 0; font-size: 12px; color: var(--gp-text-secondary); }
+
+.gp-loading-state {
+    text-align: center;
+    padding: 48px 20px;
+    color: var(--gp-text-muted);
+}
+
+.gp-spinner {
+    display: inline-block;
+    width: 32px;
+    height: 32px;
+    border: 3px solid var(--gp-border);
+    border-top-color: var(--gp-primary);
+    border-radius: 50%;
+    animation: gp-spin 0.8s linear infinite;
+    margin-bottom: 12px;
+}
+
+/* ==========================================
+   Code Snippets Tab
+   ========================================== */
+.gp-snippets-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+}
+
+.gp-snippets-views {
+    display: flex;
+    gap: 8px;
+}
+
+.gp-snippet-form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 16px;
+}
+
+.gp-form-full {
+    grid-column: 1 / -1;
+}
+
+.gp-code-editor {
+    width: 100%;
+    font-family: 'Fira Code', 'Consolas', 'Monaco', monospace;
+    font-size: 13px;
+    line-height: 1.5;
+    padding: 16px;
+    background: #0d1117;
+    color: #c9d1d9;
+    border: 1px solid var(--gp-input-border);
+    border-radius: 8px;
+    resize: vertical;
+    tab-size: 4;
+}
+
+.gp-snippet-form-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 16px;
+}
+
+.gp-snippet-desc {
+    display: block;
+    font-size: 12px;
+    color: var(--gp-text-muted);
+    margin-top: 2px;
+}
+
+.gp-snippets-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.gp-snippets-table th,
+.gp-snippets-table td {
+    padding: 12px 12px;
+    text-align: left;
+    border-bottom: 1px solid var(--gp-border-light);
+    font-size: 13px;
+    color: var(--gp-text);
+}
+
+.gp-snippets-table th {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--gp-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.gp-type-snippet-php { background: rgba(121, 134, 203, 0.15); color: #7986CB; }
+.gp-type-snippet-js { background: rgba(255, 202, 40, 0.15); color: #FFCA28; }
+.gp-type-snippet-html { background: rgba(239, 108, 0, 0.15); color: #EF6C00; }
+.gp-type-snippet-css { background: rgba(38, 166, 154, 0.15); color: #26A69A; }
+.gp-type-snippet-php_js { background: rgba(121, 134, 203, 0.15); color: #7986CB; }
+.gp-type-snippet-js_css { background: rgba(255, 202, 40, 0.15); color: #FFCA28; }
+.gp-type-snippet-html_css { background: rgba(239, 108, 0, 0.15); color: #EF6C00; }
+
+@media screen and (max-width: 960px) {
+    .gp-seo-stats-row {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    .gp-seo-two-col {
+        grid-template-columns: 1fr;
+    }
+    .gp-snippet-form-grid {
+        grid-template-columns: 1fr;
+    }
+    .gp-snippets-header {
+        flex-direction: column;
+        gap: 12px;
+    }
+}
+
+/* ==========================================
    Dashboard Widget — Design Tokens
    ========================================== */
 

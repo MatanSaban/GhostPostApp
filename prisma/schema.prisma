@@ -43,8 +43,9 @@ model Account {
   subscription   Subscription?
   payments       Payment[]
   roles          Role[]
-  aiCreditsLogs  AiCreditsLog[]
-  reportArchives ReportArchive[]
+  aiCreditsLogs    AiCreditsLog[]
+  reportArchives   ReportArchive[]
+  chatConversations ChatConversation[]
 }
 
 // ==========================================
@@ -258,9 +259,11 @@ model User {
   sessions           Session[]
   accountMemberships AccountMember[]
   otpCodes           OtpCode[]
-  interviews         UserInterview[]
-  sitePreferences    UserSitePreference[]
-  sitemapScans       SiteSitemap[]
+  interviews              UserInterview[]
+  sitePreferences         UserSitePreference[]
+  sitemapScans            SiteSitemap[]
+  chatConversationsCreated ChatConversation[] @relation("ChatConversationCreator")
+  chatMessagesSent         ChatMessage[]      @relation("ChatMessageSender")
 }
 
 enum RegistrationStep {
@@ -833,6 +836,7 @@ model Site {
   members           SiteMember[]
   gscKeywordCaches  GscKeywordCache[]
   scrapeQueue       ScrapeQueue[]
+  chatConversations ChatConversation[]
 
   @@index([siteKey])
 }
@@ -1683,6 +1687,43 @@ enum MessageRole {
   ASSISTANT
   SYSTEM
   FUNCTION
+}
+
+// ==========================================
+// CHAT CONVERSATIONS
+// ==========================================
+
+model ChatConversation {
+  id              String        @id @default(auto()) @map("_id") @db.ObjectId
+  siteId          String        @db.ObjectId
+  site            Site          @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  accountId       String        @db.ObjectId
+  account         Account       @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  createdByUserId String        @db.ObjectId
+  createdByUser   User          @relation("ChatConversationCreator", fields: [createdByUserId], references: [id])
+  title           String?
+  messages        ChatMessage[]
+  activeUsers     Json?         // [{userId, userName, lastSeen}] for concurrent usage detection
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  @@index([siteId])
+  @@index([accountId])
+  @@map("chat_conversations")
+}
+
+model ChatMessage {
+  id              String           @id @default(auto()) @map("_id") @db.ObjectId
+  conversationId  String           @db.ObjectId
+  conversation    ChatConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  role            MessageRole
+  userId          String?          @db.ObjectId
+  user            User?            @relation("ChatMessageSender", fields: [userId], references: [id])
+  content         String
+  createdAt       DateTime         @default(now())
+
+  @@index([conversationId])
+  @@map("chat_messages")
 }
 
 // ==========================================

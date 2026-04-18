@@ -29,7 +29,7 @@ $has_external_plugin = !empty($detected_redirect_plugins);
 $is_connected = $connection_verified;
 
 $active_tab = isset($_GET['tab']) ? sanitize_key($_GET['tab']) : 'connection';
-$allowed_tabs = array('connection', 'settings', 'activity', 'redirections', 'addons');
+$allowed_tabs = array('connection', 'settings', 'activity', 'redirections', 'seo-insights', 'snippets', 'addons');
 if (!in_array($active_tab, $allowed_tabs, true)) {
     $active_tab = 'connection';
 }
@@ -37,6 +37,14 @@ if (!in_array($active_tab, $allowed_tabs, true)) {
 $platform_url = defined('GP_API_URL') ? GP_API_URL : 'https://app.ghostpost.co.il';
 $site_key_display = defined('GP_SITE_KEY') ? GP_SITE_KEY : '';
 $masked_key = $is_configured ? substr($site_key_display, 0, 8) . '...' . substr($site_key_display, -4) : '';
+
+// Check for available update
+$latest_version = get_transient('gp_latest_version');
+$update_available = $latest_version && version_compare($latest_version, GP_CONNECTOR_VERSION, '>');
+
+// Snippets data
+$gp_snippets = get_option('gp_snippets', array());
+$snippet_view = isset($_GET['snippet_view']) ? sanitize_key($_GET['snippet_view']) : 'active';
 
 // Format timestamps for display
 $last_check_display = '';
@@ -58,11 +66,6 @@ $theme_class = ($gp_theme === 'light') ? 'gp-theme-light' : 'gp-theme-dark';
 <div class="gp-admin-wrap <?php echo esc_attr($theme_class); ?>">
     <!-- Top Bar -->
     <div class="gp-topbar">
-        <div class="gp-topbar-brand">
-            <img src="<?php echo esc_url($platform_url . '/logo.png'); ?>" alt="Ghost Post" class="gp-topbar-logo">
-            <span class="gp-topbar-title">GhostPost</span>
-            <span class="gp-version">v<?php echo esc_html(GP_CONNECTOR_VERSION); ?></span>
-        </div>
         <nav class="gp-tabs">
             <a href="?page=ghost-post-connector&tab=connection" class="gp-tab <?php echo $active_tab === 'connection' ? 'gp-tab-active' : ''; ?>">
                 <?php esc_html_e('Connection', 'ghost-post-connector'); ?>
@@ -76,10 +79,25 @@ $theme_class = ($gp_theme === 'light') ? 'gp-theme-light' : 'gp-theme-dark';
             <a href="?page=ghost-post-connector&tab=redirections" class="gp-tab <?php echo $active_tab === 'redirections' ? 'gp-tab-active' : ''; ?>">
                 <?php esc_html_e('Redirections', 'ghost-post-connector'); ?>
             </a>
+            <a href="?page=ghost-post-connector&tab=seo-insights" class="gp-tab <?php echo $active_tab === 'seo-insights' ? 'gp-tab-active' : ''; ?>">
+                <?php esc_html_e('SEO Insights', 'ghost-post-connector'); ?>
+            </a>
+            <a href="?page=ghost-post-connector&tab=snippets" class="gp-tab <?php echo $active_tab === 'snippets' ? 'gp-tab-active' : ''; ?>">
+                <?php esc_html_e('Code Snippets', 'ghost-post-connector'); ?>
+            </a>
             <a href="?page=ghost-post-connector&tab=addons" class="gp-tab <?php echo $active_tab === 'addons' ? 'gp-tab-active' : ''; ?>">
                 <?php esc_html_e('Add-ons', 'ghost-post-connector'); ?>
             </a>
         </nav>
+        <div class="gp-topbar-brand">
+            <span class="gp-version">v<?php echo esc_html(GP_CONNECTOR_VERSION); ?></span>
+            <?php if ($update_available): ?>
+                <a href="<?php echo esc_url(admin_url('update-core.php')); ?>" class="gp-btn gp-btn-update">
+                    <?php printf(esc_html__('Update to v%s', 'ghost-post-connector'), esc_html($latest_version)); ?>
+                </a>
+            <?php endif; ?>
+            <img src="<?php echo esc_url($platform_url . '/logo.png'); ?>" alt="Ghost Post" class="gp-topbar-logo">
+        </div>
     </div>
 
     <!-- Tab Content -->
@@ -98,10 +116,6 @@ $theme_class = ($gp_theme === 'light') ? 'gp-theme-light' : 'gp-theme-dark';
 
                     <div class="gp-connection-details">
                         <table class="gp-info-table">
-                            <tr>
-                                <th><?php esc_html_e('Site Key', 'ghost-post-connector'); ?></th>
-                                <td><code><?php echo esc_html($masked_key); ?></code></td>
-                            </tr>
                             <tr>
                                 <th><?php esc_html_e('Platform URL', 'ghost-post-connector'); ?></th>
                                 <td><a href="<?php echo esc_url(defined('GP_PLATFORM_API_URL') ? GP_PLATFORM_API_URL : $platform_url); ?>" target="_blank" rel="noopener noreferrer"><?php echo esc_html(defined('GP_PLATFORM_API_URL') ? GP_PLATFORM_API_URL : $platform_url); ?></a></td>
@@ -221,6 +235,41 @@ $theme_class = ($gp_theme === 'light') ? 'gp-theme-light' : 'gp-theme-dark';
                     </select>
                 </div>
                 <div id="gp-language-result" class="gp-result-box" style="display:none;"></div>
+            </div>
+
+            <!-- Version Info -->
+            <div class="gp-panel-card">
+                <h3><?php esc_html_e('Version Information', 'ghost-post-connector'); ?></h3>
+                <p class="gp-desc"><?php esc_html_e('Current plugin version and update status.', 'ghost-post-connector'); ?></p>
+
+                <div class="gp-version-info">
+                    <table class="gp-info-table">
+                        <tr>
+                            <th><?php esc_html_e('Current Version', 'ghost-post-connector'); ?></th>
+                            <td><span class="gp-version-badge">v<?php echo esc_html(GP_CONNECTOR_VERSION); ?></span></td>
+                        </tr>
+                        <tr>
+                            <th><?php esc_html_e('Latest Version', 'ghost-post-connector'); ?></th>
+                            <td id="gp-latest-version-row">
+                                <?php if ($latest_version): ?>
+                                    <span class="gp-version-badge <?php echo $update_available ? 'gp-version-new' : ''; ?>">v<?php echo esc_html($latest_version); ?></span>
+                                    <?php if ($update_available): ?>
+                                        <a href="<?php echo esc_url(admin_url('update-core.php')); ?>" class="gp-btn gp-btn-sm gp-btn-update"><?php esc_html_e('Update Now', 'ghost-post-connector'); ?></a>
+                                    <?php else: ?>
+                                        <span class="gp-up-to-date">&#10003; <?php esc_html_e('Up to date', 'ghost-post-connector'); ?></span>
+                                    <?php endif; ?>
+                                <?php else: ?>
+                                    <span class="gp-text-muted"><?php esc_html_e('Not checked yet', 'ghost-post-connector'); ?></span>
+                                <?php endif; ?>
+                            </td>
+                        </tr>
+                    </table>
+
+                    <button type="button" id="gp-check-version" class="gp-btn gp-btn-outline">
+                        <?php esc_html_e('Check for Updates', 'ghost-post-connector'); ?>
+                    </button>
+                    <div id="gp-version-result" class="gp-result-box" style="display: none;"></div>
+                </div>
             </div>
         </div>
 
@@ -405,6 +454,258 @@ $theme_class = ($gp_theme === 'light') ? 'gp-theme-light' : 'gp-theme-dark';
                                     <button type="button" class="gp-btn-icon gp-btn-danger gp-delete-redirect" data-id="<?php echo esc_attr($redirect['id']); ?>">
                                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
                                     </button>
+                                </td>
+                            </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                <?php endif; ?>
+            </div>
+        </div>
+
+        <?php elseif ($active_tab === 'seo-insights'): ?>
+        <!-- ==================== SEO INSIGHTS TAB ==================== -->
+        <div class="gp-tab-panel">
+            <div class="gp-panel-card">
+                <div class="gp-seo-header">
+                    <div>
+                        <h3><?php esc_html_e('SEO Insights', 'ghost-post-connector'); ?></h3>
+                        <p class="gp-desc"><?php esc_html_e('Overview of your website SEO performance from Ghost Post platform.', 'ghost-post-connector'); ?></p>
+                    </div>
+                    <button type="button" id="gp-refresh-seo" class="gp-btn gp-btn-outline">
+                        <?php esc_html_e('Refresh Data', 'ghost-post-connector'); ?>
+                    </button>
+                </div>
+
+                <div id="gp-seo-loading" class="gp-loading-state">
+                    <div class="gp-spinner"></div>
+                    <p><?php esc_html_e('Loading SEO data...', 'ghost-post-connector'); ?></p>
+                </div>
+
+                <div id="gp-seo-error" class="gp-result-box error" style="display: none;"></div>
+
+                <div id="gp-seo-content" style="display: none;">
+
+                    <!-- Traffic Stats -->
+                    <div class="gp-seo-stats-row">
+                        <div class="gp-stat-card">
+                            <span class="gp-stat-value" id="gp-seo-total-traffic">&mdash;</span>
+                            <span class="gp-stat-label"><?php esc_html_e('Total Traffic', 'ghost-post-connector'); ?></span>
+                        </div>
+                        <div class="gp-stat-card">
+                            <span class="gp-stat-value" id="gp-seo-ai-traffic">&mdash;</span>
+                            <span class="gp-stat-label"><?php esc_html_e('AI Traffic', 'ghost-post-connector'); ?></span>
+                        </div>
+                        <div class="gp-stat-card">
+                            <span class="gp-stat-value" id="gp-seo-keywords-count">&mdash;</span>
+                            <span class="gp-stat-label"><?php esc_html_e('Tracked Keywords', 'ghost-post-connector'); ?></span>
+                        </div>
+                        <div class="gp-stat-card">
+                            <span class="gp-stat-value" id="gp-seo-issues-count">&mdash;</span>
+                            <span class="gp-stat-label"><?php esc_html_e('Agent Issues', 'ghost-post-connector'); ?></span>
+                        </div>
+                    </div>
+
+                    <!-- Traffic Chart -->
+                    <div class="gp-panel-card gp-chart-card">
+                        <h4><?php esc_html_e('Traffic Overview', 'ghost-post-connector'); ?></h4>
+                        <div class="gp-chart-container">
+                            <canvas id="gp-traffic-chart" height="300"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- AI Agent Issues -->
+                    <div class="gp-panel-card">
+                        <h4><?php esc_html_e('AI Agent Issues', 'ghost-post-connector'); ?></h4>
+                        <div id="gp-agent-issues">
+                            <div class="gp-empty-state">
+                                <p><?php esc_html_e('No issues found.', 'ghost-post-connector'); ?></p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="gp-seo-two-col">
+                        <!-- Top Keywords -->
+                        <div class="gp-panel-card">
+                            <h4><?php esc_html_e('Top 10 Keywords', 'ghost-post-connector'); ?></h4>
+                            <table class="gp-seo-table" id="gp-top-keywords">
+                                <thead>
+                                    <tr>
+                                        <th>#</th>
+                                        <th><?php esc_html_e('Keyword', 'ghost-post-connector'); ?></th>
+                                        <th><?php esc_html_e('Position', 'ghost-post-connector'); ?></th>
+                                        <th><?php esc_html_e('Volume', 'ghost-post-connector'); ?></th>
+                                        <th><?php esc_html_e('Change', 'ghost-post-connector'); ?></th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+
+                        <!-- Top Pages -->
+                        <div class="gp-panel-card">
+                            <h4><?php esc_html_e('Top 10 Pages', 'ghost-post-connector'); ?></h4>
+                            <table class="gp-seo-table" id="gp-top-pages">
+                                <thead>
+                                    <tr>
+                                        <th>#</th>
+                                        <th><?php esc_html_e('Page', 'ghost-post-connector'); ?></th>
+                                        <th><?php esc_html_e('Traffic', 'ghost-post-connector'); ?></th>
+                                        <th><?php esc_html_e('Avg. Position', 'ghost-post-connector'); ?></th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <?php elseif ($active_tab === 'snippets'): ?>
+        <!-- ==================== CODE SNIPPETS TAB ==================== -->
+        <div class="gp-tab-panel">
+
+            <!-- Snippet View Toggle -->
+            <div class="gp-snippets-header">
+                <div class="gp-snippets-views">
+                    <a href="?page=ghost-post-connector&tab=snippets&snippet_view=active" class="gp-btn <?php echo $snippet_view !== 'trash' ? 'gp-btn-primary' : 'gp-btn-outline'; ?>">
+                        <?php esc_html_e('Active Snippets', 'ghost-post-connector'); ?>
+                    </a>
+                    <a href="?page=ghost-post-connector&tab=snippets&snippet_view=trash" class="gp-btn <?php echo $snippet_view === 'trash' ? 'gp-btn-primary' : 'gp-btn-outline'; ?>">
+                        <?php esc_html_e('Trash', 'ghost-post-connector'); ?>
+                    </a>
+                </div>
+                <?php if ($snippet_view !== 'trash'): ?>
+                <button type="button" id="gp-add-snippet" class="gp-btn gp-btn-primary">
+                    + <?php esc_html_e('Add New Snippet', 'ghost-post-connector'); ?>
+                </button>
+                <?php endif; ?>
+            </div>
+
+            <!-- Snippet Form (hidden by default) -->
+            <div id="gp-snippet-form-wrap" class="gp-panel-card" style="display: none;">
+                <h3 id="gp-snippet-form-title"><?php esc_html_e('Add New Snippet', 'ghost-post-connector'); ?></h3>
+                <form id="gp-snippet-form">
+                    <input type="hidden" id="gp-snippet-id" value="">
+                    <div class="gp-snippet-form-grid">
+                        <div class="gp-form-group gp-form-full">
+                            <label for="gp-snippet-title"><?php esc_html_e('Title', 'ghost-post-connector'); ?></label>
+                            <input type="text" id="gp-snippet-title" placeholder="<?php esc_attr_e('e.g. Google Analytics Script', 'ghost-post-connector'); ?>" required>
+                        </div>
+                        <div class="gp-form-group gp-form-full">
+                            <label for="gp-snippet-description"><?php esc_html_e('Description', 'ghost-post-connector'); ?></label>
+                            <input type="text" id="gp-snippet-description" placeholder="<?php esc_attr_e('Brief description of what this snippet does', 'ghost-post-connector'); ?>">
+                        </div>
+                        <div class="gp-form-group">
+                            <label for="gp-snippet-type"><?php esc_html_e('Code Type', 'ghost-post-connector'); ?></label>
+                            <select id="gp-snippet-type">
+                                <option value="php">PHP</option>
+                                <option value="js">JavaScript</option>
+                                <option value="html">HTML</option>
+                                <option value="css">CSS</option>
+                                <option value="php_js">PHP + JS</option>
+                                <option value="js_css">JS + CSS</option>
+                                <option value="html_css">HTML + CSS</option>
+                            </select>
+                        </div>
+                        <div class="gp-form-group">
+                            <label for="gp-snippet-location"><?php esc_html_e('Location', 'ghost-post-connector'); ?></label>
+                            <select id="gp-snippet-location">
+                                <option value="header"><?php esc_html_e('Header', 'ghost-post-connector'); ?></option>
+                                <option value="footer"><?php esc_html_e('Footer', 'ghost-post-connector'); ?></option>
+                                <option value="everywhere"><?php esc_html_e('Everywhere', 'ghost-post-connector'); ?></option>
+                            </select>
+                        </div>
+                        <div class="gp-form-group">
+                            <label for="gp-snippet-priority"><?php esc_html_e('Priority', 'ghost-post-connector'); ?></label>
+                            <input type="number" id="gp-snippet-priority" value="10" min="1" max="999">
+                        </div>
+                        <div class="gp-form-group gp-form-full">
+                            <label for="gp-snippet-code"><?php esc_html_e('Code', 'ghost-post-connector'); ?></label>
+                            <textarea id="gp-snippet-code" class="gp-code-editor" rows="12" placeholder="<?php esc_attr_e('Paste your code here...', 'ghost-post-connector'); ?>"></textarea>
+                        </div>
+                    </div>
+                    <div class="gp-snippet-form-actions">
+                        <button type="submit" class="gp-btn gp-btn-primary" id="gp-save-snippet">
+                            <?php esc_html_e('Save Snippet', 'ghost-post-connector'); ?>
+                        </button>
+                        <button type="button" class="gp-btn gp-btn-outline" id="gp-cancel-snippet">
+                            <?php esc_html_e('Cancel', 'ghost-post-connector'); ?>
+                        </button>
+                    </div>
+                </form>
+                <div id="gp-snippet-result" class="gp-result-box" style="display: none;"></div>
+            </div>
+
+            <!-- Snippets List -->
+            <div class="gp-panel-card">
+                <?php
+                $filtered_snippets = array_filter($gp_snippets, function($s) use ($snippet_view) {
+                    if ($snippet_view === 'trash') return !empty($s['trashed']);
+                    return empty($s['trashed']);
+                });
+                ?>
+
+                <?php if (empty($filtered_snippets)): ?>
+                    <div class="gp-empty-state">
+                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.3">
+                            <polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/>
+                        </svg>
+                        <?php if ($snippet_view === 'trash'): ?>
+                            <p><?php esc_html_e('Trash is empty.', 'ghost-post-connector'); ?></p>
+                        <?php else: ?>
+                            <p><?php esc_html_e('No code snippets yet. Add your first snippet or let Ghost Post manage custom code for your site.', 'ghost-post-connector'); ?></p>
+                        <?php endif; ?>
+                    </div>
+                <?php else: ?>
+                    <table class="gp-snippets-table">
+                        <thead>
+                            <tr>
+                                <th class="gp-col-status"><?php esc_html_e('Status', 'ghost-post-connector'); ?></th>
+                                <th><?php esc_html_e('Title', 'ghost-post-connector'); ?></th>
+                                <th><?php esc_html_e('Type', 'ghost-post-connector'); ?></th>
+                                <th><?php esc_html_e('Priority', 'ghost-post-connector'); ?></th>
+                                <th><?php esc_html_e('Last Edit', 'ghost-post-connector'); ?></th>
+                                <th class="gp-col-actions"><?php esc_html_e('Actions', 'ghost-post-connector'); ?></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($filtered_snippets as $snippet): ?>
+                            <tr data-id="<?php echo esc_attr($snippet['id']); ?>" class="<?php echo ($snippet['status'] ?? 'inactive') !== 'active' ? 'gp-inactive-row' : ''; ?>">
+                                <td class="gp-col-status">
+                                    <?php if ($snippet_view !== 'trash'): ?>
+                                    <button type="button" class="gp-snippet-toggle" data-id="<?php echo esc_attr($snippet['id']); ?>" data-active="<?php echo ($snippet['status'] ?? 'inactive') === 'active' ? '1' : '0'; ?>">
+                                        <span class="gp-status-indicator-dot <?php echo ($snippet['status'] ?? 'inactive') === 'active' ? 'active' : 'inactive'; ?>"></span>
+                                    </button>
+                                    <?php endif; ?>
+                                </td>
+                                <td>
+                                    <strong><?php echo esc_html($snippet['title'] ?? ''); ?></strong>
+                                    <?php if (!empty($snippet['description'])): ?>
+                                        <span class="gp-snippet-desc"><?php echo esc_html($snippet['description']); ?></span>
+                                    <?php endif; ?>
+                                </td>
+                                <td><span class="gp-type-badge gp-type-snippet-<?php echo esc_attr($snippet['type'] ?? 'html'); ?>"><?php echo esc_html(strtoupper(str_replace('_', ' + ', $snippet['type'] ?? 'html'))); ?></span></td>
+                                <td><?php echo intval($snippet['priority'] ?? 10); ?></td>
+                                <td class="gp-activity-time"><?php echo esc_html($snippet['updated_at'] ?? $snippet['created_at'] ?? '—'); ?></td>
+                                <td class="gp-col-actions">
+                                    <?php if ($snippet_view === 'trash'): ?>
+                                        <button type="button" class="gp-btn-icon gp-restore-snippet" data-id="<?php echo esc_attr($snippet['id']); ?>" title="<?php esc_attr_e('Restore', 'ghost-post-connector'); ?>">
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
+                                        </button>
+                                        <button type="button" class="gp-btn-icon gp-btn-danger gp-permanent-delete-snippet" data-id="<?php echo esc_attr($snippet['id']); ?>" title="<?php esc_attr_e('Delete Permanently', 'ghost-post-connector'); ?>">
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                                        </button>
+                                    <?php else: ?>
+                                        <button type="button" class="gp-btn-icon gp-edit-snippet" data-id="<?php echo esc_attr($snippet['id']); ?>" title="<?php esc_attr_e('Edit', 'ghost-post-connector'); ?>">
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                                        </button>
+                                        <button type="button" class="gp-btn-icon gp-btn-danger gp-trash-snippet" data-id="<?php echo esc_attr($snippet['id']); ?>" title="<?php esc_attr_e('Move to Trash', 'ghost-post-connector'); ?>">
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                                        </button>
+                                    <?php endif; ?>
                                 </td>
                             </tr>
                             <?php endforeach; ?>

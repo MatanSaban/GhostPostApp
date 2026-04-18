@@ -4251,13 +4251,15 @@
     "inputPlaceholder": "הקלד את ההודעה שלך...",
     "sections": {
       "conversations": "שיחות",
+      "conversationsForSite": "שיחות על האתר",
       "quickActions": "פעולות מהירות",
       "aiConfiguration": "הגדרות AI",
       "activeSession": "סשן פעיל"
     },
     "agentInfo": {
       "name": "סוכן Ghost",
-      "status": "פעיל ולומד"
+      "status": "פעיל ולומד",
+      "thinking": "חושב..."
     },
     "buttons": {
       "retry": "נסה שוב"
@@ -4322,7 +4324,17 @@
       "twoMinAgo": "לפני 2 דקות",
       "oneHourAgo": "לפני שעה",
       "threeHoursAgo": "לפני 3 שעות",
-      "yesterday": "אתמול"
+      "yesterday": "אתמול",
+      "justNow": "עכשיו",
+      "minutesAgo": "דקות",
+      "hoursAgo": "שעות"
+    },
+    "noConversations": "אין שיחות עדיין",
+    "untitledConversation": "שיחה חדשה",
+    "messages": "הודעות",
+    "activeUser": "נמצא גם בשיחה הזו",
+    "errors": {
+      "aiError": "שגיאה בקבלת תשובת AI. נסה שוב."
     },
     "aiResponses": {
       "processing": "מעבד את הבקשה שלך... אנתח את הנתונים ואחזור אליך בקרוב."

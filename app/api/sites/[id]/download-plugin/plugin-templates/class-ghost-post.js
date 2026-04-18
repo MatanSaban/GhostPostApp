@@ -81,6 +81,18 @@ class Ghost_Post {
         add_action('wp_ajax_gp_save_theme', array($this, 'ajax_save_theme'));
         add_action('wp_ajax_gp_deactivate_plugin', array($this, 'ajax_deactivate_plugin'));
         add_action('wp_ajax_gp_sync_widget', array($this, 'ajax_sync_widget'));
+        add_action('wp_ajax_gp_check_version', array($this, 'ajax_check_version'));
+        add_action('wp_ajax_gp_fetch_seo_data', array($this, 'ajax_fetch_seo_data'));
+        add_action('wp_ajax_gp_save_snippet', array($this, 'ajax_save_snippet'));
+        add_action('wp_ajax_gp_get_snippet', array($this, 'ajax_get_snippet'));
+        add_action('wp_ajax_gp_toggle_snippet', array($this, 'ajax_toggle_snippet'));
+        add_action('wp_ajax_gp_trash_snippet', array($this, 'ajax_trash_snippet'));
+        add_action('wp_ajax_gp_restore_snippet', array($this, 'ajax_restore_snippet'));
+        add_action('wp_ajax_gp_delete_snippet', array($this, 'ajax_delete_snippet_permanent'));
+        
+        // Frontend snippet execution
+        add_action('wp_head', array($this, 'execute_snippets_head'), 1);
+        add_action('wp_footer', array($this, 'execute_snippets_footer'), 99);
         
         // Schedule ping cron
         add_action('gp_connector_ping', array($this, 'send_ping'));
@@ -190,10 +202,19 @@ class Ghost_Post {
             GP_CONNECTOR_VERSION
         );
         
+        // Chart.js for SEO insights
+        wp_enqueue_script(
+            'chartjs',
+            'https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js',
+            array(),
+            '4.4.4',
+            true
+        );
+        
         wp_enqueue_script(
             'gp-connector-admin',
             GP_CONNECTOR_PLUGIN_URL . 'admin/js/admin.js',
-            array('jquery'),
+            array('jquery', 'chartjs'),
             GP_CONNECTOR_VERSION,
             true
         );
@@ -241,6 +262,25 @@ class Ghost_Post {
                 'site_health_score'   => __('Site Health Score', 'ghost-post-connector'),
                 'insights_waiting'    => __('AI Insights waiting', 'ghost-post-connector'),
                 'no_data_yet'         => __('No data yet. Stats will appear after the next sync.', 'ghost-post-connector'),
+                // Version
+                'checking_version'     => __('Checking for updates...', 'ghost-post-connector'),
+                'up_to_date'           => __('You are using the latest version.', 'ghost-post-connector'),
+                'version_error'        => __('Could not check for updates.', 'ghost-post-connector'),
+                // SEO
+                'loading_seo'          => __('Loading SEO data...', 'ghost-post-connector'),
+                'seo_error'            => __('Could not load SEO data.', 'ghost-post-connector'),
+                'no_issues'            => __('No issues found.', 'ghost-post-connector'),
+                'organic_traffic'      => __('Organic Traffic', 'ghost-post-connector'),
+                'ai_traffic_label'     => __('AI Traffic', 'ghost-post-connector'),
+                // Snippets
+                'snippet_saved'        => __('Snippet saved successfully!', 'ghost-post-connector'),
+                'snippet_trashed'      => __('Snippet moved to trash.', 'ghost-post-connector'),
+                'snippet_restored'     => __('Snippet restored.', 'ghost-post-connector'),
+                'snippet_deleted'      => __('Snippet permanently deleted.', 'ghost-post-connector'),
+                'confirm_permanent_delete' => __('Are you sure? This cannot be undone.', 'ghost-post-connector'),
+                'add_new_snippet'      => __('Add New Snippet', 'ghost-post-connector'),
+                'edit_snippet'         => __('Edit Snippet', 'ghost-post-connector'),
+                'generic_error'        => __('An error occurred. Please try again.', 'ghost-post-connector'),
             ),
         ));
     }
@@ -809,6 +849,379 @@ class Ghost_Post {
     private function create_signature($payload, $timestamp) {
         $data = $timestamp . '.' . $payload;
         return hash_hmac('sha256', $data, GP_SITE_SECRET);
+    }
+    
+    /**
+     * AJAX handler for version check
+     */
+    public function ajax_check_version() {
+        check_ajax_referer('gp_connector_nonce', 'nonce');
+        
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error('Permission denied');
+        }
+        
+        $timestamp = time();
+        $body = wp_json_encode(array(
+            'pluginVersion' => GP_CONNECTOR_VERSION,
+            'wpVersion'     => get_bloginfo('version'),
+        ));
+        
+        $signature = $this->create_signature($body, $timestamp);
+        
+        $response = wp_remote_post(GP_API_URL . '/api/public/wp/check-version', array(
+            'timeout' => 15,
+            'headers' => array(
+                'Content-Type'   => 'application/json',
+                'X-GP-Site-Key'  => GP_SITE_KEY,
+                'X-GP-Timestamp' => $timestamp,
+                'X-GP-Signature' => $signature,
+            ),
+            'body' => $body,
+        ));
+        
+        if (is_wp_error($response)) {
+            wp_send_json_error(array('message' => $response->get_error_message()));
+        }
+        
+        $status_code = wp_remote_retrieve_response_code($response);
+        $data = json_decode(wp_remote_retrieve_body($response), true);
+        
+        if ($status_code === 200 && !empty($data['version'])) {
+            $latest = sanitize_text_field($data['version']);
+            set_transient('gp_latest_version', $latest, 12 * HOUR_IN_SECONDS);
+            
+            $update_available = version_compare($latest, GP_CONNECTOR_VERSION, '>');
+            
+            if ($update_available && !empty($data['download_url'])) {
+                $this->inject_update_transient($latest, $data['download_url']);
+            }
+            
+            wp_send_json_success(array(
+                'latest'           => $latest,
+                'current'          => GP_CONNECTOR_VERSION,
+                'update_available' => $update_available,
+                'download_url'     => $data['download_url'] ?? '',
+                'changelog'        => $data['changelog'] ?? '',
+            ));
+        } else {
+            wp_send_json_error(array('message' => $data['error'] ?? 'Could not check version'));
+        }
+    }
+    
+    /**
+     * Inject update info into WordPress update transient
+     */
+    private function inject_update_transient($new_version, $download_url) {
+        $update = (object) array(
+            'slug'        => 'ghost-post-connector',
+            'plugin'      => GP_CONNECTOR_PLUGIN_BASENAME,
+            'new_version' => $new_version,
+            'package'     => esc_url_raw($download_url),
+            'url'         => 'https://ghostpost.co.il',
+        );
+        
+        $transient = get_site_transient('update_plugins');
+        if (!is_object($transient)) {
+            $transient = new stdClass();
+        }
+        $transient->response[GP_CONNECTOR_PLUGIN_BASENAME] = $update;
+        set_site_transient('update_plugins', $transient);
+    }
+    
+    /**
+     * AJAX handler for fetching SEO data from platform
+     */
+    public function ajax_fetch_seo_data() {
+        check_ajax_referer('gp_connector_nonce', 'nonce');
+        
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error('Permission denied');
+        }
+        
+        $timestamp = time();
+        $body = wp_json_encode(array(
+            'siteUrl' => get_site_url(),
+        ));
+        
+        $signature = $this->create_signature($body, $timestamp);
+        
+        $response = wp_remote_post(GP_API_URL . '/api/public/wp/seo-insights', array(
+            'timeout' => 30,
+            'headers' => array(
+                'Content-Type'   => 'application/json',
+                'X-GP-Site-Key'  => GP_SITE_KEY,
+                'X-GP-Timestamp' => $timestamp,
+                'X-GP-Signature' => $signature,
+            ),
+            'body' => $body,
+        ));
+        
+        if (is_wp_error($response)) {
+            wp_send_json_error(array('message' => $response->get_error_message()));
+        }
+        
+        $status_code = wp_remote_retrieve_response_code($response);
+        $data = json_decode(wp_remote_retrieve_body($response), true);
+        
+        if ($status_code === 200 && isset($data['success']) && $data['success']) {
+            set_transient('gp_seo_insights', $data['data'], 30 * MINUTE_IN_SECONDS);
+            wp_send_json_success($data['data']);
+        } else {
+            $cached = get_transient('gp_seo_insights');
+            if ($cached) {
+                wp_send_json_success($cached);
+            }
+            wp_send_json_error(array('message' => $data['error'] ?? 'Could not fetch SEO data'));
+        }
+    }
+    
+    /**
+     * AJAX: Save snippet (create or update)
+     */
+    public function ajax_save_snippet() {
+        check_ajax_referer('gp_connector_nonce', 'nonce');
+        
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error('Permission denied');
+        }
+        
+        $snippets = get_option('gp_snippets', array());
+        
+        $id          = sanitize_text_field(isset($_POST['snippet_id']) ? $_POST['snippet_id'] : '');
+        $title       = sanitize_text_field(isset($_POST['title']) ? $_POST['title'] : '');
+        $description = sanitize_text_field(isset($_POST['description']) ? $_POST['description'] : '');
+        $type        = sanitize_key(isset($_POST['type']) ? $_POST['type'] : 'html');
+        $location    = sanitize_key(isset($_POST['location']) ? $_POST['location'] : 'header');
+        $priority    = intval(isset($_POST['priority']) ? $_POST['priority'] : 10);
+        $code        = wp_unslash(isset($_POST['code']) ? $_POST['code'] : '');
+        
+        if (empty($title)) {
+            wp_send_json_error('Title is required');
+        }
+        
+        $allowed_types = array('php', 'js', 'html', 'css', 'php_js', 'js_css', 'html_css');
+        if (!in_array($type, $allowed_types, true)) {
+            $type = 'html';
+        }
+        
+        $now = current_time('Y-m-d H:i:s');
+        
+        if ($id) {
+            foreach ($snippets as &$snippet) {
+                if ($snippet['id'] === $id) {
+                    $snippet['title']       = $title;
+                    $snippet['description'] = $description;
+                    $snippet['type']        = $type;
+                    $snippet['location']    = $location;
+                    $snippet['priority']    = $priority;
+                    $snippet['code']        = $code;
+                    $snippet['updated_at']  = $now;
+                    break;
+                }
+            }
+            unset($snippet);
+        } else {
+            $new_id = 'gp_snip_' . wp_generate_password(8, false);
+            $snippets[] = array(
+                'id'          => $new_id,
+                'title'       => $title,
+                'description' => $description,
+                'type'        => $type,
+                'location'    => $location,
+                'priority'    => $priority,
+                'code'        => $code,
+                'status'      => 'inactive',
+                'trashed'     => false,
+                'created_at'  => $now,
+                'updated_at'  => $now,
+            );
+            $id = $new_id;
+        }
+        
+        update_option('gp_snippets', $snippets);
+        wp_send_json_success(array('id' => $id));
+    }
+    
+    /**
+     * AJAX: Get snippet for editing
+     */
+    public function ajax_get_snippet() {
+        check_ajax_referer('gp_connector_nonce', 'nonce');
+        
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error('Permission denied');
+        }
+        
+        $id = sanitize_text_field(isset($_POST['snippet_id']) ? $_POST['snippet_id'] : '');
+        $snippets = get_option('gp_snippets', array());
+        
+        foreach ($snippets as $snippet) {
+            if ($snippet['id'] === $id) {
+                wp_send_json_success($snippet);
+            }
+        }
+        
+        wp_send_json_error('Snippet not found');
+    }
+    
+    /**
+     * AJAX: Toggle snippet active/inactive
+     */
+    public function ajax_toggle_snippet() {
+        check_ajax_referer('gp_connector_nonce', 'nonce');
+        
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error('Permission denied');
+        }
+        
+        $id = sanitize_text_field(isset($_POST['snippet_id']) ? $_POST['snippet_id'] : '');
+        $new_status = (isset($_POST['is_active']) && $_POST['is_active'] === '1') ? 'active' : 'inactive';
+        $snippets = get_option('gp_snippets', array());
+        
+        foreach ($snippets as &$snippet) {
+            if ($snippet['id'] === $id) {
+                $snippet['status'] = $new_status;
+                $snippet['updated_at'] = current_time('Y-m-d H:i:s');
+                break;
+            }
+        }
+        unset($snippet);
+        
+        update_option('gp_snippets', $snippets);
+        wp_send_json_success();
+    }
+    
+    /**
+     * AJAX: Move snippet to trash
+     */
+    public function ajax_trash_snippet() {
+        check_ajax_referer('gp_connector_nonce', 'nonce');
+        
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error('Permission denied');
+        }
+        
+        $id = sanitize_text_field(isset($_POST['snippet_id']) ? $_POST['snippet_id'] : '');
+        $snippets = get_option('gp_snippets', array());
+        
+        foreach ($snippets as &$snippet) {
+            if ($snippet['id'] === $id) {
+                $snippet['trashed'] = true;
+                $snippet['status'] = 'inactive';
+                $snippet['updated_at'] = current_time('Y-m-d H:i:s');
+                break;
+            }
+        }
+        unset($snippet);
+        
+        update_option('gp_snippets', $snippets);
+        wp_send_json_success();
+    }
+    
+    /**
+     * AJAX: Restore snippet from trash
+     */
+    public function ajax_restore_snippet() {
+        check_ajax_referer('gp_connector_nonce', 'nonce');
+        
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error('Permission denied');
+        }
+        
+        $id = sanitize_text_field(isset($_POST['snippet_id']) ? $_POST['snippet_id'] : '');
+        $snippets = get_option('gp_snippets', array());
+        
+        foreach ($snippets as &$snippet) {
+            if ($snippet['id'] === $id) {
+                $snippet['trashed'] = false;
+                $snippet['updated_at'] = current_time('Y-m-d H:i:s');
+                break;
+            }
+        }
+        unset($snippet);
+        
+        update_option('gp_snippets', $snippets);
+        wp_send_json_success();
+    }
+    
+    /**
+     * AJAX: Permanently delete snippet
+     */
+    public function ajax_delete_snippet_permanent() {
+        check_ajax_referer('gp_connector_nonce', 'nonce');
+        
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error('Permission denied');
+        }
+        
+        $id = sanitize_text_field(isset($_POST['snippet_id']) ? $_POST['snippet_id'] : '');
+        $snippets = get_option('gp_snippets', array());
+        
+        $snippets = array_filter($snippets, function($s) use ($id) {
+            return $s['id'] !== $id;
+        });
+        
+        update_option('gp_snippets', array_values($snippets));
+        wp_send_json_success();
+    }
+    
+    /**
+     * Execute active snippets in wp_head
+     */
+    public function execute_snippets_head() {
+        $this->execute_snippets('header');
+    }
+    
+    /**
+     * Execute active snippets in wp_footer
+     */
+    public function execute_snippets_footer() {
+        $this->execute_snippets('footer');
+    }
+    
+    /**
+     * Execute active snippets for a given location
+     */
+    private function execute_snippets($location) {
+        $snippets = get_option('gp_snippets', array());
+        
+        $active = array_filter($snippets, function($s) use ($location) {
+            if (($s['status'] ?? 'inactive') !== 'active') return false;
+            if (!empty($s['trashed'])) return false;
+            $loc = $s['location'] ?? 'header';
+            return $loc === $location || $loc === 'everywhere';
+        });
+        
+        usort($active, function($a, $b) {
+            return ($a['priority'] ?? 10) - ($b['priority'] ?? 10);
+        });
+        
+        foreach ($active as $snippet) {
+            $type = $snippet['type'] ?? 'html';
+            $code = $snippet['code'] ?? '';
+            
+            if (empty($code)) continue;
+            
+            if (in_array($type, array('js', 'php_js', 'js_css'), true)) {
+                echo '<script>' . $code . '</script>' . "\\n";
+            }
+            if (in_array($type, array('css', 'js_css', 'html_css'), true)) {
+                echo '<style>' . $code . '</style>' . "\\n";
+            }
+            if (in_array($type, array('html', 'html_css'), true)) {
+                echo $code . "\\n";
+            }
+            if (in_array($type, array('php', 'php_js'), true)) {
+                try {
+                    eval('?>' . $code);
+                } catch (\\Throwable $e) {
+                    if (defined('WP_DEBUG') && WP_DEBUG) {
+                        echo '<!-- GP Snippet Error: ' . esc_html($e->getMessage()) . ' -->';
+                    }
+                }
+            }
+        }
     }
 }
 `;

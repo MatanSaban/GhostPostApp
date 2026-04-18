@@ -4246,13 +4246,15 @@
     "inputPlaceholder": "Type your message...",
     "sections": {
       "conversations": "Conversations",
+      "conversationsForSite": "Conversations for site",
       "quickActions": "Quick Actions",
       "aiConfiguration": "AI Configuration",
       "activeSession": "Active Session"
     },
     "agentInfo": {
       "name": "Ghost Agent",
-      "status": "Active & Learning"
+      "status": "Active & Learning",
+      "thinking": "Thinking..."
     },
     "buttons": {
       "retry": "Retry"
@@ -4317,7 +4319,17 @@
       "twoMinAgo": "2m ago",
       "oneHourAgo": "1h ago",
       "threeHoursAgo": "3h ago",
-      "yesterday": "Yesterday"
+      "yesterday": "Yesterday",
+      "justNow": "Just now",
+      "minutesAgo": "min ago",
+      "hoursAgo": "hours ago"
+    },
+    "noConversations": "No conversations yet",
+    "untitledConversation": "New conversation",
+    "messages": "messages",
+    "activeUser": "is also in this conversation",
+    "errors": {
+      "aiError": "Error getting AI response. Please try again."
     },
     "aiResponses": {
       "processing": "Processing your request... I'll analyze the data and get back to you shortly."
