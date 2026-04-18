@@ -1,312 +1,268 @@
-/**
+﻿/**
  * Generate admin JavaScript file for Ghost Post Connector
  */
 export function getAdminJs() {
-  return `(function($) {
+  return `/**
+ * Ghost Post Admin JavaScript
+ */
+
+(function($) {
     'use strict';
 
-    // ========== Redirects Management ==========
+    var $resultBox = $('#gp-connection-result');
 
-    var editingId = '';
-
-    // Show result message
-    function showResult(container, message, isError) {
-        var cls = isError ? 'notice notice-error' : 'notice notice-success';
-        $(container).html('<div class="' + cls + '"><p>' + message + '</p></div>').show();
-        setTimeout(function() { $(container).fadeOut(function() { $(this).empty().show(); }); }, 4000);
+    // ==========================================
+    // Helper: show result box
+    // ==========================================
+    function showResult($el, type, msg) {
+        $el.removeClass('success error loading').addClass(type).html(msg).show();
     }
 
-    // Save redirect (create or update)
-    $(document).on('submit', '#gp-redirect-form', function(e) {
+    // ==========================================
+    // Connection tab: Test Connection
+    // ==========================================
+    $('#gp-test-connection').on('click', function() {
+        var $btn = $(this);
+        $btn.prop('disabled', true);
+
+        showResult($resultBox, 'loading', gpAdmin.strings.testing);
+
+        $.ajax({
+            url: gpAdmin.ajaxUrl,
+            type: 'POST',
+            data: { action: 'gp_test_connection', nonce: gpAdmin.nonce },
+            success: function(response) {
+                if (response.success) {
+                    showResult($resultBox, 'success', gpAdmin.strings.connection_success || 'Connection successful!');
+                    setTimeout(function() { location.reload(); }, 1500);
+                } else {
+                    showResult($resultBox, 'error', (gpAdmin.strings.connection_failed || 'Connection failed:') + ' ' + (response.data.message || response.data || 'Unknown error'));
+                }
+            },
+            error: function(xhr, status, error) {
+                showResult($resultBox, 'error', (gpAdmin.strings.connection_failed || 'Connection failed:') + ' ' + error);
+            },
+            complete: function() {
+                $btn.prop('disabled', false);
+            }
+        });
+    });
+
+    // ==========================================
+    // Connection tab: Send Ping
+    // ==========================================
+    $('#gp-send-ping').on('click', function() {
+        var $btn = $(this);
+        $btn.prop('disabled', true);
+
+        showResult($resultBox, 'loading', gpAdmin.strings.sending || 'Sending ping...');
+
+        $.ajax({
+            url: gpAdmin.ajaxUrl,
+            type: 'POST',
+            data: { action: 'gp_send_ping', nonce: gpAdmin.nonce },
+            success: function(response) {
+                if (response.success) {
+                    showResult($resultBox, 'success', gpAdmin.strings.ping_success || 'Ping sent successfully!');
+                } else {
+                    showResult($resultBox, 'error', (gpAdmin.strings.ping_failed || 'Ping failed:') + ' ' + (response.data.message || response.data || 'Unknown error'));
+                }
+            },
+            error: function(xhr, status, error) {
+                showResult($resultBox, 'error', (gpAdmin.strings.ping_failed || 'Ping failed:') + ' ' + error);
+            },
+            complete: function() {
+                $btn.prop('disabled', false);
+            }
+        });
+    });
+
+    // ==========================================
+    // Connection tab: Copy Key
+    // ==========================================
+    $('#gp-copy-key').on('click', function() {
+        var $btn = $(this);
+        var keyText = gpAdmin.siteKey || '';
+
+        if (!keyText) return;
+
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(keyText).then(function() {
+                var orig = $btn.text();
+                $btn.text('Copied!');
+                setTimeout(function() { $btn.text(orig); }, 2000);
+            });
+        } else {
+            // Fallback
+            var $temp = $('<textarea>').val(keyText).appendTo('body').select();
+            document.execCommand('copy');
+            $temp.remove();
+            var orig = $btn.text();
+            $btn.text('Copied!');
+            setTimeout(function() { $btn.text(orig); }, 2000);
+        }
+    });
+
+    // ==========================================
+    // Redirections tab: Save redirect
+    // ==========================================
+    var $saveResult = $('#gp-save-result');
+    var $importResult = $('#gp-import-result');
+
+    $('#gp-redirect-form').on('submit', function(e) {
         e.preventDefault();
 
-        var data = {
-            action: 'gp_save_redirect',
-            nonce: gpAdmin.nonce,
-            source: $('#gp-source-url').val(),
-            target: $('#gp-target-url').val(),
-            type: $('#gp-redirect-type').val(),
-            redirect_id: editingId
-        };
+        var $btn = $('#gp-save-redirect');
+        $btn.prop('disabled', true);
 
-        $.post(gpAdmin.ajaxUrl, data, function(response) {
-            if (response.success) {
-                location.reload();
-            } else {
-                showResult('#gp-save-result', response.data || 'Error saving redirect', true);
+        $.ajax({
+            url: gpAdmin.ajaxUrl,
+            type: 'POST',
+            data: {
+                action: 'gp_save_redirect',
+                nonce: gpAdmin.nonce,
+                redirect_id: $('#gp-redirect-id').val(),
+                source: $('#gp-source-url').val(),
+                target: $('#gp-target-url').val(),
+                type: $('#gp-redirect-type').val()
+            },
+            success: function(response) {
+                if (response.success) {
+                    showResult($saveResult, 'success', 'Redirect saved successfully!');
+                    setTimeout(function() { location.reload(); }, 800);
+                } else {
+                    showResult($saveResult, 'error', 'Error: ' + (response.data || 'Unknown error'));
+                }
+            },
+            error: function(xhr, status, error) {
+                showResult($saveResult, 'error', 'Error: ' + error);
+            },
+            complete: function() {
+                $btn.prop('disabled', false);
             }
-        }).fail(function() {
-            showResult('#gp-save-result', 'Request failed', true);
         });
     });
 
     // Edit redirect
-    $(document).on('click', '.gp-edit-redirect', function(e) {
-        e.preventDefault();
-        var btn = $(this);
-        editingId = btn.data('id');
-        $('#gp-source-url').val(btn.data('source'));
-        $('#gp-target-url').val(btn.data('target'));
-        $('#gp-redirect-type').val(btn.data('type'));
-        $('#gp-save-redirect').text(gpAdmin.strings.save_redirect || 'Save Redirect');
+    $(document).on('click', '.gp-edit-redirect', function() {
+        var $btn = $(this);
+        $('#gp-redirect-id').val($btn.data('id'));
+        $('#gp-source-url').val($btn.data('source'));
+        $('#gp-target-url').val($btn.data('target'));
+        $('#gp-redirect-type').val($btn.data('type'));
+
+        $('#gp-save-redirect').text(gpAdmin.strings.save_redirect || 'Update Redirect');
         $('#gp-cancel-edit').show();
-        $('html, body').animate({ scrollTop: $('#gp-redirect-form').offset().top - 50 }, 300);
+
+        $('html, body').animate({
+            scrollTop: $('#gp-redirect-form').offset().top - 100
+        }, 300);
     });
 
     // Cancel edit
-    $(document).on('click', '#gp-cancel-edit', function(e) {
-        e.preventDefault();
-        editingId = '';
-        $('#gp-redirect-form')[0].reset();
+    $('#gp-cancel-edit').on('click', function() {
+        $('#gp-redirect-id').val('');
+        $('#gp-source-url').val('');
+        $('#gp-target-url').val('');
         $('#gp-redirect-type').val('301');
         $('#gp-save-redirect').text(gpAdmin.strings.add_redirect || 'Add Redirect');
         $(this).hide();
     });
 
     // Delete redirect
-    $(document).on('click', '.gp-delete-redirect', function(e) {
-        e.preventDefault();
-        if (!confirm(gpAdmin.strings.confirm_delete)) return;
+    $(document).on('click', '.gp-delete-redirect', function() {
+        if (!confirm(gpAdmin.strings.confirm_delete || 'Are you sure you want to delete this redirect?')) return;
 
-        var row = $(this).closest('tr');
-        var data = {
-            action: 'gp_delete_redirect',
-            nonce: gpAdmin.nonce,
-            redirect_id: row.data('id')
-        };
+        var $btn = $(this);
+        var $row = $btn.closest('tr');
 
-        $.post(gpAdmin.ajaxUrl, data, function(response) {
-            if (response.success) {
-                row.fadeOut(function() { $(this).remove(); });
-            } else {
-                alert(response.data || 'Error deleting redirect');
-            }
-        });
-    });
+        $btn.prop('disabled', true);
 
-    // Toggle redirect active/inactive
-    $(document).on('click', '.gp-toggle-status', function(e) {
-        e.preventDefault();
-        var btn = $(this);
-        var row = btn.closest('tr');
-        var data = {
-            action: 'gp_toggle_redirect',
-            nonce: gpAdmin.nonce,
-            redirect_id: row.data('id'),
-            active: btn.data('active') ? '1' : '0'
-        };
-
-        $.post(gpAdmin.ajaxUrl, data, function(response) {
-            if (response.success) {
-                location.reload();
-            } else {
-                alert(response.data || 'Error toggling redirect');
-            }
-        });
-    });
-
-    // Import redirects from detected plugin
-    $(document).on('click', '#gp-import-redirects', function(e) {
-        e.preventDefault();
-        var btn = $(this);
-        btn.prop('disabled', true).text(gpAdmin.strings.importing);
-
-        var data = {
-            action: 'gp_import_redirects',
-            nonce: gpAdmin.nonce
-        };
-
-        $.post(gpAdmin.ajaxUrl, data, function(response) {
-            if (response.success) {
-                showResult('#gp-import-result', gpAdmin.strings.import_success + ' Imported: ' + (response.data.imported || 0), false);
-                setTimeout(function() { location.reload(); }, 1500);
-            } else {
-                showResult('#gp-import-result', response.data || 'Import failed', true);
-                btn.prop('disabled', false).text('Import Redirects');
-            }
-        }).fail(function() {
-            showResult('#gp-import-result', 'Request failed', true);
-            btn.prop('disabled', false).text('Import Redirects');
-        });
-    });
-
-    // ========== Deactivate third-party plugin ==========
-
-    $(document).on('click', '.gp-deactivate-plugin', function(e) {
-        e.preventDefault();
-        var btn = $(this);
-        var pluginSlug = btn.data('slug');
-        var pluginName = btn.data('name');
-
-        if (!confirm(gpAdmin.strings.confirm_deactivate
-            ? gpAdmin.strings.confirm_deactivate.replace('%s', pluginName)
-            : 'Are you sure you want to deactivate ' + pluginName + '?')) {
-            return;
-        }
-
-        btn.prop('disabled', true).text(gpAdmin.strings.deactivating || 'Deactivating...');
-
-        $.post(gpAdmin.ajaxUrl, {
-            action: 'gp_deactivate_plugin',
-            nonce: gpAdmin.nonce,
-            plugin_slug: pluginSlug
-        }, function(response) {
-            if (response.success) {
-                alert(gpAdmin.strings.deactivated || 'Plugin deactivated successfully. Refreshing...');
-                location.reload();
-            } else {
-                alert(response.data || 'Failed to deactivate plugin.');
-                btn.prop('disabled', false).text(pluginName);
-            }
-        }).fail(function() {
-            alert('Request failed.');
-            btn.prop('disabled', false).text(pluginName);
-        });
-    });
-
-    // ========== Settings: Theme toggle ==========
-
-    $(document).on('click', '.gp-theme-option', function() {
-        var btn = $(this);
-        var theme = btn.data('theme');
-        var wrap = $('.gp-wrap');
-
-        // Update segmented picker UI
-        btn.siblings('.gp-theme-option').removeClass('gp-active-option');
-        btn.addClass('gp-active-option');
-
-        // Apply theme immediately
-        if (theme === 'dark') {
-            wrap.removeClass('gp-theme-light');
-        } else {
-            wrap.addClass('gp-theme-light');
-        }
-
-        // Save to server
-        $.post(gpAdmin.ajaxUrl, {
-            action: 'gp_save_theme',
-            nonce: gpAdmin.nonce,
-            theme: theme,
-        });
-    });
-
-    // ========== Settings: Language save ==========
-
-    $(document).on('submit', '#gp-language-form', function(e) {
-        e.preventDefault();
-        var btn = $('#gp-save-language');
-        btn.prop('disabled', true).text(gpAdmin.strings.saving || 'Saving...');
-
-        $.post(gpAdmin.ajaxUrl, {
-            action: 'gp_save_language',
-            nonce: gpAdmin.nonce,
-            language: $('#gp-language-select').val()
-        }, function(response) {
-            if (response.success) {
-                showResult('#gp-language-result', gpAdmin.strings.settings_saved || 'Settings saved successfully!', false);
-                setTimeout(function() { location.reload(); }, 1000);
-            } else {
-                showResult('#gp-language-result', response.data || 'Failed to save settings.', true);
-            }
-        }).fail(function() {
-            showResult('#gp-language-result', 'Request failed.', true);
-        }).always(function() {
-            btn.prop('disabled', false).text(gpAdmin.strings.save_settings || 'Save Settings');
-        });
-    });
-
-    // ========== Secret blur toggle ==========
-
-    $(document).on('click', '.gp-secret-toggle', function() {
-        var wrap = $(this).closest('.gp-secret-wrap');
-        var val = wrap.find('.gp-secret-value');
-        var isBlurred = val.hasClass('gp-blurred');
-        val.toggleClass('gp-blurred');
-        $(this).find('.gp-eye-icon').toggle(isBlurred);
-        $(this).find('.gp-eye-off-icon').toggle(!isBlurred);
-    });
-
-    // ========== Dashboard & Settings: Connection actions ==========
-
-    $(document).on('click', '#gp-check-updates', function() {
-        var btn = $(this);
-        btn.prop('disabled', true).text(gpAdmin.strings.checking || 'Checking...');
-
-        $.post(gpAdmin.ajaxUrl, { action: 'gp_check_for_updates' }, function(response) {
-            if (response.success) {
-                if (response.data.update_available) {
-                    alert((gpAdmin.strings.update_available || 'Update available! Version') + ' ' + response.data.version + '. ' + (gpAdmin.strings.go_to_plugins || 'Go to Plugins page to update.'));
+        $.ajax({
+            url: gpAdmin.ajaxUrl,
+            type: 'POST',
+            data: {
+                action: 'gp_delete_redirect',
+                nonce: gpAdmin.nonce,
+                redirect_id: $btn.data('id')
+            },
+            success: function(response) {
+                if (response.success) {
+                    $row.fadeOut(300, function() { $(this).remove(); });
                 } else {
-                    alert(gpAdmin.strings.latest_version || 'You have the latest version!');
+                    alert('Error: ' + (response.data || 'Unknown error'));
                 }
-            } else {
-                alert(gpAdmin.strings.check_failed || 'Failed to check for updates.');
-            }
-        }).fail(function() {
-            alert(gpAdmin.strings.check_failed || 'Failed to check for updates.');
-        }).always(function() {
-            btn.prop('disabled', false).text(gpAdmin.strings.check_updates || 'Check for Updates');
+            },
+            error: function() { alert('Failed to delete redirect.'); },
+            complete: function() { $btn.prop('disabled', false); }
         });
     });
 
-    $(document).on('click', '#gp-test-connection', function() {
-        var btn = $(this);
-        btn.prop('disabled', true).text(gpAdmin.strings.testing || 'Testing...');
+    // Toggle redirect status
+    $(document).on('click', '.gp-toggle-status', function() {
+        var $btn = $(this);
+        var isActive = $btn.data('active') === 1 || $btn.data('active') === '1';
+        var newState = isActive ? '0' : '1';
 
-        $.post(gpAdmin.ajaxUrl, { action: 'gp_test_connection' }, function(response) {
-            if (response.success) {
-                alert(gpAdmin.strings.connection_success || 'Connection successful!');
-                location.reload();
-            } else {
-                alert((gpAdmin.strings.connection_failed || 'Connection failed:') + ' ' + response.data);
+        $.ajax({
+            url: gpAdmin.ajaxUrl,
+            type: 'POST',
+            data: {
+                action: 'gp_toggle_redirect',
+                nonce: gpAdmin.nonce,
+                redirect_id: $btn.data('id'),
+                is_active: newState
+            },
+            success: function(response) {
+                if (response.success) {
+                    $btn.data('active', newState);
+                    var $dot = $btn.find('.gp-status-indicator-dot');
+                    var $row = $btn.closest('tr');
+                    if (newState === '1') {
+                        $dot.removeClass('inactive').addClass('active');
+                        $row.removeClass('gp-inactive-row');
+                    } else {
+                        $dot.removeClass('active').addClass('inactive');
+                        $row.addClass('gp-inactive-row');
+                    }
+                }
             }
-        }).fail(function(xhr) {
-            alert((gpAdmin.strings.connection_failed || 'Connection failed:') + ' ' + xhr.responseText);
-        }).always(function() {
-            btn.prop('disabled', false).text(gpAdmin.strings.test_connection || 'Test Connection');
         });
     });
 
-    $(document).on('click', '#gp-send-ping', function() {
-        var btn = $(this);
-        btn.prop('disabled', true).text(gpAdmin.strings.sending || 'Sending...');
+    // Import redirects
+    $('#gp-import-redirects').on('click', function() {
+        var $btn = $(this);
+        $btn.prop('disabled', true);
 
-        $.post(gpAdmin.ajaxUrl, { action: 'gp_send_ping' }, function(response) {
-            if (response.success) {
-                alert(gpAdmin.strings.ping_success || 'Ping sent successfully!');
-                location.reload();
-            } else {
-                alert((gpAdmin.strings.ping_failed || 'Ping failed:') + ' ' + response.data);
-            }
-        }).always(function() {
-            btn.prop('disabled', false).text(gpAdmin.strings.send_ping || 'Send Ping');
+        showResult($importResult, 'loading', gpAdmin.strings.importing || 'Importing redirects...');
+
+        $.ajax({
+            url: gpAdmin.ajaxUrl,
+            type: 'POST',
+            data: { action: 'gp_import_redirects', nonce: gpAdmin.nonce },
+            success: function(response) {
+                if (response.success) {
+                    var msg = gpAdmin.strings.import_success || 'Import completed!';
+                    if (response.data && response.data.imported !== undefined) {
+                        msg += ' ' + response.data.imported + ' redirects imported.';
+                    }
+                    showResult($importResult, 'success', msg);
+                    setTimeout(function() { location.reload(); }, 1500);
+                } else {
+                    showResult($importResult, 'error', 'Import failed: ' + (response.data || 'Unknown error'));
+                }
+            },
+            error: function(xhr, status, error) {
+                showResult($importResult, 'error', 'Import failed: ' + error);
+            },
+            complete: function() { $btn.prop('disabled', false); }
         });
     });
 
-    $(document).on('click', '#gp-disconnect', function() {
-        if (!confirm(gpAdmin.strings.confirm_disconnect || 'Are you sure you want to disconnect from Ghost Post?')) {
-            return;
-        }
-
-        var btn = $(this);
-        btn.prop('disabled', true).text(gpAdmin.strings.disconnecting || 'Disconnecting...');
-
-        $.post(gpAdmin.ajaxUrl, { action: 'gp_disconnect' }, function(response) {
-            if (response.success) {
-                alert(gpAdmin.strings.disconnected || 'Disconnected successfully.');
-                location.reload();
-            } else {
-                alert((gpAdmin.strings.disconnect_failed || 'Disconnect failed:') + ' ' + response.data);
-            }
-        }).fail(function() {
-            alert(gpAdmin.strings.disconnect_error || 'Disconnect failed. Please try again.');
-        }).always(function() {
-            btn.prop('disabled', false).text(gpAdmin.strings.disconnect || 'Disconnect');
-        });
-    });
-
-    // ========== Dashboard Widget: Sync button ==========
-
+    // ==========================================
+    // Dashboard Widget: Sync button
+    // ==========================================
     $(document).on('click', '#gp-widget-sync', function() {
         var btn = $(this);
         if (btn.hasClass('gp-syncing')) return;

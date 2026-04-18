@@ -120,7 +120,7 @@ class Ghost_Post {
             30
         );
         
-        // Dashboard submenu (replaces auto-generated first item)
+        // Single submenu (replaces auto-generated first item)
         add_submenu_page(
             'ghost-post-connector',
             __('Dashboard', 'ghost-post-connector'),
@@ -128,26 +128,6 @@ class Ghost_Post {
             'manage_options',
             'ghost-post-connector',
             array($this, 'render_admin_page')
-        );
-        
-        // Redirections submenu
-        add_submenu_page(
-            'ghost-post-connector',
-            __('Redirections', 'ghost-post-connector'),
-            __('Redirections', 'ghost-post-connector'),
-            'manage_options',
-            'ghost-post-redirections',
-            array($this, 'render_redirections_page')
-        );
-        
-        // Settings submenu
-        add_submenu_page(
-            'ghost-post-connector',
-            __('Settings', 'ghost-post-connector'),
-            __('Settings', 'ghost-post-connector'),
-            'manage_options',
-            'ghost-post-settings',
-            array($this, 'render_settings_page')
         );
     }
     
@@ -160,8 +140,6 @@ class Ghost_Post {
         // Menu title is 'GhostPost' → sanitize_title = 'ghostpost'
         $plugin_pages = array(
             'toplevel_page_ghost-post-connector',
-            'ghostpost_page_ghost-post-redirections',
-            'ghostpost_page_ghost-post-settings',
             'index.php', // WP Dashboard — for the dashboard widget
         );
         
@@ -187,6 +165,7 @@ class Ghost_Post {
         wp_localize_script('gp-connector-admin', 'gpAdmin', array(
             'ajaxUrl' => admin_url('admin-ajax.php'),
             'nonce'   => wp_create_nonce('gp_connector_nonce'),
+            'siteKey' => defined('GP_SITE_KEY') ? GP_SITE_KEY : '',
             'strings' => array(
                 'testing'             => __('Testing...', 'ghost-post-connector'),
                 'test_connection'     => __('Test Connection', 'ghost-post-connector'),
@@ -231,24 +210,9 @@ class Ghost_Post {
     }
     
     /**
-     * Render dashboard page
+     * Render admin page (unified tabbed interface)
      */
     public function render_admin_page() {
-        include GP_CONNECTOR_PLUGIN_DIR . 'admin/views/dashboard-page.php';
-    }
-    
-    /**
-     * Render redirections page
-     */
-    public function render_redirections_page() {
-        $this->redirections_manager = $this->redirections_manager ?? new GP_Redirections_Manager();
-        include GP_CONNECTOR_PLUGIN_DIR . 'admin/views/redirections-page.php';
-    }
-    
-    /**
-     * Render settings page
-     */
-    public function render_settings_page() {
         include GP_CONNECTOR_PLUGIN_DIR . 'admin/views/settings-page.php';
     }
     

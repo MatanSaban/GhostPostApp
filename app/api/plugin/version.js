@@ -10,10 +10,15 @@
  */
 
 // Current plugin version - increment this when making updates
-export const PLUGIN_VERSION = "2.9.0";
+export const PLUGIN_VERSION = "2.9.1";
 
 // Changelog for the current version
 export const PLUGIN_CHANGELOG = `
+= 2.9.1 =
+* FIX: Plugin logo on WordPress updates/plugins page is now contained (not stretched)
+* CHANGE: Ghost Post logo displayed in admin topbar instead of text
+* CHANGE: Connection tab is now the first tab
+
 = 2.9.0 =
 * NEW: Redesigned admin UI with tabbed navigation (Connection, Settings, Activity, Redirections, Add-ons)
 * NEW: Copy Site Key button on Connection tab
