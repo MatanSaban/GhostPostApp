@@ -8,10 +8,8 @@ export function getAdminCss() {
 
 /* ==========================================
    WordPress Sidebar — Purple Branding
-   (applied globally, not scoped to any wrapper)
    ========================================== */
 
-/* Using file URL icon → WP renders as <img> — remove grayscale filter */
 #adminmenu .toplevel_page_ghost-post-connector .wp-menu-image img {
     filter: none !important;
     opacity: 1 !important;
@@ -47,13 +45,70 @@ export function getAdminCss() {
 }
 
 /* ==========================================
+   Design Tokens — Dark Theme (default)
+   ========================================== */
+.gp-admin-wrap {
+    --gp-bg: #0f0f1a;
+    --gp-surface: #1a1a2e;
+    --gp-card: #16162a;
+    --gp-text: #f0f0f5;
+    --gp-text-secondary: #9ca3af;
+    --gp-text-muted: #6b7280;
+    --gp-border: rgba(155, 77, 224, 0.18);
+    --gp-border-light: rgba(155, 77, 224, 0.08);
+    --gp-primary: #9B4DE0;
+    --gp-primary-hover: #B06AE8;
+    --gp-primary-dark: #7B2CBF;
+    --gp-gradient: linear-gradient(135deg, #7B2CBF 0%, #4361EE 100%);
+    --gp-accent: #00FF9D;
+    --gp-success: #4ade80;
+    --gp-success-bg: rgba(74, 222, 128, 0.12);
+    --gp-danger: #f87171;
+    --gp-danger-bg: rgba(248, 113, 113, 0.12);
+    --gp-warning: #fbbf24;
+    --gp-warning-bg: rgba(251, 191, 36, 0.12);
+    --gp-input-bg: rgba(0, 0, 0, 0.3);
+    --gp-input-border: rgba(155, 77, 224, 0.25);
+    --gp-code-bg: rgba(155, 77, 224, 0.1);
+    --gp-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+    --gp-topbar-bg: #12122a;
+    --gp-tab-hover: rgba(155, 77, 224, 0.08);
+}
+
+/* Light Theme Overrides */
+.gp-admin-wrap.gp-theme-light {
+    --gp-bg: #f5f5f7;
+    --gp-surface: #ffffff;
+    --gp-card: #ffffff;
+    --gp-text: #1d1d1f;
+    --gp-text-secondary: #6b7280;
+    --gp-text-muted: #9ca3af;
+    --gp-border: rgba(0, 0, 0, 0.1);
+    --gp-border-light: rgba(0, 0, 0, 0.05);
+    --gp-primary: #7B2CBF;
+    --gp-primary-hover: #9B4DE0;
+    --gp-primary-dark: #5A1A9A;
+    --gp-gradient: linear-gradient(135deg, #7B2CBF 0%, #4361EE 100%);
+    --gp-success-bg: rgba(74, 222, 128, 0.08);
+    --gp-danger-bg: rgba(248, 113, 113, 0.08);
+    --gp-warning-bg: rgba(251, 191, 36, 0.1);
+    --gp-input-bg: #f9fafb;
+    --gp-input-border: #d1d5db;
+    --gp-code-bg: rgba(0, 0, 0, 0.04);
+    --gp-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    --gp-topbar-bg: #ffffff;
+    --gp-tab-hover: rgba(0, 0, 0, 0.04);
+}
+
+/* ==========================================
    Reset & Wrapper
    ========================================== */
 .gp-admin-wrap {
     margin: 0;
     padding: 0;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, sans-serif;
-    background: #f0f0f0;
+    background: var(--gp-bg);
+    color: var(--gp-text);
     min-height: 100vh;
     margin-left: -20px;
     margin-top: -1px;
@@ -66,13 +121,33 @@ export function getAdminCss() {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    background: #fff;
-    border-bottom: 1px solid #e0e0e0;
+    background: var(--gp-topbar-bg);
+    border-bottom: 1px solid var(--gp-border);
     padding: 0 32px;
     height: 56px;
     position: sticky;
     top: 32px;
     z-index: 100;
+}
+
+.gp-topbar-brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.gp-topbar-logo {
+    width: 28px;
+    height: 28px;
+    object-fit: contain;
+    border-radius: 6px;
+}
+
+.gp-topbar-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--gp-text);
+    letter-spacing: -0.3px;
 }
 
 .gp-tabs {
@@ -88,15 +163,15 @@ export function getAdminCss() {
     padding: 0 20px;
     font-size: 14px;
     font-weight: 500;
-    color: #555;
+    color: var(--gp-text-secondary);
     text-decoration: none;
     border-bottom: 3px solid transparent;
     transition: color 0.15s, border-color 0.15s, background 0.15s;
 }
 
 .gp-tab:hover {
-    color: #1d1d1d;
-    background: #f8f8f8;
+    color: var(--gp-text);
+    background: var(--gp-tab-hover);
 }
 
 .gp-tab:focus {
@@ -106,8 +181,8 @@ export function getAdminCss() {
 
 .gp-tab-active {
     color: #fff !important;
-    background: #2ecc71 !important;
-    border-bottom-color: #2ecc71;
+    background: var(--gp-gradient) !important;
+    border-bottom-color: transparent;
     border-radius: 4px;
     margin: 10px 4px;
     padding: 0 18px;
@@ -116,29 +191,16 @@ export function getAdminCss() {
 }
 
 .gp-tab-active:hover {
-    background: #27ae60 !important;
-}
-
-.gp-topbar-brand {
-    display: flex;
-    align-items: center;
-    gap: 12px;
+    opacity: 0.92;
 }
 
 .gp-version {
-    font-size: 12px;
-    color: #2ecc71;
+    font-size: 11px;
+    color: var(--gp-primary);
     font-weight: 600;
-    background: #e8f8f0;
+    background: rgba(155, 77, 224, 0.12);
     padding: 2px 8px;
     border-radius: 4px;
-}
-
-.gp-topbar-logo {
-    width: 36px;
-    height: 36px;
-    object-fit: contain;
-    border-radius: 6px;
 }
 
 /* ==========================================
@@ -160,16 +222,17 @@ export function getAdminCss() {
 }
 
 /* ==========================================
-   Panel Cards (generic white card)
+   Panel Cards
    ========================================== */
 .gp-panel-card,
 .gp-connect-card,
 .gp-site-info-card {
-    background: #fff;
-    border: 1px solid #e0e0e0;
+    background: var(--gp-card);
+    border: 1px solid var(--gp-border);
     border-radius: 12px;
     padding: 32px;
     margin-bottom: 24px;
+    box-shadow: var(--gp-shadow);
 }
 
 .gp-panel-card h3,
@@ -177,11 +240,11 @@ export function getAdminCss() {
     margin: 0 0 8px;
     font-size: 17px;
     font-weight: 600;
-    color: #1d1d1d;
+    color: var(--gp-text);
 }
 
 .gp-desc {
-    color: #777;
+    color: var(--gp-text-muted);
     font-size: 13px;
     margin: 0 0 24px;
 }
@@ -194,31 +257,21 @@ export function getAdminCss() {
     padding: 48px 32px 40px;
 }
 
-.gp-connect-icon {
-    color: #2ecc71;
-    margin-bottom: 16px;
-}
-
-.gp-connect-icon svg {
-    width: 48px;
-    height: 48px;
-}
-
 .gp-connect-card h2 {
     font-size: 22px;
     font-weight: 700;
-    color: #1d1d1d;
+    color: var(--gp-text);
     margin: 0 0 8px;
 }
 
 .gp-connect-desc {
-    color: #777;
+    color: var(--gp-text-secondary);
     font-size: 14px;
     margin: 0 0 28px;
 }
 
 .gp-connect-desc a {
-    color: #2ecc71;
+    color: var(--gp-primary);
     text-decoration: underline;
 }
 
@@ -234,8 +287,8 @@ export function getAdminCss() {
 
 .gp-key-display {
     flex: 1;
-    background: #f7f7f7;
-    border: 1px solid #e0e0e0;
+    background: var(--gp-input-bg);
+    border: 1px solid var(--gp-border);
     border-radius: 8px;
     padding: 12px 16px;
     text-align: center;
@@ -243,7 +296,7 @@ export function getAdminCss() {
 
 .gp-key-display code {
     font-size: 14px;
-    color: #333;
+    color: var(--gp-text);
     background: none;
     letter-spacing: 0.5px;
 }
@@ -263,53 +316,9 @@ export function getAdminCss() {
 }
 
 .gp-connect-hint {
-    color: #999;
+    color: var(--gp-text-muted);
     font-size: 12px;
     margin-top: 8px;
-}
-
-/* Steps row */
-.gp-steps-row {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 16px;
-    margin-bottom: 24px;
-}
-
-.gp-step-card {
-    background: #fff;
-    border: 1px solid #e0e0e0;
-    border-radius: 12px;
-    padding: 24px 16px;
-    text-align: center;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 6px;
-}
-
-.gp-step-num {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    background: #e8f8f0;
-    color: #2ecc71;
-    font-weight: 700;
-    font-size: 15px;
-    margin-bottom: 4px;
-}
-
-.gp-step-card strong {
-    font-size: 14px;
-    color: #1d1d1d;
-}
-
-.gp-step-hint {
-    font-size: 12px;
-    color: #999;
 }
 
 /* ==========================================
@@ -336,28 +345,28 @@ export function getAdminCss() {
 }
 
 .gp-btn-primary {
-    background: #2ecc71;
+    background: var(--gp-gradient);
     color: #fff;
 }
 
 .gp-btn-primary:hover {
-    background: #27ae60;
+    opacity: 0.9;
     color: #fff;
 }
 
 .gp-btn-outline {
-    background: #fff;
-    color: #555;
-    border: 1px solid #d0d0d0;
+    background: transparent;
+    color: var(--gp-text-secondary);
+    border: 1px solid var(--gp-border);
 }
 
 .gp-btn-outline:hover {
-    background: #f5f5f5;
-    color: #333;
+    background: var(--gp-tab-hover);
+    color: var(--gp-text);
 }
 
 .gp-btn-connect {
-    background: #2ecc71;
+    background: var(--gp-gradient);
     color: #fff;
     padding: 14px 32px;
     font-size: 15px;
@@ -365,7 +374,7 @@ export function getAdminCss() {
 }
 
 .gp-btn-connect:hover {
-    background: #27ae60;
+    opacity: 0.9;
     color: #fff;
 }
 
@@ -376,22 +385,22 @@ export function getAdminCss() {
     width: 32px;
     height: 32px;
     border-radius: 6px;
-    border: 1px solid #e0e0e0;
-    background: #fff;
+    border: 1px solid var(--gp-border);
+    background: transparent;
     cursor: pointer;
-    color: #666;
+    color: var(--gp-text-secondary);
     transition: background 0.15s, color 0.15s;
 }
 
 .gp-btn-icon:hover {
-    background: #f0f0f0;
-    color: #333;
+    background: var(--gp-tab-hover);
+    color: var(--gp-text);
 }
 
 .gp-btn-icon.gp-btn-danger:hover {
-    background: #fef2f2;
-    color: #dc3545;
-    border-color: #fca5a5;
+    background: var(--gp-danger-bg);
+    color: var(--gp-danger);
+    border-color: rgba(248, 113, 113, 0.3);
 }
 
 /* ==========================================
@@ -407,23 +416,36 @@ export function getAdminCss() {
 .gp-info-table td {
     padding: 10px 0;
     text-align: left;
-    border-bottom: 1px solid #f0f0f0;
+    border-bottom: 1px solid var(--gp-border-light);
     font-size: 13px;
 }
 
 .gp-info-table th {
     width: 40%;
     font-weight: 500;
-    color: #888;
+    color: var(--gp-text-muted);
+}
+
+.gp-info-table td {
+    color: var(--gp-text);
 }
 
 .gp-info-table td code {
-    background: #f5f5f5;
+    background: var(--gp-code-bg);
     padding: 3px 8px;
     border-radius: 4px;
     font-size: 12px;
-    color: #444;
+    color: var(--gp-text);
     word-break: break-all;
+}
+
+.gp-info-table td a {
+    color: var(--gp-primary);
+    text-decoration: none;
+}
+
+.gp-info-table td a:hover {
+    text-decoration: underline;
 }
 
 /* ==========================================
@@ -436,9 +458,9 @@ export function getAdminCss() {
 }
 
 .gp-notice-warning {
-    background: #fffbeb;
-    border: 1px solid #fcd34d;
-    color: #92400e;
+    background: var(--gp-warning-bg);
+    border: 1px solid rgba(251, 191, 36, 0.3);
+    color: var(--gp-warning);
 }
 
 .gp-notice p {
@@ -454,61 +476,105 @@ export function getAdminCss() {
 }
 
 .gp-result-box.success {
-    background: #e8f8f0;
-    border: 1px solid #2ecc71;
-    color: #1a7a42;
+    background: var(--gp-success-bg);
+    border: 1px solid rgba(74, 222, 128, 0.3);
+    color: var(--gp-success);
 }
 
 .gp-result-box.error {
-    background: #fef2f2;
-    border: 1px solid #ef4444;
-    color: #991b1b;
+    background: var(--gp-danger-bg);
+    border: 1px solid rgba(248, 113, 113, 0.3);
+    color: var(--gp-danger);
 }
 
 .gp-result-box.loading {
-    background: #f5f5f5;
-    border: 1px solid #d0d0d0;
-    color: #555;
+    background: var(--gp-code-bg);
+    border: 1px solid var(--gp-border);
+    color: var(--gp-text-secondary);
 }
 
 /* ==========================================
-   Permissions Grid
+   Theme Switcher
    ========================================== */
-.gp-permissions-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 24px;
-    margin-bottom: 24px;
-}
-
-.gp-permission-group h4 {
-    margin: 0 0 12px;
-    font-size: 14px;
-    font-weight: 600;
-    color: #1d1d1d;
-    padding-bottom: 8px;
-    border-bottom: 2px solid #f0f0f0;
-}
-
-.gp-permission-group label {
+.gp-theme-switcher {
     display: flex;
+    gap: 20px;
+}
+
+.gp-theme-option {
+    display: flex;
+    flex-direction: column;
     align-items: center;
-    gap: 8px;
-    padding: 7px 0;
+    gap: 10px;
     cursor: pointer;
-    font-size: 13px;
-    color: #444;
-    transition: color 0.15s;
 }
 
-.gp-permission-group label:hover {
-    color: #2ecc71;
+.gp-theme-option input[type="radio"] {
+    display: none;
 }
 
-.gp-permission-group input[type="checkbox"] {
-    accent-color: #2ecc71;
-    width: 16px;
+.gp-theme-preview {
+    width: 120px;
+    height: 80px;
+    border-radius: 10px;
+    border: 2px solid var(--gp-border);
+    overflow: hidden;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    position: relative;
+}
+
+.gp-theme-option input:checked + .gp-theme-preview {
+    border-color: var(--gp-primary);
+    box-shadow: 0 0 0 3px rgba(155, 77, 224, 0.25);
+}
+
+.gp-theme-preview-dark {
+    background: #0f0f1a;
+}
+
+.gp-theme-preview-dark .gp-theme-preview-bar {
+    display: block;
     height: 16px;
+    background: #12122a;
+    border-bottom: 1px solid rgba(155, 77, 224, 0.18);
+}
+
+.gp-theme-preview-dark .gp-theme-preview-content {
+    display: block;
+    margin: 8px;
+    height: 12px;
+    border-radius: 4px;
+    background: #16162a;
+}
+
+.gp-theme-preview-light {
+    background: #f5f5f7;
+}
+
+.gp-theme-preview-light .gp-theme-preview-bar {
+    display: block;
+    height: 16px;
+    background: #ffffff;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.gp-theme-preview-light .gp-theme-preview-content {
+    display: block;
+    margin: 8px;
+    height: 12px;
+    border-radius: 4px;
+    background: #ffffff;
+}
+
+.gp-theme-label {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--gp-text-secondary);
+}
+
+.gp-theme-option input:checked ~ .gp-theme-label {
+    color: var(--gp-primary);
+    font-weight: 600;
 }
 
 /* ==========================================
@@ -523,20 +589,21 @@ export function getAdminCss() {
 .gp-activity-table td {
     padding: 10px 12px;
     text-align: left;
-    border-bottom: 1px solid #f0f0f0;
+    border-bottom: 1px solid var(--gp-border-light);
     font-size: 13px;
+    color: var(--gp-text);
 }
 
 .gp-activity-table th {
     font-size: 11px;
     font-weight: 600;
-    color: #999;
+    color: var(--gp-text-muted);
     text-transform: uppercase;
     letter-spacing: 0.5px;
 }
 
 .gp-activity-time {
-    color: #999;
+    color: var(--gp-text-muted);
     white-space: nowrap;
 }
 
@@ -546,8 +613,8 @@ export function getAdminCss() {
     font-size: 12px;
     font-weight: 600;
     border-radius: 10px;
-    background: #e8f8f0;
-    color: #2ecc71;
+    background: rgba(155, 77, 224, 0.12);
+    color: var(--gp-primary);
 }
 
 /* ==========================================
@@ -556,7 +623,7 @@ export function getAdminCss() {
 .gp-empty-state {
     text-align: center;
     padding: 48px 20px;
-    color: #aaa;
+    color: var(--gp-text-muted);
 }
 
 .gp-empty-state svg {
@@ -581,28 +648,29 @@ export function getAdminCss() {
 }
 
 .gp-stat-card {
-    background: #fff;
-    border: 1px solid #e0e0e0;
+    background: var(--gp-card);
+    border: 1px solid var(--gp-border);
     border-radius: 12px;
     padding: 20px;
     text-align: center;
+    box-shadow: var(--gp-shadow);
 }
 
 .gp-stat-value {
     display: block;
     font-size: 28px;
     font-weight: 700;
-    color: #1d1d1d;
+    color: var(--gp-text);
     line-height: 1.2;
 }
 
-.gp-stat-value.gp-synced { color: #2ecc71; }
-.gp-stat-value.gp-not-synced { color: #ef4444; }
+.gp-stat-value.gp-synced { color: var(--gp-success); }
+.gp-stat-value.gp-not-synced { color: var(--gp-danger); }
 
 .gp-stat-label {
     display: block;
     font-size: 11px;
-    color: #999;
+    color: var(--gp-text-muted);
     margin-top: 6px;
     text-transform: uppercase;
     letter-spacing: 0.5px;
@@ -610,8 +678,8 @@ export function getAdminCss() {
 
 /* Recommendation banner */
 .gp-recommendation-banner {
-    background: #fffbeb;
-    border: 1px solid #fcd34d;
+    background: var(--gp-warning-bg);
+    border: 1px solid rgba(251, 191, 36, 0.3);
     border-radius: 12px;
     padding: 24px;
     margin-bottom: 24px;
@@ -621,13 +689,13 @@ export function getAdminCss() {
     margin: 0 0 8px;
     font-size: 15px;
     font-weight: 600;
-    color: #92400e;
+    color: var(--gp-warning);
 }
 
 .gp-recommendation-content p {
     margin: 0 0 16px;
     font-size: 13px;
-    color: #a16207;
+    color: var(--gp-text-secondary);
     line-height: 1.5;
 }
 
@@ -639,7 +707,7 @@ export function getAdminCss() {
 
 .gp-import-count {
     font-size: 12px;
-    color: #a16207;
+    color: var(--gp-text-muted);
 }
 
 /* Redirect form */
@@ -659,7 +727,7 @@ export function getAdminCss() {
 .gp-form-group label {
     font-size: 13px;
     font-weight: 500;
-    color: #555;
+    color: var(--gp-text-secondary);
 }
 
 .gp-form-group input,
@@ -667,16 +735,17 @@ export function getAdminCss() {
     width: 100%;
     padding: 10px 14px;
     font-size: 13px;
-    border: 1px solid #d0d0d0;
+    border: 1px solid var(--gp-input-border);
     border-radius: 8px;
-    background: #fff;
+    background: var(--gp-input-bg);
+    color: var(--gp-text);
     transition: border-color 0.15s, box-shadow 0.15s;
 }
 
 .gp-form-group input:focus,
 .gp-form-group select:focus {
-    border-color: #2ecc71;
-    box-shadow: 0 0 0 3px rgba(46, 204, 113, 0.15);
+    border-color: var(--gp-primary);
+    box-shadow: 0 0 0 3px rgba(155, 77, 224, 0.15);
     outline: none;
 }
 
@@ -697,25 +766,26 @@ export function getAdminCss() {
 .gp-redirects-table td {
     padding: 12px 12px;
     text-align: left;
-    border-bottom: 1px solid #f0f0f0;
+    border-bottom: 1px solid var(--gp-border-light);
     font-size: 13px;
+    color: var(--gp-text);
 }
 
 .gp-redirects-table th {
     font-size: 11px;
     font-weight: 600;
-    color: #999;
+    color: var(--gp-text-muted);
     text-transform: uppercase;
     letter-spacing: 0.5px;
-    background: #fafafa;
+    background: transparent;
 }
 
 .gp-redirects-table td code {
-    background: #f5f5f5;
+    background: var(--gp-code-bg);
     padding: 3px 8px;
     border-radius: 4px;
     font-size: 12px;
-    color: #444;
+    color: var(--gp-text);
     word-break: break-all;
 }
 
@@ -738,8 +808,8 @@ export function getAdminCss() {
     padding: 0 8px;
     font-size: 12px;
     font-weight: 600;
-    background: #f0f0f0;
-    color: #888;
+    background: rgba(155, 77, 224, 0.12);
+    color: var(--gp-primary);
     border-radius: 12px;
     margin-left: 8px;
 }
@@ -761,13 +831,13 @@ export function getAdminCss() {
 }
 
 .gp-status-indicator-dot.active {
-    background: #2ecc71;
-    box-shadow: 0 0 0 3px rgba(46, 204, 113, 0.2);
+    background: var(--gp-success);
+    box-shadow: 0 0 0 3px rgba(74, 222, 128, 0.2);
 }
 
 .gp-status-indicator-dot.inactive {
-    background: #ccc;
-    box-shadow: 0 0 0 3px rgba(204, 204, 204, 0.2);
+    background: var(--gp-text-muted);
+    box-shadow: 0 0 0 3px rgba(107, 114, 128, 0.2);
 }
 
 /* Type badges */
@@ -779,9 +849,9 @@ export function getAdminCss() {
     border-radius: 10px;
 }
 
-.gp-type-301 { background: #e8f8f0; color: #1a7a42; }
-.gp-type-302 { background: #eff6ff; color: #1e40af; }
-.gp-type-307 { background: #fffbeb; color: #92400e; }
+.gp-type-301 { background: var(--gp-success-bg); color: var(--gp-success); }
+.gp-type-302 { background: rgba(96, 165, 250, 0.12); color: #60a5fa; }
+.gp-type-307 { background: var(--gp-warning-bg); color: var(--gp-warning); }
 
 .gp-inactive-row { opacity: 0.45; }
 .gp-inactive-row td code { text-decoration: line-through; }
@@ -799,11 +869,11 @@ export function getAdminCss() {
     margin: 0 0 10px;
     font-size: 13px;
     font-weight: 600;
-    color: #999;
+    color: var(--gp-text-muted);
     text-transform: uppercase;
     letter-spacing: 0.5px;
     padding-bottom: 8px;
-    border-bottom: 1px solid #f0f0f0;
+    border-bottom: 1px solid var(--gp-border-light);
 }
 
 .gp-addon-category {
@@ -817,24 +887,19 @@ export function getAdminCss() {
     align-items: center;
     gap: 14px;
     padding: 18px 20px;
-    border: 1px solid #e0e0e0;
+    border: 1px solid var(--gp-border);
     border-radius: 10px;
-    background: #fff;
+    background: var(--gp-card);
     transition: border-color 0.15s, box-shadow 0.15s;
 }
 
 .gp-addon-card:hover {
-    border-color: #ccc;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    border-color: var(--gp-primary);
+    box-shadow: 0 2px 8px rgba(155, 77, 224, 0.1);
 }
 
 .gp-addon-active {
-    border-left: 3px solid #2ecc71;
-}
-
-.gp-addon-inactive {
-    border-left: 3px solid #e0e0e0;
-    opacity: 0.6;
+    border-left: 3px solid var(--gp-success);
 }
 
 .gp-addon-dot {
@@ -845,8 +910,7 @@ export function getAdminCss() {
     flex-shrink: 0;
 }
 
-.gp-addon-dot.active { background: #2ecc71; }
-.gp-addon-dot.inactive { background: #ccc; }
+.gp-addon-dot.active { background: var(--gp-success); }
 
 .gp-addon-info {
     flex: 1;
@@ -857,19 +921,19 @@ export function getAdminCss() {
 
 .gp-addon-info strong {
     font-size: 14px;
-    color: #1d1d1d;
+    color: var(--gp-text);
 }
 
 .gp-addon-desc {
     font-size: 12px;
-    color: #999;
+    color: var(--gp-text-muted);
 }
 
 .gp-addon-version {
     font-size: 11px;
-    color: #2ecc71;
+    color: var(--gp-primary);
     font-weight: 600;
-    background: #e8f8f0;
+    background: rgba(155, 77, 224, 0.12);
     padding: 2px 8px;
     border-radius: 4px;
     white-space: nowrap;
@@ -896,16 +960,12 @@ export function getAdminCss() {
     .gp-topbar-brand {
         order: 1;
         width: 100%;
-        justify-content: flex-end;
+        justify-content: flex-start;
         margin-bottom: 8px;
     }
 
     .gp-content {
         padding: 20px 16px;
-    }
-
-    .gp-steps-row {
-        grid-template-columns: repeat(2, 1fr);
     }
 
     .gp-redirections-stats {
@@ -921,10 +981,6 @@ export function getAdminCss() {
     .gp-tab {
         padding: 0 12px;
         font-size: 13px;
-    }
-
-    .gp-steps-row {
-        grid-template-columns: 1fr 1fr;
     }
 
     .gp-connect-card {
@@ -945,7 +1001,6 @@ export function getAdminCss() {
 
 /* ==========================================
    Dashboard Widget — Design Tokens
-   (used by .gp-wrap.gp-widget on WP dashboard)
    ========================================== */
 
 .gp-wrap {
@@ -1114,7 +1169,12 @@ export function getAdminCss() {
 
 .gp-wrap .gp-widget-footer .gp-btn {
     width: 100%;
+    max-width: 100%;
     justify-content: center;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    box-sizing: border-box;
 }
 
 .gp-wrap .gp-widget-last-sync {
@@ -1122,6 +1182,27 @@ export function getAdminCss() {
     color: var(--gp-text-muted);
     margin: 6px 0 0;
     display: none;
+}
+
+/* Widget badges */
+.gp-wrap .gp-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 10px;
+    font-size: 11px;
+    font-weight: 600;
+    border-radius: 999px;
+    line-height: 1.5;
+}
+
+.gp-wrap .gp-badge-success {
+    background: rgba(74, 222, 128, 0.12);
+    color: #4ade80;
+}
+
+.gp-wrap .gp-badge-neutral {
+    background: rgba(107, 114, 128, 0.15);
+    color: #9ca3af;
 }
 
 /* Widget Sync Button */

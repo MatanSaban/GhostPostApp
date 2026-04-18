@@ -104,6 +104,68 @@ export function getAdminJs() {
     });
 
     // ==========================================
+    // Settings tab: Theme Switcher
+    // ==========================================
+    $('input[name="gp_theme"]').on('change', function() {
+        var newTheme = $(this).val();
+        var $wrap = $('.gp-admin-wrap');
+
+        // Immediately apply theme class
+        $wrap.removeClass('gp-theme-dark gp-theme-light').addClass('gp-theme-' + newTheme);
+
+        // Save via AJAX
+        $.ajax({
+            url: gpAdmin.ajaxUrl,
+            type: 'POST',
+            data: {
+                action: 'gp_save_theme',
+                nonce: gpAdmin.nonce,
+                theme: newTheme
+            },
+            success: function(response) {
+                if (response.success) {
+                    // Briefly flash a saved indicator
+                    var $label = $('input[name="gp_theme"]:checked').closest('.gp-theme-option').find('.gp-theme-label');
+                    var origText = $label.text();
+                    $label.text(gpAdmin.strings.theme_saved || 'Saved!');
+                    setTimeout(function() { $label.text(origText); }, 1500);
+                }
+            }
+        });
+    });
+
+    // ==========================================
+    // Settings tab: Language Selector
+    // ==========================================
+    $('#gp-language-select').on('change', function() {
+        var newLang = $(this).val();
+        var $result = $('#gp-language-result');
+
+        showResult($result, 'loading', gpAdmin.strings.saving || 'Saving...');
+
+        $.ajax({
+            url: gpAdmin.ajaxUrl,
+            type: 'POST',
+            data: {
+                action: 'gp_save_language',
+                nonce: gpAdmin.nonce,
+                language: newLang
+            },
+            success: function(response) {
+                if (response.success) {
+                    showResult($result, 'success', gpAdmin.strings.settings_saved || 'Settings saved! Reloading...');
+                    setTimeout(function() { location.reload(); }, 1000);
+                } else {
+                    showResult($result, 'error', gpAdmin.strings.save_failed || 'Failed to save.');
+                }
+            },
+            error: function() {
+                showResult($result, 'error', gpAdmin.strings.save_failed || 'Failed to save.');
+            }
+        });
+    });
+
+    // ==========================================
     // Redirections tab: Save redirect
     // ==========================================
     var $saveResult = $('#gp-save-result');

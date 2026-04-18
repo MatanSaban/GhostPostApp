@@ -627,21 +627,27 @@ class GP_API_Handler {
         if (!gp_has_permission('CONTENT_CREATE')) {
             return new WP_REST_Response(array('error' => 'Permission denied'), 403);
         }
-        return $this->content_manager->create_item('post', $request->get_json_params());
+        $result = $this->content_manager->create_item('post', $request->get_json_params());
+        Ghost_Post::log_activity('content_created', 'Post created via API');
+        return $result;
     }
     
     public function update_post(WP_REST_Request $request) {
         if (!gp_has_permission('CONTENT_UPDATE')) {
             return new WP_REST_Response(array('error' => 'Permission denied'), 403);
         }
-        return $this->content_manager->update_item('post', $request['id'], $request->get_json_params());
+        $result = $this->content_manager->update_item('post', $request['id'], $request->get_json_params());
+        Ghost_Post::log_activity('content_updated', 'Post #' . $request['id'] . ' updated via API');
+        return $result;
     }
     
     public function delete_post(WP_REST_Request $request) {
         if (!gp_has_permission('CONTENT_DELETE')) {
             return new WP_REST_Response(array('error' => 'Permission denied'), 403);
         }
-        return $this->content_manager->delete_item('post', $request['id']);
+        $result = $this->content_manager->delete_item('post', $request['id']);
+        Ghost_Post::log_activity('content_deleted', 'Post #' . $request['id'] . ' deleted via API');
+        return $result;
     }
     
     // ==========================================
@@ -666,21 +672,27 @@ class GP_API_Handler {
         if (!gp_has_permission('CONTENT_CREATE')) {
             return new WP_REST_Response(array('error' => 'Permission denied'), 403);
         }
-        return $this->content_manager->create_item('page', $request->get_json_params());
+        $result = $this->content_manager->create_item('page', $request->get_json_params());
+        Ghost_Post::log_activity('content_created', 'Page created via API');
+        return $result;
     }
     
     public function update_page(WP_REST_Request $request) {
         if (!gp_has_permission('CONTENT_UPDATE')) {
             return new WP_REST_Response(array('error' => 'Permission denied'), 403);
         }
-        return $this->content_manager->update_item('page', $request['id'], $request->get_json_params());
+        $result = $this->content_manager->update_item('page', $request['id'], $request->get_json_params());
+        Ghost_Post::log_activity('content_updated', 'Page #' . $request['id'] . ' updated via API');
+        return $result;
     }
     
     public function delete_page(WP_REST_Request $request) {
         if (!gp_has_permission('CONTENT_DELETE')) {
             return new WP_REST_Response(array('error' => 'Permission denied'), 403);
         }
-        return $this->content_manager->delete_item('page', $request['id']);
+        $result = $this->content_manager->delete_item('page', $request['id']);
+        Ghost_Post::log_activity('content_deleted', 'Page #' . $request['id'] . ' deleted via API');
+        return $result;
     }
     
     // ==========================================
@@ -737,14 +749,18 @@ class GP_API_Handler {
         if (!gp_has_permission('MEDIA_UPLOAD')) {
             return new WP_REST_Response(array('error' => 'Permission denied'), 403);
         }
-        return $this->media_manager->upload($request);
+        $result = $this->media_manager->upload($request);
+        Ghost_Post::log_activity('media_uploaded', 'Media uploaded via API');
+        return $result;
     }
     
     public function delete_media(WP_REST_Request $request) {
         if (!gp_has_permission('MEDIA_DELETE')) {
             return new WP_REST_Response(array('error' => 'Permission denied'), 403);
         }
-        return $this->media_manager->delete($request['id']);
+        $result = $this->media_manager->delete($request['id']);
+        Ghost_Post::log_activity('media_deleted', 'Media #' . $request['id'] . ' deleted via API');
+        return $result;
     }
     
     public function get_media_item(WP_REST_Request $request) {
@@ -902,7 +918,9 @@ class GP_API_Handler {
         if (!gp_has_permission('SEO_UPDATE')) {
             return new WP_REST_Response(array('error' => 'Permission denied'), 403);
         }
-        return $this->seo_manager->update_meta($request['id'], $request->get_json_params());
+        $result = $this->seo_manager->update_meta($request['id'], $request->get_json_params());
+        Ghost_Post::log_activity('seo_updated', 'SEO meta updated for post #' . $request['id']);
+        return $result;
     }
     
     // ==========================================

@@ -981,6 +981,7 @@
 }
 
 .floatingChatButtonOpen {
+  z-index: 10002;
   background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
   box-shadow: 0 10px 40px rgba(239, 68, 68, 0.4);
 

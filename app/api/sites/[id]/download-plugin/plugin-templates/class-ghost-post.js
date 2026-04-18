@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Generate main Ghost_Post class
  */
 export function getClassGhostPost() {
@@ -120,7 +120,7 @@ class Ghost_Post {
             30
         );
         
-        // Single submenu (replaces auto-generated first item)
+        // Submenu: Dashboard (replaces auto-generated first item)
         add_submenu_page(
             'ghost-post-connector',
             __('Dashboard', 'ghost-post-connector'),
@@ -129,21 +129,57 @@ class Ghost_Post {
             'ghost-post-connector',
             array($this, 'render_admin_page')
         );
+        
+        // Submenu: Settings
+        add_submenu_page(
+            'ghost-post-connector',
+            __('Settings', 'ghost-post-connector'),
+            __('Settings', 'ghost-post-connector'),
+            'manage_options',
+            'ghost-post-connector&tab=settings',
+            array($this, 'render_admin_page')
+        );
+        
+        // Submenu: Activity
+        add_submenu_page(
+            'ghost-post-connector',
+            __('Activity', 'ghost-post-connector'),
+            __('Activity', 'ghost-post-connector'),
+            'manage_options',
+            'ghost-post-connector&tab=activity',
+            array($this, 'render_admin_page')
+        );
+        
+        // Submenu: Redirections
+        add_submenu_page(
+            'ghost-post-connector',
+            __('Redirections', 'ghost-post-connector'),
+            __('Redirections', 'ghost-post-connector'),
+            'manage_options',
+            'ghost-post-connector&tab=redirections',
+            array($this, 'render_admin_page')
+        );
+        
+        // Submenu: Add-ons
+        add_submenu_page(
+            'ghost-post-connector',
+            __('Add-ons', 'ghost-post-connector'),
+            __('Add-ons', 'ghost-post-connector'),
+            'manage_options',
+            'ghost-post-connector&tab=addons',
+            array($this, 'render_admin_page')
+        );
     }
     
     /**
      * Enqueue admin styles and scripts
      */
     public function enqueue_admin_styles($hook) {
-        // Load on our plugin pages only
-        // Note: submenu hooks use sanitize_title(menu_title) as prefix.
-        // Menu title is 'GhostPost' → sanitize_title = 'ghostpost'
-        $plugin_pages = array(
-            'toplevel_page_ghost-post-connector',
-            'index.php', // WP Dashboard — for the dashboard widget
-        );
+        // Load on our plugin pages and WP Dashboard (for widget)
+        $is_plugin_page = (strpos($hook, 'ghost-post-connector') !== false) || ($hook === 'toplevel_page_ghost-post-connector');
+        $is_dashboard = ($hook === 'index.php');
         
-        if (!in_array($hook, $plugin_pages, true)) {
+        if (!$is_plugin_page && !$is_dashboard) {
             return;
         }
         
@@ -252,7 +288,6 @@ class Ghost_Post {
             #adminmenu .toplevel_page_ghost-post-connector > a .wp-menu-name {
                 font-weight: 700 !important;
             }
-            /* Plugin icon on updates/plugins pages — prevent stretching */
             tr[data-slug="ghost-post-connector"] .plugin-icon img,
             .plugin-card-ghost-post-connector .plugin-icon img {
                 object-fit: contain;
@@ -282,14 +317,12 @@ class Ghost_Post {
     
     /**
      * Force dashboard widget to first column, top position
-     * Overrides saved user meta-box ordering
      */
     public function force_widget_position($order) {
         if (!is_array($order)) {
             return $order;
         }
         
-        // Remove gp_dashboard_widget from all columns
         foreach ($order as $column => $widget_ids) {
             $ids = array_filter(
                 array_map('trim', explode(',', $widget_ids)),
@@ -298,7 +331,6 @@ class Ghost_Post {
             $order[$column] = implode(',', $ids);
         }
         
-        // Prepend to normal (first) column
         $normal = isset($order['normal']) ? $order['normal'] : '';
         $order['normal'] = $normal ? 'gp_dashboard_widget,' . $normal : 'gp_dashboard_widget';
         
@@ -381,6 +413,30 @@ class Ghost_Post {
     }
     
     /**
+     * Log activity for the activity tab
+     *
+     * @param string $action Short action label (e.g. 'content_created')
+     * @param string $details Human-readable details
+     */
+    public static function log_activity($action, $details = '') {
+        $log = get_option('gp_activity_log', array());
+        if (!is_array($log)) {
+            $log = array();
+        }
+        
+        array_unshift($log, array(
+            'action'  => sanitize_text_field($action),
+            'details' => sanitize_text_field($details),
+            'time'    => time(),
+        ));
+        
+        // Keep max 200 entries
+        $log = array_slice($log, 0, 200);
+        
+        update_option('gp_activity_log', $log, false);
+    }
+    
+    /**
      * AJAX: Sync widget data (manual trigger from dashboard widget)
      */
     public function ajax_sync_widget() {
@@ -390,10 +446,8 @@ class Ghost_Post {
             wp_send_json_error('Permission denied');
         }
         
-        // Send ping which returns fresh widget data
         $this->send_ping();
         
-        // Return the updated widget data
         $data = get_option('gp_dashboard_widget_data', array());
         wp_send_json_success(array(
             'widgetData' => $data,
@@ -574,7 +628,6 @@ class Ghost_Post {
     
     /**
      * Auto-verify if not connected yet (called on admin_init)
-     * Throttled to once per 5 minutes to avoid hammering the API
      */
     public function maybe_verify_connection() {
         $last_attempt = get_option('gp_connector_last_verify_attempt', 0);
@@ -625,7 +678,9 @@ class Ghost_Post {
         if ($status_code === 200 && !empty($body['success'])) {
             update_option('gp_connector_connection_status', 'connected');
             update_option('gp_connector_last_ping', time());
+            update_option('gp_connector_last_connection_check', time());
             delete_option('gp_connector_last_error');
+            self::log_activity('connection_verified', 'Connection verified with GhostPost platform');
             return true;
         }
         
@@ -653,11 +708,9 @@ class Ghost_Post {
             'body' => $body,
         ));
         
-        // Clear scheduled ping
         wp_clear_scheduled_hook('gp_connector_ping');
-        
-        // Update status
         update_option('gp_connector_connection_status', 'disconnected');
+        self::log_activity('disconnected', 'Disconnected from GhostPost platform');
     }
     
     /**
@@ -687,7 +740,6 @@ class Ghost_Post {
             update_option('gp_connector_last_ping', time());
             update_option('gp_connector_connection_status', 'connected');
             
-            // Save widget data from ping response
             $resp_body = json_decode(wp_remote_retrieve_body($response), true);
             if (!empty($resp_body['widgetData'])) {
                 update_option('gp_dashboard_widget_data', $resp_body['widgetData']);
@@ -699,7 +751,6 @@ class Ghost_Post {
      * AJAX handler for test connection
      */
     public function ajax_test_connection() {
-        // Security check
         if (!current_user_can('manage_options')) {
             wp_send_json_error('Unauthorized');
         }
@@ -721,7 +772,6 @@ class Ghost_Post {
      * AJAX handler for send ping
      */
     public function ajax_send_ping() {
-        // Security check
         if (!current_user_can('manage_options')) {
             wp_send_json_error('Unauthorized');
         }
@@ -742,12 +792,10 @@ class Ghost_Post {
      * AJAX handler for disconnect
      */
     public function ajax_disconnect() {
-        // Security check
         if (!current_user_can('manage_options')) {
             wp_send_json_error('Unauthorized');
         }
         
-        // Notify Ghost Post platform about disconnection
         $this->notify_disconnection();
         
         wp_send_json_success(array(
@@ -757,10 +805,6 @@ class Ghost_Post {
     
     /**
      * Create HMAC-SHA256 signature
-     * 
-     * @param string $payload Request body
-     * @param int $timestamp Unix timestamp
-     * @return string
      */
     private function create_signature($payload, $timestamp) {
         $data = $timestamp . '.' . $payload;

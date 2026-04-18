@@ -10,10 +10,25 @@
  */
 
 // Current plugin version - increment this when making updates
-export const PLUGIN_VERSION = "2.9.1";
+export const PLUGIN_VERSION = "2.9.2";
 
 // Changelog for the current version
 export const PLUGIN_CHANGELOG = `
+= 2.9.2 =
+* NEW: Theme switcher (dark/light) in Settings tab — applies to admin panel and dashboard widget
+* NEW: Language selector in Settings tab (Auto/English/Hebrew) with instant apply
+* NEW: Activity tab now records real actions (content create/update/delete, media, SEO, connections)
+* NEW: Sidebar submenu items for each plugin tab (Settings, Activity, Redirections, Add-ons)
+* NEW: GhostPost text label next to logo in admin topbar
+* FIX: Last Ping and Last Connection Check now display real data (fixed option name mismatch)
+* FIX: Widget button overflow — text now truncates properly
+* CHANGE: Platform URL is now a clickable link in Site Information
+* CHANGE: Add-ons tab shows only active integrations
+* CHANGE: Plugin colors updated to match GhostPost platform (purple/gradient branding)
+* CHANGE: Full permissions always enabled — gp_has_permission() always returns true
+* REMOVE: Connection steps row and connect icon from Connection tab
+* REMOVE: REST API row from Site Information
+
 = 2.9.1 =
 * FIX: Plugin logo on WordPress updates/plugins page is now contained (not stretched)
 * CHANGE: Ghost Post logo displayed in admin topbar instead of text

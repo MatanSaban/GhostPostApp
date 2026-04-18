@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Generate Settings/Main Admin Page view — unified tabbed layout
  */
 export function getSettingsPage() {
@@ -13,9 +13,10 @@ if (!defined('ABSPATH')) {
 
 $connection_status = get_option('gp_connector_connection_status', '');
 $connection_verified = $connection_status === 'connected';
-$last_check = get_option('gp_last_connection_check', '');
-$last_ping  = get_option('gp_last_ping', '');
-$permissions = get_option('gp_connector_permissions', array());
+$last_check_ts = get_option('gp_connector_last_connection_check', '');
+$last_ping_ts  = get_option('gp_connector_last_ping', '');
+$gp_theme = get_option('gp_connector_theme', 'dark');
+$gp_language = get_option('gp_connector_language', 'auto');
 
 $is_configured = defined('GP_SITE_KEY') && !empty(GP_SITE_KEY) && strpos(GP_SITE_KEY, '__GP_') === false;
 
@@ -36,11 +37,32 @@ if (!in_array($active_tab, $allowed_tabs, true)) {
 $platform_url = defined('GP_API_URL') ? GP_API_URL : 'https://app.ghostpost.co.il';
 $site_key_display = defined('GP_SITE_KEY') ? GP_SITE_KEY : '';
 $masked_key = $is_configured ? substr($site_key_display, 0, 8) . '...' . substr($site_key_display, -4) : '';
+
+// Format timestamps for display
+$last_check_display = '';
+if ($last_check_ts) {
+    $last_check_display = is_numeric($last_check_ts)
+        ? sprintf(__('%s ago', 'ghost-post-connector'), human_time_diff($last_check_ts))
+        : $last_check_ts;
+}
+$last_ping_display = '';
+if ($last_ping_ts) {
+    $last_ping_display = is_numeric($last_ping_ts)
+        ? sprintf(__('%s ago', 'ghost-post-connector'), human_time_diff($last_ping_ts))
+        : $last_ping_ts;
+}
+
+$theme_class = ($gp_theme === 'light') ? 'gp-theme-light' : 'gp-theme-dark';
 ?>
 
-<div class="gp-admin-wrap">
+<div class="gp-admin-wrap <?php echo esc_attr($theme_class); ?>">
     <!-- Top Bar -->
     <div class="gp-topbar">
+        <div class="gp-topbar-brand">
+            <img src="<?php echo esc_url($platform_url . '/logo.png'); ?>" alt="Ghost Post" class="gp-topbar-logo">
+            <span class="gp-topbar-title">GhostPost</span>
+            <span class="gp-version">v<?php echo esc_html(GP_CONNECTOR_VERSION); ?></span>
+        </div>
         <nav class="gp-tabs">
             <a href="?page=ghost-post-connector&tab=connection" class="gp-tab <?php echo $active_tab === 'connection' ? 'gp-tab-active' : ''; ?>">
                 <?php esc_html_e('Connection', 'ghost-post-connector'); ?>
@@ -58,10 +80,6 @@ $masked_key = $is_configured ? substr($site_key_display, 0, 8) . '...' . substr(
                 <?php esc_html_e('Add-ons', 'ghost-post-connector'); ?>
             </a>
         </nav>
-        <div class="gp-topbar-brand">
-            <span class="gp-version">v<?php echo esc_html(GP_CONNECTOR_VERSION); ?></span>
-            <img src="<?php echo esc_url($platform_url . '/logo.png'); ?>" alt="Ghost Post" class="gp-topbar-logo">
-        </div>
     </div>
 
     <!-- Tab Content -->
@@ -71,12 +89,6 @@ $masked_key = $is_configured ? substr($site_key_display, 0, 8) . '...' . substr(
         <!-- ==================== CONNECTION TAB ==================== -->
         <div class="gp-tab-panel">
             <div class="gp-connect-card">
-                <div class="gp-connect-icon">
-                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
-                        <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
-                    </svg>
-                </div>
 
                 <?php if ($connection_verified): ?>
                     <h2><?php esc_html_e('Your site is connected to Ghost Post', 'ghost-post-connector'); ?></h2>
@@ -92,15 +104,15 @@ $masked_key = $is_configured ? substr($site_key_display, 0, 8) . '...' . substr(
                             </tr>
                             <tr>
                                 <th><?php esc_html_e('Platform URL', 'ghost-post-connector'); ?></th>
-                                <td><code><?php echo esc_html(defined('GP_PLATFORM_API_URL') ? GP_PLATFORM_API_URL : $platform_url); ?></code></td>
+                                <td><a href="<?php echo esc_url(defined('GP_PLATFORM_API_URL') ? GP_PLATFORM_API_URL : $platform_url); ?>" target="_blank" rel="noopener noreferrer"><?php echo esc_html(defined('GP_PLATFORM_API_URL') ? GP_PLATFORM_API_URL : $platform_url); ?></a></td>
                             </tr>
                             <tr>
                                 <th><?php esc_html_e('Last Check', 'ghost-post-connector'); ?></th>
-                                <td><?php echo $last_check ? esc_html($last_check) : esc_html__('Never', 'ghost-post-connector'); ?></td>
+                                <td><?php echo $last_check_display ? esc_html($last_check_display) : esc_html__('Never', 'ghost-post-connector'); ?></td>
                             </tr>
                             <tr>
                                 <th><?php esc_html_e('Last Ping', 'ghost-post-connector'); ?></th>
-                                <td><?php echo $last_ping ? esc_html($last_ping) : esc_html__('Never', 'ghost-post-connector'); ?></td>
+                                <td><?php echo $last_ping_display ? esc_html($last_ping_display) : esc_html__('Never', 'ghost-post-connector'); ?></td>
                             </tr>
                         </table>
                     </div>
@@ -146,30 +158,6 @@ $masked_key = $is_configured ? substr($site_key_display, 0, 8) . '...' . substr(
                 <div id="gp-connection-result" class="gp-result-box" style="display: none;"></div>
             </div>
 
-            <!-- Steps row -->
-            <div class="gp-steps-row">
-                <div class="gp-step-card">
-                    <span class="gp-step-num">4</span>
-                    <strong><?php esc_html_e('Start managing', 'ghost-post-connector'); ?></strong>
-                    <span class="gp-step-hint"><?php esc_html_e('Use AI to manage your site', 'ghost-post-connector'); ?></span>
-                </div>
-                <div class="gp-step-card">
-                    <span class="gp-step-num">3</span>
-                    <strong><?php esc_html_e('Paste your key', 'ghost-post-connector'); ?></strong>
-                    <span class="gp-step-hint"><?php esc_html_e('Enter your site URL + key', 'ghost-post-connector'); ?></span>
-                </div>
-                <div class="gp-step-card">
-                    <span class="gp-step-num">2</span>
-                    <strong><?php esc_html_e('Go to ghostpost.co.il', 'ghost-post-connector'); ?></strong>
-                    <span class="gp-step-hint"><?php esc_html_e('Create or open a project', 'ghost-post-connector'); ?></span>
-                </div>
-                <div class="gp-step-card">
-                    <span class="gp-step-num">1</span>
-                    <strong><?php esc_html_e('Copy your Access Key', 'ghost-post-connector'); ?></strong>
-                    <span class="gp-step-hint"><?php esc_html_e('Click the button above', 'ghost-post-connector'); ?></span>
-                </div>
-            </div>
-
             <!-- Site Info -->
             <div class="gp-site-info-card">
                 <h3><?php esc_html_e('Site Information', 'ghost-post-connector'); ?></h3>
@@ -190,10 +178,6 @@ $masked_key = $is_configured ? substr($site_key_display, 0, 8) . '...' . substr(
                         <th><?php esc_html_e('Plugin Version', 'ghost-post-connector'); ?></th>
                         <td><?php echo esc_html(GP_CONNECTOR_VERSION); ?></td>
                     </tr>
-                    <tr>
-                        <th><?php esc_html_e('REST API', 'ghost-post-connector'); ?></th>
-                        <td><code><?php echo esc_html(rest_url('ghost-post/v1/')); ?></code></td>
-                    </tr>
                 </table>
             </div>
         </div>
@@ -202,58 +186,41 @@ $masked_key = $is_configured ? substr($site_key_display, 0, 8) . '...' . substr(
         <!-- ==================== SETTINGS TAB ==================== -->
         <div class="gp-tab-panel">
             <div class="gp-panel-card">
-                <h3><?php esc_html_e('Permissions', 'ghost-post-connector'); ?></h3>
-                <p class="gp-desc"><?php esc_html_e('Control what Ghost Post can do on your site.', 'ghost-post-connector'); ?></p>
+                <h3><?php esc_html_e('Appearance', 'ghost-post-connector'); ?></h3>
+                <p class="gp-desc"><?php esc_html_e('Choose the display theme for the Ghost Post plugin.', 'ghost-post-connector'); ?></p>
 
-                <form method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>">
-                    <?php wp_nonce_field('gp_save_permissions', 'gp_permissions_nonce'); ?>
-                    <input type="hidden" name="action" value="gp_save_permissions">
+                <div class="gp-theme-switcher">
+                    <label class="gp-theme-option">
+                        <input type="radio" name="gp_theme" value="dark" <?php checked($gp_theme, 'dark'); ?>>
+                        <span class="gp-theme-preview gp-theme-preview-dark">
+                            <span class="gp-theme-preview-bar"></span>
+                            <span class="gp-theme-preview-content"></span>
+                        </span>
+                        <span class="gp-theme-label"><?php esc_html_e('Dark', 'ghost-post-connector'); ?></span>
+                    </label>
+                    <label class="gp-theme-option">
+                        <input type="radio" name="gp_theme" value="light" <?php checked($gp_theme, 'light'); ?>>
+                        <span class="gp-theme-preview gp-theme-preview-light">
+                            <span class="gp-theme-preview-bar"></span>
+                            <span class="gp-theme-preview-content"></span>
+                        </span>
+                        <span class="gp-theme-label"><?php esc_html_e('Light', 'ghost-post-connector'); ?></span>
+                    </label>
+                </div>
+            </div>
 
-                    <div class="gp-permissions-grid">
-                        <div class="gp-permission-group">
-                            <h4><?php esc_html_e('Content', 'ghost-post-connector'); ?></h4>
-                            <label><input type="checkbox" name="permissions[CONTENT_READ]" value="1" <?php checked(!empty($permissions['CONTENT_READ'])); ?>> <?php esc_html_e('Read posts/pages', 'ghost-post-connector'); ?></label>
-                            <label><input type="checkbox" name="permissions[CONTENT_CREATE]" value="1" <?php checked(!empty($permissions['CONTENT_CREATE'])); ?>> <?php esc_html_e('Create posts/pages', 'ghost-post-connector'); ?></label>
-                            <label><input type="checkbox" name="permissions[CONTENT_UPDATE]" value="1" <?php checked(!empty($permissions['CONTENT_UPDATE'])); ?>> <?php esc_html_e('Update posts/pages', 'ghost-post-connector'); ?></label>
-                            <label><input type="checkbox" name="permissions[CONTENT_DELETE]" value="1" <?php checked(!empty($permissions['CONTENT_DELETE'])); ?>> <?php esc_html_e('Delete posts/pages', 'ghost-post-connector'); ?></label>
-                        </div>
+            <div class="gp-panel-card">
+                <h3><?php esc_html_e('Language', 'ghost-post-connector'); ?></h3>
+                <p class="gp-desc"><?php esc_html_e('Choose the plugin display language. When set to Auto, it follows the WordPress dashboard language.', 'ghost-post-connector'); ?></p>
 
-                        <div class="gp-permission-group">
-                            <h4><?php esc_html_e('Media', 'ghost-post-connector'); ?></h4>
-                            <label><input type="checkbox" name="permissions[MEDIA_UPLOAD]" value="1" <?php checked(!empty($permissions['MEDIA_UPLOAD'])); ?>> <?php esc_html_e('Upload media', 'ghost-post-connector'); ?></label>
-                            <label><input type="checkbox" name="permissions[MEDIA_DELETE]" value="1" <?php checked(!empty($permissions['MEDIA_DELETE'])); ?>> <?php esc_html_e('Delete media', 'ghost-post-connector'); ?></label>
-                        </div>
-
-                        <div class="gp-permission-group">
-                            <h4><?php esc_html_e('SEO', 'ghost-post-connector'); ?></h4>
-                            <label><input type="checkbox" name="permissions[SEO_UPDATE]" value="1" <?php checked(!empty($permissions['SEO_UPDATE'])); ?>> <?php esc_html_e('Update SEO meta', 'ghost-post-connector'); ?></label>
-                        </div>
-
-                        <div class="gp-permission-group">
-                            <h4><?php esc_html_e('Custom Post Types', 'ghost-post-connector'); ?></h4>
-                            <label><input type="checkbox" name="permissions[CPT_READ]" value="1" <?php checked(!empty($permissions['CPT_READ'])); ?>> <?php esc_html_e('Read CPT items', 'ghost-post-connector'); ?></label>
-                            <label><input type="checkbox" name="permissions[CPT_CREATE]" value="1" <?php checked(!empty($permissions['CPT_CREATE'])); ?>> <?php esc_html_e('Create CPT items', 'ghost-post-connector'); ?></label>
-                            <label><input type="checkbox" name="permissions[CPT_UPDATE]" value="1" <?php checked(!empty($permissions['CPT_UPDATE'])); ?>> <?php esc_html_e('Update CPT items', 'ghost-post-connector'); ?></label>
-                            <label><input type="checkbox" name="permissions[CPT_DELETE]" value="1" <?php checked(!empty($permissions['CPT_DELETE'])); ?>> <?php esc_html_e('Delete CPT items', 'ghost-post-connector'); ?></label>
-                        </div>
-
-                        <div class="gp-permission-group">
-                            <h4><?php esc_html_e('ACF', 'ghost-post-connector'); ?></h4>
-                            <label><input type="checkbox" name="permissions[ACF_READ]" value="1" <?php checked(!empty($permissions['ACF_READ'])); ?>> <?php esc_html_e('Read ACF fields', 'ghost-post-connector'); ?></label>
-                            <label><input type="checkbox" name="permissions[ACF_UPDATE]" value="1" <?php checked(!empty($permissions['ACF_UPDATE'])); ?>> <?php esc_html_e('Update ACF fields', 'ghost-post-connector'); ?></label>
-                        </div>
-
-                        <div class="gp-permission-group">
-                            <h4><?php esc_html_e('Taxonomies', 'ghost-post-connector'); ?></h4>
-                            <label><input type="checkbox" name="permissions[TAXONOMY_READ]" value="1" <?php checked(!empty($permissions['TAXONOMY_READ'])); ?>> <?php esc_html_e('Read taxonomies', 'ghost-post-connector'); ?></label>
-                            <label><input type="checkbox" name="permissions[TAXONOMY_MANAGE]" value="1" <?php checked(!empty($permissions['TAXONOMY_MANAGE'])); ?>> <?php esc_html_e('Manage terms', 'ghost-post-connector'); ?></label>
-                        </div>
-                    </div>
-
-                    <p class="submit">
-                        <button type="submit" class="gp-btn gp-btn-primary"><?php esc_html_e('Save Permissions', 'ghost-post-connector'); ?></button>
-                    </p>
-                </form>
+                <div class="gp-form-group" style="max-width: 320px;">
+                    <select id="gp-language-select" name="gp_language" style="width:100%; padding:10px 14px; font-size:13px; border:1px solid var(--gp-input-border); border-radius:8px; background:var(--gp-input-bg); color:var(--gp-text);">
+                        <option value="auto" <?php selected($gp_language, 'auto'); ?>><?php esc_html_e('Auto (match WordPress)', 'ghost-post-connector'); ?></option>
+                        <option value="en" <?php selected($gp_language, 'en'); ?>>English</option>
+                        <option value="he" <?php selected($gp_language, 'he'); ?>>עברית (Hebrew)</option>
+                    </select>
+                </div>
+                <div id="gp-language-result" class="gp-result-box" style="display:none;"></div>
             </div>
         </div>
 
@@ -288,7 +255,7 @@ $masked_key = $is_configured ? substr($site_key_display, 0, 8) . '...' . substr(
                         <tbody>
                             <?php foreach ($activity_log as $entry): ?>
                             <tr>
-                                <td class="gp-activity-time"><?php echo esc_html($entry['time'] ?? ''); ?></td>
+                                <td class="gp-activity-time"><?php echo esc_html(isset($entry['time']) && is_numeric($entry['time']) ? sprintf(__('%s ago', 'ghost-post-connector'), human_time_diff($entry['time'])) : ($entry['time'] ?? '')); ?></td>
                                 <td><span class="gp-activity-badge"><?php echo esc_html($entry['action'] ?? ''); ?></span></td>
                                 <td><?php echo esc_html($entry['details'] ?? ''); ?></td>
                             </tr>
@@ -451,8 +418,8 @@ $masked_key = $is_configured ? substr($site_key_display, 0, 8) . '...' . substr(
         <!-- ==================== ADD-ONS TAB ==================== -->
         <div class="gp-tab-panel">
             <div class="gp-panel-card">
-                <h3><?php esc_html_e('Detected Integrations', 'ghost-post-connector'); ?></h3>
-                <p class="gp-desc"><?php esc_html_e('Plugins and features Ghost Post can work with on your site.', 'ghost-post-connector'); ?></p>
+                <h3><?php esc_html_e('Active Integrations', 'ghost-post-connector'); ?></h3>
+                <p class="gp-desc"><?php esc_html_e('Active plugins that Ghost Post integrates with on your site.', 'ghost-post-connector'); ?></p>
 
                 <div class="gp-addons-grid">
                     <?php
@@ -500,34 +467,43 @@ $masked_key = $is_configured ? substr($site_key_display, 0, 8) . '...' . substr(
                         array('name' => 'TranslatePress', 'active' => defined('TRP_PLUGIN_VERSION'), 'version' => defined('TRP_PLUGIN_VERSION') ? TRP_PLUGIN_VERSION : '', 'desc' => __('Multilingual', 'ghost-post-connector'), 'cat' => __('Multilingual', 'ghost-post-connector')),
                     );
 
+                    // Filter to only active plugins
+                    $active_addons = array_filter($addons, function($a) { return $a['active']; });
+
                     // Group by category
                     $grouped = array();
-                    foreach ($addons as $addon) {
+                    foreach ($active_addons as $addon) {
                         $cat = $addon['cat'] ?? '';
                         if (!isset($grouped[$cat])) $grouped[$cat] = array();
                         $grouped[$cat][] = $addon;
                     }
                     ?>
 
-                    <?php foreach ($grouped as $category => $items): ?>
-                    <div class="gp-addon-category">
-                        <h4 class="gp-addon-category-title"><?php echo esc_html($category); ?></h4>
-                        <?php foreach ($items as $addon): ?>
-                        <div class="gp-addon-card <?php echo $addon['active'] ? 'gp-addon-active' : 'gp-addon-inactive'; ?>">
-                            <div class="gp-addon-status">
-                                <span class="gp-addon-dot <?php echo $addon['active'] ? 'active' : 'inactive'; ?>"></span>
+                    <?php if (empty($grouped)): ?>
+                        <div class="gp-empty-state">
+                            <p><?php esc_html_e('No supported integrations detected on this site.', 'ghost-post-connector'); ?></p>
+                        </div>
+                    <?php else: ?>
+                        <?php foreach ($grouped as $category => $items): ?>
+                        <div class="gp-addon-category">
+                            <h4 class="gp-addon-category-title"><?php echo esc_html($category); ?></h4>
+                            <?php foreach ($items as $addon): ?>
+                            <div class="gp-addon-card gp-addon-active">
+                                <div class="gp-addon-status">
+                                    <span class="gp-addon-dot active"></span>
+                                </div>
+                                <div class="gp-addon-info">
+                                    <strong><?php echo esc_html($addon['name']); ?></strong>
+                                    <span class="gp-addon-desc"><?php echo esc_html($addon['desc']); ?></span>
+                                </div>
+                                <?php if ($addon['version']): ?>
+                                    <span class="gp-addon-version">v<?php echo esc_html($addon['version']); ?></span>
+                                <?php endif; ?>
                             </div>
-                            <div class="gp-addon-info">
-                                <strong><?php echo esc_html($addon['name']); ?></strong>
-                                <span class="gp-addon-desc"><?php echo esc_html($addon['desc']); ?></span>
-                            </div>
-                            <?php if ($addon['active'] && $addon['version']): ?>
-                                <span class="gp-addon-version">v<?php echo esc_html($addon['version']); ?></span>
-                            <?php endif; ?>
+                            <?php endforeach; ?>
                         </div>
                         <?php endforeach; ?>
-                    </div>
-                    <?php endforeach; ?>
+                    <?php endif; ?>
                 </div>
             </div>
         </div>

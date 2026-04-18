@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Generate GP_I18n class - Internationalization support for Ghost Post Connector
  * Supports English and Hebrew with RTL
  */
@@ -24,7 +24,6 @@ class GP_I18n {
 
     /**
      * Initialize the i18n system.
-     * Call this early (plugins_loaded or before any output).
      */
     public static function init() {
         if (self::$initialized) {
@@ -100,6 +99,8 @@ class GP_I18n {
             'Dashboard' => 'לוח בקרה',
             'Redirections' => 'הפניות',
             'Settings' => 'הגדרות',
+            'Activity' => 'פעילות',
+            'Add-ons' => 'תוספים',
 
             // ---- Connection Status ----
             'Connection Status' => 'סטטוס חיבור',
@@ -124,12 +125,14 @@ class GP_I18n {
             'Disconnect failed:' => 'ההתנתקות נכשלה:',
             'Disconnect failed. Please try again.' => 'ההתנתקות נכשלה. אנא נסה שוב.',
             'Are you sure you want to disconnect from Ghost Post? You can reconnect later by downloading a new plugin.' => 'האם אתה בטוח שברצונך להתנתק מ-Ghost Post? ניתן להתחבר מחדש על ידי הורדת תוסף חדש.',
+            'Connection' => 'חיבור',
 
             // ---- Site Information ----
             'Site Information' => 'מידע על האתר',
             'Site Key' => 'מפתח אתר',
             'Site ID' => 'מזהה אתר',
             'API URL' => 'כתובת API',
+            'Platform URL' => 'כתובת הפלטפורמה',
             'Plugin' => 'תוסף',
             'Plugin Version' => 'גרסת תוסף',
             'WordPress' => 'WordPress',
@@ -148,6 +151,10 @@ class GP_I18n {
             'Not installed' => 'לא מותקן',
             'Manage' => 'נהל',
             'Powered by %s' => 'מופעל על ידי %s',
+            'Last Ping' => 'פינג אחרון',
+            'Last Connection Check' => 'בדיקת חיבור אחרונה',
+            'Never' => 'אף פעם',
+            '%s ago' => 'לפני %s',
 
             // ---- Dashboard Widget ----
             'Site Health Score' => 'ציון בריאות האתר',
@@ -186,7 +193,7 @@ class GP_I18n {
             'Read taxonomies' => 'קריאת טקסונומיות',
             'Manage taxonomies' => 'ניהול טקסונומיות',
 
-            // ---- Detected Plugins ----
+            // ---- Detected Plugins / Add-ons ----
             'Detected Plugins' => 'תוספים שזוהו',
             'Yoast SEO' => 'Yoast SEO',
             'RankMath' => 'RankMath',
@@ -194,6 +201,11 @@ class GP_I18n {
             'Redirection Plugins' => 'תוספי הפניות',
             'No redirection plugins detected.' => 'לא זוהו תוספי הפניות.',
             'Manage Redirections' => 'ניהול הפניות',
+            'Active Integrations' => 'אינטגרציות פעילות',
+            'Active plugins that Ghost Post integrates with on your site.' => 'תוספים פעילים ש-Ghost Post משתלב איתם באתר שלך.',
+            'No supported integrations detected on this site.' => 'לא זוהו אינטגרציות נתמכות באתר זה.',
+            'SEO Plugins' => 'תוספי SEO',
+            'Content Plugins' => 'תוספי תוכן',
 
             // ---- Redirections Page ----
             'Redirection Plugin Detected' => 'זוהה תוסף הפניות',
@@ -239,7 +251,7 @@ class GP_I18n {
             'Dark' => 'כהה',
             'Light' => 'בהיר',
             'Toggle between dark and light theme.' => 'מעבר בין ערכת נושא כהה ובהירה.',
-            'Connection' => 'חיבור',
+            'Choose the display theme for the Ghost Post admin panel.' => 'בחר את ערכת הנושא לתצוגה בלוח הניהול של Ghost Post.',
             'Language' => 'שפה',
             'Plugin Display Language' => 'שפת תצוגת התוסף',
             'Auto (match WordPress)' => 'אוטומטי (לפי WordPress)',
@@ -251,6 +263,25 @@ class GP_I18n {
             'Settings saved successfully!' => 'ההגדרות נשמרו בהצלחה!',
             'Failed to save settings.' => 'שמירת ההגדרות נכשלה.',
             'The plugin language will update after saving. When set to Auto, it follows the WordPress dashboard language.' => 'שפת התוסף תתעדכן לאחר השמירה. כשמוגדר על אוטומטי, עוקב אחרי שפת לוח הבקרה של WordPress.',
+            'Theme saved!' => 'ערכת הנושא נשמרה!',
+
+            // ---- Activity Tab ----
+            'Action' => 'פעולה',
+            'Details' => 'פרטים',
+            'Time' => 'זמן',
+            'No activity recorded yet. Actions performed by Ghost Post will appear here.' => 'טרם נרשמה פעילות. פעולות שבוצעו על ידי Ghost Post יופיעו כאן.',
+            'connection_verified' => 'חיבור אומת',
+            'disconnected' => 'מנותק',
+            'content_created' => 'תוכן נוצר',
+            'content_updated' => 'תוכן עודכן',
+            'content_deleted' => 'תוכן נמחק',
+            'media_uploaded' => 'מדיה הועלתה',
+            'seo_updated' => 'SEO עודכן',
+            'redirect_created' => 'הפניה נוצרה',
+            'redirect_updated' => 'הפניה עודכנה',
+            'redirect_deleted' => 'הפניה נמחקה',
+            'plugin_deactivated' => 'תוסף כובה',
+            'settings_changed' => 'הגדרות שונו',
 
             // ---- Admin JS strings ----
             'Testing connection...' => 'בודק חיבור...',
