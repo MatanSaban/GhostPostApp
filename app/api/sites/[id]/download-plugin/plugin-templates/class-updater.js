@@ -65,6 +65,29 @@ class GP_Updater {
         
         // Add update check action for manual trigger
         add_action('wp_ajax_gp_check_for_updates', array($this, 'ajax_check_updates'));
+
+        // Fix stretched plugin icon on updates/plugins pages
+        add_action('admin_head', array($this, 'fix_plugin_icon_style'));
+    }
+
+    /**
+     * Inject CSS to prevent the plugin icon from being stretched
+     * WordPress sets width/height on the img which distorts non-square logos.
+     */
+    public function fix_plugin_icon_style() {
+        $screen = get_current_screen();
+        if (!$screen || !in_array($screen->id, array('plugins', 'update-core', 'plugin-install'), true)) {
+            return;
+        }
+        echo '<style>
+            img[src*="ghost"][src*="logo.png"],
+            tr[data-slug="ghost-post-connector"] .plugin-icon img,
+            .plugin-card-ghost-post-connector .plugin-icon img {
+                object-fit: contain !important;
+                width: 100% !important;
+                height: 100% !important;
+            }
+        </style>';
     }
 
     /**
