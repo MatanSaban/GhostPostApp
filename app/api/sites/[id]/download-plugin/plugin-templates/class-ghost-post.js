@@ -172,6 +172,26 @@ class Ghost_Post {
             array($this, 'render_admin_page')
         );
         
+        // Submenu: SEO Insights
+        add_submenu_page(
+            'ghost-post-connector',
+            __('SEO Insights', 'ghost-post-connector'),
+            __('SEO Insights', 'ghost-post-connector'),
+            'manage_options',
+            'ghost-post-connector&tab=seo-insights',
+            array($this, 'render_admin_page')
+        );
+        
+        // Submenu: Code Snippets
+        add_submenu_page(
+            'ghost-post-connector',
+            __('Code Snippets', 'ghost-post-connector'),
+            __('Code Snippets', 'ghost-post-connector'),
+            'manage_options',
+            'ghost-post-connector&tab=snippets',
+            array($this, 'render_admin_page')
+        );
+        
         // Submenu: Add-ons
         add_submenu_page(
             'ghost-post-connector',
@@ -633,6 +653,23 @@ class Ghost_Post {
             $lang = 'auto';
         }
         
+        // Save to platform (source of truth)
+        $timestamp = time();
+        $body = wp_json_encode(array('language' => $lang));
+        $signature = $this->create_signature($body, $timestamp);
+        
+        wp_remote_post(GP_API_URL . '/api/public/wp/save-language', array(
+            'timeout' => 15,
+            'headers' => array(
+                'Content-Type'   => 'application/json',
+                'X-GP-Site-Key'  => GP_SITE_KEY,
+                'X-GP-Timestamp' => $timestamp,
+                'X-GP-Signature' => $signature,
+            ),
+            'body' => $body,
+        ));
+        
+        // Cache locally for quick reads
         update_option('gp_connector_language', $lang);
         wp_send_json_success(array('language' => $lang));
     }
@@ -761,6 +798,7 @@ class Ghost_Post {
         $body = wp_json_encode(array(
             'pluginVersion' => GP_CONNECTOR_VERSION,
             'wpVersion' => get_bloginfo('version'),
+            'wpLocale'  => get_locale(),
         ));
         
         $signature = $this->create_signature($body, $timestamp);
@@ -783,6 +821,10 @@ class Ghost_Post {
             $resp_body = json_decode(wp_remote_retrieve_body($response), true);
             if (!empty($resp_body['widgetData'])) {
                 update_option('gp_dashboard_widget_data', $resp_body['widgetData']);
+            }
+            // Sync language preference from platform
+            if (!empty($resp_body['pluginLanguage'])) {
+                update_option('gp_connector_language', $resp_body['pluginLanguage']);
             }
         }
     }
