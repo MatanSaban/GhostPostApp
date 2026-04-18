@@ -74,10 +74,9 @@ export async function POST(request) {
 
     // Build top pages from entities
     const topPages = entities.slice(0, 10).map(e => ({
-      url: e.url || `/${e.slug}`,
-      title: e.title,
+      page: e.title || e.url || `/${e.slug}`,
       traffic: 0,
-      position: null,
+      avgPosition: null,
     }));
 
     // Extract issues from latest audit
@@ -85,9 +84,9 @@ export async function POST(request) {
       .filter(i => i.severity === 'error' || i.severity === 'warning')
       .slice(0, 20)
       .map(issue => ({
-        type: issue.severity || 'info',
-        message: issue.message || '',
-        page: issue.url || '',
+        severity: issue.severity || 'info',
+        title: issue.message || '',
+        description: issue.url || '',
       }));
 
     // Build traffic chart labels (last 6 months)
@@ -101,13 +100,14 @@ export async function POST(request) {
     return NextResponse.json({
       success: true,
       data: {
-        total_traffic: 0,
-        ai_traffic: 0,
-        keywords_count: keywords.length,
-        agent_issues: issues,
-        top_keywords: topKeywords,
-        top_pages: topPages,
-        traffic_chart: {
+        totalTraffic: 0,
+        aiTraffic: 0,
+        keywordsCount: keywords.length,
+        issuesCount: issues.length,
+        issues: issues,
+        topKeywords: topKeywords,
+        topPages: topPages,
+        trafficChart: {
           labels: months,
           organic: months.map(() => 0),
           ai: months.map(() => 0),

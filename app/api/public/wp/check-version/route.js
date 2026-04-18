@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { verifySignature } from '@/lib/site-keys';
+import { PLUGIN_VERSION, PLUGIN_CHANGELOG } from '@/app/api/plugin/version';
 
 /**
  * POST /api/public/wp/check-version
@@ -9,11 +10,8 @@ import { verifySignature } from '@/lib/site-keys';
  * Headers:
  *   X-GP-Site-Key, X-GP-Timestamp, X-GP-Signature
  * Body:
- *   { siteUrl: string, currentVersion?: string }
+ *   { pluginVersion?: string, wpVersion?: string }
  */
-
-// The latest plugin version — bump this when releasing a new version
-const LATEST_PLUGIN_VERSION = '2.9.2';
 
 export async function POST(request) {
   try {
@@ -55,9 +53,9 @@ export async function POST(request) {
     }
 
     return NextResponse.json({
-      version: LATEST_PLUGIN_VERSION,
-      download_url: '',
-      changelog: '',
+      version: PLUGIN_VERSION,
+      download_url: `${process.env.NEXT_PUBLIC_APP_URL || 'https://app.ghostpost.co.il'}/api/plugin/download?site_key=${siteKey}`,
+      changelog: PLUGIN_CHANGELOG,
     });
   } catch (error) {
     console.error('WP check-version error:', error);
