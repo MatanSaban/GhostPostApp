@@ -2,8 +2,7 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import prisma from '@/lib/prisma';
 import { analyzeKeywordIntentsBatch } from '@/lib/ai/keyword-intent.js';
-import { enforceCredits } from '@/lib/account-limits';
-import { deductAiCredits } from '@/lib/account-utils';
+import { enforceCredits, enforceResourceLimit } from '@/lib/account-limits';
 import { AI_OPERATIONS } from '@/lib/ai/credits';
 
 const SESSION_COOKIE = 'user_session';
@@ -138,11 +137,17 @@ export async function POST(request) {
         : { id: siteId, account: { members: { some: { userId: user.id } } } };
       const site = await prisma.site.findFirst({
         where: siteWhere,
-      select: { id: true },
+      select: { id: true, accountId: true },
     });
 
     if (!site) {
       return NextResponse.json({ error: 'Site not found or no access' }, { status: 404 });
+    }
+
+    // Enforce keyword limit from plan
+    const limitCheck = await enforceResourceLimit(site.accountId, 'maxKeywords');
+    if (!limitCheck.allowed) {
+      return NextResponse.json(limitCheck, { status: 403 });
     }
 
     // Normalize input: accept string or array
@@ -167,10 +172,24 @@ export async function POST(request) {
       return NextResponse.json({ error: 'All keywords already exist', duplicates: true }, { status: 409 });
     }
 
-    // Analyze intents using AI
+    // Enforce AI credit limit before analysis
+    const creditCost = uniqueKeywords.length * AI_OPERATIONS.KEYWORD_INTENT_ANALYSIS.credits;
+    const creditCheck = await enforceCredits(site.accountId, creditCost);
+    if (!creditCheck.allowed) {
+      return NextResponse.json(
+        { error: creditCheck.error, code: 'INSUFFICIENT_CREDITS' },
+        { status: 402 }
+      );
+    }
+
+    // Analyze intents using AI (trackAIUsage fires inside generateStructuredResponse)
     let intentResults = new Map();
     try {
-      intentResults = await analyzeKeywordIntentsBatch(uniqueKeywords);
+      intentResults = await analyzeKeywordIntentsBatch(
+        uniqueKeywords,
+        {},
+        { accountId: site.accountId, userId: user.id, siteId }
+      );
     } catch (aiError) {
       console.warn('[Keywords API] AI intent analysis failed, continuing without intents:', aiError.message);
     }
@@ -251,21 +270,14 @@ export async function PATCH(request) {
       }
 
       try {
-        const intentResults = await analyzeKeywordIntentsBatch([keyword.keyword]);
+        const intentResults = await analyzeKeywordIntentsBatch(
+          [keyword.keyword],
+          {},
+          { accountId: keyword.site.accountId, userId: user.id, siteId: keyword.siteId }
+        );
         const result = intentResults.get(keyword.keyword);
         if (result?.intents?.length > 0) {
           updateData.intents = result.intents;
-        }
-
-        // Deduct credits after successful analysis
-        const deductResult = await deductAiCredits(keyword.site.accountId, creditCost, {
-          userId: user.id,
-          siteId: keyword.siteId,
-          source: 'KEYWORD_INTENT_ANALYSIS',
-          description: `Keyword intent analysis: "${keyword.keyword}"`,
-        });
-        if (!deductResult.success) {
-          console.error('[Keywords API] Credit deduction failed after AI analysis:', deductResult.error, '| keyword:', keyword.keyword);
         }
       } catch (aiError) {
         console.error('[Keywords API] AI analysis failed:', aiError.message);

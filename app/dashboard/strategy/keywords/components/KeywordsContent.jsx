@@ -6,6 +6,7 @@ import { TrendingUp, TrendingDown, Minus, Search, Loader2, Tag, Trash2, Plus, X,
 import { useSite } from '@/app/context/site-context';
 import { useTranslation } from '@/app/context/locale-context';
 import { emitCreditsUpdated } from '@/app/context/user-context';
+import { handleLimitError } from '@/app/context/limit-guard-context';
 import { usePermissions } from '@/app/hooks/usePermissions';
 import { Skeleton } from '@/app/dashboard/components/Skeleton';
 import { Button } from '@/app/dashboard/components';
@@ -165,7 +166,7 @@ function KeywordsPageSkeleton() {
 }
 
 export function KeywordsContent() {
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
   const { selectedSite, isLoading: isSiteLoading } = useSite();
   const { canCreate, canEdit, canDelete, MODULES } = usePermissions();
   
@@ -243,7 +244,7 @@ export function KeywordsContent() {
     const e = new Date(gscCustomEnd + 'T00:00:00');
     s.setFullYear(s.getFullYear() - 1);
     e.setFullYear(e.getFullYear() - 1);
-    const fmt = (d) => d.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+    const fmt = (d) => d.toLocaleDateString(locale === 'he' ? 'he-IL' : 'en-US', { month: 'short', day: 'numeric', year: 'numeric' });
     return `${fmt(s)} – ${fmt(e)}`;
   };
 
@@ -356,6 +357,10 @@ export function KeywordsContent() {
       const data = await res.json();
 
       if (!res.ok) {
+        // Handle limit reached error with global modal
+        if (handleLimitError(data)) {
+          return;
+        }
         setAddError(data.duplicates
           ? t('keywordStrategy.duplicateKeyword')
           : (data.error || t('keywordStrategy.addError')));

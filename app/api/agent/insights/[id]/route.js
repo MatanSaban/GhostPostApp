@@ -38,7 +38,6 @@ export async function PATCH(request, { params }) {
 
     const insight = await prisma.agentInsight.findUnique({
       where: { id },
-      include: { site: { select: { accountId: true } } },
     });
 
     if (!insight) {
@@ -59,8 +58,8 @@ export async function PATCH(request, { params }) {
     const body = await request.json();
     const { action } = body;
 
-    if (!['approve', 'reject', 'dismiss'].includes(action)) {
-      return NextResponse.json({ error: 'Invalid action. Must be: approve, reject, or dismiss' }, { status: 400 });
+    if (!['approve', 'reject', 'dismiss', 'resolve'].includes(action)) {
+      return NextResponse.json({ error: 'Invalid action. Must be: approve, reject, dismiss, or resolve' }, { status: 400 });
     }
 
     let updateData = {};
@@ -80,6 +79,10 @@ export async function PATCH(request, { params }) {
         break;
       case 'dismiss':
         updateData = { dismissedAt: new Date() };
+        break;
+      case 'resolve':
+        // Mark as resolved (user acknowledged the fix) — keeps it visible in resolved history
+        updateData = { status: 'RESOLVED', resolvedAt: new Date() };
         break;
     }
 

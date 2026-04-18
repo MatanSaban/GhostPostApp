@@ -53,7 +53,7 @@ export function EntitiesTable({
   hasSyncedBefore = false,
   site = null,
 }) {
-  const { t } = useLocale();
+  const { t, locale } = useLocale();
   const router = useRouter();
   const { canEdit, canDelete, MODULES } = usePermissions();
   
@@ -319,12 +319,12 @@ export function EntitiesTable({
 
   const formatDate = (dateString) => {
     if (!dateString) return '-';
-    return new Date(dateString).toLocaleDateString();
+    return new Date(dateString).toLocaleDateString(locale === 'he' ? 'he-IL' : 'en-US');
   };
 
   const formatDateTime = (dateString) => {
     if (!dateString) return '-';
-    return new Date(dateString).toLocaleString();
+    return new Date(dateString).toLocaleString(locale === 'he' ? 'he-IL' : 'en-US');
   };
 
   const getStatusClass = (status) => {

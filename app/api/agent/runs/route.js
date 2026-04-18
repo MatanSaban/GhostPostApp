@@ -116,7 +116,7 @@ export async function POST(request) {
     });
 
     // Fire and forget - analysis runs in background, client polls for status
-    runSiteAnalysis(siteId, site.accountId, 'manual', run.id).catch(err => {
+    runSiteAnalysis(siteId, site.accountId, 'manual', run.id, user.id).catch(err => {
       console.error(`[Agent API] Background analysis failed for run ${run.id}:`, err);
     });
 

@@ -68,6 +68,7 @@ export default async function DashboardPage() {
     of: t('dashboard.of'),
     keyword: t('dashboard.table.keyword'),
     relatedPost: t('dashboard.table.relatedPost'),
+    generateAIPost: t('keywordStrategy.generatePost'),
     sortBy: t('dashboard.sortBy'),
     pageViews: t('dashboard.stats.totalPageViews'),
     visitors: t('dashboard.stats.visitors'),

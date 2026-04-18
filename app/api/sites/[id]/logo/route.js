@@ -343,8 +343,8 @@ Reply with ONLY a single number (the 1-based index of the best logo, or 0 if non
     const usage = result.usage || {};
     logAIUsage({
       operation: 'DETECT_SITE_LOGO',
-      inputTokens: usage.promptTokens || 0,
-      outputTokens: usage.completionTokens || 0,
+      inputTokens: usage.inputTokens || 0,
+      outputTokens: usage.outputTokens || 0,
       totalTokens: usage.totalTokens || 0,
       model: VISION_MODEL,
       metadata: { domain, candidateCount: candidateImages.length },
@@ -431,8 +431,8 @@ Reply with EXACTLY this JSON format, nothing else:
     const usage = result.usage || {};
     logAIUsage({
       operation: 'DETECT_LOGO_BG',
-      inputTokens: usage.promptTokens || 0,
-      outputTokens: usage.completionTokens || 0,
+      inputTokens: usage.inputTokens || 0,
+      outputTokens: usage.outputTokens || 0,
       totalTokens: usage.totalTokens || 0,
       model: VISION_MODEL,
       metadata: { domain },

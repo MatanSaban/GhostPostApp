@@ -193,6 +193,7 @@ export async function POST(request) {
       siteId,
       source: 'ai_image_format_fix',
       description: `AI Image Format Fix: ${fixes.length} image(s)`,
+      metadata: { model: 'gemini-2.5-pro' },
     });
 
     if (!deduction.success) {

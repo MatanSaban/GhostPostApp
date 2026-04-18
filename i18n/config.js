@@ -17,3 +17,7 @@ export function isRtlLocale(locale) {
 export function getDirection(locale) {
   return isRtlLocale(locale) ? 'rtl' : 'ltr';
 }
+
+export function getDateLocale(locale) {
+  return locale === 'he' ? 'he-IL' : 'en-US';
+}

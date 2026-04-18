@@ -66,6 +66,8 @@ export async function GET(request) {
     if (category) where.category = category;
     if (status) {
       where.status = status;
+    } else if (searchParams.get('includeResolved') === 'true') {
+      // When viewing fixed items, include RESOLVED in results
     } else {
       // By default, hide RESOLVED insights (they're kept for historical comparison)
       where.status = { not: 'RESOLVED' };
@@ -83,10 +85,11 @@ export async function GET(request) {
       findArgs.cursor = { id: cursor };
     }
 
-    const [results, totalCount, pendingCount] = await Promise.all([
+    const [results, totalCount, pendingCount, resolvedCount] = await Promise.all([
       prisma.agentInsight.findMany(findArgs),
       prisma.agentInsight.count({ where }),
       prisma.agentInsight.count({ where: { siteId, status: 'PENDING', dismissedAt: { isSet: false } } }),
+      prisma.agentInsight.count({ where: { siteId, status: 'RESOLVED' } }),
     ]);
 
     const hasMore = results.length > limit;
@@ -97,6 +100,7 @@ export async function GET(request) {
       hasMore,
       totalCount,
       pendingCount,
+      resolvedCount,
       nextCursor: hasMore ? items[items.length - 1]?.id : null,
     });
   } catch (error) {

@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
+import { getExchangeRate, convertUsdToIlsWithVat } from '@/lib/currency';
 
 /**
  * GET /api/public/plans
@@ -24,6 +25,9 @@ export async function GET(request) {
       },
     });
 
+    // Fetch live USD→ILS rate for ILS price annotations
+    const usdToIlsRate = await getExchangeRate('USD', 'ILS');
+
     // Format plans with translations
     const formattedPlans = plans.map((plan, index) => {
       // Find translation for requested language, fallback to Hebrew, then to default plan data
@@ -42,18 +46,29 @@ export async function GET(request) {
       const periodMap = { he: '/לחודש', fr: '/mois', en: '/month' };
       const period = periodMap[lang] || periodMap.en;
 
+      // Calculate ILS prices including VAT (always convert as USD → ILS)
+      const yearlyPrice = plan.yearlyPrice ?? plan.price * 10;
+      let ilsMonthlyPrice = null;
+      let ilsYearlyPrice = null;
+      // Always convert using USD→ILS rate + VAT, regardless of stored currency
+      ilsMonthlyPrice = convertUsdToIlsWithVat(plan.price, usdToIlsRate);
+      ilsYearlyPrice = convertUsdToIlsWithVat(yearlyPrice, usdToIlsRate);
+
       return {
         id: plan.id,
         slug: plan.slug,
         name: translation?.name || plan.name,
         description: translation?.description || plan.description || '',
         monthlyPrice: plan.price,
-        yearlyPrice: plan.yearlyPrice ?? plan.price * 10,
+        yearlyPrice,
         currency: plan.currency,
         period,
         features,      // Dynamic features list [{key, label}]
         limitations,   // Dynamic limitations list [{key, label, value?, type?}]
         popular: isPopular,
+        ilsMonthlyPrice,  // ILS price including 18% VAT (null if already ILS)
+        ilsYearlyPrice,   // ILS yearly price including 18% VAT (null if already ILS)
+        usdToIlsRate,     // Live exchange rate used
       };
     });
 

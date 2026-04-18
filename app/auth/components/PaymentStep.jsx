@@ -47,8 +47,8 @@ export function PaymentStep({ translations, selectedPlan, userData, onComplete }
   const [couponLoading, setCouponLoading] = useState(false);
   const [couponError, setCouponError] = useState('');
 
-  // Calculate prices (convert USD to ILS)
-  const USD_TO_ILS_RATE = 3.6;
+  // Calculate prices (convert USD to ILS using live rate from API, fallback to 3.6)
+  const USD_TO_ILS_RATE = selectedPlan?.usdToIlsRate || 3.6;
   const VAT_RATE = 0.18;
   
   const getPriceBreakdown = (plan) => {

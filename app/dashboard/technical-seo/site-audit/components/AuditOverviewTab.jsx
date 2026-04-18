@@ -522,7 +522,7 @@ export default function AuditOverviewTab({
 
   function formatDate(dateStr) {
     if (!dateStr) return '';
-    return new Date(dateStr).toLocaleDateString(undefined, {
+    return new Date(dateStr).toLocaleDateString(locale === 'he' ? 'he-IL' : 'en-US', {
       year: 'numeric',
       month: 'short',
       day: 'numeric',

@@ -3,7 +3,7 @@ import { cookies } from 'next/headers';
 import prisma from '@/lib/prisma';
 import { generateText } from 'ai';
 import { google } from '@/lib/ai/vertex-provider.js';
-import { logAIUsage } from '@/lib/ai/credits.js';
+import { deductAiCredits } from '@/lib/account-utils';
 
 const SESSION_COOKIE = 'user_session';
 const MODEL = 'gemini-2.5-pro';
@@ -61,6 +61,7 @@ export async function POST(request) {
         id: true,
         summary: true,
         summaryTranslations: true,
+        siteId: true,
         site: { select: { accountId: true } },
       },
     });
@@ -113,15 +114,19 @@ Only output the translated text - no preamble or explanation.`,
       return NextResponse.json({ error: 'Translation failed' }, { status: 500 });
     }
 
-    // Log AI usage
+    // Deduct credits and track AI usage
     const usage = result.usage || {};
-    logAIUsage({
-      operation: 'AUDIT_SUMMARY_TRANSLATE',
-      inputTokens: usage.promptTokens || 0,
-      outputTokens: usage.completionTokens || 0,
-      totalTokens: usage.totalTokens || 0,
-      model: MODEL,
-      metadata: { auditId, targetLang },
+    await deductAiCredits(audit.site.accountId, 1, {
+      userId: user.id,
+      siteId: audit.siteId,
+      source: 'audit_translate_summary',
+      description: `Translate audit summary to ${langName}`,
+      metadata: {
+        model: MODEL,
+        inputTokens: usage.inputTokens || 0,
+        outputTokens: usage.outputTokens || 0,
+        totalTokens: usage.totalTokens || 0,
+      },
     });
 
     // Cache the translation (retry on write conflict)

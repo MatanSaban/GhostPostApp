@@ -441,7 +441,7 @@ async function populateEntitiesFromSitemap(siteId, entityTypes, sitemapEntities)
 /**
  * Use AI to analyze sitemap URLs and identify post types
  */
-async function analyzeWithAI(sitemapData, wpTypes) {
+async function analyzeWithAI(sitemapData, wpTypes, { accountId, siteId } = {}) {
   const schema = z.object({
     entityTypes: z.array(z.object({
       slug: z.string().describe('Unique identifier for the post type (lowercase, no spaces)'),
@@ -482,6 +482,9 @@ Return ONLY post types that actually exist on this site based on the data provid
       prompt,
       schema,
       temperature: 0.2,
+      operation: 'GENERIC',
+      accountId,
+      siteId,
     });
 
     return result.entityTypes;
@@ -681,7 +684,7 @@ export async function POST(request) {
     let aiEnhanced = false;
     if (entityTypes.length > 0 && (sitemap.content || wpTypes)) {
       try {
-        const aiTypes = await analyzeWithAI(sitemapData, wpTypes);
+        const aiTypes = await analyzeWithAI(sitemapData, wpTypes, { accountId: site.accountId, siteId: site.id });
         usedAI = true;  // Track that AI was called
         
         if (aiTypes && aiTypes.length > 0) {

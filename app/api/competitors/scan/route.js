@@ -3,7 +3,6 @@ import { cookies } from 'next/headers';
 import prisma from '@/lib/prisma';
 import { scrapeCompetitorPage } from '@/lib/competitor-scraper';
 import { generateCompetitorSummary, analyzeCompetitorTopics } from '@/lib/ai/competitor-analysis';
-import { trackAIUsage, AI_OPERATIONS } from '@/lib/ai/credits-service';
 import { enforceCredits } from '@/lib/account-limits';
 
 const SESSION_COOKIE = 'user_session';
@@ -167,32 +166,18 @@ export async function POST(request) {
       }
 
       // If AI analysis is requested and there's content
-      let creditsUsed = 0;
       if (includeAI && data.mainContent && data.mainContent.length > 100) {
         console.log(`[CompetitorScan] Running AI analysis...`);
         
         try {
           // Get AI summary
-          const summary = await generateCompetitorSummary(data.mainContent, data.title);
-          updateData.aiSummary = summary.summary;
-          updateData.topicsCovered = summary.mainTopics;
-
-          // Track AI usage
-          const trackResult = await trackAIUsage({
+          const summary = await generateCompetitorSummary(data.mainContent, data.title, {
             accountId: site.accountId,
             userId: user.id,
             siteId: site.id,
-            operation: 'COMPETITOR_SCAN',
-            description: `Competitor scan: ${competitor.domain}`,
-            metadata: {
-              competitorId,
-              url: competitor.url,
-            },
           });
-          
-          if (trackResult.success) {
-            creditsUsed = trackResult.totalUsed;
-          }
+          updateData.aiSummary = summary.summary;
+          updateData.topicsCovered = summary.mainTopics;
         } catch (aiError) {
           console.error('[CompetitorScan] AI analysis failed:', aiError.message);
           // Continue without AI - don't fail the whole scan
@@ -217,8 +202,7 @@ export async function POST(request) {
           videoCount: data.videoCount,
           ttfb: data.ttfb,
         },
-        // Include updated credits for frontend to update UI
-        creditsUpdated: creditsUsed > 0 ? { used: creditsUsed } : null,
+
       });
     } catch (scrapeError) {
       // Update with error

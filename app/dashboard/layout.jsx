@@ -32,6 +32,7 @@ import {
   Link2,
   Ticket,
   MessageSquarePlus,
+  HelpCircle,
 } from 'lucide-react';
 import { GhostChatPopup } from '@/app/components/ui/ghost-chat-popup';
 import { SiteSelector } from '@/app/components/ui/site-selector';
@@ -84,6 +85,7 @@ const adminMenuItemsConfig = [
   { icon: Languages, labelKey: 'nav.admin.translations', path: '/dashboard/admin/translations' },
   { icon: Link2, labelKey: 'nav.admin.backlinks', path: '/dashboard/admin/backlinks' },
   { icon: Globe, labelKey: 'nav.admin.website', path: '/dashboard/admin/website' },
+  { icon: HelpCircle, labelKey: 'nav.admin.faq', path: '/dashboard/admin/faq' },
 ];
 
 export default function DashboardLayout({ children }) {

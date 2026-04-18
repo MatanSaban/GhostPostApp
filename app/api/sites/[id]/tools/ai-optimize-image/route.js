@@ -116,6 +116,15 @@ Based on the image content, generate:
       prompt: userPrompt,
       schema: imageOptimizationSchema,
       temperature: 0.3,
+      operation: 'IMAGE_ALT_OPTIMIZATION',
+      accountId: site.accountId,
+      siteId: site.id,
+      metadata: {
+        websiteUrl: site.url,
+        imageUrl: imgUrl,
+        suggestedFilename: aiResult?.suggestedFilename,
+        descriptionKey: 'optimizedImageAlt',
+      },
     });
 
     // ── Apply suggestions via WP plugin ──────────────────────
@@ -126,23 +135,6 @@ Based on the image content, generate:
       apply_filename: applyFilename,
       apply_alt_text: applyAltText,
     });
-
-    // ── Track AI credits ─────────────────────────────────────
-    if (site.accountId) {
-      await trackAIUsage({
-        accountId: site.accountId,
-        siteId: site.id,
-        operation: 'IMAGE_ALT_OPTIMIZATION',
-        description: 'Optimized image alt text',
-        metadata: {
-          websiteUrl: site.url,
-          imageUrl: imgUrl,
-          suggestedFilename: aiResult.suggestedFilename,
-          descriptionKey: 'optimizedImageAlt',
-          descriptionParams: { filename: aiResult.suggestedFilename },
-        },
-      });
-    }
 
     return NextResponse.json({
       success: true,

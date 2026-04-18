@@ -169,7 +169,7 @@ export default function SubscriptionsPage() {
 
   const formatDate = (dateString) => {
     if (!dateString) return '-';
-    return new Date(dateString).toLocaleDateString();
+    return new Date(dateString).toLocaleDateString(locale === 'he' ? 'he-IL' : 'en-US');
   };
 
   const formatCurrency = (amount) => {

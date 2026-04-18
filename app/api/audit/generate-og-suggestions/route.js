@@ -4,6 +4,7 @@ import prisma from '@/lib/prisma';
 import { generateObject } from 'ai';
 import { google } from '@/lib/ai/vertex-provider.js';
 import { z } from 'zod';
+import { deductAiCredits } from '@/lib/account-utils';
 
 const SESSION_COOKIE = 'user_session';
 
@@ -137,6 +138,22 @@ Pages to fix:
 ${pagesContext}
 
 Generate og:title and og:description for each page.`;
+
+    // Deduct credits for AI generation
+    const deduction = await deductAiCredits(site.accountId, 1, {
+      userId: user.id,
+      siteId,
+      source: 'ai_og_suggestions',
+      description: `AI OG Suggestions: ${fixableUrls.length} page(s)`,
+      metadata: { model: 'gemini-2.5-pro' },
+    });
+    if (!deduction.success) {
+      const isInsufficient = deduction.error?.includes('Insufficient');
+      return NextResponse.json(
+        { error: deduction.error || 'Credit deduction failed', code: isInsufficient ? 'INSUFFICIENT_CREDITS' : 'CREDIT_ERROR', resourceKey: isInsufficient ? 'aiCredits' : undefined },
+        { status: 402 }
+      );
+    }
 
     const result = await generateObject({
       model: google('gemini-2.5-pro'),

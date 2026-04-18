@@ -180,7 +180,7 @@ export function translateReason(issue, labels) {
  * Resolves a translation key like "agent.insights.keywordStrikeZone.title"
  * and replaces {placeholders} with values from data.
  */
-export function resolveTranslation(translations, titleKey, data = {}) {
+export function resolveTranslation(translations, titleKey, data = {}, locale) {
   const parts = titleKey.split('.');
   let value = translations;
   for (const part of parts) {
@@ -189,10 +189,12 @@ export function resolveTranslation(translations, titleKey, data = {}) {
   }
   if (typeof value !== 'string') return titleKey;
 
+  const dateLocale = locale === 'he' ? 'he-IL' : 'en-US';
+
   // Helper to format date to localized string
   const formatDate = (dateStr) => {
     if (typeof dateStr === 'string' && /^\d{4}-\d{2}-\d{2}/.test(dateStr)) {
-      try { return new Date(dateStr).toLocaleDateString(); } catch { return dateStr; }
+      try { return new Date(dateStr).toLocaleDateString(dateLocale); } catch { return dateStr; }
     }
     return dateStr;
   };
@@ -208,10 +210,10 @@ export function resolveTranslation(translations, titleKey, data = {}) {
     prevStart.setDate(prevStart.getDate() - 30);
 
     const periods = {
-      periodStart: start.toLocaleDateString(),
-      periodEnd: end.toLocaleDateString(),
-      comparePeriodStart: prevStart.toLocaleDateString(),
-      comparePeriodEnd: prevEnd.toLocaleDateString(),
+      periodStart: start.toLocaleDateString(dateLocale),
+      periodEnd: end.toLocaleDateString(dateLocale),
+      comparePeriodStart: prevStart.toLocaleDateString(dateLocale),
+      comparePeriodEnd: prevEnd.toLocaleDateString(dateLocale),
     };
     return periods[key];
   };
@@ -239,6 +241,11 @@ export function resolveTranslation(translations, titleKey, data = {}) {
  * Check if an insight is fully fixed (all items applied)
  */
 export function isInsightFullyFixed(insight) {
+  // User explicitly resolved or action was executed — always treat as fixed
+  if (insight.status === 'EXECUTED' || insight.status === 'RESOLVED') {
+    return true;
+  }
+  
   const type = getInsightType(insight.titleKey);
   const data = insight.data;
   const results = insight.executionResult?.results || [];

@@ -320,7 +320,8 @@
       "pushQuestions": "Push Questions",
       "botActions": "Bot Actions",
       "backlinks": "Backlinks",
-      "website": "Website Content"
+      "website": "Website Content",
+      "faq": "FAQ Management"
     }
   },
   "websiteAdmin": {
@@ -538,7 +539,7 @@
       "ctr": "CTR",
       "position": "Position",
       "keyword": "Keyword",
-      "relatedPost": "Related Post"
+      "relatedPost": "Pillar Page"
     },
     "topKeywords": "Top Keywords",
     "addToKeywords": "Add to keywords",
@@ -1520,7 +1521,7 @@
       "trend": "Trend",
       "traffic": "Traffic",
       "cpc": "CPC",
-      "relatedPost": "Related Post"
+      "relatedPost": "Pillar Page"
     },
     "stats": {
       "trackedKeywords": "Tracked Keywords",
@@ -1542,7 +1543,7 @@
       "impressions": "Number of times the site appeared in Google results",
       "ctr": "Click-through rate from impressions",
       "intent": "Search intent type (informational, commercial, etc.)",
-      "relatedPost": "Post on the site linked to this keyword",
+      "relatedPost": "Pillar page on the site linked to this keyword",
       "status": "Tracking status of the keyword",
       "noChange": "{value} {metric} - no change from {period}",
       "moreFromPrev": "{value} {metric} - {percent}% more than {period}",
@@ -3688,6 +3689,11 @@
       "alreadyPurchased": "You have already purchased this add-on",
       "alreadyPurchasedCount": "You have purchased this add-on {count} times",
       "addonFallback": "Add-on",
+      "errors": {
+        "noSubscription": "No active subscription",
+        "maxSeatsReached": "Your plan allows a maximum of {max} additional seats via add-ons. You have {current}.",
+        "maxSitesReached": "Your plan allows a maximum of {max} additional websites via add-ons. You have {current}."
+      },
       "items": {
         "advancedAnalytics": {
           "name": "Advanced Analytics",
@@ -5546,7 +5552,8 @@
         "addFeature": "Add feature",
         "noFeatures": "No features defined. Click + to add one.",
         "featureKey": "Key (code)",
-        "featureLabel": "Display name"
+        "featureLabel": "Display name",
+        "baseCurrency": "Base Currency"
       },
       "planNames": {
         "free": "Free",
@@ -5782,6 +5789,45 @@
         "questionKey": "Translation Key",
         "placeholder": "Placeholder Text",
         "commaSeparated": "comma-separated"
+      }
+    },
+    "faq": {
+      "title": "FAQ Management",
+      "subtitle": "Manage frequently asked questions for the marketing website",
+      "addFaq": "Add FAQ",
+      "editFaq": "Edit FAQ",
+      "searchPlaceholder": "Search FAQs...",
+      "noFaqs": "No FAQ items found. Click \"Add FAQ\" to create one.",
+      "active": "Active",
+      "inactive": "Inactive",
+      "deleteTitle": "Delete FAQ",
+      "deleteMessage": "Are you sure you want to delete this FAQ item? This action cannot be undone.",
+      "stats": {
+        "total": "Total FAQs",
+        "active": "Active",
+        "pricing": "Pricing Page",
+        "faqPage": "FAQ Page"
+      },
+      "columns": {
+        "order": "#",
+        "question": "Question",
+        "page": "Page",
+        "languages": "Languages",
+        "status": "Status",
+        "actions": "Actions"
+      },
+      "filter": {
+        "all": "All Pages",
+        "pricing": "Pricing",
+        "faq": "FAQ Page",
+        "both": "Both"
+      },
+      "fields": {
+        "page": "Display Page",
+        "category": "Category",
+        "active": "Active",
+        "question": "Question",
+        "answer": "Answer"
       }
     },
     "common": {
@@ -6509,6 +6555,9 @@
     "approve": "Approve",
     "reject": "Reject",
     "dismiss": "Dismiss",
+    "clearIssue": "Clear Issue",
+    "clearing": "Clearing...",
+    "resolvedIssuesLabel": "Issues Resolved",
     "execute": "Execute",
     "fixWithAi": "Fix with AI",
     "fixWithAiCost": "Fix with AI (1 Credit)",
@@ -6690,6 +6739,10 @@
       "insufficientContentImages": {
         "title": "Posts Need More Content Images",
         "description": "{count} posts have fewer images than recommended for their length. Adding relevant images improves readability for long-form content."
+      },
+      "sitemapsNotSubmitted": {
+        "title": "Sitemaps Not Submitted to Google Search Console",
+        "description": "Your website's sitemaps are not submitted to Google Search Console. Submitting sitemaps helps Google discover and index your pages faster."
       }
     },
     "detailLabels": {
@@ -6708,6 +6761,7 @@
       "visitors": "Visitors",
       "sessions": "Sessions",
       "pageViews": "Page Views",
+      "affectedPages": "Affected Pages",
       "contentGap": "Content Gap",
       "competitor": "Competitor",
       "lastScanned": "Last Scanned",
@@ -6731,6 +6785,8 @@
       "gapPercent": "Gap",
       "sharePercent": "Traffic Share",
       "concentrationPercent": "Concentration",
+      "gscSiteUrl": "GSC Property",
+      "platform": "Platform",
       "engine": "AI Engine",
       "confidence": "confidence",
       "recommended": "Recommended",
@@ -6837,6 +6893,41 @@
       "high": "High",
       "medium": "Medium",
       "low": "Low"
+    },
+    "sitemapSubmission": {
+      "quickFix": "Submit Sitemaps to GSC",
+      "alreadySubmitted": "Sitemaps submitted",
+      "discoveringTitle": "Discovering Sitemaps",
+      "discoveringDescription": "Searching for sitemaps on your website...",
+      "searchingSitemaps": "Searching for sitemaps...",
+      "sitemapsFound": "Sitemaps found!",
+      "noSitemapsFound": "No sitemaps were found for this website. Make sure your site has a valid sitemap.xml file.",
+      "reviewTitle": "Found {count} Sitemaps",
+      "reviewDescription": "Review the sitemaps below. Remove any you don't want submitted to Google Search Console.",
+      "remove": "Remove",
+      "submitToGsc": "Submit {count} Sitemaps to Google Search Console",
+      "allRemoved": "All sitemaps have been removed. Close this dialog or add sitemaps manually.",
+      "submittingTitle": "Submitting Sitemaps",
+      "submittingDescription": "Sending your sitemaps to Google Search Console and verifying submission...",
+      "retrying": "Retrying submission... (Attempt {attempt})",
+      "sendingSitemaps": "Submitting sitemaps...",
+      "verifying": "Verifying submission...",
+      "successTitle": "Sitemaps Submitted Successfully!",
+      "successDescription": "Your sitemaps have been submitted and verified in Google Search Console.",
+      "viewInGsc": "View in Google Search Console",
+      "done": "Done",
+      "errorTitle": "Submission Failed",
+      "scopeError": "Your Google integration doesn't have write permissions for Search Console. Please reconnect your Google account to grant the required permissions.",
+      "scopeStep1": "Go to Settings → Integrations → Google",
+      "scopeStep2": "Click \"Reconnect\" to re-authorize with updated permissions",
+      "scopeStep3": "Then try submitting sitemaps again",
+      "errorDescription": "The platform was unable to submit sitemaps to Google Search Console after multiple attempts. You can submit them manually.",
+      "manualStep1": "Open Google Search Console for your site",
+      "manualStep2": "Go to \"Sitemaps\" in the left sidebar",
+      "manualStep3": "Paste each sitemap URL and click \"Submit\"",
+      "sitemapUrls": "Your sitemap URLs:",
+      "openGsc": "Open Google Search Console",
+      "close": "Close"
     },
     "differentiation": {
       "confirm": {

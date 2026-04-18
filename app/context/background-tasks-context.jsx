@@ -19,6 +19,7 @@ const BackgroundTasksContext = createContext({
 export function BackgroundTasksProvider({ children }) {
   const [tasks, setTasks] = useState([]);
   const taskControllersRef = useRef({}); // Store AbortControllers for cancellation
+  const pollTimersRef = useRef({}); // Store polling intervals for tasks
 
   /**
    * Add a new background task
@@ -69,6 +70,11 @@ export function BackgroundTasksProvider({ children }) {
    * @param {string} taskId - Task ID
    */
   const removeTask = useCallback((taskId) => {
+    // Stop polling if active
+    if (pollTimersRef.current[taskId]) {
+      clearInterval(pollTimersRef.current[taskId]);
+      delete pollTimersRef.current[taskId];
+    }
     // Abort if still running
     if (taskControllersRef.current[taskId]) {
       taskControllersRef.current[taskId].abort();
@@ -82,6 +88,11 @@ export function BackgroundTasksProvider({ children }) {
    * @param {string} taskId - Task ID
    */
   const cancelTask = useCallback((taskId) => {
+    // Stop polling if active
+    if (pollTimersRef.current[taskId]) {
+      clearInterval(pollTimersRef.current[taskId]);
+      delete pollTimersRef.current[taskId];
+    }
     if (taskControllersRef.current[taskId]) {
       taskControllersRef.current[taskId].abort();
     }
@@ -126,6 +137,70 @@ export function BackgroundTasksProvider({ children }) {
     }
   }, [tasks]);
 
+  /**
+   * Start polling an API endpoint to update a task's progress.
+   * Persists across page navigation since this runs in the layout-level provider.
+   * Idempotent — won't duplicate if already polling for this task.
+   * @param {string} taskId - Task ID to update
+   * @param {Object} config
+   * @param {string} config.url - API endpoint to poll
+   * @param {number} [config.interval=3000] - Poll interval in ms
+   * @param {string} [config.completedLabelKey] - i18n key for the completed message
+   */
+  const startTaskPolling = useCallback((taskId, config) => {
+    if (pollTimersRef.current[taskId]) return; // already polling
+
+    const timer = setInterval(async () => {
+      try {
+        const res = await fetch(config.url);
+        if (!res.ok) return;
+        const data = await res.json();
+        const latest = data.latest;
+        if (!latest) return;
+
+        if (latest.status !== 'PENDING' && latest.status !== 'RUNNING') {
+          // Task finished — update status and stop polling
+          updateTask(taskId, {
+            status: latest.status === 'COMPLETED' ? 'completed' : 'error',
+            progress: 100,
+            labelKey: latest.status === 'COMPLETED' ? (config.completedLabelKey || null) : null,
+            labelParams: null,
+            message: latest.status === 'COMPLETED' ? '' : (latest.progress?.failureReason || 'Task failed'),
+          });
+          clearInterval(pollTimersRef.current[taskId]);
+          delete pollTimersRef.current[taskId];
+        } else if (latest.progress) {
+          updateTask(taskId, {
+            progress: latest.progress.percentage || 0,
+            labelKey: latest.progress.labelKey || null,
+            labelParams: latest.progress.labelParams || {},
+          });
+        }
+      } catch { /* ignore poll errors */ }
+    }, config.interval || 3000);
+
+    pollTimersRef.current[taskId] = timer;
+  }, [updateTask]);
+
+  /**
+   * Stop polling for a specific task
+   * @param {string} taskId - Task ID
+   */
+  const stopTaskPolling = useCallback((taskId) => {
+    if (pollTimersRef.current[taskId]) {
+      clearInterval(pollTimersRef.current[taskId]);
+      delete pollTimersRef.current[taskId];
+    }
+  }, []);
+
+  // Cleanup all poll timers on unmount
+  useEffect(() => {
+    return () => {
+      Object.values(pollTimersRef.current).forEach(clearInterval);
+      pollTimersRef.current = {};
+    };
+  }, []);
+
   return (
     <BackgroundTasksContext.Provider value={{ 
       tasks, 
@@ -135,6 +210,8 @@ export function BackgroundTasksProvider({ children }) {
       cancelTask,
       getTask,
       findActiveTask,
+      startTaskPolling,
+      stopTaskPolling,
     }}>
       {children}
     </BackgroundTasksContext.Provider>

@@ -45,7 +45,7 @@ export default function WordPressPluginSection({
   showInstructions = false,
   onConnectionChange,
 }) {
-  const { t } = useLocale();
+  const { t, locale } = useLocale();
   const { selectedSite, refreshSites } = useSite();
   
   const [isDownloading, setIsDownloading] = useState(false);
@@ -86,7 +86,7 @@ export default function WordPressPluginSection({
     if (diffHours < 24) return `${diffHours} ${t('settings.wordpress.hoursAgo')}`;
     if (diffDays < 7) return `${diffDays} ${t('settings.wordpress.daysAgo')}`;
     
-    return date.toLocaleDateString();
+    return date.toLocaleDateString(locale === 'he' ? 'he-IL' : 'en-US');
   };
 
   // Get status display info

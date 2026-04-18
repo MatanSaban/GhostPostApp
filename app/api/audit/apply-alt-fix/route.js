@@ -253,6 +253,7 @@ export async function POST(request) {
       siteId,
       source: 'ai_alt_fix',
       description: `AI Alt Text Fix: ${fixes.length} image(s)`,
+      metadata: { model: 'gemini-2.5-pro' },
     });
 
     if (!deduction.success) {

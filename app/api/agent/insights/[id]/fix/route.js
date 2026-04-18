@@ -218,7 +218,7 @@ export async function POST(request, { params }) {
 
     // ─── Preview mode: generate proposals ─────────────────────
     if (mode === 'preview') {
-      const result = await generateInsightPreview(insight, site);
+      const result = await generateInsightPreview(insight, site, user.id);
       return NextResponse.json(result);
     }
 

@@ -154,7 +154,7 @@ export async function GET(request, { params }) {
         userName: user ? `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.email : 'System',
         userId: log.userId,
         actionType: meta.operationName || log.description || log.source,
-        model: meta.model || 'unknown',
+        model: meta.model || 'gemini-2.5-pro',
         inputTokens,
         outputTokens,
         credits: log.amount,

@@ -1574,7 +1574,7 @@ async function discoverPostTypes(site, customSitemapUrl = null, userId = null, u
     });
 
   // Auto-translate post type names that don't have a proper translation
-  result.postTypes = await translatePostTypeNames(result.postTypes, userLocale);
+  result.postTypes = await translatePostTypeNames(result.postTypes, userLocale, { accountId: site.accountId, siteId: site.id });
 
   return result;
 }
@@ -1583,7 +1583,7 @@ async function discoverPostTypes(site, customSitemapUrl = null, userId = null, u
  * Translate post type names using AI for types not in the hardcoded translations map.
  * Translates all untranslated names in a single AI call for efficiency.
  */
-async function translatePostTypeNames(postTypes, targetLocale = 'he') {
+async function translatePostTypeNames(postTypes, targetLocale = 'he', { accountId, siteId } = {}) {
   // If target is English, names are already in English - nothing to translate
   if (targetLocale === 'en') return postTypes;
   
@@ -1626,6 +1626,8 @@ async function translatePostTypeNames(postTypes, targetLocale = 'he') {
       temperature: 0.2,
       operation: 'TRANSLATE_POST_TYPES',
       metadata: { targetLocale, count: needsTranslation.length },
+      accountId,
+      siteId,
     });
     
     if (!result?.translations) return postTypes;
@@ -2386,7 +2388,7 @@ async function extractPageMetadata(url) {
 /**
  * Use AI to extract/enhance content when code-based extraction is uncertain
  */
-async function enrichContentWithAI(url, rawHtml, existingMetadata) {
+async function enrichContentWithAI(url, rawHtml, existingMetadata, { accountId, siteId } = {}) {
   try {
     // Prepare a condensed version of the HTML (first 30KB to avoid token limits)
     const condensedHtml = rawHtml.substring(0, 30000);
@@ -2425,6 +2427,9 @@ Extract:
 5. What type of content this is`,
       schema,
       temperature: 0.3,
+      operation: 'GENERIC',
+      accountId,
+      siteId,
     });
     
     return result;
@@ -2855,7 +2860,7 @@ async function deepCrawlEntities(site, options = {}, msg = SCAN_MESSAGES.en) {
           let aiEnrichment = null;
           if (needsAI && metadata._rawHtml && metadata.wordCount > 20) {
             console.log(`[Scan] Using AI enrichment for: ${entity.url}`);
-            aiEnrichment = await enrichContentWithAI(entity.url, metadata._rawHtml, metadata);
+            aiEnrichment = await enrichContentWithAI(entity.url, metadata._rawHtml, metadata, { accountId: site.accountId, siteId: site.id });
             stats.aiCalls++;  // Track AI calls for credit tracking
             
             if (aiEnrichment) {

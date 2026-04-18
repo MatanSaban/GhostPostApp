@@ -68,7 +68,9 @@ export function BackgroundTasksNotification() {
             </div>
             <div className={styles.taskContent}>
               <span className={styles.taskTitle}>{task.title}</span>
-              <span className={styles.taskMessage}>{task.message}</span>
+              <span className={styles.taskMessage}>
+                {task.labelKey ? t(task.labelKey, task.labelParams || {}) : task.message}
+              </span>
             </div>
             <div className={styles.taskActions}>
               {(task.status === 'running' || task.status === 'pending') && task.cancelable !== false && (

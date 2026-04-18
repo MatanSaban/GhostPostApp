@@ -44,7 +44,7 @@ const URL_STEP_TO_INDEX = {
   'payment': 5,
 };
 
-export function RegistrationFlow({ translations, initialStep = 'form' }) {
+export function RegistrationFlow({ translations, initialStep = 'form', initialFormData = {}, initialPlan = null }) {
   const router = useRouter();
   const mappedInitialStep = STEP_MAP[initialStep] || 'form';
   const [currentStep, setCurrentStep] = useState(mappedInitialStep);
@@ -55,12 +55,12 @@ export function RegistrationFlow({ translations, initialStep = 'form' }) {
   const [error, setError] = useState('');
   const [registrationData, setRegistrationData] = useState({
     tempRegId: null,
-    formData: {},
+    formData: { ...initialFormData },
     otpMethod: '',
     otpCode: '', // For development - will show the code
     accountData: null, // Account setup data
     interviewData: {},
-    selectedPlan: null,
+    selectedPlan: initialPlan,
   });
 
   // Load temp registration data and check status
@@ -398,6 +398,7 @@ export function RegistrationFlow({ translations, initialStep = 'form' }) {
           <PlanSelectionStep
             translations={translations.plans}
             onSelect={handlePlanSelected}
+            initialPlanSlug={registrationData.selectedPlan}
           />
         );
       case 'payment':

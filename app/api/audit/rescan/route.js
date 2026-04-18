@@ -83,6 +83,7 @@ export async function POST(request) {
         siteId,
         source: 'audit_rescan',
         description: `Rescan page: ${url}`,
+        metadata: { model: 'gemini-2.5-pro' },
       });
 
       if (!deduction.success) {

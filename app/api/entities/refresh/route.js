@@ -290,7 +290,7 @@ async function extractPageMetadata(url) {
 /**
  * Extract focus keyword from page content using AI
  */
-async function extractFocusKeyword(metadata) {
+async function extractFocusKeyword(metadata, { accountId, siteId } = {}) {
   try {
     // Build context from available metadata
     const title = metadata.h1 || metadata.ogTitle || metadata.title || '';
@@ -314,6 +314,9 @@ Do not include any explanation or additional text.`;
       prompt,
       maxTokens: 50,
       temperature: 0.3,
+      operation: 'ENTITY_REFRESH',
+      accountId,
+      siteId,
     });
 
     return focusKeyword?.trim() || null;
@@ -413,7 +416,7 @@ export async function POST(request) {
     let creditsUsed = 0;
     if (!focusKeyword) {
       console.log(`[Refresh] Extracting focus keyword with AI for: ${entity.url}`);
-      focusKeyword = await extractFocusKeyword(metadata);
+      focusKeyword = await extractFocusKeyword(metadata, { accountId: site.accountId, siteId: site.id });
       console.log(`[Refresh] AI extracted focus keyword: ${focusKeyword}`);
       
       // Track AI credits usage for focus keyword extraction

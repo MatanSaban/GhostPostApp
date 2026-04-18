@@ -10,10 +10,16 @@
  */
 
 // Current plugin version - increment this when making updates
-export const PLUGIN_VERSION = "2.8.5";
+export const PLUGIN_VERSION = "2.9.0";
 
 // Changelog for the current version
 export const PLUGIN_CHANGELOG = `
+= 2.9.0 =
+* NEW: Redesigned admin UI with tabbed navigation (Connection, Settings, Activity, Redirections, Add-ons)
+* NEW: Copy Site Key button on Connection tab
+* CHANGE: Redirections merged into main plugin page as a tab
+* CHANGE: Add-ons tab shows detected third-party integrations
+
 = 2.8.5 =
 * FIX: Faster plugin download — reduced ZIP compression level for quicker generation
 

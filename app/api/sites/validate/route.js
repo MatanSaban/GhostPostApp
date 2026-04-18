@@ -1,10 +1,14 @@
 import { NextResponse } from 'next/server';
+import { cookies } from 'next/headers';
+import prisma from '@/lib/prisma';
 import { generateTextResponse } from '@/lib/ai/gemini';
+
+const SESSION_COOKIE = 'user_session';
 
 /**
  * Use AI to extract the business/website name from HTML content
  */
-async function extractSiteNameWithAI(html, hostname) {
+async function extractSiteNameWithAI(html, hostname, { accountId, userId } = {}) {
   try {
     // Extract relevant text from HTML for AI analysis
     const title = html.match(/<title[^>]*>([^<]+)<\/title>/i)?.[1]?.trim() || '';
@@ -43,6 +47,9 @@ Rules:
       prompt,
       maxTokens: 50,
       temperature: 0.1,
+      operation: 'SITE_NAME_EXTRACTION',
+      accountId,
+      userId,
     });
     
     // Validate the extracted name is reasonable
@@ -184,6 +191,22 @@ export async function POST(request) {
       return NextResponse.json({ valid: false, error: 'URL is required' }, { status: 400 });
     }
 
+    // Optional auth lookup for AI credit tracking
+    let trackingCtx = {};
+    try {
+      const cookieStore = await cookies();
+      const userId = cookieStore.get(SESSION_COOKIE)?.value;
+      if (userId) {
+        const user = await prisma.user.findUnique({
+          where: { id: userId },
+          select: { id: true, accountMemberships: { select: { accountId: true }, take: 1 } },
+        });
+        if (user) {
+          trackingCtx = { accountId: user.accountMemberships?.[0]?.accountId, userId: user.id };
+        }
+      }
+    } catch { /* non-critical */ }
+
     // Normalize URL
     let normalizedUrl = url.trim();
     if (!normalizedUrl.startsWith('http://') && !normalizedUrl.startsWith('https://')) {
@@ -279,7 +302,7 @@ export async function POST(request) {
     let siteName = hostname;
     if (html) {
       // Try AI extraction first
-      const aiExtractedName = await extractSiteNameWithAI(html, hostname);
+      const aiExtractedName = await extractSiteNameWithAI(html, hostname, trackingCtx);
       if (aiExtractedName) {
         siteName = aiExtractedName;
       } else {

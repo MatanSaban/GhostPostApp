@@ -34,26 +34,28 @@ const SCAN_STATUS_CONFIG = {
 };
 
 // Format date helper
-function formatDate(date, format = 'short') {
+function formatDate(date, locale, format = 'short') {
   if (!date) return '-';
   const d = new Date(date);
   if (isNaN(d.getTime())) return '-';
+  const dl = locale === 'he' ? 'he-IL' : 'en-US';
   
   if (format === 'short') {
-    return d.toLocaleDateString('he-IL', { day: '2-digit', month: '2-digit', year: 'numeric' });
+    return d.toLocaleDateString(dl, { day: '2-digit', month: '2-digit', year: 'numeric' });
   }
-  return d.toLocaleDateString('he-IL', { day: '2-digit', month: 'long', year: 'numeric' });
+  return d.toLocaleDateString(dl, { day: '2-digit', month: 'long', year: 'numeric' });
 }
 
 // Moved to lib/urlDisplay.js
 
 // Format date and time helper
-function formatDateTime(date) {
+function formatDateTime(date, locale) {
   if (!date) return '-';
   const d = new Date(date);
   if (isNaN(d.getTime())) return '-';
+  const dl = locale === 'he' ? 'he-IL' : 'en-US';
   
-  return d.toLocaleString('he-IL', {
+  return d.toLocaleString(dl, {
     day: '2-digit',
     month: '2-digit',
     year: 'numeric',
@@ -63,7 +65,7 @@ function formatDateTime(date) {
 }
 
 export default function SingleSitemapPage() {
-  const { t } = useLocale();
+  const { t, locale } = useLocale();
   const { selectedSite } = useSite();
   const params = useParams();
   const router = useRouter();
@@ -237,7 +239,7 @@ export default function SingleSitemapPage() {
               <span className={sitemapStyles.scanInfoValue}>
                 <Calendar size={14} style={{ marginInlineEnd: '0.375rem', verticalAlign: 'middle' }} />
                 {sitemap.lastScannedAt 
-                  ? formatDateTime(new Date(sitemap.lastScannedAt)) 
+                  ? formatDateTime(new Date(sitemap.lastScannedAt), locale) 
                   : t('entities.sitemaps.neverScanned')
                 }
               </span>
@@ -335,7 +337,7 @@ export default function SingleSitemapPage() {
                   {url.lastmod && (
                     <span className={sitemapStyles.urlItemDate} title="Last Modified">
                       <Calendar size={12} />
-                      {formatDate(new Date(url.lastmod), 'short')}
+                      {formatDate(new Date(url.lastmod), locale, 'short')}
                     </span>
                   )}
                   {url.priority && (

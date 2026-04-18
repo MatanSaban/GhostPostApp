@@ -4,6 +4,7 @@ import { useRef, useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { X, Check, Type, Tag, Calendar, Clock, Globe, ExternalLink, RefreshCw, Loader2, Sparkles, Eye, ChevronDown, ChevronUp, Pencil, Trash2 } from 'lucide-react';
 import { ConfirmDialog } from '@/app/dashboard/admin/components/AdminModal';
+import { useLocale } from '@/app/context/locale-context';
 import styles from './PostPopover.module.css';
 
 const PIPELINE_STATUSES = [
@@ -52,6 +53,7 @@ export default function PostPopover({
   onDelete,
 }) {
   const popoverRef = useRef(null);
+  const { locale } = useLocale();
   const [retrying, setRetrying] = useState(false);
   const [editingTitle, setEditingTitle] = useState(false);
   const [titleDraft, setTitleDraft] = useState('');
@@ -329,7 +331,7 @@ export default function PostPopover({
                 />
               ) : (
                 <span className={styles.value}>
-                  {postDate.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}
+                  {postDate.toLocaleDateString(locale === 'he' ? 'he-IL' : 'en-US', { year: 'numeric', month: 'short', day: 'numeric' })}
                 </span>
               )}
             </div>
@@ -349,7 +351,7 @@ export default function PostPopover({
                 />
               ) : (
                 <span className={styles.value}>
-                  {postDate.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })}
+                  {postDate.toLocaleTimeString(locale === 'he' ? 'he-IL' : 'en-US', { hour: '2-digit', minute: '2-digit' })}
                 </span>
               )}
             </div>

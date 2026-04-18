@@ -75,7 +75,7 @@ const NOTIFICATION_ICONS = {
 };
 
 // Relative time helper
-function timeAgo(dateStr, t) {
+function timeAgo(dateStr, t, locale) {
   const now = Date.now();
   const then = new Date(dateStr).getTime();
   const diffMs = now - then;
@@ -88,7 +88,7 @@ function timeAgo(dateStr, t) {
   if (diffMin < 60) return t('notifications.time.minutesAgo', { count: diffMin });
   if (diffHr < 24) return t('notifications.time.hoursAgo', { count: diffHr });
   if (diffDay < 7) return t('notifications.time.daysAgo', { count: diffDay });
-  return new Date(dateStr).toLocaleDateString();
+  return new Date(dateStr).toLocaleDateString(locale === 'he' ? 'he-IL' : 'en-US');
 }
 
 // Mapping of path segments to translation keys
@@ -469,7 +469,7 @@ export function DashboardHeader() {
                         <div className={styles.notificationContent}>
                           <div className={styles.notificationTitle}>{titleText}</div>
                           <p className={styles.notificationMessage}>{messageText}</p>
-                          <span className={styles.notificationTime}>{timeAgo(notification.createdAt, t)}</span>
+                          <span className={styles.notificationTime}>{timeAgo(notification.createdAt, t, locale)}</span>
                         </div>
                         <div className={styles.notificationItemActions}>
                           <button

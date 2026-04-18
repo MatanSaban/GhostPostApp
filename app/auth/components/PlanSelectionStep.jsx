@@ -6,7 +6,7 @@ import { ArrowIcon } from '@/app/components/ui/arrow-icon';
 import { useLocale } from '@/app/context/locale-context';
 import styles from '../auth.module.css';
 
-export function PlanSelectionStep({ translations, onSelect }) {
+export function PlanSelectionStep({ translations, onSelect, initialPlanSlug = null }) {
   const [selectedPlan, setSelectedPlan] = useState(null);
   const [plans, setPlans] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -25,12 +25,30 @@ export function PlanSelectionStep({ translations, onSelect }) {
         }
         
         const data = await response.json();
-        setPlans(data.plans || []);
+        const fetchedPlans = data.plans || [];
+        setPlans(fetchedPlans);
+
+        // Auto-select plan if initialPlanSlug is provided
+        if (initialPlanSlug && !selectedPlan) {
+          const match = fetchedPlans.find(p =>
+            p.slug?.toLowerCase() === initialPlanSlug.toLowerCase() ||
+            p.name?.toLowerCase() === initialPlanSlug.toLowerCase()
+          );
+          if (match) setSelectedPlan(match.id || match.slug);
+        }
       } catch (err) {
         console.error('Error fetching plans:', err);
         setError(err.message);
         // Fallback to static translations if API fails
-        setPlans(getStaticPlans(translations));
+        const staticPlans = getStaticPlans(translations);
+        setPlans(staticPlans);
+
+        if (initialPlanSlug && !selectedPlan) {
+          const match = staticPlans.find(p =>
+            p.slug?.toLowerCase() === initialPlanSlug.toLowerCase()
+          );
+          if (match) setSelectedPlan(match.id || match.slug);
+        }
       } finally {
         setLoading(false);
       }
@@ -73,15 +91,19 @@ export function PlanSelectionStep({ translations, onSelect }) {
     },
   ];
 
-  // Format price for display (convert USD to ILS + 18% VAT)
+  // Format price for display (use live ILS price from API, or convert with fallback)
   const formatPrice = (plan) => {
-    const USD_TO_ILS_RATE = 3.6; // Approximate conversion rate
     const VAT_RATE = 1.18; // 18% Israeli VAT
     
     if (plan.monthlyPrice !== undefined) {
-      // If price is in USD, convert to ILS
+      // Use live ILS price from API if available
+      if (plan.ilsMonthlyPrice) {
+        return `₪${plan.ilsMonthlyPrice}`;
+      }
+      // If price is in USD, convert to ILS with fallback rate
       if (plan.currency === 'USD' || !plan.currency) {
-        const ilsPrice = Math.round(plan.monthlyPrice * USD_TO_ILS_RATE * VAT_RATE);
+        const FALLBACK_RATE = 3.6;
+        const ilsPrice = Math.round(plan.monthlyPrice * FALLBACK_RATE * VAT_RATE);
         return `₪${ilsPrice}`;
       }
       // Already in ILS, just add VAT
@@ -123,11 +145,14 @@ export function PlanSelectionStep({ translations, onSelect }) {
         {plans.map((plan) => {
           const planId = plan.id || plan.slug;
           const displayPrice = formatPrice(plan);
-          // Handle features as array of objects {key, label} or array of strings
+          // Handle limitations + features as array of objects {key, label} or array of strings
+          const rawLimitations = Array.isArray(plan.limitations)
+            ? plan.limitations
+            : (plan.limitations ? Object.values(plan.limitations) : []);
           const rawFeatures = Array.isArray(plan.features) 
             ? plan.features 
             : (plan.features ? Object.values(plan.features) : []);
-          const featuresList = rawFeatures.map(f => 
+          const featuresList = [...rawLimitations, ...rawFeatures].map(f => 
             typeof f === 'string' ? f : (f.label || f.key || '')
           ).filter(Boolean);
           

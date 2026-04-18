@@ -91,6 +91,7 @@ export async function POST(request) {
       siteId,
       source: 'ai_og_fix',
       description: `AI OG Fix: ${fixes.length} page(s)`,
+      metadata: { model: 'gemini-2.5-pro' },
     });
 
     if (!deduction.success) {

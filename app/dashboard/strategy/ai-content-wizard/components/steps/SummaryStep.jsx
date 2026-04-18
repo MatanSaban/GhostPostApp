@@ -7,6 +7,7 @@ import {
   Calendar, List,
 } from 'lucide-react';
 import { useSite } from '@/app/context/site-context';
+import { useLocale } from '@/app/context/locale-context';
 import CalendarGrid from '../../../_shared/CalendarGrid';
 
 /** Safely decode a URI that may contain percent-encoded Hebrew/Unicode */
@@ -26,6 +27,7 @@ export default function SummaryStep({ state, dispatch, translations }) {
   const months = translations.months || [];
   const dayNames = translations.dayNames || ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
   const { selectedSite } = useSite();
+  const { locale } = useLocale();
   const [loading, setLoading] = useState(false);
   const [expandedPosts, setExpandedPosts] = useState(new Set());
   const [allExpanded, setAllExpanded] = useState(false);
@@ -323,7 +325,7 @@ export default function SummaryStep({ state, dispatch, translations }) {
 
   const formatDate = (dateStr) => {
     const d = new Date(dateStr);
-    return d.toLocaleDateString(undefined, {
+    return d.toLocaleDateString(locale === 'he' ? 'he-IL' : 'en-US', {
       year: 'numeric', month: 'short', day: 'numeric',
       hour: '2-digit', minute: '2-digit',
     });

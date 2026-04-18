@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import prisma from '@/lib/prisma';
 import { deductAiCredits } from '@/lib/account-utils';
+import { enforceCredits } from '@/lib/account-limits';
 import { generateText } from 'ai';
 import { google } from '@/lib/ai/vertex-provider.js';
 import { makePluginRequest } from '@/lib/wp-api-client';
@@ -64,18 +65,11 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Site not found' }, { status: 404 });
     }
 
-    // Deduct credits
-    const deduction = await deductAiCredits(site.accountId, FIX_CREDIT_COST, {
-      userId: user.id,
-      siteId,
-      source: 'a11y_alt_fix',
-      description: `AI Alt Text: ${imageSrc || selector || pageUrl}`,
-    });
-
-    if (!deduction.success) {
-      console.warn('[A11yFix] Credit deduction failed:', deduction.error);
+    // Check credits
+    const creditCheck = await enforceCredits(site.accountId, FIX_CREDIT_COST);
+    if (!creditCheck.allowed) {
       return NextResponse.json(
-        { error: deduction.error || 'Credit deduction failed', code: 'INSUFFICIENT_CREDITS', resourceKey: 'aiCredits' },
+        { error: creditCheck.error || 'Insufficient AI credits', code: 'INSUFFICIENT_CREDITS', resourceKey: 'aiCredits' },
         { status: 402 }
       );
     }
@@ -137,6 +131,25 @@ Respond with ONLY the alt text, nothing else.`,
 
     const altText = (result.text || '').trim();
 
+    // Deduct credits after successful AI call (with token metadata for dashboard)
+    const usage = result.usage || {};
+    const deduction = await deductAiCredits(site.accountId, FIX_CREDIT_COST, {
+      userId: user.id,
+      siteId,
+      source: 'a11y_alt_fix',
+      description: `AI Alt Text: ${imageSrc || selector || pageUrl}`,
+      metadata: {
+        inputTokens: usage.inputTokens || 0,
+        outputTokens: usage.outputTokens || 0,
+        totalTokens: usage.totalTokens || 0,
+        model: 'gemini-2.5-pro',
+      },
+    });
+
+    if (!deduction.success) {
+      console.error('[A11yFix] Credit deduction failed after AI:', deduction.error);
+    }
+
     // Try to push the fix via WordPress plugin if connected
     let pushed = false;
     let pushError = null;
@@ -163,7 +176,7 @@ Respond with ONLY the alt text, nothing else.`,
       pushed,
       pushError,
       creditsUsed: FIX_CREDIT_COST,
-      creditsUpdated: { used: deduction.usedTotal },
+      creditsUpdated: deduction.success ? { used: deduction.usedTotal } : undefined,
     });
   } catch (error) {
     console.error('[API/audit/a11y-fix] Error:', error);

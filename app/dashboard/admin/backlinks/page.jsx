@@ -336,7 +336,7 @@ function PurchaseStatusModal({ isOpen, onClose, purchase, onSubmit, isSubmitting
 // Main Page
 // ──────────────────────────────────────────────
 export default function AdminBacklinksPage() {
-  const { t } = useLocale();
+  const { t, locale } = useLocale();
   const { isSuperAdmin, isLoading: isUserLoading } = useUser();
 
   // Tab state
@@ -813,7 +813,7 @@ export default function AdminBacklinksPage() {
                         ? `${purchase.creditsPaid} credits`
                         : purchase.paymentMethod?.replace('_', ' ')}
                     </td>
-                    <td>{new Date(purchase.createdAt).toLocaleDateString()}</td>
+                    <td>{new Date(purchase.createdAt).toLocaleDateString(locale === 'he' ? 'he-IL' : 'en-US')}</td>
                     <td>
                       <span className={`${styles.statusBadge} ${styles[statusColor(purchase.status)]}`}>
                         {purchase.status}

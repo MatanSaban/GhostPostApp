@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
+import { useLocale } from '@/app/context/locale-context';
 import { 
   Calendar, 
   List, 
@@ -42,6 +43,7 @@ const STATUS_MAP = {
 };
 
 export function ContentPlannerView({ translations }) {
+  const { locale } = useLocale();
   const [viewMode, setViewMode] = useState('calendar');
   const [currentDate, setCurrentDate] = useState(new Date());
   const [campaigns, setCampaigns] = useState([]);
@@ -1273,7 +1275,7 @@ export function ContentPlannerView({ translations }) {
                 const statusText = getStatusText(dotType);
                 const badgeStatus = getBadgeStatus(dotType);
                 const dateStr = item.publishedAt || item.scheduledAt || item.createdAt;
-                const formattedDate = dateStr ? new Date(dateStr).toLocaleDateString() : '-';
+                const formattedDate = dateStr ? new Date(dateStr).toLocaleDateString(locale === 'he' ? 'he-IL' : 'en-US') : '-';
 
                 return (
                   <div key={`${item.source}-${item.id}`} className={styles.contentItem}>

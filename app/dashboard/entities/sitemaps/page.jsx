@@ -39,21 +39,22 @@ const SCAN_STATUS_CONFIG = {
 };
 
 // Format date helper
-function formatDate(date, format = 'short') {
+function formatDate(date, locale, format = 'short') {
   if (!date) return '-';
   const d = new Date(date);
   if (isNaN(d.getTime())) return '-';
+  const dl = locale === 'he' ? 'he-IL' : 'en-US';
   
   if (format === 'short') {
-    return d.toLocaleDateString('he-IL', { day: '2-digit', month: '2-digit', year: 'numeric' });
+    return d.toLocaleDateString(dl, { day: '2-digit', month: '2-digit', year: 'numeric' });
   }
-  return d.toLocaleDateString('he-IL', { day: '2-digit', month: 'long', year: 'numeric' });
+  return d.toLocaleDateString(dl, { day: '2-digit', month: 'long', year: 'numeric' });
 }
 
 // Moved to lib/urlDisplay.js
 
 export default function SitemapsPage() {
-  const { t } = useLocale();
+  const { t, locale } = useLocale();
   const { selectedSite, isLoading: isSiteLoading } = useSite();
   const [sitemaps, setSitemaps] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -233,7 +234,7 @@ export default function SitemapsPage() {
         </div>
         <div className={sitemapStyles.statCard}>
           <div className={sitemapStyles.statValue}>
-            {stats.lastScanned ? formatDate(stats.lastScanned, 'short') : '-'}
+            {stats.lastScanned ? formatDate(stats.lastScanned, locale, 'short') : '-'}
           </div>
           <div className={sitemapStyles.statLabel}>{t('entities.sitemaps.stats.lastScanned')}</div>
         </div>

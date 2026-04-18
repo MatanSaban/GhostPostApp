@@ -2265,6 +2265,33 @@ enum WebsiteContentStatus {
   ARCHIVED
 }
 
+// FAQ items managed from admin panel, displayed on gp-ws pricing/faq pages
+model WebsiteFaq {
+  id        String @id @default(auto()) @map("_id") @db.ObjectId
+  websiteId String @default("gp-ws")
+
+  // Translations per locale: { en: { question, answer }, he: { question, answer } }
+  content Json
+
+  // Categorization
+  category String? // "general", "pricing", "features", "technical"
+  page     String  @default("pricing") // "pricing", "faq", "both"
+
+  // Display order
+  order Int @default(0)
+
+  // Publishing
+  isActive Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  updatedBy String?  @db.ObjectId
+
+  @@index([websiteId, page, isActive])
+  @@index([websiteId, isActive, order])
+  @@map("website_faqs")
+}
+
 // ==========================================
 // AI Cache
 // ==========================================

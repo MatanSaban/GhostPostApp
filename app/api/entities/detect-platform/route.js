@@ -106,7 +106,7 @@ async function detectPlatformFromHTML(html, siteUrl) {
 /**
  * Use AI to detect platform when HTML analysis is inconclusive
  */
-async function detectPlatformWithAI(html, siteUrl) {
+async function detectPlatformWithAI(html, siteUrl, { accountId, siteId } = {}) {
   try {
     // Extract relevant snippets for AI analysis
     const head = html.match(/<head[^>]*>([\s\S]*?)<\/head>/i)?.[1] || '';
@@ -145,6 +145,9 @@ If you cannot determine the platform with high confidence, return "custom".`;
       prompt,
       maxTokens: 20,
       temperature: 0.1,
+      operation: 'DETECT_PLATFORM',
+      accountId,
+      siteId,
     });
 
     const platform = response.trim().toLowerCase();
@@ -255,7 +258,7 @@ export async function POST(request) {
             confidence = htmlDetection.confidence;
           } else {
             // Fall back to AI detection
-            const aiPlatform = await detectPlatformWithAI(html, siteUrl);
+            const aiPlatform = await detectPlatformWithAI(html, siteUrl, { accountId: site.accountId, siteId: site.id });
             usedAI = true;
             if (aiPlatform && aiPlatform !== 'custom') {
               platform = aiPlatform;

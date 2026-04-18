@@ -6,10 +6,11 @@ import {
   Bot, CheckCircle, XCircle, Clock, AlertTriangle, Lightbulb,
   TrendingUp, TrendingDown, Minus, Search, FileText, Users, Wrench, Loader2, Play,
   ChevronDown, ChevronUp, EyeOff, Filter, RefreshCw, ExternalLink, Sparkles, Calendar, ImageIcon,
-  Plus, Check, Pencil,
+  Plus, Check, Pencil, MapPin, Award, CircleCheck,
 } from 'lucide-react';
 import { useSite } from '@/app/context/site-context';
 import { useAgent } from '@/app/context/agent-context';
+import { useLocale } from '@/app/context/locale-context';
 import { PageHeader } from '../components';
 import { DashboardCard } from '../components/DashboardCard';
 import { ArrowIcon } from '@/app/components/ui/arrow-icon';
@@ -18,6 +19,7 @@ import DifferentiationModal from '../components/DifferentiationModal';
 import DifferentiationToast from '../components/DifferentiationToast';
 import AiSuggestModal from '../components/AiSuggestModal';
 import EntitiesRequiredModal from '../components/EntitiesRequiredModal/EntitiesRequiredModal';
+import SitemapSubmissionModal from '../components/SitemapSubmissionModal';
 import { useBackgroundJobPolling } from '@/app/hooks/useBackgroundJobPolling';
 import { formatPageUrl } from '@/lib/urlDisplay';
 import {
@@ -179,7 +181,8 @@ function AiSuggestButton({ page, siteId, translations }) {
   );
 }
 
-function InsightDetails({ insight, translations, siteId, pluginConnected, onItemFixed, onOpenFixSingle, trackedKeywords, addingKeyword, onAddKeyword }) {
+function InsightDetails({ insight, translations, siteId, pluginConnected, onItemFixed, onOpenFixSingle, onOpenSitemapSubmission, trackedKeywords, addingKeyword, onAddKeyword }) {
+  const { locale } = useLocale();
   const d = insight.data;
   if (!d) return null;
 
@@ -279,7 +282,7 @@ function InsightDetails({ insight, translations, siteId, pluginConnected, onItem
                     </a>
                   ) : (p.title || p.slug)}
                 </td>
-                <td>{p.updatedAt ? new Date(p.updatedAt).toLocaleDateString() : '-'}</td>
+                <td>{p.updatedAt ? new Date(p.updatedAt).toLocaleDateString(locale === 'he' ? 'he-IL' : 'en-US') : '-'}</td>
               </tr>
             ))}
           </tbody>
@@ -603,7 +606,7 @@ function InsightDetails({ insight, translations, siteId, pluginConnected, onItem
             {d.competitors.map((c, i) => (
               <tr key={i}>
                 <td>{c.domain?.startsWith('http') ? c.domain : `https://${c.domain}`}</td>
-                <td>{c.lastScannedAt ? new Date(c.lastScannedAt).toLocaleDateString() : '-'}</td>
+                <td>{c.lastScannedAt ? new Date(c.lastScannedAt).toLocaleDateString(locale === 'he' ? 'he-IL' : 'en-US') : '-'}</td>
               </tr>
             ))}
           </tbody>
@@ -885,7 +888,7 @@ function InsightDetails({ insight, translations, siteId, pluginConnected, onItem
                     </a>
                   ) : (p.title || '-')}
                 </td>
-                <td>{p.publishedAt ? new Date(p.publishedAt).toLocaleDateString() : '-'}</td>
+                <td>{p.publishedAt ? new Date(p.publishedAt).toLocaleDateString(locale === 'he' ? 'he-IL' : 'en-US') : '-'}</td>
                 <td><EntityLinkCell url={p.url} siteId={siteId} translations={translations} /></td>
                 <td>
                   <AiSuggestButton page={p} siteId={siteId} translations={translations} />
@@ -1169,6 +1172,37 @@ function InsightDetails({ insight, translations, siteId, pluginConnected, onItem
     );
   }
 
+  // Sitemaps Not Submitted to GSC
+  if (type === 'sitemapsNotSubmitted') {
+    const isExecuted = insight.status === 'EXECUTED';
+    const sitemapT = t.sitemapSubmission || {};
+    return (
+      <div className={styles.detailSection}>
+        <div className={styles.detailStats}>
+          <div className={styles.detailStat}>
+            <span className={styles.detailStatLabel}>{labels.gscSiteUrl || 'GSC Property'}</span>
+            <span className={styles.detailStatValue}><bdi dir="ltr">{d.gscSiteUrl}</bdi></span>
+          </div>
+          {d.isWordPress && (
+            <div className={styles.detailStat}>
+              <span className={styles.detailStatLabel}>{labels.platform || 'Platform'}</span>
+              <span className={styles.detailStatValue}>WordPress</span>
+            </div>
+          )}
+        </div>
+        {isExecuted ? (
+          <span className={styles.itemFixedBadge}>
+            <CheckCircle size={12} /> {sitemapT.alreadySubmitted || 'Sitemaps submitted'}
+          </span>
+        ) : (
+          <button className={styles.itemFixBtn} onClick={() => onOpenSitemapSubmission?.(insight)}>
+            <MapPin size={12} /> {sitemapT.quickFix || 'Submit Sitemaps to GSC'}
+          </button>
+        )}
+      </div>
+    );
+  }
+
   return null;
 }
 
@@ -1242,7 +1276,8 @@ function InsightLegend({ translations }) {
   );
 }
 
-function InsightRow({ insight, translations, onAction, onOpenFix, siteId, pluginConnected, onItemFixed, trackedKeywords, addingKeyword, onAddKeyword }) {
+function InsightRow({ insight, translations, onAction, onOpenFix, onOpenSitemapSubmission, siteId, pluginConnected, onItemFixed, trackedKeywords, addingKeyword, onAddKeyword }) {
+  const { locale } = useLocale();
   const [expanded, setExpanded] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
   const bodyRef = useRef(null);
@@ -1250,8 +1285,8 @@ function InsightRow({ insight, translations, onAction, onOpenFix, siteId, plugin
   const CategoryIcon = CATEGORY_ICONS[insight.category] || FileText;
   const sentiment = getInsightSentiment(insight);
   const direction = getInsightDirection(insight);
-  const title = resolveTranslation(translations, insight.titleKey, insight.data);
-  const description = resolveTranslation(translations, insight.descriptionKey, insight.data);
+  const title = resolveTranslation(translations, insight.titleKey, insight.data, locale);
+  const description = resolveTranslation(translations, insight.descriptionKey, insight.data, locale);
 
   const handleAction = async (actionType) => {
     setActionLoading(true);
@@ -1322,9 +1357,9 @@ function InsightRow({ insight, translations, onAction, onOpenFix, siteId, plugin
           {insight.data?.periodStart && insight.data?.comparePeriodStart && (
             <p className={styles.insightPeriod}>
               <Calendar size={12} />
-              <span>{new Date(insight.data.periodStart).toLocaleDateString()} – {new Date(insight.data.periodEnd).toLocaleDateString()}</span>
+              <span>{new Date(insight.data.periodStart).toLocaleDateString(locale === 'he' ? 'he-IL' : 'en-US')} – {new Date(insight.data.periodEnd).toLocaleDateString(locale === 'he' ? 'he-IL' : 'en-US')}</span>
               <span className={styles.periodVs}>{translations?.agent?.vs || 'vs'}</span>
-              <span>{new Date(insight.data.comparePeriodStart).toLocaleDateString()} – {new Date(insight.data.comparePeriodEnd).toLocaleDateString()}</span>
+              <span>{new Date(insight.data.comparePeriodStart).toLocaleDateString(locale === 'he' ? 'he-IL' : 'en-US')} – {new Date(insight.data.comparePeriodEnd).toLocaleDateString(locale === 'he' ? 'he-IL' : 'en-US')}</span>
             </p>
           )}
 
@@ -1337,7 +1372,20 @@ function InsightRow({ insight, translations, onAction, onOpenFix, siteId, plugin
             </div>
           )}
 
-          <InsightDetails insight={insight} translations={translations} siteId={siteId} pluginConnected={pluginConnected} onItemFixed={onItemFixed} onOpenFixSingle={(i, indices) => onOpenFix(i, indices)} trackedKeywords={trackedKeywords} addingKeyword={addingKeyword} onAddKeyword={onAddKeyword} />
+          <InsightDetails insight={insight} translations={translations} siteId={siteId} pluginConnected={pluginConnected} onItemFixed={onItemFixed} onOpenFixSingle={(i, indices) => onOpenFix(i, indices)} onOpenSitemapSubmission={onOpenSitemapSubmission} trackedKeywords={trackedKeywords} addingKeyword={addingKeyword} onAddKeyword={onAddKeyword} />
+
+          {(insight.status === 'EXECUTED' || isInsightFullyFixed(insight)) && (
+            <div className={styles.insightActions}>
+              <button
+                className={`${styles.actionBtn} ${styles.resolveBtn}`}
+                onClick={() => handleAction('resolve')}
+                disabled={actionLoading}
+              >
+                <CircleCheck size={14} />
+                {actionLoading ? (translations?.agent?.clearing || 'Clearing...') : (translations?.agent?.clearIssue || 'Clear Issue')}
+              </button>
+            </div>
+          )}
 
           {/* TODO: Re-enable reject/dismiss when functionality is ready
           {showActions && (
@@ -1364,6 +1412,7 @@ function InsightRow({ insight, translations, onAction, onOpenFix, siteId, plugin
 export default function AgentPageContent({ translations, mode = 'full', onInsightsLoaded }) {
   const isCompact = mode === 'compact';
   const t = translations;
+  const { locale } = useLocale();
   const { selectedSite } = useSite();
   const { runningAnalysis, lastAnalysisTs, runAnalysis, entitiesRequired, setEntitiesRequired } = useAgent();
 
@@ -1371,6 +1420,7 @@ export default function AgentPageContent({ translations, mode = 'full', onInsigh
   const [loading, setLoading] = useState(true);
   const [totalCount, setTotalCount] = useState(0);
   const [pendingCount, setPendingCount] = useState(0);
+  const [resolvedCount, setResolvedCount] = useState(0);
   const [hasMore, setHasMore] = useState(false);
   const [cursor, setCursor] = useState(null);
 
@@ -1409,6 +1459,7 @@ export default function AgentPageContent({ translations, mode = 'full', onInsigh
       if (!isCompact) {
         if (filterCategory) params.set('category', filterCategory);
         if (filterStatus) params.set('status', filterStatus);
+        if (filterFixStatus === 'fixed' && !filterStatus) params.set('includeResolved', 'true');
         if (append && cursor) params.set('cursor', cursor);
       }
 
@@ -1429,6 +1480,7 @@ export default function AgentPageContent({ translations, mode = 'full', onInsigh
       }
       setTotalCount(data.totalCount || 0);
       setPendingCount(data.pendingCount || 0);
+      setResolvedCount(data.resolvedCount || 0);
       setHasMore(data.hasMore || false);
       setCursor(data.nextCursor || null);
     } catch (err) {
@@ -1436,7 +1488,7 @@ export default function AgentPageContent({ translations, mode = 'full', onInsigh
     } finally {
       setLoading(false);
     }
-  }, [selectedSite?.id, filterCategory, filterStatus, cursor, isCompact, onInsightsLoaded]);
+  }, [selectedSite?.id, filterCategory, filterStatus, filterFixStatus, cursor, isCompact, onInsightsLoaded]);
 
   // Fetch runs (full mode only)
   const fetchRuns = useCallback(async () => {
@@ -1454,7 +1506,7 @@ export default function AgentPageContent({ translations, mode = 'full', onInsigh
     setCursor(null);
     fetchInsights();
     fetchRuns();
-  }, [selectedSite?.id, filterCategory, filterStatus, lastAnalysisTs]);
+  }, [selectedSite?.id, filterCategory, filterStatus, filterFixStatus, lastAnalysisTs]);
 
   // Fetch tracked keywords for the current site
   const fetchTrackedKeywords = useCallback(async () => {
@@ -1509,7 +1561,11 @@ export default function AgentPageContent({ translations, mode = 'full', onInsigh
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action }),
       });
-      if (!res.ok) throw new Error('Action failed');
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        console.error('[AgentPage] Action failed:', res.status, data);
+        throw new Error(data.error || `Action failed (${res.status})`);
+      }
       await fetchInsights();
     } catch (err) {
       console.error('[AgentPage] Action error:', err);
@@ -1519,6 +1575,9 @@ export default function AgentPageContent({ translations, mode = 'full', onInsigh
   const pluginConnected = selectedSite?.connectionStatus === 'CONNECTED';
   const [fixModalInsight, setFixModalInsight] = useState(null);
   const [fixModalItemIndices, setFixModalItemIndices] = useState(null);
+
+  // Sitemap Submission modal state
+  const [sitemapModalInsight, setSitemapModalInsight] = useState(null);
 
   // Content Differentiation state
   const [diffJobId, setDiffJobId] = useState(null);
@@ -1617,6 +1676,7 @@ export default function AgentPageContent({ translations, mode = 'full', onInsigh
     translations: t,
     onAction: handleAction,
     onOpenFix: openFixModal,
+    onOpenSitemapSubmission: (insight) => setSitemapModalInsight(insight),
     siteId: selectedSite?.id,
     pluginConnected,
     onItemFixed: fetchInsights,
@@ -1656,6 +1716,13 @@ export default function AgentPageContent({ translations, mode = 'full', onInsigh
         />
       )}
       <EntitiesRequiredModal open={entitiesRequired} onClose={() => setEntitiesRequired(false)} />
+      <SitemapSubmissionModal
+        open={!!sitemapModalInsight}
+        onClose={() => { setSitemapModalInsight(null); fetchInsights(); }}
+        siteId={selectedSite?.id}
+        insight={sitemapModalInsight}
+        translations={t}
+      />
     </>
   );
 
@@ -1800,6 +1867,13 @@ export default function AgentPageContent({ translations, mode = 'full', onInsigh
             <div className={`${styles.statCard} ${pendingCount > 0 ? styles.statHighlight : ''}`}>
               <div className={styles.statValue}>{pendingCount}</div>
               <div className={styles.statLabel}>{t.pendingReview || 'Pending Review'}</div>
+            </div>
+            <div className={`${styles.statCard} ${resolvedCount > 0 ? styles.statSuccess : ''}`}>
+              <div className={styles.statValue}>
+                {resolvedCount > 0 && <Award size={16} className={styles.statIcon} />}
+                {resolvedCount}
+              </div>
+              <div className={styles.statLabel}>{t.agent?.resolvedIssuesLabel || 'Issues Resolved'}</div>
             </div>
             <div className={styles.statCard}>
               <div className={styles.statValue}>{runs.length}</div>

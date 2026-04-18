@@ -318,7 +318,7 @@ export async function POST(request) {
     const urls = Array.isArray(requestedUrls)
       ? requestedUrls.filter(u => typeof u === 'string' && u.startsWith('http')).slice(0, maxPages)
       : null;
-    const auditOptions = { maxPages, ...(urls?.length ? { urls } : {}) };
+    const auditOptions = { maxPages, userId: user.id, ...(urls?.length ? { urls } : {}) };
     runSiteAudit(desktopAudit.id, site.url, siteId, 'desktop', auditOptions).catch(err => {
       console.error(`[API/audit] Background desktop audit error for ${desktopAudit.id}:`, err);
     });

@@ -30,6 +30,23 @@
   }
 }
 
+.statSuccess {
+  border-color: rgba(16, 185, 129, 0.3);
+  background: rgba(16, 185, 129, 0.05);
+
+  .dark & {
+    border-color: rgba(16, 185, 129, 0.3);
+    background: rgba(16, 185, 129, 0.1);
+  }
+}
+
+.statIcon {
+  display: inline;
+  vertical-align: middle;
+  margin-inline-end: 0.25rem;
+  color: #10b981;
+}
+
 .statValue {
   font-size: 1.75rem;
   font-weight: 700;
@@ -796,6 +813,16 @@
 
   &:hover:not(:disabled) {
     background: rgba(107, 114, 128, 0.2);
+  }
+}
+
+.resolveBtn {
+  background: rgba(16, 185, 129, 0.1);
+  color: #10b981;
+  border-color: rgba(16, 185, 129, 0.3);
+
+  &:hover:not(:disabled) {
+    background: rgba(16, 185, 129, 0.2);
   }
 }
 

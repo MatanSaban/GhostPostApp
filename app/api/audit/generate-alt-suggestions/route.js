@@ -4,6 +4,7 @@ import prisma from '@/lib/prisma';
 import { generateObject } from 'ai';
 import { google } from '@/lib/ai/vertex-provider.js';
 import { z } from 'zod';
+import { deductAiCredits } from '@/lib/account-utils';
 
 const SESSION_COOKIE = 'user_session';
 
@@ -141,6 +142,22 @@ export async function POST(request) {
 
     if (imagesToProcess.length === 0) {
       return NextResponse.json({ suggestions: [] });
+    }
+
+    // Deduct credits for AI generation (1 credit for the batch)
+    const deduction = await deductAiCredits(site.accountId, 1, {
+      userId: user.id,
+      siteId,
+      source: 'ai_alt_suggestions',
+      description: `AI Alt Text Suggestions: ${imagesToProcess.length} image(s)`,
+      metadata: { model: 'gemini-2.5-pro' },
+    });
+    if (!deduction.success) {
+      const isInsufficient = deduction.error?.includes('Insufficient');
+      return NextResponse.json(
+        { error: deduction.error || 'Credit deduction failed', code: isInsufficient ? 'INSUFFICIENT_CREDITS' : 'CREDIT_ERROR', resourceKey: isInsufficient ? 'aiCredits' : undefined },
+        { status: 402 }
+      );
     }
 
     // Detect website language from page titles in audit data

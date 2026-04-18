@@ -144,36 +144,25 @@ Based on the image content, generate:
       prompt: userPrompt,
       schema: imageOptimizationSchema,
       temperature: 0.3, // Lower temperature for more consistent results
+      operation: 'IMAGE_ALT_OPTIMIZATION',
+      accountId: site.accountId,
+      userId: userId,
+      siteId: site.id,
+      metadata: {
+        websiteUrl: site.url,
+        imageUrl,
+        suggestedFilename: result?.suggestedFilename,
+        descriptionKey: 'optimizedImageAlt',
+      },
     });
 
-    // Track AI credits usage
-    let creditsUsed = 0;
-    if (site.accountId) {
-      const trackResult = await trackAIUsage({
-        accountId: site.accountId,
-        userId,
-        siteId: site.id,
-        operation: 'IMAGE_ALT_OPTIMIZATION',
-        description: `Optimized image alt text`,
-        metadata: {
-          websiteUrl: site.url,
-          imageUrl,
-          suggestedFilename: result.suggestedFilename,
-          descriptionKey: 'optimizedImageAlt',
-          descriptionParams: { filename: result.suggestedFilename },
-        },
-      });
-      
-      if (trackResult.success) {
-        creditsUsed = trackResult.totalUsed;
-      }
-    }
+    // Removed redundant manual trackAIUsage call
 
     return NextResponse.json({
       success: true,
       ...result,
       // Include updated credits for frontend to update UI
-      creditsUpdated: creditsUsed > 0 ? { used: creditsUsed } : null,
+      creditsUpdated: { used: 1 },
     });
   } catch (error) {
     console.error('AI image optimization error:', error);
@@ -266,29 +255,23 @@ Return results for all images.`;
       prompt: userPrompt,
       schema: batchSchema,
       temperature: 0.3,
+      operation: 'IMAGE_ALT_OPTIMIZATION',
+      accountId: site.accountId,
+      userId: user.id,
+      siteId: site.id,
+      creditsMultiplier: images.length,
+      metadata: {
+        websiteUrl: site.url,
+        batchSize: images.length,
+        descriptionKey: 'optimizedImageAltBatch',
+      },
     });
-
-    // Track AI usage for each image in batch
-    let creditsUsed = 0;
-    for (let i = 0; i < images.length; i++) {
-      const trackResult = await trackAIUsage({
-        accountId: site.accountId,
-        userId: user.id,
-        siteId: site.id,
-        operation: 'IMAGE_ALT_OPTIMIZATION',
-        description: `Batch optimized image alt text (${i + 1}/${images.length})`,
-      });
-      
-      if (trackResult.success) {
-        creditsUsed = trackResult.totalUsed;
-      }
-    }
 
     return NextResponse.json({
       success: true,
       ...result,
       // Include updated credits for frontend to update UI
-      creditsUpdated: creditsUsed > 0 ? { used: creditsUsed } : null,
+      creditsUpdated: { used: images.length },
     });
   } catch (error) {
     console.error('Batch AI image optimization error:', error);

@@ -29,7 +29,7 @@ const PROTECTED_EMAILS = ['matansaban28@gmail.com'];
 
 export default function PlatformUsersPage() {
   const router = useRouter();
-  const { t } = useLocale();
+  const { t, locale } = useLocale();
   const { isSuperAdmin, isLoading: isUserLoading } = useUser();
   const [users, setUsers] = useState([]);
   const [accounts, setAccounts] = useState([]);
@@ -141,7 +141,7 @@ export default function PlatformUsersPage() {
     if (diffHours < 1) return t('admin.common.time.justNow');
     if (diffHours < 24) return t('admin.common.time.hoursAgo').replace('{hours}', diffHours);
     if (diffHours < 48) return t('admin.common.time.yesterday');
-    return date.toLocaleDateString();
+    return date.toLocaleDateString(locale === 'he' ? 'he-IL' : 'en-US');
   };
 
   // Open view modal

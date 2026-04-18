@@ -151,9 +151,9 @@ function getScoreColor(score) {
   return 'bad';
 }
 
-function formatDate(dateStr) {
+function formatDate(dateStr, locale) {
   if (!dateStr) return '';
-  return new Date(dateStr).toLocaleDateString(undefined, {
+  return new Date(dateStr).toLocaleDateString(locale === 'he' ? 'he-IL' : 'en-US', {
     year: 'numeric',
     month: 'short',
     day: 'numeric',
@@ -218,7 +218,7 @@ export default function SiteAuditPage() {
   const { t, locale } = useLocale();
   const { selectedSite, isLoading: isSiteLoading } = useSite();
   const { user } = useUser();
-  const { addTask, updateTask, findActiveTask } = useBackgroundTasks();
+  const { addTask, updateTask, findActiveTask, startTaskPolling } = useBackgroundTasks();
   const { isMaximized: isPageDetailMaximized, toggleMaximize: togglePageDetailMaximize } = useModalResize();
 
   // Audit quota from plan
@@ -352,14 +352,39 @@ export default function SiteAuditPage() {
     if (!selectedSite?.id) return;
     const siteId = selectedSite.id;
 
-    // Reconnect to existing background task if one exists for this site
+    // Reconnect to existing background task if one exists for this site.
+    // After a full page refresh, no task exists in context — re-create it
+    // and start context-level polling so the floating bar stays updated
+    // even when the user navigates away from this page.
     const reconnectBgTask = (siteId) => {
-      if (!bgTaskIds.current[siteId]) {
+      let taskId = bgTaskIds.current[siteId];
+      if (!taskId) {
         const existingTask = findActiveTask('site-audit', { siteId });
         if (existingTask) {
-          bgTaskIds.current[siteId] = existingTask.id;
+          taskId = existingTask.id;
+          bgTaskIds.current[siteId] = taskId;
+        } else {
+          // After full refresh — re-create background task
+          taskId = `site-audit-${siteId}-${Date.now()}`;
+          bgTaskIds.current[siteId] = taskId;
+          addTask({
+            id: taskId,
+            type: 'site-audit',
+            title: `${t('siteAudit.title')} — ${selectedSite?.name || ''}`,
+            message: t('siteAudit.scanning'),
+            status: 'running',
+            progress: 0,
+            cancelable: false,
+            metadata: { siteId, siteName: selectedSite?.name || '' },
+          });
         }
       }
+      // Ensure context-level polling is active (idempotent)
+      startTaskPolling(taskId, {
+        url: `/api/audit?siteId=${siteId}&deviceType=${activeDevice}`,
+        interval: POLL_INTERVAL,
+        completedLabelKey: 'siteAudit.progress.complete',
+      });
     };
 
     // Check cache first - restore instantly if we already have data for this device
@@ -486,9 +511,12 @@ export default function SiteAuditPage() {
         // Always sync progress to background task (even when viewing another site)
         const taskId = bgTaskIds.current[siteId];
         if (taskId && latest?.progress) {
+          const msg = latest.progress.labelKey
+            ? t(latest.progress.labelKey, latest.progress.labelParams || {})
+            : (latest.progress.label || '');
           updateTask(taskId, {
             progress: latest.progress.percentage || 0,
-            message: latest.progress.labelKey || latest.progress.label || '',
+            message: msg,
           });
         }
 
@@ -598,6 +626,13 @@ export default function SiteAuditPage() {
         progress: 0,
         cancelable: false,
         metadata: { siteId: selectedSite.id, siteName: selectedSite.name },
+      });
+
+      // Start context-level polling (persists across navigation)
+      startTaskPolling(taskId, {
+        url: `/api/audit?siteId=${selectedSite.id}&deviceType=${activeDevice}`,
+        interval: POLL_INTERVAL,
+        completedLabelKey: 'siteAudit.progress.complete',
       });
 
       startPolling(selectedSite.id, activeDevice);
@@ -1749,7 +1784,7 @@ export default function SiteAuditPage() {
                   )}
                 </div>
                 <div className={styles.historyItemInfo}>
-                  <span className={styles.historyDate}>{formatDate(audit.createdAt)}</span>
+                  <span className={styles.historyDate}>{formatDate(audit.createdAt, locale)}</span>
                   <span className={styles.historyStatus}>
                     {t(`siteAudit.status.${audit.status.toLowerCase()}`)}
                   </span>

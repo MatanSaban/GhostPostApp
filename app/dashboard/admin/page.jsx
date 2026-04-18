@@ -136,6 +136,22 @@ export default function SuperAdminDashboardPage() {
         </div>
 
         <div className={styles.widget}>
+          <div className={styles.widgetIcon} style={{
+            background: (financials.totalMRR - financials.totalAICost) >= 0 ? 'rgba(34, 197, 94, 0.1)' : 'rgba(239, 68, 68, 0.1)',
+            color: (financials.totalMRR - financials.totalAICost) >= 0 ? '#22c55e' : '#ef4444',
+          }}>
+            <DollarSign size={24} />
+          </div>
+          <div className={styles.widgetBody}>
+            <span className={styles.widgetLabel}>Profit Margin ($)</span>
+            <span className={styles.widgetValue}>${(financials.totalMRR - financials.totalAICost).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+            <span className={styles.widgetMeta}>
+              Revenue: ${financials.totalMRR.toLocaleString()} − Cost: ${financials.totalAICost.toLocaleString()}
+            </span>
+          </div>
+        </div>
+
+        <div className={styles.widget}>
           <div className={styles.widgetIcon} style={{ background: 'rgba(123, 44, 191, 0.1)', color: '#7b2cbf' }}>
             <Coins size={24} />
           </div>

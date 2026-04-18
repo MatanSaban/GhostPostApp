@@ -245,8 +245,8 @@ Return exactly ${totalSuggestions} suggestions as a flat array.`;
           const usage = await result.usage;
           logAIUsage({
             operation: 'GENERATE_SUBJECTS',
-            inputTokens: usage?.promptTokens || 0,
-            outputTokens: usage?.completionTokens || 0,
+            inputTokens: usage?.inputTokens || 0,
+            outputTokens: usage?.outputTokens || 0,
             totalTokens: usage?.totalTokens || 0,
             model: MODELS.TEXT,
             metadata: { siteId, postsCount, mainKeyword },
@@ -259,8 +259,8 @@ Return exactly ${totalSuggestions} suggestions as a flat array.`;
               userId: user.id,
               siteId,
               operation: 'GENERATE_SUBJECTS',
-              inputTokens: usage?.promptTokens || 0,
-              outputTokens: usage?.completionTokens || 0,
+              inputTokens: usage?.inputTokens || 0,
+              outputTokens: usage?.outputTokens || 0,
               totalTokens: usage?.totalTokens || 0,
               metadata: { model: MODELS.TEXT, siteId, postsCount, mainKeyword },
             }).catch(err => console.error('[AI] trackAIUsage error:', err.message));

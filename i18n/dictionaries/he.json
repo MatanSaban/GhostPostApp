@@ -320,7 +320,8 @@
       "pushQuestions": "שאלות דחיפה",
       "botActions": "פעולות בוט",
       "backlinks": "קישורים נכנסים",
-      "website": "תוכן אתר"
+      "website": "תוכן אתר",
+      "faq": "ניהול שאלות נפוצות"
     }
   },
   "websiteAdmin": {
@@ -538,7 +539,7 @@
       "ctr": "CTR",
       "position": "מיקום",
       "keyword": "מילת מפתח",
-      "relatedPost": "פוסט קשור"
+      "relatedPost": "עמוד מרכזי"
     },
     "topKeywords": "מילות מפתח מובילות",
     "addToKeywords": "הוסף למילות מפתח",
@@ -1520,7 +1521,7 @@
       "trend": "מגמה",
       "traffic": "תנועה",
       "cpc": "עלות לקליק",
-      "relatedPost": "פוסט קשור"
+      "relatedPost": "עמוד מרכזי"
     },
     "stats": {
       "trackedKeywords": "מילות מפתח במעקב",
@@ -1542,7 +1543,7 @@
       "impressions": "כמות פעמים שהאתר הופיע בתוצאות גוגל",
       "ctr": "אחוז ההקלקה מתוך החשיפות",
       "intent": "סוג הכוונה של המחפש (מידעי, מסחרי וכו׳)",
-      "relatedPost": "פוסט באתר שמקושר למילת המפתח",
+      "relatedPost": "עמוד מרכזי באתר המקושר למילת המפתח",
       "status": "סטטוס המעקב של מילת המפתח",
       "noChange": "{value} {metric} - ללא שינוי מ-{period}",
       "moreFromPrev": "{value} {metric} - {percent}% יותר מ-{period}",
@@ -3551,6 +3552,8 @@
         "aiCredits": "קרדיטים AI",
         "maxPages": "עמודים",
         "maxPosts": "פוסטים בבלוג",
+        "maxKeywords": "מילות מפתח",
+        "maxContent": "תכנים",
         "storage": "אחסון",
         "siteAudits": "ביקורת אתרים"
       },
@@ -3691,6 +3694,11 @@
       "alreadyPurchased": "כבר רכשת תוספת זו",
       "alreadyPurchasedCount": "רכשת תוספת זו {count} פעמים",
       "addonFallback": "תוספת",
+      "errors": {
+        "noSubscription": "אין מנוי פעיל",
+        "maxSeatsReached": "המנוי שלך מאפשר מקסימום {max} מושבים נוספים באמצעות תוספות. יש לך {current}.",
+        "maxSitesReached": "המנוי שלך מאפשר מקסימום {max} אתרים נוספים באמצעות תוספות. יש לך {current}."
+      },
       "items": {
         "advancedAnalytics": {
           "name": "אנליטיקה מתקדמת",
@@ -5546,6 +5554,7 @@
         "addFeature": "הוסף תכונה",
         "noFeatures": "לא הוגדרו תכונות. לחץ + להוספה.",
         "featureKey": "מפתח (אנגלית)",
+        "baseCurrency": "מטבע בסיס",
         "featureLabel": "שם לתצוגה"
       },
       "planNames": {
@@ -5783,6 +5792,45 @@
         "questionKey": "מפתח תרגום",
         "placeholder": "טקסט מציין מקום",
         "commaSeparated": "מופרדים בפסיקים"
+      }
+    },
+    "faq": {
+      "title": "ניהול שאלות נפוצות",
+      "subtitle": "ניהול שאלות נפוצות לאתר השיווק",
+      "addFaq": "הוסף שאלה",
+      "editFaq": "ערוך שאלה",
+      "searchPlaceholder": "חיפוש שאלות...",
+      "noFaqs": "לא נמצאו שאלות. לחץ על \"הוסף שאלה\" כדי ליצור אחת.",
+      "active": "פעיל",
+      "inactive": "לא פעיל",
+      "deleteTitle": "מחיקת שאלה",
+      "deleteMessage": "האם אתה בטוח שברצונך למחוק שאלה זו? פעולה זו אינה ניתנת לביטול.",
+      "stats": {
+        "total": "סה\"כ שאלות",
+        "active": "פעילות",
+        "pricing": "עמוד מחירים",
+        "faqPage": "עמוד שאלות נפוצות"
+      },
+      "columns": {
+        "order": "#",
+        "question": "שאלה",
+        "page": "עמוד",
+        "languages": "שפות",
+        "status": "סטטוס",
+        "actions": "פעולות"
+      },
+      "filter": {
+        "all": "כל העמודים",
+        "pricing": "מחירים",
+        "faq": "שאלות נפוצות",
+        "both": "שניהם"
+      },
+      "fields": {
+        "page": "עמוד תצוגה",
+        "category": "קטגוריה",
+        "active": "פעיל",
+        "question": "שאלה",
+        "answer": "תשובה"
       }
     },
     "common": {
@@ -6508,6 +6556,9 @@
     "approve": "אשר",
     "reject": "דחה",
     "dismiss": "סגור",
+    "clearIssue": "סמן כטופל",
+    "clearing": "מסמן...",
+    "resolvedIssuesLabel": "בעיות שנפתרו",
     "execute": "בצע",
     "fixWithAi": "תקן עם AI",
     "fixWithAiCost": "תקן עם AI (1 קרדיט)",
@@ -6689,6 +6740,10 @@
       "insufficientContentImages": {
         "title": "פוסטים זקוקים לעוד תמונות תוכן",
         "description": "{count} פוסטים מכילים פחות תמונות מהמומלץ ביחס לאורך שלהם. הוספת תמונות רלוונטיות משפרת את הקריאות של תוכן ארוך."
+      },
+      "sitemapsNotSubmitted": {
+        "title": "מפות אתר לא הוגשו ל-Google Search Console",
+        "description": "מפות האתר של האתר שלך לא הוגשו ל-Google Search Console. הגשת מפות אתר עוזרת לגוגל לגלות ולאנדקס את הדפים שלך מהר יותר."
       }
     },
     "detailLabels": {
@@ -6707,6 +6762,7 @@
       "visitors": "מבקרים",
       "sessions": "סשנים",
       "pageViews": "צפיות עמוד",
+      "affectedPages": "דפים מושפעים",
       "contentGap": "פער תוכן",
       "competitor": "מתחרה",
       "lastScanned": "סריקה אחרונה",
@@ -6730,6 +6786,8 @@
       "gapPercent": "פער",
       "sharePercent": "נתח תנועה",
       "concentrationPercent": "ריכוז",
+      "gscSiteUrl": "נכס GSC",
+      "platform": "פלטפורמה",
       "engine": "מנוע AI",
       "confidence": "וודאות",
       "recommended": "מומלץ",
@@ -6836,6 +6894,41 @@
       "high": "גבוה",
       "medium": "בינוני",
       "low": "נמוך"
+    },
+    "sitemapSubmission": {
+      "quickFix": "הגש מפות אתר ל-GSC",
+      "alreadySubmitted": "מפות האתר הוגשו",
+      "discoveringTitle": "מגלה מפות אתר",
+      "discoveringDescription": "מחפש מפות אתר באתר שלך...",
+      "searchingSitemaps": "מחפש מפות אתר...",
+      "sitemapsFound": "נמצאו מפות אתר!",
+      "noSitemapsFound": "לא נמצאו מפות אתר לאתר זה. ודא שלאתר שלך יש קובץ sitemap.xml תקין.",
+      "reviewTitle": "נמצאו {count} מפות אתר",
+      "reviewDescription": "בדוק את מפות האתר למטה. הסר כל מפת אתר שאינך רוצה להגיש ל-Google Search Console.",
+      "remove": "הסר",
+      "submitToGsc": "הגש {count} מפות אתר ל-Google Search Console",
+      "allRemoved": "כל מפות האתר הוסרו. סגור את החלון או הוסף מפות אתר באופן ידני.",
+      "submittingTitle": "מגיש מפות אתר",
+      "submittingDescription": "שולח את מפות האתר ל-Google Search Console ומוודא שההגשה הצליחה...",
+      "retrying": "מנסה שוב... (ניסיון {attempt})",
+      "sendingSitemaps": "מגיש מפות אתר...",
+      "verifying": "מוודא הגשה...",
+      "successTitle": "מפות האתר הוגשו בהצלחה!",
+      "successDescription": "מפות האתר שלך הוגשו ואומתו ב-Google Search Console.",
+      "viewInGsc": "הצג ב-Google Search Console",
+      "done": "סיום",
+      "errorTitle": "ההגשה נכשלה",
+      "scopeError": "לחיבור Google שלך אין הרשאות כתיבה ל-Search Console. יש לחבר מחדש את חשבון Google כדי להעניק את ההרשאות הנדרשות.",
+      "scopeStep1": "עבור להגדרות ← אינטגרציות ← Google",
+      "scopeStep2": "לחץ על \"חבר מחדש\" כדי לאשר מחדש עם הרשאות מעודכנות",
+      "scopeStep3": "לאחר מכן נסה להגיש מפות אתר שוב",
+      "errorDescription": "הפלטפורמה לא הצליחה להגיש מפות אתר ל-Google Search Console לאחר מספר ניסיונות. ניתן להגיש אותן באופן ידני.",
+      "manualStep1": "פתח את Google Search Console עבור האתר שלך",
+      "manualStep2": "עבור ל-\"Sitemaps\" בתפריט הצדדי",
+      "manualStep3": "הדבק כל כתובת URL של מפת אתר ולחץ \"Submit\"",
+      "sitemapUrls": "כתובות מפות האתר שלך:",
+      "openGsc": "פתח את Google Search Console",
+      "close": "סגור"
     },
     "differentiation": {
       "confirm": {

@@ -90,6 +90,7 @@ export async function POST(request) {
       siteId,
       source: 'ai_title_fix',
       description: `AI Title Fix: ${fixes.length} page(s)`,
+      metadata: { model: 'gemini-2.5-pro' },
     });
 
     if (!deduction.success) {

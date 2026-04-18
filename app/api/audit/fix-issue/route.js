@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import prisma from '@/lib/prisma';
 import { deductAiCredits } from '@/lib/account-utils';
+import { enforceCredits } from '@/lib/account-limits';
 import { generateObject } from 'ai';
 import { google } from '@/lib/ai/vertex-provider.js';
 import { z } from 'zod';
@@ -96,18 +97,11 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Site not found' }, { status: 404 });
     }
 
-    // Deduct credits
-    const deduction = await deductAiCredits(site.accountId, FIX_CREDIT_COST, {
-      userId: user.id,
-      siteId,
-      source: 'audit_quick_fix',
-      description: `AI Quick Fix: ${issueType} on ${pageUrl}`,
-    });
-
-    if (!deduction.success) {
-      console.warn('[QuickFix] Credit deduction failed:', deduction.error);
+    // Check credits
+    const creditCheck = await enforceCredits(site.accountId, FIX_CREDIT_COST);
+    if (!creditCheck.allowed) {
       return NextResponse.json(
-        { error: deduction.error || 'Credit deduction failed', code: 'INSUFFICIENT_CREDITS', resourceKey: 'aiCredits' },
+        { error: creditCheck.error || 'Insufficient AI credits', code: 'INSUFFICIENT_CREDITS', resourceKey: 'aiCredits' },
         { status: 402 }
       );
     }
@@ -132,6 +126,25 @@ export async function POST(request) {
     });
 
     const fix = result.object;
+
+    // Deduct credits after successful AI call (with token metadata for dashboard)
+    const usage = result.usage || {};
+    const deduction = await deductAiCredits(site.accountId, FIX_CREDIT_COST, {
+      userId: user.id,
+      siteId,
+      source: 'audit_quick_fix',
+      description: `AI Quick Fix: ${issueType} on ${pageUrl}`,
+      metadata: {
+        inputTokens: usage.inputTokens || 0,
+        outputTokens: usage.outputTokens || 0,
+        totalTokens: usage.totalTokens || 0,
+        model: 'gemini-2.5-pro',
+      },
+    });
+
+    if (!deduction.success) {
+      console.error('[QuickFix] Credit deduction failed after AI:', deduction.error);
+    }
 
     // Attempt to push the fix via WordPress plugin
     let pushed = false;
@@ -168,8 +181,8 @@ export async function POST(request) {
       pushed,
       pushError,
       creditsUsed: FIX_CREDIT_COST,
-      remainingBalance: deduction.balance,
-      creditsUpdated: { used: deduction.usedTotal },
+      remainingBalance: deduction.success ? deduction.balance : undefined,
+      creditsUpdated: deduction.success ? { used: deduction.usedTotal } : undefined,
     });
   } catch (error) {
     console.error('[API/audit/fix-issue] Error:', error);

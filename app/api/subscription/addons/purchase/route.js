@@ -114,7 +114,11 @@ export async function POST(request) {
 
     if (!canPurchase.allowed) {
       return NextResponse.json(
-        { error: canPurchase.reason },
+        { 
+          error: canPurchase.reason,
+          errorKey: canPurchase.reasonKey,
+          errorParams: canPurchase.reasonParams,
+        },
         { status: 400 }
       );
     }

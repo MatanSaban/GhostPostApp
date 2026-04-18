@@ -4,7 +4,7 @@ import { useLocale } from '@/app/context/locale-context';
 import styles from '../edit.module.css';
 
 export function MetadataFields({ metadata, entity }) {
-  const { t } = useLocale();
+  const { t, locale } = useLocale();
 
   // Parse metadata if it's a string
   let parsedMetadata = {};
@@ -22,9 +22,9 @@ export function MetadataFields({ metadata, entity }) {
   const entityInfo = [
     { key: 'id', label: t('entities.edit.metadata.id'), value: entity?.id },
     { key: 'externalId', label: t('entities.edit.metadata.externalId'), value: entity?.externalId },
-    { key: 'createdAt', label: t('entities.edit.metadata.createdAt'), value: entity?.createdAt ? new Date(entity.createdAt).toLocaleString() : null },
-    { key: 'updatedAt', label: t('entities.edit.metadata.updatedAt'), value: entity?.updatedAt ? new Date(entity.updatedAt).toLocaleString() : null },
-    { key: 'publishedAt', label: t('entities.edit.metadata.publishedAt'), value: entity?.publishedAt ? new Date(entity.publishedAt).toLocaleString() : null },
+    { key: 'createdAt', label: t('entities.edit.metadata.createdAt'), value: entity?.createdAt ? new Date(entity.createdAt).toLocaleString(locale === 'he' ? 'he-IL' : 'en-US') : null },
+    { key: 'updatedAt', label: t('entities.edit.metadata.updatedAt'), value: entity?.updatedAt ? new Date(entity.updatedAt).toLocaleString(locale === 'he' ? 'he-IL' : 'en-US') : null },
+    { key: 'publishedAt', label: t('entities.edit.metadata.publishedAt'), value: entity?.publishedAt ? new Date(entity.publishedAt).toLocaleString(locale === 'he' ? 'he-IL' : 'en-US') : null },
   ].filter(item => item.value);
 
   // Convert metadata object to displayable format

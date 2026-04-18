@@ -8,6 +8,7 @@ import {
   Clock, Shield, Monitor, Wrench,
 } from 'lucide-react';
 import styles from './DifferentiationModal.module.css';
+import { useLocale } from '@/app/context/locale-context';
 
 const CREDITS_PER_PAGE = 25;
 
@@ -23,6 +24,7 @@ const CREDITS_PER_PAGE = 25;
  * @param {{ open, onClose, job, onExecute, isExecuting, translations, confirmData, onConfirmStart }} props
  */
 export default function DifferentiationModal({ open, onClose, job, onExecute, isExecuting, translations, confirmData, onConfirmStart }) {
+  const { locale } = useLocale();
   const [expandedPage, setExpandedPage] = useState(null);
   const tt = translations?.agent?.differentiation?.modal || {};
   const tc = translations?.agent?.differentiation?.confirm || {};
@@ -383,7 +385,7 @@ export default function DifferentiationModal({ open, onClose, job, onExecute, is
             <div className={styles.executedBanner}>
               <CheckCircle size={16} />
               {tpl(tt.executedBanner || 'Fixes executed on {date} — {credits} credits used', {
-                date: new Date(resultData.executionResult.executedAt).toLocaleDateString(),
+                date: new Date(resultData.executionResult.executedAt).toLocaleDateString(locale === 'he' ? 'he-IL' : 'en-US'),
                 credits: resultData.executionResult.creditsDeducted,
               })}
             </div>

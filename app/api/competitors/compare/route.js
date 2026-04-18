@@ -3,7 +3,6 @@ import { cookies } from 'next/headers';
 import prisma from '@/lib/prisma';
 import { scrapeCompetitorPage, comparePages } from '@/lib/competitor-scraper';
 import { identifyContentGaps, generateSkyscraperOutline } from '@/lib/ai/competitor-analysis';
-import { trackAIUsage } from '@/lib/ai/credits-service';
 import { enforceCredits } from '@/lib/account-limits';
 
 const SESSION_COOKIE = 'user_session';
@@ -165,7 +164,8 @@ export async function POST(request) {
     // AI Content Gap Analysis
     let contentGaps = null;
     let skyscraperOutline = null;
-    let creditsUsed = 0;
+
+    const aiContext = { accountId: site.accountId, userId: user.id, siteId: site.id };
 
     if (userData.mainContent && competitorData.mainContent) {
       try {
@@ -174,26 +174,9 @@ export async function POST(request) {
           userData.mainContent,
           competitorData.mainContent,
           userData.title,
-          competitorData.title
+          competitorData.title,
+          aiContext
         );
-
-        // Track AI usage
-        const gapTrackResult = await trackAIUsage({
-          accountId: site.accountId,
-          userId: user.id,
-          siteId: site.id,
-          operation: 'COMPETITOR_GAP_ANALYSIS',
-          description: `Content gap analysis: ${userData.title} vs ${competitorData.title}`,
-          metadata: {
-            competitorId,
-            userUrl: userPageUrl,
-            competitorUrl: competitor.url,
-          },
-        });
-        
-        if (gapTrackResult.success) {
-          creditsUsed = gapTrackResult.totalUsed;
-        }
 
         // Generate skyscraper outline if requested
         if (generateOutline) {
@@ -201,25 +184,9 @@ export async function POST(request) {
           skyscraperOutline = await generateSkyscraperOutline(
             competitorData,
             contentGaps,
-            targetKeyword || userData.title
+            targetKeyword || userData.title,
+            aiContext
           );
-
-          // Track additional AI usage for outline
-          const outlineTrackResult = await trackAIUsage({
-            accountId: site.accountId,
-            userId: user.id,
-            siteId: site.id,
-            operation: 'SKYSCRAPER_OUTLINE',
-            description: `Skyscraper outline: ${targetKeyword || userData.title}`,
-            metadata: {
-              competitorId,
-              keyword: targetKeyword,
-            },
-          });
-          
-          if (outlineTrackResult.success) {
-            creditsUsed = outlineTrackResult.totalUsed;
-          }
         }
 
         // Update competitor with content gaps
@@ -265,7 +232,7 @@ export async function POST(request) {
       contentGaps,
       skyscraperOutline,
       // Include updated credits for frontend to update UI
-      creditsUpdated: creditsUsed > 0 ? { used: creditsUsed } : null,
+
     });
   } catch (error) {
     console.error('Error comparing pages:', error);

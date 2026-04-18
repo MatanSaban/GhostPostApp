@@ -5,6 +5,7 @@ import { createPortal } from 'react-dom';
 import { Calendar, ChevronLeft, ChevronRight, ChevronsRight, AlertTriangle, X, Globe, ExternalLink } from 'lucide-react';
 import { WEEK_DAYS } from '../../wizardConfig';
 import { useSite } from '@/app/context/site-context';
+import { useLocale } from '@/app/context/locale-context';
 import styles from '../../page.module.css';
 
 function getDaysInMonth(year, month) {
@@ -64,6 +65,7 @@ function countPublishDaysInRange(start, end, publishDays) {
 }
 
 export default function ScheduleStep({ state, dispatch, translations }) {
+  const { locale } = useLocale();
   const t = translations.schedule;
   const summaryT = translations.summary;
   const articleTypesT = translations.articleTypes;
@@ -624,7 +626,7 @@ export default function ScheduleStep({ state, dispatch, translations }) {
                     <div className={styles.scheduleExistingPostInfo}>
                       <span className={styles.scheduleExistingPostTitle}>{post.title}</span>
                       <span className={styles.scheduleExistingPostDate}>
-                        {pubDate.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}
+                        {pubDate.toLocaleDateString(locale === 'he' ? 'he-IL' : 'en-US', { year: 'numeric', month: 'short', day: 'numeric' })}
                       </span>
                     </div>
                     {post.url && (
@@ -679,7 +681,7 @@ export default function ScheduleStep({ state, dispatch, translations }) {
                     <div className={styles.scheduleExistingPostInfo}>
                       <span className={styles.scheduleExistingPostTitle}>{post.title}</span>
                       <span className={styles.scheduleExistingPostDate}>
-                        {post._campaignName} · {postDate.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}
+                        {post._campaignName} · {postDate.toLocaleDateString(locale === 'he' ? 'he-IL' : 'en-US', { year: 'numeric', month: 'short', day: 'numeric' })}
                       </span>
                     </div>
                   </div>

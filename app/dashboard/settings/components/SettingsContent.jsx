@@ -3869,7 +3869,11 @@ function AddonsSettings({ translations, canEdit = true }) {
           setPurchasedAddons(purchasesData.purchases || []);
         }
       } else {
-        setPurchaseMessages(prev => ({ ...prev, [addon.id]: { type: 'error', text: data.error || translate('addCreditsModal.purchaseFailed') } }));
+        // Use translation key if available, fall back to raw error
+        const errorText = data.errorKey 
+          ? translate(data.errorKey, data.errorParams || {})
+          : (data.error || translate('addCreditsModal.purchaseFailed'));
+        setPurchaseMessages(prev => ({ ...prev, [addon.id]: { type: 'error', text: errorText } }));
       }
     } catch (error) {
       setPurchaseMessages(prev => ({ ...prev, [addon.id]: { type: 'error', text: translate('addCreditsModal.purchaseFailed') } }));

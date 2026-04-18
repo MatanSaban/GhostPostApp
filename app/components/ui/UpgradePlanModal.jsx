@@ -456,6 +456,9 @@ export default function UpgradePlanModal({ isOpen, onClose }) {
                         <span className={styles.priceAmount}>{formatPrice(plan)}</span>
                         <span className={styles.pricePeriod}>{plan.period || '/month'}</span>
                       </div>
+                      {plan.ilsMonthlyPrice && (
+                        <p className={styles.ilsNote}>≈ ₪{plan.ilsMonthlyPrice}/{t('common.month') || 'mo'} <span className={styles.ilsVatNote}>{t('payment.inclVat') || 'incl. VAT'}</span></p>
+                      )}
 
                       {features.length > 0 && (
                         <ul className={styles.featuresList}>

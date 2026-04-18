@@ -89,6 +89,8 @@ ${isHebrew ? 'Write the explanation in Hebrew.' : 'Write the explanation in Engl
       temperature: 0.3,
       operation: 'RECOMMEND_SUBJECTS',
       metadata: { mainKeyword, postsCount, totalSubjects: subjects.length },
+      accountId: user.accountMemberships?.[0]?.accountId,
+      userId: user.id,
     });
 
     // Validate indices are within bounds

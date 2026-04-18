@@ -159,6 +159,8 @@ Return:
       schema: keywordExtractionSchema,
       temperature: 0.3,
       operation: 'GENERIC',
+      accountId: site.accountId,
+      siteId: site.id,
     });
     
     return result;

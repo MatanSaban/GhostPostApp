@@ -20,7 +20,7 @@ export async function POST(request) {
 
     const user = await prisma.user.findUnique({
       where: { id: userId },
-      select: { id: true },
+      select: { id: true, accountMemberships: { select: { accountId: true }, take: 1 } },
     });
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -69,6 +69,8 @@ DESCRIPTION: <the description>`;
       maxTokens: 512,
       operation: 'BACKLINK_LISTING',
       metadata: { domain, language },
+      accountId: user.accountMemberships?.[0]?.accountId,
+      userId: user.id,
     });
 
     // Parse the response

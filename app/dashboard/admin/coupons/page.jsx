@@ -42,7 +42,7 @@ const EMPTY_FORM = {
 };
 
 export default function CouponsPage() {
-  const { t } = useLocale();
+  const { t, locale } = useLocale();
   const { isSuperAdmin, isLoading: isUserLoading } = useUser();
 
   const [coupons, setCoupons] = useState([]);
@@ -510,7 +510,7 @@ export default function CouponsPage() {
                       {coupon.validUntil ? (
                         <>
                           <Calendar size={12} style={{ display: 'inline', marginInlineEnd: '0.25rem' }} />
-                          {new Date(coupon.validUntil).toLocaleDateString()}
+                          {new Date(coupon.validUntil).toLocaleDateString(locale === 'he' ? 'he-IL' : 'en-US')}
                         </>
                       ) : (
                         <span style={{ color: 'var(--muted-foreground)' }}>{t('admin.coupons.noExpiry')}</span>

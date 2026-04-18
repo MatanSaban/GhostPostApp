@@ -41,7 +41,7 @@ const FILTER_TYPES = [
 ];
 
 // Relative time helper
-function timeAgo(dateStr, t) {
+function timeAgo(dateStr, t, locale) {
   const now = Date.now();
   const then = new Date(dateStr).getTime();
   const diffMs = now - then;
@@ -54,7 +54,7 @@ function timeAgo(dateStr, t) {
   if (diffMin < 60) return t('notifications.time.minutesAgo', { count: diffMin });
   if (diffHr < 24) return t('notifications.time.hoursAgo', { count: diffHr });
   if (diffDay < 7) return t('notifications.time.daysAgo', { count: diffDay });
-  return new Date(dateStr).toLocaleDateString();
+  return new Date(dateStr).toLocaleDateString(locale === 'he' ? 'he-IL' : 'en-US');
 }
 
 // Full date formatter
@@ -357,7 +357,7 @@ export default function NotificationsPage() {
                             <div className={styles.notificationHeader}>
                               <span className={styles.notificationTitle}>{titleText}</span>
                               <span className={styles.notificationTime}>
-                                {timeAgo(notification.createdAt, t)}
+                                {timeAgo(notification.createdAt, t, locale)}
                               </span>
                             </div>
                             <p className={styles.notificationMessage}>{messageText}</p>

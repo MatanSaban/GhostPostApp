@@ -281,7 +281,7 @@ export default function PlatformAccountsPage() {
   };
 
   const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleDateString();
+    return new Date(dateString).toLocaleDateString(locale === 'he' ? 'he-IL' : 'en-US');
   };
 
   // Get translated plan name

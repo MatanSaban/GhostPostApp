@@ -30,7 +30,7 @@ async function getAuthenticatedUser() {
     if (!userId) return null;
     return await prisma.user.findUnique({
       where: { id: userId },
-      select: { id: true },
+      select: { id: true, accountMemberships: { select: { accountId: true }, take: 1 } },
     });
   } catch {
     return null;
@@ -96,6 +96,8 @@ Which of these candidates should be grouped into the same article as "${mainKeyw
       temperature: 0.2,
       operation: 'SUGGEST_RELATED_KEYWORDS',
       metadata: { mainKeyword, candidateCount: candidates.length },
+      accountId: user.accountMemberships?.[0]?.accountId,
+      userId: user.id,
     });
 
     return NextResponse.json({

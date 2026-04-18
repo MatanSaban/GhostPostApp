@@ -4,7 +4,7 @@ import prisma from '@/lib/prisma';
 import { generateObject } from 'ai';
 import { google } from '@/lib/ai/vertex-provider.js';
 import { z } from 'zod';
-import { logAIUsage } from '@/lib/ai/credits.js';
+import { deductAiCredits } from '@/lib/account-utils';
 
 const SESSION_COOKIE = 'user_session';
 const MODEL = 'gemini-2.5-pro';
@@ -85,6 +85,7 @@ export async function POST(request) {
       select: {
         id: true,
         issueTranslations: true,
+        siteId: true,
         site: { select: { accountId: true } },
       },
     });
@@ -128,13 +129,17 @@ Keep technical terms like SEO, CSS, HTML, viewport, CTA unchanged.`,
           });
 
           const usage = aiResult.usage || {};
-          logAIUsage({
-            operation: 'AUDIT_ISSUE_EXPLAINERS',
-            inputTokens: usage.promptTokens || 0,
-            outputTokens: usage.completionTokens || 0,
-            totalTokens: usage.totalTokens || 0,
-            model: MODEL,
-            metadata: { auditId, targetLang: 'en', issueCount: needExplainers.length },
+          await deductAiCredits(audit.site.accountId, 1, {
+            userId: user.id,
+            siteId: audit.siteId,
+            source: 'audit_translate_issues',
+            description: `AI issue explainers: ${needExplainers.length} issue(s)`,
+            metadata: {
+              model: MODEL,
+              inputTokens: usage.inputTokens || 0,
+              outputTokens: usage.outputTokens || 0,
+              totalTokens: usage.totalTokens || 0,
+            },
           });
 
           const aiTranslations = aiResult.object?.translations || [];
@@ -208,15 +213,19 @@ Maintain the same tone and specificity. Return the translations in the same orde
       temperature: 0.1,
     });
 
-    // Log AI usage
+    // Deduct credits and track AI usage
     const usage = aiResult.usage || {};
-    logAIUsage({
-      operation: 'AUDIT_ISSUE_TRANSLATE',
-      inputTokens: usage.promptTokens || 0,
-      outputTokens: usage.completionTokens || 0,
-      totalTokens: usage.totalTokens || 0,
-      model: MODEL,
-      metadata: { auditId, targetLang, issueCount: toTranslate.length },
+    await deductAiCredits(audit.site.accountId, 1, {
+      userId: user.id,
+      siteId: audit.siteId,
+      source: 'audit_translate_issues',
+      description: `Translate ${toTranslate.length} audit issues to ${langName}`,
+      metadata: {
+        model: MODEL,
+        inputTokens: usage.inputTokens || 0,
+        outputTokens: usage.outputTokens || 0,
+        totalTokens: usage.totalTokens || 0,
+      },
     });
 
     // Merge AI translations into result

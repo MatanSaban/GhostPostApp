@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import GeneratePostModal from '../strategy/keywords/components/GeneratePostModal';
 import { useSite } from '@/app/context/site-context';
+import { useLocale } from '@/app/context/locale-context';
 import { useTheme } from '@/app/context/theme-context';
 import { StatsCard, DashboardCard, QuickActions, ProgressBar, KpiSlider } from '../components';
 import AgentActivity from './AgentActivity';
@@ -20,6 +21,7 @@ import styles from '../page.module.css';
 export default function DashboardContent({ translations }) {
   const t = translations;
   const { selectedSite } = useSite();
+  const { locale } = useLocale();
   const { theme } = useTheme();
 
   const [loading, setLoading] = useState(true);
@@ -558,7 +560,7 @@ export default function DashboardContent({ translations }) {
     const e = new Date(endStr + 'T00:00:00');
     s.setFullYear(s.getFullYear() - 1);
     e.setFullYear(e.getFullYear() - 1);
-    const fmt = (d) => d.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+    const fmt = (d) => d.toLocaleDateString(locale === 'he' ? 'he-IL' : 'en-US', { month: 'short', day: 'numeric', year: 'numeric' });
     return `${fmt(s)} – ${fmt(e)}`;
   };
 
@@ -578,7 +580,7 @@ export default function DashboardContent({ translations }) {
     const e = new Date(endStr + 'T00:00:00');
     s.setFullYear(s.getFullYear() - 1);
     e.setFullYear(e.getFullYear() - 1);
-    const fmt = (d) => d.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+    const fmt = (d) => d.toLocaleDateString(locale === 'he' ? 'he-IL' : 'en-US', { month: 'short', day: 'numeric', year: 'numeric' });
     return `${t.vsPrefix || 'vs'} ${fmt(s)} – ${fmt(e)}`;
   };
 

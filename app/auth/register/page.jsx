@@ -10,6 +10,13 @@ export default async function RegisterPage({ searchParams }) {
   const params = await searchParams;
   const initialStep = params?.step || 'form';
 
+  // Pre-fill data from query params (e.g., from gp-ws pricing page)
+  const initialFormData = {};
+  if (params?.firstName) initialFormData.firstName = params.firstName;
+  if (params?.lastName) initialFormData.lastName = params.lastName;
+  if (params?.email) initialFormData.email = params.email;
+  const initialPlan = params?.plan || null;
+
   const translations = {
     steps: {
       account: t('registration.steps.account'),
@@ -243,7 +250,7 @@ export default async function RegisterPage({ searchParams }) {
           <p className={styles.authSubtitle}>{translations.joinGhostPost}</p>
         </div>
 
-        <RegistrationFlow translations={translations} initialStep={initialStep} />
+        <RegistrationFlow translations={translations} initialStep={initialStep} initialFormData={initialFormData} initialPlan={initialPlan} />
 
         {!['success', 'payment'].includes(initialStep) && (
           <div className={styles.authFooter}>

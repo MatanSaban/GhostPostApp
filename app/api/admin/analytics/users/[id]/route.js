@@ -142,7 +142,7 @@ export async function GET(request, { params }) {
         accountName: acc?.name || 'Unknown',
         accountId: log.accountId,
         actionType: meta.operationName || log.description || log.source,
-        model: meta.model || 'unknown',
+        model: meta.model || 'gemini-2.5-pro',
         inputTokens,
         outputTokens,
         credits: log.amount,

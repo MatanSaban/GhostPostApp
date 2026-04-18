@@ -226,6 +226,7 @@ async function handleApply(site, { auditId, siteId, fixes }, user) {
     siteId,
     source: 'ai_broken_link_fix',
     description: `Broken Link Fix: ${fixes.length} redirect(s)`,
+    metadata: { model: 'gemini-2.5-pro' },
   });
 
   if (!deduction.success) {
