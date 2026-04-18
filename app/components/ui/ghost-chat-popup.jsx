@@ -5,7 +5,8 @@ import { createPortal } from 'react-dom';
 import { 
   Send, X, Plus, Paperclip, Mic, Image as ImageIcon, 
   Check, Search, Trash2, Edit2, Sparkles, Zap, 
-  FileText, BarChart, Clock, ChevronDown 
+  FileText, BarChart, Clock, ChevronDown, 
+  Globe, Target, Users, Wrench, TrendingUp, Link2, CalendarDays, ShieldCheck 
 } from 'lucide-react';
 import { useLocale } from '@/app/context/locale-context';
 import styles from './ghost-chat-popup.module.css';
@@ -182,9 +183,13 @@ export const GhostChatPopup = forwardRef(function GhostChatPopup({ isOpen, onClo
 
   const quickActions = [
     { icon: Sparkles, label: t('chat.quickActions.generateContent'), key: 'generateContent', color: 'purple' },
-    { icon: Zap, label: t('chat.quickActions.quickSeoAudit'), key: 'quickSeoAudit', color: 'blue' },
-    { icon: FileText, label: t('chat.quickActions.createBrief'), key: 'createBrief', color: 'green' },
-    { icon: BarChart, label: t('chat.quickActions.analyticsReport'), key: 'analyticsReport', color: 'orange' }
+    { icon: ShieldCheck, label: t('chat.quickActions.quickSeoAudit'), key: 'quickSeoAudit', color: 'blue' },
+    { icon: Target, label: t('chat.quickActions.keywordResearch'), key: 'keywordResearch', color: 'green' },
+    { icon: Users, label: t('chat.quickActions.competitorAnalysis'), key: 'competitorAnalysis', color: 'orange' },
+    { icon: Wrench, label: t('chat.quickActions.fixSeoIssues'), key: 'fixSeoIssues', color: 'cyan' },
+    { icon: CalendarDays, label: t('chat.quickActions.contentPlanner'), key: 'contentPlanner', color: 'pink' },
+    { icon: TrendingUp, label: t('chat.quickActions.analyticsReport'), key: 'analyticsReport', color: 'blue' },
+    { icon: Link2, label: t('chat.quickActions.linkBuilding'), key: 'linkBuilding', color: 'purple' }
   ];
 
   const handleSend = () => {
@@ -357,10 +362,6 @@ export const GhostChatPopup = forwardRef(function GhostChatPopup({ isOpen, onClo
                 <p className={styles.agentStatus}>{t('chat.agentInfo.status')}</p>
               </div>
             </div>
-            
-            <button onClick={handleClose} className={styles.closeButton}>
-              <X size={16} />
-            </button>
           </div>
 
           {/* Messages Area */}
@@ -481,145 +482,6 @@ export const GhostChatPopup = forwardRef(function GhostChatPopup({ isOpen, onClo
             </div>
           </div>
 
-          {/* AI Settings */}
-          <div className={styles.aiSettingsSection}>
-            <h3 className={styles.sectionTitle}>{t('chat.sections.aiConfiguration')}</h3>
-            
-            {/* Text Generation */}
-            <div className={styles.settingGroup}>
-              <label className={styles.settingLabel}>{t('chat.aiConfig.textGeneration')}</label>
-              
-              {/* Engine Select */}
-              <div className={styles.selectWrapper}>
-                <button
-                  onClick={() => setIsTextEngineOpen(!isTextEngineOpen)}
-                  className={styles.selectButton}
-                >
-                  <span>{textEngines.find(e => e.id === selectedTextEngine)?.name}</span>
-                  <ChevronDown size={16} className={isTextEngineOpen ? styles.rotated : ''} />
-                </button>
-                
-                {isTextEngineOpen && (
-                  <div className={styles.selectDropdown}>
-                    {textEngines.map((engine) => (
-                      <button
-                        key={engine.id}
-                        onClick={() => {
-                          setSelectedTextEngine(engine.id);
-                          setSelectedTextModel(textModels[engine.id][0]);
-                          setIsTextEngineOpen(false);
-                        }}
-                        className={styles.selectOption}
-                      >
-                        {engine.name}
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              {/* Model Select */}
-              <div className={styles.selectWrapper}>
-                <button
-                  onClick={() => setIsTextModelOpen(!isTextModelOpen)}
-                  className={styles.selectButton}
-                >
-                  <span>{selectedTextModel}</span>
-                  <ChevronDown size={16} className={isTextModelOpen ? styles.rotated : ''} />
-                </button>
-                
-                {isTextModelOpen && (
-                  <div className={styles.selectDropdown}>
-                    {textModels[selectedTextEngine]?.map((model) => (
-                      <button
-                        key={model}
-                        onClick={() => {
-                          setSelectedTextModel(model);
-                          setIsTextModelOpen(false);
-                        }}
-                        className={styles.selectOption}
-                      >
-                        {model}
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Image Generation */}
-            <div className={styles.settingGroup}>
-              <label className={styles.settingLabel}>{t('chat.aiConfig.imageGeneration')}</label>
-              
-              {/* Engine Select */}
-              <div className={styles.selectWrapper}>
-                <button
-                  onClick={() => setIsImageEngineOpen(!isImageEngineOpen)}
-                  className={styles.selectButton}
-                >
-                  <span>{imageEngines.find(e => e.id === selectedImageEngine)?.name}</span>
-                  <ChevronDown size={16} className={isImageEngineOpen ? styles.rotated : ''} />
-                </button>
-                
-                {isImageEngineOpen && (
-                  <div className={styles.selectDropdown}>
-                    {imageEngines.map((engine) => (
-                      <button
-                        key={engine.id}
-                        onClick={() => {
-                          setSelectedImageEngine(engine.id);
-                          setSelectedImageModel(imageModels[engine.id][0]);
-                          setIsImageEngineOpen(false);
-                        }}
-                        className={styles.selectOption}
-                      >
-                        {engine.name}
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              {/* Model Select */}
-              <div className={styles.selectWrapper}>
-                <button
-                  onClick={() => setIsImageModelOpen(!isImageModelOpen)}
-                  className={styles.selectButton}
-                >
-                  <span>{selectedImageModel}</span>
-                  <ChevronDown size={16} className={isImageModelOpen ? styles.rotated : ''} />
-                </button>
-                
-                {isImageModelOpen && (
-                  <div className={styles.selectDropdown}>
-                    {imageModels[selectedImageEngine]?.map((model) => (
-                      <button
-                        key={model}
-                        onClick={() => {
-                          setSelectedImageModel(model);
-                          setIsImageModelOpen(false);
-                        }}
-                        className={styles.selectOption}
-                      >
-                        {model}
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Status Info */}
-            <div className={styles.statusInfo}>
-              <div className={styles.statusHeader}>
-                <Clock size={16} />
-                <span>{t('chat.sections.activeSession')}</span>
-              </div>
-              <p className={styles.statusText}>
-                {t('chat.statusText.usingForResponses', { engine: textEngines.find(e => e.id === selectedTextEngine)?.name })}
-              </p>
-            </div>
-          </div>
         </div>
       </div>
     </>,

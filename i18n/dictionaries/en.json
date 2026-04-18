@@ -4261,10 +4261,14 @@
       "startAnalysis": "Start Analysis"
     },
     "quickActions": {
-      "generateContent": "Generate Content",
-      "quickSeoAudit": "Quick SEO Audit",
-      "createBrief": "Create Brief",
-      "analyticsReport": "Analytics Report"
+      "generateContent": "Generate AI Post",
+      "quickSeoAudit": "Run Site Audit",
+      "keywordResearch": "Keyword Research",
+      "competitorAnalysis": "Analyze Competitors",
+      "fixSeoIssues": "Fix SEO Issues",
+      "contentPlanner": "Content Planner",
+      "analyticsReport": "Analytics Report",
+      "linkBuilding": "Link Building"
     },
     "aiConfig": {
       "textGeneration": "Text Generation",

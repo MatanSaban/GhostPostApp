@@ -1,11 +1,11 @@
-/* Backdrop */
+﻿/* Backdrop */
 .backdrop {
   position: fixed;
   top: 0;
   left: 0;
   width: 100dvw;
   height: 100dvh;
-  background: rgba(0, 0, 0, 0.6);
+  background: rgba(0, 0, 0, 0.5);
   backdrop-filter: blur(4px);
   z-index: 10000;
   animation: fadeIn 0.2s ease-out;
@@ -18,8 +18,8 @@
   top: 0;
   bottom: 0;
   display: flex;
-  background: #1a1f37;
-  box-shadow: -10px 0 50px rgba(0, 0, 0, 0.5);
+  background: var(--card);
+  box-shadow: var(--shadow-lg);
   z-index: 10001;
   border-radius: 1rem 0 0 1rem;
   overflow: hidden;
@@ -41,10 +41,10 @@
   transition: background 0.2s ease;
 
   &:hover {
-    background: rgba(147, 51, 234, 0.2);
+    background: rgba(123, 44, 191, 0.15);
 
     .resizeHandleLine {
-      background: #a78bfa;
+      background: var(--primary-light);
     }
   }
 }
@@ -53,7 +53,7 @@
   width: 3px;
   height: 40px;
   border-radius: 3px;
-  background: rgba(255, 255, 255, 0.2);
+  background: var(--border);
   transition: background 0.2s ease;
 }
 
@@ -61,15 +61,15 @@
 .leftSidebar {
   width: 280px;
   flex-shrink: 0;
-  border-right: 1px solid rgba(255, 255, 255, 0.05);
+  border-right: 1px solid var(--border-light);
   display: flex;
   flex-direction: column;
-  background: #1e2540;
+  background: var(--bg-subtle);
 }
 
 .chatListHeader {
   padding: 1rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  border-bottom: 1px solid var(--border-light);
 }
 
 .chatListHeaderTop {
@@ -82,7 +82,7 @@
 .chatListTitle {
   font-size: 0.9rem;
   font-weight: 600;
-  color: #ffffff;
+  color: var(--text-primary);
   margin: 0;
 }
 
@@ -90,15 +90,15 @@
   width: 32px;
   height: 32px;
   border-radius: 0.5rem;
-  background: rgba(147, 51, 234, 0.2);
+  background: var(--sidebar-active);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #a78bfa;
+  color: var(--primary-light);
   transition: all 0.2s ease;
 
   &:hover {
-    background: rgba(147, 51, 234, 0.3);
+    background: var(--sidebar-active-border);
   }
 }
 
@@ -111,27 +111,27 @@
   left: 0.75rem;
   top: 50%;
   transform: translateY(-50%);
-  color: #6b7280;
+  color: var(--text-tertiary);
 }
 
 .searchInput {
   width: 100%;
   padding: 0.5rem 0.75rem 0.5rem 2.25rem;
   border-radius: 0.5rem;
-  background: #2a3150;
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  color: #ffffff;
+  background: var(--input-background);
+  border: 1px solid var(--input-border);
+  color: var(--text-primary);
   font-size: 0.9rem;
   transition: all 0.2s ease;
 
   &::placeholder {
-    color: #6b7280;
+    color: var(--text-tertiary);
   }
 
   &:focus {
     outline: none;
-    border-color: rgba(147, 51, 234, 0.5);
-    box-shadow: 0 0 0 2px rgba(147, 51, 234, 0.2);
+    border-color: var(--primary);
+    box-shadow: 0 0 0 2px rgba(123, 44, 191, 0.2);
   }
 }
 
@@ -142,12 +142,12 @@
 
 .chatItem {
   padding: 1rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  border-bottom: 1px solid var(--border-light);
   cursor: pointer;
   transition: all 0.2s ease;
 
   &:hover {
-    background: rgba(255, 255, 255, 0.05);
+    background: var(--bg-hover);
 
     .chatItemActions {
       opacity: 1;
@@ -156,7 +156,7 @@
 }
 
 .chatItemActive {
-  background: rgba(147, 51, 234, 0.1);
+  background: var(--sidebar-active);
 }
 
 .chatItemHeader {
@@ -169,7 +169,7 @@
 .chatItemTitle {
   font-size: 0.9rem;
   font-weight: 500;
-  color: #ffffff;
+  color: var(--text-primary);
   margin: 0;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -180,13 +180,13 @@
 
 .chatItemTime {
   font-size: 0.875rem;
-  color: #6b7280;
+  color: var(--text-tertiary);
   flex-shrink: 0;
 }
 
 .chatItemPreview {
   font-size: 0.875rem;
-  color: #9ca3af;
+  color: var(--muted-foreground);
   margin: 0;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -205,18 +205,18 @@
 .chatItemActionBtn {
   padding: 0.375rem;
   border-radius: 0.25rem;
-  color: #9ca3af;
+  color: var(--muted-foreground);
   transition: all 0.2s ease;
 
   &:hover {
-    background: rgba(255, 255, 255, 0.1);
+    background: var(--bg-hover);
   }
 }
 
 .deleteBtn {
   &:hover {
-    background: rgba(239, 68, 68, 0.2);
-    color: #f87171;
+    background: var(--danger-bg);
+    color: var(--danger);
   }
 }
 
@@ -230,11 +230,11 @@
 
 .chatHeader {
   padding: 1rem 1.5rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  border-bottom: 1px solid var(--border-light);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: #1e2540;
+  background: var(--bg-subtle);
 }
 
 .chatHeaderLeft {
@@ -253,7 +253,7 @@
   width: 100%;
   height: 100%;
   border-radius: 50%;
-  background: linear-gradient(to bottom right, #9333ea, #3b82f6);
+  background: var(--gradient-primary);
   padding: 6px;
   object-fit: contain;
 }
@@ -265,8 +265,8 @@
   width: 12px;
   height: 12px;
   border-radius: 50%;
-  background: #00FF9D;
-  border: 2px solid #1e2540;
+  background: var(--accent);
+  border: 2px solid var(--card);
   box-shadow: 0 0 10px rgba(0, 255, 157, 0.8);
 }
 
@@ -278,13 +278,13 @@
 .agentName {
   font-size: 0.9rem;
   font-weight: 600;
-  color: #ffffff;
+  color: var(--text-primary);
   margin: 0;
 }
 
 .agentStatus {
   font-size: 0.875rem;
-  color: #9ca3af;
+  color: var(--muted-foreground);
   margin: 0;
 }
 
@@ -295,12 +295,12 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #9ca3af;
+  color: var(--muted-foreground);
   transition: all 0.2s ease;
 
   &:hover {
-    background: rgba(255, 255, 255, 0.05);
-    color: #ffffff;
+    background: var(--bg-hover);
+    color: var(--text-primary);
   }
 }
 
@@ -322,28 +322,29 @@
 
 .messageTimestamp {
   font-size: 0.875rem;
-  color: #6b7280;
+  color: var(--text-tertiary);
   text-align: center;
 }
 
 .agentMessage {
-  background: #ffffff;
+  background: var(--bg-card);
+  border: 1px solid var(--border-light);
   border-radius: 1rem;
   padding: 1.25rem;
   max-width: 85%;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  box-shadow: var(--shadow-md);
 }
 
 .messageText {
   font-size: 0.9rem;
-  color: #1f2937;
+  color: var(--text-primary);
   line-height: 1.6;
   margin: 0;
 
   .userMessage &,
   .errorMessage &,
   .successMessage & {
-    color: #ffffff;
+    color: var(--primary-foreground);
   }
 }
 
@@ -359,28 +360,28 @@
   gap: 0.5rem;
   padding: 0.5rem 1rem;
   border-radius: 0.5rem;
-  background: #00b67a;
+  background: var(--success);
   color: #ffffff;
   font-size: 0.9rem;
   font-weight: 500;
   transition: all 0.2s ease;
 
   &:hover {
-    background: #00a169;
+    filter: brightness(0.9);
   }
 }
 
 .secondaryActionBtn {
   padding: 0.5rem 1rem;
   border-radius: 0.5rem;
-  background: #e5e7eb;
-  color: #374151;
+  background: var(--muted);
+  color: var(--muted-foreground);
   font-size: 0.9rem;
   font-weight: 500;
   transition: all 0.2s ease;
 
   &:hover {
-    background: #d1d5db;
+    background: var(--bg-hover);
   }
 }
 
@@ -390,16 +391,16 @@
 }
 
 .userMessage {
-  background: rgba(147, 51, 234, 0.2);
+  background: rgba(123, 44, 191, 0.15);
   backdrop-filter: blur(8px);
-  border: 1px solid rgba(147, 51, 234, 0.2);
+  border: 1px solid rgba(123, 44, 191, 0.25);
   border-radius: 1rem;
   padding: 0.75rem 1.25rem;
   max-width: 85%;
 }
 
 .errorMessage {
-  background: rgba(185, 28, 28, 0.3);
+  background: var(--danger-bg);
   backdrop-filter: blur(8px);
   border: 1px solid rgba(239, 68, 68, 0.3);
   border-radius: 1rem;
@@ -418,11 +419,11 @@
   flex-shrink: 0;
   padding: 0.25rem;
   border-radius: 0.25rem;
-  color: #f87171;
+  color: var(--danger);
   transition: all 0.2s ease;
 
   &:hover {
-    background: rgba(239, 68, 68, 0.2);
+    background: var(--danger-bg);
   }
 }
 
@@ -444,20 +445,20 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  background: rgba(0, 182, 122, 0.2);
+  background: var(--success-bg);
   backdrop-filter: blur(8px);
   border: 1px solid rgba(0, 255, 157, 0.3);
   border-radius: 1rem;
   padding: 0.75rem 1.25rem;
   max-width: 85%;
-  color: #00FF9D;
+  color: var(--success);
 }
 
 /* Input Area */
 .inputArea {
   padding: 1.5rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.05);
-  background: #1e2540;
+  border-top: 1px solid var(--border-light);
+  background: var(--bg-subtle);
   display: flex;
   align-items: center;
   gap: 0.75rem;
@@ -471,28 +472,29 @@
 .messageInput {
   width: 100%;
   padding: 0.75rem 1rem;
-  padding-right: 7rem;
+  padding-inline-start: 1.5rem;
+  padding-inline-end: 7rem;
   border-radius: 0.75rem;
-  background: #2a3150;
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  color: #ffffff;
+  background: var(--input-background);
+  border: 1px solid var(--input-border);
+  color: var(--text-primary);
   font-size: 0.9rem;
   transition: all 0.2s ease;
 
   &::placeholder {
-    color: #6b7280;
+    color: var(--text-tertiary);
   }
 
   &:focus {
     outline: none;
-    border-color: rgba(147, 51, 234, 0.5);
-    box-shadow: 0 0 0 2px rgba(147, 51, 234, 0.2);
+    border-color: var(--primary);
+    box-shadow: 0 0 0 2px rgba(123, 44, 191, 0.2);
   }
 }
 
 .inputActions {
   position: absolute;
-  right: 0.75rem;
+  inset-inline-end: 0.75rem;
   top: 50%;
   transform: translateY(-50%);
   display: flex;
@@ -503,12 +505,12 @@
 .inputActionBtn {
   padding: 0.5rem;
   border-radius: 0.5rem;
-  color: #9ca3af;
+  color: var(--muted-foreground);
   transition: all 0.2s ease;
 
   &:hover {
-    background: rgba(255, 255, 255, 0.05);
-    color: #ffffff;
+    background: var(--bg-hover);
+    color: var(--text-primary);
   }
 }
 
@@ -516,16 +518,16 @@
   width: 48px;
   height: 48px;
   border-radius: 0.75rem;
-  background: linear-gradient(to bottom right, #9333ea, #3b82f6);
+  background: var(--gradient-primary);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #ffffff;
+  color: var(--primary-foreground);
   transition: all 0.2s ease;
-  box-shadow: 0 4px 20px rgba(147, 51, 234, 0.4);
+  box-shadow: var(--shadow-purple);
 
   &:hover {
-    box-shadow: 0 6px 25px rgba(147, 51, 234, 0.5);
+    box-shadow: 0 6px 25px rgba(123, 44, 191, 0.5);
     transform: translateY(-1px);
   }
 
@@ -540,22 +542,22 @@
 .rightSidebar {
   width: 320px;
   flex-shrink: 0;
-  border-left: 1px solid rgba(255, 255, 255, 0.05);
+  border-left: 1px solid var(--border-light);
   display: flex;
   flex-direction: column;
-  background: #1e2540;
+  background: var(--bg-subtle);
   overflow-y: auto;
 }
 
 .quickActionsSection {
   padding: 1rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  border-bottom: 1px solid var(--border-light);
 }
 
 .sectionTitle {
   font-size: 0.9rem;
   font-weight: 600;
-  color: #ffffff;
+  color: var(--text-primary);
   margin: 0 0 0.75rem 0;
 }
 
@@ -577,49 +579,69 @@
 
   span {
     font-size: 0.875rem;
-    color: #d1d5db;
+    color: var(--muted-foreground);
     text-align: center;
     line-height: 1.3;
   }
 }
 
 .quickActionpurple {
-  background: rgba(147, 51, 234, 0.1);
-  border-color: rgba(147, 51, 234, 0.2);
-  color: #a78bfa;
+  background: rgba(123, 44, 191, 0.08);
+  border-color: rgba(123, 44, 191, 0.15);
+  color: var(--primary-light);
 
   &:hover {
-    background: rgba(147, 51, 234, 0.2);
+    background: rgba(123, 44, 191, 0.15);
   }
 }
 
 .quickActionblue {
-  background: rgba(59, 130, 246, 0.1);
-  border-color: rgba(59, 130, 246, 0.2);
-  color: #60a5fa;
+  background: rgba(59, 130, 246, 0.08);
+  border-color: rgba(59, 130, 246, 0.15);
+  color: var(--info);
 
   &:hover {
-    background: rgba(59, 130, 246, 0.2);
+    background: rgba(59, 130, 246, 0.15);
   }
 }
 
 .quickActiongreen {
-  background: rgba(34, 197, 94, 0.1);
-  border-color: rgba(34, 197, 94, 0.2);
-  color: #4ade80;
+  background: rgba(34, 197, 94, 0.08);
+  border-color: rgba(34, 197, 94, 0.15);
+  color: var(--success);
 
   &:hover {
-    background: rgba(34, 197, 94, 0.2);
+    background: rgba(34, 197, 94, 0.15);
   }
 }
 
 .quickActionorange {
-  background: rgba(249, 115, 22, 0.1);
-  border-color: rgba(249, 115, 22, 0.2);
-  color: #fb923c;
+  background: rgba(249, 115, 22, 0.08);
+  border-color: rgba(249, 115, 22, 0.15);
+  color: var(--warning);
 
   &:hover {
-    background: rgba(249, 115, 22, 0.2);
+    background: rgba(249, 115, 22, 0.15);
+  }
+}
+
+.quickActioncyan {
+  background: rgba(6, 182, 212, 0.08);
+  border-color: rgba(6, 182, 212, 0.15);
+  color: #22d3ee;
+
+  &:hover {
+    background: rgba(6, 182, 212, 0.15);
+  }
+}
+
+.quickActionpink {
+  background: rgba(236, 72, 153, 0.08);
+  border-color: rgba(236, 72, 153, 0.15);
+  color: #f472b6;
+
+  &:hover {
+    background: rgba(236, 72, 153, 0.15);
   }
 }
 
@@ -639,7 +661,7 @@
 
 .settingLabel {
   font-size: 0.875rem;
-  color: #9ca3af;
+  color: var(--muted-foreground);
 }
 
 .selectWrapper {
@@ -650,9 +672,9 @@
   width: 100%;
   padding: 0.625rem 0.75rem;
   border-radius: 0.5rem;
-  background: #2a3150;
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  color: #ffffff;
+  background: var(--input-background);
+  border: 1px solid var(--input-border);
+  color: var(--text-primary);
   font-size: 0.9rem;
   display: flex;
   align-items: center;
@@ -660,7 +682,7 @@
   transition: all 0.2s ease;
 
   &:hover {
-    border-color: rgba(147, 51, 234, 0.3);
+    border-color: var(--primary);
   }
 
   svg {
@@ -678,10 +700,10 @@
   left: 0;
   right: 0;
   margin-top: 0.25rem;
-  background: #2a3150;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: var(--card);
+  border: 1px solid var(--border);
   border-radius: 0.5rem;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+  box-shadow: var(--shadow-lg);
   z-index: 10;
   overflow: hidden;
   max-height: 12rem;
@@ -693,11 +715,11 @@
   padding: 0.5rem 0.75rem;
   text-align: left;
   font-size: 0.9rem;
-  color: #ffffff;
+  color: var(--text-primary);
   transition: all 0.2s ease;
 
   &:hover {
-    background: rgba(147, 51, 234, 0.2);
+    background: var(--sidebar-active);
   }
 }
 
@@ -706,8 +728,8 @@
   margin-top: 1rem;
   padding: 0.75rem;
   border-radius: 0.5rem;
-  background: rgba(147, 51, 234, 0.1);
-  border: 1px solid rgba(147, 51, 234, 0.2);
+  background: rgba(123, 44, 191, 0.08);
+  border: 1px solid rgba(123, 44, 191, 0.15);
 }
 
 .statusHeader {
@@ -715,14 +737,14 @@
   align-items: center;
   gap: 0.5rem;
   margin-bottom: 0.5rem;
-  color: #c4b5fd;
+  color: var(--primary-light);
   font-size: 0.875rem;
   font-weight: 500;
 }
 
 .statusText {
   font-size: 0.875rem;
-  color: #9ca3af;
+  color: var(--muted-foreground);
   margin: 0;
 }
 

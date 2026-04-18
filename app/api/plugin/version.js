@@ -10,10 +10,19 @@
  */
 
 // Current plugin version - increment this when making updates
-export const PLUGIN_VERSION = "2.9.2";
+export const PLUGIN_VERSION = "3.0.0";
 
 // Changelog for the current version
 export const PLUGIN_CHANGELOG = `
+= 3.0.0 =
+* NEW: SEO Insights tab — traffic stats, AI traffic chart, top 10 keywords, top 10 pages, AI agent issues
+* NEW: Code Snippets tab — manage custom PHP/JS/HTML/CSS snippets with active/inactive toggle, trash, priority, and frontend execution
+* NEW: Version section in Settings tab — check for updates from platform, injects into WP update system
+* NEW: Update button in header bar when new version is available
+* NEW: Full i18n support — all strings translatable via WordPress gettext system
+* NEW: Complete Hebrew translation file (languages/he.php)
+* REMOVE: Site Key row from Connection tab details table
+
 = 2.9.2 =
 * NEW: Theme switcher (dark/light) in Settings tab — applies to admin panel and dashboard widget
 * NEW: Language selector in Settings tab (Auto/English/Hebrew) with instant apply

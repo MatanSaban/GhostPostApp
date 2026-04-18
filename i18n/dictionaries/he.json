@@ -4266,10 +4266,14 @@
       "startAnalysis": "התחל ניתוח"
     },
     "quickActions": {
-      "generateContent": "צור תוכן",
-      "quickSeoAudit": "ביקורת SEO מהירה",
-      "createBrief": "צור תקציר",
-      "analyticsReport": "דוח אנליטיקס"
+      "generateContent": "צור פוסט AI",
+      "quickSeoAudit": "הרץ דו״ח בריאות",
+      "keywordResearch": "מחקר מילות מפתח",
+      "competitorAnalysis": "ניתוח מתחרים",
+      "fixSeoIssues": "תקן בעיות SEO",
+      "contentPlanner": "יומן תוכן",
+      "analyticsReport": "דוח אנליטיקס",
+      "linkBuilding": "בניית קישורים"
     },
     "aiConfig": {
       "textGeneration": "יצירת טקסט",
