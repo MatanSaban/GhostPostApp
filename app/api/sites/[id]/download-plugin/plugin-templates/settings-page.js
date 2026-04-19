@@ -40,6 +40,7 @@ $masked_key = $is_configured ? substr($site_key_display, 0, 8) . '...' . substr(
 
 // Check for available update
 $latest_version = get_transient('gp_latest_version');
+$latest_download = get_transient('gp_latest_download_url');
 $update_available = $latest_version && version_compare($latest_version, GP_CONNECTOR_VERSION, '>');
 
 // Snippets data
@@ -92,11 +93,16 @@ $theme_class = ($gp_theme === 'light') ? 'gp-theme-light' : 'gp-theme-dark';
         <div class="gp-topbar-brand">
             <span class="gp-version">v<?php echo esc_html(GP_CONNECTOR_VERSION); ?></span>
             <?php if ($update_available): ?>
-                <a href="<?php echo esc_url(admin_url('update-core.php')); ?>" class="gp-btn gp-btn-update">
-                    <?php printf(esc_html__('Update to v%s', 'ghost-post-connector'), esc_html($latest_version)); ?>
-                </a>
+                <button type="button" id="gp-header-update" class="gp-btn gp-btn-update" data-version="<?php echo esc_attr($latest_version); ?>" data-download="<?php echo esc_url($latest_download ?? ''); ?>">
+                    &#8635; <?php printf(esc_html__('Update to v%s', 'ghost-post-connector'), esc_html($latest_version)); ?>
+                </button>
+            <?php else: ?>
+                <button type="button" id="gp-header-check-update" class="gp-btn gp-btn-outline gp-btn-sm">
+                    <?php esc_html_e('Check for Updates', 'ghost-post-connector'); ?>
+                </button>
             <?php endif; ?>
             <img src="<?php echo esc_url($platform_url . '/logo.png'); ?>" alt="Ghost Post" class="gp-topbar-logo">
+            <span class="gp-topbar-title">GhostPost</span>
         </div>
     </div>
 
@@ -305,8 +311,8 @@ $theme_class = ($gp_theme === 'light') ? 'gp-theme-light' : 'gp-theme-dark';
                             <?php foreach ($activity_log as $entry): ?>
                             <tr>
                                 <td class="gp-activity-time"><?php echo esc_html(isset($entry['time']) && is_numeric($entry['time']) ? sprintf(__('%s ago', 'ghost-post-connector'), human_time_diff($entry['time'])) : ($entry['time'] ?? '')); ?></td>
-                                <td><span class="gp-activity-badge"><?php echo esc_html($entry['action'] ?? ''); ?></span></td>
-                                <td><?php echo esc_html($entry['details'] ?? ''); ?></td>
+                                <td><span class="gp-activity-badge"><?php echo esc_html(__($entry['action'] ?? '', 'ghost-post-connector')); ?></span></td>
+                                <td><?php echo esc_html(__($entry['details'] ?? '', 'ghost-post-connector')); ?></td>
                             </tr>
                             <?php endforeach; ?>
                         </tbody>
@@ -477,7 +483,7 @@ $theme_class = ($gp_theme === 'light') ? 'gp-theme-light' : 'gp-theme-dark';
                     </button>
                 </div>
 
-                <div id="gp-seo-loading" class="gp-loading-state">
+                <div id="gp-seo-loading" class="gp-loading-state" style="display: none;">
                     <div class="gp-spinner"></div>
                     <p><?php esc_html_e('Loading SEO data...', 'ghost-post-connector'); ?></p>
                 </div>

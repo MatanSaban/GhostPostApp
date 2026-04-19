@@ -216,6 +216,23 @@ class GP_Content_Manager {
             }
         }
         
+        // Handle H1 replacement in page builders (Elementor, shortcodes, raw HTML)
+        $response_data_h1 = null;
+        if (!empty($data['old_h1']) && !empty($data['new_h1'])) {
+            $h1_result = $this->update_h1_in_builders($id, $data['old_h1'], $data['new_h1']);
+            if (!empty($h1_result['updated'])) {
+                $response_data_h1 = $h1_result;
+            }
+        }
+        
+        // Handle adding new H1 (when page has no H1)
+        if (!empty($data['add_h1'])) {
+            $add_h1_result = $this->add_h1_to_builders($id, $data['add_h1']);
+            if (!empty($add_h1_result['added'])) {
+                $response_data_h1 = $add_h1_result;
+            }
+        }
+        
         // Update featured image
         if (isset($data['featured_image'])) {
             if (empty($data['featured_image'])) {
@@ -247,11 +264,214 @@ class GP_Content_Manager {
             }
         }
         
-        return new WP_REST_Response(array(
+        $response_data = array(
             'id' => $id,
             'message' => 'Post updated successfully',
             'post' => $this->format_post(get_post($id), true),
-        ), 200);
+        );
+        
+        if (!empty($response_data_h1)) {
+            $response_data['h1_update'] = $response_data_h1;
+        }
+        
+        return new WP_REST_Response($response_data, 200);
+    }
+    
+    /**
+     * Update H1 heading in page builder data and raw HTML content.
+     * Handles Elementor, Beaver Builder, shortcodes, and raw <h1> tags.
+     */
+    private function update_h1_in_builders($post_id, $old_h1, $new_h1) {
+        $old_h1 = sanitize_text_field($old_h1);
+        $new_h1 = sanitize_text_field($new_h1);
+        $updated = array();
+        
+        // 1. Elementor: _elementor_data (JSON in post meta)
+        $elementor_data = get_post_meta($post_id, '_elementor_data', true);
+        if (!empty($elementor_data)) {
+            $is_json = is_string($elementor_data);
+            $elements = $is_json ? json_decode($elementor_data, true) : $elementor_data;
+            
+            if (is_array($elements)) {
+                $elementor_changed = false;
+                $elements = $this->replace_h1_in_elementor($elements, $old_h1, $new_h1, $elementor_changed);
+                
+                if ($elementor_changed) {
+                    $new_json = wp_json_encode($elements, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+                    update_post_meta($post_id, '_elementor_data', wp_slash($new_json));
+                    delete_post_meta($post_id, '_elementor_css');
+                    $updated[] = 'elementor';
+                }
+            }
+        }
+        
+        // 2. Raw HTML <h1> tags in post_content
+        $post = get_post($post_id);
+        if ($post && !empty($post->post_content)) {
+            $content = $post->post_content;
+            $new_content = $content;
+            
+            $pattern = '/(<h1[^>]*>)\\s*' . preg_quote($old_h1, '/') . '\\s*(<\\/h1>)/i';
+            $replacement = '\${1}' . str_replace('$', '\\\\$', $new_h1) . '\${2}';
+            $new_content = preg_replace($pattern, $replacement, $new_content);
+            
+            if ($new_content !== $content) {
+                GP_Entity_Sync::mark_gp_origin();
+                wp_update_post(array(
+                    'ID' => $post_id,
+                    'post_content' => $new_content,
+                ));
+                $updated[] = 'html_h1';
+            }
+        }
+        
+        // 3. Beaver Builder: fl_builder_data (serialized in post meta)
+        $bb_data = get_post_meta($post_id, '_fl_builder_data', true);
+        if (!empty($bb_data) && is_array($bb_data)) {
+            $bb_serialized = serialize($bb_data);
+            $new_bb_serialized = str_replace($old_h1, $new_h1, $bb_serialized);
+            
+            if ($new_bb_serialized !== $bb_serialized) {
+                $new_bb_data = unserialize($new_bb_serialized);
+                if ($new_bb_data !== false) {
+                    update_post_meta($post_id, '_fl_builder_data', $new_bb_data);
+                    $updated[] = 'beaver_builder';
+                }
+            }
+        }
+        
+        return array(
+            'updated' => $updated,
+            'old_h1' => $old_h1,
+            'new_h1' => $new_h1,
+        );
+    }
+    
+    /**
+     * Recursively traverse Elementor elements and replace H1 heading text.
+     */
+    private function replace_h1_in_elementor($elements, $old_h1, $new_h1, &$changed) {
+        foreach ($elements as &$element) {
+            if (
+                isset($element['widgetType']) &&
+                $element['widgetType'] === 'heading' &&
+                isset($element['settings']['title']) &&
+                isset($element['settings']['header_size']) &&
+                $element['settings']['header_size'] === 'h1'
+            ) {
+                if (trim($element['settings']['title']) === trim($old_h1)) {
+                    $element['settings']['title'] = $new_h1;
+                    $changed = true;
+                }
+            }
+            
+            if (
+                isset($element['widgetType']) &&
+                $element['widgetType'] === 'theme-post-title' &&
+                isset($element['settings']['title']) &&
+                trim($element['settings']['title']) === trim($old_h1)
+            ) {
+                $element['settings']['title'] = $new_h1;
+                $changed = true;
+            }
+            
+            if (!empty($element['elements']) && is_array($element['elements'])) {
+                $element['elements'] = $this->replace_h1_in_elementor(
+                    $element['elements'], $old_h1, $new_h1, $changed
+                );
+            }
+        }
+        unset($element);
+        
+        return $elements;
+    }
+    
+    /**
+     * Add a new H1 heading to a page that doesn't have one.
+     * Handles Elementor (inserts heading widget at top of first section) and raw HTML.
+     */
+    public function add_h1_to_builders($post_id, $h1_text) {
+        $h1_text = sanitize_text_field($h1_text);
+        $added = array();
+        
+        // 1. Elementor: insert a heading widget at the top of the first section
+        $elementor_data = get_post_meta($post_id, '_elementor_data', true);
+        if (!empty($elementor_data)) {
+            $is_json = is_string($elementor_data);
+            $elements = $is_json ? json_decode($elementor_data, true) : $elementor_data;
+            
+            if (is_array($elements) && !empty($elements)) {
+                $h1_widget = array(
+                    'id' => wp_generate_uuid4(),
+                    'elType' => 'widget',
+                    'widgetType' => 'heading',
+                    'settings' => array(
+                        'title' => $h1_text,
+                        'header_size' => 'h1',
+                        'align' => 'right',
+                    ),
+                    'elements' => array(),
+                );
+                
+                $inserted = false;
+                foreach ($elements as &$section) {
+                    if (!$inserted && isset($section['elType'])) {
+                        if ($section['elType'] === 'container') {
+                            array_unshift($section['elements'], $h1_widget);
+                            $inserted = true;
+                        } elseif ($section['elType'] === 'section' && !empty($section['elements'])) {
+                            foreach ($section['elements'] as &$column) {
+                                if (!$inserted && isset($column['elType']) && $column['elType'] === 'column') {
+                                    array_unshift($column['elements'], $h1_widget);
+                                    $inserted = true;
+                                }
+                            }
+                            unset($column);
+                        }
+                    }
+                }
+                unset($section);
+                
+                if (!$inserted) {
+                    $container = array(
+                        'id' => wp_generate_uuid4(),
+                        'elType' => 'container',
+                        'settings' => array(),
+                        'elements' => array($h1_widget),
+                    );
+                    array_unshift($elements, $container);
+                    $inserted = true;
+                }
+                
+                if ($inserted) {
+                    $new_json = wp_json_encode($elements, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+                    update_post_meta($post_id, '_elementor_data', wp_slash($new_json));
+                    delete_post_meta($post_id, '_elementor_css');
+                    $added[] = 'elementor';
+                }
+            }
+        }
+        
+        // 2. If not Elementor, add H1 to beginning of post_content as HTML
+        if (empty($added)) {
+            $post = get_post($post_id);
+            if ($post && $post->post_content !== null) {
+                $h1_html = '<h1>' . esc_html($h1_text) . '</h1>';
+                $new_content = $h1_html . "\\n" . $post->post_content;
+                
+                GP_Entity_Sync::mark_gp_origin();
+                wp_update_post(array(
+                    'ID' => $post_id,
+                    'post_content' => $new_content,
+                ));
+                $added[] = 'html_prepend';
+            }
+        }
+        
+        return array(
+            'added' => $added,
+            'h1_text' => $h1_text,
+        );
     }
     
     /**

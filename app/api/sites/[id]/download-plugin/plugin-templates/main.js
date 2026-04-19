@@ -80,6 +80,57 @@ function gp_send_security_headers() {
 add_action('send_headers', 'gp_send_security_headers');
 
 /**
+ * Detect a request coming from the Ghost Post platform with gp_editor=true.
+ * Requires the platform origin in the Referer to prevent arbitrary third parties
+ * from iframing the site by appending the flag.
+ */
+function gp_is_editor_request() {
+    if (empty($_GET['gp_editor']) || $_GET['gp_editor'] !== 'true') return false;
+    if (!defined('GP_API_URL')) return false;
+    $platform_origin = gp_parse_origin(GP_API_URL);
+    if (!$platform_origin) return false;
+    $referer = isset($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : '';
+    $referer_origin = gp_parse_origin($referer);
+    return $referer_origin && $referer_origin === $platform_origin;
+}
+
+function gp_parse_origin($url) {
+    if (empty($url)) return '';
+    $parts = wp_parse_url($url);
+    if (empty($parts['scheme']) || empty($parts['host'])) return '';
+    $origin = $parts['scheme'] . '://' . $parts['host'];
+    if (!empty($parts['port'])) $origin .= ':' . $parts['port'];
+    return $origin;
+}
+
+/**
+ * When the platform opens the site in the editor iframe:
+ *  - allow embedding by replacing X-Frame-Options with a scoped CSP frame-ancestors
+ *  - enqueue the editor bridge script that implements element inspection
+ */
+function gp_editor_send_frame_headers() {
+    if (!gp_is_editor_request()) return;
+    if (headers_sent()) return;
+    $origin = gp_parse_origin(GP_API_URL);
+    if (!$origin) return;
+    header_remove('X-Frame-Options');
+    header('Content-Security-Policy: frame-ancestors ' . $origin);
+}
+add_action('send_headers', 'gp_editor_send_frame_headers');
+
+function gp_editor_enqueue_bridge() {
+    if (!gp_is_editor_request()) return;
+    wp_enqueue_script(
+        'gp-editor-bridge',
+        GP_CONNECTOR_PLUGIN_URL . 'assets/editor-bridge.js',
+        array(),
+        GP_CONNECTOR_VERSION,
+        true
+    );
+}
+add_action('wp_enqueue_scripts', 'gp_editor_enqueue_bridge');
+
+/**
  * Activation hook
  */
 function gp_connector_activate() {

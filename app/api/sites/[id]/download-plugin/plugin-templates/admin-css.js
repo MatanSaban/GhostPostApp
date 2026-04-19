@@ -1033,6 +1033,35 @@ export function getAdminCss() {
     font-size: 12px;
 }
 
+/* Loading state for buttons */
+.gp-btn.gp-loading {
+    position: relative;
+    pointer-events: none;
+    opacity: 0.7;
+}
+
+.gp-btn.gp-loading::after {
+    content: '';
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    border: 2px solid currentColor;
+    border-top-color: transparent;
+    border-radius: 50%;
+    animation: gp-spin 0.6s linear infinite;
+    margin-left: 6px;
+    vertical-align: middle;
+}
+
+@keyframes gp-spin {
+    to { transform: rotate(360deg); }
+}
+
+/* Header check-update button outline style */
+#gp-header-check-update {
+    white-space: nowrap;
+}
+
 /* ==========================================
    Version Section
    ========================================== */

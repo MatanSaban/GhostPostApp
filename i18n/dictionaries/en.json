@@ -4343,6 +4343,71 @@
       "createBrief": "Let's create a content brief. What's the main keyword or topic you want to target?",
       "analyticsReport": "Generating analytics report... I'll compile your traffic data, keyword rankings, and conversion metrics.",
       "default": "How can I help you with that?"
+    },
+    "actionCard": {
+      "pending": "Pending",
+      "approved": "Approved",
+      "executing": "Executing",
+      "completed": "Completed",
+      "failed": "Failed",
+      "expired": "Expired",
+      "rejected": "Rejected",
+      "rolledBack": "Rolled Back",
+      "rollingBack": "Rolling Back",
+      "creating": "Creating...",
+      "approve": "Approve",
+      "reject": "Reject",
+      "rollback": "Rollback",
+      "remaining": "remaining",
+      "minuteShort": "m",
+      "secondShort": "s",
+      "fetchingData": "Fetching data",
+      "thinking": "Thinking",
+      "analyzing": "Analyzing your request...",
+      "actionApproved": "Action approved and executing...",
+      "actionRejected": "Action rejected",
+      "rollbackSuccess": "Action rolled back successfully",
+      "rollbackFailed": "Rollback failed",
+      "approveFailed": "Failed to approve",
+      "warningMessage": "⚠️ **Reminder:** The action plan above will expire in **{minutes} minutes** if not approved.\n\nPlease approve or reject the plan to continue.",
+      "expiredMessage": "⏰ The action plan has **expired** because it wasn't approved within 5 minutes.\n\nIf you still want to proceed, just ask me again and I'll create a new plan.",
+      "rejectedMessage": "❌ Action plan was rejected. Let me know if you'd like me to suggest a different approach."
+    },
+    "preview": {
+      "label": "Preview",
+      "show": "Show live preview",
+      "hide": "Hide preview",
+      "reload": "Reload",
+      "enableInspector": "Enable element inspector",
+      "disableInspector": "Disable element inspector",
+      "openNewTab": "Open in new tab",
+      "close": "Close preview",
+      "ready": "Connected",
+      "connecting": "Connecting to site…",
+      "emptyText": "(empty)",
+      "clearSelection": "Clear selection",
+      "device": {
+        "full": "Full width",
+        "tablet": "Tablet (1024px)",
+        "mobile": "Mobile (375px)"
+      },
+      "error": {
+        "title": "Couldn't load the site preview",
+        "cannotConnect": "The browser couldn't reach {url}.",
+        "bridgeMissing": "The site loaded, but the Ghost Post Connector bridge didn't respond. Make sure the plugin is installed and updated to the latest version, then reload.",
+        "retry": "Try again",
+        "openDirectly": "Open site directly"
+      },
+      "pages": {
+        "title": "Pages & posts",
+        "search": "Search pages…",
+        "homepage": "Homepage",
+        "pagesGroup": "Pages",
+        "postsGroup": "Posts",
+        "other": "Other",
+        "empty": "No pages found. Use the Entities tab to sync your site content.",
+        "loading": "Loading pages…"
+      }
     }
   },
   "errors": {
@@ -6664,6 +6729,22 @@
         "title": "Missing SEO Metadata",
         "description": "{count} pages are missing meta titles or descriptions. Adding them can improve click-through rates."
       },
+      "metaTitleTooShort": {
+        "title": "Meta Titles Too Short",
+        "description": "{count} pages have meta titles shorter than {minLength} characters. Aim for {minLength}\u2013{maxLength} characters to maximize search visibility."
+      },
+      "metaTitleTooLong": {
+        "title": "Meta Titles Too Long",
+        "description": "{count} pages have meta titles longer than {maxLength} characters. Google typically truncates titles beyond {maxLength} characters in search results."
+      },
+      "metaDescTooShort": {
+        "title": "Meta Descriptions Too Short",
+        "description": "{count} pages have meta descriptions shorter than {minLength} characters. Short descriptions miss the opportunity to attract clicks from search results."
+      },
+      "metaDescTooLong": {
+        "title": "Meta Descriptions Too Long",
+        "description": "{count} pages have meta descriptions longer than {maxLength} characters. Google typically truncates descriptions beyond {maxLength} characters."
+      },
       "trafficDrop": {
         "title": "Search Traffic Drop",
         "description": "Search clicks dropped by {change}% in {periodStart} to {periodEnd} vs {comparePeriodStart} to {comparePeriodEnd}. Review recent changes and check for indexing issues."
@@ -6759,6 +6840,14 @@
       "sitemapsNotSubmitted": {
         "title": "Sitemaps Not Submitted to Google Search Console",
         "description": "Your website's sitemaps are not submitted to Google Search Console. Submitting sitemaps helps Google discover and index your pages faster."
+      },
+      "missingH1Tag": {
+        "title": "Pages Missing H1 Tag",
+        "description": "{count} published pages have no H1 heading tag. Every page should have exactly one H1 tag for proper SEO structure and accessibility."
+      },
+      "multipleH1Tags": {
+        "title": "Pages With Multiple H1 Tags",
+        "description": "{count} published pages have more than one H1 heading tag. Each page should have exactly one H1 tag — multiple H1 tags dilute heading hierarchy and can confuse search engines."
       }
     },
     "detailLabels": {

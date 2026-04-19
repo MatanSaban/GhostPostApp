@@ -291,6 +291,10 @@ class GP_I18n {
             'plugin_deactivated' => 'תוסף כובה',
             'settings_changed' => 'הגדרות שונו',
 
+            // ---- Activity Detail strings ----
+            'Connection verified with GhostPost platform' => 'החיבור אומת עם פלטפורמת GhostPost',
+            'Disconnected from GhostPost platform' => 'התנתק מפלטפורמת GhostPost',
+
             // ---- Admin JS strings ----
             'Testing connection...' => 'בודק חיבור...',
             'Connection successful!' => 'החיבור הצליח!',
@@ -336,6 +340,11 @@ class GP_I18n {
             'Traffic' => 'תנועה',
             'Avg. Position' => 'מיקום ממוצע',
             'Organic Traffic' => 'תנועה אורגנית',
+
+            // ---- Header Update ----
+            'Update to v' => 'עדכן לגרסה ',
+            'Updating...' => 'מעדכן...',
+            'Updated! Reloading...' => 'עודכן! טוען מחדש...',
 
             // ---- Code Snippets ----
             'Code Snippets' => 'קטעי קוד',

@@ -10,10 +10,20 @@
  */
 
 // Current plugin version - increment this when making updates
-export const PLUGIN_VERSION = "3.0.0";
+export const PLUGIN_VERSION = "3.0.2";
 
 // Changelog for the current version
 export const PLUGIN_CHANGELOG = `
+= 3.0.2 =
+* NEW: Editor bridge script — enables the platform AI Agent Chat to show a live preview of the site with click-to-select element inspection
+* NEW: Scoped iframe embedding — when the platform loads the site with ?gp_editor=true from the configured platform origin, X-Frame-Options is replaced by a CSP frame-ancestors directive locked to the platform origin
+* CHANGE: Regular visitors are unaffected — bridge and CSP changes only activate for authenticated platform editor requests
+
+= 3.0.1 =
+* NEW: H1 heading management — add or replace H1 in Elementor, Beaver Builder, and raw HTML pages
+* NEW: Site info now reports active plugins list, parent theme, Elementor and WooCommerce detection
+* FIX: Update response now includes H1 update result for verification
+
 = 3.0.0 =
 * NEW: SEO Insights tab — traffic stats, AI traffic chart, top 10 keywords, top 10 pages, AI agent issues
 * NEW: Code Snippets tab — manage custom PHP/JS/HTML/CSS snippets with active/inactive toggle, trash, priority, and frontend execution

@@ -24,6 +24,7 @@ import {
 import { useLocale } from '@/app/context/locale-context';
 import { emitCreditsUpdated } from '@/app/context/user-context';
 import { handleLimitError } from '@/app/context/limit-guard-context';
+import { useAiPricing } from '@/app/hooks/useAiPricing';
 import { toImgSrc } from '../lib/img-src';
 import IssueInfoPopup from './IssueInfoPopup';
 import styles from './AccessibilityIssueCard.module.css';
@@ -45,6 +46,7 @@ export default function AccessibilityIssueCard({
   locale,
 }) {
   const { t } = useLocale();
+  const { getCreditCost } = useAiPricing();
   const [expanded, setExpanded] = useState(false);
   const [fixingIndex, setFixingIndex] = useState(-1);
   const [fixResults, setFixResults] = useState({}); // nodeIndex -> altText
@@ -355,7 +357,7 @@ export default function AccessibilityIssueCard({
                       )}
                       <span>{t('siteAudit.a11y.generateAlt')}</span>
                       <span className={styles.creditCost}>
-                        <Coins size={12} /> 2
+                        <Coins size={12} /> {getCreditCost('AI_QUICK_FIX', 2)}
                       </span>
                     </button>
                   )}

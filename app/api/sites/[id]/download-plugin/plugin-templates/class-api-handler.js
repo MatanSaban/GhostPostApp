@@ -581,6 +581,19 @@ class GP_API_Handler {
         // Get theme info
         $theme = wp_get_theme();
         
+        // Active plugins (names and versions)
+        $active_plugins = get_option('active_plugins', array());
+        $plugin_names = array();
+        foreach ($active_plugins as $plugin_file) {
+            $plugin_data = get_plugin_data(WP_PLUGIN_DIR . '/' . $plugin_file, false, false);
+            if (!empty($plugin_data['Name'])) {
+                $plugin_names[] = array(
+                    'name' => $plugin_data['Name'],
+                    'version' => $plugin_data['Version'] ?? '',
+                );
+            }
+        }
+        
         return new WP_REST_Response(array(
             'siteUrl' => get_site_url(),
             'homeUrl' => get_home_url(),
@@ -595,13 +608,17 @@ class GP_API_Handler {
             'theme' => array(
                 'name' => $theme->get('Name'),
                 'version' => $theme->get('Version'),
+                'parent' => $theme->parent() ? $theme->parent()->get('Name') : null,
             ),
+            'activePlugins' => $plugin_names,
             'hasYoast' => defined('WPSEO_VERSION'),
             'yoastVersion' => defined('WPSEO_VERSION') ? WPSEO_VERSION : null,
             'hasRankMath' => defined('RANK_MATH_VERSION'),
             'rankMathVersion' => defined('RANK_MATH_VERSION') ? RANK_MATH_VERSION : null,
             'hasACF' => class_exists('ACF'),
             'acfVersion' => defined('ACF_VERSION') ? ACF_VERSION : null,
+            'hasElementor' => defined('ELEMENTOR_VERSION'),
+            'hasWooCommerce' => class_exists('WooCommerce'),
         ), 200);
     }
     

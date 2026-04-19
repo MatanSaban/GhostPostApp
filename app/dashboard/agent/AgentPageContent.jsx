@@ -38,6 +38,7 @@ import {
   isInsightFullyFixed,
   getTimeAgo,
 } from '../components/insight/insight-utils';
+import { useAiPricing } from '@/app/hooks/useAiPricing';
 import styles from './agent.module.css';
 
 function EntityLinkCell({ url, siteId, translations }) {
@@ -851,7 +852,7 @@ function InsightDetails({ insight, translations, siteId, pluginConnected, onItem
                       {itemFixed
                         ? <span className={styles.itemFixedBadge}><CheckCircle size={12} /> {t.fixItemApplied || 'Applied'}</span>
                         : <button className={styles.itemFixBtn} onClick={() => onOpenFixSingle?.(insight, [i])}>
-                            <Sparkles size={12} /> {t.fixWithAiCost || 'Fix with AI (1 Credit)'}
+                            <Sparkles size={12} /> {t.fixWithAiCost || `Fix with AI (${getCreditCost('AI_QUICK_FIX', 1)} Credit${getCreditCost('AI_QUICK_FIX', 1) !== 1 ? 's' : ''})`}
                           </button>
                       }
                     </td>
@@ -1414,6 +1415,7 @@ export default function AgentPageContent({ translations, mode = 'full', onInsigh
   const t = translations;
   const { locale } = useLocale();
   const { selectedSite } = useSite();
+  const { getCreditCost } = useAiPricing();
   const { runningAnalysis, lastAnalysisTs, runAnalysis, entitiesRequired, setEntitiesRequired } = useAgent();
 
   const [insights, setInsights] = useState([]);

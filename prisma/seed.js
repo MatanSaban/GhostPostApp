@@ -516,6 +516,53 @@ async function main() {
     }
   }
 
+  // ==========================================
+  // AI FEATURE PRICING DEFAULTS
+  // ==========================================
+  const defaultPricing = [
+    { featureKey: 'RESCAN_PAGE', displayName: 'Rescan Page', creditCost: 1 },
+    { featureKey: 'AI_QUICK_FIX', displayName: 'AI Quick Fix', creditCost: 2 },
+    { featureKey: 'LINK_MONITOR_CHECK', displayName: 'Link Monitor Check', creditCost: 1 },
+    { featureKey: 'KEYWORD_SEARCH', displayName: 'Keyword Search', creditCost: 5 },
+    { featureKey: 'KEYWORD_CLUSTERING', displayName: 'Keyword Clustering', creditCost: 20 },
+    { featureKey: 'COMPETITOR_ANALYSIS', displayName: 'Competitor Analysis', creditCost: 20 },
+    { featureKey: 'SKYSCRAPER_OUTLINE', displayName: 'Skyscraper Outline', creditCost: 30 },
+    { featureKey: 'FULL_SITE_AUDIT', displayName: 'Full Site Audit', creditCost: 50 },
+    { featureKey: 'CANNIBALIZATION_FIX', displayName: 'Cannibalization Fix', creditCost: 50 },
+    { featureKey: 'GENERATE_ARTICLE', displayName: 'Generate Article', creditCost: 100 },
+    { featureKey: 'AI_AGENT_PROMPT', displayName: 'AI Agent Prompt', creditCost: 5 },
+    // Existing operations from credits.js
+    { featureKey: 'IMAGE_ALT_OPTIMIZATION', displayName: 'Image Alt Optimization', creditCost: 1 },
+    { featureKey: 'REWRITE_PARAGRAPH', displayName: 'Rewrite Paragraph/Title', creditCost: 1 },
+    { featureKey: 'AGENT_SUGGEST_TRAFFIC', displayName: 'Traffic Improvement Suggestions', creditCost: 5 },
+    { featureKey: 'FULL_ARTICLE', displayName: 'Full Article Writing', creditCost: 100 },
+    { featureKey: 'GENERATE_IMAGE', displayName: 'AI Image Generation', creditCost: 10 },
+    { featureKey: 'INTERVIEW_CHAT', displayName: 'Interview Chat', creditCost: 1 },
+    { featureKey: 'CRAWL_WEBSITE', displayName: 'Website Crawl & Analysis', creditCost: 5 },
+    { featureKey: 'GENERATE_KEYWORDS', displayName: 'Keyword Generation', creditCost: 10 },
+    { featureKey: 'FIND_COMPETITORS', displayName: 'Find Competitors', creditCost: 15 },
+    { featureKey: 'ANALYZE_WRITING_STYLE', displayName: 'Writing Style Analysis', creditCost: 5 },
+    { featureKey: 'FETCH_ARTICLES', displayName: 'Fetch Blog Articles', creditCost: 2 },
+    { featureKey: 'DETECT_PLATFORM', displayName: 'Platform Detection', creditCost: 2 },
+    { featureKey: 'COMPLETE_INTERVIEW', displayName: 'Complete Interview Summary', creditCost: 5 },
+    { featureKey: 'ENTITY_REFRESH', displayName: 'Entity Data Refresh', creditCost: 1 },
+    { featureKey: 'COMPETITOR_SCAN', displayName: 'Competitor Page Scan', creditCost: 5 },
+    { featureKey: 'COMPETITOR_GAP_ANALYSIS', displayName: 'Content Gap Analysis', creditCost: 25 },
+    { featureKey: 'KEYWORD_INTENT_ANALYSIS', displayName: 'Keyword Intent Analysis', creditCost: 1 },
+    { featureKey: 'BACKLINK_LISTING', displayName: 'Backlink Listing Generation', creditCost: 1 },
+    { featureKey: 'CHAT_MESSAGE', displayName: 'Chat Message', creditCost: 2 },
+    { featureKey: 'GENERIC', displayName: 'Generic AI Operation', creditCost: 1 },
+  ];
+
+  for (const pricing of defaultPricing) {
+    await prisma.aiFeaturePricing.upsert({
+      where: { featureKey: pricing.featureKey },
+      update: {}, // Don't overwrite existing prices on re-seed
+      create: pricing,
+    });
+  }
+  console.log('✅ AI Feature Pricing seeded:', defaultPricing.length, 'features');
+
   console.log('🎉 Seed completed successfully!');
 }
 

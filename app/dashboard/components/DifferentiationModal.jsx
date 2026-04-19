@@ -9,8 +9,7 @@ import {
 } from 'lucide-react';
 import styles from './DifferentiationModal.module.css';
 import { useLocale } from '@/app/context/locale-context';
-
-const CREDITS_PER_PAGE = 25;
+import { useAiPricing } from '@/app/hooks/useAiPricing';
 
 /**
  * Surgical Diff Modal for the Content Differentiation Engine.
@@ -25,6 +24,8 @@ const CREDITS_PER_PAGE = 25;
  */
 export default function DifferentiationModal({ open, onClose, job, onExecute, isExecuting, translations, confirmData, onConfirmStart }) {
   const { locale } = useLocale();
+  const { getCreditCost } = useAiPricing();
+  const CREDITS_PER_PAGE = getCreditCost('CANNIBALIZATION_FIX', 25);
   const [expandedPage, setExpandedPage] = useState(null);
   const tt = translations?.agent?.differentiation?.modal || {};
   const tc = translations?.agent?.differentiation?.confirm || {};

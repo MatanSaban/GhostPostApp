@@ -219,7 +219,7 @@ class Ghost_Post {
             'gp-connector-admin',
             GP_CONNECTOR_PLUGIN_URL . 'admin/css/admin.css',
             array(),
-            GP_CONNECTOR_VERSION
+            GP_CONNECTOR_VERSION . '.' . filemtime(GP_CONNECTOR_PLUGIN_DIR . 'admin/css/admin.css')
         );
         
         // Chart.js for SEO insights
@@ -234,8 +234,8 @@ class Ghost_Post {
         wp_enqueue_script(
             'gp-connector-admin',
             GP_CONNECTOR_PLUGIN_URL . 'admin/js/admin.js',
-            array('jquery', 'chartjs'),
-            GP_CONNECTOR_VERSION,
+            array('jquery'),
+            GP_CONNECTOR_VERSION . '.' . filemtime(GP_CONNECTOR_PLUGIN_DIR . 'admin/js/admin.js'),
             true
         );
         
@@ -243,6 +243,8 @@ class Ghost_Post {
             'ajaxUrl' => admin_url('admin-ajax.php'),
             'nonce'   => wp_create_nonce('gp_connector_nonce'),
             'siteKey' => defined('GP_SITE_KEY') ? GP_SITE_KEY : '',
+            'pluginBasename' => GP_CONNECTOR_PLUGIN_BASENAME,
+            'updateCoreUrl'  => admin_url('update-core.php'),
             'strings' => array(
                 'testing'             => __('Testing...', 'ghost-post-connector'),
                 'test_connection'     => __('Test Connection', 'ghost-post-connector'),
@@ -292,6 +294,11 @@ class Ghost_Post {
                 'no_issues'            => __('No issues found.', 'ghost-post-connector'),
                 'organic_traffic'      => __('Organic Traffic', 'ghost-post-connector'),
                 'ai_traffic_label'     => __('AI Traffic', 'ghost-post-connector'),
+                'refresh_data'         => __('Refresh Data', 'ghost-post-connector'),
+                // Header update
+                'update_to'            => __('Update to v', 'ghost-post-connector'),
+                'updating'             => __('Updating...', 'ghost-post-connector'),
+                'updated'              => __('Updated! Reloading...', 'ghost-post-connector'),
                 // Snippets
                 'snippet_saved'        => __('Snippet saved successfully!', 'ghost-post-connector'),
                 'snippet_trashed'      => __('Snippet moved to trash.', 'ghost-post-connector'),
@@ -933,6 +940,11 @@ class Ghost_Post {
             $latest = sanitize_text_field($data['version']);
             set_transient('gp_latest_version', $latest, 12 * HOUR_IN_SECONDS);
             
+            $download_url = isset($data['download_url']) ? esc_url_raw($data['download_url']) : '';
+            if ($download_url) {
+                set_transient('gp_latest_download_url', $download_url, 12 * HOUR_IN_SECONDS);
+            }
+            
             $update_available = version_compare($latest, GP_CONNECTOR_VERSION, '>');
             
             if ($update_available && !empty($data['download_url'])) {
@@ -1227,6 +1239,7 @@ class Ghost_Post {
      */
     private function execute_snippets($location) {
         $snippets = get_option('gp_snippets', array());
+        if (!is_array($snippets)) return;
         
         $active = array_filter($snippets, function($s) use ($location) {
             if (($s['status'] ?? 'inactive') !== 'active') return false;
@@ -1245,23 +1258,45 @@ class Ghost_Post {
             
             if (empty($code)) continue;
             
-            if (in_array($type, array('js', 'php_js', 'js_css'), true)) {
-                echo '<script>' . $code . '</script>' . "\\n";
-            }
-            if (in_array($type, array('css', 'js_css', 'html_css'), true)) {
-                echo '<style>' . $code . '</style>' . "\\n";
-            }
-            if (in_array($type, array('html', 'html_css'), true)) {
-                echo $code . "\\n";
-            }
-            if (in_array($type, array('php', 'php_js'), true)) {
-                try {
-                    eval('?>' . $code);
-                } catch (\\Throwable $e) {
-                    if (defined('WP_DEBUG') && WP_DEBUG) {
-                        echo '<!-- GP Snippet Error: ' . esc_html($e->getMessage()) . ' -->';
+            switch ($type) {
+                case 'js':
+                    echo '<script>' . $code . '</script>' . "\\n";
+                    break;
+                case 'css':
+                    echo '<style>' . $code . '</style>' . "\\n";
+                    break;
+                case 'html':
+                    echo $code . "\\n";
+                    break;
+                case 'php':
+                    try {
+                        eval('?>' . $code);
+                    } catch (\\Throwable $e) {
+                        if (defined('WP_DEBUG') && WP_DEBUG) {
+                            echo '<!-- GP Snippet Error: ' . esc_html($e->getMessage()) . ' -->';
+                        }
                     }
-                }
+                    break;
+                case 'php_js':
+                    // PHP portion executes server-side, JS portion wrapped in script tag
+                    try {
+                        eval('?>' . $code);
+                    } catch (\\Throwable $e) {
+                        if (defined('WP_DEBUG') && WP_DEBUG) {
+                            echo '<!-- GP Snippet Error: ' . esc_html($e->getMessage()) . ' -->';
+                        }
+                    }
+                    break;
+                case 'js_css':
+                    echo '<script>' . $code . '</script>' . "\\n";
+                    echo '<style>' . $code . '</style>' . "\\n";
+                    break;
+                case 'html_css':
+                    echo $code . "\\n";
+                    break;
+                default:
+                    echo $code . "\\n";
+                    break;
             }
         }
     }

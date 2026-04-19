@@ -14,6 +14,7 @@ import { useState } from 'react';
 import { useLocale } from '@/app/context/locale-context';
 import { emitCreditsUpdated } from '@/app/context/user-context';
 import { handleLimitError } from '@/app/context/limit-guard-context';
+import { useAiPricing } from '@/app/hooks/useAiPricing';
 import styles from './ScannedPageRow.module.css';
 
 // Issue types eligible for AI Quick Fix
@@ -89,6 +90,7 @@ export default function ScannedPageRow({
   onPluginRequired,
 }) {
   const { t } = useLocale();
+  const { getCreditCost } = useAiPricing();
   const [isRescanning, setIsRescanning] = useState(false);
   const [isFixing, setIsFixing] = useState(false);
   const [fixResult, setFixResult] = useState(null);
@@ -211,7 +213,7 @@ export default function ScannedPageRow({
         className={`${styles.actionBtn} ${styles.creditBtn}`}
         onClick={handleRescan}
         disabled={isRescanning}
-        title={`${t('siteAudit.actions.rescan')} (1 ${t('siteAudit.credit')})`}
+        title={`${t('siteAudit.actions.rescan')} (${getCreditCost('RESCAN_PAGE', 1)} ${t('siteAudit.credit')})`}
       >
         {isRescanning ? (
           <Loader2 size={14} className={styles.spinning} />
@@ -227,7 +229,7 @@ export default function ScannedPageRow({
           className={`${styles.actionBtn} ${styles.fixBtn}`}
           onClick={handleQuickFix}
           disabled={isFixing}
-          title={`${t('siteAudit.actions.quickFix')} (2 ${t('siteAudit.credits')})`}
+          title={`${t('siteAudit.actions.quickFix')} (${getCreditCost('AI_QUICK_FIX', 2)} ${t('siteAudit.credits')})`}
         >
           {isFixing ? (
             <Loader2 size={14} className={styles.spinning} />

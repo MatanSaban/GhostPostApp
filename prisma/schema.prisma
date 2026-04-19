@@ -46,6 +46,7 @@ model Account {
   aiCreditsLogs    AiCreditsLog[]
   reportArchives   ReportArchive[]
   chatConversations ChatConversation[]
+  chatActions       ChatAction[]
 }
 
 // ==========================================
@@ -264,6 +265,7 @@ model User {
   sitemapScans            SiteSitemap[]
   chatConversationsCreated ChatConversation[] @relation("ChatConversationCreator")
   chatMessagesSent         ChatMessage[]      @relation("ChatMessageSender")
+  chatActionsRequested     ChatAction[]       @relation("ChatActionUser")
 }
 
 enum RegistrationStep {
@@ -838,6 +840,7 @@ model Site {
   gscKeywordCaches  GscKeywordCache[]
   scrapeQueue       ScrapeQueue[]
   chatConversations ChatConversation[]
+  chatActions       ChatAction[]
 
   @@index([siteKey])
 }
@@ -1704,6 +1707,7 @@ model ChatConversation {
   createdByUser   User          @relation("ChatConversationCreator", fields: [createdByUserId], references: [id])
   title           String?
   messages        ChatMessage[]
+  chatActions     ChatAction[]
   activeUsers     Json?         // [{userId, userName, lastSeen}] for concurrent usage detection
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
@@ -1725,6 +1729,65 @@ model ChatMessage {
 
   @@index([conversationId])
   @@map("chat_messages")
+}
+
+// ==========================================
+// CHAT ACTIONS (BOT ACTION PROPOSALS)
+// ==========================================
+
+enum ChatActionStatus {
+  PENDING_APPROVAL
+  APPROVED
+  EXECUTING
+  COMPLETED
+  FAILED
+  EXPIRED
+  REJECTED
+  ROLLED_BACK
+}
+
+enum ChatActionType {
+  WORDPRESS_UPDATE
+  CODE_SNIPPET
+  PLATFORM_ACTION
+  MULTI_STEP
+}
+
+model ChatAction {
+  id              String           @id @default(auto()) @map("_id") @db.ObjectId
+  conversationId  String           @db.ObjectId
+  conversation    ChatConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  siteId          String           @db.ObjectId
+  site            Site             @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  accountId       String           @db.ObjectId
+  account         Account          @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  userId          String           @db.ObjectId
+  user            User             @relation("ChatActionUser", fields: [userId], references: [id])
+
+  type            ChatActionType
+  status          ChatActionStatus @default(PENDING_APPROVAL)
+  plan            Json             // Human-readable plan { title, steps: [{ description, tool, args }] }
+  actions         Json[]           // Array of atomic actions: { tool, args, description }
+  rollbackData    Json[]           // Snapshots: { tool, originalValue, newValue, executedAt }
+  result          Json?            // Execution result summary
+  error           String?          // Error message if failed
+
+  // Approval timing
+  expiresAt       DateTime         // 5 min from creation
+  warningAt       DateTime         // 2 min from creation
+  warningSent     Boolean          @default(false)
+
+  // Lifecycle timestamps
+  approvedAt      DateTime?
+  rejectedAt      DateTime?
+  executedAt      DateTime?
+  rolledBackAt    DateTime?
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  @@index([conversationId])
+  @@index([status, expiresAt])
+  @@map("chat_actions")
 }
 
 // ==========================================
@@ -2349,6 +2412,20 @@ model AiCache {
 
   @@unique([key, locale])
   @@map("ai_cache")
+}
+
+// ==========================================
+// AI FEATURE PRICING (SuperAdmin-managed)
+// ==========================================
+
+model AiFeaturePricing {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  featureKey  String   @unique
+  displayName String
+  creditCost  Int
+  updatedAt   DateTime @updatedAt
+
+  @@map("ai_feature_pricing")
 }
 
 // ==========================================

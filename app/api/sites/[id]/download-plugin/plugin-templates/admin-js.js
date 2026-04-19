@@ -9,6 +9,8 @@ export function getAdminJs() {
 (function($) {
     'use strict';
 
+    $(document).ready(function() {
+
     var $resultBox = $('#gp-connection-result');
 
     // ==========================================
@@ -21,7 +23,7 @@ export function getAdminJs() {
     // ==========================================
     // Connection tab: Test Connection
     // ==========================================
-    $('#gp-test-connection').on('click', function() {
+    $(document).on('click', '#gp-test-connection', function() {
         var $btn = $(this);
         $btn.prop('disabled', true);
 
@@ -51,7 +53,7 @@ export function getAdminJs() {
     // ==========================================
     // Connection tab: Send Ping
     // ==========================================
-    $('#gp-send-ping').on('click', function() {
+    $(document).on('click', '#gp-send-ping', function() {
         var $btn = $(this);
         $btn.prop('disabled', true);
 
@@ -80,7 +82,7 @@ export function getAdminJs() {
     // ==========================================
     // Connection tab: Copy Key
     // ==========================================
-    $('#gp-copy-key').on('click', function() {
+    $(document).on('click', '#gp-copy-key', function() {
         var $btn = $(this);
         var keyText = gpAdmin.siteKey || '';
 
@@ -106,7 +108,7 @@ export function getAdminJs() {
     // ==========================================
     // Settings tab: Theme Switcher
     // ==========================================
-    $('input[name="gp_theme"]').on('change', function() {
+    $(document).on('change', 'input[name="gp_theme"]', function() {
         var newTheme = $(this).val();
         var $wrap = $('.gp-admin-wrap');
 
@@ -137,7 +139,7 @@ export function getAdminJs() {
     // ==========================================
     // Settings tab: Language Selector
     // ==========================================
-    $('#gp-language-select').on('change', function() {
+    $(document).on('change', '#gp-language-select', function() {
         var newLang = $(this).val();
         var $result = $('#gp-language-result');
 
@@ -171,7 +173,7 @@ export function getAdminJs() {
     var $saveResult = $('#gp-save-result');
     var $importResult = $('#gp-import-result');
 
-    $('#gp-redirect-form').on('submit', function(e) {
+    $(document).on('submit', '#gp-redirect-form', function(e) {
         e.preventDefault();
 
         var $btn = $('#gp-save-redirect');
@@ -222,7 +224,7 @@ export function getAdminJs() {
     });
 
     // Cancel edit
-    $('#gp-cancel-edit').on('click', function() {
+    $(document).on('click', '#gp-cancel-edit', function() {
         $('#gp-redirect-id').val('');
         $('#gp-source-url').val('');
         $('#gp-target-url').val('');
@@ -293,7 +295,7 @@ export function getAdminJs() {
     });
 
     // Import redirects
-    $('#gp-import-redirects').on('click', function() {
+    $(document).on('click', '#gp-import-redirects', function() {
         var $btn = $(this);
         $btn.prop('disabled', true);
 
@@ -325,15 +327,17 @@ export function getAdminJs() {
     // ==========================================
     // Settings tab: Version Check
     // ==========================================
-    $('#gp-check-version').on('click', function() {
+    $(document).on('click', '#gp-check-version', function() {
         var $btn = $(this);
         var $result = $('#gp-version-result');
-        $btn.prop('disabled', true);
+        var origText = $btn.text();
+        $btn.prop('disabled', true).addClass('gp-loading').text(gpAdmin.strings.checking || 'Checking...');
         showResult($result, 'loading', gpAdmin.strings.checking || 'Checking...');
 
         $.ajax({
             url: gpAdmin.ajaxUrl,
             type: 'POST',
+            timeout: 30000,
             data: { action: 'gp_check_version', nonce: gpAdmin.nonce },
             success: function(response) {
                 if (response.success) {
@@ -351,7 +355,7 @@ export function getAdminJs() {
                 showResult($result, 'error', gpAdmin.strings.check_failed || 'Failed to check for updates.');
             },
             complete: function() {
-                $btn.prop('disabled', false);
+                $btn.prop('disabled', false).removeClass('gp-loading').text(origText);
             }
         });
     });
@@ -373,6 +377,7 @@ export function getAdminJs() {
         $.ajax({
             url: gpAdmin.ajaxUrl,
             type: 'POST',
+            timeout: 35000,
             data: { action: 'gp_fetch_seo_data', nonce: gpAdmin.nonce },
             success: function(response) {
                 $loading.hide();
@@ -479,15 +484,24 @@ export function getAdminJs() {
         loadSeoData();
     }
 
-    $('#gp-refresh-seo').on('click', function() {
+    $(document).on('click', '#gp-refresh-seo', function() {
+        var $btn = $(this);
+        $btn.prop('disabled', true).addClass('gp-loading').text(gpAdmin.strings.loading_seo || 'Loading...');
         loadSeoData();
+        // Re-enable after data loads (success or error)
+        var checkDone = setInterval(function() {
+            if (!$('#gp-seo-loading').is(':visible')) {
+                clearInterval(checkDone);
+                $btn.prop('disabled', false).removeClass('gp-loading').text(gpAdmin.strings.refresh_data || 'Refresh Data');
+            }
+        }, 200);
     });
 
     // ==========================================
     // Code Snippets tab
     // ==========================================
     // Show add form
-    $('#gp-add-snippet').on('click', function() {
+    $(document).on('click', '#gp-add-snippet', function() {
         $('#gp-snippet-id').val('');
         $('#gp-snippet-title').val('');
         $('#gp-snippet-description').val('');
@@ -500,12 +514,12 @@ export function getAdminJs() {
     });
 
     // Cancel snippet form
-    $('#gp-cancel-snippet').on('click', function() {
+    $(document).on('click', '#gp-cancel-snippet', function() {
         $('#gp-snippet-form-wrap').slideUp(200);
     });
 
     // Save snippet
-    $('#gp-snippet-form').on('submit', function(e) {
+    $(document).on('submit', '#gp-snippet-form', function(e) {
         e.preventDefault();
         var $btn = $('#gp-save-snippet');
         var $result = $('#gp-snippet-result');
@@ -642,6 +656,65 @@ export function getAdminJs() {
     });
 
     // ==========================================
+    // Header: Check for Updates / Update Plugin
+    // ==========================================
+    $(document).on('click', '#gp-header-check-update', function() {
+        var $btn = $(this);
+        $btn.prop('disabled', true).addClass('gp-loading').text(gpAdmin.strings.checking || 'Checking...');
+
+        $.ajax({
+            url: gpAdmin.ajaxUrl,
+            type: 'POST',
+            timeout: 30000,
+            data: { action: 'gp_check_version', nonce: gpAdmin.nonce },
+            success: function(response) {
+                if (response.success && response.data.update_available) {
+                    var d = response.data;
+                    $btn.replaceWith(
+                        '<button type="button" id="gp-header-update" class="gp-btn gp-btn-update" ' +
+                        'data-version="' + d.latest + '" data-download="' + (d.download_url || '') + '">' +
+                        '&#8635; ' + (gpAdmin.strings.update_to || 'Update to v') + d.latest +
+                        '</button>'
+                    );
+                } else {
+                    $btn.removeClass('gp-loading').text('\u2713 ' + (gpAdmin.strings.up_to_date || 'Up to date'));
+                    setTimeout(function() {
+                        $btn.prop('disabled', false).text(gpAdmin.strings.check_updates || 'Check for Updates');
+                    }, 3000);
+                }
+            },
+            error: function() {
+                $btn.prop('disabled', false).removeClass('gp-loading').text(gpAdmin.strings.check_updates || 'Check for Updates');
+            }
+        });
+    });
+
+    // Header: Perform plugin update
+    $(document).on('click', '#gp-header-update', function() {
+        var $btn = $(this);
+        $btn.prop('disabled', true).text(gpAdmin.strings.updating || 'Updating...');
+
+        // Try WP built-in update AJAX if available
+        if (window.wp && wp.updates && wp.updates.ajax) {
+            wp.updates.ajax('update-plugin', {
+                plugin: gpAdmin.pluginBasename || 'ghost-post-connector/ghost-post-connector.php',
+                slug: 'ghost-post-connector',
+                success: function() {
+                    $btn.text('\u2713 ' + (gpAdmin.strings.updated || 'Updated! Reloading...'));
+                    setTimeout(function() { location.reload(); }, 1500);
+                },
+                error: function() {
+                    // Fallback: redirect to WP update page
+                    window.location.href = gpAdmin.updateCoreUrl || '/wp-admin/update-core.php';
+                }
+            });
+        } else {
+            // Fallback: redirect to WP update page
+            window.location.href = gpAdmin.updateCoreUrl || '/wp-admin/update-core.php';
+        }
+    });
+
+    // ==========================================
     // Dashboard Widget: Sync button
     // ==========================================
     $(document).on('click', '#gp-widget-sync', function() {
@@ -691,6 +764,8 @@ export function getAdminJs() {
             btn.removeClass('gp-syncing');
         });
     });
+
+    }); // end document.ready
 
 })(jQuery);
 `;

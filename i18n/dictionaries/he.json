@@ -4348,6 +4348,71 @@
       "createBrief": "בוא ניצור תקציר תוכן. מהי מילת המפתח או הנושא העיקרי שאתה רוצה למקד?",
       "analyticsReport": "מייצר דוח אנליטיקס... אאסוף את נתוני התנועה, דירוגי מילות המפתח ומדדי ההמרה שלך.",
       "default": "איך אני יכול לעזור לך בזה?"
+    },
+    "actionCard": {
+      "pending": "ממתין",
+      "approved": "אושר",
+      "executing": "מבצע",
+      "completed": "הושלם",
+      "failed": "נכשל",
+      "expired": "פג תוקף",
+      "rejected": "נדחה",
+      "rolledBack": "בוטל",
+      "rollingBack": "מבטל",
+      "creating": "יוצר...",
+      "approve": "אשר",
+      "reject": "דחה",
+      "rollback": "בטל שינויים",
+      "remaining": "נותרו",
+      "minuteShort": "ד׳",
+      "secondShort": "ש׳",
+      "fetchingData": "מביא נתונים",
+      "thinking": "חושב",
+      "analyzing": "מנתח את הבקשה שלך...",
+      "actionApproved": "הפעולה אושרה ומתבצעת...",
+      "actionRejected": "הפעולה נדחתה",
+      "rollbackSuccess": "השינויים בוטלו בהצלחה",
+      "rollbackFailed": "ביטול השינויים נכשל",
+      "approveFailed": "אישור הפעולה נכשל",
+      "warningMessage": "⚠️ **תזכורת:** תוכנית הפעולה למעלה תפוג בעוד **{minutes} דקות** אם לא תאושר.\n\nאנא אשר או דחה את התוכנית כדי להמשיך.",
+      "expiredMessage": "⏰ תוכנית הפעולה **פגה** כי לא אושרה תוך 5 דקות.\n\nאם אתה עדיין רוצה להמשיך, פשוט בקש ממני שוב ואצור תוכנית חדשה.",
+      "rejectedMessage": "❌ תוכנית הפעולה נדחתה. ספר לי אם תרצה שאציע גישה אחרת."
+    },
+    "preview": {
+      "label": "תצוגה מקדימה",
+      "show": "הצג תצוגה מקדימה חיה",
+      "hide": "הסתר תצוגה מקדימה",
+      "reload": "טען מחדש",
+      "enableInspector": "הפעל בוחר אלמנטים",
+      "disableInspector": "כבה בוחר אלמנטים",
+      "openNewTab": "פתח בכרטיסיה חדשה",
+      "close": "סגור תצוגה",
+      "ready": "מחובר",
+      "connecting": "מתחבר לאתר…",
+      "emptyText": "(ריק)",
+      "clearSelection": "נקה בחירה",
+      "device": {
+        "full": "רוחב מלא",
+        "tablet": "טאבלט (1024px)",
+        "mobile": "מובייל (375px)"
+      },
+      "error": {
+        "title": "לא הצלחנו לטעון את תצוגת האתר",
+        "cannotConnect": "הדפדפן לא הצליח להתחבר אל {url}.",
+        "bridgeMissing": "האתר נטען אך גשר ה-Ghost Post Connector לא הגיב. ודא שהתוסף מותקן ומעודכן לגרסה האחרונה, ואז רענן.",
+        "retry": "נסה שוב",
+        "openDirectly": "פתח את האתר ישירות"
+      },
+      "pages": {
+        "title": "עמודים ופוסטים",
+        "search": "חיפוש עמודים…",
+        "homepage": "עמוד הבית",
+        "pagesGroup": "עמודים",
+        "postsGroup": "פוסטים",
+        "other": "אחר",
+        "empty": "לא נמצאו עמודים. השתמש בלשונית Entities כדי לסנכרן את תוכן האתר.",
+        "loading": "טוען עמודים…"
+      }
     }
   },
   "errors": {
@@ -6665,6 +6730,22 @@
         "title": "מטא-דאטה SEO חסר",
         "description": "ל-{count} עמודים חסרים כותרת מטא או תיאור. הוספתם יכולה לשפר את שיעור ההקלקה."
       },
+      "metaTitleTooShort": {
+        "title": "כותרות מטא קצרות מדי",
+        "description": "ל-{count} דפים יש כותרת מטא קצרה מ-{minLength} תווים. כדאי לכוון ל-{minLength}–{maxLength} תווים לנראות מרבית בחיפוש."
+      },
+      "metaTitleTooLong": {
+        "title": "כותרות מטא ארוכות מדי",
+        "description": "ל-{count} דפים יש כותרת מטא ארוכה מ-{maxLength} תווים. גוגל חותך כותרות מעבר ל-{maxLength} תווים בתוצאות החיפוש."
+      },
+      "metaDescTooShort": {
+        "title": "תיאורי מטא קצרים מדי",
+        "description": "ל-{count} דפים יש תיאור מטא קצר מ-{minLength} תווים. תיאורים קצרים מפספסים את ההזדמנות למשוך קליקים מתוצאות החיפוש."
+      },
+      "metaDescTooLong": {
+        "title": "תיאורי מטא ארוכים מדי",
+        "description": "ל-{count} דפים יש תיאור מטא ארוך מ-{maxLength} תווים. גוגל חותך תיאורים מעבר ל-{maxLength} תווים."
+      },
       "trafficDrop": {
         "title": "ירידה בתנועת חיפוש",
         "description": "הקליקים מחיפוש ירדו ב-{change}% בתקופה {periodStart} עד {periodEnd} לעומת {comparePeriodStart} עד {comparePeriodEnd}. בדוק שינויים אחרונים ובעיות אינדקס."
@@ -6760,6 +6841,14 @@
       "sitemapsNotSubmitted": {
         "title": "מפות אתר לא הוגשו ל-Google Search Console",
         "description": "מפות האתר של האתר שלך לא הוגשו ל-Google Search Console. הגשת מפות אתר עוזרת לגוגל לגלות ולאנדקס את הדפים שלך מהר יותר."
+      },
+      "missingH1Tag": {
+        "title": "דפים ללא תגית H1",
+        "description": "{count} דפים מפורסמים ללא תגית כותרת H1. כל דף צריך לכלול בדיוק תגית H1 אחת למבנה SEO תקין ונגישות."
+      },
+      "multipleH1Tags": {
+        "title": "דפים עם מספר תגיות H1",
+        "description": "{count} דפים מפורסמים מכילים יותר מתגית H1 אחת. כל דף צריך לכלול בדיוק תגית H1 אחת — ריבוי תגיות H1 מדלל את היררכיית הכותרות ועלול לבלבל את מנועי החיפוש."
       }
     },
     "detailLabels": {
