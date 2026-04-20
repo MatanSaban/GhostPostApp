@@ -844,6 +844,24 @@ function extractLanguageVariants(html, baseUrl, detectedLanguage) {
   const xDefault = variants.get('__x_default__');
   variants.delete('__x_default__');
 
+  // Fallback: if hreflang didn't yield multiple languages, scan internal anchor
+  // links for locale-prefix patterns like "/en/", "/he/". Common in Next.js i18n
+  // and other frameworks where hreflang isn't emitted in SSR HTML.
+  if (variants.size < 2) {
+    const pathPrefixVariants = extractPathPrefixLocales(html, baseUrl);
+    for (const [code, entry] of pathPrefixVariants) {
+      if (!variants.has(code)) variants.set(code, entry);
+    }
+    // If the base site is un-prefixed but links to a prefixed locale variant,
+    // include the base URL as its own variant (tagged with the detected language).
+    if (pathPrefixVariants.size >= 1 && detectedLanguage && !variants.has(detectedLanguage)) {
+      try {
+        const baseOrigin = new URL(baseUrl).origin;
+        variants.set(detectedLanguage, { code: detectedLanguage, url: baseOrigin, isDefault: true });
+      } catch {}
+    }
+  }
+
   const list = Array.from(variants.values());
 
   // Mark the variant matching the detected language (or the x-default URL) as default
@@ -867,6 +885,68 @@ function extractLanguageVariants(html, baseUrl, detectedLanguage) {
 
   console.log('[Analyze] Detected', list.length, 'language variants:', list.map((v) => v.code));
   return list;
+}
+
+// Known ISO-639-1 codes we treat as valid locale prefixes when we see them in URLs.
+const KNOWN_LOCALE_CODES = new Set([
+  'en', 'he', 'ar', 'es', 'fr', 'de', 'it', 'pt', 'ru', 'ja', 'ko', 'zh',
+  'nl', 'pl', 'sv', 'no', 'da', 'fi', 'el', 'tr', 'th', 'vi', 'id', 'ms',
+  'hi', 'cs', 'hu', 'ro', 'uk', 'bg', 'hr', 'sk', 'sl', 'et', 'lv', 'lt',
+  'fa', 'ur', 'bn', 'ta', 'te', 'mr', 'gu', 'kn', 'ml', 'si', 'my',
+]);
+
+/**
+ * Scan anchor hrefs for locale path prefixes (e.g. "/en/", "/he/").
+ * Returns a Map<code, { code, url, isDefault: false }> of distinct locales.
+ */
+function extractPathPrefixLocales(html, baseUrl) {
+  const found = new Map();
+  let base;
+  try {
+    base = new URL(baseUrl);
+  } catch {
+    return found;
+  }
+
+  const anchorRegex = /<a\b[^>]*\bhref=["']([^"']+)["'][^>]*>/gi;
+  let match;
+  while ((match = anchorRegex.exec(html)) !== null) {
+    const rawHref = match[1].trim();
+    if (!rawHref || rawHref.startsWith('#') || rawHref.startsWith('mailto:') || rawHref.startsWith('tel:')) continue;
+
+    let resolved;
+    try {
+      resolved = new URL(rawHref, baseUrl);
+    } catch {
+      continue;
+    }
+
+    // Only same-origin links qualify as language variants
+    if (resolved.origin !== base.origin) continue;
+
+    const segments = resolved.pathname.split('/').filter(Boolean);
+    if (!segments.length) continue;
+
+    const first = segments[0].toLowerCase();
+    // Accept "en" or "en-us" style; normalize to 2-letter code
+    const code = first.split('-')[0];
+    if (code.length !== 2 || !KNOWN_LOCALE_CODES.has(code)) continue;
+
+    if (!found.has(code)) {
+      // Variant URL = origin + "/{code}" (the locale root)
+      const variantUrl = `${base.origin}/${first}`;
+      found.set(code, { code, url: variantUrl, isDefault: false });
+    }
+  }
+
+  // If we only saw a single locale prefix, also infer the un-prefixed root as
+  // another variant — the base site itself may be in a different language.
+  if (found.size === 1) {
+    // We don't know the root's language here, so skip adding a synthetic entry.
+    // The caller will treat a single-entry map as "not multi-language" anyway.
+  }
+
+  return found;
 }
 
 /**

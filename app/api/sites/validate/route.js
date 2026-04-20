@@ -103,6 +103,20 @@ function extractLanguageVariants(html, baseUrl, detectedLanguage) {
     }
   }
 
+  // Fallback: scan anchor hrefs for locale path prefixes ("/en/", "/he/")
+  if (variants.size < 2) {
+    const pathPrefixVariants = extractPathPrefixLocales(html, baseUrl);
+    for (const [code, entry] of pathPrefixVariants) {
+      if (!variants.has(code)) variants.set(code, entry);
+    }
+    if (pathPrefixVariants.size >= 1 && detectedLanguage && !variants.has(detectedLanguage)) {
+      try {
+        const baseOrigin = new URL(baseUrl).origin;
+        variants.set(detectedLanguage, { code: detectedLanguage, url: baseOrigin, isDefault: true });
+      } catch {}
+    }
+  }
+
   const list = Array.from(variants.values());
   if (list.length) {
     let defaultIdx = -1;
@@ -116,6 +130,42 @@ function extractLanguageVariants(html, baseUrl, detectedLanguage) {
 
   if (list.length < 2) return [];
   return list;
+}
+
+const KNOWN_LOCALE_CODES = new Set([
+  'en', 'he', 'ar', 'es', 'fr', 'de', 'it', 'pt', 'ru', 'ja', 'ko', 'zh',
+  'nl', 'pl', 'sv', 'no', 'da', 'fi', 'el', 'tr', 'th', 'vi', 'id', 'ms',
+  'hi', 'cs', 'hu', 'ro', 'uk', 'bg', 'hr', 'sk', 'sl', 'et', 'lv', 'lt',
+  'fa', 'ur', 'bn', 'ta', 'te', 'mr', 'gu', 'kn', 'ml', 'si', 'my',
+]);
+
+function extractPathPrefixLocales(html, baseUrl) {
+  const found = new Map();
+  let base;
+  try { base = new URL(baseUrl); } catch { return found; }
+
+  const anchorRegex = /<a\b[^>]*\bhref=["']([^"']+)["'][^>]*>/gi;
+  let match;
+  while ((match = anchorRegex.exec(html)) !== null) {
+    const rawHref = match[1].trim();
+    if (!rawHref || rawHref.startsWith('#') || rawHref.startsWith('mailto:') || rawHref.startsWith('tel:')) continue;
+
+    let resolved;
+    try { resolved = new URL(rawHref, baseUrl); } catch { continue; }
+    if (resolved.origin !== base.origin) continue;
+
+    const segments = resolved.pathname.split('/').filter(Boolean);
+    if (!segments.length) continue;
+
+    const first = segments[0].toLowerCase();
+    const code = first.split('-')[0];
+    if (code.length !== 2 || !KNOWN_LOCALE_CODES.has(code)) continue;
+
+    if (!found.has(code)) {
+      found.set(code, { code, url: `${base.origin}/${first}`, isDefault: false });
+    }
+  }
+  return found;
 }
 
 /**
