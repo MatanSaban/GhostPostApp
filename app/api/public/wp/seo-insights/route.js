@@ -57,9 +57,9 @@ export async function POST(request) {
       orderBy: { completedAt: 'desc' },
     });
 
-    // Fetch site entities (pages/posts) - limited to published
+    // Fetch site entities (pages/posts) - limited to published, enabled types only
     const entities = await prisma.siteEntity.findMany({
-      where: { siteId: site.id, status: 'PUBLISHED' },
+      where: { siteId: site.id, status: 'PUBLISHED', entityType: { isEnabled: true } },
       orderBy: { updatedAt: 'desc' },
       take: 50,
     });

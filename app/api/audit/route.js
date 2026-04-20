@@ -4,6 +4,8 @@ import prisma from '@/lib/prisma';
 import { runSiteAudit } from '@/lib/audit/site-auditor';
 import { enforceResourceLimit } from '@/lib/account-limits';
 import { getLimitFromPlan } from '@/lib/account-utils';
+import { getCachedAuditById } from '@/lib/cache/site-audit.js';
+import { invalidateAudit } from '@/lib/cache/invalidate.js';
 
 export const maxDuration = 300;
 
@@ -88,7 +90,7 @@ async function verifySiteAccess(user, siteId) {
       : { id: siteId, accountId: { in: user.accountMemberships.map(m => m.accountId) } };
       const site = await prisma.site.findFirst({
       where: siteWhere,
-    select: { id: true, url: true, name: true },
+    select: { id: true, url: true, name: true, accountId: true },
   });
   return site;
 }
@@ -119,7 +121,7 @@ export async function GET(request) {
     // If specific audit requested - return full document (with issues + pageResults)
     if (auditId) {
       const audit = await withRetry(() =>
-        prisma.siteAudit.findFirst({ where: { id: auditId, siteId } })
+        getCachedAuditById({ auditId, siteId, accountId: site.accountId })
       );
       if (!audit) {
         return NextResponse.json({ error: 'Audit not found' }, { status: 404 });
@@ -170,7 +172,9 @@ export async function GET(request) {
                 source: 'system',
               }],
             },
-          }).catch(() => {});
+          })
+            .then(() => invalidateAudit(siteId))
+            .catch(() => {});
         }
       }
     }
@@ -286,6 +290,7 @@ export async function POST(request) {
             }],
           },
         }).catch(() => {});
+        invalidateAudit(siteId);
       } else {
         stillRunning.push(audit);
       }

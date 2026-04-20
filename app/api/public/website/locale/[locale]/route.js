@@ -56,14 +56,23 @@ export async function GET(request, { params }) {
       ? localeData.seoDraft 
       : localeData.seo;
 
-    return NextResponse.json({
-      locale,
-      content,
-      seo,
-      version: localeData.version,
-      updatedAt: localeData.updatedAt,
-      isDraft: useDraft && !!localeData.contentDraft
-    });
+    // Draft responses must not be CDN-cached (preview content changes frequently
+     // and is author-specific). Published responses are safe to cache.
+    const headers = useDraft
+      ? { 'Cache-Control': 'no-store' }
+      : { 'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=3600' };
+
+    return NextResponse.json(
+      {
+        locale,
+        content,
+        seo,
+        version: localeData.version,
+        updatedAt: localeData.updatedAt,
+        isDraft: useDraft && !!localeData.contentDraft
+      },
+      { headers }
+    );
   } catch (error) {
     console.error('Error fetching website locale:', error);
     return NextResponse.json(

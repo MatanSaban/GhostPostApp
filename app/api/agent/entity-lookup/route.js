@@ -65,11 +65,13 @@ export async function POST(request) {
       } catch {}
     }
 
-    // Find entities by URL match (including variants)
+    // Find entities by URL match (including variants) — enabled types only so
+    // the agent never resolves a URL to an entity the user has toggled off.
     const entities = await prisma.siteEntity.findMany({
       where: {
         siteId,
         url: { in: [...allVariants] },
+        entityType: { isEnabled: true },
       },
       select: {
         id: true,
@@ -123,6 +125,7 @@ export async function POST(request) {
           where: {
             siteId,
             slug: { in: slugsToMatch },
+            entityType: { isEnabled: true },
           },
           select: {
             id: true,

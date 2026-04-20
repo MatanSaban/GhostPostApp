@@ -2725,14 +2725,20 @@ async function deepCrawlEntities(site, options = {}, msg = SCAN_MESSAGES.en) {
     } // end else block for processing sitemap URLs
     
     console.log('[Scan] createFromSitemap complete. Stats:', stats);
-    
-    // If no URLs found from sitemap, fall through to crawl existing entities
+
+    // If no URLs were resolved from the enabled types' sitemaps, do NOT silently fall back
+    // to crawling every existing entity in the DB. That fallback ignores the user's type
+    // selection and produces misleading progress totals (e.g. 3306 when only 34 were selected).
+    // Surface the failure instead so the UI can prompt the user to re-detect sitemaps.
     if (urlsToProcess.length === 0) {
-      console.log('[Scan] No URLs from sitemap, falling through to crawl existing entities');
-    } else {
-      // If we processed sitemap URLs, return the stats
-      return stats;
+      console.warn('[Scan] No URLs resolved from enabled entity types\' sitemaps — aborting without fallback');
+      return {
+        ...stats,
+        message: 'No sitemap URLs found for enabled entity types. Re-discover sitemaps for the selected types and try again.',
+        reason: 'no_sitemap_urls_for_enabled_types',
+      };
     }
+    return stats;
   }
 
   // Standard flow: crawl existing entities
@@ -2741,16 +2747,18 @@ async function deepCrawlEntities(site, options = {}, msg = SCAN_MESSAGES.en) {
   // 1. Have needsDeepCrawl flag set in metadata
   // 2. Have no seoData (never crawled)
   // 3. Have title that looks like a slug (needs real title)
-  const baseWhere = { siteId: site.id };
-  
+  // Always restrict to entities whose entity type is currently enabled — disabled types
+  // (toggled off in the Entities page) must not contribute to progress totals or get re-crawled.
+  const baseWhere = { siteId: site.id, entityType: { isEnabled: true } };
+
   // Filter by entityTypeId if provided
   if (entityTypeId) {
     baseWhere.entityTypeId = entityTypeId;
   }
-  
-  const whereClause = forceRescan 
+
+  const whereClause = forceRescan
     ? baseWhere
-    : { 
+    : {
         ...baseWhere,
         OR: [
           { seoData: { equals: null } },
@@ -2758,14 +2766,14 @@ async function deepCrawlEntities(site, options = {}, msg = SCAN_MESSAGES.en) {
           { metadata: { path: ['needsDeepCrawl'], equals: true } },
         ],
       };
-  
+
   const totalCount = await prisma.siteEntity.count({ where: whereClause });
   stats.total = totalCount;
-  
-  console.log(`[Scan] Total entities to crawl: ${totalCount} (forceRescan: ${forceRescan}, entityTypeId: ${entityTypeId || 'all'})`);
+
+  console.log(`[Scan] Total entities to crawl: ${totalCount} (forceRescan: ${forceRescan}, entityTypeId: ${entityTypeId || 'all'}, enabledTypesOnly: true)`);
 
   if (totalCount === 0) {
-    return { ...stats, message: 'No entities to crawl' };
+    return { ...stats, message: 'No entities to crawl for enabled types' };
   }
 
   let offset = 0;

@@ -173,9 +173,10 @@ export async function GET(request, { params }) {
     // Get available posts from SiteEntity or fetched articles
     let availablePosts = [];
     
-    // First try to get posts from SiteEntity (synced from WordPress)
+    // First try to get posts from SiteEntity (synced from WordPress).
+    // Skip if the posts type is disabled — the user has opted out of surfacing them.
     const postEntityType = await prisma.siteEntityType.findFirst({
-      where: { siteId: site.id, slug: { in: ['posts', 'post'] } },
+      where: { siteId: site.id, slug: { in: ['posts', 'post'] }, isEnabled: true },
     });
     
     if (postEntityType) {

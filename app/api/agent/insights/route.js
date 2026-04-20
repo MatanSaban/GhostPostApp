@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import prisma from '@/lib/prisma';
+import { getCachedAgentInsights } from '@/lib/cache/agent-insights.js';
 
 export const maxDuration = 300;
 
@@ -60,51 +61,20 @@ export async function GET(request) {
     const status = searchParams.get('status');
     const type = searchParams.get('type');
     const cursor = searchParams.get('cursor');
+    const includeResolved = searchParams.get('includeResolved') === 'true';
 
-    const where = {
+    const result = await getCachedAgentInsights({
       siteId,
-      dismissedAt: { isSet: false },
-    };
-    if (category) where.category = category;
-    if (status) {
-      where.status = status;
-    } else if (searchParams.get('includeResolved') === 'true') {
-      // When viewing fixed items, include RESOLVED in results
-    } else {
-      // By default, hide RESOLVED insights (they're kept for historical comparison)
-      where.status = { not: 'RESOLVED' };
-    }
-    if (type) where.type = type;
-
-    const findArgs = {
-      where,
-      orderBy: [{ priority: 'asc' }, { createdAt: 'desc' }],
-      take: limit + 1,
-    };
-
-    if (cursor) {
-      findArgs.skip = 1;
-      findArgs.cursor = { id: cursor };
-    }
-
-    const [results, totalCount, pendingCount, resolvedCount] = await Promise.all([
-      prisma.agentInsight.findMany(findArgs),
-      prisma.agentInsight.count({ where }),
-      prisma.agentInsight.count({ where: { siteId, status: 'PENDING', dismissedAt: { isSet: false } } }),
-      prisma.agentInsight.count({ where: { siteId, status: 'RESOLVED' } }),
-    ]);
-
-    const hasMore = results.length > limit;
-    const items = hasMore ? results.slice(0, -1) : results;
-
-    return NextResponse.json({
-      items,
-      hasMore,
-      totalCount,
-      pendingCount,
-      resolvedCount,
-      nextCursor: hasMore ? items[items.length - 1]?.id : null,
+      accountId: site.accountId,
+      limit,
+      category,
+      status,
+      type,
+      includeResolved,
+      cursor,
     });
+
+    return NextResponse.json(result);
   } catch (error) {
     console.error('[Agent API] GET insights error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });

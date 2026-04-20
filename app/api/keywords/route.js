@@ -4,6 +4,8 @@ import prisma from '@/lib/prisma';
 import { analyzeKeywordIntentsBatch } from '@/lib/ai/keyword-intent.js';
 import { enforceCredits, enforceResourceLimit } from '@/lib/account-limits';
 import { AI_OPERATIONS } from '@/lib/ai/credits';
+import { getCachedKeywords } from '@/lib/cache/keywords.js';
+import { invalidateKeywords } from '@/lib/cache/invalidate.js';
 
 const SESSION_COOKIE = 'user_session';
 
@@ -38,30 +40,14 @@ export async function GET(request) {
         : { id: siteId, account: { members: { some: { userId: user.id } } } };
       const site = await prisma.site.findFirst({
         where: siteWhere,
-      select: { id: true },
+      select: { id: true, accountId: true },
     });
 
     if (!site) {
       return NextResponse.json({ error: 'Site not found or no access' }, { status: 404 });
     }
 
-    const keywords = await prisma.keyword.findMany({
-      where: { siteId },
-      orderBy: { createdAt: 'desc' },
-      select: {
-        id: true,
-        keyword: true,
-        searchVolume: true,
-        difficulty: true,
-        cpc: true,
-        intents: true,
-        position: true,
-        url: true,
-        status: true,
-        tags: true,
-        createdAt: true,
-      },
-    });
+    const keywords = await getCachedKeywords(siteId, site.accountId);
 
     // Find related SiteEntity posts by matching keyword.url
     const keywordsWithUrls = keywords.filter(k => k.url);
@@ -69,9 +55,10 @@ export async function GET(request) {
     
     let siteEntitiesMap = new Map();
     if (urlList.length > 0) {
-      // Get posts entity type
+      // Get posts entity type — skip if disabled so keyword data doesn't link
+      // to entities the user has toggled off.
       const postsType = await prisma.siteEntityType.findFirst({
-        where: { siteId, slug: 'posts' },
+        where: { siteId, slug: 'posts', isEnabled: true },
         select: { id: true },
       });
 
@@ -216,6 +203,8 @@ export async function POST(request) {
       orderBy: { createdAt: 'desc' },
     });
 
+    invalidateKeywords(siteId);
+
     return NextResponse.json({ keywords: created, count: created.length });
   } catch (error) {
     console.error('[Keywords API] POST Error:', error);
@@ -303,6 +292,8 @@ export async function PATCH(request) {
       data: updateData,
     });
 
+    invalidateKeywords(keyword.siteId);
+
     const response = { keyword: updated };
     if (analyzeIntent === true) {
       response.creditsUsed = AI_OPERATIONS.KEYWORD_INTENT_ANALYSIS.credits;
@@ -333,7 +324,7 @@ export async function DELETE(request) {
     // Verify keyword exists and user has access
     const keyword = await prisma.keyword.findFirst({
         where: user.isSuperAdmin ? { id: keywordId } : { id: keywordId, site: { account: { members: { some: { userId: user.id } } } } },
-      select: { id: true },
+      select: { id: true, siteId: true },
     });
 
     if (!keyword) {
@@ -343,6 +334,8 @@ export async function DELETE(request) {
     await prisma.keyword.delete({
       where: { id: keywordId },
     });
+
+    invalidateKeywords(keyword.siteId);
 
     return NextResponse.json({ success: true });
   } catch (error) {

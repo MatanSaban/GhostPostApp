@@ -5,6 +5,7 @@ import { getPageSpeedInsights } from '@/lib/audit/pagespeed-client';
 import { analyzeHtml } from '@/lib/audit/html-analyzer';
 import { deductAiCredits } from '@/lib/account-utils';
 import { recalculateAuditAfterFix } from '@/lib/audit/recalculate-after-fix';
+import { invalidateAudit } from '@/lib/cache/invalidate.js';
 
 export const maxDuration = 300;
 
@@ -244,6 +245,8 @@ export async function POST(request) {
         throw retryErr;
       }
     }
+
+    invalidateAudit(siteId);
 
     // Recalculate score + summary after rescan
     recalculateAuditAfterFix(auditId, site.url).catch((err) =>

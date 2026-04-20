@@ -50,23 +50,29 @@ export async function GET(request, { params }) {
       ? localeData.seoDraft 
       : localeData.seo;
 
+    const headers = useDraft
+      ? { 'Cache-Control': 'no-store' }
+      : { 'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=3600' };
+
     if (!seoData || !seoData[page]) {
-      // Return default SEO if page not found
-      return NextResponse.json({
-        title: 'Ghost Post',
-        description: 'AI-Powered SEO Automation',
-        canonical: `/${page}`,
-        ogTitle: 'Ghost Post',
-        ogDescription: 'AI-Powered SEO Automation',
-        ogImage: '/og/default.png',
-        ogType: 'website',
-        twitterCard: 'summary_large_image',
-        robots: 'index, follow',
-        jsonLd: null
-      });
+      return NextResponse.json(
+        {
+          title: 'Ghost Post',
+          description: 'AI-Powered SEO Automation',
+          canonical: `/${page}`,
+          ogTitle: 'Ghost Post',
+          ogDescription: 'AI-Powered SEO Automation',
+          ogImage: '/og/default.png',
+          ogType: 'website',
+          twitterCard: 'summary_large_image',
+          robots: 'index, follow',
+          jsonLd: null
+        },
+        { headers }
+      );
     }
 
-    return NextResponse.json(seoData[page]);
+    return NextResponse.json(seoData[page], { headers });
   } catch (error) {
     console.error('Error fetching page SEO:', error);
     return NextResponse.json(

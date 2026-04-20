@@ -3,6 +3,7 @@ import { cookies } from 'next/headers';
 import prisma from '@/lib/prisma';
 import { deductAiCredits } from '@/lib/account-utils';
 import { updateSeoData, resolveUrl } from '@/lib/wp-api-client';
+import { invalidateAudit } from '@/lib/cache/invalidate.js';
 
 const SESSION_COOKIE = 'user_session';
 const TITLE_FIX_CREDIT_COST = 1; // 1 credit per page
@@ -261,6 +262,7 @@ export async function POST(request) {
                 pageResults: updatedPageResults,
               },
             });
+            invalidateAudit(siteId);
             break;
           } catch (retryErr) {
             if (retryErr.code === 'P2034' && attempt < MAX_RETRIES - 1) {

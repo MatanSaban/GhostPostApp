@@ -72,9 +72,15 @@ export async function GET(request) {
       };
     });
 
-    return NextResponse.json({
-      plans: formattedPlans,
-    });
+    return NextResponse.json(
+      { plans: formattedPlans },
+      {
+        headers: {
+          // Plans change rarely; safe to serve from CDN for 5 min, SWR for 1 hour.
+          'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=3600',
+        },
+      }
+    );
   } catch (error) {
     console.error('Error fetching public plans:', error);
     return NextResponse.json(

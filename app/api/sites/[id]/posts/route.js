@@ -70,9 +70,9 @@ export async function GET(request, { params }) {
       return NextResponse.json({ error: 'Site not found' }, { status: 404 });
     }
 
-    // Get posts from SiteEntity
+    // Get posts from SiteEntity — skip if the posts type is disabled.
     const postEntityType = await prisma.siteEntityType.findFirst({
-      where: { siteId: site.id, slug: { in: ['posts', 'post'] } },
+      where: { siteId: site.id, slug: { in: ['posts', 'post'] }, isEnabled: true },
     });
 
     let posts = [];

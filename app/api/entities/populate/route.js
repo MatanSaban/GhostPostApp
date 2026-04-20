@@ -194,8 +194,8 @@ export async function GET(request) {
     const siteWhere = user.isSuperAdmin
         ? { id: siteId }
         : { id: siteId, accountId: { in: user.accountMemberships.map(m => m.accountId) } };
-          const site = await prisma.site.findFirst({
-        where: siteWhere,
+    const site = await prisma.site.findFirst({
+      where: siteWhere,
       select: {
         entitySyncStatus: true,
         entitySyncProgress: true,
@@ -204,8 +204,10 @@ export async function GET(request) {
         entitySyncError: true,
         _count: {
           select: {
-            entities: true,
-            entityTypes: true,
+            // Only count entities of currently-enabled types so the UI never reports
+            // counts that include disabled (toggled-off) types.
+            entities: { where: { entityType: { isEnabled: true } } },
+            entityTypes: { where: { isEnabled: true } },
             menus: true,
           },
         },

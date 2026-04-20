@@ -52,10 +52,15 @@ export async function GET(request) {
       ),
     };
 
-    return NextResponse.json({
-      addOns: formattedAddOns,
-      grouped,
-    });
+    return NextResponse.json(
+      { addOns: formattedAddOns, grouped },
+      {
+        headers: {
+          // Add-on catalog changes rarely; CDN-safe for 5 min, SWR for 1 hour.
+          'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=3600',
+        },
+      }
+    );
   } catch (error) {
     console.error('Error fetching public add-ons:', error);
     return NextResponse.json(

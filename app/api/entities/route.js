@@ -69,8 +69,9 @@ export async function GET(request) {
       );
     }
 
-    // Build query
-    const where = { siteId };
+    // Build query — restrict to enabled entity types so the Entities list never
+    // shows items from types the user toggled off.
+    const where = { siteId, entityType: { isEnabled: true } };
     
     // If type is provided, find the entity type ID by slug
     if (type) {

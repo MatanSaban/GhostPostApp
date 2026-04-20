@@ -3,6 +3,7 @@ import { cookies } from 'next/headers';
 import prisma from '@/lib/prisma';
 import { deductAiCredits } from '@/lib/account-utils';
 import { createRedirect } from '@/lib/wp-api-client';
+import { invalidateAudit } from '@/lib/cache/invalidate.js';
 import { generateObject } from 'ai';
 import { google } from '@/lib/ai/vertex-provider.js';
 import { z } from 'zod';
@@ -133,9 +134,10 @@ async function handleSuggest(site, { auditId, siteId, locale }) {
     );
   }
 
-  // Get all published entities for context
+  // Get all published entities for context — enabled types only, otherwise
+  // the AI may suggest redirecting broken URLs to pages the user has hidden.
   const entities = await prisma.siteEntity.findMany({
-    where: { siteId, status: 'PUBLISHED' },
+    where: { siteId, status: 'PUBLISHED', entityType: { isEnabled: true } },
     select: { title: true, slug: true, url: true },
     take: 500,
   });
@@ -313,6 +315,7 @@ async function handleApply(site, { auditId, siteId, fixes }, user) {
             where: { id: auditId },
             data: { issues: updatedIssues },
           });
+          invalidateAudit(siteId);
           break;
         } catch (retryErr) {
           if (retryErr.code === 'P2034' && attempt < MAX_RETRIES - 1) {

@@ -8,6 +8,7 @@ import {
   verifySitemapSubmitted,
 } from '@/lib/google-integration';
 import { discoverSitemapUrls } from '@/lib/sitemap-delta-sync';
+import { invalidateAgentInsights } from '@/lib/cache/invalidate.js';
 
 const SESSION_COOKIE = 'user_session';
 
@@ -255,6 +256,7 @@ export async function POST(request) {
             },
           },
         });
+        invalidateAgentInsights(siteId);
       } catch (e) {
         console.error('[Sitemaps API] Failed to update insight:', e.message);
       }

@@ -64,9 +64,9 @@ export async function POST(request) {
 
     // ── LAYER 1: Data Fetching (Anti-Cannibalization Context) ────────────
 
-    // 1a. Existing published content titles + slugs
+    // 1a. Existing published content titles + slugs (enabled types only)
     const existingEntities = await prisma.siteEntity.findMany({
-      where: { siteId, status: 'PUBLISHED' },
+      where: { siteId, status: 'PUBLISHED', entityType: { isEnabled: true } },
       select: { title: true, slug: true },
     });
 

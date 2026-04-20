@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import prisma from '@/lib/prisma';
 import { generateInsightPreview, applyInsightFix, regenerateItem, isFixableType, generateMergedContent, applyMergedContent } from '@/lib/agent-fix';
+import { invalidateAgentInsights } from '@/lib/cache/invalidate.js';
 
 const SESSION_COOKIE = 'user_session';
 
@@ -26,7 +27,7 @@ async function getAuthenticatedUser() {
 
 // ─── Background fix execution ─────────────────────────────────────────
 
-async function runFixInBackground(insightId, mode, executeFn) {
+async function runFixInBackground(insightId, siteId, mode, executeFn) {
   try {
     const result = await executeFn();
 
@@ -78,6 +79,8 @@ async function runFixInBackground(insightId, mode, executeFn) {
         data: updateData,
       });
     }
+
+    invalidateAgentInsights(siteId);
   } catch (error) {
     console.error(`[Agent Fix] Background ${mode} failed for insight ${insightId}:`, error);
     try {
@@ -94,6 +97,7 @@ async function runFixInBackground(insightId, mode, executeFn) {
           },
         },
       });
+      invalidateAgentInsights(siteId);
     } catch (dbErr) {
       console.error(`[Agent Fix] Failed to update error status for insight ${insightId}:`, dbErr);
     }
@@ -266,8 +270,10 @@ export async function POST(request, { params }) {
         },
       });
 
+      invalidateAgentInsights(insight.siteId);
+
       // Fire and forget - client polls GET for status
-      runFixInBackground(id, 'generate', () => generateMergedContent(insight, site, proposal, options)).catch(err => {
+      runFixInBackground(id, insight.siteId, 'generate', () => generateMergedContent(insight, site, proposal, options)).catch(err => {
         console.error(`[Agent Fix] Background generate error for insight ${id}:`, err);
       });
 
@@ -305,8 +311,10 @@ export async function POST(request, { params }) {
         },
       });
 
+      invalidateAgentInsights(insight.siteId);
+
       // Fire and forget
-      runFixInBackground(id, 'apply-generated', () => applyMergedContent(insight, site, proposal, generatedPost, options)).catch(err => {
+      runFixInBackground(id, insight.siteId, 'apply-generated', () => applyMergedContent(insight, site, proposal, generatedPost, options)).catch(err => {
         console.error(`[Agent Fix] Background apply-generated error for insight ${id}:`, err);
       });
 
@@ -347,8 +355,10 @@ export async function POST(request, { params }) {
           },
         });
 
+        invalidateAgentInsights(insight.siteId);
+
         // Fire and forget
-        runFixInBackground(id, 'apply', () => applyInsightFix(insight, site, proposals, options)).catch(err => {
+        runFixInBackground(id, insight.siteId, 'apply', () => applyInsightFix(insight, site, proposals, options)).catch(err => {
           console.error(`[Agent Fix] Background apply error for insight ${id}:`, err);
         });
 
@@ -372,6 +382,8 @@ export async function POST(request, { params }) {
         where: { id },
         data: { executionResult: mergedResult },
       });
+
+      invalidateAgentInsights(insight.siteId);
 
       return NextResponse.json({
         success: result.success,

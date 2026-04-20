@@ -11,6 +11,7 @@ import { cookies } from 'next/headers';
 import prisma from '@/lib/prisma';
 import { generateStructuredResponse } from '@/lib/ai/gemini';
 import { z } from 'zod';
+import { invalidateKeywords } from '@/lib/cache/invalidate.js';
 
 const SESSION_COOKIE = 'user_session';
 
@@ -127,6 +128,8 @@ What is the best article type for this keyword? Write your reasoning and content
         },
       },
     });
+
+    invalidateKeywords(keyword.site.id);
 
     return NextResponse.json({
       suggestion: result,

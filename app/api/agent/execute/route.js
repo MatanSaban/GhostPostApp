@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import prisma from '@/lib/prisma';
+import { invalidateAgentInsights } from '@/lib/cache/invalidate.js';
 
 export const maxDuration = 300;
 
@@ -84,6 +85,8 @@ export async function POST(request) {
         },
       });
 
+      invalidateAgentInsights(insight.siteId);
+
       return NextResponse.json({ success: true, result });
     } catch (execError) {
       await prisma.agentInsight.update({
@@ -93,6 +96,8 @@ export async function POST(request) {
           executionResult: { error: execError.message },
         },
       });
+
+      invalidateAgentInsights(insight.siteId);
 
       return NextResponse.json({ error: 'Action execution failed', details: execError.message }, { status: 500 });
     }

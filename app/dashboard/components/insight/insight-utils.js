@@ -164,6 +164,7 @@ export function translateReason(issue, labels) {
       const signalLabels = {
         'impression split': labels?.signalImpressionSplit || 'Impression split',
         'position dance': labels?.signalPositionDance || 'Position dance',
+        'CTR divergence': labels?.signalCtrDivergence || 'CTR divergence',
       };
       params.signals = params.signals.split(', ').map(s => signalLabels[s] || s).join(', ');
     }

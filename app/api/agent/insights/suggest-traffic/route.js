@@ -74,9 +74,9 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
-    // Get entity data if available (content, SEO data, etc.)
+    // Get entity data if available (content, SEO data, etc.) — enabled types only
     const entity = await prisma.siteEntity.findFirst({
-      where: { siteId, url: { in: getUrlVariants(url) } },
+      where: { siteId, url: { in: getUrlVariants(url) }, entityType: { isEnabled: true } },
       select: {
         title: true,
         slug: true,

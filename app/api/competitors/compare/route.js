@@ -4,6 +4,7 @@ import prisma from '@/lib/prisma';
 import { scrapeCompetitorPage, comparePages } from '@/lib/competitor-scraper';
 import { identifyContentGaps, generateSkyscraperOutline } from '@/lib/ai/competitor-analysis';
 import { enforceCredits } from '@/lib/account-limits';
+import { invalidateCompetitors } from '@/lib/cache/invalidate.js';
 
 const SESSION_COOKIE = 'user_session';
 
@@ -142,6 +143,7 @@ export async function POST(request) {
             lastScannedAt: new Date(),
           },
         });
+        invalidateCompetitors(siteId);
       }
     }
 
@@ -196,6 +198,7 @@ export async function POST(request) {
             contentGaps: contentGaps.gaps,
           },
         });
+        invalidateCompetitors(siteId);
       } catch (aiError) {
         console.error('[Compare] AI analysis failed:', aiError.message);
         // Continue without AI analysis

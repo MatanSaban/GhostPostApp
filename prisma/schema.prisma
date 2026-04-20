@@ -2211,6 +2211,54 @@ model AgentRun {
   @@map("agent_runs")
 }
 
+// Sticky memory of insights the user has dismissed/rejected.
+// The agent cron consults this to suppress regenerating the same insight
+// after a user has explicitly said "not for me" — closing the trust gap
+// where rejected suggestions kept reappearing on every run.
+//
+// `dedupKey` is the same key the insight emitter uses to identify its
+// suggestion (e.g. `cannibalization:<sortedUrlsHash>`). Indexed by
+// (siteId, dedupKey) for the cron-time existence check.
+model AgentRejection {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  siteId     String   @db.ObjectId
+  accountId  String   @db.ObjectId
+  dedupKey   String // Stable identity of the suggestion (insight type + payload hash)
+  insightType String? // e.g. "cannibalization", "missingSeo" — for analytics
+  reason     String? // Optional user-supplied reason
+  rejectedAt DateTime @default(now())
+  expiresAt  DateTime // Auto-expire so we don't suppress forever (default: +60d)
+
+  @@unique([siteId, dedupKey])
+  @@index([siteId, expiresAt])
+  @@index([accountId, rejectedAt(sort: Desc)])
+  @@map("agent_rejections")
+}
+
+// Post-fix measurement: did the fix actually help 14 days later?
+// Written by the agent fixers, polled by a cron that compares GSC
+// metrics now vs. before the fix. Used to grade the AI's recommendations
+// and feed back into thresholds.
+model AgentFixOutcome {
+  id              String   @id @default(auto()) @map("_id") @db.ObjectId
+  siteId          String   @db.ObjectId
+  accountId       String   @db.ObjectId
+  insightId       String?  @db.ObjectId // The AgentInsight that triggered the fix
+  insightType     String // "cannibalization" | "missingSeo" | ...
+  action          String // "MERGE" | "CANONICAL" | "REDIRECT_301" | "DIFFERENTIATE"
+  affectedUrls    String[] // URLs touched by the fix
+  appliedAt       DateTime @default(now())
+  measureAt       DateTime // When to take the post-fix snapshot (appliedAt + 14d)
+  baselineMetrics Json // GSC snapshot at apply time (clicks/impressions/position)
+  resultMetrics   Json? // GSC snapshot at measureAt
+  verdict         String? // "improved" | "no_change" | "regressed" | "inconclusive"
+  measuredAt      DateTime?
+
+  @@index([siteId, measureAt])
+  @@index([siteId, appliedAt(sort: Desc)])
+  @@map("agent_fix_outcomes")
+}
+
 enum AgentInsightCategory {
   CONTENT // Content optimization, thin content, outdated posts
   TRAFFIC // Traffic spikes/drops, session patterns

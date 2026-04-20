@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import prisma from '@/lib/prisma';
+import { invalidateAgentInsights } from '@/lib/cache/invalidate.js';
+import { recordRejection, REJECTION_TTL_MS } from '@/lib/agent-rejections.js';
 
 const SESSION_COOKIE = 'user_session';
 
@@ -90,6 +92,20 @@ export async function PATCH(request, { params }) {
       where: { id },
       data: updateData,
     });
+
+    // Persist sticky rejection memory so the cron doesn't keep regenerating
+    // the same suggestion. Reason field is optional and supplied by client.
+    if (action === 'reject' || action === 'dismiss') {
+      await recordRejection({
+        siteId: insight.siteId,
+        accountId: site.accountId,
+        titleKey: insight.titleKey,
+        data: insight.data,
+        reason: typeof body.reason === 'string' ? body.reason.slice(0, 500) : null,
+      }).catch(err => console.error('[Agent API] recordRejection failed:', err.message));
+    }
+
+    invalidateAgentInsights(insight.siteId);
 
     return NextResponse.json(updated);
   } catch (error) {

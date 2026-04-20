@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import prisma from '@/lib/prisma';
+import { getCachedCompetitors } from '@/lib/cache/competitors.js';
+import { invalidateCompetitors } from '@/lib/cache/invalidate.js';
 
 const SESSION_COOKIE = 'user_session';
 
@@ -98,14 +100,8 @@ export async function GET(request) {
       );
     }
 
-    // Get competitors
-    const competitors = await prisma.competitor.findMany({
-      where: {
-        siteId,
-        isActive: true,
-      },
-      orderBy: { createdAt: 'desc' },
-    });
+    // Get competitors (cached by siteId; tag-invalidated on mutations)
+    const competitors = await getCachedCompetitors(siteId, site.accountId);
 
     // Get limit info
     const limit = getCompetitorLimit(user, site.accountId);
@@ -212,9 +208,10 @@ export async function POST(request) {
           where: { id: existingCompetitor.id },
           data: { isActive: true },
         });
+        invalidateCompetitors(siteId);
         return NextResponse.json({ competitor: reactivated, reactivated: true });
       }
-      
+
       return NextResponse.json(
         { error: 'Competitor already exists' },
         { status: 409 }
@@ -237,6 +234,8 @@ export async function POST(request) {
         scanStatus: 'PENDING',
       },
     });
+
+    invalidateCompetitors(siteId);
 
     return NextResponse.json({ competitor }, { status: 201 });
   } catch (error) {
@@ -289,6 +288,8 @@ export async function DELETE(request) {
       where: { id: competitorId },
       data: { isActive: false },
     });
+
+    invalidateCompetitors(siteId);
 
     return NextResponse.json({ success: true });
   } catch (error) {

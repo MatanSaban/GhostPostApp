@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import prisma from '@/lib/prisma';
 import { batchGetSearchVolume, isGoogleAdsConfigured, getLanguageId } from '@/lib/google-ads';
+import { invalidateKeywords } from '@/lib/cache/invalidate.js';
 
 const SESSION_COOKIE = 'user_session';
 
@@ -126,6 +127,7 @@ export async function POST(request) {
             data: { searchVolume: data.avgMonthlySearches },
           });
         }
+        if (freshData.size > 0) invalidateKeywords(siteId);
       }
     }
 

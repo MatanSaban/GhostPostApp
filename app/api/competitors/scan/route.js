@@ -4,6 +4,7 @@ import prisma from '@/lib/prisma';
 import { scrapeCompetitorPage } from '@/lib/competitor-scraper';
 import { generateCompetitorSummary, analyzeCompetitorTopics } from '@/lib/ai/competitor-analysis';
 import { enforceCredits } from '@/lib/account-limits';
+import { invalidateCompetitors } from '@/lib/cache/invalidate.js';
 
 const SESSION_COOKIE = 'user_session';
 
@@ -189,6 +190,8 @@ export async function POST(request) {
         where: { id: competitorId },
         data: updateData,
       });
+
+      invalidateCompetitors(siteId);
 
       return NextResponse.json({
         success: true,

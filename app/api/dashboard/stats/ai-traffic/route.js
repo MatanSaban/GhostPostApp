@@ -6,6 +6,7 @@ import {
   fetchAITrafficStats,
   fetchGSCQueriesForAIPages,
 } from '@/lib/google-integration';
+import { getCachedAiTraffic } from '@/lib/cache/ai-traffic.js';
 
 const SESSION_COOKIE = 'user_session';
 
@@ -92,31 +93,48 @@ export async function GET(request) {
       ? { startDate: compareStartDate, endDate: compareEndDate }
       : null;
 
-    const aiTraffic = await fetchAITrafficStats(accessToken, integration.gaPropertyId, range, compareRange).catch(err => {
-      console.error('[AI Traffic] fetchAITrafficStats error:', err.message);
-      return null;
-    });
+    // Build a stable cache key that captures all inputs that affect the response.
+    // Include a token-identity bit (expiresAt + last 8 chars) so that a refreshed
+    // access token does not reuse a stale cache entry.
+    const tokenKey = `${integration.tokenExpiresAt?.toISOString?.() || 'na'}:${(accessToken || '').slice(-8)}`;
+    const rangeKey = [
+      typeof range === 'number' ? `${range}d` : `${range.startDate}_${range.endDate}`,
+      compareRange ? `${compareRange.startDate}_${compareRange.endDate}` : 'nocmp',
+      integration.gaPropertyId,
+      integration.gscSiteUrl || 'nogsc',
+      tokenKey,
+    ].join('|');
 
-    // AI Keywords — fetch GSC queries that landed on the same pages AI engines
-    // are sending users to. Only runs if GSC is connected for the site.
-    let aiKeywords = [];
-    if (
-      aiTraffic &&
-      integration.gscConnected &&
-      integration.gscSiteUrl &&
-      aiTraffic.topLandingPages?.length
-    ) {
-      const aiPagePaths = aiTraffic.topLandingPages.map(p => p.page);
-      aiKeywords = await fetchGSCQueriesForAIPages(
-        accessToken,
-        integration.gscSiteUrl,
-        range,
-        aiPagePaths,
-      ).catch(err => {
-        console.error('[AI Traffic] GSC queries for AI pages error:', err.message);
-        return [];
-      });
-    }
+    const { aiTraffic, aiKeywords } = await getCachedAiTraffic(
+      { siteId, accountId: site.accountId, rangeKey },
+      async () => {
+        const traffic = await fetchAITrafficStats(accessToken, integration.gaPropertyId, range, compareRange).catch(err => {
+          console.error('[AI Traffic] fetchAITrafficStats error:', err.message);
+          return null;
+        });
+
+        let keywords = [];
+        if (
+          traffic &&
+          integration.gscConnected &&
+          integration.gscSiteUrl &&
+          traffic.topLandingPages?.length
+        ) {
+          const aiPagePaths = traffic.topLandingPages.map(p => p.page);
+          keywords = await fetchGSCQueriesForAIPages(
+            accessToken,
+            integration.gscSiteUrl,
+            range,
+            aiPagePaths,
+          ).catch(err => {
+            console.error('[AI Traffic] GSC queries for AI pages error:', err.message);
+            return [];
+          });
+        }
+
+        return { aiTraffic: traffic, aiKeywords: keywords };
+      }
+    );
 
     return NextResponse.json({ aiTraffic, aiKeywords });
   } catch (error) {

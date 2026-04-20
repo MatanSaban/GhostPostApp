@@ -169,7 +169,7 @@ export function EntityTypesDiscovery({
             {eta != null && eta > 0 && syncProgress < 99 && (
               <span className={styles.syncEta}>{formatTimeLeft(eta, t)}</span>
             )}
-            {syncMessage && <span className={styles.syncMessage} dir="ltr">{syncMessage}</span>}
+            {syncMessage && <span className={styles.syncMessage} dir="ltr">{decodeURIComponent(syncMessage)}</span>}
           </div>
           <button onClick={onStopSync} className={styles.stopButton}>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
