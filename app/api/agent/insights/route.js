@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import prisma from '@/lib/prisma';
 
+export const maxDuration = 300;
+
 const SESSION_COOKIE = 'user_session';
 
 async function getAuthenticatedUser() {

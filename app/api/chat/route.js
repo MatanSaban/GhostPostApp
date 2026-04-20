@@ -9,6 +9,8 @@ import { getChatTools, toolRequiresApproval, getToolCategory } from '@/lib/chat/
 import { executeReadOnlyTool } from '@/lib/chat/action-executor';
 import { createActionProposal, checkPendingActions } from '@/lib/chat/approval-manager';
 
+export const maxDuration = 300;
+
 const BASE_SYSTEM_PROMPT = `You are the Ghost Post AI Assistant — an expert SEO advisor embedded in the Ghost Post platform.
 
 Your capabilities:

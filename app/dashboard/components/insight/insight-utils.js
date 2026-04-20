@@ -12,6 +12,8 @@ export const FIXABLE_INSIGHT_TYPES = new Set([
   'cannibalization',
   'missingFeaturedImage',
   'insufficientContentImages',
+  'aiPageMissingSchema',
+  'aiAnswerableButNotConcise',
 ]);
 
 // Category icons mapping
@@ -40,7 +42,7 @@ export const STATUSES = ['PENDING', 'APPROVED', 'REJECTED', 'EXECUTED', 'FAILED'
 export const PRIORITY_ORDER = { CRITICAL: 0, HIGH: 1, MEDIUM: 2, LOW: 3 };
 
 // Insight types that indicate positive/negative trends
-export const POSITIVE_INSIGHT_TYPES = new Set(['trafficGrowth', 'aiTrafficGrowth']);
+export const POSITIVE_INSIGHT_TYPES = new Set(['trafficGrowth', 'aiTrafficGrowth', 'aiCitedByEngine']);
 export const NEGATIVE_INSIGHT_TYPES = new Set(['trafficDrop', 'visitorsDrop', 'decliningPages', 'aiTrafficDrop']);
 
 /**
@@ -268,10 +270,10 @@ export function isInsightFullyFixed(insight) {
   }
   
   // Single-item insights are fixed if any result exists
-  if (type === 'keywordStrikeZone') {
+  if (type === 'keywordStrikeZone' || type === 'aiPageMissingSchema' || type === 'aiAnswerableButNotConcise') {
     return results.some(r => r.status === 'fixed');
   }
-  
+
   return false;
 }
 

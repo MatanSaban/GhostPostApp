@@ -6933,6 +6933,22 @@
         "title": "תנועת AI בירידה",
         "description": "תנועה ממנועי AI ירדה ב-{change}% ל-{sessions} סשנים בתקופה {periodStart} עד {periodEnd} לעומת {comparePeriodStart} עד {comparePeriodEnd}. בדוק האם מבנה התוכן שלך מותאם לגילוי על ידי AI."
       },
+      "aiCitedByEngine": {
+        "title": "מצוטט על ידי {engine}",
+        "description": "{engine} מביא {sessions} סשנים ({sharePercent}% מתנועת ה-AI שלך) בין {periodStart} ל-{periodEnd}. התוכן שלך מוצג בתשובות של המנוע הזה — המשך לחזק את הדפוסים שעובדים."
+      },
+      "aiEngineGap": {
+        "title": "פער כיסוי במנועי AI",
+        "description": "{page} מקבל תנועה חזקה מ-{primaryEngine} ({primarySessions} סשנים) אבל לא נראה על ידי {missingEngines}. כל מנוע AI משקלל סיגנלים שונים — הרחב את הכיסוי על ידי חידוד התשובה המרכזית של העמוד, הוספת Schema ושיפור העומק הנושאי."
+      },
+      "aiPageMissingSchema": {
+        "title": "עמוד AI מוביל ללא Schema",
+        "description": "{page} הביא {aiSessions} סשני AI לאחרונה אבל חסר לו Schema JSON-LD. הוספת Schema מסוג Article / FAQ / HowTo עוזרת למנועי AI לחלץ תשובות מדויקות ולייחס ציטוטים לאתר שלך."
+      },
+      "aiAnswerableButNotConcise": {
+        "title": "עמוד AI ללא תשובה ממוקדת",
+        "description": "{page} מצוטט על ידי מנועי AI אבל הפסקה הראשונה שלו באורך {firstParaWords} מילים וללא בלוק TL;DR או FAQ. מנועי AI מעדיפים עמודים שעונים על השאלה ב-60 המילים הראשונות — הוסף סיכום קצר בתחילת העמוד."
+      },
       "trafficConcentration": {
         "title": "ריכוז תנועה יתר",
         "description": "{concentrationPercent}% מהקליקים בחיפוש מגיעים מ-3 עמודים בלבד מתוך {totalPages}. גוון את אסטרטגיית התוכן כדי להפחית תלות בכמה עמודים."

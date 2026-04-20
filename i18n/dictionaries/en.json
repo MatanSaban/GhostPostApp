@@ -6932,6 +6932,22 @@
         "title": "AI Traffic Declining",
         "description": "Traffic from AI engines dropped by {change}% to {sessions} sessions in {periodStart} to {periodEnd} vs {comparePeriodStart} to {comparePeriodEnd}. Review whether your content structure is optimized for AI discoverability."
       },
+      "aiCitedByEngine": {
+        "title": "Cited by {engine}",
+        "description": "{engine} is driving {sessions} sessions ({sharePercent}% of your AI traffic) in {periodStart} to {periodEnd}. Your content is being surfaced in this engine's answers — keep reinforcing the patterns that work here."
+      },
+      "aiEngineGap": {
+        "title": "AI Engine Coverage Gap",
+        "description": "{page} gets strong traffic from {primaryEngine} ({primarySessions} sessions) but is invisible to {missingEngines}. Each AI engine weights signals differently — broaden coverage by clarifying the page's core answer, adding structured data, and improving topical depth."
+      },
+      "aiPageMissingSchema": {
+        "title": "Top AI Page Missing Schema",
+        "description": "{page} drove {aiSessions} AI sessions recently but has no JSON-LD schema markup. Adding Article / FAQ / HowTo schema helps AI engines extract accurate answers and attribute citations to your site."
+      },
+      "aiAnswerableButNotConcise": {
+        "title": "AI-Landing Page Not Concise",
+        "description": "{page} is cited by AI engines but its first paragraph is {firstParaWords} words and has no TL;DR or FAQ block. AI models prefer pages that answer the question in the first 60 words — add a short summary up top."
+      },
       "trafficConcentration": {
         "title": "Traffic Over-Concentrated",
         "description": "{concentrationPercent}% of your search clicks come from just 3 pages out of {totalPages}. Diversify your content strategy to reduce dependency on a few pages."

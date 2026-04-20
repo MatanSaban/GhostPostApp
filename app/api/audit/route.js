@@ -5,6 +5,8 @@ import { runSiteAudit } from '@/lib/audit/site-auditor';
 import { enforceResourceLimit } from '@/lib/account-limits';
 import { getLimitFromPlan } from '@/lib/account-utils';
 
+export const maxDuration = 300;
+
 /**
  * Retry a Prisma query on transient MongoDB connection errors.
  */

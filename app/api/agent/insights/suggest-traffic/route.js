@@ -4,6 +4,8 @@ import prisma from '@/lib/prisma';
 import { generateStructuredResponse } from '@/lib/ai/gemini.js';
 import { z } from 'zod';
 
+export const maxDuration = 300;
+
 const SESSION_COOKIE = 'user_session';
 
 async function getAuthenticatedUser() {

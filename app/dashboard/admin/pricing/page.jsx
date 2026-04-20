@@ -6,7 +6,7 @@ import { useUser } from '@/app/context/user-context';
 import { useLocale } from '@/app/context/locale-context';
 import { Coins, Save, RotateCcw, AlertTriangle } from 'lucide-react';
 import { getAiPricingList, bulkUpdateAiFeaturePrices } from '@/lib/actions/ai-pricing';
-import styles from '../../admin.module.css';
+import styles from '../admin.module.css';
 
 export default function AiPricingPage() {
   const router = useRouter();

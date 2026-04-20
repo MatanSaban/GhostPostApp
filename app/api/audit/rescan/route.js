@@ -6,6 +6,8 @@ import { analyzeHtml } from '@/lib/audit/html-analyzer';
 import { deductAiCredits } from '@/lib/account-utils';
 import { recalculateAuditAfterFix } from '@/lib/audit/recalculate-after-fix';
 
+export const maxDuration = 300;
+
 const SESSION_COOKIE = 'user_session';
 const RESCAN_CREDIT_COST = 1;
 
