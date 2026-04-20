@@ -353,6 +353,16 @@
   justify-content: flex-end;
 }
 
+/* In RTL, flex-start is the right edge and flex-end is the left edge.
+   Override so agent stays on the LEFT and user stays on the RIGHT visually. */
+[dir="rtl"] .agentRow {
+  justify-content: flex-end;
+}
+
+[dir="rtl"] .userRow {
+  justify-content: flex-start;
+}
+
 .messageWrapper {
   display: flex;
   gap: 0.75rem;
@@ -365,6 +375,16 @@
 
 .userWrapper {
   flex-direction: row-reverse;
+}
+
+/* In RTL, swap the wrapper direction so the avatar still sits on the
+   sender's outer edge (agent avatar on the left, user avatar on the right). */
+[dir="rtl"] .agentWrapper {
+  flex-direction: row-reverse;
+}
+
+[dir="rtl"] .userWrapper {
+  flex-direction: row;
 }
 
 .avatar {

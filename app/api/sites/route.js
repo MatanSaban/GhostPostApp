@@ -143,7 +143,7 @@ export async function POST(request) {
     }
 
     const body = await request.json();
-    const { name, url, accountId } = body;
+    const { name, url, accountId, contentLanguage } = body;
 
     if (!name || !url) {
       return NextResponse.json(
@@ -213,6 +213,7 @@ export async function POST(request) {
         name,
         url: siteUrl,
         platform: body.platform || null,
+        contentLanguage: contentLanguage || null,
         accountId: targetAccountId,
         siteKey,
         siteSecret,

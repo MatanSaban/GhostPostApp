@@ -29,22 +29,37 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Get user's account for credit tracking (only if logged in)
+    // Load the user's account. For mid-registration drafts we skip credits
+    // entirely — the account has no balance yet and isn't a real customer.
     let accountId = null;
-    if (userId) {
+    let isDraftAccount = false;
+    {
       const user = await prisma.user.findUnique({
         where: { id: userId },
         select: {
           id: true,
           lastSelectedAccountId: true,
           accountMemberships: {
-            select: { accountId: true },
+            select: { accountId: true, account: { select: { id: true, isDraft: true } } },
             take: 1,
           },
         },
       });
       if (user) {
-        accountId = user.lastSelectedAccountId || user.accountMemberships?.[0]?.accountId;
+        const lastSelected = user.lastSelectedAccountId;
+        const firstMembership = user.accountMemberships?.[0];
+        accountId = lastSelected || firstMembership?.accountId || null;
+        if (accountId) {
+          if (firstMembership?.account?.id === accountId) {
+            isDraftAccount = !!firstMembership.account.isDraft;
+          } else {
+            const acc = await prisma.account.findUnique({
+              where: { id: accountId },
+              select: { isDraft: true },
+            });
+            isDraftAccount = !!acc?.isDraft;
+          }
+        }
       }
     }
 
@@ -54,11 +69,14 @@ export async function POST(request) {
       return NextResponse.json({ error: 'URL is required' }, { status: 400 });
     }
 
-    // ── Enforce AI credit limit ──────────────────────────────
-    if (accountId) {
+    // ── Enforce AI credit limit (real accounts only) ─────────
+    if (accountId && !isDraftAccount) {
       const creditCheck = await enforceCredits(accountId, 5); // CRAWL_WEBSITE = 5 credits
       if (!creditCheck.allowed) {
-        return NextResponse.json(creditCheck, { status: 402 });
+        return NextResponse.json(
+          { ...creditCheck, errorCode: 'INSUFFICIENT_CREDITS' },
+          { status: 402 }
+        );
       }
     }
 
@@ -68,9 +86,9 @@ export async function POST(request) {
     // Run analysis
     const analysis = await analyzeWebsite(normalizedUrl);
 
-    // Track AI usage if user is logged in with an account
+    // Track AI usage if user is logged in with a real (non-draft) account
     let creditsUsed = 0;
-    if (accountId && userId) {
+    if (accountId && userId && !isDraftAccount) {
       const trackResult = await trackAIUsage({
         accountId,
         userId,
@@ -84,6 +102,19 @@ export async function POST(request) {
       }
     }
 
+    // If the site was unreachable, surface an error code the client can translate.
+    if (analysis && analysis.isReachable === false) {
+      return NextResponse.json(
+        {
+          success: false,
+          errorCode: 'SITE_UNREACHABLE',
+          error: analysis.error || 'Site unreachable',
+          analysis,
+        },
+        { status: 200 }
+      );
+    }
+
     return NextResponse.json({
       success: true,
       analysis,
@@ -93,9 +124,14 @@ export async function POST(request) {
 
   } catch (error) {
     console.error('[Analyze] Error:', error);
+    const isInvalidUrl = /invalid url/i.test(error?.message || '');
     return NextResponse.json(
-      { error: error.message || 'Analysis failed' },
-      { status: 500 }
+      {
+        success: false,
+        errorCode: isInvalidUrl ? 'INVALID_URL' : 'ANALYSIS_FAILED',
+        error: error.message || 'Analysis failed',
+      },
+      { status: isInvalidUrl ? 400 : 500 }
     );
   }
 }
@@ -153,6 +189,8 @@ async function analyzeWebsite(url) {
       tone: null,
       language: null,
     },
+    // Language variants discovered via hreflang (only populated when >= 2 variants found)
+    languages: [],
     competitors: [],
     inferredGoals: [],
     inferredAudience: null,
@@ -191,6 +229,9 @@ async function analyzeWebsite(url) {
   
   // Detect language
   results.contentStyle.language = detectLanguage(html);
+
+  // Detect multi-language variants via hreflang
+  results.languages = extractLanguageVariants(html, url, results.contentStyle.language);
   
   console.log('[Analyze] Detection results:', {
     platform: results.platform?.name,
@@ -753,6 +794,79 @@ function detectLanguage(html) {
   }
   
   return 'en';
+}
+
+/**
+ * Extract language variants from hreflang alternate links.
+ * Returns [] when only one (or zero) distinct language is found.
+ * Returns [{ code, url, isDefault }, ...] when >= 2 distinct languages exist.
+ */
+function extractLanguageVariants(html, baseUrl, detectedLanguage) {
+  const variants = new Map(); // code -> { code, url, isDefault }
+
+  // Match <link rel="alternate" hreflang="..." href="..."> (attributes can be in any order)
+  const linkRegex = /<link\b[^>]*\brel=["']alternate["'][^>]*>/gi;
+  const links = html.match(linkRegex) || [];
+
+  for (const tag of links) {
+    const hreflangMatch = tag.match(/hreflang=["']([^"']+)["']/i);
+    const hrefMatch = tag.match(/href=["']([^"']+)["']/i);
+    if (!hreflangMatch || !hrefMatch) continue;
+
+    const rawCode = hreflangMatch[1].trim().toLowerCase();
+    let href = hrefMatch[1].trim();
+
+    // Resolve relative URLs
+    try {
+      href = new URL(href, baseUrl).toString();
+    } catch {
+      continue;
+    }
+
+    // x-default points to the fallback language — track the URL but not a code
+    if (rawCode === 'x-default') {
+      if (!variants.has('__x_default__')) {
+        variants.set('__x_default__', { code: 'x-default', url: href, isDefault: true });
+      }
+      continue;
+    }
+
+    // Normalize: "en-us" → "en"
+    const code = rawCode.split('-')[0];
+    if (!code || code.length > 3) continue;
+
+    if (!variants.has(code)) {
+      variants.set(code, { code, url: href, isDefault: false });
+    }
+  }
+
+  // Remove x-default placeholder — it's just metadata
+  const xDefault = variants.get('__x_default__');
+  variants.delete('__x_default__');
+
+  const list = Array.from(variants.values());
+
+  // Mark the variant matching the detected language (or the x-default URL) as default
+  if (list.length) {
+    let defaultIdx = -1;
+    if (xDefault) {
+      defaultIdx = list.findIndex((v) => v.url === xDefault.url);
+    }
+    if (defaultIdx === -1 && detectedLanguage) {
+      defaultIdx = list.findIndex((v) => v.code === detectedLanguage);
+    }
+    if (defaultIdx >= 0) {
+      list[defaultIdx].isDefault = true;
+    } else {
+      list[0].isDefault = true;
+    }
+  }
+
+  // Only return when there are genuinely multiple languages
+  if (list.length < 2) return [];
+
+  console.log('[Analyze] Detected', list.length, 'language variants:', list.map((v) => v.code));
+  return list;
 }
 
 /**

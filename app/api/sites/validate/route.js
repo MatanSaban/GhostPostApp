@@ -65,6 +65,70 @@ Rules:
 }
 
 /**
+ * Extract language variants from <link rel="alternate" hreflang="..."> tags.
+ * Returns [] when fewer than 2 distinct languages are found.
+ */
+function extractLanguageVariants(html, baseUrl, detectedLanguage) {
+  if (!html) return [];
+  const variants = new Map();
+  let xDefaultUrl = null;
+
+  const linkRegex = /<link\b[^>]*\brel=["']alternate["'][^>]*>/gi;
+  const links = html.match(linkRegex) || [];
+
+  for (const tag of links) {
+    const hreflangMatch = tag.match(/hreflang=["']([^"']+)["']/i);
+    const hrefMatch = tag.match(/href=["']([^"']+)["']/i);
+    if (!hreflangMatch || !hrefMatch) continue;
+
+    const rawCode = hreflangMatch[1].trim().toLowerCase();
+    let href = hrefMatch[1].trim();
+
+    try {
+      href = new URL(href, baseUrl).toString();
+    } catch {
+      continue;
+    }
+
+    if (rawCode === 'x-default') {
+      xDefaultUrl = href;
+      continue;
+    }
+
+    const code = rawCode.split('-')[0];
+    if (!code || code.length > 3) continue;
+
+    if (!variants.has(code)) {
+      variants.set(code, { code, url: href, isDefault: false });
+    }
+  }
+
+  const list = Array.from(variants.values());
+  if (list.length) {
+    let defaultIdx = -1;
+    if (xDefaultUrl) defaultIdx = list.findIndex(v => v.url === xDefaultUrl);
+    if (defaultIdx === -1 && detectedLanguage) {
+      defaultIdx = list.findIndex(v => v.code === detectedLanguage);
+    }
+    if (defaultIdx >= 0) list[defaultIdx].isDefault = true;
+    else list[0].isDefault = true;
+  }
+
+  if (list.length < 2) return [];
+  return list;
+}
+
+/**
+ * Detect page language from HTML (lang attribute, fallback to en).
+ */
+function detectPageLanguage(html) {
+  if (!html) return null;
+  const langMatch = html.match(/<html[^>]+lang=["']([^"']+)["']/i);
+  if (langMatch) return langMatch[1].trim().toLowerCase().split('-')[0];
+  return null;
+}
+
+/**
  * Fallback: Extract site name from HTML without AI
  */
 function extractSiteNameFallback(html, hostname) {
@@ -311,11 +375,17 @@ export async function POST(request) {
       }
     }
 
+    // Detect page language + multi-language variants (hreflang).
+    const detectedLanguage = detectPageLanguage(html);
+    const languages = extractLanguageVariants(html, normalizedUrl, detectedLanguage);
+
     return NextResponse.json({
       valid: true,
       url: normalizedUrl,
       siteName,
       platform,
+      contentLanguage: detectedLanguage,
+      languages,
     });
   } catch (error) {
     console.error('URL validation error:', error);

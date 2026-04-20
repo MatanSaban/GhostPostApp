@@ -21,6 +21,17 @@ const PLATFORM_LABELS = {
   custom: 'Custom Code',
 };
 
+function getLanguageLabel(code, locale) {
+  if (!code) return '';
+  try {
+    const label = new Intl.DisplayNames([locale], { type: 'language' }).of(code);
+    if (label) return label.charAt(0).toUpperCase() + label.slice(1);
+  } catch {
+    // fall through
+  }
+  return code.toUpperCase();
+}
+
 /**
  * Reusable Add Website Modal component.
  *
@@ -33,7 +44,7 @@ const PLATFORM_LABELS = {
  * @param {boolean} [props.showInterviewOnCreate=false] - If true, show the InterviewWizard popup after creating a site.
  */
 export function AddSiteModal({ isOpen, onClose, onSiteAdded, autoSelect = false, showInterviewOnCreate = false }) {
-  const { t } = useLocale();
+  const { t, locale } = useLocale();
   const { setSites, setSelectedSite } = useSite();
 
   const [newSiteUrl, setNewSiteUrl] = useState('');
@@ -45,6 +56,7 @@ export function AddSiteModal({ isOpen, onClose, onSiteAdded, autoSelect = false,
   const [isSuggestingName, setIsSuggestingName] = useState(false);
   const [interviewSite, setInterviewSite] = useState(null);
   const [duplicateInfo, setDuplicateInfo] = useState(null);
+  const [selectedLanguage, setSelectedLanguage] = useState(null);
   const urlInputRef = useRef(null);
 
   // Reset state when modal opens/closes
@@ -58,6 +70,7 @@ export function AddSiteModal({ isOpen, onClose, onSiteAdded, autoSelect = false,
       setIsCreating(false);
       setIsSuggestingName(false);
       setDuplicateInfo(null);
+      setSelectedLanguage(null);
     }
   }, [isOpen]);
 
@@ -110,8 +123,25 @@ export function AddSiteModal({ isOpen, onClose, onSiteAdded, autoSelect = false,
     }
   };
 
+  const handleLanguagePick = (variant) => {
+    setSelectedLanguage(variant.code);
+    // Update the URL the user will submit to match the chosen variant.
+    setNewSiteUrl(variant.url);
+    setValidationResult(prev => prev ? { ...prev, url: variant.url, contentLanguage: variant.code } : prev);
+    // Append the language to the detected site name to disambiguate each variant.
+    const languageLabel = getLanguageLabel(variant.code, locale);
+    if (newSiteName && languageLabel && !newSiteName.includes(languageLabel)) {
+      setNewSiteName(`${newSiteName} (${languageLabel})`);
+    }
+  };
+
   const handleCreateSite = async () => {
     if (!validationResult?.valid || !newSiteName.trim()) return;
+
+    // If the detected site has multiple language variants, require a pick first.
+    if (validationResult.languages?.length >= 2 && !selectedLanguage) {
+      return;
+    }
 
     setIsCreating(true);
     setCreateError(null);
@@ -127,6 +157,7 @@ export function AddSiteModal({ isOpen, onClose, onSiteAdded, autoSelect = false,
           name: newSiteName.trim(),
           url: cleanUrl,
           platform: validationResult.platform || null,
+          contentLanguage: selectedLanguage || validationResult.contentLanguage || null,
         }),
       });
 
@@ -306,8 +337,40 @@ export function AddSiteModal({ isOpen, onClose, onSiteAdded, autoSelect = false,
             </div>
           )}
 
-          {/* Step 2: Name Input (only after valid URL) */}
-          {validationResult?.valid && (
+          {/* Language picker (shown when site has multiple hreflang variants) */}
+          {validationResult?.valid && validationResult.languages?.length >= 2 && (
+            <div className={styles.formGroup}>
+              <label className={styles.formLabel}>
+                {t('sites.add.languagePickerLabel', { count: validationResult.languages.length })}
+              </label>
+              <p className={styles.formHint}>{t('sites.add.languagePickerHint')}</p>
+              <div className={styles.languageChipRow}>
+                {validationResult.languages.map((variant) => {
+                  const isSelected = selectedLanguage === variant.code;
+                  const label = getLanguageLabel(variant.code, locale);
+                  return (
+                    <button
+                      key={variant.code}
+                      type="button"
+                      className={`${styles.languageChip} ${isSelected ? styles.languageChipSelected : ''}`}
+                      onClick={() => handleLanguagePick(variant)}
+                    >
+                      <Globe size={14} />
+                      <span>{label}</span>
+                      {variant.isDefault && (
+                        <span className={styles.languageChipBadge}>
+                          {t('sites.add.languageDefaultBadge')}
+                        </span>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Step 2: Name Input (only after valid URL and, if required, a language pick) */}
+          {validationResult?.valid && (!(validationResult.languages?.length >= 2) || selectedLanguage) && (
             <div className={styles.formGroup}>
               <label className={styles.formLabel}>{t('sites.add.nameLabel')}</label>
               <div className={styles.nameInputWrapper}>
@@ -365,7 +428,12 @@ export function AddSiteModal({ isOpen, onClose, onSiteAdded, autoSelect = false,
           <button
             className={styles.createButton}
             onClick={handleCreateSite}
-            disabled={!validationResult?.valid || !newSiteName.trim() || isCreating}
+            disabled={
+              !validationResult?.valid ||
+              !newSiteName.trim() ||
+              isCreating ||
+              (validationResult?.languages?.length >= 2 && !selectedLanguage)
+            }
           >
             {isCreating ? (
               <>

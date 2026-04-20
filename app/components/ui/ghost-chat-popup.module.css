@@ -509,6 +509,13 @@
   padding: 1.25rem;
   max-width: 95%;
   box-shadow: var(--shadow-md);
+  align-self: flex-start;
+}
+
+/* In RTL, the cross-axis directionality flips — force agent messages
+   to still sit on the visual LEFT. */
+[dir="rtl"] .agentMessage {
+  align-self: flex-end;
 }
 
 .messageText {
@@ -725,7 +732,14 @@
   display: flex;
   flex-direction: column;
   align-items: flex-end;
+  align-self: flex-end;
   gap: 0.35rem;
+}
+
+/* In RTL, keep user messages pinned to the visual RIGHT edge. */
+[dir="rtl"] .userMessageWrapper {
+  align-items: flex-start;
+  align-self: flex-start;
 }
 
 .userMessageSelection {

@@ -5,6 +5,20 @@ import { CheckCircle2, Loader2, AlertCircle } from 'lucide-react';
 import { useLocale } from '@/app/context/locale-context';
 import styles from '../auth.module.css';
 
+function errorCodeToTranslationKey(code) {
+  switch (code) {
+    case 'SITE_UNREACHABLE':
+      return 'interviewWizard.proactive.errors.siteUnreachable';
+    case 'INVALID_URL':
+      return 'interviewWizard.proactive.errors.invalidUrl';
+    case 'INSUFFICIENT_CREDITS':
+      return 'interviewWizard.proactive.errors.insufficientCredits';
+    case 'ANALYSIS_FAILED':
+    default:
+      return 'interviewWizard.proactive.errors.analysisFailed';
+  }
+}
+
 /**
  * AnalysisProgress component
  * Shows a progress bar with dynamic logs while analyzing the website
@@ -94,7 +108,10 @@ export function AnalysisProgress({ url, onComplete, onError }) {
         const data = await response.json();
 
         if (!response.ok || !data.success) {
-          throw new Error(data.error || 'Analysis failed');
+          const errorCode = data.errorCode || 'ANALYSIS_FAILED';
+          const err = new Error(data.error || 'Analysis failed');
+          err.errorCode = errorCode;
+          throw err;
         }
 
         // Wait for log animation to complete, then show final log
@@ -126,9 +143,12 @@ export function AnalysisProgress({ url, onComplete, onError }) {
 
       } catch (err) {
         console.error('Analysis error:', err);
-        setError(err.message);
+        const errorCode = err.errorCode || 'ANALYSIS_FAILED';
+        const translationKey = errorCodeToTranslationKey(errorCode);
+        const localizedMessage = t(translationKey);
+        setError(localizedMessage);
         setLogs(prev => prev.map(log => ({ ...log, status: 'error' })));
-        onError?.(err.message);
+        onError?.({ errorCode, message: localizedMessage, rawMessage: err.message });
       }
     };
 

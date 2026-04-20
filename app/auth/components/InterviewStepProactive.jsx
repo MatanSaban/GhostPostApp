@@ -1,12 +1,23 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { Send, Loader2, CheckCircle2, Check, X, Edit2 } from 'lucide-react';
+import { Send, Loader2, CheckCircle2, Check, X, Edit2, Globe } from 'lucide-react';
 import Image from 'next/image';
 import { useLocale } from '@/app/context/locale-context';
 import { AnalysisProgress } from './AnalysisProgress';
 import { CompetitorSelector } from './CompetitorSelector';
 import styles from '../auth.module.css';
+
+function getLanguageLabel(code, locale) {
+  if (!code) return '';
+  try {
+    const label = new Intl.DisplayNames([locale], { type: 'language' }).of(code);
+    if (label) return label.charAt(0).toUpperCase() + label.slice(1);
+  } catch {
+    // Fall through
+  }
+  return code.toUpperCase();
+}
 
 /**
  * Proactive Onboarding Interview Step
@@ -20,6 +31,7 @@ export function InterviewStep({ translations, onComplete, initialData = {}, onAn
   const PHASES = {
     URL_INPUT: 'url-input',
     ANALYZING: 'analyzing',
+    LANGUAGE_SELECT: 'language-select',
     CONFIRMATION: 'confirmation',
     COMPLETE: 'complete',
   };
@@ -35,6 +47,8 @@ export function InterviewStep({ translations, onComplete, initialData = {}, onAn
   const [editingField, setEditingField] = useState(null);
   const [selectedCompetitors, setSelectedCompetitors] = useState([]);
   const [initialized, setInitialized] = useState(false);
+  const [languageOptions, setLanguageOptions] = useState([]);
+  const [analyzeAttempt, setAnalyzeAttempt] = useState(0);
   
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
@@ -177,17 +191,34 @@ export function InterviewStep({ translations, onComplete, initialData = {}, onAn
 
   // Handle analysis complete
   const handleAnalysisComplete = (data) => {
+    // Multi-language sites: if we detected >= 2 variants and the user hasn't
+    // already chosen one, branch into LANGUAGE_SELECT before continuing.
+    if (!interviewData.selectedLanguage && Array.isArray(data?.languages) && data.languages.length >= 2) {
+      setAnalysisData(data);
+      setLanguageOptions(data.languages);
+      setPhase(PHASES.LANGUAGE_SELECT);
+      setMessages(prev => [...prev, {
+        id: prev.length,
+        type: 'agent',
+        content: t('interviewWizard.proactive.languagesFound', { count: data.languages.length }),
+      }]);
+      return;
+    }
+
     setAnalysisData(data);
-    
+
     // Save analysis data to interviewData for later use (e.g., site creation)
-    const newData = { 
-      ...interviewData, 
+    const newData = {
+      ...interviewData,
+      websiteUrl,
       analysis: data,
       // Also extract key info for easy access
       platform: data.platform?.name || null,
       businessName: data.businessInfo?.name || null,
       businessDescription: data.businessInfo?.description || null,
       businessNiche: data.businessInfo?.niche || null,
+      selectedLanguage: interviewData.selectedLanguage || data.contentStyle?.language || null,
+      availableLanguages: interviewData.availableLanguages || data.languages || [],
     };
     setInterviewData(newData);
     onAnswerSaved?.(newData, false);
@@ -251,6 +282,33 @@ export function InterviewStep({ translations, onComplete, initialData = {}, onAn
         questionType: firstQuestion.type,
       }]);
     }
+  };
+
+  // Handle user picking a language variant in a multi-language site.
+  const handleLanguageSelect = (variant) => {
+    const label = getLanguageLabel(variant.code, locale);
+
+    setMessages(prev => [...prev, {
+      id: prev.length,
+      type: 'user',
+      content: label,
+    }]);
+
+    const newData = {
+      ...interviewData,
+      websiteUrl: variant.url,
+      selectedLanguage: variant.code,
+      availableLanguages: languageOptions,
+    };
+    setInterviewData(newData);
+    onAnswerSaved?.(newData, false);
+
+    // Re-run analysis against the selected variant.
+    setWebsiteUrl(variant.url);
+    setAnalysisData(null);
+    setLanguageOptions([]);
+    setAnalyzeAttempt(c => c + 1);
+    setPhase(PHASES.ANALYZING);
   };
 
   // Handle confirmation response
@@ -414,14 +472,16 @@ export function InterviewStep({ translations, onComplete, initialData = {}, onAn
         <div className={styles.interviewProgress}>
           <div className={styles.interviewProgressHeader}>
             <span>
-              {phase === PHASES.ANALYZING 
+              {phase === PHASES.ANALYZING
                 ? t('interviewWizard.proactive.analyzing')
-                : phase === PHASES.CONFIRMATION
-                  ? t('interviewWizard.questionProgress', { 
-                      current: confirmationStep + 1, 
-                      total: getConfirmationQuestions().length 
-                    })
-                  : t('interviewWizard.proactive.gettingStarted')
+                : phase === PHASES.LANGUAGE_SELECT
+                  ? t('interviewWizard.proactive.selectingLanguage')
+                  : phase === PHASES.CONFIRMATION
+                    ? t('interviewWizard.questionProgress', {
+                        current: confirmationStep + 1,
+                        total: getConfirmationQuestions().length
+                      })
+                    : t('interviewWizard.proactive.gettingStarted')
               }
             </span>
           </div>
@@ -458,18 +518,42 @@ export function InterviewStep({ translations, onComplete, initialData = {}, onAn
           {/* Analysis Progress (shown during analyzing phase) */}
           {phase === PHASES.ANALYZING && (
             <div className={styles.analysisContainer}>
-              <AnalysisProgress 
+              <AnalysisProgress
+                key={`${websiteUrl}-${analyzeAttempt}`}
                 url={websiteUrl}
                 onComplete={handleAnalysisComplete}
-                onError={(error) => {
+                onError={(err) => {
+                  const localized = typeof err === 'string' ? err : err?.message;
                   setMessages(prev => [...prev, {
                     id: prev.length,
                     type: 'agent',
-                    content: t('interviewWizard.proactive.analysisError', { error }),
+                    content: localized || t('interviewWizard.proactive.errors.analysisFailed'),
                   }]);
                   setPhase(PHASES.URL_INPUT);
                 }}
               />
+            </div>
+          )}
+
+          {/* Language selector (shown when the site has multiple language variants) */}
+          {phase === PHASES.LANGUAGE_SELECT && languageOptions.length > 0 && (
+            <div className={styles.languageSelector}>
+              {languageOptions.map((variant) => (
+                <button
+                  key={variant.code}
+                  type="button"
+                  className={styles.languageChip}
+                  onClick={() => handleLanguageSelect(variant)}
+                >
+                  <Globe size={16} />
+                  <span>{getLanguageLabel(variant.code, locale)}</span>
+                  {variant.isDefault && (
+                    <span className={styles.languageChipBadge}>
+                      {t('interviewWizard.proactive.languageDefaultBadge')}
+                    </span>
+                  )}
+                </button>
+              ))}
             </div>
           )}
 
@@ -547,7 +631,7 @@ export function InterviewStep({ translations, onComplete, initialData = {}, onAn
         </div>
 
         {/* Input Area */}
-        {phase !== PHASES.COMPLETE && phase !== PHASES.ANALYZING && (
+        {phase !== PHASES.COMPLETE && phase !== PHASES.ANALYZING && phase !== PHASES.LANGUAGE_SELECT && (
           <div className={styles.interviewInputArea}>
             {/* URL Input */}
             {phase === PHASES.URL_INPUT && (

@@ -4258,6 +4258,9 @@
       "creating": "Adding...",
       "aiSuggest": "Suggest with AI",
       "nonWordPressWarning": "Ghost Post currently supports WordPress websites only. You can still add this site, but content syncing features won't be available.",
+      "languagePickerLabel": "Detected {count} language versions of this site",
+      "languagePickerHint": "Each language will be set up as a separate site. Pick the one to add now.",
+      "languageDefaultBadge": "Default",
       "duplicateTitle": "Website already exists",
       "duplicateMessage": "The website you're trying to add already exists under the account \"{accountName}\". If you want to add it to a different account, switch to that account and try again."
     },
@@ -5040,6 +5043,15 @@
       "yourSite": "Your website",
       "analysisDone": "Analysis complete! I detected your site is built on {platform} in {language}.",
       "analysisError": "I couldn't access your website: {error}. Please check the URL and try again.",
+      "errors": {
+        "siteUnreachable": "I couldn't reach your website. Please check the URL and try again.",
+        "invalidUrl": "That URL doesn't look valid. Please double-check it and try again.",
+        "insufficientCredits": "You're out of AI credits for website analysis. Please upgrade your plan.",
+        "analysisFailed": "Website analysis failed. Please try again in a moment."
+      },
+      "selectingLanguage": "Pick a language",
+      "languagesFound": "I detected your website in {count} languages. Pick the one to start with — each language will be set up as a separate site.",
+      "languageDefaultBadge": "Default",
       "identityWithNiche": "I've completed the scan. I can see this is **{name}**, specializing in **{niche}**. Is this correct?",
       "identityBasic": "I've completed the scan. I can see this is **{name}**. Is this correct?",
       "goalsConfirm": "Based on my analysis, your main goals appear to be: **{goals}**. Is this accurate?",

@@ -1001,12 +1001,14 @@
   justify-content: flex-end;
 }
 
+/* In RTL, flex-start is the right edge and flex-end is the left edge.
+   Override so agent stays on the LEFT and user stays on the RIGHT visually. */
 [dir="rtl"] .interviewMessageRow.agentRow {
-  justify-content: flex-start;
+  justify-content: flex-end;
 }
 
 [dir="rtl"] .interviewMessageRow.userRow {
-  justify-content: flex-end;
+  justify-content: flex-start;
 }
 
 .interviewMessageWrapper {
@@ -1020,8 +1022,14 @@
   flex-direction: row-reverse;
 }
 
-[dir="rtl"] .interviewMessageWrapper.userWrapper {
+/* In RTL, swap the wrapper direction so the avatar still sits on the
+   sender's outer edge (agent avatar on the left, user avatar on the right). */
+[dir="rtl"] .interviewMessageWrapper.agentWrapper {
   flex-direction: row-reverse;
+}
+
+[dir="rtl"] .interviewMessageWrapper.userWrapper {
+  flex-direction: row;
 }
 
 .interviewAvatar {
@@ -2443,10 +2451,66 @@
   transition: all var(--transition-fast);
   border: none;
   cursor: pointer;
-  
+
   &:hover {
     background: var(--destructive);
     color: white;
+  }
+}
+
+/* ============================================
+   PROACTIVE ONBOARDING - Language Selector
+   ============================================ */
+
+.languageSelector {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  justify-content: center;
+}
+
+.languageChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1rem;
+  border-radius: var(--radius-lg);
+  background: var(--muted);
+  color: var(--foreground);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+
+  &:hover {
+    background: var(--gradient-primary);
+    color: white;
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-glow-sm);
+  }
+
+  .dark & {
+    background: rgba(123, 44, 191, 0.18);
+
+    &:hover {
+      background: var(--gradient-primary);
+    }
+  }
+}
+
+.languageChipBadge {
+  font-size: 0.6875rem;
+  font-weight: 500;
+  padding: 0.125rem 0.5rem;
+  border-radius: var(--radius-sm, 0.375rem);
+  background: rgba(255, 255, 255, 0.25);
+  color: inherit;
+
+  .languageChip:not(:hover) & {
+    background: var(--background);
+    color: var(--muted-foreground);
   }
 }
 
