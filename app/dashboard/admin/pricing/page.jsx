@@ -129,7 +129,7 @@ export default function AiPricingPage() {
           display: 'flex',
           alignItems: 'center',
           gap: '0.5rem',
-          fontSize: '0.9rem',
+          fontSize: '0.9375rem',
         }}>
           <AlertTriangle size={16} />
           {error}
@@ -144,7 +144,7 @@ export default function AiPricingPage() {
           border: '1px solid rgba(34, 197, 94, 0.3)',
           borderRadius: 'var(--radius-lg)',
           color: '#22c55e',
-          fontSize: '0.9rem',
+          fontSize: '0.9375rem',
         }}>
           {successMessage}
         </div>
@@ -152,7 +152,7 @@ export default function AiPricingPage() {
 
       <div className={styles.adminToolbar}>
         <div className={styles.toolbarLeft}>
-          <span style={{ fontSize: '0.9rem', color: 'var(--muted-foreground)' }}>
+          <span style={{ fontSize: '0.9375rem', color: 'var(--muted-foreground)' }}>
             {features.length} features configured
           </span>
         </div>
@@ -202,7 +202,7 @@ export default function AiPricingPage() {
                       padding: '0.15rem 0.5rem',
                       background: 'var(--muted)',
                       borderRadius: 'var(--radius-md)',
-                      fontSize: '0.85rem',
+                      fontSize: '0.9375rem',
                       fontFamily: 'monospace',
                     }}>
                       {feature.featureKey}
@@ -220,7 +220,7 @@ export default function AiPricingPage() {
                         style={{
                           width: '5rem',
                           padding: '0.375rem 0.625rem',
-                          fontSize: '0.9rem',
+                          fontSize: '0.9375rem',
                           fontWeight: 600,
                           background: 'var(--input-background)',
                           border: `1px solid ${isEdited ? 'var(--primary)' : 'var(--input-border)'}`,
@@ -230,13 +230,13 @@ export default function AiPricingPage() {
                         }}
                       />
                       {isEdited && (
-                        <span style={{ fontSize: '0.8rem', color: 'var(--primary)', fontWeight: 500 }}>
+                        <span style={{ fontSize: '0.8125rem', color: 'var(--primary)', fontWeight: 500 }}>
                           (was {feature.creditCost})
                         </span>
                       )}
                     </div>
                   </td>
-                  <td style={{ fontSize: '0.85rem', color: 'var(--muted-foreground)' }}>
+                  <td style={{ fontSize: '0.9375rem', color: 'var(--muted-foreground)' }}>
                     {new Date(feature.updatedAt).toLocaleDateString('en-US', {
                       year: 'numeric', month: 'short', day: 'numeric',
                       hour: '2-digit', minute: '2-digit',

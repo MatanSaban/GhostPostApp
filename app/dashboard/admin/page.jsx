@@ -184,11 +184,11 @@ export default function SuperAdminDashboardPage() {
               <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
               <XAxis
                 dataKey="date"
-                tick={{ fill: 'var(--muted-foreground)', fontSize: 12 }}
+                tick={{ fill: 'var(--muted-foreground)', fontSize: '0.75rem' }}
                 tickFormatter={(v) => v.slice(5)}
               />
               <YAxis
-                tick={{ fill: 'var(--muted-foreground)', fontSize: 12 }}
+                tick={{ fill: 'var(--muted-foreground)', fontSize: '0.75rem' }}
                 tickFormatter={(v) => `$${v.toFixed(2)}`}
               />
               <Tooltip

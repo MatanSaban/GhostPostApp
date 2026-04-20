@@ -291,7 +291,7 @@ export default function WebsiteSettingsPage() {
           {/* Site Name by Language */}
           <div className={styles.settingsSection}>
             <h3 className={styles.settingsSectionTitle}>{t('websiteAdmin.settings.siteName')}</h3>
-            <p style={{ color: 'var(--muted-foreground)', fontSize: '0.875rem', marginBottom: '1rem' }}>
+            <p style={{ color: 'var(--muted-foreground)', fontSize: '0.9375rem', marginBottom: '1rem' }}>
               {t('websiteAdmin.settings.siteNameByLocale')}
             </p>
             <div className={styles.settingsGrid}>

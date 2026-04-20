@@ -32,7 +32,7 @@
 }
 
 .subtitle {
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   color: var(--muted-foreground);
   margin: 0;
 }
@@ -47,7 +47,7 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   color: var(--muted-foreground);
 }
 
@@ -63,7 +63,7 @@
   border-radius: var(--radius-sm, 6px);
   background: var(--card);
   color: var(--foreground);
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   text-align: center;
 
   &:focus {
@@ -82,7 +82,7 @@
 }
 
 .pageLimitMax {
-  font-size: 0.78rem;
+  font-size: 0.75rem;
   opacity: 0.6;
   white-space: nowrap;
 }
@@ -96,7 +96,7 @@
   color: #fff;
   border: none;
   border-radius: var(--radius-md, 8px);
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   font-weight: 500;
   cursor: pointer;
   transition: opacity 0.2s, box-shadow 0.2s;
@@ -119,7 +119,7 @@
   padding: 1px 7px;
   border-radius: 10px;
   background: rgba(255, 255, 255, 0.2);
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   font-weight: 600;
   letter-spacing: 0.02em;
   line-height: 1.4;
@@ -134,7 +134,7 @@
   color: var(--foreground);
   border: 1px solid var(--border);
   border-radius: var(--radius-md, 8px);
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s;
@@ -172,7 +172,7 @@
   border: 1px solid rgba(239, 68, 68, 0.2);
   border-radius: var(--radius-md, 8px);
   color: #ef4444;
-  font-size: 0.9rem;
+  font-size: 0.75rem;
 }
 
 /* ─── Site-Wide Noindex Banner ─────────────────────────────── */
@@ -202,14 +202,14 @@
 
 .siteWideNoindexTitle {
   display: block;
-  font-size: 1rem;
+  font-size: 1.0625rem;
   font-weight: 700;
   color: #ef4444;
   margin-bottom: 4px;
 }
 
 .siteWideNoindexDesc {
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   color: var(--muted-foreground);
   margin: 0;
   line-height: 1.5;
@@ -225,7 +225,7 @@
   border-radius: var(--radius-md, 8px);
   background: #ef4444;
   color: white;
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   font-weight: 600;
   cursor: pointer;
   transition: background 0.15s, transform 0.1s;
@@ -297,7 +297,7 @@
 }
 
 .scanningStep {
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   color: var(--primary, #7b2cbf);
   margin: 0;
   min-height: 1.4em;
@@ -321,14 +321,14 @@
 }
 
 .scanProgressLabel {
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   font-weight: 600;
   color: var(--primary, #7b2cbf);
   margin-top: 2px;
 }
 
 .scanningHint {
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   color: var(--muted-foreground);
   margin: 0;
 }
@@ -379,7 +379,7 @@
 }
 
 .failedDescription {
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   color: var(--muted-foreground);
   margin: 0 0 8px 0;
   max-width: 400px;
@@ -444,7 +444,7 @@
 }
 
 .scoreLabel {
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   color: var(--muted-foreground);
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -471,7 +471,7 @@
 }
 
 .scoreItemLabel {
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   color: var(--muted-foreground);
 }
 
@@ -483,7 +483,7 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   color: var(--muted-foreground);
   margin-top: 4px;
   padding-top: 8px;
@@ -497,7 +497,7 @@
   background: rgba(123, 44, 191, 0.08);
   color: var(--primary, #7b2cbf);
   border-radius: 4px;
-  font-size: 0.625rem;
+  font-size: 0.6875rem;
   font-weight: 500;
   text-transform: uppercase;
   letter-spacing: 0.3px;
@@ -517,14 +517,14 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   font-weight: 600;
   color: var(--foreground);
   margin: 0 0 16px 0;
 }
 
 .sectionTitleInline {
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   font-weight: 600;
   color: var(--foreground);
   margin: 0;
@@ -547,7 +547,7 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   font-weight: 500;
   color: var(--muted-foreground);
 }
@@ -625,7 +625,7 @@
   border: none;
   background: transparent;
   cursor: pointer;
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   font-weight: 500;
   color: var(--muted-foreground);
   white-space: nowrap;
@@ -646,7 +646,7 @@
 }
 
 .tabLabel {
-  font-size: 0.9rem;
+  font-size: 0.75rem;
 }
 
 .tabBadge {
@@ -659,7 +659,7 @@
   background: rgba(123, 44, 191, 0.08);
   color: var(--primary, #7b2cbf);
   border-radius: 11px;
-  font-size: 0.625rem;
+  font-size: 0.6875rem;
   font-weight: 600;
 }
 
@@ -679,7 +679,7 @@
   background: rgba(239, 68, 68, 0.12);
   color: #ef4444;
   border-radius: 9px;
-  font-size: 0.5625rem;
+  font-size: 0.6875rem;
   font-weight: 600;
 }
 
@@ -693,7 +693,7 @@
   background: rgba(245, 158, 11, 0.12);
   color: #f59e0b;
   border-radius: 9px;
-  font-size: 0.5625rem;
+  font-size: 0.6875rem;
   font-weight: 600;
 }
 
@@ -705,7 +705,7 @@
   height: 24px;
   padding: 0 6px;
   border-radius: 6px;
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   font-weight: 600;
 
   &.good {
@@ -734,7 +734,7 @@
   padding: 48px 24px;
   gap: 8px;
   color: var(--muted-foreground);
-  font-size: 0.9rem;
+  font-size: 0.75rem;
 }
 
 .tabEmptyIcon {
@@ -792,13 +792,13 @@
 }
 
 .aggMessage {
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   color: var(--foreground);
   line-height: 1.4;
 }
 
 .aggSuggestion {
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   color: var(--muted-foreground);
   line-height: 1.4;
 }
@@ -873,7 +873,7 @@
   border-radius: 8px;
   background: transparent;
   color: var(--primary);
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   font-weight: 600;
   cursor: pointer;
   transition: background 0.15s, color 0.15s;
@@ -918,7 +918,7 @@
   border-radius: 8px;
   background: transparent;
   color: var(--accent, #10b981);
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   font-weight: 600;
   cursor: pointer;
   transition: background 0.15s, color 0.15s;
@@ -954,7 +954,7 @@
 }
 
 .aggCount {
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   color: var(--muted-foreground);
   white-space: nowrap;
   background: rgba(0, 0, 0, 0.04);
@@ -993,7 +993,7 @@
   align-items: center;
   gap: 6px;
   padding: 10px 20px;
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   font-weight: 500;
   color: var(--primary, #7b2cbf);
   background: transparent;
@@ -1043,7 +1043,7 @@
 }
 
 .drillDownTitle {
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   font-weight: 600;
   color: var(--foreground);
   margin: 0;
@@ -1051,7 +1051,7 @@
 }
 
 .drillDownSuggestion {
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   color: var(--muted-foreground);
   line-height: 1.4;
   margin: 0;
@@ -1065,7 +1065,7 @@
 }
 
 .drillDownCount {
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   font-weight: 500;
   color: var(--muted-foreground);
 }
@@ -1075,7 +1075,7 @@
 }
 
 .drillDownSubtitle {
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   font-weight: 600;
   color: var(--foreground);
   margin: 0 0 12px 0;
@@ -1094,7 +1094,7 @@
   padding: 8px 16px;
   background: rgba(0, 0, 0, 0.02);
   border-bottom: 1px solid var(--border);
-  font-size: 0.625rem;
+  font-size: 0.6875rem;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -1109,7 +1109,7 @@
 .drillDownEmpty {
   padding: 24px;
   text-align: center;
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   color: var(--muted-foreground);
 }
 
@@ -1131,7 +1131,7 @@
 
   th {
     padding: 10px 12px;
-    font-size: 0.625rem;
+    font-size: 0.6875rem;
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.5px;
@@ -1166,7 +1166,7 @@
     transform: translateX(-50%);
     background: var(--popover, #1f2937);
     color: var(--popover-foreground, #f9fafb);
-    font-size: 0.625rem;
+    font-size: 0.6875rem;
     font-weight: 400;
     line-height: 1.4;
     text-transform: none;
@@ -1288,7 +1288,7 @@
 }
 
 .columnPopupTitle {
-  font-size: 1.15rem;
+  font-size: 1.1875rem;
   font-weight: 600;
   color: var(--foreground);
 }
@@ -1298,7 +1298,7 @@
 }
 
 .columnPopupDescription {
-  font-size: 0.95rem;
+  font-size: 0.75rem;
   font-weight: 500;
   color: var(--foreground);
   line-height: 1.5;
@@ -1306,7 +1306,7 @@
 }
 
 .columnPopupDetails {
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   color: var(--muted-foreground);
   line-height: 1.6;
   margin: 0;
@@ -1321,7 +1321,7 @@
   color: var(--primary-foreground);
   border: none;
   border-radius: var(--radius-md);
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   font-weight: 600;
   cursor: pointer;
   transition: opacity 0.2s;
@@ -1407,7 +1407,7 @@
 }
 
 .pdMetricLabel {
-  font-size: 0.5625rem;
+  font-size: 0.6875rem;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -1415,14 +1415,14 @@
 }
 
 .pdMetricValue {
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   font-weight: 600;
   color: var(--foreground);
   font-family: ui-monospace, SFMono-Regular, monospace;
 }
 
 .pageDetailSubtitle {
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   font-weight: 600;
   color: var(--foreground);
   margin: 0 0 10px 0;
@@ -1461,13 +1461,13 @@
 }
 
 .pdIssueMessage {
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   color: var(--foreground);
   line-height: 1.4;
 }
 
 .pageDetailNoIssues {
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   color: var(--muted-foreground);
   padding: 8px 0;
   margin: 0;
@@ -1480,7 +1480,7 @@
 }
 
 .pdError {
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   font-family: ui-monospace, SFMono-Regular, monospace;
   color: #ef4444;
   background: rgba(239, 68, 68, 0.06);
@@ -1496,7 +1496,7 @@
   align-items: center;
   padding: 1px 6px;
   border-radius: 3px;
-  font-size: 0.5625rem;
+  font-size: 0.6875rem;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.3px;
@@ -1542,7 +1542,7 @@
   background: rgba(99, 102, 241, 0.08);
   color: #6366f1;
   border-radius: 4px;
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   width: fit-content;
   font-weight: 600;
   font-family: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, monospace;
@@ -1641,7 +1641,7 @@
 }
 
 .emptyDescription {
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   color: var(--muted-foreground);
   margin: 0 0 24px 0;
   max-width: 400px;
@@ -1658,7 +1658,7 @@
 }
 
 .historyTitle {
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   font-weight: 600;
   color: var(--foreground);
   margin: 0 0 16px 0;
@@ -1706,7 +1706,7 @@
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   font-weight: 600;
   background: var(--muted, rgba(0, 0, 0, 0.04));
   color: var(--muted-foreground);
@@ -1733,12 +1733,12 @@
 }
 
 .historyDate {
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   color: var(--foreground);
 }
 
 .historyStatus {
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   color: var(--muted-foreground);
 }
 
@@ -1809,7 +1809,7 @@
 
   .tab {
     padding: 12px 14px;
-    font-size: 0.875rem;
+    font-size: 0.75rem;
   }
 
   .tabLabel {
@@ -1889,7 +1889,7 @@
   display: flex;
   align-items: center;
   gap: 0.3rem;
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   color: var(--muted-foreground);
 }
 
@@ -1959,7 +1959,7 @@
   border-radius: var(--radius-sm, 6px);
   background: transparent;
   color: var(--muted-foreground);
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -1988,7 +1988,7 @@
   display: inline-flex;
   align-items: center;
   gap: 3px;
-  font-size: 0.5625rem;
+  font-size: 0.6875rem;
   font-weight: 500;
   padding: 2px 6px;
   border-radius: 4px;
@@ -2031,7 +2031,7 @@
   padding: 8px 16px;
   background: rgba(99, 102, 241, 0.06);
   border-radius: var(--radius-md, 8px);
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   color: var(--muted-foreground);
   margin-bottom: 12px;
 }
@@ -2091,7 +2091,7 @@
   left: 4px;
   background: rgba(0, 0, 0, 0.6);
   color: #fff;
-  font-size: 0.5625rem;
+  font-size: 0.6875rem;
   font-weight: 600;
   padding: 1px 5px;
   border-radius: 3px;
@@ -2142,7 +2142,7 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   color: var(--muted-foreground);
   font-weight: 500;
 }
@@ -2185,7 +2185,7 @@
 }
 
 .filmstripLabel {
-  font-size: 0.5625rem;
+  font-size: 0.6875rem;
   color: var(--muted-foreground);
   font-family: ui-monospace, SFMono-Regular, monospace;
   text-transform: lowercase;
@@ -2203,7 +2203,7 @@
 
 .detailedSourceItem {
   display: inline-block;
-  font-size: 0.625rem;
+  font-size: 0.6875rem;
   font-family: ui-monospace, SFMono-Regular, monospace;
   color: var(--muted-foreground);
   background: rgba(0, 0, 0, 0.04);
@@ -2216,7 +2216,7 @@
 }
 
 .detailedSourceMore {
-  font-size: 0.625rem;
+  font-size: 0.6875rem;
   color: var(--muted-foreground);
   font-style: italic;
 }

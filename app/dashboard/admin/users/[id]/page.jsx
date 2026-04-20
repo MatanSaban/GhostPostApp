@@ -164,7 +164,7 @@ export default function UserAnalyticsPage() {
               <span className={styles.profitLabel}>{acc.name}</span>
               <Link
                 href={`/dashboard/admin/accounts/${acc.id}`}
-                style={{ color: 'var(--primary)', textDecoration: 'none', fontSize: '0.9rem', fontWeight: 500 }}
+                style={{ color: 'var(--primary)', textDecoration: 'none', fontSize: '0.9375rem', fontWeight: 500 }}
               >
                 {acc.planName} &rarr;
               </Link>

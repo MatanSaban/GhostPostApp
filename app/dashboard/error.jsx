@@ -18,7 +18,7 @@ export default function DashboardError({ error, reset }) {
       gap: '1rem',
       padding: '2rem',
     }}>
-      <h2 style={{ fontSize: '1.5rem', fontWeight: 600 }}>Something went wrong!</h2>
+      <h2 style={{ fontSize: '1.5625rem', fontWeight: 600 }}>Something went wrong!</h2>
       <p style={{ color: 'var(--muted-foreground)' }}>
         {error?.message || 'An unexpected error occurred'}
       </p>
@@ -31,7 +31,7 @@ export default function DashboardError({ error, reset }) {
           border: 'none',
           borderRadius: 'var(--radius-lg)',
           cursor: 'pointer',
-          fontSize: '1rem',
+          fontSize: '1.0625rem',
           fontWeight: 500,
         }}
       >

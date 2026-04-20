@@ -169,7 +169,7 @@
 }
 
 .headerSubtitle {
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   color: var(--muted-foreground);
 }
 
@@ -240,7 +240,7 @@
 }
 
 .welcomeDescription {
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   color: var(--muted-foreground);
   max-width: 400px;
   line-height: 1.6;
@@ -257,7 +257,7 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   color: var(--muted-foreground);
 }
 
@@ -268,7 +268,7 @@
 .welcomeCreditsNote {
   margin-top: 1rem;
   padding: 0.75rem 1rem;
-  font-size: 0.7375rem;
+  font-size: 0.75rem;
   color: var(--muted-foreground);
   background: var(--card-secondary);
   border-radius: var(--radius-md);
@@ -424,7 +424,7 @@
 }
 
 .messageText {
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   line-height: 1.5;
   color: var(--foreground);
   white-space: pre-line;
@@ -436,7 +436,7 @@
 
 .messageTime {
   display: block;
-  font-size: 0.5625rem;
+  font-size: 0.6875rem;
   margin-top: 0.25rem;
   color: var(--muted-foreground);
 
@@ -515,7 +515,7 @@
 }
 
 .completionText {
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   color: var(--muted-foreground);
 }
 
@@ -543,7 +543,7 @@
   background: var(--background);
   border: 1px solid var(--border);
   color: var(--foreground);
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   transition: all var(--transition-fast);
 
   &::placeholder {
@@ -698,7 +698,7 @@
   border: 1px solid var(--border-subtle);
   background: var(--bg-primary);
   color: var(--text-primary);
-  font-size: 0.9575rem;
+  font-size: 0.75rem;
   cursor: pointer;
   appearance: none;
   transition: all var(--transition-fast);
@@ -780,7 +780,7 @@
   border: 1px solid var(--border-subtle);
   background: var(--bg-primary);
   color: var(--text-primary);
-  font-size: 0.9575rem;
+  font-size: 0.75rem;
   transition: all var(--transition-fast);
 
   &::placeholder {
@@ -805,7 +805,7 @@
   background: var(--bg-tertiary);
   color: var(--text-secondary);
   border-radius: 50%;
-  font-size: 0.9575rem;
+  font-size: 0.75rem;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -836,7 +836,7 @@
   border: 1px solid var(--border-subtle);
   background: var(--bg-secondary);
   color: var(--text-primary);
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   cursor: pointer;
   transition: all var(--transition-fast);
 
@@ -857,7 +857,7 @@
   padding: 1rem;
   text-align: center;
   color: var(--text-secondary);
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   width: 100%;
 }
 
@@ -893,12 +893,12 @@
   background: rgba(0, 255, 157, 0.1);
   border: 1px solid rgba(0, 255, 157, 0.3);
   border-radius: var(--radius-md);
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   color: var(--accent);
 }
 
 .detectedIcon {
-  font-size: 0.9575rem;
+  font-size: 0.75rem;
 }
 
 .searchableOption {
@@ -909,7 +909,7 @@
 }
 
 .detectedBadge {
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   margin-right: 0.25rem;
 }
 
@@ -939,7 +939,7 @@
   span {
     color: var(--text-primary);
     font-weight: 500;
-    font-size: 0.9rem;
+    font-size: 0.75rem;
   }
 }
 
@@ -1055,7 +1055,7 @@
   border: 1px solid var(--border-subtle);
   background: var(--bg-primary);
   color: var(--text-primary);
-  font-size: 0.9575rem;
+  font-size: 0.75rem;
   resize: vertical;
   min-height: 80px;
   transition: all var(--transition-fast);
@@ -1079,7 +1079,7 @@
   background: rgba(255, 100, 100, 0.1);
   border: 1px solid rgba(255, 100, 100, 0.3);
   color: #ff6464;
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -1092,7 +1092,7 @@
   border: none;
   padding: 0.35rem 0.75rem;
   border-radius: var(--radius-sm);
-  font-size: 0.7375rem;
+  font-size: 0.75rem;
   cursor: pointer;
   transition: background 0.2s;
   margin-inline-start: auto;
@@ -1133,14 +1133,14 @@
 }
 
 .dataCardLabel {
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
 
 .dataCardValue {
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   color: var(--foreground);
 }
 
@@ -1196,7 +1196,7 @@
 }
 
 .dataLabel {
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   font-weight: 500;
   color: var(--muted-foreground);
   text-transform: uppercase;
@@ -1210,7 +1210,7 @@
   border: 2px solid var(--input-border);
   background: var(--input-background);
   color: var(--foreground);
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   transition: all var(--transition-fast);
 
   &:hover {
@@ -1236,7 +1236,7 @@
   border: 2px solid var(--input-border);
   background: var(--input-background);
   color: var(--foreground);
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   resize: vertical;
   min-height: 80px;
   transition: all var(--transition-fast);
@@ -1268,7 +1268,7 @@
 }
 
 .seoLabel {
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   font-weight: 500;
   color: var(--text-muted);
   text-transform: uppercase;
@@ -1307,7 +1307,7 @@
   background: var(--gradient-primary);
   color: var(--text-inverse);
   font-weight: 500;
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   border: none;
   cursor: pointer;
   transition: all var(--transition-fast);
@@ -1380,7 +1380,7 @@
   border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 8px;
   color: white;
-  font-size: 13px;
+  font-size: 0.75rem;
   font-family: inherit;
   line-height: 1.5;
   resize: vertical;
@@ -1404,7 +1404,7 @@
   border: none;
   border-radius: 6px;
   color: white;
-  font-size: 11px;
+  font-size: 0.6875rem;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.15s ease;
@@ -1421,7 +1421,7 @@
   border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 6px;
   color: rgba(255, 255, 255, 0.8);
-  font-size: 11px;
+  font-size: 0.6875rem;
   cursor: pointer;
   transition: all 0.15s ease;
 
@@ -1460,7 +1460,7 @@
   border: 1px solid rgba(255, 255, 255, 0.15);
   border-radius: 20px;
   color: rgba(255, 255, 255, 0.85);
-  font-size: 12px;
+  font-size: 0.75rem;
   cursor: pointer;
   transition: all 0.2s ease;
 
@@ -1533,14 +1533,14 @@
   justify-content: center;
   padding: 8px 0;
   color: rgba(255, 255, 255, 0.6);
-  font-size: 12px;
+  font-size: 0.75rem;
 }
 
 .noSuggestions {
   padding: 20px;
   text-align: center;
   color: rgba(255, 255, 255, 0.6);
-  font-size: 13px;
+  font-size: 0.75rem;
 }
 
 /* Blog Discovery Fallback */
@@ -1558,7 +1558,7 @@
 
 .blogDiscoveryText {
   color: rgba(255, 255, 255, 0.8);
-  font-size: 14px;
+  font-size: 0.75rem;
   line-height: 1.5;
   margin: 0;
 }
@@ -1575,7 +1575,7 @@
   border: 1px solid rgba(99, 102, 241, 0.4);
   border-radius: 8px;
   color: #a5b4fc;
-  font-size: 14px;
+  font-size: 0.75rem;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -1592,7 +1592,7 @@
   border: 1px solid rgba(255, 255, 255, 0.15);
   border-radius: 8px;
   color: rgba(255, 255, 255, 0.6);
-  font-size: 14px;
+  font-size: 0.75rem;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -1625,7 +1625,7 @@
   border: 1px solid rgba(255, 255, 255, 0.15);
   border-radius: 8px;
   color: #fff;
-  font-size: 13px;
+  font-size: 0.75rem;
   outline: none;
   direction: ltr;
   transition: border-color 0.2s ease;
@@ -1666,7 +1666,7 @@
 
 .blogFetchError {
   color: #f87171;
-  font-size: 12px;
+  font-size: 0.75rem;
   margin: 0;
 }
 
@@ -1684,7 +1684,7 @@
   border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 8px;
   color: rgba(255, 255, 255, 0.8);
-  font-size: 13px;
+  font-size: 0.75rem;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -1705,7 +1705,7 @@
   background: transparent;
   border: none;
   color: rgba(255, 255, 255, 0.5);
-  font-size: 12px;
+  font-size: 0.75rem;
   cursor: pointer;
   transition: color 0.2s ease;
   align-self: center;
@@ -1736,7 +1736,7 @@
   background: rgba(102, 126, 234, 0.1);
   border-radius: 8px;
   color: rgba(255, 255, 255, 0.8);
-  font-size: 12px;
+  font-size: 0.75rem;
 }
 
 .aiRecommendationBanner {
@@ -1748,11 +1748,11 @@
   border: 1px solid rgba(102, 126, 234, 0.3);
   border-radius: 10px;
   color: white;
-  font-size: 13px;
+  font-size: 0.75rem;
 }
 
 .aiRecommendationIcon {
-  font-size: 17px;
+  font-size: 1.0625rem;
 }
 
 .confidenceBadge {
@@ -1760,7 +1760,7 @@
   padding: 4px 10px;
   background: rgba(255, 255, 255, 0.1);
   border-radius: 12px;
-  font-size: 11px;
+  font-size: 0.6875rem;
   color: rgba(255, 255, 255, 0.7);
 }
 
@@ -1786,7 +1786,7 @@
   justify-content: center;
   background: var(--gradient-primary);
   border-radius: 50%;
-  font-size: 11px;
+  font-size: 0.6875rem;
   box-shadow: 0 2px 8px rgba(102, 126, 234, 0.4);
 }
 
@@ -1860,7 +1860,7 @@
 }
 
 .articleTitle {
-  font-size: 13px;
+  font-size: 0.75rem;
   font-weight: 500;
   color: white;
   margin: 0 0 8px 0;
@@ -1872,7 +1872,7 @@
 }
 
 .articleExcerpt {
-  font-size: 11px;
+  font-size: 0.6875rem;
   color: rgba(255, 255, 255, 0.6);
   margin: 0;
   line-height: 1.4;
@@ -1984,7 +1984,7 @@
       position: absolute;
       top: 8px;
       right: 8px;
-      font-size: 9px;
+      font-size: 0.6875rem;
       color: rgba(16, 185, 129, 0.8);
     }
   }
@@ -1999,7 +1999,7 @@
 }
 
 .competitorName {
-  font-size: 13px;
+  font-size: 0.75rem;
   font-weight: 600;
   color: white;
   overflow: hidden;
@@ -2027,13 +2027,13 @@
 }
 
 .competitorScore {
-  font-size: 10px;
+  font-size: 0.6875rem;
   color: rgba(16, 185, 129, 0.9);
   font-weight: 500;
 }
 
 .competitorDescription {
-  font-size: 11px;
+  font-size: 0.6875rem;
   color: rgba(255, 255, 255, 0.6);
   line-height: 1.3;
   display: -webkit-box;
@@ -2043,7 +2043,7 @@
 }
 
 .competitorUrl {
-  font-size: 10px;
+  font-size: 0.6875rem;
   color: rgba(255, 255, 255, 0.4);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -2067,7 +2067,7 @@
   border: 1px solid rgba(255, 255, 255, 0.15);
   border-radius: 10px;
   color: white;
-  font-size: 13px;
+  font-size: 0.75rem;
   transition: all 0.2s ease;
 
   &::placeholder {
@@ -2082,7 +2082,7 @@
 }
 
 .inputHint {
-  font-size: 10px;
+  font-size: 0.6875rem;
   color: rgba(255, 255, 255, 0.4);
   text-align: right;
 }
@@ -2101,12 +2101,12 @@
   max-width: 500px;
 
   .hintIcon {
-    font-size: 17px;
+    font-size: 1.0625rem;
     flex-shrink: 0;
   }
 
   span:last-child {
-    font-size: 12px;
+    font-size: 0.75rem;
     color: var(--text-secondary);
     line-height: 1.5;
   }
@@ -2121,7 +2121,7 @@
   background: rgba(102, 126, 234, 0.15);
   border-radius: 8px;
   margin-bottom: 12px;
-  font-size: 13px;
+  font-size: 0.75rem;
   color: var(--text-primary);
   font-weight: 500;
 
@@ -2156,7 +2156,7 @@
   border: 2px solid var(--border-subtle);
   background: var(--bg-primary);
   color: var(--text-primary);
-  font-size: 14px;
+  font-size: 0.75rem;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -2181,7 +2181,7 @@
 }
 
 .rangeButtonLabel {
-  font-size: 14px;
+  font-size: 0.75rem;
 }
 
 /* Manual Keyword Input */
@@ -2195,7 +2195,7 @@
 .noSuggestionsText {
   text-align: center;
   color: rgba(255, 255, 255, 0.6);
-  font-size: 13px;
+  font-size: 0.75rem;
   margin: 0;
 }
 
@@ -2212,7 +2212,7 @@
   border: 1px solid rgba(255, 255, 255, 0.15);
   border-radius: 8px;
   color: white;
-  font-size: 13px;
+  font-size: 0.75rem;
   transition: all 0.2s ease;
 
   &::placeholder {
@@ -2249,7 +2249,7 @@
 .inlineDataRow {
   display: flex;
   gap: 8px;
-  font-size: 12px;
+  font-size: 0.75rem;
   line-height: 1.4;
 }
 
@@ -2305,7 +2305,7 @@
 
   h3 {
     margin: 0;
-    font-size: 15px;
+    font-size: 0.75rem;
     font-weight: 600;
     color: white;
   }
@@ -2341,7 +2341,7 @@
 }
 
 .editModalLabel {
-  font-size: 12px;
+  font-size: 0.75rem;
   font-weight: 500;
   color: rgba(255, 255, 255, 0.7);
 }
@@ -2353,7 +2353,7 @@
   border: 1px solid rgba(255, 255, 255, 0.15);
   border-radius: 8px;
   color: white;
-  font-size: 13px;
+  font-size: 0.75rem;
   transition: all 0.2s ease;
 
   &:focus {
@@ -2411,14 +2411,14 @@
 }
 
 .integrationTitle {
-  font-size: 15px;
+  font-size: 0.75rem;
   font-weight: 600;
   color: white;
   margin: 0;
 }
 
 .integrationDesc {
-  font-size: 13px;
+  font-size: 0.75rem;
   color: rgba(255, 255, 255, 0.6);
   margin: 0;
   line-height: 1.5;
@@ -2433,7 +2433,7 @@
   gap: 6px;
 
   li {
-    font-size: 12px;
+    font-size: 0.75rem;
     color: rgba(255, 255, 255, 0.5);
     padding-left: 18px;
     position: relative;
@@ -2464,7 +2464,7 @@
   color: #1a1a2e;
   border: none;
   border-radius: 8px;
-  font-size: 14px;
+  font-size: 0.75rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -2492,7 +2492,7 @@
   border: 1px solid rgba(66, 133, 244, 0.3);
   border-radius: 8px;
   color: rgba(255, 255, 255, 0.8);
-  font-size: 13px;
+  font-size: 0.75rem;
   width: 100%;
   justify-content: center;
 }
@@ -2506,14 +2506,14 @@
   border: 1px solid rgba(52, 168, 83, 0.3);
   border-radius: 8px;
   color: #34A853;
-  font-size: 14px;
+  font-size: 0.75rem;
   font-weight: 500;
   width: 100%;
   justify-content: center;
 }
 
 .integrationError {
-  font-size: 13px;
+  font-size: 0.75rem;
   color: #ff6b6b;
   margin: 0;
   text-align: center;
@@ -2530,7 +2530,7 @@
   border: none;
   border-radius: 8px;
   color: #fff;
-  font-size: 14px;
+  font-size: 0.75rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -2578,12 +2578,12 @@
   gap: 4px;
 
   strong {
-    font-size: 14px;
+    font-size: 0.75rem;
     font-weight: 600;
   }
 
   p {
-    font-size: 13px;
+    font-size: 0.75rem;
     margin: 0;
     opacity: 0.85;
     color: rgba(255, 255, 255, 0.7);
@@ -2601,7 +2601,7 @@
   gap: 10px;
   padding: 16px;
   color: rgba(255, 255, 255, 0.7);
-  font-size: 13px;
+  font-size: 0.75rem;
 }
 
 /* ── Credits error banner ──────────────────────────── */
@@ -2642,14 +2642,14 @@
 
   strong {
     display: block;
-    font-size: 13px;
+    font-size: 0.75rem;
     font-weight: 600;
     color: #ffa500;
   }
 
   p {
     margin: 2px 0 0;
-    font-size: 12px;
+    font-size: 0.75rem;
     color: rgba(255, 255, 255, 0.6);
   }
 }
@@ -2676,7 +2676,7 @@
   color: #fff;
   border: none;
   border-radius: 6px;
-  font-size: 13px;
+  font-size: 0.75rem;
   font-weight: 600;
   cursor: pointer;
   transition: opacity 0.2s ease, transform 0.15s ease;
@@ -2697,7 +2697,7 @@
   background: rgba(255, 165, 0, 0.1);
   border: 1px solid rgba(255, 165, 0, 0.25);
   border-radius: 8px;
-  font-size: 13px;
+  font-size: 0.75rem;
   color: #ffa500;
 
   svg {

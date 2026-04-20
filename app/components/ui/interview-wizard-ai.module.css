@@ -93,14 +93,14 @@
 }
 
 .headerTitle {
-  font-size: 0.9575rem;
+  font-size: 0.75rem;
   font-weight: 600;
   color: var(--foreground);
   margin: 0;
 }
 
 .headerProgress {
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   color: var(--muted-foreground);
 }
 
@@ -198,7 +198,7 @@
   padding: 0.75rem 1rem;
   border-radius: var(--radius-lg);
   max-width: 80%;
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   line-height: 1.5;
   white-space: pre-wrap;
 }
@@ -241,7 +241,7 @@
   justify-content: center;
   gap: 0.5rem;
   padding: 0.5rem 1rem;
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   font-weight: 500;
   background: var(--muted);
   border: 1px solid var(--border);
@@ -274,7 +274,7 @@
 .chatInput {
   flex: 1;
   padding: 0.75rem 1rem;
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   background: var(--input);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
@@ -303,7 +303,7 @@
 .textareaInput {
   flex: 1;
   padding: 0.75rem 1rem;
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   background: var(--input);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
@@ -352,7 +352,7 @@
   gap: 0.5rem;
   width: 100%;
   padding: 0.8125rem 1.5rem;
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   font-weight: 600;
   background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
   border: none;
@@ -380,7 +380,7 @@
 }
 
 .greetingText {
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   color: var(--muted-foreground);
   line-height: 1.6;
   margin: 0;
@@ -400,7 +400,7 @@
   justify-content: center;
   gap: 0.5rem;
   padding: 0.8125rem 1.5rem;
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   font-weight: 600;
   border: none;
   border-radius: var(--radius-lg);
@@ -440,7 +440,7 @@
 .selectionOption {
   width: 100%;
   padding: 0.8125rem 1rem;
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   text-align: left;
   background: var(--muted);
   border: 1px solid var(--border);
@@ -473,7 +473,7 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0.5rem 1rem;
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   background: var(--muted);
   border: 1px solid var(--border);
   border-radius: var(--radius-full);
@@ -529,7 +529,7 @@
 .sliderLabels {
   display: flex;
   justify-content: space-between;
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   color: var(--muted-foreground);
 }
 
@@ -573,7 +573,7 @@
 
 .fileItem {
   padding: 0.5rem 0.75rem;
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   background: var(--muted);
   border-radius: var(--radius-md);
   color: var(--foreground);
@@ -594,7 +594,7 @@
 }
 
 .editableField label {
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   font-weight: 500;
   color: var(--muted-foreground);
 }
@@ -614,7 +614,7 @@
 
 .suggestionChip {
   padding: 0.5rem 1rem;
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   background: var(--muted);
   border: 1px solid var(--border);
   border-radius: var(--radius-full);
@@ -651,7 +651,7 @@
   gap: 0.5rem;
   margin-top: 1rem;
   padding: 0.75rem 1.5rem;
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   font-weight: 500;
   background: var(--muted);
   border: 1px solid var(--border);
@@ -688,7 +688,7 @@
 }
 
 .completeContainer p {
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   color: var(--muted-foreground);
   margin: 0 0 1.5rem 0;
 }

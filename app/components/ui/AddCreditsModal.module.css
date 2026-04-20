@@ -84,14 +84,14 @@
 
 .title {
   margin: 0;
-  font-size: 1.25rem;
+  font-size: 1.3125rem;
   font-weight: 700;
   color: var(--foreground);
 }
 
 .subtitle {
   margin: 0.25rem 0 0;
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   color: var(--muted-foreground);
 }
 
@@ -105,7 +105,7 @@
   padding: 0.5rem 0.75rem;
   background: var(--muted, rgba(0, 0, 0, 0.03));
   border-radius: var(--radius-md, 8px);
-  font-size: 0.9rem;
+  font-size: 0.75rem;
 }
 
 .balanceLabel {
@@ -168,18 +168,18 @@
   display: flex;
   align-items: center;
   gap: 0.375rem;
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   font-weight: 600;
   color: var(--foreground);
 }
 
 .addonEmoji {
-  font-size: 1.125rem;
+  font-size: 1.1875rem;
 }
 
 .addonDesc {
   margin: 0.25rem 0 0;
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   color: var(--muted-foreground);
   line-height: 1.4;
 }
@@ -188,7 +188,7 @@
   display: inline-block;
   margin-top: 0.375rem;
   padding: 0.125rem 0.5rem;
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   font-weight: 600;
   color: var(--primary, #7b2cbf);
   background: rgba(123, 44, 191, 0.08);
@@ -212,14 +212,14 @@
 }
 
 .price {
-  font-size: 1.125rem;
+  font-size: 1.1875rem;
   font-weight: 700;
   color: var(--foreground);
 }
 
 .oneTimeBadge {
   padding: 0.0625rem 0.375rem;
-  font-size: 0.5625rem;
+  font-size: 0.6875rem;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.04em;
@@ -230,7 +230,7 @@
 
 .recurringBadge {
   padding: 0.0625rem 0.375rem;
-  font-size: 0.5625rem;
+  font-size: 0.6875rem;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.04em;
@@ -302,7 +302,7 @@
 .quantityValue {
   min-width: 1.5rem;
   text-align: center;
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   font-weight: 600;
 }
 
@@ -311,7 +311,7 @@
   align-items: center;
   gap: 0.375rem;
   padding: 0.375rem 0.75rem;
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   font-weight: 600;
   border: none;
   border-radius: var(--radius-md, 8px);
@@ -337,7 +337,7 @@
   display: flex;
   align-items: center;
   gap: 0.25rem;
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   padding: 0.25rem 0.5rem;
   border-radius: var(--radius-sm, 4px);
 }
@@ -373,7 +373,7 @@
   color: #fff;
   border: none;
   border-radius: 0.5rem;
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   font-weight: 600;
   cursor: pointer;
   transition: opacity 0.15s, transform 0.15s;
@@ -391,7 +391,7 @@
   gap: 0.375rem;
   background: none;
   border: none;
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   color: var(--primary, #7b2cbf);
   cursor: pointer;
   transition: opacity 0.15s;

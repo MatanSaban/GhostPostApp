@@ -4,7 +4,7 @@ import prisma from '@/lib/prisma';
 import {
   refreshAccessToken,
   fetchAITrafficStats,
-  // fetchGSCQueriesForAIPages,
+  fetchGSCQueriesForAIPages,
 } from '@/lib/google-integration';
 
 const SESSION_COOKIE = 'user_session';
@@ -97,17 +97,28 @@ export async function GET(request) {
       return null;
     });
 
-    // AI Keywords - disabled for now
-    // let aiKeywords = [];
-    // if (integration.gscConnected && integration.gscSiteUrl && aiTraffic?.topLandingPages?.length) {
-    //   const aiPagePaths = aiTraffic.topLandingPages.map(p => p.page);
-    //   aiKeywords = await fetchGSCQueriesForAIPages(accessToken, integration.gscSiteUrl, range, aiPagePaths).catch(err => {
-    //     console.error('[AI Traffic] GSC queries for AI pages error:', err.message);
-    //     return [];
-    //   });
-    // }
+    // AI Keywords — fetch GSC queries that landed on the same pages AI engines
+    // are sending users to. Only runs if GSC is connected for the site.
+    let aiKeywords = [];
+    if (
+      aiTraffic &&
+      integration.gscConnected &&
+      integration.gscSiteUrl &&
+      aiTraffic.topLandingPages?.length
+    ) {
+      const aiPagePaths = aiTraffic.topLandingPages.map(p => p.page);
+      aiKeywords = await fetchGSCQueriesForAIPages(
+        accessToken,
+        integration.gscSiteUrl,
+        range,
+        aiPagePaths,
+      ).catch(err => {
+        console.error('[AI Traffic] GSC queries for AI pages error:', err.message);
+        return [];
+      });
+    }
 
-    return NextResponse.json({ aiTraffic });
+    return NextResponse.json({ aiTraffic, aiKeywords });
   } catch (error) {
     console.error('[AI Traffic] Error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });

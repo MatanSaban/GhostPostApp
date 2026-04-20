@@ -159,7 +159,7 @@ export function PaymentStep({ translations, selectedPlan, userData, onComplete }
             height: 42px;
             width: 100%;
             padding: 0 12px 0 2.25rem;
-            font-size: 0.875rem;
+            font-size: 0.75rem;
             outline: none;
             direction: ltr;
             background: ${bgColor};
@@ -182,7 +182,7 @@ export function PaymentStep({ translations, selectedPlan, userData, onComplete }
             height: 42px;
             width: 100%;
             padding: 0 12px;
-            font-size: 0.875rem;
+            font-size: 0.75rem;
             outline: none;
             direction: ltr;
             background: ${bgColor};
@@ -488,7 +488,7 @@ export function PaymentStep({ translations, selectedPlan, userData, onComplete }
                   placeholder={translations.coupon?.placeholder}
                   dir="ltr"
                   style={{
-                    flex: 1, padding: '0.5rem 0.75rem', fontSize: '0.875rem',
+                    flex: 1, padding: '0.5rem 0.75rem', fontSize: '0.9375rem',
                     fontFamily: 'monospace', textTransform: 'uppercase',
                     border: `1px solid ${couponError ? '#ef4444' : 'var(--input-border, #e5e7eb)'}`,
                     borderRadius: '0.5rem', outline: 'none',

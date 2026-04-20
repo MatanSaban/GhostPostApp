@@ -178,7 +178,7 @@ export default function DashboardContent({ translations }) {
   const [showAllKeywords, setShowAllKeywords] = useState(false);
   const [generatePostKeyword, setGeneratePostKeyword] = useState(null);
   const [aiPostLoading, setAiPostLoading] = useState(null); // query being processed for AI post
-  // const [aiKeywords, setAiKeywords] = useState([]);
+  const [aiKeywords, setAiKeywords] = useState([]);
   // const [inferredQueries, setInferredQueries] = useState([]);
   // const [inferredLoading, setInferredLoading] = useState(false);
 
@@ -449,7 +449,7 @@ export default function DashboardContent({ translations }) {
       );
       const json = await res.json();
       setAiData(json.aiTraffic || null);
-      // setAiKeywords(json.aiKeywords || []);
+      setAiKeywords(Array.isArray(json.aiKeywords) ? json.aiKeywords : []);
 
       // // Trigger inferred queries if we have landing pages
       // if (json.aiTraffic?.topLandingPages?.length) {
@@ -588,6 +588,16 @@ export default function DashboardContent({ translations }) {
   const fmtNum = (n) => {
     if (n == null) return '-';
     return Number(n).toLocaleString();
+  };
+
+  // Format a duration in seconds as a compact "Xm Ys" / "Ys" label.
+  // GA4 averageSessionDuration is returned in seconds (float).
+  const fmtDuration = (seconds) => {
+    const s = Math.round(Number(seconds) || 0);
+    if (s < 60) return `${s}s`;
+    const m = Math.floor(s / 60);
+    const r = s % 60;
+    return r ? `${m}m ${r}s` : `${m}m`;
   };
 
   const trendOf = (change) => {
@@ -1192,6 +1202,134 @@ export default function DashboardContent({ translations }) {
     );
   };
 
+  // ── AI Traffic: Daily timeseries chart (stacked area by engine) ──
+  // Designed to match the same data the engine donut shows: the per-day
+  // sessions sum across engines equals the total in the KPI row, and per-day
+  // engine slices are pulled from the same GA4 query as the donut.
+  const renderAiTimeseriesChart = (timeseries, engines) => {
+    if (!timeseries?.length) return null;
+    // Skip rendering when every day is zero — keeps the section clean.
+    const hasAny = timeseries.some(d => d.sessions > 0);
+    if (!hasAny) return null;
+
+    // Larger viewBox so axis labels (in viewBox units) end up readable when
+    // the SVG is scaled down to typical card width. preserveAspectRatio is
+    // left as the default (xMidYMid meet) — this keeps text proportional
+    // instead of being squashed when the container narrows.
+    const W = 800, H = 280;
+    const padL = 56, padR = 16, padT = 16, padB = 36;
+    const innerW = W - padL - padR;
+    const innerH = H - padT - padB;
+    const N = timeseries.length;
+
+    // Engine order = order from the donut (highest sessions first)
+    const engineNames = (engines || []).map(e => e.name);
+    const colorOf = (name) => {
+      const idx = engineNames.indexOf(name);
+      return AI_COLORS[idx >= 0 ? idx % AI_COLORS.length : (AI_COLORS.length - 1)];
+    };
+
+    const maxSessions = Math.max(1, ...timeseries.map(d => d.sessions));
+    const xOf = (i) => padL + (N === 1 ? innerW / 2 : (i * innerW) / (N - 1));
+    const yOf = (v) => padT + innerH - (v / maxSessions) * innerH;
+
+    // Build stacked paths (engine layers, bottom-up by donut order so the
+    // largest engine sits at the bottom of the stack like the legend implies)
+    const stackOrder = [...engineNames].reverse(); // smallest at top
+    const layerPoints = stackOrder.map((engName) => {
+      // Cumulative sum BELOW this engine for each day = sessions of all
+      // engines that come after engName in stackOrder (i.e. larger ones).
+      const belowEngines = stackOrder.slice(stackOrder.indexOf(engName) + 1);
+      return timeseries.map((d, i) => {
+        const below = belowEngines.reduce((s, e) => s + (d.byEngine?.[e] || 0), 0);
+        const top = below + (d.byEngine?.[engName] || 0);
+        return { i, x: xOf(i), yTop: yOf(top), yBottom: yOf(below) };
+      });
+    });
+
+    const buildLayerPath = (pts) => {
+      if (!pts.length) return '';
+      const top = pts.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.yTop}`).join(' ');
+      const bottom = pts.slice().reverse().map(p => `L ${p.x} ${p.yBottom}`).join(' ');
+      return `${top} ${bottom} Z`;
+    };
+
+    // Total line (sum of all engines per day) on top
+    const totalPath = timeseries.map((d, i) => `${i === 0 ? 'M' : 'L'} ${xOf(i)} ${yOf(d.sessions)}`).join(' ');
+
+    // X-axis: show ~6 evenly spaced labels so it stays readable
+    const labelStep = Math.max(1, Math.ceil(N / 6));
+
+    return (
+      <div className={styles.aiTimeseriesWrap}>
+        <svg viewBox={`0 0 ${W} ${H}`} className={styles.aiTimeseriesSvg}>
+          {/* Y-axis gridlines (4 lines) */}
+          {[0, 0.25, 0.5, 0.75, 1].map((f, i) => {
+            const y = padT + innerH - f * innerH;
+            const v = Math.round(maxSessions * f);
+            return (
+              <g key={i}>
+                <line x1={padL} y1={y} x2={W - padR} y2={y} stroke="var(--border)" strokeWidth="0.75" strokeDasharray={i === 0 ? '' : '3 4'} />
+                <text x={padL - 8} y={y + 5} textAnchor="end" fontSize="14" fill="var(--muted-foreground)">{fmtNum(v)}</text>
+              </g>
+            );
+          })}
+          {/* Stacked engine layers */}
+          {layerPoints.map((pts, idx) => {
+            const engName = stackOrder[idx];
+            return (
+              <path
+                key={engName}
+                d={buildLayerPath(pts)}
+                fill={colorOf(engName)}
+                fillOpacity="0.55"
+                stroke={colorOf(engName)}
+                strokeOpacity="0.8"
+                strokeWidth="1.25"
+              />
+            );
+          })}
+          {/* Total line on top */}
+          <path d={totalPath} fill="none" stroke="var(--foreground)" strokeWidth="2" strokeOpacity="0.85" strokeLinecap="round" />
+          {/* X-axis labels */}
+          {timeseries.map((d, i) => {
+            if (i % labelStep !== 0 && i !== N - 1) return null;
+            return (
+              <text key={d.date} x={xOf(i)} y={H - 10} textAnchor="middle" fontSize="14" fill="var(--muted-foreground)">
+                {formatChartDate(d.date)}
+              </text>
+            );
+          })}
+        </svg>
+        {/* Inline legend reusing the engine colors */}
+        <div className={styles.aiTimeseriesLegend}>
+          {engineNames.map((name) => (
+            <div key={name} className={styles.aiDonutLegendItem}>
+              <span className={styles.aiDonutLegendDot} style={{ background: colorOf(name) }} />
+              <span className={styles.aiDonutLegendLabel}>{name}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  };
+
+  // Build the prefilled chat message for "Optimize with Ghost" on a given page
+  const buildOptimizePrompt = (engineName, fullUrl, keyword) => {
+    const isHe = locale === 'he';
+    if (isHe) {
+      return `אני רוצה לשפר את העמוד הזה עבור ${engineName}: ${fullUrl}${keyword ? `\nהמילה / נושא הרלוונטי: "${keyword}"` : ''}\n\nבדוק את העמוד, נתח איך הוא עובד מול ${engineName}, והצע שיפורים קונקרטיים שאפשר לאשר.`;
+    }
+    return `I want to optimize this page for ${engineName}: ${fullUrl}${keyword ? `\nRelevant keyword/topic: "${keyword}"` : ''}\n\nReview the page, analyze how well it performs for ${engineName}, and propose concrete improvements I can approve.`;
+  };
+
+  const handleOptimizeWithGhost = (engineName, fullUrl, keyword) => {
+    const prefill = buildOptimizePrompt(engineName, fullUrl, keyword);
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('gp:open-chat', { detail: { prefill } }));
+    }
+  };
+
   const renderEngineBreakdown = (engines, enginePages) => {
     if (!engines?.length) return <p className={styles.noDataMsg}>{t.aiNoTraffic || 'No AI-referred traffic detected.'}</p>;
 
@@ -1257,7 +1395,18 @@ export default function DashboardContent({ translations }) {
                             <ExternalLink size={10} className={styles.pageLinkIcon} />
                           </a>
                         </div>
-                        <span className={styles.aiEnginePageSessions}>{fmtNum(row.sessions)}</span>
+                        <div className={styles.aiEnginePageRight}>
+                          <span className={styles.aiEnginePageSessions}>{fmtNum(row.sessions)}</span>
+                          <button
+                            type="button"
+                            className={`${styles.aiOptimizeBtn} ${styles.hasTooltip}`}
+                            data-tooltip={t.aiOptimizeWithGhostHint || 'Open Ghost on this page to improve it for AI engines'}
+                            onClick={() => handleOptimizeWithGhost(eng.name, toExternalUrl(fullUrl), row.keyword)}
+                          >
+                            <span className={styles.aiOptimizeBtnIcon}>👻</span>
+                            <span className={styles.aiOptimizeBtnLabel}>{t.aiOptimizeWithGhost || 'Optimize with Ghost'}</span>
+                          </button>
+                        </div>
                       </div>
                     );
                   })}
@@ -1270,40 +1419,40 @@ export default function DashboardContent({ translations }) {
     );
   };
 
-  // ── AI Keywords – disabled for now ──
-  // const renderAiKeywords = (queries) => {
-  //   if (!queries?.length) return <p className={styles.noDataMsg}>{t.aiNoKeywordsData || 'No AI-related keywords found for this period.'}</p>;
-  //   return (
-  //     <div className={styles.aiOverviewTable}>
-  //       <div className={styles.aiOverviewHeader}>
-  //         <span className={styles.aiOverviewColQuery}>{t.aiQuery || 'Query'}</span>
-  //         <span className={styles.aiOverviewColClicks}>{t.clicks || 'Clicks'}</span>
-  //         <span className={styles.aiOverviewColImpr}>{t.impressions || 'Impr.'}</span>
-  //         <span className={styles.aiOverviewColCtr}>{t.ctr || 'CTR'}</span>
-  //       </div>
-  //       {queries.map((row, i) => {
-  //         let displayPage = row.page;
-  //         try {
-  //           displayPage = decodeURIComponent(new URL(row.page).pathname);
-  //           if (displayPage === '/') displayPage = '/ (Homepage)';
-  //         } catch {
-  //           try { displayPage = decodeURIComponent(row.page); } catch { /* keep */ }
-  //         }
-  //         return (
-  //           <div key={i} className={styles.aiOverviewRow}>
-  //             <div className={styles.aiOverviewColQuery}>
-  //               <span className={styles.aiOverviewQueryText} title={row.query}>{row.query}</span>
-  //               <span className={styles.aiOverviewPagePath} title={row.page}>{displayPage}</span>
-  //             </div>
-  //             <span className={styles.aiOverviewColClicks}>{fmtNum(row.clicks)}</span>
-  //             <span className={styles.aiOverviewColImpr}>{fmtNum(row.impressions)}</span>
-  //             <span className={styles.aiOverviewColCtr}>{row.ctr}%</span>
-  //           </div>
-  //         );
-  //       })}
-  //     </div>
-  //   );
-  // };
+  // ── AI Keywords (GSC search queries that landed on AI top pages) ──
+  const renderAiKeywords = (queries) => {
+    if (!queries?.length) return <p className={styles.noDataMsg}>{t.aiNoKeywordsData || 'No AI-related keywords found for this period.'}</p>;
+    return (
+      <div className={styles.aiOverviewTable}>
+        <div className={styles.aiOverviewHeader}>
+          <span className={styles.aiOverviewColQuery}>{t.aiQuery || 'Query'}</span>
+          <span className={styles.aiOverviewColClicks}>{t.aiClicks || 'Clicks'}</span>
+          <span className={styles.aiOverviewColImpr}>{t.aiImpressions || 'Impr.'}</span>
+          <span className={styles.aiOverviewColCtr}>{t.aiCtr || 'CTR'}</span>
+        </div>
+        {queries.map((row, i) => {
+          let displayPage = row.page;
+          try {
+            displayPage = decodeURIComponent(new URL(row.page).pathname);
+            if (displayPage === '/') displayPage = `/ (${t.aiHomePage || 'Homepage'})`;
+          } catch {
+            try { displayPage = decodeURIComponent(row.page); } catch { /* keep */ }
+          }
+          return (
+            <div key={i} className={styles.aiOverviewRow}>
+              <div className={styles.aiOverviewColQuery}>
+                <span className={styles.aiOverviewQueryText} title={row.query}>{row.query}</span>
+                <span className={styles.aiOverviewPagePath} title={row.page}>{displayPage}</span>
+              </div>
+              <span className={styles.aiOverviewColClicks}>{fmtNum(row.clicks)}</span>
+              <span className={styles.aiOverviewColImpr}>{fmtNum(row.impressions)}</span>
+              <span className={styles.aiOverviewColCtr}>{row.ctr}%</span>
+            </div>
+          );
+        })}
+      </div>
+    );
+  };
   // ── end AI Keywords ──
 
   // // ─── Inferred AI Queries renderer ───
@@ -2326,24 +2475,59 @@ export default function DashboardContent({ translations }) {
                     </div>
                   </div>
 
+                  {/* Row 1b: AI Engagement Quality KPIs */}
+                  <div className={styles.aiKpiRow}>
+                    <div className={`${styles.aiKpiCard} ${styles.hasTooltip}`} data-tooltip={t.tipAiEngagementRate || 'Share of AI sessions that engaged with your site.'}>
+                      <div className={styles.aiKpiValue}>{aiData.aiEngagementRate ?? 0}%</div>
+                      <div className={styles.aiKpiLabel}>{t.aiEngagementRate || 'AI Engagement Rate'}</div>
+                      {aiData.aiEngagementRateChange != null && (
+                        <span className={`${styles.changeBadge} ${aiData.aiEngagementRateChange === 0 ? styles.changeBadgeNeutral : aiData.aiEngagementRateChange > 0 ? styles.changeBadgeUp : styles.changeBadgeDown}`}>
+                          {aiData.aiEngagementRateChange === 0 ? '0pp -' : <>{aiData.aiEngagementRateChange >= 0 ? '↑' : '↓'}{Math.abs(aiData.aiEngagementRateChange)}pp</>}
+                        </span>
+                      )}
+                    </div>
+                    <div className={`${styles.aiKpiCard} ${styles.hasTooltip}`} data-tooltip={t.tipAiAvgDuration || 'Average AI-referred session duration in seconds.'}>
+                      <div className={styles.aiKpiValue}>{fmtDuration(aiData.aiAvgDuration || 0)}</div>
+                      <div className={styles.aiKpiLabel}>{t.aiAvgDuration || 'Avg. AI Session Duration'}</div>
+                      {aiData.aiAvgDurationChange != null && (
+                        <ChangeBadge value={aiData.aiAvgDurationChange} />
+                      )}
+                    </div>
+                    <div className={`${styles.aiKpiCard} ${styles.hasTooltip}`} data-tooltip={t.tipAiKeyEvents || 'Key events triggered during AI-referred sessions.'}>
+                      <div className={styles.aiKpiValue}>{fmtNum(aiData.aiKeyEvents || 0)}</div>
+                      <div className={styles.aiKpiLabel}>{t.aiKeyEvents || 'AI Key Events'}</div>
+                      {aiData.aiKeyEventsChange != null && (
+                        <ChangeBadge value={aiData.aiKeyEventsChange} />
+                      )}
+                    </div>
+                  </div>
+
                   {/* Row 2: Engine breakdown with per-engine pages */}
                   <DashboardCard title={t.aiEngineBreakdown || 'Traffic by AI Engine'}>
                     {renderEngineBreakdown(aiData.engines, aiData.enginePages)}
                   </DashboardCard>
 
-                  {/* Row 3: AI Keywords - disabled for now
-                  {(aiKeywords.length > 0 || data?.gscConnected) && (
-                    <DashboardCard title={t.aiKeywordsTitle || 'AI Traffic - Keywords'}>
-                      {renderAiKeywords(aiKeywords)}
+                  {/* Row 3: Daily timeseries (stacked by engine) — commented out per user request.
+                  {aiData.dailyTimeseries?.length > 0 && (
+                    <DashboardCard title={t.aiTimeseriesTitle || 'AI Sessions Over Time'}>
+                      {renderAiTimeseriesChart(aiData.dailyTimeseries, aiData.engines)}
                     </DashboardCard>
                   )}
                   */}
 
-                  {/* Row 3: Inferred AI Queries
-                  <DashboardCard title={t.inferredQueriesTitle || 'Inferred AI Queries'}>
-                    {renderInferredQueries()}
-                  </DashboardCard>
-                  */}
+                  {/* Row 4: Search terms on AI-linked pages (GSC queries on the same pages AI engines link to) */}
+                  {(aiKeywords.length > 0 || data?.gscConnected) && (
+                    <DashboardCard title={
+                      <span
+                        className={styles.hasTooltip}
+                        data-tooltip={t.tipAiKeywords || "AI engines don't expose user prompts. This is the next-best signal: Google search queries that landed on the same pages AI engines are linking to."}
+                      >
+                        {t.aiKeywordsTitle || 'Search terms on AI-linked pages'}
+                      </span>
+                    }>
+                      {renderAiKeywords(aiKeywords)}
+                    </DashboardCard>
+                  )}
                 </>
               ) : (
                 <div className={styles.chartPlaceholder}>
@@ -2357,9 +2541,11 @@ export default function DashboardContent({ translations }) {
           {!hasAgentInsights && <AgentActivity translations={t} onInsightsLoaded={setHasAgentInsights} />}
 
           {/* Quick Actions */}
+          {/*
           <DashboardCard title={t.quickActions}>
             <QuickActions actions={quickActionsData} />
           </DashboardCard>
+          */}
         </div>
       </div>
 

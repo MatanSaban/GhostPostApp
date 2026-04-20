@@ -112,7 +112,7 @@
 }
 
 .pageSubtitle {
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   color: var(--muted-foreground);
   margin-top: 0.25rem;
 }
@@ -130,7 +130,7 @@
   border-radius: var(--radius-md);
   background: var(--muted);
   color: var(--foreground);
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   font-weight: 500;
   border: 1px solid var(--border);
   cursor: pointer;
@@ -156,7 +156,7 @@
   border-radius: var(--radius-md);
   background: var(--color-primary);
   color: white;
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   font-weight: 500;
   border: none;
   cursor: pointer;
@@ -212,7 +212,7 @@
 }
 
 .tableTitle {
-  font-size: 0.9575rem;
+  font-size: 0.75rem;
   font-weight: 600;
   color: var(--foreground);
 }
@@ -236,7 +236,7 @@
     background: transparent;
     border: none;
     outline: none;
-    font-size: 0.9rem;
+    font-size: 0.75rem;
     color: var(--foreground);
     width: 200px;
     
@@ -264,7 +264,7 @@
 }
 
 .table th {
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -286,7 +286,7 @@
 }
 
 .table td {
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   color: var(--foreground);
 }
 
@@ -310,7 +310,7 @@
 }
 
 .entitySlug {
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   color: var(--muted-foreground);
   margin-top: 0.125rem;
   font-family: var(--font-mono);
@@ -328,7 +328,7 @@
   gap: 0.375rem;
   padding: 0.25rem 0.625rem;
   border-radius: var(--radius-full);
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   font-weight: 500;
   
   &.published {
@@ -524,7 +524,7 @@
 }
 
 .selectedCount {
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   font-weight: 500;
   color: var(--foreground);
 }
@@ -533,7 +533,7 @@
   background: none;
   border: none;
   padding: 0.25rem 0.5rem;
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   color: var(--muted-foreground);
   cursor: pointer;
   border-radius: var(--radius-sm);
@@ -560,7 +560,7 @@
   gap: 0.5rem;
   padding: 0.5rem 1rem;
   border-radius: var(--radius-md);
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   font-weight: 500;
   border: 1px solid var(--border);
   cursor: pointer;
@@ -623,7 +623,7 @@
 }
 
 .emptyDescription {
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   color: var(--muted-foreground);
   max-width: 400px;
 }
@@ -637,7 +637,7 @@
   border-radius: var(--radius-lg);
   background: var(--primary);
   color: white;
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   font-weight: 500;
   cursor: pointer;
   border: none;
@@ -693,7 +693,7 @@
 
 /* Date Cell */
 .dateCell {
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   color: var(--muted-foreground);
 }
 
@@ -704,7 +704,7 @@
   gap: 0.375rem;
   padding: 0.25rem 0.625rem;
   border-radius: var(--radius-md);
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   font-weight: 500;
   background: rgba(123, 44, 191, 0.1);
   color: var(--primary);
@@ -730,7 +730,7 @@
 
 .loadingText {
   margin-top: 1rem;
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   color: var(--muted-foreground);
 }
 
@@ -805,7 +805,7 @@
 .setupDescription {
   color: var(--muted-foreground);
   margin: 0.25rem 0 0;
-  font-size: 0.9rem;
+  font-size: 0.75rem;
 }
 
 /* Site Info */
@@ -855,7 +855,7 @@
 }
 
 .siteInfoUrl {
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   color: var(--muted-foreground);
 }
 
@@ -863,7 +863,7 @@
   padding: 0.375rem 0.75rem;
   background: rgba(123, 44, 191, 0.1);
   color: var(--primary);
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   font-weight: 500;
   border-radius: var(--radius-full);
 
@@ -881,7 +881,7 @@
   background: rgba(245, 158, 11, 0.1);
   color: rgb(180, 115, 5);
   border-radius: var(--radius-md);
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   line-height: 1.5;
   margin-bottom: 1.5rem;
 
@@ -908,7 +908,7 @@
   color: white;
   border: none;
   border-radius: var(--radius-lg);
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   font-weight: 500;
   cursor: pointer;
   transition: all var(--transition-fast);
@@ -942,7 +942,7 @@
   background: rgba(239, 68, 68, 0.1);
   color: rgb(239, 68, 68);
   border-radius: var(--radius-lg);
-  font-size: 0.9rem;
+  font-size: 0.75rem;
 
   svg {
     width: 16px;
@@ -974,7 +974,7 @@
 }
 
 .sitemapNotFoundTitle {
-  font-size: 0.9575rem;
+  font-size: 0.75rem;
   font-weight: 600;
   color: var(--foreground);
   margin: 0 0 0.25rem;
@@ -982,7 +982,7 @@
 
 .sitemapNotFoundDescription {
   color: var(--muted-foreground);
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   margin: 0;
   line-height: 1.5;
 }
@@ -993,7 +993,7 @@
 
 .sitemapInputLabel {
   display: block;
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   font-weight: 500;
   color: var(--foreground);
   margin-bottom: 0.5rem;
@@ -1015,7 +1015,7 @@
   border-radius: var(--radius-md);
   background: var(--background);
   color: var(--foreground);
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   
   &::placeholder {
     color: var(--muted-foreground);
@@ -1037,7 +1037,7 @@
   color: white;
   border: none;
   border-radius: var(--radius-md);
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   font-weight: 500;
   cursor: pointer;
   transition: all var(--transition-fast);
@@ -1069,7 +1069,7 @@
   span {
     padding: 0 1rem;
     color: var(--muted-foreground);
-    font-size: 0.9rem;
+    font-size: 0.75rem;
     font-weight: 500;
   }
 }
@@ -1085,7 +1085,7 @@
   color: var(--foreground);
   border: 2px solid var(--border);
   border-radius: var(--radius-md);
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   font-weight: 500;
   cursor: pointer;
   transition: all var(--transition-fast);
@@ -1103,7 +1103,7 @@
 
 .crawlDescription {
   margin: 0.75rem 0 0;
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   color: var(--muted-foreground);
   text-align: center;
 }
@@ -1116,7 +1116,7 @@
 }
 
 .sectionTitle {
-  font-size: 0.9575rem;
+  font-size: 0.75rem;
   font-weight: 600;
   color: var(--foreground);
   margin: 0 0 0.25rem;
@@ -1124,7 +1124,7 @@
 
 .sectionDescription {
   color: var(--muted-foreground);
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   margin: 0 0 1.5rem;
 }
 
@@ -1199,7 +1199,7 @@
   background: var(--background);
   border: 1px solid var(--primary);
   border-radius: var(--radius-md);
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   font-weight: 500;
   color: var(--foreground);
   text-align: center;
@@ -1221,7 +1221,7 @@
 }
 
 .entityTypeName {
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   font-weight: 500;
   color: var(--foreground);
   text-align: center;
@@ -1251,7 +1251,7 @@
   color: white;
   border: none;
   border-radius: var(--radius-lg);
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   font-weight: 500;
   cursor: pointer;
   transition: all var(--transition-fast);
@@ -1341,7 +1341,7 @@
   color: var(--muted-foreground);
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   font-weight: 500;
   cursor: pointer;
   transition: all var(--transition-fast);
@@ -1373,7 +1373,7 @@
   gap: 0.75rem;
   padding: 2rem;
   color: var(--muted-foreground);
-  font-size: 0.9rem;
+  font-size: 0.75rem;
 }
 
 .noTypesState {
@@ -1386,14 +1386,14 @@
   gap: 0.75rem;
 
   h4 {
-    font-size: 0.9575rem;
+    font-size: 0.75rem;
     font-weight: 600;
     color: var(--foreground);
     margin: 0;
   }
 
   p {
-    font-size: 0.9rem;
+    font-size: 0.75rem;
     color: var(--muted-foreground);
     margin: 0;
   }
@@ -1415,7 +1415,7 @@
   color: white;
   border: none;
   border-radius: var(--radius-lg);
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   font-weight: 500;
   cursor: pointer;
   margin-top: 0.5rem;
@@ -1437,7 +1437,7 @@
   color: var(--primary);
   border: 1px solid var(--primary);
   border-radius: var(--radius-md);
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   font-weight: 500;
   cursor: pointer;
   transition: all var(--transition-fast);
@@ -1457,7 +1457,7 @@
   padding: 0 0.375rem;
   background: var(--muted);
   color: var(--muted-foreground);
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   font-weight: 600;
   border-radius: var(--radius-full);
   margin-inline-start: 0.25rem;
@@ -1472,7 +1472,7 @@
   border: 1px solid color-mix(in srgb, var(--success) 30%, transparent);
   border-radius: var(--radius-md);
   color: var(--success);
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   font-weight: 500;
   margin-bottom: 1rem;
 
@@ -1490,7 +1490,7 @@
   padding: 0.125rem 0.375rem;
   background: var(--primary);
   color: white;
-  font-size: 0.5625rem;
+  font-size: 0.6875rem;
   font-weight: 600;
   border-radius: var(--radius-sm);
   text-transform: uppercase;
@@ -1534,7 +1534,7 @@
 
 .pluginDescription {
   color: var(--muted-foreground);
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   line-height: 1.6;
   margin: 0.25rem 0 0 0;
 }
@@ -1550,7 +1550,7 @@
 }
 
 .enabledTypesLabel {
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   color: var(--muted-foreground);
   font-weight: 500;
 }
@@ -1569,7 +1569,7 @@
   background: var(--card);
   border: 1px solid var(--border);
   border-radius: var(--radius-full);
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   color: var(--foreground);
 
   svg {
@@ -1584,7 +1584,7 @@
 }
 
 .pluginInstructionsTitle {
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   font-weight: 600;
   color: var(--foreground);
   margin: 0 0 0.75rem 0;
@@ -1598,7 +1598,7 @@
   gap: 0.5rem;
 
   li {
-    font-size: 0.9rem;
+    font-size: 0.75rem;
     color: var(--muted-foreground);
     line-height: 1.5;
 
@@ -1619,7 +1619,7 @@
   color: white;
   border: none;
   border-radius: var(--radius-md);
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   font-weight: 600;
   cursor: pointer;
   transition: all var(--transition-fast);
@@ -1671,7 +1671,7 @@
 
 .syncDescription {
   color: var(--muted-foreground);
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   line-height: 1.5;
   margin: 0.25rem 0 0 0;
 }
@@ -1699,12 +1699,12 @@
 
 .syncProgressText {
   flex: 1;
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   color: var(--foreground);
 }
 
 .syncProgressPercent {
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   font-weight: 600;
   color: var(--primary);
 }
@@ -1731,7 +1731,7 @@
   background: rgba(34, 197, 94, 0.1);
   border-radius: var(--radius-md);
   color: rgb(34, 197, 94);
-  font-size: 0.9rem;
+  font-size: 0.75rem;
 }
 
 .syncSuccessIcon {
@@ -1747,7 +1747,7 @@
   background: rgba(234, 179, 8, 0.1);
   border-radius: var(--radius-md);
   color: rgb(234, 179, 8);
-  font-size: 0.9rem;
+  font-size: 0.75rem;
 }
 
 .syncCancelledIcon {
@@ -1763,7 +1763,7 @@
   background: rgba(239, 68, 68, 0.1);
   border-radius: var(--radius-md);
   color: rgb(239, 68, 68);
-  font-size: 0.9rem;
+  font-size: 0.75rem;
 }
 
 .syncErrorIcon {
@@ -1788,7 +1788,7 @@
   color: white;
   border: none;
   border-radius: var(--radius-md);
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   font-weight: 600;
   cursor: pointer;
   transition: all var(--transition-fast);
@@ -1822,7 +1822,7 @@
 }
 
 .lastSyncTime {
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   color: var(--muted-foreground);
 }
 
@@ -1849,7 +1849,7 @@
 
   p {
     color: var(--muted-foreground);
-    font-size: 0.9rem;
+    font-size: 0.75rem;
     margin: 0;
   }
 }
@@ -1878,7 +1878,7 @@
 
   p {
     margin: 0;
-    font-size: 0.9rem;
+    font-size: 0.75rem;
   }
 }
 
@@ -1947,14 +1947,14 @@
 }
 
 .typeSlug {
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   color: var(--muted-foreground);
   font-family: monospace;
   white-space: nowrap;
 }
 
 .typeCount {
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   color: var(--muted-foreground);
   white-space: nowrap;
 }
@@ -1999,7 +1999,7 @@
   background: var(--background);
   border: 1px solid var(--primary);
   border-radius: var(--radius-md);
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   font-weight: 500;
   color: var(--foreground);
   outline: none;
@@ -2020,7 +2020,7 @@
 
 .inputLabel {
   display: block;
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   font-weight: 500;
   color: var(--foreground);
   margin-bottom: 0.5rem;
@@ -2044,7 +2044,7 @@
   color: white;
   border: none;
   border-radius: var(--radius-md);
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   font-weight: 500;
   cursor: pointer;
   white-space: nowrap;
@@ -2076,7 +2076,7 @@
   span {
     padding: 0 1rem;
     color: var(--muted-foreground);
-    font-size: 0.9rem;
+    font-size: 0.75rem;
     font-weight: 500;
   }
 }
@@ -2104,12 +2104,12 @@
 }
 
 .syncMessage {
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   color: var(--muted-foreground);
 }
 
 .syncEta {
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   color: var(--primary);
   font-weight: 500;
   white-space: nowrap;
@@ -2124,7 +2124,7 @@
   color: white;
   border: none;
   border-radius: var(--radius-md);
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   font-weight: 500;
   cursor: pointer;
   margin-top: 0.75rem;
@@ -2150,7 +2150,7 @@
   gap: 1.5rem;
 
   span {
-    font-size: 0.9rem;
+    font-size: 0.75rem;
     font-weight: 500;
   }
 }
@@ -2166,7 +2166,7 @@
 
   p {
     margin: 0;
-    font-size: 0.9rem;
+    font-size: 0.75rem;
   }
 }
 
@@ -2179,7 +2179,7 @@
   color: white;
   border: none;
   border-radius: var(--radius-md);
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   font-weight: 500;
   cursor: pointer;
   transition: all var(--transition-fast);
@@ -2196,7 +2196,7 @@
   
   p {
     margin: 0;
-    font-size: 0.9rem;
+    font-size: 0.75rem;
     color: var(--muted-foreground);
   }
 }
@@ -2210,7 +2210,7 @@
   color: var(--foreground);
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   font-weight: 500;
   cursor: pointer;
   transition: all var(--transition-fast);
@@ -2225,7 +2225,7 @@
 /* Status Badges */
 .statusBadge {
   padding: 0.25rem 0.75rem;
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   font-weight: 600;
   border-radius: var(--radius-full);
   text-transform: uppercase;
@@ -2261,7 +2261,7 @@
   color: white;
   border: none;
   border-radius: var(--radius-md);
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   font-weight: 500;
   cursor: pointer;
   transition: all var(--transition-fast);
@@ -2293,20 +2293,20 @@
 }
 
 .entityCount {
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   color: var(--muted-foreground);
 }
 
 /* Integration Card Additions */
 .siteLabel {
   color: var(--muted-foreground);
-  font-size: 0.9rem;
+  font-size: 0.75rem;
 }
 
 .siteLink {
   color: var(--primary);
   text-decoration: none;
-  font-size: 0.9rem;
+  font-size: 0.75rem;
 
   &:hover {
     text-decoration: underline;
@@ -2326,14 +2326,14 @@
   padding: 0.25rem 0.75rem;
   background: rgba(34, 197, 94, 0.1);
   color: rgb(34, 197, 94);
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   font-weight: 500;
   border-radius: var(--radius-full);
 }
 
 .detectHint {
   color: var(--muted-foreground);
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   margin: 0 0 1rem;
 }
 
@@ -2345,7 +2345,7 @@
   background: rgba(239, 68, 68, 0.1);
   color: rgb(239, 68, 68);
   border-radius: var(--radius-md);
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   margin-top: 1rem;
 }
 
@@ -2372,7 +2372,7 @@
 
 .nonWordPressDesc {
   margin: 0;
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   line-height: 1.5;
 }
 

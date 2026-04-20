@@ -332,7 +332,7 @@
     inset-inline-end: 0;
     background: var(--popover, #1f2937);
     color: var(--popover-foreground, #f9fafb);
-    font-size: 0.625rem;
+    font-size: 0.6875rem;
     font-weight: 400;
     line-height: 1.4;
     padding: 0.4rem 0.6rem;
@@ -363,7 +363,7 @@
   display: flex;
   align-items: center;
   gap: 0.25rem;
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   font-weight: 500;
 
   &.positive {
@@ -396,7 +396,7 @@
 }
 
 .statsLabel {
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   color: var(--muted-foreground);
 }
 
@@ -422,7 +422,7 @@
 }
 
 .statsTrendLabel {
-  font-size: 0.5625rem;
+  font-size: 0.6875rem;
   color: var(--muted-foreground);
   opacity: 0.65;
   line-height: 1.2;
@@ -443,7 +443,7 @@
   inset-inline-end: 0;
   background: var(--popover, #1f2937);
   color: var(--popover-foreground, #f9fafb);
-  font-size: 0.625rem;
+  font-size: 0.6875rem;
   font-weight: 400;
   line-height: 1.4;
   padding: 0.4rem 0.6rem;
@@ -534,7 +534,7 @@
 }
 
 .dashboardCardSubtitle {
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   color: var(--muted-foreground);
   margin-top: -1rem;
   margin-bottom: 1.5rem;
@@ -598,12 +598,12 @@
 }
 
 .activityText {
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   color: var(--foreground);
 }
 
 .activityTime {
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   color: var(--muted-foreground);
 }
 
@@ -614,7 +614,7 @@
   gap: 0.25rem;
   padding: 0.25rem 0.75rem;
   border-radius: 9999px;
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   font-weight: 500;
 
   &.active {
@@ -830,7 +830,7 @@
 .tableHeader {
   display: grid;
   padding: 0.5rem 1rem;
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   color: var(--muted-foreground);
   border-bottom: 1px solid var(--border-light);
 
@@ -865,7 +865,7 @@
 .dashboardInput {
   width: 100%;
   padding: 0.75rem 1rem;
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   color: var(--foreground);
   background: var(--muted);
   border: 1px solid var(--border);
@@ -895,7 +895,7 @@
 
 .inputLabel {
   display: block;
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   color: var(--muted-foreground);
   margin-bottom: 0.5rem;
 }
@@ -959,7 +959,7 @@
 }
 
 .emptyStateText {
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   color: var(--muted-foreground);
   margin-bottom: 1.5rem;
 }
@@ -997,7 +997,7 @@
 }
 
 .pageSubtitle {
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   color: var(--muted-foreground);
   margin-top: 0.25rem;
 }
@@ -1153,7 +1153,7 @@
 }
 
 .emptyStateDescription {
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   color: var(--muted-foreground);
   max-width: 400px;
   margin-top: 0.5rem;
@@ -1199,7 +1199,7 @@
 
 .tableHeaderCell {
   padding: 0.8125rem 1rem;
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -1234,7 +1234,7 @@
 
 .tableCell {
   padding: 1rem;
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   color: var(--foreground);
 }
 
@@ -1276,7 +1276,7 @@
 }
 
 .formLabel {
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   font-weight: 600;
   color: var(--foreground);
 
@@ -1295,7 +1295,7 @@
 .formSelect {
   width: 100%;
   padding: 0.75rem 1rem;
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   color: var(--foreground);
   background: var(--input-background, var(--muted));
   border: 1px solid var(--input-border, var(--border));
@@ -1352,12 +1352,12 @@
 }
 
 .formHint {
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   color: var(--muted-foreground);
 }
 
 .formError {
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   color: #ef4444;
 }
 
@@ -1366,7 +1366,7 @@
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   color: var(--foreground);
   cursor: pointer;
 }
@@ -1550,7 +1550,7 @@
 }
 
 .kpiPopupTitle {
-  font-size: 1.15rem;
+  font-size: 1.1875rem;
   font-weight: 600;
   color: var(--foreground);
 }
@@ -1560,7 +1560,7 @@
 }
 
 .kpiPopupDescription {
-  font-size: 0.95rem;
+  font-size: 0.75rem;
   font-weight: 500;
   color: var(--foreground);
   line-height: 1.5;
@@ -1568,7 +1568,7 @@
 }
 
 .kpiPopupDetails {
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   color: var(--muted-foreground);
   line-height: 1.6;
   margin: 0;
@@ -1583,7 +1583,7 @@
   color: var(--primary-foreground);
   border: none;
   border-radius: var(--radius-md);
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   font-weight: 600;
   cursor: pointer;
   transition: opacity 0.2s;

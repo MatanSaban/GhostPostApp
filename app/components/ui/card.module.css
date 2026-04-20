@@ -44,7 +44,7 @@
 }
 
 .cardDescription {
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   color: var(--muted-foreground);
   margin-top: 0.25rem;
 }

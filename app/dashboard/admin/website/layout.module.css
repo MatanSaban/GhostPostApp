@@ -19,7 +19,7 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0.5rem 0.75rem;
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   font-weight: 600;
   color: var(--foreground);
   text-decoration: none;
@@ -50,7 +50,7 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0.5rem 1rem;
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   font-weight: 500;
   color: var(--muted-foreground);
   text-decoration: none;

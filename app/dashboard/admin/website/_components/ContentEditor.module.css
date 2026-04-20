@@ -70,7 +70,7 @@
 }
 
 .fieldLabel {
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   font-weight: 500;
   color: var(--muted-foreground);
 }
@@ -90,7 +90,7 @@
 .textInput {
   width: 100%;
   padding: 0.625rem 0.75rem;
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   border: 1px solid var(--input-border);
   border-radius: var(--radius-md);
   background: var(--input-background);
@@ -111,7 +111,7 @@
 .textareaInput {
   width: 100%;
   padding: 0.625rem 0.75rem;
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   border: 1px solid var(--input-border);
   border-radius: var(--radius-md);
   background: var(--input-background);
@@ -250,7 +250,7 @@
   color: var(--muted-foreground);
   border-radius: var(--radius-md);
   cursor: pointer;
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   font-weight: 500;
   transition: all var(--transition-fast);
 

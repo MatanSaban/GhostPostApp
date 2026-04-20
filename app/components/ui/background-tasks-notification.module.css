@@ -89,13 +89,13 @@
 }
 
 .taskTitle {
-  font-size: 13px;
+  font-size: 0.75rem;
   font-weight: 600;
   color: var(--text-primary);
 }
 
 .taskMessage {
-  font-size: 12px;
+  font-size: 0.75rem;
   color: var(--text-secondary);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -111,7 +111,7 @@
 .cancelButton {
   padding: 4px 12px;
   border-radius: 6px;
-  font-size: 11px;
+  font-size: 0.6875rem;
   font-weight: 500;
   border: 1px solid var(--border);
   background: transparent;
@@ -171,7 +171,7 @@
 }
 
 .progressPercent {
-  font-size: 11px;
+  font-size: 0.6875rem;
   font-weight: 600;
   color: var(--text-secondary);
   min-width: 32px;

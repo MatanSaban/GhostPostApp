@@ -56,14 +56,14 @@
 }
 
 .title {
-  font-size: 1.125rem;
+  font-size: 1.1875rem;
   font-weight: 700;
   margin: 0;
   color: var(--foreground, #111);
 }
 
 .subtitle {
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   color: var(--muted-foreground, #6b7280);
   margin: 6px 0 0;
 }
@@ -140,7 +140,7 @@
 }
 
 .progressText {
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   font-weight: 700;
   color: #7c3aed;
   min-width: 36px;
@@ -148,7 +148,7 @@
 }
 
 .processingMessage {
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   color: var(--muted-foreground, #6b7280);
   text-align: center;
   margin: 0;
@@ -170,14 +170,14 @@
 }
 
 .failedTitle {
-  font-size: 1.125rem;
+  font-size: 1.1875rem;
   font-weight: 700;
   margin: 0;
   color: var(--foreground, #111);
 }
 
 .failedMessage {
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   color: var(--muted-foreground, #6b7280);
   text-align: center;
   margin: 0;
@@ -213,7 +213,7 @@
 }
 
 .alphaTitle {
-  font-size: 1rem;
+  font-size: 1.0625rem;
   font-weight: 700;
   margin: 0;
   color: var(--foreground, #111);
@@ -226,7 +226,7 @@
 }
 
 .alphaDescription {
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   color: var(--muted-foreground, #6b7280);
   margin: 0 0 8px;
   line-height: 1.5;
@@ -253,7 +253,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   font-weight: 700;
   color: var(--foreground, #111);
   margin: 0 0 12px;
@@ -285,7 +285,7 @@
   border: none;
   cursor: pointer;
   color: var(--foreground, #111);
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   text-align: left;
   transition: background 0.15s;
 }
@@ -332,7 +332,7 @@
 }
 
 .pageErrorMessage {
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   color: #ef4444;
   margin: 0;
 }
@@ -361,7 +361,7 @@
 
 .newIntent {
   display: inline-block;
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   font-weight: 600;
   color: #7c3aed;
   background: rgba(124, 58, 237, 0.08);
@@ -379,7 +379,7 @@
 }
 
 .oldText {
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   color: #ef4444;
   background: rgba(239, 68, 68, 0.08);
   padding: 4px 10px;
@@ -393,7 +393,7 @@
 }
 
 .newText {
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   color: #22c55e;
   background: rgba(34, 197, 94, 0.08);
   padding: 4px 10px;
@@ -427,7 +427,7 @@
 
 .diffOld p,
 .diffNew p {
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   line-height: 1.6;
   margin: 0;
   color: var(--foreground, #111);
@@ -436,7 +436,7 @@
 .diffBadgeOld,
 .diffBadgeNew {
   display: inline-block;
-  font-size: 0.625rem;
+  font-size: 0.6875rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -458,7 +458,7 @@
 /* Internal Link Preview */
 
 .linkPreview {
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   font-style: italic;
   color: var(--muted-foreground, #6b7280);
   background: rgba(124, 58, 237, 0.04);
@@ -488,7 +488,7 @@
 
 .cancelBtn {
   padding: 10px 20px;
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   font-weight: 600;
   color: var(--muted-foreground, #6b7280);
   background: transparent;
@@ -507,7 +507,7 @@
   align-items: center;
   gap: 8px;
   padding: 10px 24px;
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   font-weight: 700;
   color: #fff;
   background: linear-gradient(135deg, #7c3aed, #6d28d9);
@@ -532,7 +532,7 @@
   align-items: center;
   gap: 8px;
   flex: 1;
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   font-weight: 600;
   color: #22c55e;
 }
@@ -571,14 +571,14 @@
 }
 
 .confirmDescription {
-  font-size: 0.9375rem;
+  font-size: 0.75rem;
   line-height: 1.7;
   color: var(--foreground, #111);
   margin: 0;
 }
 
 .confirmSectionTitle {
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   font-weight: 700;
   color: var(--foreground, #111);
   margin: 0;
@@ -593,7 +593,7 @@
 }
 
 .confirmSteps li {
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   line-height: 1.6;
   color: var(--muted-foreground, #6b7280);
 }
@@ -652,19 +652,19 @@
 }
 
 .confirmDetailText strong {
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   font-weight: 700;
   color: var(--foreground, #111);
 }
 
 .confirmDetailText span {
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   line-height: 1.6;
   color: var(--muted-foreground, #6b7280);
 }
 
 .processingHint {
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   color: var(--muted-foreground, #6b7280);
   text-align: center;
   margin: 0;

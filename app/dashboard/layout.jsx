@@ -155,6 +155,26 @@ export default function DashboardLayout({ children }) {
     return () => clearTimeout(timer);
   }, [pathname]);
 
+  // Allow any descendant component to open the chat popup with a prefilled
+  // message via `window.dispatchEvent(new CustomEvent('gp:open-chat', { detail: { prefill } }))`.
+  // MUST be before any early returns so React sees the same hook count every render.
+  useEffect(() => {
+    const onOpenChat = (e) => {
+      const prefill = e?.detail?.prefill;
+      setIsChatOpen(true);
+      if (prefill) {
+        // Wait two animation frames so the popup mounts before we set the input value.
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            chatPopupRef.current?.prefill?.(prefill);
+          });
+        });
+      }
+    };
+    window.addEventListener('gp:open-chat', onOpenChat);
+    return () => window.removeEventListener('gp:open-chat', onOpenChat);
+  }, []);
+
   // Fetch enabled entity types for the selected site - MUST be before any early returns
   useEffect(() => {
     async function fetchEntityTypes() {

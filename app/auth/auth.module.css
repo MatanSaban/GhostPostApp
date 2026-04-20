@@ -134,7 +134,7 @@
 }
 
 .authSubtitle {
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   color: var(--muted-foreground);
 }
 
@@ -157,7 +157,7 @@
   flex: 1;
   padding: 0.625rem 1rem;
   border-radius: var(--radius-md);
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   font-weight: 600;
   color: var(--muted-foreground);
   transition: all var(--transition-fast);
@@ -200,7 +200,7 @@
 }
 
 .formLabel {
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   font-weight: 600;
   color: var(--foreground);
 
@@ -212,7 +212,7 @@
 .formInput {
   width: 100%;
   padding: 0.8125rem 1rem;
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   color: var(--foreground);
   background: var(--input-background);
   border: 1px solid var(--input-border);
@@ -256,7 +256,7 @@
 }
 
 .forgotLink {
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   color: var(--primary);
   transition: color var(--transition-fast);
 
@@ -296,7 +296,7 @@
 }
 
 .termsLabel {
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   color: var(--muted-foreground);
   line-height: 1.5;
 
@@ -318,7 +318,7 @@
   position: relative;
   width: 100%;
   padding: 0.8125rem 1.5rem;
-  font-size: 0.9575rem;
+  font-size: 0.75rem;
   font-weight: 600;
   color: white;
   background: var(--gradient-primary);
@@ -374,7 +374,7 @@
   margin: 0 auto;
   display: flex;
   justify-content: center;
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   color: var(--muted-foreground);
   background: var(--card);
 
@@ -395,7 +395,7 @@
   justify-content: center;
   gap: 0.5rem;
   padding: 0.75rem 2.5rem;
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   font-weight: 500;
   color: var(--foreground);
   background: var(--muted);
@@ -427,7 +427,7 @@
 .authFooter {
   margin-top: 1.5rem;
   text-align: center;
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   color: var(--muted-foreground);
 
   a {
@@ -481,7 +481,7 @@
 }
 
 .thankYouText {
-  font-size: 0.9575rem;
+  font-size: 0.75rem;
   color: var(--muted-foreground);
   margin-bottom: 2rem;
   line-height: 1.6;
@@ -492,7 +492,7 @@
   align-items: center;
   gap: 0.5rem;
   padding: 1rem 2rem;
-  font-size: 0.9575rem;
+  font-size: 0.75rem;
   font-weight: 600;
   color: white;
   background: var(--gradient-primary);
@@ -572,7 +572,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   font-weight: 600;
   background: var(--muted);
   color: var(--muted-foreground);
@@ -609,7 +609,7 @@
 }
 
 .progressStepLabel {
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   color: var(--muted-foreground);
   white-space: nowrap;
   display: none;
@@ -772,7 +772,7 @@
 }
 
 .otpMethodLabel {
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   font-weight: 600;
   color: var(--foreground);
 }
@@ -801,7 +801,7 @@
 }
 
 .otpSubtitle {
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   color: var(--muted-foreground);
   margin-bottom: 2rem;
 }
@@ -845,7 +845,7 @@
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   color: var(--primary);
   font-weight: 500;
   transition: all var(--transition-fast);
@@ -856,7 +856,7 @@
 }
 
 .resendTimer {
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   color: var(--muted-foreground);
 }
 
@@ -914,7 +914,7 @@
 }
 
 .otpResultMessage {
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   color: var(--muted-foreground);
   margin-bottom: 2rem;
 }
@@ -938,7 +938,7 @@
 }
 
 .interviewSubtitle {
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   color: var(--muted-foreground);
 }
 
@@ -963,7 +963,7 @@
   display: flex;
   justify-content: flex-end;
   margin-bottom: 0.5rem;
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   color: var(--muted-foreground);
 }
 
@@ -1053,7 +1053,7 @@
 .interviewBubble {
   padding: 0.75rem 1rem;
   border-radius: var(--radius-lg);
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   line-height: 1.5;
 }
 
@@ -1126,7 +1126,7 @@
 .interviewInput {
   flex: 1;
   padding: 0.75rem 1rem;
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   background: var(--input-background);
   border: 1px solid var(--input-border);
   border-radius: var(--radius-lg);
@@ -1187,7 +1187,7 @@
   border: 1px solid rgba(239, 68, 68, 0.3);
   border-radius: var(--radius-md);
   color: #ef4444;
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   text-align: center;
   margin-bottom: 1rem;
 }
@@ -1200,7 +1200,7 @@
   border: 1px solid rgba(59, 130, 246, 0.3);
   border-radius: var(--radius-md);
   color: #3b82f6;
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   text-align: center;
   margin-bottom: 1rem;
 }
@@ -1229,7 +1229,7 @@
 }
 
 .planSelectionSubtitle {
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   color: var(--muted-foreground);
 }
 
@@ -1303,7 +1303,7 @@
 }
 
 .planDescription {
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   color: var(--muted-foreground);
 }
 
@@ -1318,7 +1318,7 @@
 }
 
 .planPeriod {
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   color: var(--muted-foreground);
 }
 
@@ -1332,7 +1332,7 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0.35rem 0;
-  font-size: 0.7375rem;
+  font-size: 0.75rem;
   color: var(--foreground);
 }
 
@@ -1344,7 +1344,7 @@
 .planSelectBtn {
   width: 100%;
   padding: 0.75rem;
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   font-weight: 600;
   background: var(--muted);
   border: 1px solid var(--border);
@@ -1389,7 +1389,7 @@
 }
 
 .paymentSubtitle {
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   color: var(--muted-foreground);
 }
 
@@ -1418,7 +1418,7 @@
 }
 
 .orderSummaryTitle {
-  font-size: 0.9575rem;
+  font-size: 0.75rem;
   font-weight: 600;
   color: var(--foreground);
   margin-bottom: 1rem;
@@ -1435,7 +1435,7 @@
 .orderRow {
   display: flex;
   justify-content: space-between;
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   color: var(--muted-foreground);
 }
 
@@ -1447,7 +1447,7 @@
 .orderRow.orderTotal {
   padding-top: 0.75rem;
   border-top: 1px solid var(--border);
-  font-size: 0.9575rem;
+  font-size: 0.75rem;
   font-weight: 600;
 }
 
@@ -1521,7 +1521,7 @@
   display: block;
   width: 100%;
   padding: 0.6rem 0.75rem;
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   border: 1px solid var(--border, #d1d5db);
   border-radius: 0.5rem;
   background: var(--input, white);
@@ -1543,7 +1543,7 @@
   gap: 0.75rem;
   padding: 2rem;
   color: var(--muted-foreground);
-  font-size: 0.875rem;
+  font-size: 0.75rem;
 }
 
 .paymentInitError {
@@ -1555,7 +1555,7 @@
   border: 1px solid rgba(239, 68, 68, 0.3);
   border-radius: 0.5rem;
   color: #ef4444;
-  font-size: 0.9rem;
+  font-size: 0.75rem;
 }
 
 .paymentErrorMsg {
@@ -1567,7 +1567,7 @@
   border: 1px solid rgba(239, 68, 68, 0.3);
   border-radius: 0.5rem;
   color: #ef4444;
-  font-size: 0.9rem;
+  font-size: 0.75rem;
 }
 
 .securePaymentNote {
@@ -1575,7 +1575,7 @@
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   color: var(--muted-foreground);
   margin-top: 0.5rem;
 }
@@ -1665,7 +1665,7 @@
 }
 
 .successMessage {
-  font-size: 0.8375rem;
+  font-size: 0.75rem;
   color: var(--muted-foreground);
   margin-bottom: 2rem;
   max-width: 350px;
@@ -1689,7 +1689,7 @@
 }
 
 .successPlanLabel {
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   color: var(--muted-foreground);
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -1702,7 +1702,7 @@
 }
 
 .successPlanPrice {
-  font-size: 0.8375rem;
+  font-size: 0.75rem;
   color: var(--primary);
   font-weight: 600;
 }
@@ -1763,7 +1763,7 @@
 
 .slugPrefix {
   padding: 0.8125rem 0 0.8125rem 1rem;
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   color: var(--muted-foreground);
   white-space: nowrap;
   user-select: none;
@@ -1772,7 +1772,7 @@
 .slugInput {
   flex: 1;
   padding: 0.8125rem 0.5rem;
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   color: var(--foreground);
   background: transparent;
   border: none;
@@ -1796,7 +1796,7 @@
 .slugCheck,
 .slugX {
   padding-right: 1rem;
-  font-size: 0.9575rem;
+  font-size: 0.75rem;
 }
 
 .slugCheck {
@@ -1808,19 +1808,19 @@
 }
 
 .fieldError {
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   color: #ef4444;
   margin-top: 0.25rem;
 }
 
 .fieldSuccess {
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   color: #10b981;
   margin-top: 0.25rem;
 }
 
 .fieldHint {
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   color: var(--muted-foreground);
   margin-top: 0.25rem;
 }
@@ -1866,7 +1866,7 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0.75rem 1.25rem;
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   font-weight: 600;
   border-radius: var(--radius-lg);
   transition: all var(--transition-fast);
@@ -2040,7 +2040,7 @@
   }
 
   h3 {
-    font-size: 0.9rem;
+    font-size: 0.75rem;
     font-weight: 600;
     color: var(--muted-foreground);
     text-transform: uppercase;
@@ -2083,7 +2083,7 @@
 }
 
 .formSectionSubtitle {
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   color: var(--muted-foreground);
   margin-bottom: 1rem;
 }
@@ -2100,7 +2100,7 @@
 
 .forgotPasswordLink {
   display: inline-block;
-  font-size: 0.7505rem;
+  font-size: 0.75rem;
   color: var(--primary);
   text-decoration: none;
   margin-top: 0.5rem;
@@ -2116,7 +2116,7 @@
   justify-content: center;
   gap: 0.5rem;
   padding: 0.8125rem 1.5rem;
-  font-size: 0.9575rem;
+  font-size: 0.75rem;
   font-weight: 600;
   color: white;
   background: var(--gradient-primary);
@@ -2148,7 +2148,7 @@
 }
 
 .authSubtitle {
-  font-size: 0.8755rem;
+  font-size: 0.75rem;
   color: var(--muted-foreground);
   text-align: center;
   margin: 0.25rem 0 0;
@@ -2163,7 +2163,7 @@
   border: 1px solid rgba(239, 68, 68, 0.3);
   border-radius: var(--radius-md);
   color: var(--error);
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   margin: 1rem 0;
 
   svg {
@@ -2179,7 +2179,7 @@
   input {
     width: 100%;
     padding: 0.8125rem 1rem 0.8125rem 2.75rem;
-    font-size: 0.9rem;
+    font-size: 0.75rem;
     color: var(--foreground);
     background: var(--input-background);
     border: 1px solid var(--input-border);
@@ -2283,14 +2283,14 @@
 }
 
 .analysisTitle {
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   font-weight: 600;
   margin: 0 0 0.25rem;
   color: var(--foreground);
 }
 
 .analysisUrl {
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   color: var(--muted-foreground);
   margin: 0;
   word-break: break-all;
@@ -2319,7 +2319,7 @@
   max-height: 200px;
   overflow-y: auto;
   font-family: 'SF Mono', 'Consolas', monospace;
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   padding: 0.75rem;
   background: var(--bg-subtle);
   border: 1px solid var(--border-light);
@@ -2377,7 +2377,7 @@
   border: 1px solid var(--danger);
   border-radius: var(--radius-md);
   color: var(--danger);
-  font-size: 0.875rem;
+  font-size: 0.75rem;
 }
 
 /* ============================================
@@ -2397,7 +2397,7 @@
   gap: 0.5rem;
   padding: 0.625rem 1.25rem;
   border-radius: var(--radius-lg);
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   font-weight: 500;
   transition: all var(--transition-fast);
   cursor: pointer;
@@ -2464,7 +2464,7 @@
     justify-content: center;
     background: var(--gradient-primary);
     color: white;
-    font-size: 0.9rem;
+    font-size: 0.75rem;
     font-weight: 600;
     border-radius: var(--radius-lg);
     box-shadow: var(--shadow-md);
@@ -2582,7 +2582,7 @@
 }
 
 .competitorRanking {
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   color: var(--muted-foreground);
 }
 
@@ -2613,7 +2613,7 @@
 
 .competitorManualLabel {
   width: 100%;
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   color: var(--muted-foreground);
   margin-bottom: 0.25rem;
 }
@@ -2626,7 +2626,7 @@
   background: rgba(0, 255, 157, 0.1);
   border: 1px solid var(--accent);
   border-radius: var(--radius-full);
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   color: var(--foreground);
 }
 
@@ -2660,7 +2660,7 @@
 .competitorUrlInput {
   flex: 1;
   padding: 0.5rem 0.75rem;
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   background: var(--input-background);
   border: 1px solid var(--input-border);
   border-radius: var(--radius-md);
@@ -2686,7 +2686,7 @@
   border: none;
   border-radius: var(--radius-md);
   color: white;
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   cursor: pointer;
   
   &:hover {
@@ -2721,7 +2721,7 @@
   border: 1px dashed var(--border);
   border-radius: var(--radius-md);
   color: var(--muted-foreground);
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   cursor: pointer;
   width: 100%;
   justify-content: center;
@@ -2737,13 +2737,13 @@
   padding: 0.5rem 0.75rem;
   background: rgba(239, 68, 68, 0.1);
   border-radius: var(--radius-md);
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   color: var(--destructive);
 }
 
 .competitorCount {
   margin-top: 0.75rem;
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   color: var(--muted-foreground);
   text-align: center;
 }

@@ -30,7 +30,7 @@
 }
 
 .pageSubtitle {
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   color: var(--muted-foreground);
   margin-top: 0.25rem;
 }
@@ -93,7 +93,7 @@
 }
 
 .formLabel {
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   font-weight: 500;
   color: var(--muted-foreground);
 }
@@ -101,7 +101,7 @@
 .formInput {
   width: 100%;
   padding: 0.75rem 1rem;
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   color: var(--foreground);
   background: var(--background);
   border: 1px solid var(--border);
@@ -136,7 +136,7 @@
 .formSelect {
   width: 100%;
   padding: 0.75rem 1rem;
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   color: var(--foreground);
   background: var(--background);
   border: 1px solid var(--border);
@@ -197,7 +197,7 @@
 
   th {
     padding: 0.75rem 1rem;
-    font-size: 0.875rem;
+    font-size: 0.75rem;
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.05em;
@@ -246,7 +246,7 @@
 
   td {
     padding: 0.75rem 1rem;
-    font-size: 0.9rem;
+    font-size: 0.75rem;
     color: var(--foreground);
   }
 }
@@ -266,7 +266,7 @@
 .typeBadge {
   display: inline-flex;
   padding: 0.25rem 0.5rem;
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   font-weight: 500;
   border-radius: var(--radius-md);
 
@@ -336,7 +336,7 @@
   color: var(--muted-foreground);
 
   p {
-    font-size: 0.95rem;
+    font-size: 0.75rem;
   }
 }
 
@@ -352,7 +352,7 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0.75rem 1rem;
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   color: #10b981;
   background: rgba(16, 185, 129, 0.08);
   border: 1px solid rgba(16, 185, 129, 0.2);
@@ -370,7 +370,7 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0.75rem 1rem;
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   color: #ef4444;
   background: rgba(239, 68, 68, 0.08);
   border: 1px solid rgba(239, 68, 68, 0.2);
@@ -382,7 +382,7 @@
   background: none;
   border: none;
   color: inherit;
-  font-size: 1.2rem;
+  font-size: 1.1875rem;
   cursor: pointer;
   padding: 0 0.25rem;
 }
@@ -414,13 +414,13 @@
   gap: 0.5rem;
 
   h3 {
-    font-size: 1rem;
+    font-size: 1.0625rem;
     font-weight: 600;
     color: var(--foreground);
   }
 
   p {
-    font-size: 0.875rem;
+    font-size: 0.75rem;
     color: var(--muted-foreground);
     line-height: 1.5;
   }
@@ -499,13 +499,13 @@
 }
 
 .statValue {
-  font-size: 1.5rem;
+  font-size: 1.5625rem;
   font-weight: 700;
   color: var(--foreground);
 }
 
 .statLabel {
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   color: var(--muted-foreground);
 }
 
@@ -529,7 +529,7 @@
   align-items: center;
   gap: 0.4rem;
   padding: 0.3rem 0.6rem;
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   font-weight: 500;
   border: 1px solid transparent;
   border-radius: var(--radius-full, 99px);
@@ -648,7 +648,7 @@
     width: max-content;
     background: var(--popover, #1f2937);
     color: var(--popover-foreground, #f9fafb);
-    font-size: 0.625rem;
+    font-size: 0.6875rem;
     font-weight: 400;
     line-height: 1.4;
     text-transform: none;
@@ -760,7 +760,7 @@
 }
 
 .columnPopupTitle {
-  font-size: 1.15rem;
+  font-size: 1.1875rem;
   font-weight: 600;
   color: var(--foreground);
 }
@@ -770,7 +770,7 @@
 }
 
 .columnPopupDescription {
-  font-size: 0.95rem;
+  font-size: 0.75rem;
   font-weight: 500;
   color: var(--foreground);
   line-height: 1.5;
@@ -778,7 +778,7 @@
 }
 
 .columnPopupDetails {
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   color: var(--muted-foreground);
   line-height: 1.6;
   margin: 0;
@@ -793,7 +793,7 @@
   color: var(--primary-foreground);
   border: none;
   border-radius: var(--radius-md);
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   font-weight: 600;
   cursor: pointer;
   transition: opacity 0.2s;
@@ -813,7 +813,7 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0.75rem 1.25rem;
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   font-weight: 500;
   border-radius: var(--radius-lg);
   z-index: 10001;

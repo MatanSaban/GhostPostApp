@@ -49,6 +49,8 @@ require_once GP_CONNECTOR_PLUGIN_DIR . 'includes/class-gp-cpt-manager.php';
 require_once GP_CONNECTOR_PLUGIN_DIR . 'includes/class-gp-acf-manager.php';
 require_once GP_CONNECTOR_PLUGIN_DIR . 'includes/class-gp-entity-sync.php';
 require_once GP_CONNECTOR_PLUGIN_DIR . 'includes/class-gp-redirections-manager.php';
+require_once GP_CONNECTOR_PLUGIN_DIR . 'includes/class-gp-cache-manager.php';
+require_once GP_CONNECTOR_PLUGIN_DIR . 'includes/class-gp-element-manipulator.php';
 require_once GP_CONNECTOR_PLUGIN_DIR . 'includes/class-gp-updater.php';
 
 /**
@@ -80,18 +82,78 @@ function gp_send_security_headers() {
 add_action('send_headers', 'gp_send_security_headers');
 
 /**
- * Detect a request coming from the Ghost Post platform with gp_editor=true.
- * Requires the platform origin in the Referer to prevent arbitrary third parties
- * from iframing the site by appending the flag.
+ * Detect a request coming from the Ghost Post platform in editor mode.
+ *
+ * Two modes are accepted:
+ *  1. Signed (gp_editor=1) — carries gp_origin, gp_exp, gp_sig; verified via
+ *     HMAC-SHA256(GP_SITE_SECRET, "GP_SITE_ID|origin|exp"). Works from any
+ *     platform origin (dev, staging, prod) without a Referer allowlist.
+ *  2. Legacy (gp_editor=true) — trusts the Referer origin against the baked
+ *     GP_API_URL. Kept for backwards compatibility while older platform
+ *     deployments still send the unsigned flag.
  */
 function gp_is_editor_request() {
-    if (empty($_GET['gp_editor']) || $_GET['gp_editor'] !== 'true') return false;
-    if (!defined('GP_API_URL')) return false;
-    $platform_origin = gp_parse_origin(GP_API_URL);
-    if (!$platform_origin) return false;
-    $referer = isset($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : '';
-    $referer_origin = gp_parse_origin($referer);
-    return $referer_origin && $referer_origin === $platform_origin;
+    if (empty($_GET['gp_editor'])) return false;
+
+    // Signed mode
+    if ($_GET['gp_editor'] === '1') {
+        return gp_editor_signed_origin() !== '';
+    }
+
+    // Legacy unsigned mode
+    if ($_GET['gp_editor'] === 'true') {
+        if (!defined('GP_API_URL')) return false;
+        $platform_origin = gp_parse_origin(GP_API_URL);
+        if (!$platform_origin) return false;
+        $referer = isset($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : '';
+        $referer_origin = gp_parse_origin($referer);
+        return $referer_origin && $referer_origin === $platform_origin;
+    }
+
+    return false;
+}
+
+/**
+ * Verify the signed editor token and return the origin the token was minted
+ * for (or '' if missing / invalid / expired). Result is cached per-request.
+ */
+function gp_editor_signed_origin() {
+    static $cached = null;
+    if ($cached !== null) return $cached;
+    $cached = '';
+
+    if (empty($_GET['gp_editor']) || $_GET['gp_editor'] !== '1') return $cached;
+    if (empty($_GET['gp_sig']) || empty($_GET['gp_origin']) || empty($_GET['gp_exp'])) return $cached;
+    if (!defined('GP_SITE_SECRET') || !defined('GP_SITE_ID')) return $cached;
+
+    $origin_raw = wp_unslash($_GET['gp_origin']);
+    $origin = gp_parse_origin($origin_raw);
+    if (!$origin) return $cached;
+
+    $exp = intval($_GET['gp_exp']);
+    if ($exp <= 0 || $exp < time()) return $cached;
+
+    $sig = sanitize_text_field(wp_unslash($_GET['gp_sig']));
+    if (!preg_match('/^[a-f0-9]{64}$/i', $sig)) return $cached;
+
+    $payload = GP_SITE_ID . '|' . $origin . '|' . $exp;
+    $expected = hash_hmac('sha256', $payload, GP_SITE_SECRET);
+    if (!hash_equals($expected, $sig)) return $cached;
+
+    $cached = $origin;
+    return $cached;
+}
+
+/**
+ * Origin allowed to frame the site in editor mode. Prefers the verified
+ * signed origin so dev/staging/prod all work; falls back to the baked
+ * platform URL for legacy gp_editor=true requests.
+ */
+function gp_editor_parent_origin() {
+    $signed = gp_editor_signed_origin();
+    if ($signed) return $signed;
+    if (defined('GP_API_URL')) return gp_parse_origin(GP_API_URL);
+    return '';
 }
 
 function gp_parse_origin($url) {
@@ -111,7 +173,7 @@ function gp_parse_origin($url) {
 function gp_editor_send_frame_headers() {
     if (!gp_is_editor_request()) return;
     if (headers_sent()) return;
-    $origin = gp_parse_origin(GP_API_URL);
+    $origin = gp_editor_parent_origin();
     if (!$origin) return;
     header_remove('X-Frame-Options');
     header('Content-Security-Policy: frame-ancestors ' . $origin);

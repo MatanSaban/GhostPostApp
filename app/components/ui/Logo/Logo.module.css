@@ -18,19 +18,19 @@
 
   &.small {
     .text {
-      font-size: 0.9rem;
+      font-size: 0.75rem;
     }
   }
 
   &.medium {
     .text {
-      font-size: 1.125rem;
+      font-size: 1.1875rem;
     }
   }
 
   &.large {
     .text {
-      font-size: 1.375rem;
+      font-size: 1.4375rem;
     }
   }
 }

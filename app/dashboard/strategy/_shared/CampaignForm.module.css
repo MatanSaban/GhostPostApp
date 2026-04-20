@@ -11,7 +11,7 @@
 }
 
 .formLabel {
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   font-weight: 600;
   color: var(--foreground);
 }
@@ -23,7 +23,7 @@
   border-radius: var(--radius-md);
   background: var(--card);
   color: var(--foreground);
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   transition: border-color 0.2s;
 
   &:focus {
@@ -85,7 +85,7 @@
 }
 
 .colorInputIcon {
-  font-size: 1rem;
+  font-size: 1.0625rem;
   font-weight: 700;
   color: #fff;
   text-shadow: 0 0 3px rgba(0, 0, 0, 0.5);
@@ -94,6 +94,6 @@
 
 .colorWarning {
   margin: 0.25rem 0 0;
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   color: var(--destructive, #ef4444);
 }

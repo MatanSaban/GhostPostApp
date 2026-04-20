@@ -227,7 +227,8 @@ class GP_Content_Manager {
         
         // Handle adding new H1 (when page has no H1)
         if (!empty($data['add_h1'])) {
-            $add_h1_result = $this->add_h1_to_builders($id, $data['add_h1']);
+            $hint = !empty($data['insert_before_text']) ? $data['insert_before_text'] : null;
+            $add_h1_result = $this->add_h1_to_builders($id, $data['add_h1'], $hint);
             if (!empty($add_h1_result['added'])) {
                 $response_data_h1 = $add_h1_result;
             }
@@ -388,18 +389,33 @@ class GP_Content_Manager {
     
     /**
      * Add a new H1 heading to a page that doesn't have one.
-     * Handles Elementor (inserts heading widget at top of first section) and raw HTML.
+     * Handles Elementor (inserts heading widget) and raw HTML.
+     *
+     * @param int    $post_id
+     * @param string $h1_text
+     * @param string|null $insert_before_text Optional text snippet of an existing widget.
+     *                    If provided, the new H1 is inserted immediately before the matching widget.
+     *                    If no match is found, falls back to top-of-page insertion.
      */
-    public function add_h1_to_builders($post_id, $h1_text) {
+    public function add_h1_to_builders($post_id, $h1_text, $insert_before_text = null) {
         $h1_text = sanitize_text_field($h1_text);
+        $hint = $insert_before_text ? sanitize_text_field($insert_before_text) : null;
         $added = array();
-        
-        // 1. Elementor: insert a heading widget at the top of the first section
+
+        // Detect active builder up front so the platform can tell whether the
+        // html_prepend fallback actually rendered on the live page.
+        $elementor_present = (
+            get_post_meta($post_id, '_elementor_edit_mode', true) === 'builder'
+            || !empty(get_post_meta($post_id, '_elementor_data', true))
+        );
+        $beaver_present = !empty(get_post_meta($post_id, '_fl_builder_data', true));
+
+        // 1. Elementor
         $elementor_data = get_post_meta($post_id, '_elementor_data', true);
         if (!empty($elementor_data)) {
             $is_json = is_string($elementor_data);
             $elements = $is_json ? json_decode($elementor_data, true) : $elementor_data;
-            
+
             if (is_array($elements) && !empty($elements)) {
                 $h1_widget = array(
                     'id' => wp_generate_uuid4(),
@@ -408,30 +424,23 @@ class GP_Content_Manager {
                     'settings' => array(
                         'title' => $h1_text,
                         'header_size' => 'h1',
-                        'align' => 'right',
                     ),
                     'elements' => array(),
                 );
-                
+
                 $inserted = false;
-                foreach ($elements as &$section) {
-                    if (!$inserted && isset($section['elType'])) {
-                        if ($section['elType'] === 'container') {
-                            array_unshift($section['elements'], $h1_widget);
-                            $inserted = true;
-                        } elseif ($section['elType'] === 'section' && !empty($section['elements'])) {
-                            foreach ($section['elements'] as &$column) {
-                                if (!$inserted && isset($column['elType']) && $column['elType'] === 'column') {
-                                    array_unshift($column['elements'], $h1_widget);
-                                    $inserted = true;
-                                }
-                            }
-                            unset($column);
-                        }
-                    }
+
+                // 1a. Try hint-based placement (insert before the widget whose text matches)
+                if ($hint) {
+                    $inserted = $this->insert_before_matching_widget($elements, $h1_widget, $hint);
                 }
-                unset($section);
-                
+
+                // 1b. Fall back: find the deepest first column/container and prepend there
+                if (!$inserted) {
+                    $inserted = $this->insert_at_first_leaf($elements, $h1_widget);
+                }
+
+                // 1c. Last resort: synthesize a new container at the top
                 if (!$inserted) {
                     $container = array(
                         'id' => wp_generate_uuid4(),
@@ -442,23 +451,58 @@ class GP_Content_Manager {
                     array_unshift($elements, $container);
                     $inserted = true;
                 }
-                
+
                 if ($inserted) {
                     $new_json = wp_json_encode($elements, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
                     update_post_meta($post_id, '_elementor_data', wp_slash($new_json));
                     delete_post_meta($post_id, '_elementor_css');
+                    // Ask Elementor to regenerate CSS files on next render
+                    if (class_exists('\\Elementor\\Plugin')) {
+                        try {
+                            $elementor = \\Elementor\\Plugin::$instance;
+                            if ($elementor && isset($elementor->files_manager)) {
+                                $elementor->files_manager->clear_cache();
+                            }
+                        } catch (Exception $e) { /* best effort */ }
+                    }
                     $added[] = 'elementor';
                 }
             }
         }
-        
-        // 2. If not Elementor, add H1 to beginning of post_content as HTML
+
+        // 2. Beaver Builder — insert a heading node at the top of the first row
+        if (empty($added)) {
+            $bb_data = get_post_meta($post_id, '_fl_builder_data', true);
+            if (!empty($bb_data) && is_array($bb_data)) {
+                $heading_node_id = wp_generate_uuid4();
+                $parent_id = null;
+                foreach ($bb_data as $node_id => $node) {
+                    if (isset($node->type) && $node->type === 'column') { $parent_id = $node_id; break; }
+                    if (isset($node['type']) && $node['type'] === 'column') { $parent_id = $node_id; break; }
+                }
+                if ($parent_id) {
+                    $heading_node = (object) array(
+                        'node' => $heading_node_id,
+                        'type' => 'module',
+                        'parent' => $parent_id,
+                        'position' => 0,
+                        'settings' => (object) array('heading' => $h1_text, 'tag' => 'h1'),
+                        'slug' => 'heading',
+                    );
+                    $bb_data[$heading_node_id] = $heading_node;
+                    update_post_meta($post_id, '_fl_builder_data', $bb_data);
+                    $added[] = 'beaver_builder';
+                }
+            }
+        }
+
+        // 3. Fall back to prepending raw HTML to post_content (classic / Gutenberg)
         if (empty($added)) {
             $post = get_post($post_id);
             if ($post && $post->post_content !== null) {
                 $h1_html = '<h1>' . esc_html($h1_text) . '</h1>';
                 $new_content = $h1_html . "\\n" . $post->post_content;
-                
+
                 GP_Entity_Sync::mark_gp_origin();
                 wp_update_post(array(
                     'ID' => $post_id,
@@ -467,11 +511,90 @@ class GP_Content_Manager {
                 $added[] = 'html_prepend';
             }
         }
-        
+
         return array(
-            'added' => $added,
-            'h1_text' => $h1_text,
+            'added'              => $added,
+            'h1_text'            => $h1_text,
+            'hint'               => $hint,
+            'elementor_present'  => $elementor_present,
+            'beaver_present'     => $beaver_present,
+            'fallback_used'      => in_array('html_prepend', $added, true),
+            'fallback_invisible' => in_array('html_prepend', $added, true) && $elementor_present,
         );
+    }
+
+    /**
+     * Recursively search Elementor tree for a widget whose rendered text contains the hint,
+     * and insert the new widget immediately before it in the same parent.
+     */
+    private function insert_before_matching_widget(&$elements, $new_widget, $hint) {
+        $hint_lower = mb_strtolower($hint);
+        for ($i = 0; $i < count($elements); $i++) {
+            $el = &$elements[$i];
+
+            // Compare against common text-bearing settings
+            $candidates = array();
+            if (isset($el['settings']) && is_array($el['settings'])) {
+                foreach (array('title', 'text', 'editor', 'heading') as $k) {
+                    if (isset($el['settings'][$k]) && is_string($el['settings'][$k])) {
+                        $candidates[] = $el['settings'][$k];
+                    }
+                }
+            }
+            foreach ($candidates as $txt) {
+                $stripped = mb_strtolower(trim(wp_strip_all_tags($txt)));
+                if ($stripped !== '' && strpos($stripped, $hint_lower) !== false) {
+                    array_splice($elements, $i, 0, array($new_widget));
+                    return true;
+                }
+            }
+
+            if (!empty($el['elements']) && is_array($el['elements'])) {
+                if ($this->insert_before_matching_widget($el['elements'], $new_widget, $hint)) {
+                    return true;
+                }
+            }
+            unset($el);
+        }
+        return false;
+    }
+
+    /**
+     * Insert into the first viable leaf container (container / column), prepending.
+     */
+    private function insert_at_first_leaf(&$elements, $new_widget) {
+        foreach ($elements as &$el) {
+            if (!isset($el['elType'])) continue;
+            if ($el['elType'] === 'container') {
+                // If this container has nested containers, recurse; else prepend here
+                $has_nested_container = false;
+                if (!empty($el['elements'])) {
+                    foreach ($el['elements'] as $child) {
+                        if (isset($child['elType']) && ($child['elType'] === 'container' || $child['elType'] === 'column')) {
+                            $has_nested_container = true; break;
+                        }
+                    }
+                }
+                if ($has_nested_container) {
+                    if ($this->insert_at_first_leaf($el['elements'], $new_widget)) return true;
+                }
+                if (!isset($el['elements'])) $el['elements'] = array();
+                array_unshift($el['elements'], $new_widget);
+                return true;
+            }
+            if ($el['elType'] === 'section' && !empty($el['elements'])) {
+                foreach ($el['elements'] as &$col) {
+                    if (isset($col['elType']) && $col['elType'] === 'column') {
+                        if (!isset($col['elements'])) $col['elements'] = array();
+                        array_unshift($col['elements'], $new_widget);
+                        return true;
+                    }
+                }
+                unset($col);
+            }
+        }
+        unset($el);
+        return false;
     }
     
     /**

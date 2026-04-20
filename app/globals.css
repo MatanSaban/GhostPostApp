@@ -12,7 +12,7 @@ body {
   max-width: 100vw;
   overflow-x: hidden;
   font-family: var(--font-primary) !important;
-  font-size: 0.9rem;
+  font-size: 1rem;
   background-color: var(--background);
   color: var(--foreground);
   transition: background-color var(--transition-normal), color var(--transition-normal);
@@ -59,13 +59,13 @@ h3 {
 }
 
 h4 {
-  font-size: 0.9575rem;
+  font-size: 0.75rem;
   font-weight: 600;
   line-height: 1.5;
 }
 
 p {
-  font-size: 0.9575rem;
+  font-size: 0.75rem;
   line-height: 1.6;
 }
 

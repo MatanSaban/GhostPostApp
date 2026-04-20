@@ -3221,7 +3221,7 @@ function PurchasedAddonsList({ translate, locale, filterType, title, icon: IconC
           <div key={purchase.id} className={styles.addonPurchaseHistoryCard}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <span style={{ fontSize: '1.25rem' }}>
+                <span style={{ fontSize: '1.3125rem' }}>
                   {typeIcons[purchase.addOn?.type] || '📦'}
                 </span>
                 <span style={{ fontWeight: 600 }}>{getAddonName(purchase.addOn)}</span>
@@ -3978,7 +3978,7 @@ function AddonsSettings({ translations, canEdit = true }) {
                   <div className={styles.subscriptionHeader}>
                     <div className={styles.planInfo}>
                       <div className={styles.planName} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                        <span style={{ fontSize: '1.5rem' }}>{typeIcons[addon.type] || '📦'}</span>
+                        <span style={{ fontSize: '1.5625rem' }}>{typeIcons[addon.type] || '📦'}</span>
                         {addon.name}
                         {addon.billingType === 'ONE_TIME' && (
                           <span className={styles.oneTimeBadge}>

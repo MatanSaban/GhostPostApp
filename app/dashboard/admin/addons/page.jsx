@@ -606,7 +606,7 @@ export default function AddOnsSettingsPage() {
                         }
                       </span>
                       {addOn.translations?.length > 0 && (
-                        <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.7rem', color: 'var(--muted-foreground)' }}>
+                        <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.6875rem', color: 'var(--muted-foreground)' }}>
                           <Globe size={12} />
                           {addOn.translations.length}
                         </span>

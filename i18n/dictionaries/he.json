@@ -659,9 +659,23 @@
       "noAiTraffic": "לא זוהתה תנועה מ-AI בתקופה זו.",
       "tipAiSessions": "סה״כ הסשנים שבהם מבקרים הגיעו ממנועי AI כמו ChatGPT, Perplexity, Gemini, Claude או Copilot.",
       "tipAiShare": "אחוז מסה״כ התנועה באתר שלך שמגיע ממקורות AI.",
-      "aiKeywordsTitle": "תנועת AI - מילות מפתח",
-      "noAiKeywordsData": "לא נמצאו מילות מפתח הקשורות ל-AI בתקופה זו.",
-      "tipAiKeywords": "מילות מפתח שמביאות תנועה לעמודים שמנועי AI מקשרים אליהם. נתונים משולבים מ-Google Analytics ו-Search Console.",
+      "aiKeywordsTitle": "מילות חיפוש על עמודי AI",
+      "noAiKeywordsData": "לא נמצאו שאילתות חיפוש מ-Google לעמודים שמנועי AI מקשרים אליהם בתקופה זו.",
+      "tipAiKeywords": "מנועי AI (ChatGPT, Perplexity וכו') לא חושפים את הפרומפטים שמשתמשים מקלידים — זה פרטי. כאן רואים את האות הקרוב ביותר: שאילתות חיפוש מ-Google שהגיעו לאותם עמודים שמנועי AI מקשרים אליהם. עמוד שמדורג בשניהם = עמוד שכדאי לחזק.",
+      "engagedSessions": "סשני AI מעורבים",
+      "engagementRate": "שיעור מעורבות מ-AI",
+      "avgDuration": "משך סשן AI ממוצע",
+      "keyEvents": "אירועי מפתח מ-AI",
+      "tipEngagedSessions": "סשנים ממנועי AI שנמשכו מעל 10 שניות, כללו מספר עמודים או הפעילו אירוע מפתח.",
+      "tipEngagementRate": "אחוז סשני ה-AI שיצרו מעורבות באתר (מעורבים מתוך סה״כ).",
+      "tipAvgDuration": "משך זמן ממוצע של סשן שהגיע ממנוע AI, בשניות.",
+      "tipKeyEvents": "אירועי מפתח (לשעבר המרות) שהופעלו במהלך סשנים מ-AI.",
+      "timeseriesTitle": "סשני AI לאורך זמן",
+      "optimizeWithGhost": "אופטימיזציה עם Ghost",
+      "optimizeWithGhostHint": "פתח את Ghost על העמוד הזה כדי לשפר אותו עבור מנועי AI",
+      "clicks": "קליקים",
+      "impressions": "חשיפות",
+      "ctr": "CTR",
       "inferredQueriesTitle": "שאילתות AI משוערות",
       "inferredDirect": "שאלה ישירה",
       "inferredComparison": "השוואה",
@@ -4249,6 +4263,17 @@
     "typeMessage": "הקלד את ההודעה שלך...",
     "searchPlaceholder": "חפש שיחות...",
     "inputPlaceholder": "הקלד את ההודעה שלך...",
+    "editMessage": "עריכה",
+    "resendMessage": "שלח שוב",
+    "cancel": "ביטול",
+    "sendEdited": "שלח",
+    "imagePrompt": {
+      "title": "סקירה ועריכה של הפרומפט ליצירת התמונה",
+      "hint": "אפשר לערוך את הפרומפט ולצרף עד 2 תמונות שישמשו את ה-AI כהשראה.",
+      "placeholder": "תאר את התמונה באנגלית…",
+      "attach": "הוסף תמונה",
+      "tooLarge": "התמונה גדולה מדי (מקסימום 4MB)"
+    },
     "sections": {
       "conversations": "שיחות",
       "conversationsForSite": "שיחות על האתר",
@@ -4277,6 +4302,12 @@
       "analyticsReport": "דוח אנליטיקס",
       "linkBuilding": "בניית קישורים"
     },
+    "inputActions": {
+      "more": "פעולות נוספות",
+      "image": "תמונה",
+      "file": "קובץ",
+      "voice": "הקלטה"
+    },
     "aiConfig": {
       "textGeneration": "יצירת טקסט",
       "imageGeneration": "יצירת תמונות"
@@ -4284,8 +4315,29 @@
     "statusText": {
       "usingForResponses": "משתמש ב-{engine} לתשובות"
     },
+    "welcome": {
+      "greeting": "שלום! אני סוכן ה-SEO שלך. אני יכול להריץ פעולות על האתר, לנתח דפים, לחקור מילות מפתח ולתקן בעיות — פשוט בקש. נסה אחת מהפעולות, או כתוב לי כל שאלה בנושא SEO:",
+      "suggestions": {
+        "siteAudit": {
+          "label": "הרץ בדיקת אתר מלאה",
+          "prompt": "אנא הרץ בדיקת אתר מלאה על האתר שלי וסכם את הבעיות העיקריות כשזה מסתיים."
+        },
+        "analyzeHomepage": {
+          "label": "נתח את ה-SEO של דף הבית",
+          "prompt": "נתח את ה-SEO של דף הבית שלי: כותרות, מטא תגיות, תמונות וקישורים. הצבע על בעיות שמצאת."
+        },
+        "keywordOpportunities": {
+          "label": "מצא הזדמנויות במילות מפתח",
+          "prompt": "בדוק את מילות המפתח שלי ב-Google Search Console והצע 5 הזדמנויות חזקות שעליי להתמקד בהן."
+        },
+        "agentInsights": {
+          "label": "הרץ ניתוח סוכן AI",
+          "prompt": "הרץ ניתוח סוכן AI על האתר שלי וסכם את התובנות שמצאת."
+        }
+      }
+    },
     "contextMessages": {
-      "dashboard": "ביצועי האתר שלך עלו ב-24% החודש. האם לנתח מה מניע את הצמיחה הזו?",
+      "dashboard": "שלום! אני סוכן ה-SEO שלך. אני יכול להריץ פעולות על האתר, לנתח דפים, לחקור מילות מפתח ולתקן בעיות — פשוט בקש. נסה אחת מההצעות למטה, או כתוב לי כל שאלה בנושא SEO:",
       "siteInterview": "שמתי לב שלא השלמת את חלק הפרטים הטכניים. האם לעזור לאסוף את המידע הזה?",
       "contentPlanner": "אני יכול לעזור לך לתכנן ולארגן תוכן לאתר שלך. רוצה שאנתח מגמות ואציע רעיונות למאמרים?",
       "automations": "אני יכול ליצור אוטומציה חדשה לתיקון קישורים שבורים באופן אוטומטי. רוצה שאגדיר את זה?",
@@ -4368,6 +4420,7 @@
       "secondShort": "ש׳",
       "fetchingData": "מביא נתונים",
       "thinking": "חושב",
+      "reasoning": "היגיון",
       "analyzing": "מנתח את הבקשה שלך...",
       "actionApproved": "הפעולה אושרה ומתבצעת...",
       "actionRejected": "הפעולה נדחתה",
@@ -4376,7 +4429,62 @@
       "approveFailed": "אישור הפעולה נכשל",
       "warningMessage": "⚠️ **תזכורת:** תוכנית הפעולה למעלה תפוג בעוד **{minutes} דקות** אם לא תאושר.\n\nאנא אשר או דחה את התוכנית כדי להמשיך.",
       "expiredMessage": "⏰ תוכנית הפעולה **פגה** כי לא אושרה תוך 5 דקות.\n\nאם אתה עדיין רוצה להמשיך, פשוט בקש ממני שוב ואצור תוכנית חדשה.",
-      "rejectedMessage": "❌ תוכנית הפעולה נדחתה. ספר לי אם תרצה שאציע גישה אחרת."
+      "rejectedMessage": "❌ תוכנית הפעולה נדחתה. ספר לי אם תרצה שאציע גישה אחרת.",
+      "rollbackHint": "התחרטת? אפשר לבטל את הפעולה בכל רגע באמצעות כפתור הביטול למטה.",
+      "phase": {
+        "locate": "מאתר את האלמנט באתר שלך…",
+        "apply": "מחיל את השינוי דרך התוסף…",
+        "cache": "מנקה מטמון כדי שהדף החי יתעדכן…",
+        "verify": "מוודא את התוצאה…",
+        "snapshot": "שומר תמונת מצב של הפוסט הנוכחי…",
+        "write": "כותב את העדכון לוורדפרס…",
+        "contact": "מתחבר לאתר שלך…",
+        "generateImage": "מייצר תמונה עם בינה מלאכותית…",
+        "uploadMedia": "מעלה למאגר המדיה…",
+        "setFeatured": "מגדיר תמונה ראשית לפוסט…"
+      },
+      "toolNames": {
+        "wp_create_post": "יוצר פוסט חדש",
+        "wp_update_post": "מעדכן את הפוסט",
+        "wp_delete_post": "מוחק את הפוסט",
+        "manipulate_element": "עורך אלמנט בדף",
+        "wp_update_seo": "מעדכן נתוני SEO",
+        "wp_update_acf": "מעדכן שדות מותאמים",
+        "wp_create_redirect": "יוצר הפניה (Redirect)",
+        "wp_delete_redirect": "מסיר הפניה",
+        "wp_add_code_snippet": "מוסיף קטע קוד",
+        "wp_bulk_update_posts": "מעדכן פוסטים במרוכז",
+        "wp_add_menu_item": "מוסיף פריט תפריט",
+        "wp_update_menu_item": "מעדכן פריט תפריט",
+        "wp_delete_menu_item": "מסיר פריט תפריט",
+        "wp_create_term": "יוצר קטגוריה / תגית",
+        "wp_update_term": "מעדכן קטגוריה / תגית",
+        "wp_delete_term": "מסיר קטגוריה / תגית",
+        "wp_moderate_comment": "מנהל תגובה",
+        "wp_reply_comment": "משיב לתגובה",
+        "wp_delete_comment": "מסיר תגובה",
+        "wp_update_options": "מעדכן הגדרות אתר",
+        "wp_self_update_plugin": "מעדכן את התוסף Ghost Post",
+        "wp_rest_api": "פונה ל-REST API של וורדפרס",
+        "wp_upload_media": "מעלה מדיה",
+        "wp_update_media": "מעדכן פרטי מדיה",
+        "generate_image": "מייצר תמונה ראשית",
+        "wp_set_featured_image": "מגדיר תמונה ראשית",
+        "wp_insert_image_in_content": "מוסיף תמונה לתוכן",
+        "wp_search_replace_links": "מחליף קישורים באתר",
+        "run_site_audit": "מריץ סריקת אתר",
+        "run_agent_scan": "מריץ סריקת AI",
+        "research_keywords": "חוקר מילות מפתח",
+        "add_competitor": "מוסיף מתחרה",
+        "scan_competitor_page": "סורק עמוד מתחרה",
+        "create_content_campaign": "יוצר קמפיין תוכן",
+        "create_backlink_listing": "יוצר רישום קישור"
+      }
+    },
+    "placement": {
+      "title": "איפה למקם את",
+      "go": "?",
+      "guidance": "לחץ בתצוגה המקדימה על האלמנט שהאלמנט החדש צריך להופיע לפניו, או תאר את המיקום במילים."
     },
     "preview": {
       "label": "תצוגה מקדימה",
@@ -4389,8 +4497,11 @@
       "close": "סגור תצוגה",
       "ready": "מחובר",
       "connecting": "מתחבר לאתר…",
+      "loading": "טוען תצוגה מקדימה…",
       "emptyText": "(ריק)",
       "clearSelection": "נקה בחירה",
+      "inspectorUnavailable": "הבוחר אינו זמין",
+      "htmlAttached": "HTML מצורף להקשר עבור ה-AI",
       "device": {
         "full": "רוחב מלא",
         "tablet": "טאבלט (1024px)",

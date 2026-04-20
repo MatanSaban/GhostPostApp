@@ -7,18 +7,36 @@ export function normaliseSiteUrl(url) {
   return url.startsWith('http') ? url : 'https://' + url;
 }
 
-export function buildIframeSrc(siteUrl, path) {
+/**
+ * Build the iframe URL for the editor preview.
+ * - When `signedParams` is provided, the URL carries `gp_editor=1` plus the
+ *   HMAC-signed `gp_origin` / `gp_exp` / `gp_sig` triple the plugin verifies.
+ * - Without signed params, falls back to the legacy `gp_editor=true` flag
+ *   which the plugin only accepts when the Referer matches its baked
+ *   platform URL (kept for backwards compatibility while older plugin
+ *   versions are still deployed).
+ */
+export function buildIframeSrc(siteUrl, path, signedParams) {
   const base = normaliseSiteUrl(siteUrl).replace(/\/+$/, '');
   const p = path || '/';
   const sep = p.includes('?') ? '&' : '?';
-  return base + p + sep + 'gp_editor=true';
+  const params = new URLSearchParams();
+  if (signedParams && signedParams.sig) {
+    params.set('gp_editor', '1');
+    params.set('gp_origin', signedParams.origin);
+    params.set('gp_exp', String(signedParams.exp));
+    params.set('gp_sig', signedParams.sig);
+  } else {
+    params.set('gp_editor', 'true');
+  }
+  return base + p + sep + params.toString();
 }
 
 export function extractOrigin(url) {
   try { return new URL(normaliseSiteUrl(url)).origin; } catch { return ''; }
 }
 
-export function usePreviewBridge({ siteUrl, iframeRef, enabled = true, bridgeTimeoutMs = 8000 }) {
+export function usePreviewBridge({ siteUrl, siteId, iframeRef, enabled = true, bridgeTimeoutMs = 8000 }) {
   const [iframeReady, setIframeReady] = useState(false);
   const [currentPreviewUrl, setCurrentPreviewUrl] = useState('/');
   const [selectedElement, setSelectedElement] = useState(null);
@@ -26,11 +44,45 @@ export function usePreviewBridge({ siteUrl, iframeRef, enabled = true, bridgeTim
   const [inspectorEnabled, setInspectorEnabled] = useState(true);
   // 'idle' | 'connecting' | 'ready' | 'bridge_timeout'
   const [connectionState, setConnectionState] = useState('idle');
+  // Signed preview token: { sig, exp, origin } | null
+  const [signedToken, setSignedToken] = useState(null);
+  // 'idle' | 'loading' | 'ready' | 'error'
+  const [tokenState, setTokenState] = useState('idle');
   const bridgeTimerRef = useRef(null);
 
   const expectedOrigin = extractOrigin(siteUrl);
   const expectedOriginRef = useRef(expectedOrigin);
   useEffect(() => { expectedOriginRef.current = expectedOrigin; }, [expectedOrigin]);
+
+  // Fetch a signed preview token when enabled + siteId is known.
+  // The token lets the plugin trust iframe-embed requests from any platform
+  // origin (dev localhost, staging, production) without a Referer allowlist.
+  useEffect(() => {
+    if (!enabled || !siteId) {
+      setSignedToken(null);
+      setTokenState('idle');
+      return;
+    }
+    let cancelled = false;
+    setTokenState('loading');
+    fetch(`/api/sites/${siteId}/preview-token`, { credentials: 'include' })
+      .then(async (res) => {
+        if (!res.ok) throw new Error(`preview-token ${res.status}`);
+        return res.json();
+      })
+      .then((data) => {
+        if (cancelled) return;
+        setSignedToken(data);
+        setTokenState('ready');
+      })
+      .catch((err) => {
+        if (cancelled) return;
+        console.error('[PreviewBridge] failed to fetch preview token:', err);
+        setSignedToken(null);
+        setTokenState('error');
+      });
+    return () => { cancelled = true; };
+  }, [enabled, siteId]);
 
   const clearBridgeTimer = useCallback(() => {
     if (bridgeTimerRef.current) {
@@ -48,8 +100,15 @@ export function usePreviewBridge({ siteUrl, iframeRef, enabled = true, bridgeTim
   }, [bridgeTimeoutMs, clearBridgeTimer]);
 
   const handleMessage = useCallback((event) => {
-    const origin = expectedOriginRef.current;
-    if (origin && event.origin !== origin) return;
+    // Trust messages that came from our own iframe's contentWindow regardless
+    // of origin — this handles apex↔www redirects where the post-redirect
+    // origin legitimately differs from the configured site URL.
+    const iframeWindow = iframeRef?.current?.contentWindow;
+    const fromOurIframe = iframeWindow && event.source === iframeWindow;
+    if (!fromOurIframe) {
+      const origin = expectedOriginRef.current;
+      if (origin && event.origin !== origin) return;
+    }
 
     const data = event.data;
     if (!data || !data._gp) return;
@@ -60,9 +119,22 @@ export function usePreviewBridge({ siteUrl, iframeRef, enabled = true, bridgeTim
         setConnectionState('ready');
         clearBridgeTimer();
         if (data.url) setCurrentPreviewUrl(data.url);
+        // After a navigation the bridge script re-runs and defaults its
+        // internal inspectorEnabled to true; the platform's stored state
+        // stays as-is. Force both back to enabled so the toolbar icon, the
+        // iframe overlay, and the bridge stay in sync — matches the "click
+        // a link → inspect becomes active" UX the popup advertises.
+        setInspectorEnabled(true);
         break;
       case 'GP_URL_CHANGED':
         setCurrentPreviewUrl(data.url);
+        break;
+      case 'GP_LINK_NAVIGATING':
+        // Bridge is about to reload for a link nav — pre-update the URL
+        // pill and flip inspector back on so the icon matches the state
+        // the new page will boot into.
+        if (data.url) setCurrentPreviewUrl(data.url);
+        setInspectorEnabled(true);
         break;
       case 'GP_ELEMENT_SELECTED':
         setSelectedElement({
@@ -73,6 +145,16 @@ export function usePreviewBridge({ siteUrl, iframeRef, enabled = true, bridgeTim
           alt: data.alt,
           href: data.href,
           elementorWidget: data.elementorWidget,
+          elementorId: data.elementorId || null,
+          elementorAncestors: Array.isArray(data.elementorAncestors) ? data.elementorAncestors : null,
+          outerHTML: data.outerHTML,
+          screenshot: null,
+        });
+        break;
+      case 'GP_ELEMENT_SCREENSHOT':
+        setSelectedElement((prev) => {
+          if (!prev || prev.selector !== data.selector) return prev;
+          return { ...prev, screenshot: data.screenshot };
         });
         break;
       case 'GP_ELEMENT_HOVER':
@@ -82,7 +164,7 @@ export function usePreviewBridge({ siteUrl, iframeRef, enabled = true, bridgeTim
         setHoveredElement(null);
         break;
     }
-  }, [clearBridgeTimer]);
+  }, [iframeRef, clearBridgeTimer]);
 
   useEffect(() => {
     if (!enabled) {
@@ -98,6 +180,21 @@ export function usePreviewBridge({ siteUrl, iframeRef, enabled = true, bridgeTim
       clearBridgeTimer();
     };
   }, [enabled, handleMessage, startBridgeTimer, clearBridgeTimer]);
+
+  const buildSrc = useCallback((path) => {
+    if (!siteUrl) return '';
+    // If a siteId was supplied, the caller expects signed URLs — wait for the
+    // token before emitting a src (prevents the plugin from rejecting an
+    // unsigned request while the token is still in flight).
+    if (siteId) {
+      if (!signedToken) return '';
+      return buildIframeSrc(siteUrl, path, signedToken);
+    }
+    // Legacy unsigned path (old callers that haven't opted into signed mode)
+    return buildIframeSrc(siteUrl, path);
+  }, [siteUrl, siteId, signedToken]);
+
+  const iframeSrc = buildSrc('/');
 
   const postToIframe = useCallback((type, payload) => {
     const target = iframeRef?.current?.contentWindow;
@@ -131,7 +228,10 @@ export function usePreviewBridge({ siteUrl, iframeRef, enabled = true, bridgeTim
     postToIframe('GP_HIGHLIGHT_ELEMENT', { selector });
   }, [postToIframe]);
 
-  const clearSelection = useCallback(() => setSelectedElement(null), []);
+  const clearSelection = useCallback(() => {
+    setSelectedElement(null);
+    postToIframe('GP_CLEAR_SELECTION');
+  }, [postToIframe]);
 
   const reloadIframe = useCallback(() => {
     const el = iframeRef?.current;
@@ -145,11 +245,12 @@ export function usePreviewBridge({ siteUrl, iframeRef, enabled = true, bridgeTim
   const navigateIframe = useCallback((path) => {
     const el = iframeRef?.current;
     if (!el) return;
-    const nextSrc = buildIframeSrc(siteUrl, path || '/');
+    const nextSrc = buildSrc(path || '/');
+    if (!nextSrc) return;
     setIframeReady(false);
     startBridgeTimer();
     el.src = nextSrc;
-  }, [iframeRef, siteUrl, startBridgeTimer]);
+  }, [iframeRef, buildSrc, startBridgeTimer]);
 
   return {
     iframeReady,
@@ -158,6 +259,9 @@ export function usePreviewBridge({ siteUrl, iframeRef, enabled = true, bridgeTim
     hoveredElement,
     inspectorEnabled,
     connectionState,
+    tokenState,
+    iframeSrc,
+    buildSrc,
     expectedOrigin,
     postToIframe,
     toggleInspector,

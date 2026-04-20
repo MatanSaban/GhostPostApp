@@ -48,7 +48,7 @@
 }
 
 .pageSubtitle {
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   color: var(--muted-foreground);
   margin-top: 0.125rem;
 }
@@ -64,7 +64,7 @@
   align-items: center;
   gap: 0.375rem;
   padding: 0.5rem 0.8125rem;
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   font-weight: 500;
   border-radius: var(--radius-lg, 0.625rem);
   border: 1px solid var(--border);
@@ -124,7 +124,7 @@
 
 .filterChip {
   padding: 0.375rem 0.8125rem;
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   font-weight: 500;
   border-radius: 50px;
   border: 1px solid var(--border);
@@ -178,7 +178,7 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   color: var(--muted-foreground);
 }
 
@@ -236,7 +236,7 @@
 }
 
 .groupLabel {
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -244,7 +244,7 @@
 }
 
 .groupCount {
-  font-size: 0.625rem;
+  font-size: 0.6875rem;
   font-weight: 600;
   padding: 0.125rem 0.5rem;
   border-radius: 50px;
@@ -372,7 +372,7 @@
 }
 
 .notificationTitle {
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   font-weight: 600;
   color: var(--foreground);
   white-space: nowrap;
@@ -381,7 +381,7 @@
 }
 
 .notificationTime {
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   color: var(--muted-foreground);
   opacity: 0.7;
   white-space: nowrap;
@@ -389,14 +389,14 @@
 }
 
 .notificationMessage {
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   color: var(--muted-foreground);
   line-height: 1.5;
   margin: 0;
 }
 
 .notificationDate {
-  font-size: 0.625rem;
+  font-size: 0.6875rem;
   color: var(--muted-foreground);
   opacity: 0.5;
   margin-top: 0.375rem;
@@ -464,7 +464,7 @@
   color: var(--muted-foreground);
 
   p {
-    font-size: 0.9rem;
+    font-size: 0.75rem;
   }
 }
 
@@ -499,7 +499,7 @@
 }
 
 .emptyMessage {
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   color: var(--muted-foreground);
   max-width: 320px;
   line-height: 1.5;
@@ -516,7 +516,7 @@
   justify-content: center;
   gap: 0.5rem;
   padding: 1.5rem;
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   color: var(--muted-foreground);
 }
 

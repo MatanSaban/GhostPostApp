@@ -24,8 +24,18 @@ export async function POST(request, { params }) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }
 
+  let argOverrides = null;
   try {
-    const result = await approveAction(id, member.userId);
+    const body = await request.json().catch(() => null);
+    if (body && body.argOverrides && typeof body.argOverrides === 'object') {
+      argOverrides = body.argOverrides;
+    }
+  } catch {
+    // no body — continue with unchanged args
+  }
+
+  try {
+    const result = await approveAction(id, member.userId, argOverrides);
     return NextResponse.json(result);
   } catch (err) {
     return NextResponse.json({ error: err.message }, { status: 400 });

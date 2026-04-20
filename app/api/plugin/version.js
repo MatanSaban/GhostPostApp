@@ -10,10 +10,106 @@
  */
 
 // Current plugin version - increment this when making updates
-export const PLUGIN_VERSION = "3.0.2";
+export const PLUGIN_VERSION = "3.4.1";
 
 // Changelog for the current version
 export const PLUGIN_CHANGELOG = `
+= 3.4.1 =
+* FIX: Fatal "Cannot redeclare GP_API_Handler::create_term()" on activation. The 3.4.0 build added a new term-CRUD method group that shadowed the existing create_term() method used by the older /taxonomies/{taxonomy}/terms route. New term methods are now prefixed with gp_ (gp_list_terms / gp_create_term / gp_update_term / gp_delete_term) so they coexist with the legacy endpoint and sites can upgrade to 3.4.x without white-screening.
+
+= 3.4.0 =
+* NEW: Taxonomy management endpoints (GET/POST /terms/{taxonomy}, PUT/DELETE /terms/{taxonomy}/{term_id}). The AI can now create, rename, re-slug, and delete categories, tags, and any custom taxonomy (including WooCommerce product_cat / product_tag) end-to-end.
+* NEW: Comment moderation endpoints (GET /comments, PUT /comments/{id}, POST /comments, DELETE /comments/{id}). AI can list pending/spam/approved comments, approve/hold/spam/trash, reply as admin, edit comment bodies, and force-delete.
+* NEW: WP options endpoints (GET /options, PUT /options) with a whitelist covering site title, tagline, admin email, timezone, date/time format, permalink structure, homepage config (static page vs posts), posts-per-page, comment defaults, search-engine visibility, registration settings, default role, and image sizes. Permalink-structure changes auto-flush rewrite rules.
+* NEW: /self-update endpoint — the AI can trigger the Ghost Post plugin to upgrade itself to the latest published version. Calls wp_update_plugins() to refresh the update transient, then runs Plugin_Upgrader on our own slug. Returns updateNeeded:false when already on latest.
+* NEW: /wp-passthrough endpoint — generic REST API escape hatch. The AI can invoke ANY WordPress or third-party-plugin REST route (WooCommerce /wc/v3/*, Yoast /yoast/v1/*, RankMath /rankmath/v1/*, Contact Form 7 /contact-form-7/v1/*, WPForms /wpforms/v1/*, Elementor /elementor/v1/*, etc.) by passing method + path + params. The plugin temporarily authenticates as the first administrator account so capability-gated routes work, then restores the previous user. This is what unlocks full-plugin control for every WP plugin we don't have a dedicated tool for.
+
+= 3.3.0 =
+* NEW: Code snippet management endpoint (POST /code-snippets, DELETE /code-snippets/{id}). The plugin auto-dispatches to the Code Snippets plugin if installed, otherwise WPCode, otherwise writes a mu-plugin drop-in file — so the AI can add PHP/JS/CSS custom code on any site with our plugin connected, regardless of which snippet manager (if any) the site runs. Created snippets are tracked in a gp_created_snippets option so rollback/delete routes to the correct backend.
+* NEW: Menu management endpoints (POST /menus/{id}/items, PUT /menus/items/{id}, DELETE /menus/items/{id}). AI can now add, rename, reorder, and remove nav menu items end-to-end without the user touching WordPress admin. Backed by wp_update_nav_menu_item and wp_delete_post under the hood.
+* IMPROVE: Elementor insert render-verification now additionally checks that the newly-created widget's unique id appears as data-id="XXXXXXX" in the rendered HTML, not just that the inserted text is present somewhere on the page. Eliminates the false-positive where a text match on a pre-existing duplicate element (e.g. another H1) made a no-op save look successful. Mismatch returns applied=false, reason=render_mismatch with the specific widget id, so the platform can auto-rollback or retry with a different locator instead of reporting a phantom success.
+
+= 3.2.3 =
+* IMPROVE: Inserted Elementor widgets now visually match the surrounding page. The plugin scans for an existing widget of the same intended type — first the anchor element itself if it matches, then siblings, then ancestors, then a whole-tree fallback — and clones its design tokens (typography, colors, alignment, spacing, text shadow, animation, advanced style/CSS, theme global references) onto the new widget. Identity, content, and link/URL fields are deliberately excluded so the new element gets fresh IDs and the new text/heading_size the caller asked for. Result: an AI-inserted H1 picks up the page's existing heading typography and color instead of landing as a bare default-styled element. Callers can still override the auto-inheritance by passing element.settings explicitly.
+
+= 3.2.2 =
+* FIX: Elementor writes via the plugin REST API now actually persist. The previous "save via Elementor's official document API" path silently no-op'd on every signed REST request because Elementor's Document::save() short-circuits when current_user_can('edit_post', \\$id) is false — which it always is for a request authenticated by HMAC site key, not a logged-in WordPress user. The plugin would set saved_via_elementor=true on a NO-OP, skip the raw meta-write fallback, and then return render_mismatch because the page was unchanged. We now always do the raw \\update_post_meta write ourselves and only use the Elementor pipeline to fire the elementor/document/after_save hook so Pro's Theme Builder cache invalidation and CSS regen still run. This was the silent ceiling on every Elementor edit — including the Theme Builder edits 3.2.0 and 3.2.1 were trying to land.
+
+= 3.2.1 =
+* FIX: Elementor inserts no longer fail with reason=write_not_persisted right after a successful save. The plugin used to assign new widgets a 36-char UUID and then look the widget back up by that UUID to confirm the write — but Elementor's official document save pipeline normalises every element's ID to its native 7-char hex format, so our UUID never matched on re-read and the platform reported a phantom failure even when the page actually rendered the change. Widget IDs are now generated in Elementor's native format, and the meta verify step is now diagnostic-only (it relocates the inserted widget by its text content to expose the real Elementor-assigned ID). Render verification against the live page URL remains the authoritative gate. This was the residual bug after 3.2.0 fixed the Theme Builder routing.
+
+= 3.2.0 =
+* FIX: Elementor Pro Theme Builder pages (Single Page / Loop / Header / Footer / Archive templates) are now fully editable via manipulate_element. Previously, when a page like the home page was rendered by a "Single Page" template from elementor_library — not from the page's own _elementor_data — the plugin would write widget changes into the page's meta where they were never rendered, and the new render-verification would correctly flag render_mismatch even though the DB write succeeded. The plugin now resolves widget IDs across all elementor_library templates, writes the mutation into the template that actually renders the widget, and verifies against the original page URL. Response includes written_to_post_id and rendered_via_template:true so the platform can surface which template was changed.
+* NEW: get_element_structure now fetches the post's live permalink, extracts every data-elementor-id attribute, and returns a theme_templates[] array listing every Elementor template that contributes rendered markup to this page (with template_id, template_type, and its own widget structure). The AI can see upfront "this page is assembled from templates 13, 27, 42" and pick widget IDs from the right place, rather than trying blind widget IDs against the page itself.
+* IMPROVE: manipulate_element tool description now instructs the AI to surface written_to_post_id / rendered_via_template in its reply so users understand when a change will affect other pages sharing the same template.
+
+= 3.1.9 =
+* FIX: Element manipulator no longer returns a false-positive "applied:true" when the database write succeeds but the live page still renders the old content. After every insert/update/delete the plugin now HTTP-fetches the post's permalink (cache-busted) and confirms the expected text actually appears in the rendered HTML (or, for delete, is actually gone). Mismatch returns applied=false, reason=render_mismatch with the public URL and a specific hint, so the AI surfaces a real failure instead of claiming success the user can't see. This was the root cause of the persistent "the bot says it did it but nothing changed" reports.
+* FIX: Elementor writes now set the companion metas _elementor_edit_mode=builder, _elementor_template_type (wp-page / wp-post), and _elementor_version on posts that don't already have them. Without _elementor_edit_mode=builder Elementor's the_content filter skips _elementor_data entirely and WordPress serves the stale post_content — so our write landed in the DB but the page never rendered it. This affected every post that was imported from a template or theme demo without ever being opened in the Elementor editor.
+* IMPROVE: Elementor writes now go through the official \\Elementor\\Plugin::$instance->documents->get($post_id)->save() pipeline when available, which runs the full on-save flow (CSS regen, rendered-HTML cache bust, version bump, schema migration) exactly like clicking "Update" inside the Elementor editor. Raw update_post_meta remains as the fallback when the document API isn't loaded.
+* IMPROVE: Raw-HTML (post_content) path now captures wp_update_post errors explicitly and lifts KSES filters during the write so a role-scoped sanitizer can't silently strip a valid tag the AI inserted. Failed writes return applied=false with the WP error message instead of reporting success.
+* IMPROVE: Beaver Builder path now runs the same render-verification step as Elementor and raw HTML, plus per-post cache invalidation after the meta write.
+
+= 3.1.8 =
+* NEW: Editor-bridge now gives the preview iframe a devtools-style picker UX while the inspector is active — every click selects the element under the cursor and link navigation is fully blocked (including direct anchor clicks and anchor-wrapped images/headings), so users can safely click links without leaving the page they're trying to edit. With the inspector off the iframe behaves like a normal browser again.
+* NEW: Crosshair cursor across the whole preview page (links included) while the inspector is on, via an !important-scoped style rule toggled by the inspector state. Signals "click to select" the same way browser devtools do.
+* IMPROVE: Hover outline now paints a very soft purple tint inside the dashed border so the target element reads clearly without competing with the stronger selected-element highlight.
+
+= 3.1.7 =
+* FIX: Element manipulator now accepts BOTH request shapes — canonical spec.target.{kind,value,tag,position} and the legacy spec.locator + flat spec.position / spec.mutation that older platform builds emit. Missing position under spec.target is filled from spec.position; spec.mutation is merged into element for updates. This was the root cause of manipulate_element calls 400-ing with "insert requires position…" even when the AI passed the position correctly — the plugin was reading a key the platform never set.
+* NEW: Post-write verification — after saving _elementor_data, the plugin now re-reads the meta and confirms the expected widget id is present (insert) or absent (delete). If the expected state is missing the response returns applied=false, reason=write_not_persisted instead of a false-positive success, so the AI can retry or escalate instead of reporting "done" for a change that never landed.
+* NEW: inserted_widget_id is returned on every successful insert so the platform can highlight/verify the new widget in the preview iframe.
+* IMPROVE: Added clean_post_cache() after _elementor_data writes so the live page reflects the change on the next request without a manual page-cache flush.
+
+= 3.1.6 =
+* FIX: Editor-bridge parent-origin detection now reads the signed gp_origin URL param instead of document.referrer — after the first same-origin link click inside the preview iframe, document.referrer points to the previous SITE page (not the platform), which caused postMessage traffic in both directions to be silently dropped. The bridge stopped receiving GP_SET_INSPECTOR_ENABLED and the platform stopped receiving GP_ELEMENT_SELECTED, so the inspector icon and the in-iframe state could drift apart and subsequent link clicks would freeze.
+* FIX: Editor-bridge onClick now distinguishes between a direct anchor click (always navigates, even with inspector on) and a non-anchor descendant inside an anchor (selectable when inspector is on, navigates via the ancestor when inspector is off). Restores normal link navigation on pages where headings and images are anchor-wrapped while still letting the platform inspector pick those elements.
+
+= 3.1.5 =
+* FIX: Editor-bridge onClick now always lets the active inspector win over link navigation — previously clicking a heading/image that happened to be wrapped in an anchor would navigate instead of selecting, silently breaking element pick for anchor-wrapped content on most modern WP themes
+* NEW: GP_LINK_NAVIGATING message — bridge pre-announces same-origin link navigations with the destination path so the platform can update its URL pill and re-activate its inspector icon before the new page finishes loading (keeps bridge and UI state in sync across full-page reloads)
+
+= 3.1.4 =
+* NEW: Editor-bridge shows a live "tag.class1.class2" tooltip above the hovered element so the platform chat user can see at a glance what component they're about to inspect (matches devtools-style affordance)
+* NEW: Same-origin link clicks inside the preview iframe now navigate properly — bridge preserves the gp_editor / token query params on the destination URL so the plugin keeps accepting the iframe embed instead of rejecting it and surfacing "Could not connect" errors
+* NEW: GP_CLEAR_SELECTION message — platform can dismiss the purple selection outline inside the iframe (e.g. when the user removes the selection badge from the chat) without toggling the inspector off entirely
+
+= 3.1.3 =
+* NEW: Editor-bridge now reports the Elementor element id (data-id) and an ancestor chain for every hovered/selected element — platform chat uses this to target manipulate_element with locator.kind="widget_id" instead of fuzzy text matching, so "add H1 above this block" lands inside the Elementor tree on the first try instead of falling back to a raw post_content prepend that Elementor never renders
+
+= 3.1.2 =
+* FIX: Editor-bridge inspector outline now compensates for the scrollbar-width shift on RTL pages — Chrome/Firefox render position:fixed elements inset by the left-side scrollbar while getBoundingClientRect includes that column, so the purple outline used to sit a few pixels off the target. Bridge now measures the fixed-element origin at draw time and subtracts it, so hover/select lines hug the element exactly in both LTR and RTL
+
+= 3.1.1 =
+* FIX: Editor-bridge hover/selection overlays now land on the correct pixels in RTL layouts — switched to direction-agnostic translate3d positioning and forced direction:ltr on the overlay elements so the highlight no longer drifts to the opposite side on Hebrew/Arabic WordPress themes
+
+= 3.1.0 =
+* NEW: Generic element manipulator — two new REST endpoints (/elements/manipulate/{id} POST, /elements/structure/{id} GET) let the platform add, update, or remove ANY on-page element across Elementor, Beaver Builder, and raw post_content HTML from a single code path
+* NEW: Locator kinds — widget_id, text_match, tag_text, selector, all_of_tag; positions — before, after, inside_start, inside_end, replace
+* NEW: Structure summary — compact depth-ordered list of elements (widget id, type, tag, first ~80 chars of text) so the platform AI can pick a locator without pulling raw _elementor_data
+* NEW: Rollback snapshots are returned for every successful insert/update/delete so the platform can revert without a second round-trip
+* NEW: Diagnostic mode — when a locator doesn't match, the plugin returns a candidate list so the platform's Gemini-backed fallback can disambiguate
+* IMPROVE: Element manipulations also clear the Elementor files cache and per-post object cache so the live page reflects the change immediately
+
+= 3.0.6 =
+* NEW: Cache flush REST endpoint (/cache/clear) — platform post-action verifier can force a page-level + site-level cache purge before re-fetching the live page, eliminating false "H1 not detected" reports on sites behind WP Rocket, W3TC, LiteSpeed, SG Optimizer, Cloudflare, or Breeze
+* NEW: H1 insertion accepts an optional insert_before_text hint — platform passes the anchor text the user pointed at in the live preview, plugin places the new H1 immediately before that widget/module in Elementor or Beaver Builder trees
+* IMPROVE: Elementor add_h1 now recursively inserts into the correct nested container/column instead of always prepending at the top level; also clears the Elementor CSS files cache after insert so the change renders without re-saving from the editor
+* IMPROVE: Beaver Builder add_h1 now creates a proper heading module and attaches it to the first column/row node
+
+= 3.0.5 =
+* FIX: Editor bridge script now activates for both signed (gp_editor=1) and legacy (gp_editor=true) modes — previously the script loaded but silently early-returned when the platform sent signed requests, so GP_BRIDGE_READY never fired and the inspector appeared unavailable even though the plugin was up to date
+
+= 3.0.4 =
+* NEW: Editor bridge now captures the clicked element's outerHTML and a JPEG screenshot (via lazy-loaded html2canvas) and forwards them to the platform chat as GP_ELEMENT_SELECTED / GP_ELEMENT_SCREENSHOT, enabling VS Code-style multimodal context for the AI agent
+* IMPROVE: outerHTML is capped at 8KB and screenshots are downscaled to 900px max width + JPEG quality 0.82 so the chat payload stays compact
+* IMPROVE: Bridge hides its own hover/selection overlays during screenshot capture so they don't leak into the image
+
+= 3.0.3 =
+* NEW: Signed editor-token verification — the platform mints a short-lived HMAC-SHA256 token (using the site secret) for the live preview, so the iframe works from any platform origin (dev localhost, staging, production) without a Referer allowlist
+* NEW: Scoped CSP frame-ancestors is now derived from the verified token origin instead of the baked platform URL, fixing the case where local dev or alternate domains were blocked with X-Frame-Options
+* CHANGE: The legacy gp_editor=true flag still works against the baked platform URL for backwards compatibility
+
 = 3.0.2 =
 * NEW: Editor bridge script — enables the platform AI Agent Chat to show a live preview of the site with click-to-select element inspection
 * NEW: Scoped iframe embedding — when the platform loads the site with ?gp_editor=true from the configured platform origin, X-Frame-Options is replaced by a CSP frame-ancestors directive locked to the platform origin

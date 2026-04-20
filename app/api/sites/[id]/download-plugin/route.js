@@ -22,6 +22,8 @@ import { getClassAcfManager } from './plugin-templates/class-acf-manager';
 import { getClassUpdater } from './plugin-templates/class-updater';
 import { getClassEntitySync } from './plugin-templates/class-entity-sync';
 import { getClassRedirectionsManager } from './plugin-templates/class-redirections-manager';
+import { getClassCacheManager } from './plugin-templates/class-cache-manager';
+import { getClassElementManipulator } from './plugin-templates/class-element-manipulator';
 import { getAdminPage } from './plugin-templates/admin-page';
 import { getAdminCss } from './plugin-templates/admin-css';
 import { getAdminJs } from './plugin-templates/admin-js';
@@ -141,6 +143,8 @@ export async function GET(request, { params }) {
     pluginFolder.file('includes/class-gp-updater.php', getClassUpdater());
     pluginFolder.file('includes/class-gp-entity-sync.php', getClassEntitySync());
     pluginFolder.file('includes/class-gp-redirections-manager.php', getClassRedirectionsManager());
+    pluginFolder.file('includes/class-gp-cache-manager.php', getClassCacheManager());
+    pluginFolder.file('includes/class-gp-element-manipulator.php', getClassElementManipulator());
     pluginFolder.file('includes/class-gp-i18n.php', getClassI18n());
 
     // Admin folder

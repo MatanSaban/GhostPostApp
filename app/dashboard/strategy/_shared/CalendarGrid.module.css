@@ -22,7 +22,7 @@
 }
 
 .calendarTitle {
-  font-size: 1rem;
+  font-size: 1.0625rem;
   font-weight: 600;
   color: var(--foreground);
 }
@@ -91,7 +91,7 @@
   justify-content: flex-start;
   padding: 0.25rem;
   border-radius: var(--radius-md);
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   color: var(--foreground);
   background: var(--background);
   border: 1px solid transparent;
@@ -203,7 +203,7 @@
 }
 
 .dayPostTitle {
-  font-size: 0.5625rem;
+  font-size: 0.6875rem;
   line-height: 1.2;
   white-space: nowrap;
   overflow: hidden;
@@ -292,7 +292,7 @@
   transform: translate(-50%, -100%);
   background: var(--popover, #1f2937);
   color: var(--popover-foreground, #f9fafb);
-  font-size: 0.625rem;
+  font-size: 0.6875rem;
   font-weight: 400;
   line-height: 1.4;
   padding: 0.3rem 0.5rem;

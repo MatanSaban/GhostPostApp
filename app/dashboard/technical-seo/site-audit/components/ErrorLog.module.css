@@ -8,7 +8,7 @@
 }
 
 .title {
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -20,7 +20,7 @@
 
 .logBody {
   font-family: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, monospace;
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   line-height: 1.6;
   max-height: 300px;
   overflow-y: auto;
@@ -50,7 +50,7 @@
   text-align: end;
   color: var(--muted-foreground);
   opacity: 0.5;
-  font-size: 0.625rem;
+  font-size: 0.6875rem;
   padding-top: 1px;
   user-select: none;
 }
@@ -101,7 +101,7 @@
   border-top: 1px solid var(--border, #2a2a4a);
   background: rgba(0, 0, 0, 0.02);
   color: var(--muted-foreground);
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   cursor: pointer;
   transition: background 0.15s;
 }

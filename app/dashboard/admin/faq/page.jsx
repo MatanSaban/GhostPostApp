@@ -405,7 +405,7 @@ export default function FAQManagementPage() {
                               <ChevronDown size={14} />
                             </button>
                           </div>
-                          <span style={{ color: 'var(--muted-foreground)', fontSize: '0.85rem' }}>
+                          <span style={{ color: 'var(--muted-foreground)', fontSize: '0.9375rem' }}>
                             {faq.order + 1}
                           </span>
                         </div>
@@ -417,7 +417,7 @@ export default function FAQManagementPage() {
                           </div>
                           <div
                             style={{
-                              fontSize: '0.85rem',
+                              fontSize: '0.9375rem',
                               color: 'var(--muted-foreground)',
                               whiteSpace: 'nowrap',
                               overflow: 'hidden',
@@ -433,7 +433,7 @@ export default function FAQManagementPage() {
                           style={{
                             padding: '0.2rem 0.5rem',
                             borderRadius: '4px',
-                            fontSize: '0.8rem',
+                            fontSize: '0.8125rem',
                             background: faq.page === 'both' ? 'var(--primary)' : 'var(--muted)',
                             color: faq.page === 'both' ? 'white' : 'var(--foreground)',
                           }}
@@ -474,7 +474,7 @@ export default function FAQManagementPage() {
                             border: 'none',
                             cursor: 'pointer',
                             color: faq.isActive ? 'var(--success, #22c55e)' : 'var(--muted-foreground)',
-                            fontSize: '0.85rem',
+                            fontSize: '0.9375rem',
                           }}
                         >
                           {faq.isActive ? <Eye size={14} /> : <EyeOff size={14} />}
@@ -574,7 +574,7 @@ export default function FAQManagementPage() {
                   gap: '0.5rem',
                   marginBottom: '1rem',
                   fontWeight: 600,
-                  fontSize: '0.95rem',
+                  fontSize: '0.9375rem',
                   color: 'var(--foreground)',
                 }}
               >

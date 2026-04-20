@@ -130,13 +130,13 @@
 }
 
 .automationName {
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   font-weight: 500;
   color: var(--foreground);
 }
 
 .automationDescription {
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   color: var(--muted-foreground);
 }
 
@@ -144,7 +144,7 @@
   display: flex;
   align-items: center;
   gap: 1rem;
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   color: var(--muted-foreground);
 
   @media (max-width: 768px) {
@@ -267,11 +267,11 @@
 }
 
 .activityText {
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   color: var(--foreground);
 }
 
 .activityTime {
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   color: var(--muted-foreground);
 }

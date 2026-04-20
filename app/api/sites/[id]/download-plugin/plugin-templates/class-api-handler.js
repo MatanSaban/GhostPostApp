@@ -457,6 +457,28 @@ class GP_API_Handler {
             'callback' => array($this, 'set_favicon'),
             'permission_callback' => array($this, 'validate_request'),
         ));
+
+        // Clear caches (WordPress core + Elementor + third-party plugins)
+        register_rest_route($namespace, '/cache/clear', array(
+            'methods' => 'POST',
+            'callback' => array($this, 'clear_cache'),
+            'permission_callback' => array($this, 'validate_request'),
+        ));
+
+        // Unified element manipulator (insert / update / delete across Elementor, BB, raw HTML)
+        register_rest_route($namespace, '/elements/manipulate/(?P<id>\\d+)', array(
+            'methods' => 'POST',
+            'callback' => array($this, 'manipulate_element'),
+            'permission_callback' => array($this, 'validate_request'),
+        ));
+
+        // Fetch a structural preview of a post — the unified manipulator spec the AI needs
+        // to locate targets without leaking raw WP meta around the chat context.
+        register_rest_route($namespace, '/elements/structure/(?P<id>\\d+)', array(
+            'methods' => 'GET',
+            'callback' => array($this, 'get_element_structure'),
+            'permission_callback' => array($this, 'validate_request'),
+        ));
         
         // Security headers
         register_rest_route($namespace, '/security-headers', array(
@@ -511,6 +533,88 @@ class GP_API_Handler {
         register_rest_route($namespace, '/widget-data', array(
             'methods' => 'POST',
             'callback' => array($this, 'update_widget_data'),
+            'permission_callback' => array($this, 'validate_request'),
+        ));
+
+        // Code snippet management — create a PHP/JS/CSS snippet and keep track
+        // of it for rollback. Uses the Code Snippets plugin if active,
+        // otherwise falls back to a mu-plugin drop-in file we write ourselves.
+        register_rest_route($namespace, '/code-snippets', array(
+            'methods' => 'POST',
+            'callback' => array($this, 'create_code_snippet'),
+            'permission_callback' => array($this, 'validate_request'),
+        ));
+        register_rest_route($namespace, '/code-snippets/(?P<id>[a-zA-Z0-9_-]+)', array(
+            'methods' => 'DELETE',
+            'callback' => array($this, 'delete_code_snippet'),
+            'permission_callback' => array($this, 'validate_request'),
+        ));
+
+        // Menu management — create / update / delete nav menus and items.
+        register_rest_route($namespace, '/menus/(?P<id>\\d+)/items', array(
+            array(
+                'methods' => 'POST',
+                'callback' => array($this, 'add_menu_item'),
+                'permission_callback' => array($this, 'validate_request'),
+            ),
+        ));
+        register_rest_route($namespace, '/menus/items/(?P<item_id>\\d+)', array(
+            array(
+                'methods' => 'PUT',
+                'callback' => array($this, 'update_menu_item'),
+                'permission_callback' => array($this, 'validate_request'),
+            ),
+            array(
+                'methods' => 'DELETE',
+                'callback' => array($this, 'delete_menu_item'),
+                'permission_callback' => array($this, 'validate_request'),
+            ),
+        ));
+
+        // Terms (categories / tags / any taxonomy) — list / create / update / delete.
+        // Names are gp_-prefixed to avoid collision with the pre-existing
+        // create_term() on /taxonomies/{taxonomy}/terms which returns a
+        // different JSON shape (full term object) than what our executor
+        // expects (success + termId).
+        register_rest_route($namespace, '/terms/(?P<taxonomy>[a-zA-Z0-9_-]+)', array(
+            array('methods' => 'GET',  'callback' => array($this, 'gp_list_terms'),   'permission_callback' => array($this, 'validate_request')),
+            array('methods' => 'POST', 'callback' => array($this, 'gp_create_term'),  'permission_callback' => array($this, 'validate_request')),
+        ));
+        register_rest_route($namespace, '/terms/(?P<taxonomy>[a-zA-Z0-9_-]+)/(?P<term_id>\\d+)', array(
+            array('methods' => 'PUT',    'callback' => array($this, 'gp_update_term'), 'permission_callback' => array($this, 'validate_request')),
+            array('methods' => 'DELETE', 'callback' => array($this, 'gp_delete_term'), 'permission_callback' => array($this, 'validate_request')),
+        ));
+
+        // Comments — list / update status / reply / edit / delete.
+        register_rest_route($namespace, '/comments', array(
+            array('methods' => 'GET',  'callback' => array($this, 'list_comments'),  'permission_callback' => array($this, 'validate_request')),
+            array('methods' => 'POST', 'callback' => array($this, 'reply_comment'),  'permission_callback' => array($this, 'validate_request')),
+        ));
+        register_rest_route($namespace, '/comments/(?P<id>\\d+)', array(
+            array('methods' => 'PUT',    'callback' => array($this, 'update_comment'), 'permission_callback' => array($this, 'validate_request')),
+            array('methods' => 'DELETE', 'callback' => array($this, 'delete_comment'), 'permission_callback' => array($this, 'validate_request')),
+        ));
+
+        // WP Options — whitelisted read/write for common site settings.
+        register_rest_route($namespace, '/options', array(
+            array('methods' => 'GET', 'callback' => array($this, 'get_options'),    'permission_callback' => array($this, 'validate_request')),
+            array('methods' => 'PUT', 'callback' => array($this, 'update_options'), 'permission_callback' => array($this, 'validate_request')),
+        ));
+
+        // Self-update — force the Ghost Post plugin to update to the latest version.
+        register_rest_route($namespace, '/self-update', array(
+            'methods' => 'POST',
+            'callback' => array($this, 'self_update'),
+            'permission_callback' => array($this, 'validate_request'),
+        ));
+
+        // Generic REST passthrough — lets the AI call ANY WordPress / plugin REST
+        // route (WooCommerce, Yoast, RankMath, Elementor, Contact Form 7, etc.)
+        // as an administrator. This is the escape hatch that gives the bot full
+        // access to plugins we don't have dedicated tools for.
+        register_rest_route($namespace, '/wp-passthrough', array(
+            'methods' => 'POST',
+            'callback' => array($this, 'wp_passthrough'),
             'permission_callback' => array($this, 'validate_request'),
         ));
     }
@@ -1386,6 +1490,209 @@ class GP_API_Handler {
     // SECURITY HEADERS
     // ==========================================
     
+    public function clear_cache(WP_REST_Request $request) {
+        $body = $request->get_json_params();
+        $post_ids = array();
+        if (isset($body['post_ids']) && is_array($body['post_ids'])) {
+            $post_ids = array_map('intval', $body['post_ids']);
+        } elseif (isset($body['postId'])) {
+            $post_ids = array(intval($body['postId']));
+        }
+        if (!class_exists('GP_Cache_Manager')) {
+            return new WP_REST_Response(array('error' => 'GP_Cache_Manager not loaded'), 500);
+        }
+        $result = GP_Cache_Manager::clear_all($post_ids);
+        return new WP_REST_Response($result, 200);
+    }
+
+    public function manipulate_element(WP_REST_Request $request) {
+        if (!gp_has_permission('CONTENT_UPDATE')) {
+            return new WP_REST_Response(array('error' => 'Permission denied'), 403);
+        }
+        if (!class_exists('GP_Element_Manipulator')) {
+            return new WP_REST_Response(array('error' => 'GP_Element_Manipulator not loaded'), 500);
+        }
+        $post_id = intval($request['id']);
+        $spec    = $request->get_json_params();
+        $result  = GP_Element_Manipulator::run($post_id, $spec);
+        if (is_wp_error($result)) {
+            $data   = $result->get_error_data();
+            $status = is_array($data) && isset($data['status']) ? intval($data['status']) : 500;
+            return new WP_REST_Response(array('error' => $result->get_error_message()), $status);
+        }
+        // Flush caches for this post so the next platform fetch reflects the mutation
+        if (class_exists('GP_Cache_Manager')) {
+            GP_Cache_Manager::clear_all(array($post_id));
+        }
+        Ghost_Post::log_activity('element_manipulated', 'Post #' . $post_id . ' ' . (isset($spec['operation']) ? $spec['operation'] : 'modified'));
+        return new WP_REST_Response($result, 200);
+    }
+
+    public function get_element_structure(WP_REST_Request $request) {
+        if (!gp_has_permission('CONTENT_READ')) {
+            return new WP_REST_Response(array('error' => 'Permission denied'), 403);
+        }
+        $post_id = intval($request['id']);
+        $post = get_post($post_id);
+        if (!$post) {
+            return new WP_REST_Response(array('error' => 'Post not found'), 404);
+        }
+        $elementor_raw = get_post_meta($post_id, '_elementor_data', true);
+        $bb_raw = get_post_meta($post_id, '_fl_builder_data', true);
+        $builder = 'html';
+        $structure = array();
+        // Theme Builder / Loop / Header / Footer templates that actually render
+        // on this page's frontend URL. Populated by scanning the page HTML for
+        // data-elementor-id attributes. When non-empty, the AI must target
+        // widgets by their IDs in the template — writing to the page itself is
+        // a silent no-op because Elementor Pro's Theme Builder takes over.
+        $theme_templates = array();
+
+        if (!empty($elementor_raw)) {
+            $builder = 'elementor';
+            $elements = is_string($elementor_raw) ? json_decode($elementor_raw, true) : $elementor_raw;
+            if (is_array($elements)) {
+                $structure = self::summarize_elementor($elements);
+            }
+        } elseif (!empty($bb_raw) && is_array($bb_raw)) {
+            $builder = 'beaver_builder';
+            foreach ($bb_raw as $node_id => $node) {
+                $is_obj = is_object($node);
+                $type = $is_obj ? ($node->type ?? '') : ($node['type'] ?? '');
+                if ($type !== 'module') continue;
+                $slug = $is_obj ? ($node->slug ?? '') : ($node['slug'] ?? '');
+                $settings = $is_obj ? ($node->settings ?? null) : ($node['settings'] ?? null);
+                $heading = '';
+                $node_tag = '';
+                if ($settings) {
+                    $heading = is_object($settings) ? ($settings->heading ?? '') : ($settings['heading'] ?? '');
+                    $node_tag = is_object($settings) ? ($settings->tag ?? '') : ($settings['tag'] ?? '');
+                }
+                $structure[] = array(
+                    'id' => $node_id, 'slug' => $slug, 'tag' => $node_tag,
+                    'text' => mb_substr((string)$heading, 0, 200),
+                );
+            }
+        } else {
+            // HTML: parse post_content for headings + top-level blocks
+            $content = $post->post_content ?: '';
+            if (class_exists('DOMDocument') && trim($content) !== '') {
+                $dom = new DOMDocument('1.0', 'UTF-8');
+                libxml_use_internal_errors(true);
+                $dom->loadHTML('<?xml encoding="UTF-8"?><div id="gp-root">' . $content . '</div>', LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD);
+                libxml_clear_errors();
+                $root = $dom->getElementById('gp-root');
+                if ($root) {
+                    foreach (array('h1','h2','h3','p','a','img') as $t) {
+                        $nodes = $dom->getElementsByTagName($t);
+                        foreach ($nodes as $n) {
+                            if (count($structure) >= 80) break 2;
+                            $structure[] = array(
+                                'id' => $n->getAttribute('id') ?: null,
+                                'tag' => strtolower($n->nodeName),
+                                'text' => mb_substr(trim((string)$n->textContent), 0, 200),
+                            );
+                        }
+                    }
+                }
+            }
+        }
+
+        // Detect Elementor Pro Theme Builder templates that render this page.
+        // We fetch the permalink once and extract every data-elementor-id
+        // value; any id that is NOT $post_id points at a template whose
+        // widgets appear in the rendered HTML. Then we include each template's
+        // widget structure so the AI can target widgets by id — whether they
+        // live on the page itself or in a Single/Header/Footer/Loop template.
+        if ($builder === 'elementor' || (empty($elementor_raw) && empty($bb_raw))) {
+            $permalink = get_permalink($post_id);
+            if ($permalink) {
+                $resp = wp_remote_get(add_query_arg(array('gp_cb' => time()), $permalink), array(
+                    'timeout'     => 10,
+                    'sslverify'   => false,
+                    'redirection' => 3,
+                    'headers'     => array(
+                        'Cache-Control' => 'no-cache',
+                        'User-Agent'    => 'GhostPost-StructureScan/1.0',
+                    ),
+                ));
+                if (!is_wp_error($resp) && (int) wp_remote_retrieve_response_code($resp) < 400) {
+                    $body = (string) wp_remote_retrieve_body($resp);
+                    if (preg_match_all('/data-elementor-id="(\\d+)"/', $body, $m)) {
+                        $seen = array();
+                        foreach ($m[1] as $tid) {
+                            $tid = (int) $tid;
+                            if ($tid === (int) $post_id) continue;
+                            if (isset($seen[$tid])) continue;
+                            $seen[$tid] = true;
+                            $tpost = get_post($tid);
+                            if (!$tpost || $tpost->post_type !== 'elementor_library') continue;
+                            $traw = get_post_meta($tid, '_elementor_data', true);
+                            if (empty($traw)) continue;
+                            $tels = is_string($traw) ? json_decode($traw, true) : $traw;
+                            if (!is_array($tels)) continue;
+                            $theme_templates[] = array(
+                                'template_id'       => $tid,
+                                'template_type'     => get_post_meta($tid, '_elementor_template_type', true) ?: '',
+                                'title'             => get_the_title($tid),
+                                'structure'         => self::summarize_elementor($tels),
+                            );
+                        }
+                        if (!empty($theme_templates) && $builder !== 'elementor') {
+                            // Page has no _elementor_data of its own, but is
+                            // clearly rendered by Elementor templates — the
+                            // manipulator's widget_id path will route there.
+                            $builder = 'elementor';
+                        }
+                    }
+                }
+            }
+        }
+
+        return new WP_REST_Response(array(
+            'post_id'         => $post_id,
+            'builder'         => $builder,
+            'structure'       => $structure,
+            'theme_templates' => $theme_templates,
+            'hint'            => !empty($theme_templates)
+                ? 'This page is rendered in part by Elementor Pro Theme Builder templates. Widget IDs visible in the editor may live in the templates under theme_templates[]. manipulate_element with a widget_id will auto-route to the correct template.'
+                : '',
+        ), 200);
+    }
+
+    private static function summarize_elementor($elements, &$out = null, $depth = 0) {
+        if ($out === null) $out = array();
+        foreach ($elements as $el) {
+            if (!is_array($el)) continue;
+            if (count($out) >= 120) return $out;
+            $is_widget = isset($el['elType']) && $el['elType'] === 'widget';
+            if ($is_widget) {
+                $widgetType = isset($el['widgetType']) ? $el['widgetType'] : 'unknown';
+                $entry = array(
+                    'id'         => isset($el['id']) ? $el['id'] : null,
+                    'widgetType' => $widgetType,
+                    'depth'      => $depth,
+                );
+                if ($widgetType === 'heading') {
+                    $entry['tag']  = isset($el['settings']['header_size']) ? strtolower($el['settings']['header_size']) : 'h2';
+                    $entry['text'] = isset($el['settings']['title']) ? mb_substr($el['settings']['title'], 0, 200) : '';
+                } else {
+                    foreach (array('title','text','editor','heading','description') as $k) {
+                        if (isset($el['settings'][$k]) && is_string($el['settings'][$k])) {
+                            $entry['text'] = mb_substr(wp_strip_all_tags($el['settings'][$k]), 0, 200);
+                            break;
+                        }
+                    }
+                }
+                $out[] = $entry;
+            }
+            if (!empty($el['elements']) && is_array($el['elements'])) {
+                self::summarize_elementor($el['elements'], $out, $depth + 1);
+            }
+        }
+        return $out;
+    }
+
     private static $default_security_headers = array(
         'strict-transport-security' => 'max-age=31536000; includeSubDomains; preload',
         'x-frame-options'           => 'SAMEORIGIN',
@@ -1578,8 +1885,662 @@ class GP_API_Handler {
             $merged = array_merge($existing, $widget_data);
             update_option('gp_dashboard_widget_data', $merged);
         }
-        
+
         return new WP_REST_Response(array('success' => true), 200);
+    }
+
+    /**
+     * Create a code snippet. Tries three backends in order so the bot can always
+     * add PHP/JS/CSS regardless of which snippet plugin (if any) the site runs.
+     * Backends:
+     *   1. "Code Snippets" plugin (wp-snippets table) — most common
+     *   2. WPCode (code-snippets-pro) — second most common
+     *   3. mu-plugin drop-in we write ourselves — always works (last resort)
+     * Each created snippet is tracked in the 'gp_created_snippets' option so
+     * delete_code_snippet can dispatch to the correct backend for rollback.
+     */
+    public function create_code_snippet(WP_REST_Request $request) {
+        $body   = $request->get_json_params();
+        $name   = isset($body['name']) ? sanitize_text_field($body['name']) : 'GhostPost Snippet';
+        $code   = isset($body['code']) ? (string) $body['code'] : '';
+        $type   = isset($body['type']) ? strtolower(sanitize_key($body['type'])) : 'php'; // php|js|css|html
+        $scope  = isset($body['scope']) ? strtolower(sanitize_key($body['scope'])) : 'everywhere'; // everywhere|frontend|admin|header|footer
+        $active = isset($body['active']) ? (bool) $body['active'] : true;
+
+        if (empty($code)) {
+            return new WP_Error('empty_code', 'Snippet code is required', array('status' => 400));
+        }
+
+        $registry = get_option('gp_created_snippets', array());
+        if (!is_array($registry)) { $registry = array(); }
+
+        // --- Backend 1: Code Snippets plugin ---
+        global $wpdb;
+        $cs_table = $wpdb->prefix . 'snippets';
+        $has_code_snippets = false;
+        if (function_exists('code_snippets') || defined('CODE_SNIPPETS_VERSION')) {
+            $has_code_snippets = true;
+        } else {
+            $row = $wpdb->get_var($wpdb->prepare('SHOW TABLES LIKE %s', $cs_table));
+            if ($row === $cs_table) { $has_code_snippets = true; }
+        }
+        if ($has_code_snippets && $type === 'php') {
+            $cs_scope = self::map_snippet_scope($scope, $type);
+            $result = $wpdb->insert($cs_table, array(
+                'name'        => $name,
+                'description' => 'Created by GhostPost AI',
+                'code'        => $code,
+                'tags'        => 'ghostpost',
+                'scope'       => $cs_scope,
+                'priority'    => 10,
+                'active'      => $active ? 1 : 0,
+                'modified'    => current_time('mysql'),
+            ));
+            if ($result) {
+                $id = $wpdb->insert_id;
+                $registry[$id] = array('backend' => 'code-snippets', 'table_id' => $id, 'name' => $name, 'type' => $type);
+                update_option('gp_created_snippets', $registry, false);
+                return new WP_REST_Response(array('success' => true, 'snippetId' => (string) $id, 'backend' => 'code-snippets'), 200);
+            }
+        }
+
+        // --- Backend 2: WPCode ---
+        if (function_exists('wpcode') || class_exists('WPCode_Snippet')) {
+            if (class_exists('WPCode_Snippet')) {
+                try {
+                    $snippet = new WPCode_Snippet(array(
+                        'title'    => $name,
+                        'code'     => $code,
+                        'code_type' => $type === 'js' ? 'js' : ($type === 'css' ? 'css' : ($type === 'html' ? 'html' : 'php')),
+                        'active'   => $active,
+                        'location' => $scope === 'header' ? 'site_wide_header' : ($scope === 'footer' ? 'site_wide_footer' : 'site_wide_body'),
+                    ));
+                    $sid = $snippet->save();
+                    if ($sid) {
+                        $registry[(string) $sid] = array('backend' => 'wpcode', 'post_id' => $sid, 'name' => $name, 'type' => $type);
+                        update_option('gp_created_snippets', $registry, false);
+                        return new WP_REST_Response(array('success' => true, 'snippetId' => (string) $sid, 'backend' => 'wpcode'), 200);
+                    }
+                } catch (Exception $e) { /* fall through */ }
+            }
+        }
+
+        // --- Backend 3: mu-plugin drop-in (always works) ---
+        $mu_dir = trailingslashit(WPMU_PLUGIN_DIR);
+        if (!file_exists($mu_dir)) { wp_mkdir_p($mu_dir); }
+        $slug = 'gp-snippet-' . substr(md5($name . microtime(true)), 0, 10);
+        $file = $mu_dir . $slug . '.php';
+
+        if ($type === 'php') {
+            $file_content = "<?php\n/**\n * Plugin Name: GP Snippet - " . esc_html($name) . "\n * Description: Auto-generated by GhostPost. Do not edit manually.\n */\nif (!defined('ABSPATH')) exit;\n" . (strpos(ltrim($code), '<?php') === 0 ? preg_replace('/^\s*<\?php/', '', $code) : $code) . "\n";
+        } elseif ($type === 'js') {
+            $hook = $scope === 'admin' ? 'admin_print_footer_scripts' : 'wp_footer';
+            $file_content = "<?php\n/** Plugin Name: GP Snippet - " . esc_html($name) . " */\nif (!defined('ABSPATH')) exit;\nadd_action('" . $hook . "', function(){\n    echo '<script>' . " . var_export($code, true) . " . '</script>';\n});\n";
+        } elseif ($type === 'css') {
+            $hook = $scope === 'admin' ? 'admin_head' : 'wp_head';
+            $file_content = "<?php\n/** Plugin Name: GP Snippet - " . esc_html($name) . " */\nif (!defined('ABSPATH')) exit;\nadd_action('" . $hook . "', function(){\n    echo '<style>' . " . var_export($code, true) . " . '</style>';\n});\n";
+        } else {
+            $hook = $scope === 'header' ? 'wp_head' : 'wp_footer';
+            $file_content = "<?php\n/** Plugin Name: GP Snippet - " . esc_html($name) . " */\nif (!defined('ABSPATH')) exit;\nadd_action('" . $hook . "', function(){\n    echo " . var_export($code, true) . ";\n});\n";
+        }
+
+        $written = @file_put_contents($file, $file_content);
+        if ($written === false) {
+            return new WP_Error('write_failed', 'Could not write mu-plugin file: ' . $file, array('status' => 500));
+        }
+        $registry[$slug] = array('backend' => 'mu-plugin', 'file' => $file, 'name' => $name, 'type' => $type);
+        update_option('gp_created_snippets', $registry, false);
+        return new WP_REST_Response(array('success' => true, 'snippetId' => $slug, 'backend' => 'mu-plugin'), 200);
+    }
+
+    /**
+     * Delete a previously-created snippet by ID. Looks the ID up in the
+     * gp_created_snippets registry so we know which backend to hit.
+     */
+    public function delete_code_snippet(WP_REST_Request $request) {
+        $id = $request->get_param('id');
+        $registry = get_option('gp_created_snippets', array());
+        if (!is_array($registry) || !isset($registry[$id])) {
+            return new WP_Error('not_found', 'Snippet not found in registry', array('status' => 404));
+        }
+        $entry = $registry[$id];
+        $backend = isset($entry['backend']) ? $entry['backend'] : '';
+
+        if ($backend === 'code-snippets') {
+            global $wpdb;
+            $wpdb->delete($wpdb->prefix . 'snippets', array('id' => intval($entry['table_id'])));
+        } elseif ($backend === 'wpcode') {
+            wp_delete_post(intval($entry['post_id']), true);
+        } elseif ($backend === 'mu-plugin' && !empty($entry['file']) && file_exists($entry['file'])) {
+            @unlink($entry['file']);
+        }
+
+        unset($registry[$id]);
+        update_option('gp_created_snippets', $registry, false);
+        return new WP_REST_Response(array('success' => true), 200);
+    }
+
+    /**
+     * Map our generic scope strings to the Code Snippets plugin's scope names.
+     */
+    private static function map_snippet_scope($scope, $type) {
+        if ($type !== 'php') { return 'global'; }
+        switch ($scope) {
+            case 'admin':    return 'admin';
+            case 'frontend': return 'front-end';
+            case 'header':   return 'front-end';
+            case 'footer':   return 'front-end';
+            default:         return 'global';
+        }
+    }
+
+    /**
+     * Add a new item to a nav menu. Thin wrapper around wp_update_nav_menu_item.
+     */
+    public function add_menu_item(WP_REST_Request $request) {
+        $menu_id = intval($request->get_param('id'));
+        $body    = $request->get_json_params();
+
+        if (!$menu_id || !wp_get_nav_menu_object($menu_id)) {
+            return new WP_Error('bad_menu', 'Menu not found', array('status' => 404));
+        }
+
+        $args = array(
+            'menu-item-title'     => isset($body['title']) ? sanitize_text_field($body['title']) : '',
+            'menu-item-url'       => isset($body['url']) ? esc_url_raw($body['url']) : '',
+            'menu-item-status'    => 'publish',
+            'menu-item-type'      => isset($body['type']) ? sanitize_key($body['type']) : 'custom',
+            'menu-item-object'    => isset($body['object']) ? sanitize_key($body['object']) : '',
+            'menu-item-object-id' => isset($body['objectId']) ? intval($body['objectId']) : 0,
+            'menu-item-parent-id' => isset($body['parentId']) ? intval($body['parentId']) : 0,
+            'menu-item-position'  => isset($body['position']) ? intval($body['position']) : 0,
+            'menu-item-target'    => isset($body['target']) ? sanitize_text_field($body['target']) : '',
+            'menu-item-classes'   => isset($body['classes']) ? sanitize_text_field($body['classes']) : '',
+        );
+
+        $item_id = wp_update_nav_menu_item($menu_id, 0, $args);
+        if (is_wp_error($item_id)) {
+            return new WP_Error('insert_failed', $item_id->get_error_message(), array('status' => 500));
+        }
+        return new WP_REST_Response(array('success' => true, 'itemId' => $item_id), 200);
+    }
+
+    /**
+     * Update an existing nav menu item.
+     */
+    public function update_menu_item(WP_REST_Request $request) {
+        $item_id = intval($request->get_param('item_id'));
+        $body    = $request->get_json_params();
+        $item    = get_post($item_id);
+        if (!$item || $item->post_type !== 'nav_menu_item') {
+            return new WP_Error('bad_item', 'Menu item not found', array('status' => 404));
+        }
+
+        $menus = wp_get_post_terms($item_id, 'nav_menu');
+        $menu_id = (!empty($menus) && !is_wp_error($menus)) ? intval($menus[0]->term_id) : 0;
+        if (!$menu_id) {
+            return new WP_Error('no_menu', 'Item is not attached to a menu', array('status' => 500));
+        }
+
+        $existing = wp_setup_nav_menu_item($item);
+        $args = array(
+            'menu-item-title'     => isset($body['title']) ? sanitize_text_field($body['title']) : $existing->title,
+            'menu-item-url'       => isset($body['url']) ? esc_url_raw($body['url']) : $existing->url,
+            'menu-item-status'    => 'publish',
+            'menu-item-type'      => isset($body['type']) ? sanitize_key($body['type']) : $existing->type,
+            'menu-item-object'    => isset($body['object']) ? sanitize_key($body['object']) : $existing->object,
+            'menu-item-object-id' => isset($body['objectId']) ? intval($body['objectId']) : intval($existing->object_id),
+            'menu-item-parent-id' => isset($body['parentId']) ? intval($body['parentId']) : intval($existing->menu_item_parent),
+            'menu-item-position'  => isset($body['position']) ? intval($body['position']) : intval($existing->menu_order),
+            'menu-item-target'    => isset($body['target']) ? sanitize_text_field($body['target']) : $existing->target,
+            'menu-item-classes'   => isset($body['classes']) ? sanitize_text_field($body['classes']) : (is_array($existing->classes) ? implode(' ', $existing->classes) : ''),
+        );
+
+        $result = wp_update_nav_menu_item($menu_id, $item_id, $args);
+        if (is_wp_error($result)) {
+            return new WP_Error('update_failed', $result->get_error_message(), array('status' => 500));
+        }
+        return new WP_REST_Response(array('success' => true, 'itemId' => $result), 200);
+    }
+
+    /**
+     * Delete a nav menu item.
+     */
+    public function delete_menu_item(WP_REST_Request $request) {
+        $item_id = intval($request->get_param('item_id'));
+        $item    = get_post($item_id);
+        if (!$item || $item->post_type !== 'nav_menu_item') {
+            return new WP_Error('bad_item', 'Menu item not found', array('status' => 404));
+        }
+        $deleted = wp_delete_post($item_id, true);
+        if (!$deleted) {
+            return new WP_Error('delete_failed', 'Could not delete menu item', array('status' => 500));
+        }
+        return new WP_REST_Response(array('success' => true), 200);
+    }
+
+    /**
+     * List terms (categories / tags / any taxonomy).
+     */
+    public function gp_list_terms(WP_REST_Request $request) {
+        $taxonomy = sanitize_key($request->get_param('taxonomy'));
+        if (!taxonomy_exists($taxonomy)) {
+            return new WP_Error('bad_taxonomy', 'Taxonomy does not exist: ' . $taxonomy, array('status' => 404));
+        }
+        $search = $request->get_param('search');
+        $args = array(
+            'taxonomy'   => $taxonomy,
+            'hide_empty' => false,
+            'number'     => intval($request->get_param('limit')) ?: 200,
+        );
+        if ($search) { $args['search'] = sanitize_text_field($search); }
+        $terms = get_terms($args);
+        if (is_wp_error($terms)) {
+            return new WP_Error('query_failed', $terms->get_error_message(), array('status' => 500));
+        }
+        $out = array();
+        foreach ($terms as $t) {
+            $out[] = array(
+                'id'          => $t->term_id,
+                'name'        => $t->name,
+                'slug'        => $t->slug,
+                'description' => $t->description,
+                'parent'      => $t->parent,
+                'count'       => $t->count,
+            );
+        }
+        return new WP_REST_Response($out, 200);
+    }
+
+    /**
+     * Create a term.
+     */
+    public function gp_create_term(WP_REST_Request $request) {
+        $taxonomy = sanitize_key($request->get_param('taxonomy'));
+        if (!taxonomy_exists($taxonomy)) {
+            return new WP_Error('bad_taxonomy', 'Taxonomy does not exist: ' . $taxonomy, array('status' => 404));
+        }
+        $body = $request->get_json_params();
+        $name = isset($body['name']) ? sanitize_text_field($body['name']) : '';
+        if ($name === '') {
+            return new WP_Error('no_name', 'Term name is required', array('status' => 400));
+        }
+        $args = array();
+        if (!empty($body['slug']))        { $args['slug'] = sanitize_title($body['slug']); }
+        if (!empty($body['description'])) { $args['description'] = wp_kses_post($body['description']); }
+        if (!empty($body['parent']))      { $args['parent'] = intval($body['parent']); }
+
+        $result = wp_insert_term($name, $taxonomy, $args);
+        if (is_wp_error($result)) {
+            return new WP_Error('insert_failed', $result->get_error_message(), array('status' => 500));
+        }
+        return new WP_REST_Response(array('success' => true, 'termId' => $result['term_id']), 200);
+    }
+
+    /**
+     * Update a term.
+     */
+    public function gp_update_term(WP_REST_Request $request) {
+        $taxonomy = sanitize_key($request->get_param('taxonomy'));
+        $term_id  = intval($request->get_param('term_id'));
+        if (!taxonomy_exists($taxonomy)) {
+            return new WP_Error('bad_taxonomy', 'Taxonomy does not exist', array('status' => 404));
+        }
+        $body = $request->get_json_params();
+        $args = array();
+        if (isset($body['name']))        { $args['name'] = sanitize_text_field($body['name']); }
+        if (isset($body['slug']))        { $args['slug'] = sanitize_title($body['slug']); }
+        if (isset($body['description'])) { $args['description'] = wp_kses_post($body['description']); }
+        if (isset($body['parent']))      { $args['parent'] = intval($body['parent']); }
+
+        $result = wp_update_term($term_id, $taxonomy, $args);
+        if (is_wp_error($result)) {
+            return new WP_Error('update_failed', $result->get_error_message(), array('status' => 500));
+        }
+        return new WP_REST_Response(array('success' => true, 'termId' => $result['term_id']), 200);
+    }
+
+    /**
+     * Delete a term.
+     */
+    public function gp_delete_term(WP_REST_Request $request) {
+        $taxonomy = sanitize_key($request->get_param('taxonomy'));
+        $term_id  = intval($request->get_param('term_id'));
+        $result = wp_delete_term($term_id, $taxonomy);
+        if (is_wp_error($result) || $result === 0 || $result === false) {
+            $msg = is_wp_error($result) ? $result->get_error_message() : 'term not found';
+            return new WP_Error('delete_failed', $msg, array('status' => 500));
+        }
+        return new WP_REST_Response(array('success' => true), 200);
+    }
+
+    /**
+     * List comments.
+     */
+    public function list_comments(WP_REST_Request $request) {
+        $args = array(
+            'number' => intval($request->get_param('limit')) ?: 50,
+            'status' => $request->get_param('status') ?: 'all',
+        );
+        if ($post_id = intval($request->get_param('postId'))) { $args['post_id'] = $post_id; }
+
+        $comments = get_comments($args);
+        $out = array();
+        foreach ($comments as $c) {
+            $out[] = array(
+                'id'         => intval($c->comment_ID),
+                'postId'     => intval($c->comment_post_ID),
+                'author'     => $c->comment_author,
+                'authorEmail'=> $c->comment_author_email,
+                'authorUrl'  => $c->comment_author_url,
+                'content'    => $c->comment_content,
+                'date'       => $c->comment_date,
+                'approved'   => $c->comment_approved,
+                'parent'     => intval($c->comment_parent),
+            );
+        }
+        return new WP_REST_Response($out, 200);
+    }
+
+    /**
+     * Update (approve / hold / trash / spam / edit) a comment.
+     */
+    public function update_comment(WP_REST_Request $request) {
+        $id = intval($request->get_param('id'));
+        $comment = get_comment($id);
+        if (!$comment) {
+            return new WP_Error('not_found', 'Comment not found', array('status' => 404));
+        }
+        $body = $request->get_json_params();
+
+        // Status update
+        if (!empty($body['status'])) {
+            $status = sanitize_key($body['status']);
+            $map = array(
+                'approve'  => 'approve',
+                'approved' => 'approve',
+                '1'        => 'approve',
+                'hold'     => 'hold',
+                'pending'  => 'hold',
+                '0'        => 'hold',
+                'spam'     => 'spam',
+                'trash'    => 'trash',
+            );
+            if (isset($map[$status])) {
+                wp_set_comment_status($id, $map[$status]);
+            }
+        }
+
+        // Content / author edit
+        $update_args = array('comment_ID' => $id);
+        if (isset($body['content']))     { $update_args['comment_content'] = wp_kses_post($body['content']); }
+        if (isset($body['author']))      { $update_args['comment_author']  = sanitize_text_field($body['author']); }
+        if (isset($body['authorEmail'])) { $update_args['comment_author_email'] = sanitize_email($body['authorEmail']); }
+        if (isset($body['authorUrl']))   { $update_args['comment_author_url'] = esc_url_raw($body['authorUrl']); }
+        if (count($update_args) > 1) {
+            wp_update_comment($update_args);
+        }
+
+        return new WP_REST_Response(array('success' => true), 200);
+    }
+
+    /**
+     * Reply to a comment (or post a new top-level comment if parentId is 0).
+     */
+    public function reply_comment(WP_REST_Request $request) {
+        $body = $request->get_json_params();
+        $post_id = intval($body['postId'] ?? 0);
+        $parent  = intval($body['parentId'] ?? 0);
+        $content = isset($body['content']) ? wp_kses_post($body['content']) : '';
+        if (!$post_id || $content === '') {
+            return new WP_Error('bad_args', 'postId and content are required', array('status' => 400));
+        }
+
+        // Post the reply as the first administrator account (acts as site owner).
+        $admin = get_users(array('role' => 'administrator', 'number' => 1));
+        $admin_id = !empty($admin) ? intval($admin[0]->ID) : 0;
+        $admin_data = $admin_id ? get_userdata($admin_id) : null;
+
+        $comment_data = array(
+            'comment_post_ID'  => $post_id,
+            'comment_parent'   => $parent,
+            'comment_author'   => $admin_data ? $admin_data->display_name : get_bloginfo('name'),
+            'comment_author_email' => $admin_data ? $admin_data->user_email : get_option('admin_email'),
+            'comment_author_url' => $admin_data ? $admin_data->user_url : home_url(),
+            'comment_content'  => $content,
+            'comment_approved' => 1,
+            'user_id'          => $admin_id,
+        );
+
+        $comment_id = wp_insert_comment(wp_slash($comment_data));
+        if (!$comment_id) {
+            return new WP_Error('insert_failed', 'Could not insert comment', array('status' => 500));
+        }
+        return new WP_REST_Response(array('success' => true, 'commentId' => $comment_id), 200);
+    }
+
+    /**
+     * Delete a comment (trash by default, force=true to permanently delete).
+     */
+    public function delete_comment(WP_REST_Request $request) {
+        $id = intval($request->get_param('id'));
+        $force = $request->get_param('force') ? true : false;
+        $comment = get_comment($id);
+        if (!$comment) {
+            return new WP_Error('not_found', 'Comment not found', array('status' => 404));
+        }
+        $result = wp_delete_comment($id, $force);
+        if (!$result) {
+            return new WP_Error('delete_failed', 'Could not delete comment', array('status' => 500));
+        }
+        return new WP_REST_Response(array('success' => true), 200);
+    }
+
+    /**
+     * Read a whitelist of common WP options (site settings the bot may need).
+     */
+    public function get_options(WP_REST_Request $request) {
+        $keys = self::allowed_option_keys();
+        $out = array();
+        foreach ($keys as $k) {
+            $out[$k] = get_option($k);
+        }
+        return new WP_REST_Response($out, 200);
+    }
+
+    /**
+     * Update whitelisted WP options.
+     */
+    public function update_options(WP_REST_Request $request) {
+        $body = $request->get_json_params();
+        $allowed = array_flip(self::allowed_option_keys());
+        $changed = array();
+        $errors  = array();
+        foreach ($body as $k => $v) {
+            if (!isset($allowed[$k])) {
+                $errors[] = 'option not allowed: ' . $k;
+                continue;
+            }
+            $previous = get_option($k);
+            $sanitized = self::sanitize_option_value($k, $v);
+            update_option($k, $sanitized);
+            $changed[$k] = array('previous' => $previous, 'new' => $sanitized);
+        }
+
+        // If permalink structure changed, flush rewrite rules.
+        if (isset($changed['permalink_structure'])) {
+            flush_rewrite_rules(false);
+        }
+
+        return new WP_REST_Response(array(
+            'success' => empty($errors),
+            'changed' => $changed,
+            'errors'  => $errors,
+        ), empty($errors) ? 200 : 207);
+    }
+
+    private static function allowed_option_keys() {
+        return array(
+            'blogname',
+            'blogdescription',
+            'admin_email',
+            'timezone_string',
+            'date_format',
+            'time_format',
+            'start_of_week',
+            'WPLANG',
+            'permalink_structure',
+            'show_on_front',
+            'page_on_front',
+            'page_for_posts',
+            'posts_per_page',
+            'posts_per_rss',
+            'default_comment_status',
+            'default_ping_status',
+            'comments_notify',
+            'moderation_notify',
+            'blog_public',
+            'users_can_register',
+            'default_role',
+            'thumbnail_size_w',
+            'thumbnail_size_h',
+            'medium_size_w',
+            'medium_size_h',
+            'large_size_w',
+            'large_size_h',
+        );
+    }
+
+    private static function sanitize_option_value($key, $value) {
+        $int_keys = array('page_on_front', 'page_for_posts', 'posts_per_page', 'posts_per_rss',
+            'blog_public', 'users_can_register', 'comments_notify', 'moderation_notify',
+            'start_of_week', 'thumbnail_size_w', 'thumbnail_size_h', 'medium_size_w',
+            'medium_size_h', 'large_size_w', 'large_size_h');
+        if (in_array($key, $int_keys, true)) return intval($value);
+        if ($key === 'admin_email') return sanitize_email($value);
+        if ($key === 'permalink_structure') return preg_replace('/[^a-zA-Z0-9\\-_\\/%]/', '', (string) $value);
+        return sanitize_text_field((string) $value);
+    }
+
+    /**
+     * Force this plugin to update itself to the latest version published by the
+     * Ghost Post platform. Triggers WP's normal plugin upgrader.
+     */
+    public function self_update(WP_REST_Request $request) {
+        if (!function_exists('get_plugins')) {
+            require_once ABSPATH . 'wp-admin/includes/plugin.php';
+        }
+        require_once ABSPATH . 'wp-admin/includes/class-wp-upgrader.php';
+        require_once ABSPATH . 'wp-admin/includes/plugin-install.php';
+        require_once ABSPATH . 'wp-admin/includes/file.php';
+        require_once ABSPATH . 'wp-admin/includes/misc.php';
+
+        // Locate this plugin's slug (the directory/file path WP uses for plugin_basename).
+        $plugin_slug = plugin_basename(dirname(dirname(__FILE__)) . '/ghost-post-connector.php');
+        if (!file_exists(WP_PLUGIN_DIR . '/' . $plugin_slug)) {
+            // Fallback: scan for our plugin header among installed plugins.
+            $all = get_plugins();
+            foreach ($all as $file => $meta) {
+                if (stripos($meta['Name'], 'ghost post') !== false) { $plugin_slug = $file; break; }
+            }
+        }
+
+        // Refresh plugin update transient so WP knows there's an update.
+        delete_site_transient('update_plugins');
+        wp_update_plugins();
+
+        $updates = get_site_transient('update_plugins');
+        $available = isset($updates->response[$plugin_slug]) ? $updates->response[$plugin_slug] : null;
+
+        if (!$available) {
+            return new WP_REST_Response(array(
+                'success'        => true,
+                'updateNeeded'   => false,
+                'message'        => 'Already on latest version.',
+                'currentVersion' => defined('GP_PLUGIN_VERSION') ? GP_PLUGIN_VERSION : '',
+            ), 200);
+        }
+
+        $upgrader = new Plugin_Upgrader(new Automatic_Upgrader_Skin());
+        $result = $upgrader->upgrade($plugin_slug);
+
+        if (is_wp_error($result)) {
+            return new WP_Error('upgrade_failed', $result->get_error_message(), array('status' => 500));
+        }
+        if ($result === false) {
+            return new WP_Error('upgrade_failed', 'Plugin upgrader returned false', array('status' => 500));
+        }
+
+        return new WP_REST_Response(array(
+            'success'    => true,
+            'newVersion' => isset($available->new_version) ? $available->new_version : null,
+        ), 200);
+    }
+
+    /**
+     * Generic REST API passthrough. Runs the request AS AN ADMIN so any plugin
+     * REST route that checks capabilities will see us. The AI uses this for
+     * WooCommerce (/wc/v3/*), Yoast (/yoast/v1/*), Elementor REST endpoints,
+     * Contact Form 7 (/contact-form-7/v1/*), and anything else not covered by
+     * a dedicated tool.
+     *
+     * Body:
+     *   method: GET | POST | PUT | PATCH | DELETE
+     *   path:   string starting with "/" (e.g. "/wc/v3/products")
+     *   params: object (query params for GET, body for others)
+     *   headers: optional object of extra request headers
+     */
+    public function wp_passthrough(WP_REST_Request $request) {
+        $body = $request->get_json_params();
+        $method = isset($body['method']) ? strtoupper(sanitize_key($body['method'])) : 'GET';
+        $path   = isset($body['path']) ? (string) $body['path'] : '';
+        $params = isset($body['params']) && is_array($body['params']) ? $body['params'] : array();
+        $headers = isset($body['headers']) && is_array($body['headers']) ? $body['headers'] : array();
+
+        if ($path === '' || $path[0] !== '/') {
+            return new WP_Error('bad_path', 'path must start with "/" (e.g. /wp/v2/posts)', array('status' => 400));
+        }
+        $allowed_methods = array('GET', 'POST', 'PUT', 'PATCH', 'DELETE');
+        if (!in_array($method, $allowed_methods, true)) {
+            return new WP_Error('bad_method', 'method must be GET/POST/PUT/PATCH/DELETE', array('status' => 400));
+        }
+
+        // Authenticate as the first administrator for the duration of this call.
+        // The plugin's HMAC auth already proved the caller is the Ghost Post
+        // platform — we just need WP to see an admin user for capability checks.
+        $admin = get_users(array('role' => 'administrator', 'number' => 1));
+        if (empty($admin)) {
+            return new WP_Error('no_admin', 'No administrator user found on this site', array('status' => 500));
+        }
+        $previous_user = get_current_user_id();
+        wp_set_current_user(intval($admin[0]->ID));
+
+        try {
+            $internal = new WP_REST_Request($method, $path);
+            foreach ($headers as $hk => $hv) { $internal->set_header((string) $hk, (string) $hv); }
+
+            if ($method === 'GET' || $method === 'DELETE') {
+                $internal->set_query_params($params);
+            } else {
+                $internal->set_header('Content-Type', 'application/json');
+                $internal->set_body(wp_json_encode($params));
+                $internal->set_body_params($params);
+            }
+
+            $response = rest_do_request($internal);
+            $data = rest_get_server()->response_to_data($response, false);
+            $status = $response->get_status();
+        } catch (Exception $e) {
+            wp_set_current_user($previous_user);
+            return new WP_Error('passthrough_failed', $e->getMessage(), array('status' => 500));
+        }
+
+        wp_set_current_user($previous_user);
+
+        return new WP_REST_Response(array(
+            'status' => $status,
+            'data'   => $data,
+        ), 200);
     }
 }
 `;

@@ -70,14 +70,14 @@
 }
 
 .title {
-  font-size: 1.0875rem;
+  font-size: 1.0625rem;
   font-weight: 600;
   color: var(--text-primary);
   margin: 0;
 }
 
 .description {
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   color: var(--text-secondary);
   line-height: 1.5;
   margin: 0;
@@ -104,7 +104,7 @@
 }
 
 .progressLabel {
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   color: var(--text-tertiary);
 }
 
@@ -146,7 +146,7 @@
 }
 
 .streamUrl {
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   color: var(--text-primary);
   word-break: break-all;
   font-family: var(--font-mono, monospace);
@@ -187,7 +187,7 @@
 }
 
 .sitemapUrl {
-  font-size: 0.825rem;
+  font-size: 0.75rem;
   color: var(--text-primary);
   word-break: break-all;
   text-align: start;
@@ -237,7 +237,7 @@
 }
 
 .resultUrl {
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   color: var(--text-primary);
   word-break: break-all;
   font-family: var(--font-mono, monospace);
@@ -249,7 +249,7 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   color: var(--primary, #3b82f6);
   text-decoration: none;
   padding: 8px 16px;
@@ -282,7 +282,7 @@
 }
 
 .instructions li {
-  font-size: 0.85rem;
+  font-size: 0.75rem;
   color: var(--text-primary);
   line-height: 1.5;
 }
@@ -296,7 +296,7 @@
 
 .manualListLabel {
   display: block;
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   color: var(--text-secondary);
   margin-bottom: 6px;
 }
@@ -306,7 +306,7 @@
   background: var(--bg-secondary, #1f2937);
   border-radius: 6px;
   margin-bottom: 4px;
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   color: var(--text-primary);
   word-break: break-all;
   font-family: var(--font-mono, monospace);
@@ -323,7 +323,7 @@
   border: 1px solid var(--error, #ef4444);
   border-radius: 8px;
   color: var(--error, #ef4444);
-  font-size: 0.85rem;
+  font-size: 0.75rem;
   text-align: start;
   width: 100%;
   max-width: 440px;
@@ -335,7 +335,7 @@
 }
 
 .noSitemapsHint {
-  font-size: 0.85rem;
+  font-size: 0.75rem;
   color: var(--text-tertiary);
   font-style: italic;
 }
@@ -347,7 +347,7 @@
   align-items: center;
   gap: 8px;
   padding: 10px 20px;
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   font-weight: 500;
   color: #fff;
   background: var(--primary, #3b82f6);
@@ -367,7 +367,7 @@
   align-items: center;
   gap: 8px;
   padding: 10px 20px;
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   font-weight: 500;
   color: var(--text-primary);
   background: var(--bg-secondary, #1f2937);

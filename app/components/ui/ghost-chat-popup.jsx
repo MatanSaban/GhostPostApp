@@ -10,6 +10,7 @@ import {
   Globe, Target, Users, Wrench, TrendingUp, Link2, CalendarDays, ShieldCheck,
   Loader2, CheckCircle, XCircle, AlertTriangle, RotateCcw, Timer,
   Monitor, Smartphone, Tablet, MousePointerClick, ExternalLink,
+  MessageCircle,
 } from 'lucide-react';
 import { useLocale } from '@/app/context/locale-context';
 import { useSite } from '@/app/context/site-context';
@@ -18,13 +19,18 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import {
   normaliseSiteUrl,
-  buildIframeSrc,
   usePreviewBridge,
 } from '@/app/hooks/usePreviewBridge';
 import styles from './ghost-chat-popup.module.css';
 
 export const GhostChatPopup = forwardRef(function GhostChatPopup({ isOpen, onClose, context = 'Dashboard' }, ref) {
   const { t, isRtl } = useLocale();
+  const translateToolName = useCallback((name) => {
+    if (!name) return '';
+    const key = `chat.actionCard.toolNames.${name}`;
+    const translated = t(key);
+    return translated === key ? name.replace(/_/g, ' ') : translated;
+  }, [t]);
   const { selectedSite } = useSite();
   const { user } = useUser();
   const [panelWidth, setPanelWidth] = useState(1200);
@@ -36,7 +42,7 @@ export const GhostChatPopup = forwardRef(function GhostChatPopup({ isOpen, onClo
   const panelRef = useRef(null);
   const messagesEndRef = useRef(null);
   const minWidth = 1000;
-  const maxWidth = typeof window !== 'undefined' ? window.innerWidth - 50 : 1600;
+  const maxWidth = typeof window !== 'undefined' ? window.innerWidth : 1600;
   const LEFT_SIDEBAR_MIN = 150;
   const LEFT_SIDEBAR_MAX = 500;
   const CHAT_AREA_MIN = 300;
@@ -68,14 +74,19 @@ export const GhostChatPopup = forwardRef(function GhostChatPopup({ isOpen, onClo
   const [previewOpen, setPreviewOpen] = useState(false);
   const [deviceWidth, setDeviceWidth] = useState('full'); // 'full' | 1440 | 1024 | 768 | 375
   const [pagesDropdownOpen, setPagesDropdownOpen] = useState(false);
+  const [inputActionsOpen, setInputActionsOpen] = useState(false);
+  const [previewLoading, setPreviewLoading] = useState(false);
+  const inputActionsRef = useRef(null);
   const [pagesList, setPagesList] = useState(null); // null = not fetched; [] = empty
   const [pagesLoading, setPagesLoading] = useState(false);
   const [pagesSearch, setPagesSearch] = useState('');
   const iframeRef = useRef(null);
   const urlPillRef = useRef(null);
   const pagesDropdownRef = useRef(null);
+  const chatAreaRef = useRef(null);
   const previewBridge = usePreviewBridge({
     siteUrl: selectedSite?.url,
+    siteId: selectedSite?.id,
     iframeRef,
     enabled: previewOpen,
   });
@@ -85,6 +96,8 @@ export const GhostChatPopup = forwardRef(function GhostChatPopup({ isOpen, onClo
     selectedElement,
     inspectorEnabled,
     connectionState: previewConnectionState,
+    tokenState: previewTokenState,
+    iframeSrc: previewIframeSrcFromBridge,
     toggleInspector,
     clearSelection: clearPreviewSelection,
     reloadIframe,
@@ -92,20 +105,57 @@ export const GhostChatPopup = forwardRef(function GhostChatPopup({ isOpen, onClo
   } = previewBridge;
   const previewBridgeTimedOut = previewConnectionState === 'bridge_timeout';
   const previewSupported = selectedSite?.url && (selectedSite?.platform === 'wordpress' || !selectedSite?.platform);
-  const previewIframeSrc = previewSupported ? buildIframeSrc(selectedSite.url, '/') : '';
+  const previewIframeSrc = previewSupported ? previewIframeSrcFromBridge : '';
   const reloadIframeRef = useRef(reloadIframe);
   useEffect(() => { reloadIframeRef.current = reloadIframe; }, [reloadIframe]);
+
+  // Blur the iframe during (re)loads — flips true when src or preview-url
+  // changes, flips false on the iframe's onLoad event.
+  useEffect(() => {
+    if (previewIframeSrc) setPreviewLoading(true);
+  }, [previewIframeSrc]);
+  useEffect(() => {
+    if (!previewIframeSrc) return;
+    setPreviewLoading(true);
+    const t = setTimeout(() => setPreviewLoading(false), 2500); // safety clear
+    return () => clearTimeout(t);
+  }, [currentPreviewUrl, previewIframeSrc]);
   const selectedElementRef = useRef(selectedElement);
   useEffect(() => { selectedElementRef.current = selectedElement; }, [selectedElement]);
 
-  // When the preview opens, make sure the popup is wide enough to show it.
+  // When the AI calls request_element_placement, open the preview panel,
+  // navigate to the target path, make sure the inspector is ON, and surface
+  // a banner telling the user what to click. Tracked by message+tool id so
+  // we react exactly once per tool call.
+  const [placementRequest, setPlacementRequest] = useState(null); // { elementType, guidance, toolCallKey }
+  const handledPlacementKeysRef = useRef(new Set());
+
+  // When the preview opens, expand the popup to its max width and collapse
+  // both the conversations sidebar and the chat area to their minimums so the
+  // preview has as much room as possible. CSS transitions animate the
+  // reshuffle smoothly; we lock chatArea's current (flex-based) width into an
+  // explicit value for one frame first, so the width transition has a real
+  // starting point instead of snapping from "auto".
   useEffect(() => {
     if (!previewOpen) return;
-    const target = typeof window !== 'undefined'
-      ? Math.min(1600, Math.max(0, window.innerWidth - 40))
-      : 1400;
-    setPanelWidth(prev => (prev < 1400 ? Math.max(1400, Math.min(target, 1600)) : prev));
+    const maxPanelW = typeof window !== 'undefined'
+      ? Math.max(1400, window.innerWidth - 40)
+      : 1600;
+    setPanelWidth(maxPanelW);
+    setLeftSidebarWidth(LEFT_SIDEBAR_MIN);
+
+    const el = chatAreaRef.current;
+    if (el && chatAreaWidth == null) {
+      setChatAreaWidth(el.getBoundingClientRect().width);
+      const id = requestAnimationFrame(() => setChatAreaWidth(CHAT_AREA_MIN));
+      return () => cancelAnimationFrame(id);
+    }
+    setChatAreaWidth(CHAT_AREA_MIN);
   }, [previewOpen]);
+
+  // Bridge-timeout surfaces as an inline toolbar warning (below), not a toast —
+  // the site itself still renders fine, only the click-to-inspect feature is
+  // unavailable, so a blocking notification is overkill.
 
   // Convert an absolute entity URL into a path relative to the site origin.
   const urlToPath = useCallback((entityUrl) => {
@@ -156,6 +206,12 @@ export const GhostChatPopup = forwardRef(function GhostChatPopup({ isOpen, onClo
     if (pagesDropdownOpen && pagesList === null) fetchPages();
   }, [pagesDropdownOpen, pagesList, fetchPages]);
 
+  // Pre-fetch pages as soon as the preview opens so the URL pill can display
+  // the page title instead of the raw id/path.
+  useEffect(() => {
+    if (previewOpen && pagesList === null && selectedSite?.id) fetchPages();
+  }, [previewOpen, pagesList, selectedSite?.id, fetchPages]);
+
   // Reset cached pages when site changes so stale data isn't shown
   useEffect(() => {
     setPagesList(null);
@@ -176,6 +232,25 @@ export const GhostChatPopup = forwardRef(function GhostChatPopup({ isOpen, onClo
     return () => document.removeEventListener('mousedown', onDocClick);
   }, [pagesDropdownOpen]);
 
+  // Close input-actions dropup on outside click / Esc
+  useEffect(() => {
+    if (!inputActionsOpen) return;
+    const onDocClick = (e) => {
+      if (inputActionsRef.current?.contains(e.target)) return;
+      setInputActionsOpen(false);
+    };
+    const onKey = (e) => { if (e.key === 'Escape') setInputActionsOpen(false); };
+    document.addEventListener('mousedown', onDocClick);
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('mousedown', onDocClick);
+      document.removeEventListener('keydown', onKey);
+    };
+  }, [inputActionsOpen]);
+
+  // Auto-close the dropup if preview gets closed
+  useEffect(() => { if (!previewOpen) setInputActionsOpen(false); }, [previewOpen]);
+
   // Poll action status for countdown and execution tracking
   const TERMINAL_STATUSES = ['COMPLETED', 'FAILED', 'EXPIRED', 'REJECTED', 'ROLLED_BACK'];
   const startActionPolling = useCallback((actionId) => {
@@ -195,8 +270,12 @@ export const GhostChatPopup = forwardRef(function GhostChatPopup({ isOpen, onClo
             if (convId && loadMessagesRef.current) {
               loadMessagesRef.current(convId);
             }
-            // Refresh preview iframe so the site reflects the applied change
-            if (data.status === 'COMPLETED' && reloadIframeRef.current) {
+            // Refresh preview iframe on ANY terminal status. Even when the
+            // action is marked FAILED (e.g. manipulate_element returned
+            // render_mismatch), the DB write may have partially landed and
+            // the user needs to see the current state of the live page.
+            // Reloading a preview iframe is idempotent and safe.
+            if (reloadIframeRef.current) {
               reloadIframeRef.current();
             }
           }
@@ -215,10 +294,57 @@ export const GhostChatPopup = forwardRef(function GhostChatPopup({ isOpen, onClo
     };
   }, []);
 
+  // In-flight guard: prevents double-clicks from triggering duplicate approve/reject/rollback
+  // requests within the same React tick. Ref-based check fires synchronously (state updates
+  // are async), state copy mirrors it for visual `disabled` styling on buttons.
+  const inFlightActionsRef = useRef(new Set());
+  const [inFlightActions, setInFlightActions] = useState(() => new Set());
+  const lockAction = useCallback((actionId) => {
+    if (inFlightActionsRef.current.has(actionId)) return false;
+    inFlightActionsRef.current.add(actionId);
+    setInFlightActions(prev => {
+      const next = new Set(prev);
+      next.add(actionId);
+      return next;
+    });
+    return true;
+  }, []);
+  const unlockAction = useCallback((actionId) => {
+    inFlightActionsRef.current.delete(actionId);
+    setInFlightActions(prev => {
+      if (!prev.has(actionId)) return prev;
+      const next = new Set(prev);
+      next.delete(actionId);
+      return next;
+    });
+  }, []);
+
+  // Per-action overrides (e.g. edited image prompt + reference images) keyed by `${actionId}:${index}`
+  const [actionArgOverrides, setActionArgOverrides] = useState({});
+
   const handleApproveAction = useCallback(async (actionId) => {
+    if (!lockAction(actionId)) return;
     try {
       setActionStatuses(prev => ({ ...prev, [actionId]: { ...prev[actionId], status: 'EXECUTING' } }));
-      const res = await fetch(`/api/chat/actions/${actionId}/approve`, { method: 'POST' });
+      // Collect overrides for this action card (strip local-only preview fields)
+      const argOverrides = {};
+      Object.entries(actionArgOverrides).forEach(([k, v]) => {
+        const [aId, idx] = k.split(':');
+        if (aId === actionId && v && typeof v === 'object') {
+          const clean = { ...v };
+          if (Array.isArray(clean.referenceImages)) {
+            clean.referenceImages = clean.referenceImages
+              .filter(Boolean)
+              .map(r => ({ base64: r.base64, mimeType: r.mimeType }));
+          }
+          argOverrides[idx] = clean;
+        }
+      });
+      const res = await fetch(`/api/chat/actions/${actionId}/approve`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ argOverrides: Object.keys(argOverrides).length ? argOverrides : undefined }),
+      });
       if (res.ok) {
         setToast({ message: t('chat.actionCard.actionApproved') || 'Action approved and executing...', type: 'success' });
         // Clear any existing polling and restart to track execution progress
@@ -234,10 +360,14 @@ export const GhostChatPopup = forwardRef(function GhostChatPopup({ isOpen, onClo
       }
     } catch (err) {
       setToast({ message: 'Failed to approve action', type: 'error' });
+      setActionStatuses(prev => ({ ...prev, [actionId]: { ...prev[actionId], status: 'PENDING_APPROVAL' } }));
+    } finally {
+      unlockAction(actionId);
     }
-  }, [startActionPolling]);
+  }, [startActionPolling, lockAction, unlockAction, actionArgOverrides]);
 
   const handleRejectAction = useCallback(async (actionId) => {
+    if (!lockAction(actionId)) return;
     try {
       const res = await fetch(`/api/chat/actions/${actionId}/reject`, { method: 'POST' });
       if (res.ok) {
@@ -249,10 +379,13 @@ export const GhostChatPopup = forwardRef(function GhostChatPopup({ isOpen, onClo
       }
     } catch (err) {
       setToast({ message: 'Failed to reject action', type: 'error' });
+    } finally {
+      unlockAction(actionId);
     }
-  }, []);
+  }, [lockAction, unlockAction]);
 
   const handleRollbackAction = useCallback(async (actionId) => {
+    if (!lockAction(actionId)) return;
     try {
       setActionStatuses(prev => ({ ...prev, [actionId]: { ...prev[actionId], status: 'ROLLING_BACK' } }));
       const res = await fetch(`/api/chat/actions/${actionId}/rollback`, { method: 'POST' });
@@ -266,8 +399,10 @@ export const GhostChatPopup = forwardRef(function GhostChatPopup({ isOpen, onClo
       }
     } catch (err) {
       setToast({ message: t('chat.actionCard.rollbackFailed') || 'Rollback failed', type: 'error' });
+    } finally {
+      unlockAction(actionId);
     }
-  }, []);
+  }, [lockAction, unlockAction]);
 
   // Refs for latest values to pass as body in sendMessage calls
   const activeConversationIdRef = useRef(activeConversationId);
@@ -286,6 +421,22 @@ export const GhostChatPopup = forwardRef(function GhostChatPopup({ isOpen, onClo
 
   // Local input state (AI SDK v6 no longer manages input)
   const [input, setInput] = useState('');
+  // Inline edit state — when set, the matching user bubble renders as a textarea
+  const [editingMessageId, setEditingMessageId] = useState(null);
+  const [editingText, setEditingText] = useState('');
+  const editTextareaRef = useRef(null);
+  // Map of messageId → selection body, populated when a message is sent with a
+  // preview-inspector selection attached. Used to render the selection chip
+  // above the matching user bubble without stuffing the chip into the visible text.
+  const [selectionsByMessageId, setSelectionsByMessageId] = useState({});
+  const pendingSelectionRef = useRef(null);
+  const messageInputRef = useRef(null);
+  useEffect(() => {
+    const el = messageInputRef.current;
+    if (!el) return;
+    el.style.height = 'auto';
+    el.style.height = Math.min(el.scrollHeight, 160) + 'px';
+  }, [input]);
 
   // AI chat via Vercel AI SDK useChat (v6 API)
   const { messages: aiMessages, sendMessage, status, setMessages: setAiMessages } = useChat({
@@ -315,9 +466,15 @@ export const GhostChatPopup = forwardRef(function GhostChatPopup({ isOpen, onClo
     }, 300); // Match animation duration
   }, [onClose]);
 
-  // Expose handleClose to parent via ref
+  // Expose handleClose + prefill to parent via ref
   useImperativeHandle(ref, () => ({
-    close: handleClose
+    close: handleClose,
+    // Set input to a prefilled value (e.g. from a "Optimize with Ghost"
+    // button on the dashboard). Does not auto-send so the user can review.
+    prefill: (text) => {
+      if (typeof text !== 'string') return;
+      setInput(text);
+    },
   }), [handleClose]);
 
   const startResize = useCallback((target) => (e) => {
@@ -384,6 +541,33 @@ export const GhostChatPopup = forwardRef(function GhostChatPopup({ isOpen, onClo
   // Reset chat-area width when preview closes, so chatArea flexes back to fill
   useEffect(() => {
     if (!previewOpen) setChatAreaWidth(null);
+  }, [previewOpen]);
+
+  // When preview opens, expand the whole chat panel to the full viewport width
+  // so the preview iframe has room to render without squeezing the chat column.
+  // Also collapse the conversations sidebar to a 70px icon rail.
+  // Remember the previous widths so we can restore them when preview closes.
+  const panelWidthBeforePreviewRef = useRef(null);
+  const leftSidebarBeforePreviewRef = useRef(null);
+  const COMPACT_SIDEBAR_WIDTH = 70;
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    if (previewOpen) {
+      panelWidthBeforePreviewRef.current = panelWidth;
+      leftSidebarBeforePreviewRef.current = leftSidebarWidth;
+      setPanelWidth(window.innerWidth);
+      setLeftSidebarWidth(COMPACT_SIDEBAR_WIDTH);
+    } else {
+      if (panelWidthBeforePreviewRef.current != null) {
+        setPanelWidth(panelWidthBeforePreviewRef.current);
+        panelWidthBeforePreviewRef.current = null;
+      }
+      if (leftSidebarBeforePreviewRef.current != null) {
+        setLeftSidebarWidth(leftSidebarBeforePreviewRef.current);
+        leftSidebarBeforePreviewRef.current = null;
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [previewOpen]);
 
   const getContextualMessage = () => {
@@ -606,6 +790,63 @@ export const GhostChatPopup = forwardRef(function GhostChatPopup({ isOpen, onClo
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [aiMessages]);
 
+  // ── Attach pending preview selection to the newest user message ──
+  // handleSend stashes selectionBody in pendingSelectionRef right before
+  // calling sendMessage; here we wait for useChat to append the optimistic
+  // user message and then key the selection to that message's id, so the
+  // chip renders above the right bubble even after re-renders.
+  useEffect(() => {
+    if (!pendingSelectionRef.current) return;
+    for (let i = aiMessages.length - 1; i >= 0; i--) {
+      const msg = aiMessages[i];
+      if (msg.role !== 'user') continue;
+      if (selectionsByMessageId[msg.id]) break;
+      const sel = pendingSelectionRef.current;
+      pendingSelectionRef.current = null;
+      setSelectionsByMessageId((prev) => ({ ...prev, [msg.id]: sel }));
+      break;
+    }
+  }, [aiMessages, selectionsByMessageId]);
+
+  // ── React to request_element_placement tool completions ──
+  // When the model calls this tool, auto-open the preview panel, navigate to
+  // the requested path, ensure the inspector is ON, and surface a banner.
+  useEffect(() => {
+    if (!previewSupported) return;
+    for (const msg of aiMessages) {
+      if (msg.role !== 'assistant' || !Array.isArray(msg.parts)) continue;
+      for (let i = 0; i < msg.parts.length; i++) {
+        const p = msg.parts[i];
+        const isPlacement =
+          (p?.type === 'tool-request_element_placement') ||
+          (p?.type === 'dynamic-tool' && p?.toolName === 'request_element_placement');
+        if (!isPlacement) continue;
+        if (p.state !== 'output-available') continue;
+        const key = `${msg.id || 'msg'}:${p.toolCallId || i}`;
+        if (handledPlacementKeysRef.current.has(key)) continue;
+        handledPlacementKeysRef.current.add(key);
+        const out = p.output || {};
+        const pagePath = out.pagePath || '/';
+        setPreviewOpen(true);
+        // Navigate after the iframe mounts (next tick handles first open)
+        setTimeout(() => {
+          try { navigateIframe(pagePath); } catch { /* iframe not ready yet */ }
+        }, 50);
+        if (!inspectorEnabled) {
+          try { toggleInspector(); } catch { /* noop */ }
+        }
+        setPlacementRequest({
+          elementType: out.elementType || 'element',
+          guidance: out.guidance || (t('chat.placement.guidance') || 'Click where you want the element placed, or describe the location.'),
+          toolCallKey: key,
+        });
+      }
+    }
+  }, [aiMessages, previewSupported, navigateIframe, inspectorEnabled, toggleInspector, t]);
+
+  // Clear placement banner when the user sends a reply (the model will consume it)
+  const clearPlacementBanner = useCallback(() => setPlacementRequest(null), []);
+
   const getCurrentTime = () => {
     const now = new Date();
     return `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
@@ -628,15 +869,32 @@ export const GhostChatPopup = forwardRef(function GhostChatPopup({ isOpen, onClo
     const rawText = (overrideInput || input || '').trim();
     if (!rawText || isAiLoading) return;
 
-    // Prefix targeted-element context when the user has clicked an element in the preview
+    // Keep the visible message text clean — the user sees just what they typed.
+    // Full element context (selector, elementor_id, outerHTML, ancestors, screenshot)
+    // is passed separately in the request body so the server can inject it into the
+    // AI conversation without polluting the chat bubble. A small selection chip is
+    // rendered above the message bubble via selectionsByMessageId (see below).
     const sel = selectedElementRef.current;
-    const messageText = sel
-      ? `[Targeting: <${sel.tag}> "${(sel.text || '').substring(0, 80)}" — selector: ${sel.selector}]\n\n${rawText}`
-      : rawText;
+    const messageText = rawText;
+    let selectionBody = null;
+    if (sel) {
+      selectionBody = {
+        tag: sel.tag,
+        selector: sel.selector,
+        text: sel.text,
+        elementorId: sel.elementorId || null,
+        elementorWidget: sel.elementorWidget || null,
+        elementorAncestors: sel.elementorAncestors || null,
+        outerHTML: sel.outerHTML || null,
+        screenshot: sel.screenshot || null,
+      };
+      pendingSelectionRef.current = selectionBody;
+    }
 
     // Clear input immediately
     setInput('');
     if (sel) clearPreviewSelection();
+    clearPlacementBanner();
 
     // If no active conversation, create one first
     if (!activeConversationId) {
@@ -655,7 +913,7 @@ export const GhostChatPopup = forwardRef(function GhostChatPopup({ isOpen, onClo
           setActiveConversationId(data.conversation.id);
           // Update ref immediately so sendMessage picks up the new conversationId
           activeConversationIdRef.current = data.conversation.id;
-          sendMessage({ text: messageText }, { body: { conversationId: data.conversation.id, siteId: selectedSiteIdRef.current } });
+          sendMessage({ text: messageText }, { body: { conversationId: data.conversation.id, siteId: selectedSiteIdRef.current, selection: selectionBody } });
         }
       } catch (err) {
         console.error('[Chat] auto-create error:', err);
@@ -666,7 +924,7 @@ export const GhostChatPopup = forwardRef(function GhostChatPopup({ isOpen, onClo
     }
 
     // Submit to AI via useChat sendMessage
-    sendMessage({ text: messageText }, { body: { conversationId: activeConversationIdRef.current, siteId: selectedSiteIdRef.current } });
+    sendMessage({ text: messageText }, { body: { conversationId: activeConversationIdRef.current, siteId: selectedSiteIdRef.current, selection: selectionBody } });
   }, [input, isAiLoading, activeConversationId, selectedSite?.id, sendMessage, clearPreviewSelection]);
 
   // Quick action sends the label as a message
@@ -764,6 +1022,61 @@ export const GhostChatPopup = forwardRef(function GhostChatPopup({ isOpen, onClo
     );
   };
 
+  // Live substep phase cycler shown during EXECUTING — no backend signal yet,
+  // so we just rotate through the typical phases of a WP action so the user
+  // sees *something* changing instead of a frozen "Executing..." label.
+  const ExecutingProgress = ({ tool, startedAt }) => {
+    const phases = (() => {
+      if (tool === 'manipulate_element') {
+        return [
+          t('chat.actionCard.phase.locate') || 'Locating the element on your site…',
+          t('chat.actionCard.phase.apply') || 'Applying the change through the plugin…',
+          t('chat.actionCard.phase.cache') || 'Clearing caches so the live page updates…',
+          t('chat.actionCard.phase.verify') || 'Verifying the result…',
+        ];
+      }
+      if (tool === 'wp_update_post') {
+        return [
+          t('chat.actionCard.phase.snapshot') || 'Snapshotting the current post…',
+          t('chat.actionCard.phase.write') || 'Writing the update to WordPress…',
+          t('chat.actionCard.phase.cache') || 'Clearing caches so the live page updates…',
+          t('chat.actionCard.phase.verify') || 'Verifying the result…',
+        ];
+      }
+      return [
+        t('chat.actionCard.phase.contact') || 'Contacting your site…',
+        t('chat.actionCard.phase.apply') || 'Applying the change…',
+        t('chat.actionCard.phase.verify') || 'Verifying the result…',
+      ];
+    })();
+    const [phaseIdx, setPhaseIdx] = useState(0);
+    useEffect(() => {
+      const start = startedAt || Date.now();
+      const pick = () => {
+        const elapsed = (Date.now() - start) / 1000;
+        // 0-2s → phase 0, 2-5s → phase 1, 5-9s → phase 2, then last
+        const idx = elapsed < 2 ? 0 : elapsed < 5 ? 1 : elapsed < 9 ? 2 : Math.min(3, phases.length - 1);
+        setPhaseIdx(idx);
+      };
+      pick();
+      const int = setInterval(pick, 700);
+      return () => clearInterval(int);
+    }, [startedAt, phases.length]);
+    const toolLabel = tool ? translateToolName(tool) : '';
+    return (
+      <div className={styles.actionExecuting}>
+        <Loader2 size={14} className={styles.spinning} />
+        <div className={styles.actionExecutingLabel}>
+          <span>
+            {t('chat.actionCard.executing') || 'Executing'}
+            {toolLabel ? ` · ${toolLabel}` : ''}
+          </span>
+          <span key={phaseIdx} className={styles.actionExecutingPhase}>{phases[phaseIdx]}</span>
+        </div>
+      </div>
+    );
+  };
+
   // Format remaining time with translations
   const formatRemainingTime = (seconds) => {
     if (seconds > 60) {
@@ -790,9 +1103,9 @@ export const GhostChatPopup = forwardRef(function GhostChatPopup({ isOpen, onClo
       )}
 
       {/* Chat Panel */}
-      <div 
+      <div
         ref={panelRef}
-        className={`${styles.chatPanel} ${isClosing ? styles.chatPanelClosing : ''}`}
+        className={`${styles.chatPanel} ${isClosing ? styles.chatPanelClosing : ''} ${activeResize ? styles.panelResizing : ''}`}
         style={{ width: `${panelWidth}px` }}
       >
         {/* Resize Handle (left edge of panel — resizes whole popup width) */}
@@ -804,23 +1117,26 @@ export const GhostChatPopup = forwardRef(function GhostChatPopup({ isOpen, onClo
         </div>
 
         {/* Left Sidebar - Chat List */}
-        <div className={styles.leftSidebar} style={{ width: `${leftSidebarWidth}px` }}>
+        <div
+          className={`${styles.leftSidebar} ${previewOpen ? styles.leftSidebarCompact : ''}`}
+          style={{ width: `${leftSidebarWidth}px` }}
+        >
           {/* Chat List Header */}
           <div className={styles.chatListHeader}>
             <div className={styles.chatListHeaderTop}>
               <h3 className={styles.chatListTitle}>
                 {t('chat.sections.conversationsForSite') || 'שיחות על האתר'} : {selectedSite?.name || ''}
               </h3>
-              <button 
+              <button
                 className={styles.newChatButton}
                 onClick={createConversation}
                 disabled={isCreatingConversation}
+                title={previewOpen ? (t('chat.newConversation') || 'New conversation') : undefined}
               >
                 {isCreatingConversation ? <Loader2 size={16} className={styles.spinning} /> : <Plus size={16} />}
               </button>
             </div>
-            
-            {/* Search */}
+
             <div className={styles.searchWrapper}>
               <Search className={styles.searchIcon} size={16} />
               <input
@@ -848,64 +1164,120 @@ export const GhostChatPopup = forwardRef(function GhostChatPopup({ isOpen, onClo
                 </button>
               </div>
             ) : (
-              filteredConversations.map((conv) => (
-                <div
-                  key={conv.id}
-                  onClick={() => setActiveConversationId(conv.id)}
-                  className={`${styles.chatItem} ${activeConversationId === conv.id ? styles.chatItemActive : ''}`}
-                >
-                  <div className={styles.chatItemHeader}>
-                    {editingConversationId === conv.id ? (
-                      <input
-                        className={styles.editTitleInput}
-                        value={editTitle}
-                        onChange={(e) => setEditTitle(e.target.value)}
-                        onBlur={() => renameConversation(conv.id, editTitle)}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter') renameConversation(conv.id, editTitle);
-                          if (e.key === 'Escape') setEditingConversationId(null);
-                        }}
-                        autoFocus
-                        onClick={(e) => e.stopPropagation()}
-                      />
-                    ) : (
-                      <h4 className={styles.chatItemTitle}>
-                        {conv.title || t('chat.untitledConversation') || 'New conversation'}
-                      </h4>
-                    )}
-                    <span className={styles.chatItemTime}>{formatTime(conv.updatedAt)}</span>
-                  </div>
-                  <p className={styles.chatItemPreview}>
-                    {getUserDisplayName(conv.createdByUser)}
-                    {conv._count?.messages ? ` · ${conv._count.messages} ${t('chat.messages') || 'messages'}` : ''}
-                  </p>
-                  
-                  {/* Hover Actions */}
-                  <div className={styles.chatItemActions}>
-                    <button 
-                      className={styles.chatItemActionBtn} 
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setEditingConversationId(conv.id);
-                        setEditTitle(conv.title || '');
-                      }}
+              filteredConversations.map((conv) => {
+                if (previewOpen) {
+                  // Compact rail: icon, initiator initials, time — no actions/title/preview
+                  const initiator = getUserDisplayName(conv.createdByUser) || '';
+                  const initials = initiator
+                    .split(/\s+/)
+                    .filter(Boolean)
+                    .slice(0, 2)
+                    .map(w => w[0]?.toUpperCase())
+                    .join('') || '?';
+                  return (
+                    <div
+                      key={conv.id}
+                      onClick={() => setActiveConversationId(conv.id)}
+                      className={`${styles.chatItem} ${styles.chatItemCompact} ${activeConversationId === conv.id ? styles.chatItemActive : ''}`}
+                      title={conv.title || t('chat.untitledConversation') || 'New conversation'}
                     >
-                      <Edit2 size={12} />
-                    </button>
-                    {canDelete(conv) && (
-                      <button 
-                        className={`${styles.chatItemActionBtn} ${styles.deleteBtn}`} 
+                      <MessageCircle size={18} className={styles.chatItemCompactIcon} />
+                      <span className={styles.chatItemCompactInitiator} title={initiator}>{initials}</span>
+                      <span className={styles.chatItemCompactTime}>{formatTime(conv.updatedAt)}</span>
+                      <div className={styles.chatItemCompactMeta}>
+                        <span className={styles.chatItemCompactTitle}>
+                          {conv.title || t('chat.untitledConversation') || 'New conversation'}
+                        </span>
+                        <span className={styles.chatItemCompactSubtitle}>
+                          {initiator}
+                          {conv._count?.messages ? ` · ${conv._count.messages} ${t('chat.messages') || 'messages'}` : ''}
+                        </span>
+                      </div>
+                      <div className={styles.chatItemActions}>
+                        <button
+                          className={styles.chatItemActionBtn}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setEditingConversationId(conv.id);
+                            setEditTitle(conv.title || '');
+                          }}
+                        >
+                          <Edit2 size={12} />
+                        </button>
+                        {canDelete(conv) && (
+                          <button
+                            className={`${styles.chatItemActionBtn} ${styles.deleteBtn}`}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              deleteConversation(conv.id);
+                            }}
+                          >
+                            <Trash2 size={12} />
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  );
+                }
+                return (
+                  <div
+                    key={conv.id}
+                    onClick={() => setActiveConversationId(conv.id)}
+                    className={`${styles.chatItem} ${activeConversationId === conv.id ? styles.chatItemActive : ''}`}
+                  >
+                    <div className={styles.chatItemHeader}>
+                      {editingConversationId === conv.id ? (
+                        <input
+                          className={styles.editTitleInput}
+                          value={editTitle}
+                          onChange={(e) => setEditTitle(e.target.value)}
+                          onBlur={() => renameConversation(conv.id, editTitle)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') renameConversation(conv.id, editTitle);
+                            if (e.key === 'Escape') setEditingConversationId(null);
+                          }}
+                          autoFocus
+                          onClick={(e) => e.stopPropagation()}
+                        />
+                      ) : (
+                        <h4 className={styles.chatItemTitle}>
+                          {conv.title || t('chat.untitledConversation') || 'New conversation'}
+                        </h4>
+                      )}
+                      <span className={styles.chatItemTime}>{formatTime(conv.updatedAt)}</span>
+                    </div>
+                    <p className={styles.chatItemPreview}>
+                      {getUserDisplayName(conv.createdByUser)}
+                      {conv._count?.messages ? ` · ${conv._count.messages} ${t('chat.messages') || 'messages'}` : ''}
+                    </p>
+
+                    {/* Hover Actions */}
+                    <div className={styles.chatItemActions}>
+                      <button
+                        className={styles.chatItemActionBtn}
                         onClick={(e) => {
                           e.stopPropagation();
-                          deleteConversation(conv.id);
+                          setEditingConversationId(conv.id);
+                          setEditTitle(conv.title || '');
                         }}
                       >
-                        <Trash2 size={12} />
+                        <Edit2 size={12} />
                       </button>
-                    )}
+                      {canDelete(conv) && (
+                        <button
+                          className={`${styles.chatItemActionBtn} ${styles.deleteBtn}`}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            deleteConversation(conv.id);
+                          }}
+                        >
+                          <Trash2 size={12} />
+                        </button>
+                      )}
+                    </div>
                   </div>
-                </div>
-              ))
+                );
+              })
             )}
           </div>
         </div>
@@ -919,6 +1291,7 @@ export const GhostChatPopup = forwardRef(function GhostChatPopup({ isOpen, onClo
 
         {/* Center - Chat Area */}
         <div
+          ref={chatAreaRef}
           className={styles.chatArea}
           style={chatAreaWidth != null ? { flex: '0 0 auto', width: `${chatAreaWidth}px` } : undefined}
         >
@@ -956,17 +1329,49 @@ export const GhostChatPopup = forwardRef(function GhostChatPopup({ isOpen, onClo
           {/* Selected element badge from preview inspector */}
           {selectedElement && (
             <div className={styles.selectionBadge}>
-              <MousePointerClick size={14} />
+              {selectedElement.screenshot ? (
+                <img
+                  src={selectedElement.screenshot}
+                  alt=""
+                  className={styles.selectionThumb}
+                />
+              ) : (
+                <MousePointerClick size={14} />
+              )}
               <span className={styles.selectionTag}>&lt;{selectedElement.tag}&gt;</span>
               <span className={styles.selectionText}>
                 {(selectedElement.text || '').substring(0, 60) || (t('chat.preview.emptyText') || '(empty)')}
                 {(selectedElement.text || '').length > 60 ? '…' : ''}
               </span>
+              {selectedElement.outerHTML && (
+                <span className={styles.selectionMeta} title={t('chat.preview.htmlAttached') || 'HTML attached'}>
+                  HTML
+                </span>
+              )}
               <button
                 type="button"
                 className={styles.selectionClear}
                 onClick={clearPreviewSelection}
                 title={t('chat.preview.clearSelection') || 'Clear selection'}
+              >
+                <X size={14} />
+              </button>
+            </div>
+          )}
+
+          {/* Placement request banner (AI is waiting for the user to point at / describe a location) */}
+          {placementRequest && (
+            <div className={styles.placementBanner}>
+              <MousePointerClick size={14} />
+              <span className={styles.placementBannerText}>
+                <strong>{t('chat.placement.title') || 'Where should the'} {placementRequest.elementType} {t('chat.placement.go') || 'go?'}</strong>{' '}
+                {placementRequest.guidance}
+              </span>
+              <button
+                type="button"
+                className={styles.selectionClear}
+                onClick={clearPlacementBanner}
+                title={t('chat.preview.clearSelection') || 'Dismiss'}
               >
                 <X size={14} />
               </button>
@@ -980,6 +1385,33 @@ export const GhostChatPopup = forwardRef(function GhostChatPopup({ isOpen, onClo
               <div className={styles.messageGroup}>
                 <div className={styles.agentMessage}>
                   <p className={styles.messageText}>{getContextualMessage()}</p>
+                  {(() => {
+                    const suggestionKeys = ['siteAudit', 'analyzeHomepage', 'keywordOpportunities', 'agentInsights'];
+                    const items = suggestionKeys
+                      .map(key => ({
+                        key,
+                        label: t(`chat.welcome.suggestions.${key}.label`),
+                        prompt: t(`chat.welcome.suggestions.${key}.prompt`),
+                      }))
+                      .filter(s => s.label && s.prompt && !s.label.startsWith('chat.welcome.'));
+                    if (!items.length) return null;
+                    return (
+                      <div className={styles.welcomeSuggestions}>
+                        {items.map(s => (
+                          <button
+                            key={s.key}
+                            type="button"
+                            className={styles.welcomeSuggestion}
+                            onClick={() => handleSend(null, s.prompt)}
+                            disabled={isAiLoading}
+                          >
+                            <Sparkles size={14} />
+                            <span>{s.label}</span>
+                          </button>
+                        ))}
+                      </div>
+                    );
+                  })()}
                 </div>
               </div>
             )}
@@ -994,8 +1426,39 @@ export const GhostChatPopup = forwardRef(function GhostChatPopup({ isOpen, onClo
                   {/* AI Message */}
                   {message.role === 'assistant' && (
                     <div className={styles.agentMessage}>
+                      {/* Reasoning / thinking — collapsible, shows the model's thought process for this message */}
+                      {(() => {
+                        const reasoningText = (message.parts || [])
+                          .filter(p => p.type === 'reasoning' && p.text)
+                          .map(p => p.text)
+                          .join('\n\n')
+                          .trim();
+                        if (!reasoningText) return null;
+                        const expanded = !!thinkingExpanded[message.id];
+                        return (
+                          <div className={`${styles.thinkingContainer} ${styles.thinkingContainerInline}`}>
+                            <div
+                              className={styles.thinkingHeader}
+                              onClick={() => setThinkingExpanded(prev => ({ ...prev, [message.id]: !prev[message.id] }))}
+                            >
+                              <ChevronRight size={14} className={`${styles.thinkingChevron} ${expanded ? styles.thinkingChevronOpen : ''}`} />
+                              <Sparkles size={14} className={styles.thinkingSpinner} />
+                              <span className={styles.thinkingLabel}>
+                                {t('chat.actionCard.reasoning') || 'Reasoning'}
+                              </span>
+                            </div>
+                            {expanded && (
+                              <div className={`${styles.thinkingContent} ${styles.thinkingContentReasoning}`}>
+                                <ReactMarkdown remarkPlugins={[remarkGfm]}>{reasoningText}</ReactMarkdown>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })()}
                       <div className={styles.messageText}>
                         {message.parts?.map((part, partIdx) => {
+                          // reasoning parts already surfaced above
+                          if (part.type === 'reasoning') return null;
                           if (part.type === 'text' && part.text) {
                             // Strip raw tool call syntax like "call: tool_name(...)" that the model sometimes outputs as text
                             const cleanedText = part.text
@@ -1063,6 +1526,93 @@ export const GhostChatPopup = forwardRef(function GhostChatPopup({ isOpen, onClo
                                     </div>
                                   )}
 
+                                  {/* Image prompt review + reference images — only for generate_image
+                                      actions that are still pending approval. */}
+                                  {currentStatus === 'PENDING_APPROVAL' && actionId && input.actions?.map((action, i) => {
+                                    if (action.tool !== 'generate_image') return null;
+                                    const overrideKey = `${actionId}:${i}`;
+                                    const override = actionArgOverrides[overrideKey] || {};
+                                    const promptValue = override.prompt ?? (action.args?.prompt || '');
+                                    const refs = Array.isArray(override.referenceImages) ? override.referenceImages : [];
+                                    const setOverride = (patch) => {
+                                      setActionArgOverrides(prev => ({
+                                        ...prev,
+                                        [overrideKey]: { ...(prev[overrideKey] || {}), ...patch },
+                                      }));
+                                    };
+                                    const handleFile = async (file, slot) => {
+                                      if (!file) return;
+                                      if (file.size > 4 * 1024 * 1024) {
+                                        setToast({ message: t('chat.imagePrompt.tooLarge') || 'Image too large (max 4MB)', type: 'error' });
+                                        return;
+                                      }
+                                      const base64 = await new Promise((resolve, reject) => {
+                                        const reader = new FileReader();
+                                        reader.onload = () => resolve(String(reader.result).split(',')[1] || '');
+                                        reader.onerror = reject;
+                                        reader.readAsDataURL(file);
+                                      });
+                                      const next = [...refs];
+                                      next[slot] = { base64, mimeType: file.type || 'image/png', preview: URL.createObjectURL(file) };
+                                      setOverride({ referenceImages: next.filter(Boolean).slice(0, 2) });
+                                    };
+                                    const removeRef = (slot) => {
+                                      const next = refs.filter((_, idx) => idx !== slot);
+                                      setOverride({ referenceImages: next });
+                                    };
+                                    return (
+                                      <div key={`imgprompt-${i}`} className={styles.imagePromptPanel}>
+                                        <div className={styles.imagePromptHeader}>
+                                          <ImageIcon size={14} />
+                                          <span>{t('chat.imagePrompt.title') || 'Review & edit the image prompt'}</span>
+                                        </div>
+                                        <div className={styles.imagePromptHint}>
+                                          {t('chat.imagePrompt.hint') || 'Edit the prompt if you want, and attach up to 2 reference images the AI should use as inspiration.'}
+                                        </div>
+                                        <textarea
+                                          className={styles.imagePromptTextarea}
+                                          value={promptValue}
+                                          onChange={(e) => setOverride({ prompt: e.target.value })}
+                                          rows={4}
+                                          placeholder={t('chat.imagePrompt.placeholder') || 'Describe the image in English…'}
+                                        />
+                                        <div className={styles.imagePromptRefs}>
+                                          {[0, 1].map(slot => {
+                                            const ref = refs[slot];
+                                            return (
+                                              <label key={slot} className={styles.imagePromptRefSlot}>
+                                                {ref ? (
+                                                  <>
+                                                    <img src={ref.preview || `data:${ref.mimeType};base64,${ref.base64}`} alt="" className={styles.imagePromptRefPreview} />
+                                                    <button
+                                                      type="button"
+                                                      className={styles.imagePromptRefRemove}
+                                                      onClick={(e) => { e.preventDefault(); removeRef(slot); }}
+                                                      aria-label="Remove"
+                                                    >
+                                                      <X size={12} />
+                                                    </button>
+                                                  </>
+                                                ) : (
+                                                  <>
+                                                    <Paperclip size={14} />
+                                                    <span>{t('chat.imagePrompt.attach') || 'Add reference'}</span>
+                                                    <input
+                                                      type="file"
+                                                      accept="image/*"
+                                                      style={{ display: 'none' }}
+                                                      onChange={(e) => handleFile(e.target.files?.[0], slot)}
+                                                    />
+                                                  </>
+                                                )}
+                                              </label>
+                                            );
+                                          })}
+                                        </div>
+                                      </div>
+                                    );
+                                  })}
+
                                   {/* Timer */}
                                   {currentStatus === 'PENDING_APPROVAL' && remainingSeconds != null && (
                                     <div className={`${styles.actionTimer} ${remainingSeconds < 120 ? styles.actionTimerWarning : ''}`}>
@@ -1073,40 +1623,78 @@ export const GhostChatPopup = forwardRef(function GhostChatPopup({ isOpen, onClo
 
                                   {/* Buttons */}
                                   <div className={styles.actionCardButtons}>
-                                    {currentStatus === 'PENDING_APPROVAL' && actionId && (
-                                      <>
-                                        <button
-                                          className={`${styles.actionBtn} ${styles.actionBtnApprove}`}
-                                          onClick={() => handleApproveAction(actionId)}
-                                        >
-                                          <CheckCircle size={14} />
-                                          <span>{t('chat.actionCard.approve') || 'Approve'}</span>
-                                        </button>
-                                        <button
-                                          className={`${styles.actionBtn} ${styles.actionBtnReject}`}
-                                          onClick={() => handleRejectAction(actionId)}
-                                        >
-                                          <XCircle size={14} />
-                                          <span>{t('chat.actionCard.reject') || 'Reject'}</span>
-                                        </button>
-                                      </>
-                                    )}
+                                    {currentStatus === 'PENDING_APPROVAL' && actionId && (() => {
+                                      const isPending = inFlightActions.has(actionId);
+                                      return (
+                                        <>
+                                          <button
+                                            className={`${styles.actionBtn} ${styles.actionBtnApprove}`}
+                                            onClick={() => handleApproveAction(actionId)}
+                                            disabled={isPending}
+                                            aria-busy={isPending}
+                                          >
+                                            {isPending ? (
+                                              <Loader2 size={14} className={styles.spinning} />
+                                            ) : (
+                                              <CheckCircle size={14} />
+                                            )}
+                                            <span>{t('chat.actionCard.approve') || 'Approve'}</span>
+                                          </button>
+                                          <button
+                                            className={`${styles.actionBtn} ${styles.actionBtnReject}`}
+                                            onClick={() => handleRejectAction(actionId)}
+                                            disabled={isPending}
+                                            aria-busy={isPending}
+                                          >
+                                            <XCircle size={14} />
+                                            <span>{t('chat.actionCard.reject') || 'Reject'}</span>
+                                          </button>
+                                        </>
+                                      );
+                                    })()}
                                     {currentStatus === 'EXECUTING' && (
-                                      <div className={styles.actionExecuting}>
-                                        <Loader2 size={14} className={styles.spinning} />
-                                        <span>{t('chat.actionCard.executing') || 'Executing...'}</span>
-                                      </div>
+                                      <ExecutingProgress
+                                        tool={input?.actions?.[0]?.tool}
+                                        startedAt={actionStatus.approvedAt ? new Date(actionStatus.approvedAt).getTime() : undefined}
+                                      />
                                     )}
-                                    {(currentStatus === 'COMPLETED' || currentStatus === 'FAILED') && actionId && (
-                                      <button
-                                        className={`${styles.actionBtn} ${styles.actionBtnRollback}`}
-                                        onClick={() => handleRollbackAction(actionId)}
-                                      >
-                                        <RotateCcw size={14} />
-                                        <span>{t('chat.actionCard.rollback') || 'Rollback'}</span>
-                                      </button>
-                                    )}
+                                    {(currentStatus === 'COMPLETED' || currentStatus === 'FAILED') && actionId && (() => {
+                                      const isPending = inFlightActions.has(actionId);
+                                      return (
+                                        <button
+                                          className={`${styles.actionBtn} ${styles.actionBtnRollback}`}
+                                          onClick={() => handleRollbackAction(actionId)}
+                                          disabled={isPending}
+                                          aria-busy={isPending}
+                                          title={t('chat.actionCard.rollbackHint') || 'Changed your mind? You can undo this action.'}
+                                        >
+                                          {isPending ? (
+                                            <Loader2 size={14} className={styles.spinning} />
+                                          ) : (
+                                            <RotateCcw size={14} />
+                                          )}
+                                          <span>{t('chat.actionCard.rollback') || 'Rollback'}</span>
+                                        </button>
+                                      );
+                                    })()}
                                   </div>
+                                  {currentStatus === 'COMPLETED' && actionId && (
+                                    <div className={styles.rollbackHint}>
+                                      <RotateCcw size={12} />
+                                      <span>{t('chat.actionCard.rollbackHint') || 'Changed your mind? You can undo this action any time using the Rollback button above.'}</span>
+                                    </div>
+                                  )}
+                                  {currentStatus === 'FAILED' && actionStatus.error && (
+                                    <div className={styles.actionErrorBox}>
+                                      <AlertTriangle size={14} className={styles.actionErrorIcon} />
+                                      <div>
+                                        <div className={styles.actionErrorTitle}>
+                                          {t('chat.actionCard.whatWentWrong') || 'What went wrong'}
+                                        </div>
+                                        <div className={styles.actionErrorDetail}>{actionStatus.error}</div>
+                                      </div>
+                                    </div>
+                                  )}
                                 </div>
                               );
                             }
@@ -1116,7 +1704,7 @@ export const GhostChatPopup = forwardRef(function GhostChatPopup({ isOpen, onClo
                               return (
                                 <div key={partIdx} className={styles.toolLoading}>
                                   <Loader2 size={14} className={styles.spinning} />
-                                  <span>{t('chat.actionCard.fetchingData') || 'Fetching data'}{toolName ? ` (${toolName.replace(/_/g, ' ')})` : ''}...</span>
+                                  <span>{t('chat.actionCard.fetchingData') || 'Fetching data'}{toolName ? ` (${translateToolName(toolName)})` : ''}...</span>
                                 </div>
                               );
                             }
@@ -1132,15 +1720,156 @@ export const GhostChatPopup = forwardRef(function GhostChatPopup({ isOpen, onClo
                   )}
 
                   {/* User Message */}
-                  {message.role === 'user' && (
-                    <div className={styles.userMessageWrapper}>
-                      <div className={styles.userMessage}>
-                        <p className={styles.messageText}>
-                          {message.parts?.filter(p => p.type === 'text').map(p => p.text).join('') || ''}
-                        </p>
+                  {message.role === 'user' && (() => {
+                    const attachedSel = selectionsByMessageId[message.id];
+                    const messageText = message.parts?.filter(p => p.type === 'text').map(p => p.text).join('') || '';
+                    const isEditing = editingMessageId === message.id;
+
+                    const startEditing = () => {
+                      setEditingMessageId(message.id);
+                      setEditingText(messageText);
+                      setTimeout(() => {
+                        const el = editTextareaRef.current;
+                        if (el) {
+                          el.focus();
+                          el.setSelectionRange(el.value.length, el.value.length);
+                          el.style.height = 'auto';
+                          el.style.height = `${el.scrollHeight}px`;
+                        }
+                      }, 0);
+                    };
+                    const cancelEditing = () => {
+                      setEditingMessageId(null);
+                      setEditingText('');
+                    };
+                    const saveEditing = () => {
+                      const next = (editingText || '').trim();
+                      setEditingMessageId(null);
+                      setEditingText('');
+                      if (!next || isAiLoading) return;
+                      if (next === messageText) return;
+                      handleSend(null, next);
+                    };
+
+                    return (
+                      <div className={styles.userMessageWrapper}>
+                        {attachedSel && (
+                          <div className={styles.userMessageSelection}>
+                            {attachedSel.screenshot ? (
+                              <img
+                                src={attachedSel.screenshot}
+                                alt=""
+                                className={styles.userMessageSelectionThumb}
+                              />
+                            ) : (
+                              <MousePointerClick size={14} />
+                            )}
+                            <span className={styles.selectionTag}>&lt;{attachedSel.tag}&gt;</span>
+                            <span className={styles.selectionText}>
+                              {(attachedSel.text || '').substring(0, 60) || (t('chat.preview.emptyText') || '(empty)')}
+                              {(attachedSel.text || '').length > 60 ? '…' : ''}
+                            </span>
+                          </div>
+                        )}
+                        {isEditing ? (
+                          <div className={`${styles.userMessage} ${styles.userMessageEditing}`}>
+                            <textarea
+                              ref={editTextareaRef}
+                              className={styles.userMessageEditTextarea}
+                              value={editingText}
+                              onChange={(e) => {
+                                setEditingText(e.target.value);
+                                e.target.style.height = 'auto';
+                                e.target.style.height = `${e.target.scrollHeight}px`;
+                              }}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Escape') {
+                                  e.preventDefault();
+                                  cancelEditing();
+                                } else if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing) {
+                                  e.preventDefault();
+                                  saveEditing();
+                                }
+                              }}
+                              rows={1}
+                            />
+                            <div className={styles.userMessageEditFooter}>
+                              <button
+                                type="button"
+                                className={`${styles.userMessageActionBtn} ${styles.userMessageActionBtnGhost}`}
+                                onClick={cancelEditing}
+                              >
+                                {t('chat.cancel') || 'Cancel'}
+                              </button>
+                              <button
+                                type="button"
+                                className={`${styles.userMessageActionBtn} ${styles.userMessageActionBtnPrimary}`}
+                                onClick={saveEditing}
+                                disabled={isAiLoading || !editingText.trim() || editingText.trim() === messageText}
+                              >
+                                {t('chat.sendEdited') || 'Send'}
+                              </button>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className={styles.userMessage}>
+                            <p className={styles.messageText}>
+                              {messageText}
+                            </p>
+                          </div>
+                        )}
+                        {!isEditing && (
+                          <div className={styles.userMessageActions}>
+                            <button
+                              type="button"
+                              className={styles.userMessageActionBtn}
+                              onClick={startEditing}
+                              title={t('chat.editMessage') || 'Edit'}
+                              aria-label={t('chat.editMessage') || 'Edit'}
+                              disabled={isAiLoading}
+                            >
+                              <Edit2 size={13} />
+                              <span>{t('chat.editMessage') || 'Edit'}</span>
+                            </button>
+                            <button
+                              type="button"
+                              className={styles.userMessageActionBtn}
+                              onClick={async () => {
+                                if (!messageText || isAiLoading) return;
+                                const convId = activeConversationIdRef.current;
+                                const idx = aiMessages.findIndex(m => m.id === message.id);
+                                if (convId) {
+                                  try {
+                                    await fetch(`/api/chat/conversations/${convId}/messages`, {
+                                      method: 'DELETE',
+                                      headers: { 'Content-Type': 'application/json' },
+                                      body: JSON.stringify({
+                                        fromMessageId: message.id,
+                                        fromContent: messageText,
+                                        fromRole: 'USER',
+                                      }),
+                                    });
+                                  } catch (err) {
+                                    console.warn('[Chat] Resend: DB truncate failed', err);
+                                  }
+                                }
+                                if (idx >= 0) {
+                                  setAiMessages(prev => prev.slice(0, idx));
+                                }
+                                handleSend(null, messageText);
+                              }}
+                              title={t('chat.resendMessage') || 'Resend'}
+                              aria-label={t('chat.resendMessage') || 'Resend'}
+                              disabled={isAiLoading || !messageText}
+                            >
+                              <RotateCcw size={13} />
+                              <span>{t('chat.resendMessage') || 'Resend'}</span>
+                            </button>
+                          </div>
+                        )}
                       </div>
-                    </div>
-                  )}
+                    );
+                  })()}
                 </div>
               ))
             )}
@@ -1164,16 +1893,31 @@ export const GhostChatPopup = forwardRef(function GhostChatPopup({ isOpen, onClo
                       </span>
                     </div>
                     {thinkingExpanded._loading && (() => {
-                      // Collect tool parts from the latest streaming assistant message
+                      // Collect reasoning + tool parts from the latest streaming assistant message
                       const lastAssistant = [...(aiMessages || [])].reverse().find(m => m.role === 'assistant');
+                      const reasoningText = (lastAssistant?.parts || [])
+                        .filter(p => p.type === 'reasoning' && p.text)
+                        .map(p => p.text)
+                        .join('\n\n')
+                        .trim();
                       const toolParts = lastAssistant?.parts?.filter(p => {
                         const isTool = p.type?.startsWith('tool-') || p.type === 'dynamic-tool';
                         if (!isTool) return false;
                         const tn = p.type === 'dynamic-tool' ? p.toolName : p.type.replace(/^tool-/, '');
                         return tn !== 'propose_action';
                       }) || [];
-                      return toolParts.length > 0 ? (
-                        <div className={styles.thinkingContent}>
+                      if (!reasoningText && toolParts.length === 0) {
+                        return (
+                          <div className={styles.thinkingContent}>
+                            <span>{t('chat.actionCard.analyzing') || 'Analyzing your request...'}</span>
+                          </div>
+                        );
+                      }
+                      return (
+                        <div className={`${styles.thinkingContent} ${reasoningText ? styles.thinkingContentReasoning : ''}`}>
+                          {reasoningText && (
+                            <ReactMarkdown remarkPlugins={[remarkGfm]}>{reasoningText}</ReactMarkdown>
+                          )}
                           {toolParts.map((p, i) => {
                             const tn = p.type === 'dynamic-tool' ? p.toolName : p.type.replace(/^tool-/, '');
                             const isLoading = p.state === 'input-streaming' || p.state === 'input-available';
@@ -1187,14 +1931,10 @@ export const GhostChatPopup = forwardRef(function GhostChatPopup({ isOpen, onClo
                                 ) : (
                                   <AlertTriangle size={12} style={{ color: 'var(--danger)' }} />
                                 )}
-                                <span>{tn?.replace(/_/g, ' ')}</span>
+                                <span>{translateToolName(tn)}</span>
                               </div>
                             );
                           })}
-                        </div>
-                      ) : (
-                        <div className={styles.thinkingContent}>
-                          <span>{t('chat.actionCard.analyzing') || 'Analyzing your request...'}</span>
                         </div>
                       );
                     })()}
@@ -1207,34 +1947,76 @@ export const GhostChatPopup = forwardRef(function GhostChatPopup({ isOpen, onClo
           </div>
 
           {/* Input Area */}
-          <form id="ghost-chat-form" onSubmit={handleSend} className={styles.inputArea}>
-            <div className={styles.inputWrapper}>
-              <input
-                type="text"
+          <form id="ghost-chat-form" onSubmit={handleSend} className={`${styles.inputArea} ${previewOpen ? styles.inputAreaCompact : ''}`}>
+            <div className={`${styles.inputWrapper} ${previewOpen ? styles.inputWrapperCompact : ''}`}>
+              <textarea
+                ref={messageInputRef}
+                rows={1}
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing) {
+                    e.preventDefault();
+                    handleSend(e);
+                  }
+                }}
                 placeholder={t('chat.inputPlaceholder')}
                 className={styles.messageInput}
                 disabled={isAiLoading}
               />
-              <div className={styles.inputActions}>
-                <button type="button" className={styles.inputActionBtn}>
-                  <ImageIcon size={16} />
-                </button>
-                <button type="button" className={styles.inputActionBtn}>
-                  <Paperclip size={16} />
-                </button>
-                <button type="button" className={styles.inputActionBtn}>
-                  <Mic size={16} />
-                </button>
-              </div>
+              {previewOpen ? (
+                <div className={styles.inputActions} ref={inputActionsRef}>
+                  <button
+                    type="button"
+                    className={`${styles.inputActionBtn} ${inputActionsOpen ? styles.inputActionBtnActive : ''}`}
+                    onClick={() => setInputActionsOpen(v => !v)}
+                    aria-haspopup="menu"
+                    aria-expanded={inputActionsOpen}
+                    title={t('chat.inputActions.more') || 'More actions'}
+                  >
+                    <Plus size={16} />
+                  </button>
+                  {inputActionsOpen && (
+                    <div className={styles.inputActionsDropup} role="menu">
+                      <button type="button" className={styles.inputActionsDropupItem} onClick={() => setInputActionsOpen(false)}>
+                        <ImageIcon size={16} />
+                        <span>{t('chat.inputActions.image') || 'Image'}</span>
+                      </button>
+                      <button type="button" className={styles.inputActionsDropupItem} onClick={() => setInputActionsOpen(false)}>
+                        <Paperclip size={16} />
+                        <span>{t('chat.inputActions.file') || 'File'}</span>
+                      </button>
+                      <button type="button" className={styles.inputActionsDropupItem} onClick={() => setInputActionsOpen(false)}>
+                        <Mic size={16} />
+                        <span>{t('chat.inputActions.voice') || 'Voice'}</span>
+                      </button>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className={styles.inputActions}>
+                  <button type="button" className={styles.inputActionBtn}>
+                    <ImageIcon size={16} />
+                  </button>
+                  <button type="button" className={styles.inputActionBtn}>
+                    <Paperclip size={16} />
+                  </button>
+                  <button type="button" className={styles.inputActionBtn}>
+                    <Mic size={16} />
+                  </button>
+                </div>
+              )}
             </div>
             <button
               type="submit"
               disabled={!input.trim() || isAiLoading}
-              className={styles.sendButton}
+              className={`${styles.sendButton} ${previewOpen ? styles.sendButtonCompact : ''}`}
             >
-              {isAiLoading ? <Loader2 size={20} className={styles.spinning} /> : <Send size={20} />}
+              {isAiLoading ? (
+                <Loader2 size={previewOpen ? 14 : 20} className={styles.spinning} />
+              ) : (
+                <Send size={previewOpen ? 14 : 20} />
+              )}
             </button>
           </form>
         </div>
@@ -1266,9 +2048,22 @@ export const GhostChatPopup = forwardRef(function GhostChatPopup({ isOpen, onClo
                   onClick={toggleInspector}
                   className={`${styles.previewIconBtn} ${inspectorEnabled ? styles.previewIconBtnActive : ''}`}
                   title={inspectorEnabled ? (t('chat.preview.disableInspector') || 'Disable inspector') : (t('chat.preview.enableInspector') || 'Enable inspector')}
+                  disabled={previewBridgeTimedOut && !previewReady}
                 >
                   <MousePointerClick size={15} />
                 </button>
+                {previewBridgeTimedOut && !previewReady && (
+                  <span
+                    className={styles.previewStatusWarn}
+                    title={
+                      t('chat.preview.error.bridgeMissing') ||
+                      "Preview loaded, but the Ghost Post Connector bridge didn't respond. Make sure the plugin is installed and updated to the latest version."
+                    }
+                  >
+                    <AlertTriangle size={12} />
+                    <span>{t('chat.preview.inspectorUnavailable') || 'Inspector unavailable'}</span>
+                  </span>
+                )}
               </div>
               <div className={styles.previewToolbarCenter}>
                 <button
@@ -1278,7 +2073,19 @@ export const GhostChatPopup = forwardRef(function GhostChatPopup({ isOpen, onClo
                   onClick={() => setPagesDropdownOpen(v => !v)}
                   title={t('chat.preview.pages.title') || 'Pages & posts'}
                 >
-                  <span className={styles.previewUrlPillText}>{currentPreviewUrl || '/'}</span>
+                  <span className={styles.previewUrlPillText}>{(() => {
+                    const path = currentPreviewUrl || '/';
+                    if (path === '/' || path === '') return t('chat.preview.pages.homepage') || 'Homepage';
+                    const list = pagesList || [];
+                    const pathNoQuery = path.split('?')[0];
+                    const match = list.find(p => p.path === path)
+                      || list.find(p => p.path === pathNoQuery)
+                      || list.find(p => p.path.split('?')[0] === pathNoQuery);
+                    if (match?.title) return match.title;
+                    // Fallback to slug (last non-empty path segment)
+                    const segments = decodeURIComponent(pathNoQuery).split('/').filter(Boolean);
+                    return segments[segments.length - 1] || path;
+                  })()}</span>
                   <ChevronDown size={13} className={styles.previewUrlPillChevron} />
                 </button>
                 {pagesDropdownOpen && (
@@ -1332,7 +2139,7 @@ export const GhostChatPopup = forwardRef(function GhostChatPopup({ isOpen, onClo
                             }}
                           >
                             <span className={styles.pagesDropdownItemTitle}>{p.title}</span>
-                            <span className={styles.pagesDropdownItemPath}>{p.path}</span>
+                            <span className={styles.pagesDropdownItemPath}>{decodeURIComponent(p.path)}</span>
                           </button>
                         );
                         const isEmpty = !showHome && sortedKeys.length === 0;
@@ -1412,52 +2219,22 @@ export const GhostChatPopup = forwardRef(function GhostChatPopup({ isOpen, onClo
             </div>
             <div className={styles.previewIframeWrap}>
               <div
-                className={styles.previewIframeFrame}
-                style={deviceWidth === 'full' ? undefined : { width: `${deviceWidth}px`, margin: '0 auto' }}
+                className={`${styles.previewIframeFrame} ${deviceWidth !== 'full' ? styles.previewIframeFrameFixed : ''}`}
+                style={deviceWidth === 'full' ? undefined : { width: `${deviceWidth}px` }}
               >
-                <iframe
-                  ref={iframeRef}
-                  src={previewIframeSrc}
-                  className={styles.previewIframe}
-                  title="Site preview"
-                  sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
-                />
-                {previewBridgeTimedOut && (
-                  <div className={styles.previewErrorOverlay}>
-                    <div className={styles.previewErrorCard}>
-                      <AlertTriangle size={24} className={styles.previewErrorIcon} />
-                      <h4 className={styles.previewErrorTitle}>
-                        {t('chat.preview.error.title') || "Couldn't load the site preview"}
-                      </h4>
-                      <p className={styles.previewErrorText}>
-                        {(t('chat.preview.error.cannotConnect') || "The browser couldn't reach {url}.").replace(
-                          '{url}',
-                          normaliseSiteUrl(selectedSite?.url || ''),
-                        )}
-                      </p>
-                      <p className={styles.previewErrorHint}>
-                        {t('chat.preview.error.bridgeMissing') || 'The site loaded, but the Ghost Post Connector bridge didn\'t respond. Make sure the plugin is installed and updated to the latest version, then reload.'}
-                      </p>
-                      <div className={styles.previewErrorActions}>
-                        <button
-                          type="button"
-                          className={styles.previewErrorBtnPrimary}
-                          onClick={() => reloadIframe()}
-                        >
-                          <RotateCcw size={14} />
-                          <span>{t('chat.preview.error.retry') || 'Try again'}</span>
-                        </button>
-                        <a
-                          href={normaliseSiteUrl(selectedSite?.url || '')}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className={styles.previewErrorBtnSecondary}
-                        >
-                          <ExternalLink size={14} />
-                          <span>{t('chat.preview.error.openDirectly') || 'Open site directly'}</span>
-                        </a>
-                      </div>
-                    </div>
+                {previewIframeSrc ? (
+                  <iframe
+                    ref={iframeRef}
+                    src={previewIframeSrc}
+                    className={`${styles.previewIframe} ${previewLoading ? styles.previewIframeLoading : ''}`}
+                    title="Site preview"
+                    sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
+                    onLoad={() => setPreviewLoading(false)}
+                  />
+                ) : (
+                  <div className={styles.previewIframePlaceholder}>
+                    <Loader2 size={20} className={styles.spinning} />
+                    <span>{t('chat.preview.loading') || 'Loading preview…'}</span>
                   </div>
                 )}
               </div>

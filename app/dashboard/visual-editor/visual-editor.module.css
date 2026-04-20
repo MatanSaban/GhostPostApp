@@ -42,7 +42,7 @@
 }
 
 .urlDisplay {
-  font-size: 0.78em;
+  font-size: 0.75rem;
   color: var(--text-muted, #64748b);
   max-width: 400px;
   overflow: hidden;
@@ -126,7 +126,7 @@
   padding: 8px 12px;
   background: var(--primary-lighter, #f3e8ff);
   border-bottom: 1px solid var(--border-color, #e2e8f0);
-  font-size: 0.82em;
+  font-size: 0.75rem;
   color: var(--primary-dark, #6b21a8);
   min-height: 0;
   flex-shrink: 0;
@@ -134,7 +134,7 @@
 .selectionTag {
   font-weight: 600;
   font-family: monospace;
-  font-size: 0.92em;
+  font-size: 0.75rem;
   white-space: nowrap;
 }
 .selectionText {
@@ -178,13 +178,13 @@
   color: var(--text-muted, #64748b);
 }
 .welcomeMessage h3 {
-  font-size: 1.1em;
+  font-size: 1.1875rem;
   font-weight: 600;
   margin-bottom: 8px;
   color: var(--text-primary, #0f172a);
 }
 .welcomeMessage p {
-  font-size: 0.88em;
+  font-size: 0.75rem;
   line-height: 1.5;
 }
 
@@ -202,7 +202,7 @@
   max-width: 88%;
   padding: 10px 14px;
   border-radius: 12px;
-  font-size: 0.88em;
+  font-size: 0.75rem;
   line-height: 1.55;
   word-break: break-word;
 }
@@ -224,7 +224,7 @@
   background: rgba(0,0,0,0.06);
   padding: 1px 4px;
   border-radius: 3px;
-  font-size: 0.9em;
+  font-size: 0.75rem;
 }
 .messageBubble pre {
   background: rgba(0,0,0,0.06);
@@ -256,7 +256,7 @@
   padding: 0 12px;
   border: 1px solid var(--border-color, #e2e8f0);
   border-radius: 8px;
-  font-size: 0.88em;
+  font-size: 0.75rem;
   outline: none;
   background: var(--bg-primary, #f8f9fa);
   color: var(--text-primary, #0f172a);
@@ -319,7 +319,7 @@
   background: rgba(15, 23, 42, 0.88);
   color: #fff;
   border-radius: 8px;
-  font-size: 0.78em;
+  font-size: 0.75rem;
   pointer-events: none;
   z-index: 100;
   max-width: 360px;
@@ -344,7 +344,7 @@
   justify-content: center;
   height: 100vh;
   color: var(--text-muted, #64748b);
-  font-size: 0.95em;
+  font-size: 0.75rem;
 }
 
 /* ---- RTL support ---- */

@@ -438,7 +438,7 @@ export default function CouponsPage() {
                   <td>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                       <Ticket size={16} style={{ color: 'var(--primary)' }} />
-                      <strong style={{ fontFamily: 'monospace', fontSize: '0.875rem' }}>{coupon.code}</strong>
+                      <strong style={{ fontFamily: 'monospace', fontSize: '0.9375rem' }}>{coupon.code}</strong>
                       <button
                         className={styles.actionButton}
                         onClick={() => copyCode(coupon.code)}
@@ -687,7 +687,7 @@ export default function CouponsPage() {
           <div style={{ borderTop: '1px solid var(--border)', paddingTop: '1rem' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
               <div>
-                <h4 style={{ fontSize: '0.875rem', fontWeight: 600, margin: 0, color: 'var(--foreground)' }}>
+                <h4 style={{ fontSize: '0.9375rem', fontWeight: 600, margin: 0, color: 'var(--foreground)' }}>
                   {t('admin.coupons.form.limitationOverrides')}
                 </h4>
                 <p style={{ fontSize: '0.75rem', color: 'var(--muted-foreground)', margin: 0 }}>
@@ -742,7 +742,7 @@ export default function CouponsPage() {
           <div style={{ borderTop: '1px solid var(--border)', paddingTop: '1rem' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
               <div>
-                <h4 style={{ fontSize: '0.875rem', fontWeight: 600, margin: 0, color: 'var(--foreground)' }}>
+                <h4 style={{ fontSize: '0.9375rem', fontWeight: 600, margin: 0, color: 'var(--foreground)' }}>
                   {t('admin.coupons.form.extraFeatures')}
                 </h4>
                 <p style={{ fontSize: '0.75rem', color: 'var(--muted-foreground)', margin: 0 }}>

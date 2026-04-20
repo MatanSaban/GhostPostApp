@@ -659,9 +659,23 @@
       "noAiTraffic": "No AI-referred traffic detected for this period.",
       "tipAiSessions": "Total sessions where visitors came from AI engines like ChatGPT, Perplexity, Gemini, Claude, or Copilot.",
       "tipAiShare": "Percentage of your total site traffic that comes from AI sources.",
-      "aiKeywordsTitle": "AI Traffic - Keywords",
-      "noAiKeywordsData": "No AI-related keywords found for this period.",
-      "tipAiKeywords": "Search keywords driving traffic to pages that AI engines link to. Cross-referenced from Google Analytics and Search Console.",
+      "aiKeywordsTitle": "Search terms on AI-linked pages",
+      "noAiKeywordsData": "No Google search terms found for the AI-linked pages in this period.",
+      "tipAiKeywords": "AI engines (ChatGPT, Perplexity, etc.) don't share the prompts users type — those are private. This shows the next-best signal: Google Search queries that landed on the same pages AI engines are linking to. A page that ranks for both = a page worth doubling down on.",
+      "engagedSessions": "Engaged AI Sessions",
+      "engagementRate": "AI Engagement Rate",
+      "avgDuration": "Avg. AI Session Duration",
+      "keyEvents": "AI Key Events",
+      "tipEngagedSessions": "Sessions from AI engines that lasted longer than 10 seconds, viewed multiple pages, or triggered a key event.",
+      "tipEngagementRate": "Share of AI sessions that engaged with your site (engaged / total AI sessions).",
+      "tipAvgDuration": "Average length of an AI-referred session, in seconds.",
+      "tipKeyEvents": "Key events (formerly conversions) triggered during AI-referred sessions.",
+      "timeseriesTitle": "AI Sessions Over Time",
+      "optimizeWithGhost": "Optimize with Ghost",
+      "optimizeWithGhostHint": "Open Ghost on this page to improve it for AI engines",
+      "clicks": "Clicks",
+      "impressions": "Impressions",
+      "ctr": "CTR",
       "inferredQueriesTitle": "Inferred AI Queries",
       "inferredDirect": "Direct Question",
       "inferredComparison": "Comparison",
@@ -4244,6 +4258,17 @@
     "typeMessage": "Type your message...",
     "searchPlaceholder": "Search conversations...",
     "inputPlaceholder": "Type your message...",
+    "editMessage": "Edit",
+    "resendMessage": "Resend",
+    "cancel": "Cancel",
+    "sendEdited": "Send",
+    "imagePrompt": {
+      "title": "Review & edit the image prompt",
+      "hint": "Edit the prompt if you want, and attach up to 2 reference images the AI should use as inspiration.",
+      "placeholder": "Describe the image in English…",
+      "attach": "Add reference",
+      "tooLarge": "Image too large (max 4MB)"
+    },
     "sections": {
       "conversations": "Conversations",
       "conversationsForSite": "Conversations for site",
@@ -4272,6 +4297,12 @@
       "analyticsReport": "Analytics Report",
       "linkBuilding": "Link Building"
     },
+    "inputActions": {
+      "more": "More actions",
+      "image": "Image",
+      "file": "File",
+      "voice": "Voice"
+    },
     "aiConfig": {
       "textGeneration": "Text Generation",
       "imageGeneration": "Image Generation"
@@ -4279,8 +4310,29 @@
     "statusText": {
       "usingForResponses": "Using {engine} for responses"
     },
+    "welcome": {
+      "greeting": "Hi! I'm your SEO agent. I can run actions on your site, analyze pages, research keywords, and fix issues — just ask. Try one of these, or type anything SEO-related:",
+      "suggestions": {
+        "siteAudit": {
+          "label": "Run a full site audit",
+          "prompt": "Please run a full site audit on my site and summarize the top issues when it's done."
+        },
+        "analyzeHomepage": {
+          "label": "Analyze my homepage SEO",
+          "prompt": "Analyze the SEO of my homepage: headings, meta tags, images, and links. Point out any problems."
+        },
+        "keywordOpportunities": {
+          "label": "Find keyword opportunities",
+          "prompt": "Look at my current Google Search Console keywords and suggest 5 strong opportunities I should focus on next."
+        },
+        "agentInsights": {
+          "label": "Run AI agent analysis",
+          "prompt": "Run an AI agent analysis scan on my site and summarize the insights you find."
+        }
+      }
+    },
     "contextMessages": {
-      "dashboard": "Your site performance is up 24% this month. Should I analyze what's driving this growth?",
+      "dashboard": "Hi! I'm your SEO agent. I can run actions on your site, analyze pages, research keywords, and fix issues — just ask. Try one of the suggestions below, or type anything SEO-related:",
       "siteInterview": "I noticed you haven't completed the technical details section. Shall I help gather that information?",
       "contentPlanner": "I can help you plan and organize content for your website. Want me to analyze trends and suggest article ideas?",
       "automations": "I can create a new automation to fix broken links automatically. Want me to set it up?",
@@ -4363,6 +4415,7 @@
       "secondShort": "s",
       "fetchingData": "Fetching data",
       "thinking": "Thinking",
+      "reasoning": "Reasoning",
       "analyzing": "Analyzing your request...",
       "actionApproved": "Action approved and executing...",
       "actionRejected": "Action rejected",
@@ -4371,7 +4424,62 @@
       "approveFailed": "Failed to approve",
       "warningMessage": "⚠️ **Reminder:** The action plan above will expire in **{minutes} minutes** if not approved.\n\nPlease approve or reject the plan to continue.",
       "expiredMessage": "⏰ The action plan has **expired** because it wasn't approved within 5 minutes.\n\nIf you still want to proceed, just ask me again and I'll create a new plan.",
-      "rejectedMessage": "❌ Action plan was rejected. Let me know if you'd like me to suggest a different approach."
+      "rejectedMessage": "❌ Action plan was rejected. Let me know if you'd like me to suggest a different approach.",
+      "rollbackHint": "Changed your mind? You can undo this action any time using the Rollback button below.",
+      "phase": {
+        "locate": "Locating the element on your site…",
+        "apply": "Applying the change through the plugin…",
+        "cache": "Clearing caches so the live page updates…",
+        "verify": "Verifying the result…",
+        "snapshot": "Snapshotting the current post…",
+        "write": "Writing the update to WordPress…",
+        "contact": "Contacting your site…",
+        "generateImage": "Generating image with AI…",
+        "uploadMedia": "Uploading to media library…",
+        "setFeatured": "Setting featured image on the post…"
+      },
+      "toolNames": {
+        "wp_create_post": "Creating a new post",
+        "wp_update_post": "Updating the post",
+        "wp_delete_post": "Deleting the post",
+        "manipulate_element": "Editing the page element",
+        "wp_update_seo": "Updating SEO metadata",
+        "wp_update_acf": "Updating custom fields",
+        "wp_create_redirect": "Creating a redirect",
+        "wp_delete_redirect": "Removing a redirect",
+        "wp_add_code_snippet": "Adding a code snippet",
+        "wp_bulk_update_posts": "Updating posts in bulk",
+        "wp_add_menu_item": "Adding a menu item",
+        "wp_update_menu_item": "Updating a menu item",
+        "wp_delete_menu_item": "Removing a menu item",
+        "wp_create_term": "Creating a category/tag",
+        "wp_update_term": "Updating a category/tag",
+        "wp_delete_term": "Removing a category/tag",
+        "wp_moderate_comment": "Moderating a comment",
+        "wp_reply_comment": "Replying to a comment",
+        "wp_delete_comment": "Removing a comment",
+        "wp_update_options": "Updating site settings",
+        "wp_self_update_plugin": "Updating the Ghost Post plugin",
+        "wp_rest_api": "Calling the WordPress REST API",
+        "wp_upload_media": "Uploading media",
+        "wp_update_media": "Updating media metadata",
+        "generate_image": "Generating a featured image",
+        "wp_set_featured_image": "Setting featured image",
+        "wp_insert_image_in_content": "Inserting image in content",
+        "wp_search_replace_links": "Replacing links across the site",
+        "run_site_audit": "Running a site audit",
+        "run_agent_scan": "Running an AI scan",
+        "research_keywords": "Researching keywords",
+        "add_competitor": "Adding a competitor",
+        "scan_competitor_page": "Scanning a competitor page",
+        "create_content_campaign": "Creating a content campaign",
+        "create_backlink_listing": "Creating a backlink listing"
+      }
+    },
+    "placement": {
+      "title": "Where should the",
+      "go": "go?",
+      "guidance": "Click the element in the preview that the new one should appear BEFORE, or describe the location in words."
     },
     "preview": {
       "label": "Preview",
@@ -4384,8 +4492,11 @@
       "close": "Close preview",
       "ready": "Connected",
       "connecting": "Connecting to site…",
+      "loading": "Loading preview…",
       "emptyText": "(empty)",
       "clearSelection": "Clear selection",
+      "inspectorUnavailable": "Inspector unavailable",
+      "htmlAttached": "HTML attached for AI context",
       "device": {
         "full": "Full width",
         "tablet": "Tablet (1024px)",

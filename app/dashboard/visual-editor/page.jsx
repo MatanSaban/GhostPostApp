@@ -21,7 +21,6 @@ import { useUser } from '@/app/context/user-context';
 import { useLocale } from '@/app/context/locale-context';
 import {
   normaliseSiteUrl,
-  buildIframeSrc,
   usePreviewBridge,
 } from '@/app/hooks/usePreviewBridge';
 import styles from './visual-editor.module.css';
@@ -43,10 +42,11 @@ export default function VisualEditorPage() {
     selectedElement,
     hoveredElement,
     inspectorEnabled,
+    iframeSrc,
     toggleInspector,
     resetPreviews,
     clearSelection,
-  } = usePreviewBridge({ siteUrl: selectedSite?.url, iframeRef });
+  } = usePreviewBridge({ siteUrl: selectedSite?.url, siteId: selectedSite?.id, iframeRef });
 
   /* ---- chat state ---- */
   const [conversationId, setConversationId] = useState(null);
@@ -138,8 +138,6 @@ export default function VisualEditorPage() {
       </div>
     );
   }
-
-  const iframeSrc = buildIframeSrc(selectedSite.url, '/');
 
   /* ---------------------------------------------------------------- */
   /*  JSX                                                             */

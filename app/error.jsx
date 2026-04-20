@@ -18,7 +18,7 @@ export default function GlobalError({ error, reset }) {
       padding: '2rem',
       fontFamily: 'var(--font-primary)',
     }}>
-      <h2 style={{ fontSize: '1.5rem', fontWeight: 600 }}>Something went wrong!</h2>
+      <h2 style={{ fontSize: '1.5625rem', fontWeight: 600 }}>Something went wrong!</h2>
       <p style={{ color: '#6b7280' }}>
         {error?.message || 'An unexpected error occurred'}
       </p>
@@ -31,7 +31,7 @@ export default function GlobalError({ error, reset }) {
           border: 'none',
           borderRadius: '0.75rem',
           cursor: 'pointer',
-          fontSize: '1rem',
+          fontSize: '1.0625rem',
           fontWeight: 500,
         }}
       >

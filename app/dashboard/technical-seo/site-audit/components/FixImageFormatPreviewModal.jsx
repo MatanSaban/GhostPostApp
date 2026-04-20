@@ -353,7 +353,7 @@ export default function FixImageFormatPreviewModal({ open, onClose, auditId, sit
                         <div className={styles.titleRow} style={{ marginBottom: 0 }}>
                           <span
                             className={styles.titleLabel}
-                            style={{ background: '#6b7280', textTransform: 'uppercase', fontSize: '0.65rem' }}
+                            style={{ background: '#6b7280', textTransform: 'uppercase', fontSize: '0.625rem' }}
                           >
                             {s.currentFormat}
                           </span>
@@ -363,7 +363,7 @@ export default function FixImageFormatPreviewModal({ open, onClose, auditId, sit
                             style={{
                               background: FORMAT_COLORS[s.recommendedFormat] || '#22c55e',
                               textTransform: 'uppercase',
-                              fontSize: '0.65rem',
+                              fontSize: '0.625rem',
                             }}
                           >
                             {FORMAT_LABELS[s.recommendedFormat] || s.recommendedFormat}
@@ -375,7 +375,7 @@ export default function FixImageFormatPreviewModal({ open, onClose, auditId, sit
 
                         {/* AI reason */}
                         {s.reason && (
-                          <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginTop: 4 }}>
+                          <div style={{ fontSize: '0.8125rem', color: 'var(--text-secondary)', marginTop: 4 }}>
                             {s.reason}
                           </div>
                         )}
@@ -432,7 +432,7 @@ export default function FixImageFormatPreviewModal({ open, onClose, auditId, sit
               {keptImages.length > 0 && (
                 <div style={{
                   padding: '0.75rem 1rem',
-                  fontSize: '0.8rem',
+                  fontSize: '0.8125rem',
                   color: 'var(--text-secondary)',
                   borderTop: '1px solid var(--border-color)',
                 }}>

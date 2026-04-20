@@ -187,7 +187,7 @@ export default function CardComPaymentForm({
             height: 42px;
             width: 100%;
             padding: 0 12px 0 2.25rem;
-            font-size: 0.875rem;
+            font-size: 0.75rem;
             outline: none;
             direction: ltr;
             background: ${bgColor};
@@ -210,7 +210,7 @@ export default function CardComPaymentForm({
             height: 42px;
             width: 100%;
             padding: 0 12px;
-            font-size: 0.875rem;
+            font-size: 0.75rem;
             outline: none;
             direction: ltr;
             background: ${bgColor};
@@ -494,7 +494,7 @@ export default function CardComPaymentForm({
                   <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
                     <Ticket size={14} />
                     {t('payment.coupon.discount') || 'Coupon Discount'}
-                    <span style={{ fontSize: '0.7rem', opacity: 0.8 }}>
+                    <span style={{ fontSize: '0.6875rem', opacity: 0.8 }}>
                       ({couponData.discountType === 'PERCENTAGE' ? `${couponData.discountValue}%` : formatPrice(couponData.discountValue)})
                     </span>
                   </span>

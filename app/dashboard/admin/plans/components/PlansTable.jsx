@@ -142,7 +142,7 @@ export default function PlansTable({
                   {t(`admin.plans.statuses.${plan.status}`)}
                 </span>
                 {Object.keys(plan.translations || {}).length > 0 && (
-                  <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.7rem', color: 'var(--muted-foreground)' }}>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.6875rem', color: 'var(--muted-foreground)' }}>
                     <Globe size={12} />
                     {Object.keys(plan.translations).length}
                   </span>

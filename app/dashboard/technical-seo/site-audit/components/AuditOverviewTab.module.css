@@ -28,7 +28,7 @@
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
-  font-size: 0.7375rem;
+  font-size: 0.75rem;
   color: var(--muted-foreground);
 }
 
@@ -89,7 +89,7 @@
 .statInfo svg { color: var(--info, #3b82f6); }
 
 .statValue {
-  font-size: 1.3rem;
+  font-size: 1.3125rem;
   font-weight: 700;
   color: var(--foreground);
 }
@@ -142,7 +142,7 @@
 }
 
 .waveScoreText {
-  font-size: 1.4rem;
+  font-size: 1.4375rem;
   font-weight: 700;
   fill: var(--foreground);
 }
@@ -178,7 +178,7 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   font-weight: 600;
   color: var(--foreground);
   margin: 0;
@@ -204,7 +204,7 @@
   padding: 1.5rem;
   justify-content: center;
   color: var(--muted-foreground);
-  font-size: 0.9rem;
+  font-size: 0.75rem;
 }
 
 .spinning {
@@ -217,7 +217,7 @@
 }
 
 .summaryContent {
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   line-height: 1.7;
   color: var(--foreground);
 
@@ -311,7 +311,7 @@
   display: flex;
   align-items: center;
   gap: 0.3rem;
-  font-size: 0.65rem;
+  font-size: 0.6875rem;
   color: var(--muted-foreground);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -362,7 +362,7 @@
   border-radius: var(--radius-md, 8px);
   padding: 0.5rem 0.75rem;
   box-shadow: var(--shadow-lg, 0 4px 12px rgba(0, 0, 0, 0.3));
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   white-space: nowrap;
   pointer-events: none;
   z-index: 10;
@@ -377,7 +377,7 @@
   font-weight: 600;
   color: var(--foreground);
   margin-bottom: 0.25rem;
-  font-size: 0.625rem;
+  font-size: 0.6875rem;
   text-transform: uppercase;
   letter-spacing: 0.02em;
 }
@@ -421,7 +421,7 @@
 }
 
 .deltaSm {
-  font-size: 0.65rem;
+  font-size: 0.6875rem;
   padding: 1px 6px;
 }
 
@@ -463,13 +463,13 @@
   gap: 2px;
 
   strong {
-    font-size: 0.875rem;
+    font-size: 0.75rem;
     font-weight: 600;
     color: var(--success, #22c55e);
   }
 
   span {
-    font-size: 0.8rem;
+    font-size: 0.75rem;
     color: var(--foreground);
     opacity: 0.85;
   }

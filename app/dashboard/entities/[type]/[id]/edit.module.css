@@ -95,7 +95,7 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   color: var(--muted-foreground);
 }
 
@@ -120,7 +120,7 @@
 .status {
   padding: 0.125rem 0.5rem;
   border-radius: var(--radius-sm);
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   font-weight: 500;
   text-transform: uppercase;
 
@@ -155,7 +155,7 @@
   background: var(--muted);
   border: 1px solid var(--border);
   color: var(--foreground);
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   text-decoration: none;
   transition: all 0.2s;
 
@@ -178,7 +178,7 @@
   background: var(--primary);
   border: none;
   color: var(--primary-foreground);
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s;
@@ -221,7 +221,7 @@
   border: none;
   border-bottom: 2px solid transparent;
   color: var(--muted-foreground);
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   cursor: pointer;
   transition: all 0.2s;
   white-space: nowrap;
@@ -266,13 +266,13 @@
 }
 
 .fieldLabel {
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   font-weight: 500;
   color: var(--foreground);
 }
 
 .fieldDescription {
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   color: var(--muted-foreground);
 }
 
@@ -284,7 +284,7 @@
   border: 1px solid var(--border);
   background: var(--background);
   color: var(--foreground);
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   transition: all 0.2s;
 
   &:focus {
@@ -333,7 +333,7 @@
 }
 
 .fieldHint {
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   color: var(--muted-foreground);
   margin-top: 0.25rem;
 }
@@ -356,7 +356,7 @@
 }
 
 .cardTitle {
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   font-weight: 600;
   color: var(--foreground);
   margin: 0;
@@ -385,7 +385,7 @@
 }
 
 .acfGroupTitle {
-  font-size: 0.9575rem;
+  font-size: 0.75rem;
   font-weight: 600;
   color: var(--foreground);
   margin-bottom: 1rem;
@@ -409,18 +409,18 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   font-weight: 500;
   color: var(--foreground);
 }
 
 .requiredBadge {
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   color: var(--destructive, #ef4444);
 }
 
 .acfFieldInstructions {
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   color: var(--muted-foreground);
 }
 
@@ -466,13 +466,13 @@
 .toggleLabels {
   display: flex;
   flex-direction: column;
-  font-size: 0.9rem;
+  font-size: 0.75rem;
 }
 
 .toggleOnLabel,
 .toggleOffLabel {
   color: var(--muted-foreground);
-  font-size: 0.875rem;
+  font-size: 0.75rem;
 }
 
 /* Select Field */
@@ -503,7 +503,7 @@
   }
 
   span {
-    font-size: 0.9rem;
+    font-size: 0.75rem;
     color: var(--foreground);
   }
 }
@@ -597,7 +597,7 @@
   }
 
   span {
-    font-size: 0.875rem;
+    font-size: 0.75rem;
   }
 }
 
@@ -680,7 +680,7 @@
   }
 
   span {
-    font-size: 0.875rem;
+    font-size: 0.75rem;
   }
 }
 
@@ -768,7 +768,7 @@
   }
 
   span {
-    font-size: 0.875rem;
+    font-size: 0.75rem;
   }
 }
 
@@ -796,7 +796,7 @@
 }
 
 .repeaterItemTitle {
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   font-weight: 500;
   color: var(--muted-foreground);
 }
@@ -815,7 +815,7 @@
   padding: 0.5rem 0.75rem;
   background: var(--muted);
   border-radius: var(--radius-md);
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   color: var(--primary);
   text-decoration: none;
 
@@ -839,7 +839,7 @@
 }
 
 .colorValue {
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   font-family: monospace;
   color: var(--foreground);
 }
@@ -895,13 +895,13 @@
 }
 
 .seoPreviewUrl {
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   color: #006621;
   margin-bottom: 0.25rem;
 }
 
 .seoPreviewDescription {
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   color: #545454;
   line-height: 1.5;
 }
@@ -937,13 +937,13 @@
 }
 
 .metadataKey {
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   font-weight: 500;
   color: var(--foreground);
 }
 
 .metadataValue {
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   color: var(--muted-foreground);
   font-family: monospace;
   max-width: 60%;
