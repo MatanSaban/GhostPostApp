@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { Lock, Loader2, Ticket, Check, X, AlertCircle } from 'lucide-react';
 import { ArrowIcon } from '@/app/components/ui/arrow-icon';
 import { calculateNewSubscriptionProration } from '@/lib/proration';
+import { isValidIsraeliId } from '@/lib/israeli-id';
 import styles from '../auth.module.css';
 
 const CARDCOM_BASE = 'https://secure.cardcom.solutions';
@@ -28,6 +29,9 @@ export function PaymentStep({ translations, selectedPlan, userData, onComplete }
   // Form fields
   const [cardholderName, setCardholderName] = useState(defaultCardholderName);
   const [citizenId, setCitizenId] = useState('');
+  const [citizenIdTouched, setCitizenIdTouched] = useState(false);
+  const isCitizenIdValid = isValidIsraeliId(citizenId);
+  const showCitizenIdError = citizenIdTouched && citizenId.length > 0 && !isCitizenIdValid;
   const [billingEmail, setBillingEmail] = useState(defaultBillingEmail);
   const [cardOwnerPhone, setCardOwnerPhone] = useState(defaultPhone);
   const [expirationMonth, setExpirationMonth] = useState('');
@@ -47,32 +51,30 @@ export function PaymentStep({ translations, selectedPlan, userData, onComplete }
   const [couponLoading, setCouponLoading] = useState(false);
   const [couponError, setCouponError] = useState('');
 
-  // Calculate prices (convert USD to ILS using live rate from API, fallback to 3.6)
+  // Prices are stored in USD (per the Plan seed convention) — always convert
+  // to ILS using the live rate. If the plan's own rate is missing (e.g. on a
+  // resumed session before the status endpoint responded) fall back to 3.6.
   const USD_TO_ILS_RATE = selectedPlan?.usdToIlsRate || 3.6;
   const VAT_RATE = 0.18;
-  
+
   const getPriceBreakdown = (plan) => {
     if (!plan?.monthlyPrice) return { basePrice: 0, fullMonthlyPrice: 0, discount: 0, discountedPrice: 0, vatAmount: 0, totalPrice: 0, proration: null };
 
     // Prorate for remaining days in the month (align to 1st)
     const proration = calculateNewSubscriptionProration(plan.monthlyPrice);
-    const isUSD = plan.currency === 'USD' || !plan.currency;
-    let basePrice = proration.proratedAmount;
-    let fullMonthlyPrice = plan.monthlyPrice;
-    if (isUSD) {
-      basePrice = Math.round(basePrice * USD_TO_ILS_RATE);
-      fullMonthlyPrice = Math.round(fullMonthlyPrice * USD_TO_ILS_RATE);
-    }
-    
+    const basePrice = Math.round(proration.proratedAmount * USD_TO_ILS_RATE);
+    const fullMonthlyPrice = Math.round(plan.monthlyPrice * USD_TO_ILS_RATE);
+
     let discount = 0;
     if (couponData) {
       if (couponData.discountType === 'PERCENTAGE') {
         discount = Math.round(basePrice * (couponData.discountValue / 100));
       } else if (couponData.discountType === 'FIXED_AMOUNT') {
-        discount = Math.round(couponData.discountValue * (plan.currency === 'USD' || !plan.currency ? USD_TO_ILS_RATE : 1));
+        // Coupon fixed amounts are also stored in USD.
+        discount = Math.round(couponData.discountValue * USD_TO_ILS_RATE);
       }
     }
-    
+
     const discountedPrice = Math.max(0, basePrice - discount);
     const vatAmount = Math.round(discountedPrice * VAT_RATE);
     const totalPrice = discountedPrice + vatAmount;
@@ -84,7 +86,7 @@ export function PaymentStep({ translations, selectedPlan, userData, onComplete }
       if (couponData.discountType === 'PERCENTAGE') {
         recurringDiscount = Math.round(fullMonthlyPrice * (couponData.discountValue / 100));
       } else if (couponData.discountType === 'FIXED_AMOUNT') {
-        recurringDiscount = Math.round(couponData.discountValue * (isUSD ? USD_TO_ILS_RATE : 1));
+        recurringDiscount = Math.round(couponData.discountValue * USD_TO_ILS_RATE);
       }
     }
     const recurringDiscounted = Math.max(0, fullMonthlyPrice - recurringDiscount);
@@ -388,7 +390,7 @@ export function PaymentStep({ translations, selectedPlan, userData, onComplete }
     billingEmail.includes('@') &&
     expirationMonth.length === 2 &&
     expirationYear.length === 2 &&
-    citizenId.length >= 5
+    isCitizenIdValid
   );
 
   const isPaidPlan = priceBreakdown.totalPrice > 0;
@@ -615,12 +617,20 @@ export function PaymentStep({ translations, selectedPlan, userData, onComplete }
                 id="citizenId"
                 value={citizenId}
                 onChange={(e) => setCitizenId(e.target.value.replace(/\D/g, '').slice(0, 9))}
-                className={styles.formInput}
+                onBlur={() => setCitizenIdTouched(true)}
+                className={`${styles.formInput} ${showCitizenIdError ? styles.formInputError : ''}`}
                 placeholder={translations.citizenIdPlaceholder}
                 dir="ltr"
                 required
                 disabled={isProcessing}
+                aria-invalid={showCitizenIdError || undefined}
+                aria-describedby={showCitizenIdError ? 'citizenId-error' : undefined}
               />
+              {showCitizenIdError && (
+                <span id="citizenId-error" className={styles.fieldError}>
+                  {translations.citizenIdInvalid}
+                </span>
+              )}
             </div>
 
             <div className={styles.formGroup}>
@@ -674,6 +684,7 @@ export function PaymentStep({ translations, selectedPlan, userData, onComplete }
                       src={`${CARDCOM_BASE}/api/openfields/cardNumber`}
                       className={styles.cardIframeField}
                       title="Card Number"
+                      scrolling="no"
                     />
                   </div>
                 </div>
@@ -721,6 +732,7 @@ export function PaymentStep({ translations, selectedPlan, userData, onComplete }
                         src={`${CARDCOM_BASE}/api/openfields/CVV`}
                         className={styles.cvvIframeField}
                         title="CVV"
+                        scrolling="no"
                       />
                     </div>
                   </div>

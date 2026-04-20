@@ -452,6 +452,7 @@ export default function SettingsContent({ translations, websiteTabs, accountTabs
                 ref={(el) => (tabsRef.current[tab.id] = el)}
                 onClick={() => handleTabChange(tab.id)}
                 className={`${styles.tabButton} ${activeTab === tab.id ? styles.active : ''}`}
+                data-onboarding={`settings-tab-${tab.id}`}
               >
                 <Icon className={styles.tabIcon} />
                 <span>{tab.label}</span>
@@ -1461,7 +1462,7 @@ function IntegrationsSettings({ translations, canEdit = true }) {
       )}
 
       {/* Google Account Connection */}
-      <div className={styles.settingsSection}>
+      <div className={styles.settingsSection} data-onboarding="connect-google-section">
         <div className={styles.integrationTitleRow}>
           <svg className={styles.integrationIcon} width="20" height="20" viewBox="0 0 24 24" fill="none">
             <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 01-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/>
@@ -1480,6 +1481,7 @@ function IntegrationsSettings({ translations, canEdit = true }) {
             className={styles.connectGoogleBtn}
             onClick={handleConnect}
             disabled={connecting}
+            data-onboarding="connect-google-button"
           >
             {connecting ? (
               <Loader2 size={18} className={styles.spinning} />

@@ -23,22 +23,29 @@ function getLanguageLabel(code, locale) {
  * Proactive Onboarding Interview Step
  * Uses "Statement + Confirmation" pattern instead of open-ended questions
  */
-export function InterviewStep({ translations, onComplete, initialData = {}, onAnswerSaved }) {
+export function InterviewStep({ translations, onComplete, initialData = {}, onAnswerSaved, alreadyCompleted = false }) {
   const { t, locale } = useLocale();
   const isRTL = locale === 'he';
 
   // Interview phases
   const PHASES = {
     URL_INPUT: 'url-input',
-    ANALYZING: 'analyzing',
+    DETECTING_LANGUAGES: 'detecting-languages',
     LANGUAGE_SELECT: 'language-select',
+    ANALYZING: 'analyzing',
     CONFIRMATION: 'confirmation',
     COMPLETE: 'complete',
   };
 
-  const [phase, setPhase] = useState(PHASES.URL_INPUT);
+  // When the user returns to the interview after already finishing it, skip
+  // the whole flow and mount directly in COMPLETE with a summary view. The
+  // analysis/confirmations are already saved on the server — re-running the
+  // chat would wipe them.
+  const isResumed = !!(alreadyCompleted && initialData?.analysis);
+
+  const [phase, setPhase] = useState(isResumed ? PHASES.COMPLETE : PHASES.URL_INPUT);
   const [websiteUrl, setWebsiteUrl] = useState(initialData?.websiteUrl || '');
-  const [analysisData, setAnalysisData] = useState(null);
+  const [analysisData, setAnalysisData] = useState(isResumed ? initialData.analysis : null);
   const [confirmationStep, setConfirmationStep] = useState(0);
   const [interviewData, setInterviewData] = useState(initialData || {});
   const [messages, setMessages] = useState([]);
@@ -53,108 +60,162 @@ export function InterviewStep({ translations, onComplete, initialData = {}, onAn
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
 
-  // Confirmation questions - these use the analysis data
-  const getConfirmationQuestions = () => {
-    if (!analysisData) return [];
-    
-    const lang = locale === 'he' ? 'he' : 'en';
-    
-    return [
-      {
-        id: 'identity',
-        field: 'businessIdentity',
-        type: 'confirm',
-        getMessage: () => {
-          const name = analysisData.businessInfo?.name || t('interviewWizard.proactive.yourSite');
-          const niche = analysisData.businessInfo?.niche;
-          const nicheLabel = niche ? t(`interviewWizard.proactive.niches.${niche}`) : null;
-          
-          if (nicheLabel) {
-            return t('interviewWizard.proactive.identityWithNiche', { name, niche: nicheLabel });
-          }
-          return t('interviewWizard.proactive.identityBasic', { name });
-        },
-        getDefaultValue: () => ({
-          name: analysisData.businessInfo?.name,
-          niche: analysisData.businessInfo?.niche,
-          confirmed: true,
-        }),
+  // Confirmation questions — uses the analysis data and the user's prior
+  // language choice. Accepts an optional `data` argument so callers that are
+  // about to commit `setAnalysisData(data)` can build the list before React
+  // has flushed state.
+  const getConfirmationQuestions = (data = analysisData) => {
+    if (!data) return [];
+
+    const questions = [];
+
+    // 1. Platform + language recap — the user already saw a URL probe, now we
+    //    reveal what the full analysis found. Approve or edit.
+    questions.push({
+      id: 'platformLanguage',
+      field: 'platformLanguage',
+      type: 'confirm',
+      getMessage: () => {
+        const rawPlatform = data.platform?.name;
+        const platformName = rawPlatform && rawPlatform !== 'Custom' ? rawPlatform : null;
+        const effectiveLang = interviewData.selectedLanguage || data.contentStyle?.language;
+        const langLabel = effectiveLang
+          ? (effectiveLang === 'he'
+              ? 'עברית'
+              : effectiveLang === 'en'
+                ? 'English'
+                : getLanguageLabel(effectiveLang, locale))
+          : (locale === 'he' ? 'עברית' : 'English');
+        if (platformName) {
+          return t('interviewWizard.proactive.platformLanguageConfirm', {
+            platform: platformName,
+            language: langLabel,
+          });
+        }
+        return t('interviewWizard.proactive.platformLanguageConfirmNoPlatform', {
+          language: langLabel,
+        });
       },
-      {
-        id: 'goals',
-        field: 'seoGoals',
-        type: 'confirm',
-        getMessage: () => {
-          const goals = analysisData.inferredGoals || [];
-          const goalLabels = goals.map(g => lang === 'he' ? g.labelHe : g.label).join(', ');
-          return t('interviewWizard.proactive.goalsConfirm', { goals: goalLabels });
-        },
-        getDefaultValue: () => analysisData.inferredGoals?.map(g => g.id) || [],
+      getDefaultValue: () => ({
+        platform: data.platform?.name || null,
+        language: interviewData.selectedLanguage || data.contentStyle?.language || null,
+      }),
+    });
+
+    // 2. Business character — name + niche + description in one statement.
+    questions.push({
+      id: 'character',
+      field: 'businessCharacter',
+      type: 'confirm',
+      getMessage: () => {
+        const name = data.businessInfo?.name || t('interviewWizard.proactive.yourSite');
+        const niche = data.businessInfo?.niche;
+        const description = data.businessInfo?.description || '';
+        let nicheClause = '';
+        if (niche) {
+          const key = `interviewWizard.proactive.niches.${niche}`;
+          const translated = t(key);
+          const nicheLabel = translated && translated !== key ? translated : niche;
+          nicheClause = t('interviewWizard.proactive.characterNicheClause', { niche: nicheLabel });
+        }
+        return t('interviewWizard.proactive.characterConfirmIntro', {
+          name,
+          nicheClause,
+          description,
+        });
       },
-      {
-        id: 'audience',
-        field: 'targetAudience',
-        type: 'confirm',
-        getMessage: () => {
-          const audience = analysisData.inferredAudience;
-          return t('interviewWizard.proactive.audienceConfirm', { audience });
-        },
-        getDefaultValue: () => analysisData.inferredAudience,
+      getDefaultValue: () => ({
+        name: data.businessInfo?.name,
+        niche: data.businessInfo?.niche,
+        description: data.businessInfo?.description,
+        confirmed: true,
+      }),
+    });
+
+    // 3. Competitors (existing).
+    questions.push({
+      id: 'competitors',
+      field: 'competitors',
+      type: 'select',
+      getMessage: () => {
+        const count = data.competitors?.length || 0;
+        return count > 0
+          ? t('interviewWizard.proactive.competitorsFound', { count })
+          : t('interviewWizard.proactive.competitorsAdd');
       },
-      {
-        id: 'competitors',
-        field: 'competitors',
-        type: 'select',
-        getMessage: () => {
-          const count = analysisData.competitors?.length || 0;
-          if (count > 0) {
-            return t('interviewWizard.proactive.competitorsFound', { count });
-          }
-          return t('interviewWizard.proactive.competitorsAdd');
-        },
-        getDefaultValue: () => [],
+      getDefaultValue: () => [],
+    });
+
+    // 4. Keywords (existing).
+    questions.push({
+      id: 'keywords',
+      field: 'mainKeywords',
+      type: 'confirm',
+      getMessage: () => {
+        const aiKeywords = data.keywords?.suggested
+          ?.slice(0, 8)
+          ?.map(k => typeof k === 'string' ? k : k.keyword) || [];
+        return aiKeywords.length > 0
+          ? t('interviewWizard.proactive.keywordsFound', { keywords: aiKeywords.join(', ') })
+          : t('interviewWizard.proactive.keywordsAdd');
       },
-      {
-        id: 'keywords',
-        field: 'mainKeywords',
-        type: 'confirm',
-        getMessage: () => {
-          // Use AI-suggested keywords (real SEO keywords)
-          const aiKeywords = analysisData.keywords?.suggested
-            ?.slice(0, 8)
-            ?.map(k => typeof k === 'string' ? k : k.keyword) || [];
-          
-          if (aiKeywords.length > 0) {
-            return t('interviewWizard.proactive.keywordsFound', { 
-              keywords: aiKeywords.join(', ') 
-            });
-          }
-          return t('interviewWizard.proactive.keywordsAdd');
-        },
-        getDefaultValue: () => {
-          // Return AI-suggested keywords as the default value
-          return analysisData.keywords?.suggested
-            ?.slice(0, 8)
-            ?.map(k => typeof k === 'string' ? k : k.keyword) || [];
-        },
-      },
-    ];
+      getDefaultValue: () =>
+        data.keywords?.suggested
+          ?.slice(0, 8)
+          ?.map(k => typeof k === 'string' ? k : k.keyword) || [],
+    });
+
+    // 5. SEO issues audit — only if the rule-based detector surfaced any.
+    const seoIssues = Array.isArray(data.seoIssues) ? data.seoIssues : [];
+    if (seoIssues.length > 0) {
+      questions.push({
+        id: 'seoIssues',
+        field: 'seoIssuesAcknowledged',
+        type: 'continue',
+        getMessage: () => t('interviewWizard.proactive.seoIssuesIntro', { count: seoIssues.length }),
+        getDefaultValue: () => true,
+        issues: seoIssues,
+      });
+    }
+
+    return questions;
   };
 
   // Initialize with welcome message
   useEffect(() => {
     if (initialized) return;
-    
+
     const welcomeMsg = t('interviewWizard.questions.welcome');
     const urlQuestion = t('registration.interview.questions.websiteUrl');
-    
+
+    if (isResumed) {
+      // Rebuild a minimal transcript so the returning user sees evidence of
+      // the prior conversation instead of a blank slate. The full Q&A isn't
+      // reconstructed — the summary card below fills that role.
+      const resumedMessages = [
+        { id: 0, type: 'agent', content: welcomeMsg },
+        { id: 1, type: 'agent', content: urlQuestion },
+      ];
+      if (initialData?.websiteUrl) {
+        resumedMessages.push({ id: resumedMessages.length, type: 'user', content: initialData.websiteUrl });
+      }
+      resumedMessages.push({
+        id: resumedMessages.length,
+        type: 'agent',
+        content: t('interviewWizard.proactive.resumedIntro') || t('interviewWizard.questions.complete'),
+      });
+      setMessages(resumedMessages);
+      setInitialized(true);
+      return;
+    }
+
     setMessages([
       { id: 0, type: 'agent', content: welcomeMsg },
       { id: 1, type: 'agent', content: urlQuestion },
     ]);
-    
+
     setInitialized(true);
-  }, [initialized, t]);
+  }, [initialized, t, isResumed, initialData]);
 
   // Scroll to bottom
   useEffect(() => {
@@ -168,51 +229,73 @@ export function InterviewStep({ translations, onComplete, initialData = {}, onAn
     }
   }, [confirmationStep, isTyping, phase]);
 
-  // Handle URL submission
-  const handleUrlSubmit = () => {
+  // Handle URL submission. We now run a cheap language-variant probe first
+  // (no AI) so we can ask the user to pick a locale BEFORE burning a full
+  // analysis on the wrong variant.
+  const handleUrlSubmit = async () => {
     const url = websiteUrl.trim();
     if (!url) return;
 
-    // Add user message
     setMessages(prev => [...prev, {
       id: prev.length,
       type: 'user',
       content: url,
     }]);
 
-    // Save URL
-    const newData = { ...interviewData, websiteUrl: url };
+    // Clear any stale language choice carried over from a resumed draft.
+    const { selectedLanguage, availableLanguages, ...rest } = interviewData || {};
+    const newData = { ...rest, websiteUrl: url };
     setInterviewData(newData);
     onAnswerSaved?.(newData, false);
 
-    // Start analysis
-    setPhase(PHASES.ANALYZING);
+    setPhase(PHASES.DETECTING_LANGUAGES);
+    setMessages(prev => [...prev, {
+      id: prev.length,
+      type: 'agent',
+      content: t('interviewWizard.proactive.detectingLanguages'),
+    }]);
+
+    try {
+      const res = await fetch('/api/interview/detect-languages', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url }),
+      });
+      const data = await res.json();
+
+      if (data?.success && Array.isArray(data.languages) && data.languages.length >= 2) {
+        setLanguageOptions(data.languages);
+        setPhase(PHASES.LANGUAGE_SELECT);
+        setMessages(prev => [...prev, {
+          id: prev.length,
+          type: 'agent',
+          content: t('interviewWizard.proactive.languagesFound', { count: data.languages.length }),
+        }]);
+        return;
+      }
+
+      // No multi-language variants — go straight into full analysis.
+      // If the probe resolved to a canonical URL, use it.
+      if (data?.url && data.url !== url) setWebsiteUrl(data.url);
+      setPhase(PHASES.ANALYZING);
+    } catch (err) {
+      console.error('Language detection failed, proceeding to analysis:', err);
+      // If the probe fails, fall through to the full analysis which will
+      // surface its own error to the user if the site is truly unreachable.
+      setPhase(PHASES.ANALYZING);
+    }
   };
 
-  // Handle analysis complete
+  // Handle analysis complete — save the analysis and kick off confirmation.
+  // Multi-language detection already happened before analysis (in
+  // handleUrlSubmit), so by the time we reach here the language variant is
+  // locked in and we just need to surface the results.
   const handleAnalysisComplete = (data) => {
-    // Multi-language sites: if we detected >= 2 variants and the user hasn't
-    // already chosen one, branch into LANGUAGE_SELECT before continuing.
-    if (!interviewData.selectedLanguage && Array.isArray(data?.languages) && data.languages.length >= 2) {
-      setAnalysisData(data);
-      setLanguageOptions(data.languages);
-      setPhase(PHASES.LANGUAGE_SELECT);
-      setMessages(prev => [...prev, {
-        id: prev.length,
-        type: 'agent',
-        content: t('interviewWizard.proactive.languagesFound', { count: data.languages.length }),
-      }]);
-      return;
-    }
-
     setAnalysisData(data);
 
-    // Save analysis data to interviewData for later use (e.g., site creation)
     const newData = {
       ...interviewData,
-      websiteUrl,
       analysis: data,
-      // Also extract key info for easy access
       platform: data.platform?.name || null,
       businessName: data.businessInfo?.name || null,
       businessDescription: data.businessInfo?.description || null,
@@ -222,65 +305,16 @@ export function InterviewStep({ translations, onComplete, initialData = {}, onAn
     };
     setInterviewData(newData);
     onAnswerSaved?.(newData, false);
-    
-    // Add analysis summary message
-    const platformName = data.platform?.name && data.platform.name !== 'Custom'
-      ? data.platform.name
-      : null;
-    // Prefer the language the user explicitly selected over whatever the
-    // analyzer guessed — on multi-language variants the variant page may still
-    // carry the root site's lang attribute, so auto-detection can be wrong.
-    const effectiveLang = interviewData.selectedLanguage || data.contentStyle?.language;
-    const langLabel = effectiveLang
-      ? (effectiveLang === 'he'
-          ? 'עברית'
-          : effectiveLang === 'en'
-            ? 'English'
-            : getLanguageLabel(effectiveLang, locale))
-      : null;
-    
-    // Only show detection message if we actually detected something
-    let summaryMsg;
-    if (platformName && langLabel) {
-      summaryMsg = t('interviewWizard.proactive.analysisDone', {
-        platform: platformName,
-        language: langLabel,
-      });
-    } else if (platformName) {
-      summaryMsg = t('interviewWizard.proactive.analysisDonePartial', {
-        platform: platformName,
-      }) || t('interviewWizard.proactive.analysisDone', {
-        platform: platformName,
-        language: locale === 'he' ? 'עברית' : 'English',
-      });
-    } else {
-      summaryMsg = t('interviewWizard.proactive.analysisComplete') 
-        || t('interviewWizard.proactive.analysisDone', {
-          platform: t('interviewWizard.proactive.websitePlatform') || 'website',
-          language: locale === 'he' ? 'עברית' : 'English',
-        });
-    }
-    
-    setMessages(prev => [...prev, {
-      id: prev.length,
-      type: 'agent',
-      content: summaryMsg,
-      isAnalysisSummary: true,
-    }]);
 
-    // Start confirmation flow
-    setTimeout(() => {
-      startConfirmationFlow(data);
-    }, 1000);
+    startConfirmationFlow(data);
   };
 
   // Start the confirmation flow
   const startConfirmationFlow = (data) => {
     setPhase(PHASES.CONFIRMATION);
     setConfirmationStep(0);
-    
-    // Show first confirmation question
-    const questions = getConfirmationQuestions();
+
+    const questions = getConfirmationQuestions(data);
     if (questions.length > 0) {
       const firstQuestion = questions[0];
       setMessages(prev => [...prev, {
@@ -293,7 +327,9 @@ export function InterviewStep({ translations, onComplete, initialData = {}, onAn
     }
   };
 
-  // Handle user picking a language variant in a multi-language site.
+  // Handle user picking a language variant. At this point the full analysis
+  // hasn't run yet — we just capture the choice, point at the variant URL,
+  // and transition to ANALYZING so /analyze runs against the right locale.
   const handleLanguageSelect = (variant) => {
     const label = getLanguageLabel(variant.code, locale);
 
@@ -312,11 +348,7 @@ export function InterviewStep({ translations, onComplete, initialData = {}, onAn
     setInterviewData(newData);
     onAnswerSaved?.(newData, false);
 
-    // Re-run analysis against the selected variant.
     setWebsiteUrl(variant.url);
-    setAnalysisData(null);
-    setLanguageOptions([]);
-    setAnalyzeAttempt(c => c + 1);
     setPhase(PHASES.ANALYZING);
   };
 
@@ -483,14 +515,16 @@ export function InterviewStep({ translations, onComplete, initialData = {}, onAn
             <span>
               {phase === PHASES.ANALYZING
                 ? t('interviewWizard.proactive.analyzing')
-                : phase === PHASES.LANGUAGE_SELECT
-                  ? t('interviewWizard.proactive.selectingLanguage')
-                  : phase === PHASES.CONFIRMATION
-                    ? t('interviewWizard.questionProgress', {
-                        current: confirmationStep + 1,
-                        total: getConfirmationQuestions().length
-                      })
-                    : t('interviewWizard.proactive.gettingStarted')
+                : phase === PHASES.DETECTING_LANGUAGES
+                  ? t('interviewWizard.proactive.detectingLanguages')
+                  : phase === PHASES.LANGUAGE_SELECT
+                    ? t('interviewWizard.proactive.selectingLanguage')
+                    : phase === PHASES.CONFIRMATION
+                      ? t('interviewWizard.questionProgress', {
+                          current: confirmationStep + 1,
+                          total: getConfirmationQuestions().length
+                        })
+                      : t('interviewWizard.proactive.gettingStarted')
               }
             </span>
           </div>
@@ -588,25 +622,57 @@ export function InterviewStep({ translations, onComplete, initialData = {}, onAn
           )}
 
           {/* Confirmation Buttons (shown for confirm-type questions) */}
-          {phase === PHASES.CONFIRMATION && 
-           currentQuestion?.type === 'confirm' && 
+          {phase === PHASES.CONFIRMATION &&
+           currentQuestion?.type === 'confirm' &&
            currentQuestion?.id !== 'competitors' &&
-           !isTyping && 
+           !isTyping &&
            !editingField && (
             <div className={styles.confirmationButtons}>
-              <button 
+              <button
                 className={`${styles.confirmButton} ${styles.confirmYes}`}
                 onClick={() => handleConfirmation(true)}
               >
                 <Check size={16} />
                 {locale === 'he' ? 'נכון' : 'Correct'}
               </button>
-              <button 
+              <button
                 className={`${styles.confirmButton} ${styles.confirmEdit}`}
                 onClick={() => setEditingField(currentQuestion.field)}
               >
                 <Edit2 size={16} />
                 {locale === 'he' ? 'לתקן' : 'Edit'}
+              </button>
+            </div>
+          )}
+
+          {/* SEO Issues audit (shown for the seoIssues continue-type question) */}
+          {phase === PHASES.CONFIRMATION &&
+           currentQuestion?.id === 'seoIssues' &&
+           !isTyping && (
+            <div className={styles.seoIssuesContainer}>
+              <ul className={styles.seoIssuesList}>
+                {(currentQuestion.issues || []).map((issue, idx) => {
+                  const titleKey = `interviewWizard.proactive.seoIssues.${issue.type}.title`;
+                  const descKey = `interviewWizard.proactive.seoIssues.${issue.type}.description`;
+                  const title = t(titleKey, issue.meta || {});
+                  const description = t(descKey, issue.meta || {});
+                  return (
+                    <li key={idx} className={styles.seoIssueItem}>
+                      <div className={styles.seoIssueTitle}>{title}</div>
+                      <div className={styles.seoIssueDescription}>{description}</div>
+                    </li>
+                  );
+                })}
+              </ul>
+              <p className={styles.seoIssuesOutro}>
+                {t('interviewWizard.proactive.seoIssuesOutro')}
+              </p>
+              <button
+                className={`${styles.confirmButton} ${styles.confirmYes}`}
+                onClick={() => handleConfirmation(true)}
+              >
+                <Check size={16} />
+                {locale === 'he' ? 'להמשיך' : 'Continue'}
               </button>
             </div>
           )}
@@ -630,9 +696,48 @@ export function InterviewStep({ translations, onComplete, initialData = {}, onAn
           )}
 
           {/* Completion */}
-          {phase === PHASES.COMPLETE && (
+          {phase === PHASES.COMPLETE && !isResumed && (
             <div className={styles.interviewComplete}>
               <CheckCircle2 size={32} className={styles.completeIcon} />
+            </div>
+          )}
+
+          {/* Resumed summary — shown when returning to an already-completed
+              interview step. Recaps what we learned so the user has context,
+              plus a Continue button to advance manually (no auto-advance). */}
+          {phase === PHASES.COMPLETE && isResumed && (
+            <div className={styles.interviewResumeSummary}>
+              <div className={styles.interviewResumeHeader}>
+                <CheckCircle2 size={20} className={styles.completeIcon} />
+                <span>{t('interviewWizard.proactive.resumedHeader') || (locale === 'he' ? 'הראיון הושלם' : 'Interview completed')}</span>
+              </div>
+              <ul className={styles.interviewResumeList}>
+                {initialData.websiteUrl && (
+                  <li><strong>{locale === 'he' ? 'אתר' : 'Site'}:</strong> {initialData.websiteUrl}</li>
+                )}
+                {initialData.businessName && (
+                  <li><strong>{locale === 'he' ? 'שם' : 'Name'}:</strong> {initialData.businessName}</li>
+                )}
+                {initialData.platform && (
+                  <li><strong>{locale === 'he' ? 'פלטפורמה' : 'Platform'}:</strong> {initialData.platform}</li>
+                )}
+                {initialData.selectedLanguage && (
+                  <li><strong>{locale === 'he' ? 'שפה' : 'Language'}:</strong> {getLanguageLabel(initialData.selectedLanguage, locale)}</li>
+                )}
+                {Array.isArray(initialData.mainKeywords) && initialData.mainKeywords.length > 0 && (
+                  <li><strong>{locale === 'he' ? 'מילות מפתח' : 'Keywords'}:</strong> {initialData.mainKeywords.slice(0, 5).join(', ')}</li>
+                )}
+                {Array.isArray(initialData.competitors) && initialData.competitors.length > 0 && (
+                  <li><strong>{locale === 'he' ? 'מתחרים' : 'Competitors'}:</strong> {initialData.competitors.length}</li>
+                )}
+              </ul>
+              <button
+                className={`${styles.confirmButton} ${styles.confirmYes}`}
+                onClick={() => onComplete(initialData)}
+              >
+                <Check size={16} />
+                {locale === 'he' ? 'להמשיך' : 'Continue'}
+              </button>
             </div>
           )}
 
@@ -640,7 +745,10 @@ export function InterviewStep({ translations, onComplete, initialData = {}, onAn
         </div>
 
         {/* Input Area */}
-        {phase !== PHASES.COMPLETE && phase !== PHASES.ANALYZING && phase !== PHASES.LANGUAGE_SELECT && (
+        {phase !== PHASES.COMPLETE &&
+         phase !== PHASES.ANALYZING &&
+         phase !== PHASES.LANGUAGE_SELECT &&
+         phase !== PHASES.DETECTING_LANGUAGES && (
           <div className={styles.interviewInputArea}>
             {/* URL Input */}
             {phase === PHASES.URL_INPUT && (

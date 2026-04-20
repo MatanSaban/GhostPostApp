@@ -440,7 +440,7 @@ export function EntityTypesDiscovery({
           })}
         </div>
 
-        <div className={styles.discoveryActions}>
+        <div className={styles.discoveryActions} data-onboarding="entities-save-populate">
           <Button
             variant="primary"
             onClick={onSaveAndPopulate}
@@ -468,7 +468,7 @@ export function EntityTypesDiscovery({
   }
 
   return (
-    <div className={styles.discoveryCard}>
+    <div className={styles.discoveryCard} data-onboarding="entities-discovery-card">
       {/* Enabled types */}
       {enabledTypesSection}
 

@@ -24,6 +24,7 @@ import {
 } from 'lucide-react';
 import { ThemeToggle } from '@/app/components/ui/theme-toggle';
 import { LanguageSwitcher } from '@/app/components/ui/language-switcher';
+import { HelpButton } from '@/app/dashboard/onboarding/HelpButton';
 import UpgradePlanModal from '@/app/components/ui/UpgradePlanModal';
 import AddCreditsModal from '@/app/components/ui/AddCreditsModal';
 import FailedPublishModal from './FailedPublishModal';
@@ -389,6 +390,7 @@ export function DashboardHeader() {
 
       <div className={styles.headerActions}>
         <LanguageSwitcher variant="compact" />
+        <HelpButton />
         <ThemeToggle />
         
         {/* Notifications */}

@@ -857,6 +857,7 @@ export function KeywordsContent() {
           <button
             className={styles.addKeywordToggle}
             onClick={() => setShowAddForm(true)}
+            data-onboarding="keywords-add-cta"
           >
             <Plus size={14} />
             {t('keywordStrategy.addKeyword')}

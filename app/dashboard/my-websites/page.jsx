@@ -10,6 +10,7 @@ export default async function MyWebsitesPage() {
       <PageHeader
         title={t('myWebsites.title')}
         subtitle={t('myWebsites.subtitle')}
+        dataOnboarding="page-my-websites"
       />
 
       <MyWebsitesContent />

@@ -38,6 +38,8 @@ import { GhostChatPopup } from '@/app/components/ui/ghost-chat-popup';
 import { SiteSelector } from '@/app/components/ui/site-selector';
 import { DashboardHeader } from '@/app/dashboard/components/DashboardHeader';
 import ContentPipelineWorker from '@/app/dashboard/components/ContentPipelineWorker';
+import { OnboardingProvider } from '@/app/dashboard/onboarding/OnboardingProvider';
+import { OnboardingController } from '@/app/dashboard/onboarding/OnboardingController';
 import { useLocale } from '@/app/context/locale-context';
 import { useUser } from '@/app/context/user-context';
 import { useSite } from '@/app/context/site-context';
@@ -301,6 +303,7 @@ export default function DashboardLayout({ children }) {
   };
 
   return (
+    <OnboardingProvider>
     <div className={styles.dashboardContainer}>
       {/* Sidebar */}
       <aside className={styles.sidebar}>
@@ -322,12 +325,14 @@ export default function DashboardLayout({ children }) {
           {filteredMenuItems.map((item) => {
             const Icon = item.icon;
             const isActive = pathname === item.path;
+            const navSlug = item.path.split('/').pop();
 
             return (
               <Link
                 key={item.path}
                 href={item.path}
                 className={`${styles.navItem} ${isActive ? styles.active : ''}`}
+                data-onboarding={`nav-${navSlug}`}
               >
                 <Icon className={styles.navIcon} />
                 <span className={styles.navLabel}>{t(item.labelKey)}</span>
@@ -341,6 +346,7 @@ export default function DashboardLayout({ children }) {
               <Link
                 href="/dashboard/strategy"
                 className={`${styles.navItem} ${styles.navGroupToggle} ${pathname.startsWith('/dashboard/strategy') ? styles.active : ''}`}
+                data-onboarding="nav-strategy"
               >
                 <Lightbulb className={styles.navIcon} />
                 <span className={styles.navLabel}>{t('nav.strategy.title')}</span>
@@ -356,12 +362,14 @@ export default function DashboardLayout({ children }) {
                 <div className={styles.navGroupItemsInner}>
                   {filteredStrategyItems.map((item) => {
                     const isActive = pathname === item.path || pathname.startsWith(item.path + '/');
+                    const subSlug = item.path.split('/').pop();
 
                     return (
                       <Link
                         key={item.path}
                         href={item.path}
                         className={`${styles.navItem} ${styles.navSubItem} ${isActive ? styles.active : ''}`}
+                        data-onboarding={`nav-${subSlug}`}
                       >
                         <span className={styles.navLabel}>{t(item.labelKey)}</span>
                       </Link>
@@ -378,6 +386,7 @@ export default function DashboardLayout({ children }) {
               <Link
                 href="/dashboard/entities"
                 className={`${styles.navItem} ${styles.navGroupToggle} ${pathname.startsWith('/dashboard/entities') ? styles.active : ''}`}
+                data-onboarding="nav-entities"
               >
                 <Database className={styles.navIcon} />
                 <span className={styles.navLabel}>{t('nav.entities.title')}</span>
@@ -436,6 +445,7 @@ export default function DashboardLayout({ children }) {
               <Link
                 href="/dashboard/technical-seo"
                 className={`${styles.navItem} ${styles.navGroupToggle} ${pathname.startsWith('/dashboard/technical-seo') ? styles.active : ''}`}
+                data-onboarding="nav-technical-seo"
               >
                 <Wrench className={styles.navIcon} />
                 <span className={styles.navLabel}>{t('nav.tools.title')}</span>
@@ -451,12 +461,14 @@ export default function DashboardLayout({ children }) {
                 <div className={styles.navGroupItemsInner}>
                   {filteredToolsItems.map((item) => {
                     const isActive = pathname === item.path || pathname.startsWith(item.path + '/');
+                    const subSlug = item.path.split('/').pop();
 
                     return (
                       <Link
                         key={item.path}
                         href={item.path}
                         className={`${styles.navItem} ${styles.navSubItem} ${isActive ? styles.active : ''}`}
+                        data-onboarding={`nav-${subSlug}`}
                       >
                         <span className={styles.navLabel}>{t(item.labelKey)}</span>
                       </Link>
@@ -472,6 +484,7 @@ export default function DashboardLayout({ children }) {
             <Link
               href="/dashboard/my-websites"
               className={`${styles.navItem} ${pathname === '/dashboard/my-websites' ? styles.active : ''}`}
+              data-onboarding="nav-my-websites"
             >
               <Monitor className={styles.navIcon} />
               <span className={styles.navLabel}>{t('nav.myWebsites')}</span>
@@ -505,6 +518,7 @@ export default function DashboardLayout({ children }) {
             <Link
               href="/dashboard/settings"
               className={`${styles.navItem} ${pathname === '/dashboard/settings' ? styles.active : ''}`}
+              data-onboarding="nav-settings"
             >
               <Settings className={styles.navIcon} />
               <span className={styles.navLabel}>{t('nav.settings')}</span>
@@ -596,6 +610,10 @@ export default function DashboardLayout({ children }) {
 
       {/* Background content pipeline worker (handles cron jobs in dev mode) */}
       <ContentPipelineWorker />
+
+      {/* Onboarding UI (greeting modal, guided tour, blocking banner) */}
+      <OnboardingController />
     </div>
+    </OnboardingProvider>
   );
 }

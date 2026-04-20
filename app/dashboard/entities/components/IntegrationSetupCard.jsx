@@ -77,12 +77,13 @@ export function IntegrationSetupCard({
       </div>
 
       {!platform && (
-        <div className={styles.detectSection}>
+        <div className={styles.detectSection} data-onboarding="entities-detect-section">
           <p className={styles.detectHint}>{t('entities.setup.detectHint')}</p>
           <button
             className={styles.detectButton}
             onClick={onDetectPlatform}
             disabled={isDetecting}
+            data-onboarding="entities-detect-button"
           >
             {isDetecting ? (
               <>

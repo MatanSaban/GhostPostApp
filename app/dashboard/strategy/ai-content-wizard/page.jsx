@@ -385,7 +385,7 @@ export default async function AIContentWizardPage() {
 
   return (
     <div className={styles.container}>
-      <div className={styles.pageHeader}>
+      <div className={styles.pageHeader} data-onboarding="page-ai-wizard">
         <div className={styles.headerContent}>
           <h1 className={styles.pageTitle}>{t('aiWizard.title')}</h1>
           <p className={styles.pageSubtitle}>{t('aiWizard.subtitle')}</p>

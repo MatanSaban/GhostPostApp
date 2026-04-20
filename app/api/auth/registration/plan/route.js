@@ -27,16 +27,17 @@ export async function POST(request) {
       );
     }
 
-    let plan = await prisma.plan.findUnique({
-      where: { id: planId },
-      select: { id: true, name: true, slug: true, price: true },
-    });
+    // Mongo ObjectID = 24-char hex. Anything else is treated as a slug, because
+    // Prisma throws P2023 on malformed ObjectIDs instead of returning null.
+    const looksLikeObjectId = typeof planId === 'string' && /^[a-f0-9]{24}$/i.test(planId);
+    const select = { id: true, name: true, slug: true, price: true };
+
+    let plan = looksLikeObjectId
+      ? await prisma.plan.findUnique({ where: { id: planId }, select })
+      : null;
 
     if (!plan) {
-      plan = await prisma.plan.findUnique({
-        where: { slug: planId },
-        select: { id: true, name: true, slug: true, price: true },
-      });
+      plan = await prisma.plan.findUnique({ where: { slug: planId }, select });
     }
 
     if (!plan) {

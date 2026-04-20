@@ -9,9 +9,9 @@ import styles from './shared.module.css';
  * @param {string} subtitle - Optional subtitle/description
  * @param {React.ReactNode} children - Optional action buttons or other elements
  */
-export function PageHeader({ title, subtitle, children }) {
+export function PageHeader({ title, subtitle, children, dataOnboarding }) {
   return (
-    <div className={styles.pageHeader}>
+    <div className={styles.pageHeader} data-onboarding={dataOnboarding}>
       <div className={styles.headerContent}>
         <h1 className={styles.pageTitle}>{title}</h1>
         {subtitle && <p className={styles.pageSubtitle}>{subtitle}</p>}

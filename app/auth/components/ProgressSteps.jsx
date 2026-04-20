@@ -3,14 +3,19 @@
 import { Check } from 'lucide-react';
 import styles from '../auth.module.css';
 
-export function ProgressSteps({ steps, currentStepIndex, onStepClick, translations }) {
+export function ProgressSteps({ steps, currentStepIndex, highestCompletedIndex = -1, onStepClick, translations }) {
   return (
     <div className={styles.progressStepsContainer}>
       {steps.map((step, index) => {
-        const isCompleted = index < currentStepIndex;
         const isActive = index === currentStepIndex;
-        const isClickable = isCompleted; // Can only click on completed steps
-        
+        // A step is "reached" if the user has been on or past it. This covers
+        // both steps before the current one AND steps the user has already
+        // completed but navigated back from (index <= highestCompletedIndex).
+        const isReached = index < currentStepIndex || index <= highestCompletedIndex;
+        const isCompleted = !isActive && isReached;
+        const isClickable = !isActive && isReached;
+        const lineCompleted = index < currentStepIndex || index < highestCompletedIndex;
+
         const handleClick = () => {
           if (isClickable && onStepClick) {
             onStepClick(step.id, index);
@@ -32,7 +37,7 @@ export function ProgressSteps({ steps, currentStepIndex, onStepClick, translatio
                 <span>{index + 1}</span>
               )}
             </button>
-            <span 
+            <span
               className={`${styles.progressStepLabel} ${isActive ? styles.active : ''} ${isClickable ? styles.clickable : ''}`}
               onClick={handleClick}
               role={isClickable ? 'button' : undefined}
@@ -41,7 +46,7 @@ export function ProgressSteps({ steps, currentStepIndex, onStepClick, translatio
               {step.label}
             </span>
             {index < steps.length - 1 && (
-              <div className={`${styles.progressStepLine} ${isCompleted ? styles.completed : ''}`} />
+              <div className={`${styles.progressStepLine} ${lineCompleted ? styles.completed : ''}`} />
             )}
           </div>
         );

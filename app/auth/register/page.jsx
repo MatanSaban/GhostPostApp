@@ -161,6 +161,7 @@ export default async function RegisterPage({ searchParams }) {
       cardholderNamePlaceholder: t('registration.payment.cardholderNamePlaceholder'),
       citizenId: t('registration.payment.citizenId'),
       citizenIdPlaceholder: t('registration.payment.citizenIdPlaceholder'),
+      citizenIdInvalid: t('registration.payment.citizenIdInvalid'),
       billingEmail: t('registration.payment.billingEmail'),
       billingEmailPlaceholder: t('registration.payment.billingEmailPlaceholder'),
       phone: t('registration.payment.phone'),

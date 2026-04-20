@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { useLocale } from '@/app/context/locale-context';
 import { RegisterForm } from './RegisterForm';
 import { OtpMethodModal } from './OtpMethodModal';
 import { OtpVerificationStep } from './OtpVerificationStep';
@@ -48,6 +49,7 @@ const INDEX_TO_URL_STEP = ['form', 'verify', 'account-setup', 'interview', 'plan
 
 export function RegistrationFlow({ translations, initialStep = 'form', initialFormData = {}, initialPlan = null }) {
   const router = useRouter();
+  const { locale } = useLocale();
   const mappedInitialStep = STEP_MAP[initialStep] || 'form';
   const [currentStep, setCurrentStep] = useState(mappedInitialStep);
   const [highestCompletedIndex, setHighestCompletedIndex] = useState(-1); // Track highest completed step
@@ -71,7 +73,7 @@ export function RegistrationFlow({ translations, initialStep = 'form', initialFo
   useEffect(() => {
     const checkRegistrationStatus = async () => {
       try {
-        const response = await fetch('/api/auth/registration/status');
+        const response = await fetch(`/api/auth/registration/status?lang=${locale || 'he'}`);
         const data = await response.json();
 
         if (response.ok && data.success) {
@@ -134,7 +136,7 @@ export function RegistrationFlow({ translations, initialStep = 'form', initialFo
     };
 
     checkRegistrationStatus();
-  }, [initialStep, mappedInitialStep, router]);
+  }, [initialStep, mappedInitialStep, router, locale]);
 
   // Keep the URL step param in sync with the currentStep so a refresh preserves
   // the view. Server state is the source of truth for "has this step been done";
@@ -347,8 +349,11 @@ export function RegistrationFlow({ translations, initialStep = 'form', initialFo
   };
 
   const handleStepClick = (stepId, stepIndex) => {
-    // Only allow navigating to completed steps (not current or future)
-    if (stepIndex < getCurrentStepIndex()) {
+    const currentIndex = getCurrentStepIndex();
+    // Allow navigating to any step the user has already reached — either
+    // a prior step (before current) or a previously-completed step they
+    // navigated away from (index <= highestCompletedIndex).
+    if (stepIndex !== currentIndex && (stepIndex < currentIndex || stepIndex <= highestCompletedIndex)) {
       setCurrentStep(stepId);
     }
   };
@@ -404,6 +409,7 @@ export function RegistrationFlow({ translations, initialStep = 'form', initialFo
             onComplete={handleInterviewComplete}
             initialData={registrationData.interviewData}
             onAnswerSaved={handleInterviewAnswerSaved}
+            alreadyCompleted={highestCompletedIndex >= 3}
           />
         );
       case 'plan':
@@ -411,7 +417,11 @@ export function RegistrationFlow({ translations, initialStep = 'form', initialFo
           <PlanSelectionStep
             translations={translations.plans}
             onSelect={handlePlanSelected}
-            initialPlanSlug={registrationData.selectedPlan}
+            initialPlanSlug={
+              typeof registrationData.selectedPlan === 'string'
+                ? registrationData.selectedPlan
+                : registrationData.selectedPlan?.slug || null
+            }
           />
         );
       case 'payment':
@@ -450,9 +460,10 @@ export function RegistrationFlow({ translations, initialStep = 'form', initialFo
   return (
     <div className={styles.registrationFlowContainer}>
       {currentStep !== 'form' && currentStep !== 'success' && (
-        <ProgressSteps 
-          steps={steps} 
+        <ProgressSteps
+          steps={steps}
           currentStepIndex={getCurrentStepIndex()}
+          highestCompletedIndex={highestCompletedIndex}
           onStepClick={handleStepClick}
           translations={translations.progressSteps}
         />

@@ -5050,8 +5050,61 @@
         "analysisFailed": "Website analysis failed. Please try again in a moment."
       },
       "selectingLanguage": "Pick a language",
-      "languagesFound": "I detected your website in {count} languages. Pick the one to start with — each language will be set up as a separate site.",
+      "languagesFound": "I detected your website in {count} languages. Pick the one to start with — on multilingual sites, each language is saved as a separate site on the platform.",
       "languageDefaultBadge": "Default",
+      "detectingLanguages": "Checking if your site has multiple languages...",
+      "platformLanguageConfirm": "I detected your site is built with {platform} and its language is {language}. Is that right?",
+      "platformLanguageConfirmNoPlatform": "I detected your site's language is {language}. Is that right?",
+      "characterConfirmIntro": "I've reviewed the content. This is {name}{nicheClause}. {description} Does this match the site's character and goals?",
+      "characterNicheClause": ", specializing in {niche}",
+      "seoIssuesIntro": "Before we finish — I ran a quick SEO check on your site and spotted {count} issues worth addressing:",
+      "seoIssuesOutro": "A deeper scan will likely surface more, and you'll be able to fix most of them with one click via the Ghost Agent. Shall we continue?",
+      "seoIssues": {
+        "MISSING_TITLE": {
+          "title": "Missing Title tag",
+          "description": "Your site has no title tag — a critical SEO factor."
+        },
+        "SHORT_TITLE": {
+          "title": "Title too short ({length} chars)",
+          "description": "Title tags should be 30-60 characters to avoid being truncated in search results."
+        },
+        "LONG_TITLE": {
+          "title": "Title too long ({length} chars)",
+          "description": "Titles over 65 characters get truncated in Google's results."
+        },
+        "MISSING_META_DESCRIPTION": {
+          "title": "Missing meta description",
+          "description": "Meta descriptions improve click-through from search results."
+        },
+        "SHORT_META_DESCRIPTION": {
+          "title": "Meta description too short ({length} chars)",
+          "description": "Descriptions should ideally be 120-160 characters."
+        },
+        "LONG_META_DESCRIPTION": {
+          "title": "Meta description too long ({length} chars)",
+          "description": "Descriptions over 160 characters get truncated in Google's results."
+        },
+        "MISSING_H1": {
+          "title": "Missing H1 tag",
+          "description": "H1 tells search engines the page's main topic."
+        },
+        "MISSING_SITEMAP": {
+          "title": "No sitemap found",
+          "description": "A sitemap helps Google discover all pages on your site."
+        },
+        "LOW_HEADING_COUNT": {
+          "title": "Low heading count ({count})",
+          "description": "Clear heading structure (H1-H3) helps search engines understand your content."
+        },
+        "IMAGES_MISSING_ALT": {
+          "title": "{missing} of {total} images missing alt text",
+          "description": "Alt text matters for accessibility and image-search ranking."
+        },
+        "MISSING_OG_TAGS": {
+          "title": "Missing Open Graph tags",
+          "description": "OG tags improve how your links preview on social media."
+        }
+      },
       "identityWithNiche": "I've completed the scan. I can see this is **{name}**, specializing in **{niche}**. Is this correct?",
       "identityBasic": "I've completed the scan. I can see this is **{name}**. Is this correct?",
       "goalsConfirm": "Based on my analysis, your main goals appear to be: **{goals}**. Is this accurate?",
@@ -5217,7 +5270,7 @@
       "namePlaceholder": "Enter your organization name",
       "slugLabel": "Organization URL",
       "slugPlaceholder": "your-organization",
-      "slugPrefix": "ghostpost.co.il/",
+      "slugPrefix": "app.ghostpost.co.il/",
       "slugHint": "This will be your unique URL. Only lowercase letters, numbers, and hyphens allowed.",
       "slugAvailable": "Available!",
       "slugTooShort": "Slug must be at least 3 characters",
@@ -5546,6 +5599,229 @@
       "accountDeactivated": "Your account has been deactivated. Please contact support.",
       "useOriginalSignIn": "Please login using your original sign-in method",
       "loginError": "An error occurred during login. Please try again."
+    }
+  },
+  "onboarding": {
+    "common": {
+      "next": "Next",
+      "back": "Back",
+      "skip": "Skip",
+      "skipTour": "Skip tour",
+      "done": "Done",
+      "close": "Close",
+      "start": "Start",
+      "continue": "Continue",
+      "finish": "Finish",
+      "nextStage": "Next stage"
+    },
+    "helpButton": {
+      "ariaLabel": "Open guides center"
+    },
+    "guidesCenter": {
+      "title": "Guides & Walkthroughs",
+      "subtitle": "Replay guided tours or jump into a specific walkthrough.",
+      "replayFirstRun": "Replay first-run onboarding",
+      "replayFirstRunHint": "Start the full welcome tour from the beginning.",
+      "comingSoon": "More guides coming soon."
+    },
+    "greeting": {
+      "title": "Welcome to GhostPost",
+      "titleWithName": "Welcome to GhostPost, {name}",
+      "subtitle": "Let's get your workspace set up in a few guided steps.",
+      "videoPlaceholder": "Intro video coming soon",
+      "highlight1": "Connect your analytics and verify your site in under a minute.",
+      "highlight2": "Build your keyword strategy and see competitor gaps.",
+      "highlight3": "Let the AI agent draft your first piece of content.",
+      "startTour": "Start the tour",
+      "starting": "Starting…",
+      "skipForNow": "Skip for now"
+    },
+    "banner": {
+      "ariaLabel": "Onboarding guide",
+      "eyebrow": "Onboarding",
+      "resume": "Resume guide",
+      "skip": "Skip"
+    },
+    "steps": {
+      "GREETING": {
+        "title": "Welcome",
+        "subtitle": "Start your guided setup."
+      },
+      "CONNECT_ANALYTICS": {
+        "title": "Connect analytics",
+        "subtitle": "Link Google Search Console and Analytics to unlock insights."
+      },
+      "DETECT_ENTITIES": {
+        "title": "Detect your entities",
+        "subtitle": "We'll identify your site's platform and content types."
+      },
+      "INSTALL_PLUGIN": {
+        "title": "Install the WordPress plugin",
+        "subtitle": "Install and activate the GhostPost plugin on your site."
+      },
+      "KEYWORDS": {
+        "title": "Research keywords",
+        "subtitle": "Build the keyword foundation for your content strategy."
+      },
+      "COMPETITORS": {
+        "title": "Analyze competitors",
+        "subtitle": "See who's ranking for your keywords and why."
+      },
+      "SITE_AUDIT": {
+        "title": "Run a site audit",
+        "subtitle": "Scan for technical SEO issues and content gaps."
+      },
+      "AI_AGENT": {
+        "title": "Meet the AI agent",
+        "subtitle": "Let the agent take action on your site."
+      },
+      "CONTENT_PLANNER": {
+        "title": "Plan your content",
+        "subtitle": "Turn insights into a production calendar."
+      },
+      "CONTENT_WIZARD": {
+        "title": "Create your first article",
+        "subtitle": "Use the AI content wizard to draft a post end-to-end."
+      },
+      "FINISHED": {
+        "title": "You're all set",
+        "subtitle": "Your workspace is ready."
+      }
+    },
+    "connectAnalytics": {
+      "step1": {
+        "title": "Open Settings",
+        "content": "Head to Settings to manage integrations for your workspace."
+      },
+      "step2": {
+        "title": "Go to Integrations",
+        "content": "The Integrations tab is where you connect Google and other external services."
+      },
+      "step3": {
+        "title": "Connect with Google",
+        "content": "Click here to authorize GhostPost to read your Search Console and Analytics data."
+      }
+    },
+    "detectEntities": {
+      "step1": {
+        "title": "Open Entities",
+        "content": "Entities are the content types on your site — pages, posts, products, and more."
+      },
+      "step2": {
+        "title": "Your entity workspace",
+        "content": "This is where you'll review and manage everything we discover on your site."
+      },
+      "step3": {
+        "title": "Detect your platform",
+        "content": "Run detection so we can identify whether your site runs on WordPress, Shopify, or another CMS."
+      },
+      "step4": {
+        "title": "Pick your entity types",
+        "content": "After discovery, select the content types you want GhostPost to track — pages, posts, products, and anything else that lives on your site."
+      },
+      "step5": {
+        "title": "Populate your entities",
+        "content": "Hit Save & Populate to pull every URL for the selected types into your workspace. This is what makes the rest of GhostPost useful."
+      }
+    },
+    "installPlugin": {
+      "step1": {
+        "title": "Install the GhostPost plugin",
+        "content": "For WordPress sites, the plugin is how GhostPost talks to your site to read and publish content."
+      },
+      "step2": {
+        "title": "Download the plugin",
+        "content": "Download the plugin ZIP, then upload it to your WordPress admin under Plugins → Add New."
+      }
+    },
+    "keywords": {
+      "step1": {
+        "title": "Open Keyword Strategy",
+        "content": "This is where your entire keyword foundation lives."
+      },
+      "step2": {
+        "title": "Your keyword workspace",
+        "content": "Track rankings, search volume, and intent for every keyword that matters to your business."
+      },
+      "step3": {
+        "title": "Add your first keyword",
+        "content": "Click here to add the primary keyword you want to rank for — we'll pull volume and competition data automatically."
+      }
+    },
+    "competitors": {
+      "step1": {
+        "title": "Open Competitor Analysis",
+        "content": "Know who you're up against and what's working for them."
+      },
+      "step2": {
+        "title": "Your competitor workspace",
+        "content": "Compare keyword overlap, content gaps, and ranking trends side by side."
+      },
+      "step3": {
+        "title": "Add a competitor",
+        "content": "Add a competitor domain manually, or let the AI discover competitors based on your keywords."
+      }
+    },
+    "siteAudit": {
+      "step1": {
+        "title": "Open Site Audit",
+        "content": "Find technical SEO issues holding your site back."
+      },
+      "step2": {
+        "title": "Your audit workspace",
+        "content": "We scan for broken links, missing metadata, slow pages, and more."
+      },
+      "step3": {
+        "title": "Run your first audit",
+        "content": "Click here to kick off a full audit — results usually arrive in a few minutes."
+      }
+    },
+    "aiAgent": {
+      "step1": {
+        "title": "Meet the AI Agent",
+        "content": "The agent continuously monitors your site and surfaces high-impact opportunities."
+      },
+      "step2": {
+        "title": "Your agent workspace",
+        "content": "Review the agent's recommendations, apply fixes, and track what's been done."
+      },
+      "step3": {
+        "title": "Run analysis",
+        "content": "Click here to kick off the agent's first analysis across your site."
+      }
+    },
+    "contentPlanner": {
+      "step1": {
+        "title": "Open Content Planner",
+        "content": "Your content calendar, pipeline, and campaigns all in one place."
+      },
+      "step2": {
+        "title": "Your content workspace",
+        "content": "Switch between calendar and list views, organize by campaign, and track posts from idea to publish."
+      },
+      "step3": {
+        "title": "Launch the AI Wizard",
+        "content": "Jump into the AI Content Wizard to draft your first post end-to-end."
+      }
+    },
+    "contentWizard": {
+      "step1": {
+        "title": "Open AI Content Wizard",
+        "content": "This is the fastest way to turn a keyword into a ready-to-publish article."
+      },
+      "step2": {
+        "title": "Your wizard workspace",
+        "content": "Pick a keyword, let GhostPost draft, review the output, and publish — all from here."
+      }
+    },
+    "finished": {
+      "title": "You're all set",
+      "titleWithName": "You're all set, {name}",
+      "subtitle": "Your GhostPost workspace is ready. Now let's grow your organic traffic.",
+      "highlight1": "Re-open this tour anytime from the ? icon in the header.",
+      "highlight2": "The AI Agent will keep monitoring your site in the background.",
+      "highlight3": "New guides and walkthroughs will show up in the Guides Center.",
+      "closeButton": "Start using GhostPost"
     }
   },
   "admin": {
@@ -6964,6 +7240,7 @@
     "cardholderNamePlaceholder": "Full name as on card",
     "citizenId": "ID Number",
     "citizenIdPlaceholder": "Enter ID number",
+    "citizenIdInvalid": "Invalid ID number",
     "billingEmail": "Billing Email",
     "emailPlaceholder": "email@example.com",
     "phone": "Phone",

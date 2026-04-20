@@ -295,10 +295,11 @@ export default function WordPressPluginSection({
 
         {/* Quick Actions */}
         <div className={styles.quickActions}>
-          <button 
+          <button
             className={styles.downloadButton}
             onClick={handleDownload}
             disabled={isDownloading}
+            data-onboarding="plugin-download-button"
           >
             {isDownloading ? (
               <>

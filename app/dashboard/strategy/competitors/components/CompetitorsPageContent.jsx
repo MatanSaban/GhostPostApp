@@ -124,6 +124,7 @@ export function CompetitorsPageContent({ translations }) {
       <PageHeader
         title={t.title}
         subtitle={t.subtitle}
+        dataOnboarding="page-competitors"
       >
         {canCreateCompetitors && (
           <div className={styles.headerActions}>
@@ -132,13 +133,15 @@ export function CompetitorsPageContent({ translations }) {
               onClick={() => setShowDiscoveryConfirm(true)}
               label={t.findWithAI}
             />
-            <PrimaryActionButton
-              iconName="Plus"
-              onClick={() => setShowAddForm(true)}
-              disabled={competitors.length >= limit}
-            >
-              {t.addCompetitor}
-            </PrimaryActionButton>
+            <span data-onboarding="competitors-add-cta">
+              <PrimaryActionButton
+                iconName="Plus"
+                onClick={() => setShowAddForm(true)}
+                disabled={competitors.length >= limit}
+              >
+                {t.addCompetitor}
+              </PrimaryActionButton>
+            </span>
           </div>
         )}
       </PageHeader>

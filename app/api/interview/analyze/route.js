@@ -303,12 +303,77 @@ async function analyzeWebsite(url) {
     // Fallback to rule-based inference if AI fails
     results.inferredGoals = inferSeoGoals(results);
     results.inferredAudience = inferTargetAudience(results);
-    
+
     // Try Google search for competitors as fallback
     results.competitors = await findCompetitors(results);
   }
-  
+
+  // Step 7: Lightweight SEO audit — rule-based checks on the raw data we
+  // already have. Surfaced to the user at the end of the onboarding flow.
+  results.seoIssues = detectSeoIssues(results, html);
+
   return results;
+}
+
+/**
+ * Detect common SEO issues from the already-extracted data.
+ * Each issue has a stable `type`, a `severity`, and `titleKey`/`descriptionKey`
+ * that the client resolves via its i18n dictionary.
+ */
+function detectSeoIssues(results, html) {
+  const issues = [];
+  const seo = results.seoData || {};
+  const title = seo.title || '';
+  const description = seo.description || '';
+
+  if (!title) {
+    issues.push({ type: 'MISSING_TITLE', severity: 'error' });
+  } else if (title.length < 30) {
+    issues.push({ type: 'SHORT_TITLE', severity: 'warning', meta: { length: title.length } });
+  } else if (title.length > 65) {
+    issues.push({ type: 'LONG_TITLE', severity: 'warning', meta: { length: title.length } });
+  }
+
+  if (!description) {
+    issues.push({ type: 'MISSING_META_DESCRIPTION', severity: 'error' });
+  } else if (description.length < 120) {
+    issues.push({ type: 'SHORT_META_DESCRIPTION', severity: 'warning', meta: { length: description.length } });
+  } else if (description.length > 160) {
+    issues.push({ type: 'LONG_META_DESCRIPTION', severity: 'warning', meta: { length: description.length } });
+  }
+
+  if (!seo.hasH1) {
+    issues.push({ type: 'MISSING_H1', severity: 'error' });
+  }
+
+  if (!seo.hasSitemap) {
+    issues.push({ type: 'MISSING_SITEMAP', severity: 'warning' });
+  }
+
+  const headings = results.keywords?.fromHeadings || [];
+  if (headings.length > 0 && headings.length < 3) {
+    issues.push({ type: 'LOW_HEADING_COUNT', severity: 'warning', meta: { count: headings.length } });
+  }
+
+  // Image alt text — scan for <img> tags missing alt attributes (simple check)
+  const imgTags = (html.match(/<img\b[^>]*>/gi) || []);
+  if (imgTags.length) {
+    const missingAlt = imgTags.filter((tag) => !/\balt=["']/.test(tag)).length;
+    if (missingAlt > 0) {
+      issues.push({
+        type: 'IMAGES_MISSING_ALT',
+        severity: 'warning',
+        meta: { missing: missingAlt, total: imgTags.length },
+      });
+    }
+  }
+
+  // Open Graph check — no og:title
+  if (!/<meta[^>]+property=["']og:title["']/i.test(html)) {
+    issues.push({ type: 'MISSING_OG_TAGS', severity: 'info' });
+  }
+
+  return issues;
 }
 
 /**

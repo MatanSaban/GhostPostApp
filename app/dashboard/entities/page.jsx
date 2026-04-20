@@ -84,7 +84,7 @@ export default function EntitiesPage() {
   return (
     <div className={styles.container}>
       {/* Header */}
-      <div className={styles.pageHeader}>
+      <div className={styles.pageHeader} data-onboarding="page-entities">
         <div className={styles.headerContent}>
           <h1 className={styles.pageTitle}>{t('entities.title')}</h1>
           <p className={styles.pageSubtitle}>{t('entities.subtitle')}</p>

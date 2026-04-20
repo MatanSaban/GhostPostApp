@@ -1039,7 +1039,7 @@ export default function SiteAuditPage() {
   return (
     <div className={styles.container}>
       {/* Header */}
-      <div className={styles.header}>
+      <div className={styles.header} data-onboarding="page-site-audit">
         <div className={styles.headerLeft}>
           <h1 className={styles.title}>{t('siteAudit.title')}</h1>
           <p className={styles.subtitle}>{t('siteAudit.subtitle')}</p>
@@ -1074,17 +1074,19 @@ export default function SiteAuditPage() {
               {t('siteAudit.history')}
             </button>
           )}
-          <SmartActionButton
-            resourceKey="siteAudits"
-            accountId={user?.accountId}
-            label={isRunning ? t('siteAudit.scanning') : t('siteAudit.startScan')}
-            icon={isRunning || isStarting ? Loader2 : RefreshCw}
-            onAction={handleStartAudit}
-            disabled={isRunning || isStarting}
-            busy={isRunning || isStarting}
-            busyLabel={t('siteAudit.scanning')}
-            className={styles.scanButton}
-          />
+          <span data-onboarding="site-audit-run-cta">
+            <SmartActionButton
+              resourceKey="siteAudits"
+              accountId={user?.accountId}
+              label={isRunning ? t('siteAudit.scanning') : t('siteAudit.startScan')}
+              icon={isRunning || isStarting ? Loader2 : RefreshCw}
+              onAction={handleStartAudit}
+              disabled={isRunning || isStarting}
+              busy={isRunning || isStarting}
+              busyLabel={t('siteAudit.scanning')}
+              className={styles.scanButton}
+            />
+          </span>
         </div>
       </div>
 

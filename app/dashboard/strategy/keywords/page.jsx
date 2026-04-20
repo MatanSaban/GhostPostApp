@@ -10,6 +10,7 @@ export default async function KeywordStrategyPage() {
       <PageHeader
         title={t('keywordStrategy.title')}
         subtitle={t('keywordStrategy.subtitle')}
+        dataOnboarding="page-keywords"
       />
 
       <KeywordsContent />

@@ -1795,12 +1795,14 @@ export default function AgentPageContent({ translations, mode = 'full', onInsigh
       <PageHeader
         title={t.title || 'AI Agent'}
         subtitle={lastRun ? (t.lastRun || 'Last run: {time}').replace('{time}', `${getTimeAgo(lastRun.startedAt, t)} - ${lastRun.insightsCount} ${t.agent?.insightsCountLabel || 'insights'}`) : null}
+        dataOnboarding="page-agent"
       >
         <button
           type="button"
           className={styles.runButton}
           onClick={handleRunAnalysis}
           disabled={runningAnalysis || !selectedSite?.id}
+          data-onboarding="agent-run-cta"
         >
           {runningAnalysis ? (
             <><Loader2 size={16} className={styles.spinning} /> {t.running || 'Analyzing...'}</>

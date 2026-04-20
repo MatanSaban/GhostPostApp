@@ -200,8 +200,9 @@ export default async function ContentPlannerPage() {
       <PageHeader
         title={t('contentPlanner.title')}
         subtitle={t('contentPlanner.subtitle')}
+        dataOnboarding="page-content-planner"
       >
-        <Link href="/dashboard/strategy/ai-content-wizard">
+        <Link href="/dashboard/strategy/ai-content-wizard" data-onboarding="content-planner-wizard-cta">
           <PrimaryActionButton iconName="Sparkles">
             {t('contentPlanner.aiWizard')}
           </PrimaryActionButton>

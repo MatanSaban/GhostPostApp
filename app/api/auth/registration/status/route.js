@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import prisma from '@/lib/prisma';
 import { getDraftAccountForUser } from '@/lib/draft-account';
+import { getExchangeRate } from '@/lib/currency';
+import { formatPlanForClient } from '@/lib/plan-format';
 
 const SESSION_COOKIE = 'user_session';
 
@@ -14,8 +16,11 @@ const STEP_MAP = {
   COMPLETED: 'completed',
 };
 
-export async function GET() {
+export async function GET(request) {
   try {
+    const { searchParams } = new URL(request.url);
+    const lang = searchParams.get('lang') || 'he';
+
     const cookieStore = await cookies();
     const sessionUserId = cookieStore.get(SESSION_COOKIE)?.value;
 
@@ -72,12 +77,23 @@ export async function GET() {
     }
 
     // If a plan is selected, hydrate the full plan object so the client can
-    // render the payment step without a second round-trip.
+    // render the payment step without a second round-trip. Reshape it the
+    // same way /api/public/plans does so PaymentStep finds monthlyPrice,
+    // usdToIlsRate, period, etc. after a refresh.
     let selectedPlan = null;
     if (draftAccount.draftSelectedPlanId) {
-      selectedPlan = await prisma.plan.findUnique({
+      const rawPlan = await prisma.plan.findUnique({
         where: { id: draftAccount.draftSelectedPlanId },
+        include: { translations: true },
       });
+      if (rawPlan) {
+        const usdToIlsRate = await getExchangeRate('USD', 'ILS');
+        selectedPlan = formatPlanForClient(rawPlan, {
+          lang,
+          usdToIlsRate,
+          isPopular: rawPlan.slug === 'pro',
+        });
+      }
     }
 
     const urlStep = STEP_MAP[user.registrationStep] || 'form';

@@ -49,6 +49,14 @@ model Account {
   // Structure: { logoUrl: string|null, agencyName: string, primaryColor: string, replyToEmail: string }
   whiteLabelConfig Json? // Agency branding for PDF reports
 
+  // First-time dashboard onboarding walkthrough state.
+  // Step values come from OnboardingStep enum in lib/onboarding.js.
+  onboardingStep        String    @default("GREETING")
+  onboardingCompleted   Boolean   @default(false)
+  onboardingSkipped     Boolean   @default(false)
+  onboardingStartedAt   DateTime?
+  onboardingCompletedAt DateTime?
+
   createdAt      DateTime        @default(now())
   updatedAt      DateTime        @updatedAt
   // Relations
