@@ -362,11 +362,17 @@ export const InterviewWizard = forwardRef(function InterviewWizard({ onClose, on
     if (currentQuestion.questionType === 'SELECTION' && config.defaultFromCrawl) {
       const crawledData = externalData?.crawledData || {};
       let defaultValue = crawledData[config.defaultFromCrawl];
-      
+
+      // For language: prefer the site's already-chosen contentLanguage over auto-detection
+      // (the user may have picked a specific language variant when adding the site)
+      if (config.defaultFromCrawl === 'language' && site?.contentLanguage) {
+        defaultValue = site.contentLanguage;
+      }
+
       // For detectedCountry: also derive from user's contentLanguage response
       // (more reliable since the user may have changed the language in Q2)
       if (config.defaultFromCrawl === 'detectedCountry' && !defaultValue) {
-        const contentLang = responses?.contentLanguage || crawledData.language;
+        const contentLang = site?.contentLanguage || responses?.contentLanguage || crawledData.language;
         if (contentLang) {
           const langToCountry = {
             he: 'IL', ar: 'AE', ja: 'JP', ko: 'KR', zh: 'CN', ru: 'RU',
@@ -1423,7 +1429,7 @@ export const InterviewWizard = forwardRef(function InterviewWizard({ onClose, on
                 category: crawled.category,
                 address: crawled.address,
                 seoScore: crawled.seoScore,
-                language: crawled.language,
+                language: site?.contentLanguage || crawled.language,
                 hasSitemap: crawled.hasSitemap,
               },
               timestamp: new Date()
@@ -1712,11 +1718,16 @@ export const InterviewWizard = forwardRef(function InterviewWizard({ onClose, on
     
     // Get detected value from crawl data
     let detectedValue = config.defaultFromCrawl ? externalData?.crawledData?.[config.defaultFromCrawl] : null;
-    
+
+    // For language: prefer the site's already-chosen contentLanguage over auto-detection
+    if (config.defaultFromCrawl === 'language' && site?.contentLanguage) {
+      detectedValue = site.contentLanguage;
+    }
+
     // For detectedCountry: derive from user's contentLanguage or crawl language
     const isCountryDetection = config.defaultFromCrawl === 'detectedCountry';
     if (isCountryDetection && !detectedValue) {
-      const contentLang = responses?.contentLanguage || externalData?.crawledData?.language;
+      const contentLang = site?.contentLanguage || responses?.contentLanguage || externalData?.crawledData?.language;
       if (contentLang) {
         const langToCountry = {
           he: 'IL', ar: 'AE', ja: 'JP', ko: 'KR', zh: 'CN', ru: 'RU',

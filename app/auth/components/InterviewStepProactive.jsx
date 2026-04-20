@@ -224,11 +224,20 @@ export function InterviewStep({ translations, onComplete, initialData = {}, onAn
     onAnswerSaved?.(newData, false);
     
     // Add analysis summary message
-    const platformName = data.platform?.name && data.platform.name !== 'Custom' 
-      ? data.platform.name 
+    const platformName = data.platform?.name && data.platform.name !== 'Custom'
+      ? data.platform.name
       : null;
-    const detectedLang = data.contentStyle?.language;
-    const langLabel = detectedLang === 'he' ? 'עברית' : detectedLang === 'en' ? 'English' : null;
+    // Prefer the language the user explicitly selected over whatever the
+    // analyzer guessed — on multi-language variants the variant page may still
+    // carry the root site's lang attribute, so auto-detection can be wrong.
+    const effectiveLang = interviewData.selectedLanguage || data.contentStyle?.language;
+    const langLabel = effectiveLang
+      ? (effectiveLang === 'he'
+          ? 'עברית'
+          : effectiveLang === 'en'
+            ? 'English'
+            : getLanguageLabel(effectiveLang, locale))
+      : null;
     
     // Only show detection message if we actually detected something
     let summaryMsg;
