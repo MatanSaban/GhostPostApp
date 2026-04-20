@@ -44,6 +44,8 @@ const URL_STEP_TO_INDEX = {
   'payment': 5,
 };
 
+const INDEX_TO_URL_STEP = ['form', 'verify', 'account-setup', 'interview', 'plan', 'payment'];
+
 export function RegistrationFlow({ translations, initialStep = 'form', initialFormData = {}, initialPlan = null }) {
   const router = useRouter();
   const mappedInitialStep = STEP_MAP[initialStep] || 'form';
@@ -63,19 +65,19 @@ export function RegistrationFlow({ translations, initialStep = 'form', initialFo
     selectedPlan: initialPlan,
   });
 
-  // Load temp registration data and check status
+  // Fetch the authoritative registration state from the server on mount.
+  // The server knows the user's current step from the draft user/account row,
+  // so refreshes/returns always resume correctly.
   useEffect(() => {
     const checkRegistrationStatus = async () => {
       try {
-        // Fetch current registration status from cookies-based API
         const response = await fetch('/api/auth/registration/status');
         const data = await response.json();
 
         if (response.ok && data.success) {
           if (data.hasTempRegistration && data.tempReg) {
-            // We have an existing temp registration
             const tempReg = data.tempReg;
-            
+
             setRegistrationData(prev => ({
               ...prev,
               tempRegId: tempReg.id,
@@ -90,49 +92,39 @@ export function RegistrationFlow({ translations, initialStep = 'form', initialFo
                 slug: tempReg.accountSlug,
               } : null,
               interviewData: tempReg.interviewData || {},
+              selectedPlan: data.selectedPlan || prev.selectedPlan,
             }));
 
-            // Get the server's current step index (this is the step they should be on)
             const serverStep = tempReg.currentStep;
             const serverStepIndex = SERVER_STEP_TO_INDEX[serverStep] ?? 0;
-            
-            // The user has completed up to the step BEFORE their current step
-            setHighestCompletedIndex(serverStepIndex - 1);
+            setHighestCompletedIndex(Math.max(serverStepIndex - 1, -1));
 
-            // Get the requested URL step index
+            // Respect the URL if the user is trying to navigate to a step at
+            // or before their server position (allows going back). Otherwise
+            // snap to the server's step.
             const requestedStepIndex = URL_STEP_TO_INDEX[mappedInitialStep] ?? 0;
+            const targetStep = (initialStep && initialStep !== 'form' && requestedStepIndex <= serverStepIndex)
+              ? mappedInitialStep
+              : INDEX_TO_URL_STEP[serverStepIndex];
 
-            // Validate: user can only access steps up to their current server step
-            // They can go back to completed steps OR stay on their current step
-            if (requestedStepIndex > serverStepIndex) {
-              // Trying to access a step they haven't reached yet - redirect to their current step
-              router.push(`/auth/register?step=${data.currentStep}`);
-              return;
+            if (requestedStepIndex > serverStepIndex || targetStep !== mappedInitialStep) {
+              router.replace(`/auth/register?step=${targetStep}`);
             }
-
-            // Valid step - use the requested step (they're going back or on current)
-            setCurrentStep(mappedInitialStep);
+            setCurrentStep(targetStep);
           } else {
-            // No temp registration exists
             if (initialStep !== 'form') {
-              // Trying to access a step without registration, redirect to form
               router.push('/auth/register');
               return;
             }
-            // No temp registration and on form step - that's fine
             setCurrentStep('form');
           }
-        } else {
-          // API error but has response - redirect to form if not already there
-          if (initialStep !== 'form') {
-            router.push('/auth/register');
-            return;
-          }
+        } else if (initialStep !== 'form') {
+          router.push('/auth/register');
+          return;
         }
 
         setIsCheckingAuth(false);
       } catch {
-        // Fetch error - redirect to form if not already there
         if (initialStep !== 'form') {
           router.push('/auth/register');
           return;
@@ -143,6 +135,26 @@ export function RegistrationFlow({ translations, initialStep = 'form', initialFo
 
     checkRegistrationStatus();
   }, [initialStep, mappedInitialStep, router]);
+
+  // Keep the URL step param in sync with the currentStep so a refresh preserves
+  // the view. Server state is the source of truth for "has this step been done";
+  // this effect just mirrors the visible step into the querystring.
+  useEffect(() => {
+    if (isCheckingAuth) return;
+    if (currentStep === 'success') return;
+    if (!registrationData.tempRegId && currentStep === 'form') return;
+
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const urlStep = params.get('step') || 'form';
+      if (urlStep !== currentStep) {
+        const newUrl = currentStep === 'form'
+          ? '/auth/register'
+          : `/auth/register?step=${currentStep}`;
+        router.replace(newUrl, { scroll: false });
+      }
+    }
+  }, [currentStep, registrationData.tempRegId, isCheckingAuth, router]);
 
   const steps = [
     { id: 'form', label: translations.steps.account },
@@ -182,11 +194,12 @@ export function RegistrationFlow({ translations, initialStep = 'form', initialFo
         throw new Error(data.error || translations.errors?.registrationFailed);
       }
 
-      // tempRegId is now stored in httpOnly cookie by the API
-      setRegistrationData(prev => ({ 
-        ...prev, 
+      // The user session cookie is set by the API; we hold onto the userId
+      // only so the UI knows a registration is in progress.
+      setRegistrationData(prev => ({
+        ...prev,
         formData,
-        tempRegId: data.tempRegId,
+        tempRegId: data.userId || data.tempRegId || null,
       }));
       setHighestCompletedIndex(0); // Completed form step
       setShowOtpModal(true);

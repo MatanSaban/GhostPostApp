@@ -1,19 +1,19 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import prisma from '@/lib/prisma';
+import { getDraftAccountForUser } from '@/lib/draft-account';
 
-const TEMP_REG_COOKIE = 'temp_reg_id';
+const SESSION_COOKIE = 'user_session';
 
 export async function POST(request) {
   try {
     const body = await request.json();
     const { planId } = body;
 
-    // Get tempRegId from cookie
     const cookieStore = await cookies();
-    const tempRegId = cookieStore.get(TEMP_REG_COOKIE)?.value;
+    const sessionUserId = cookieStore.get(SESSION_COOKIE)?.value;
 
-    if (!tempRegId) {
+    if (!sessionUserId) {
       return NextResponse.json(
         { error: 'No registration in progress' },
         { status: 400 }
@@ -27,13 +27,11 @@ export async function POST(request) {
       );
     }
 
-    // Look up plan by ID first, then by slug as fallback
     let plan = await prisma.plan.findUnique({
       where: { id: planId },
       select: { id: true, name: true, slug: true, price: true },
     });
 
-    // If not found by ID, try by slug
     if (!plan) {
       plan = await prisma.plan.findUnique({
         where: { slug: planId },
@@ -48,27 +46,39 @@ export async function POST(request) {
       );
     }
 
-    // Find the temp registration
-    const tempReg = await prisma.tempRegistration.findUnique({
-      where: { id: tempRegId },
+    const user = await prisma.user.findUnique({
+      where: { id: sessionUserId },
+      select: { id: true, registrationStep: true },
     });
 
-    if (!tempReg) {
-      cookieStore.delete(TEMP_REG_COOKIE);
+    if (!user) {
+      cookieStore.delete(SESSION_COOKIE);
       return NextResponse.json(
         { error: 'Registration not found. Please start over.' },
         { status: 404 }
       );
     }
 
-    // Update temp registration with selected plan (store actual plan ID, not slug)
-    await prisma.tempRegistration.update({
-      where: { id: tempRegId },
-      data: {
-        selectedPlanId: plan.id,
-        currentStep: 'PAYMENT',
-      },
+    const draftAccount = await getDraftAccountForUser(user.id);
+
+    if (!draftAccount) {
+      return NextResponse.json(
+        { error: 'No draft account found. Please start over.' },
+        { status: 404 }
+      );
+    }
+
+    await prisma.account.update({
+      where: { id: draftAccount.id },
+      data: { draftSelectedPlanId: plan.id },
     });
+
+    if (['VERIFY', 'ACCOUNT_SETUP', 'INTERVIEW', 'PLAN'].includes(user.registrationStep)) {
+      await prisma.user.update({
+        where: { id: user.id },
+        data: { registrationStep: 'PAYMENT' },
+      });
+    }
 
     return NextResponse.json({
       success: true,

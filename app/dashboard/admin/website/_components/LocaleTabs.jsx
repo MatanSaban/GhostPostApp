@@ -1,5 +1,6 @@
 'use client';
 
+import { useLocale } from '@/app/context/locale-context';
 import styles from './LocaleTabs.module.css';
 
 const LOCALES = [
@@ -9,6 +10,7 @@ const LOCALES = [
 ];
 
 export default function LocaleTabs({ activeLocale, onChange, draftStatus = {} }) {
+  const { t } = useLocale();
   return (
     <div className={styles.tabs}>
       {LOCALES.map(locale => (
@@ -20,7 +22,7 @@ export default function LocaleTabs({ activeLocale, onChange, draftStatus = {} })
           <span className={styles.flag}>{locale.flag}</span>
           <span className={styles.name}>{locale.name}</span>
           {draftStatus[locale.code] && (
-            <span className={styles.draftBadge}>Draft</span>
+            <span className={styles.draftBadge}>{t('admin.website.localeTabs.draft')}</span>
           )}
         </button>
       ))}

@@ -79,7 +79,7 @@ export default function SuperAdminDashboardPage() {
         <div className={styles.errorState}>
           <AlertTriangle size={48} />
           <p>{error}</p>
-          <button onClick={fetchData} className={styles.retryButton}>Retry</button>
+          <button onClick={fetchData} className={styles.retryButton}>{t('admin.dashboard.retry')}</button>
         </div>
       </div>
     );
@@ -94,8 +94,8 @@ export default function SuperAdminDashboardPage() {
         <div className={styles.headerLeft}>
           <Shield className={styles.headerIcon} />
           <div>
-            <h1 className={styles.title}>Super Admin Dashboard</h1>
-            <p className={styles.subtitle}>Platform-wide AI cost analytics & profitability overview</p>
+            <h1 className={styles.title}>{t('admin.dashboard.title')}</h1>
+            <p className={styles.subtitle}>{t('admin.dashboard.subtitle')}</p>
           </div>
         </div>
       </div>
@@ -107,7 +107,7 @@ export default function SuperAdminDashboardPage() {
             <DollarSign size={24} />
           </div>
           <div className={styles.widgetBody}>
-            <span className={styles.widgetLabel}>Monthly Recurring Revenue</span>
+            <span className={styles.widgetLabel}>{t('admin.dashboard.widgets.mrr')}</span>
             <span className={styles.widgetValue}>${financials.totalMRR.toLocaleString()}</span>
           </div>
         </div>
@@ -117,7 +117,7 @@ export default function SuperAdminDashboardPage() {
             <Cpu size={24} />
           </div>
           <div className={styles.widgetBody}>
-            <span className={styles.widgetLabel}>AI Cost (30 days)</span>
+            <span className={styles.widgetLabel}>{t('admin.dashboard.widgets.aiCost30d')}</span>
             <span className={styles.widgetValue}>${financials.totalAICost.toLocaleString()}</span>
           </div>
         </div>
@@ -130,7 +130,7 @@ export default function SuperAdminDashboardPage() {
             {financials.profitMargin >= 0 ? <TrendingUp size={24} /> : <TrendingDown size={24} />}
           </div>
           <div className={styles.widgetBody}>
-            <span className={styles.widgetLabel}>Profit Margin</span>
+            <span className={styles.widgetLabel}>{t('admin.dashboard.widgets.profitMargin')}</span>
             <span className={styles.widgetValue}>{financials.profitMargin}%</span>
           </div>
         </div>
@@ -143,10 +143,10 @@ export default function SuperAdminDashboardPage() {
             <DollarSign size={24} />
           </div>
           <div className={styles.widgetBody}>
-            <span className={styles.widgetLabel}>Profit Margin ($)</span>
+            <span className={styles.widgetLabel}>{t('admin.dashboard.widgets.profitMarginValue')}</span>
             <span className={styles.widgetValue}>${(financials.totalMRR - financials.totalAICost).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
             <span className={styles.widgetMeta}>
-              Revenue: ${financials.totalMRR.toLocaleString()} − Cost: ${financials.totalAICost.toLocaleString()}
+              {t('admin.dashboard.widgets.revenueMinusCost', { revenue: financials.totalMRR.toLocaleString(), cost: financials.totalAICost.toLocaleString() })}
             </span>
           </div>
         </div>
@@ -156,7 +156,7 @@ export default function SuperAdminDashboardPage() {
             <Coins size={24} />
           </div>
           <div className={styles.widgetBody}>
-            <span className={styles.widgetLabel}>AI Credits Consumed</span>
+            <span className={styles.widgetLabel}>{t('admin.dashboard.widgets.creditsConsumed')}</span>
             <span className={styles.widgetValue}>{usage.totalCredits.toLocaleString()}</span>
           </div>
         </div>
@@ -166,10 +166,10 @@ export default function SuperAdminDashboardPage() {
             <BarChart3 size={24} />
           </div>
           <div className={styles.widgetBody}>
-            <span className={styles.widgetLabel}>Total Tokens (Input + Output)</span>
+            <span className={styles.widgetLabel}>{t('admin.dashboard.widgets.totalTokens')}</span>
             <span className={styles.widgetValue}>{usage.totalTokens.toLocaleString()}</span>
             <span className={styles.widgetMeta}>
-              In: {usage.totalInputTokens.toLocaleString()} | Out: {usage.totalOutputTokens.toLocaleString()}
+              {t('admin.dashboard.widgets.inOut', { input: usage.totalInputTokens.toLocaleString(), output: usage.totalOutputTokens.toLocaleString() })}
             </span>
           </div>
         </div>
@@ -177,7 +177,7 @@ export default function SuperAdminDashboardPage() {
 
       {/* Chart */}
       <div className={styles.chartCard}>
-        <h2 className={styles.sectionTitle}>AI Cost vs Revenue (Last 30 Days)</h2>
+        <h2 className={styles.sectionTitle}>{t('admin.dashboard.chart.title')}</h2>
         <div className={styles.chartContainer}>
           <ResponsiveContainer width="100%" height={350}>
             <LineChart data={dailyChart} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
@@ -205,7 +205,7 @@ export default function SuperAdminDashboardPage() {
                 type="monotone"
                 dataKey="revenue"
                 stroke="#22c55e"
-                name="Revenue"
+                name={t('admin.dashboard.chart.revenue')}
                 strokeWidth={2}
                 dot={false}
               />
@@ -213,7 +213,7 @@ export default function SuperAdminDashboardPage() {
                 type="monotone"
                 dataKey="cost"
                 stroke="#ef4444"
-                name="AI Cost"
+                name={t('admin.dashboard.chart.aiCost')}
                 strokeWidth={2}
                 dot={false}
               />
@@ -224,17 +224,17 @@ export default function SuperAdminDashboardPage() {
 
       {/* Top Consumers Table */}
       <div className={styles.tableCard}>
-        <h2 className={styles.sectionTitle}>Top 5 Accounts by AI Cost</h2>
+        <h2 className={styles.sectionTitle}>{t('admin.dashboard.topAccounts.title')}</h2>
         <div className={styles.tableContainer}>
           <table className={styles.table}>
             <thead className={styles.tableHeader}>
               <tr>
-                <th>Account</th>
-                <th>Plan</th>
-                <th>Monthly Revenue</th>
-                <th>AI Cost (30d)</th>
-                <th>Credits Used</th>
-                <th>Status</th>
+                <th>{t('admin.dashboard.topAccounts.columns.account')}</th>
+                <th>{t('admin.dashboard.topAccounts.columns.plan')}</th>
+                <th>{t('admin.dashboard.topAccounts.columns.monthlyRevenue')}</th>
+                <th>{t('admin.dashboard.topAccounts.columns.aiCost30d')}</th>
+                <th>{t('admin.dashboard.topAccounts.columns.creditsUsed')}</th>
+                <th>{t('admin.dashboard.topAccounts.columns.status')}</th>
                 <th></th>
               </tr>
             </thead>
@@ -254,10 +254,10 @@ export default function SuperAdminDashboardPage() {
                     {acc.costExceedsRevenue ? (
                       <span className={styles.dangerBadge}>
                         <AlertTriangle size={14} />
-                        Cost &gt; Revenue
+                        {t('admin.dashboard.topAccounts.costOverRevenue')}
                       </span>
                     ) : (
-                      <span className={styles.successBadge}>Profitable</span>
+                      <span className={styles.successBadge}>{t('admin.dashboard.topAccounts.profitable')}</span>
                     )}
                   </td>
                   <td>
@@ -272,7 +272,7 @@ export default function SuperAdminDashboardPage() {
               ))}
               {topAccounts.length === 0 && (
                 <tr>
-                  <td colSpan={7} className={styles.emptyCell}>No AI usage data found</td>
+                  <td colSpan={7} className={styles.emptyCell}>{t('admin.dashboard.topAccounts.empty')}</td>
                 </tr>
               )}
             </tbody>

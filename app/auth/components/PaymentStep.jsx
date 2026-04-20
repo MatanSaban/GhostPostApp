@@ -52,13 +52,16 @@ export function PaymentStep({ translations, selectedPlan, userData, onComplete }
   const VAT_RATE = 0.18;
   
   const getPriceBreakdown = (plan) => {
-    if (!plan?.monthlyPrice) return { basePrice: 0, discount: 0, discountedPrice: 0, vatAmount: 0, totalPrice: 0, proration: null };
-    
+    if (!plan?.monthlyPrice) return { basePrice: 0, fullMonthlyPrice: 0, discount: 0, discountedPrice: 0, vatAmount: 0, totalPrice: 0, proration: null };
+
     // Prorate for remaining days in the month (align to 1st)
     const proration = calculateNewSubscriptionProration(plan.monthlyPrice);
+    const isUSD = plan.currency === 'USD' || !plan.currency;
     let basePrice = proration.proratedAmount;
-    if (plan.currency === 'USD' || !plan.currency) {
+    let fullMonthlyPrice = plan.monthlyPrice;
+    if (isUSD) {
       basePrice = Math.round(basePrice * USD_TO_ILS_RATE);
+      fullMonthlyPrice = Math.round(fullMonthlyPrice * USD_TO_ILS_RATE);
     }
     
     let discount = 0;
@@ -73,8 +76,22 @@ export function PaymentStep({ translations, selectedPlan, userData, onComplete }
     const discountedPrice = Math.max(0, basePrice - discount);
     const vatAmount = Math.round(discountedPrice * VAT_RATE);
     const totalPrice = discountedPrice + vatAmount;
-    
-    return { basePrice, discount, discountedPrice, vatAmount, totalPrice, proration };
+
+    // Recurring monthly payment (what will be charged on the 1st of every month).
+    // Apply the coupon discount only if it's a permanent discount (no durationMonths cap).
+    let recurringDiscount = 0;
+    if (couponData && !couponData.durationMonths) {
+      if (couponData.discountType === 'PERCENTAGE') {
+        recurringDiscount = Math.round(fullMonthlyPrice * (couponData.discountValue / 100));
+      } else if (couponData.discountType === 'FIXED_AMOUNT') {
+        recurringDiscount = Math.round(couponData.discountValue * (isUSD ? USD_TO_ILS_RATE : 1));
+      }
+    }
+    const recurringDiscounted = Math.max(0, fullMonthlyPrice - recurringDiscount);
+    const recurringVat = Math.round(recurringDiscounted * VAT_RATE);
+    const recurringTotal = recurringDiscounted + recurringVat;
+
+    return { basePrice, fullMonthlyPrice, discount, discountedPrice, vatAmount, totalPrice, recurringTotal, proration };
   };
 
   const priceBreakdown = getPriceBreakdown(selectedPlan);
@@ -398,11 +415,12 @@ export function PaymentStep({ translations, selectedPlan, userData, onComplete }
             </div>
             <div className={styles.orderRow}>
               <span>{translations.planPrice}</span>
-              <span>₪{priceBreakdown.basePrice}</span>
+              <span>₪{priceBreakdown.fullMonthlyPrice}</span>
             </div>
             {priceBreakdown.proration && priceBreakdown.proration.remainingDays < priceBreakdown.proration.totalDays && (
               <div className={styles.orderRow} style={{ fontSize: '0.75rem', opacity: 0.7 }}>
                 <span>{translations.prorated} ({priceBreakdown.proration.remainingDays}/{priceBreakdown.proration.totalDays} {translations.days})</span>
+                <span>₪{priceBreakdown.basePrice}</span>
               </div>
             )}
             {priceBreakdown.discount > 0 && (
@@ -425,8 +443,24 @@ export function PaymentStep({ translations, selectedPlan, userData, onComplete }
             </div>
             <div className={`${styles.orderRow} ${styles.orderTotal}`}>
               <span>{translations.total}</span>
-              <span>₪{priceBreakdown.totalPrice}{selectedPlan?.period}</span>
+              <span>₪{priceBreakdown.totalPrice}</span>
             </div>
+            <div className={styles.orderRow}>
+              <span>{translations.recurringMonthly}</span>
+              <span>₪{priceBreakdown.recurringTotal}{selectedPlan?.period}</span>
+            </div>
+            {priceBreakdown.proration && priceBreakdown.proration.remainingDays < priceBreakdown.proration.totalDays && (() => {
+              const d = priceBreakdown.proration.nextBillingDate;
+              const dateStr = `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`;
+              return (
+                <p style={{ fontSize: '0.75rem', opacity: 0.75, marginTop: '0.75rem', lineHeight: 1.5 }}>
+                  {translations.billingDisclaimer
+                    ?.replace('{now}', `₪${priceBreakdown.totalPrice}`)
+                    .replace('{date}', dateStr)
+                    .replace('{recurring}', `₪${priceBreakdown.recurringTotal}`)}
+                </p>
+              );
+            })()}
           </div>
 
           {/* Coupon Code Input */}

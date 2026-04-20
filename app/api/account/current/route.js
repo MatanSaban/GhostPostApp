@@ -62,6 +62,8 @@ export async function GET() {
         billingEmail: true,
         generalEmail: true,
         isActive: true,
+        archivedAt: true,
+        archiveRestoreExpiresAt: true,
         aiCreditsBalance: true,
         createdAt: true,
       },

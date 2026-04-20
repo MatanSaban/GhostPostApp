@@ -2,17 +2,14 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 
 const SESSION_COOKIE = 'user_session';
-const TEMP_REG_COOKIE = 'temp_reg_id';
+const REG_DONE_COOKIE = 'reg_done';
 
 export async function POST() {
   try {
     const cookieStore = await cookies();
-    
-    // Clear session cookie
+
     cookieStore.delete(SESSION_COOKIE);
-    
-    // Also clear temp registration cookie if exists
-    cookieStore.delete(TEMP_REG_COOKIE);
+    cookieStore.delete(REG_DONE_COOKIE);
 
     return NextResponse.json({ success: true });
   } catch (error) {

@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 
 const LOCALE_COOKIE = "ghost-post-locale";
+const SESSION_COOKIE = "user_session";
+const REG_DONE_COOKIE = "reg_done";
 
 /**
  * Get default locale based on domain
@@ -14,14 +16,34 @@ function getDefaultLocaleForDomain(host) {
   return "en";
 }
 
+// Paths a draft (mid-registration) user is allowed to visit. Everything else
+// bounces them back to /auth/register so they can finish.
+function isDraftAllowedPath(pathname) {
+  if (pathname.startsWith("/auth/register")) return true;
+  if (pathname.startsWith("/auth/logout")) return true;
+  return false;
+}
+
 export function middleware(request) {
+  const { pathname } = request.nextUrl;
+
+  const sessionCookie = request.cookies.get(SESSION_COOKIE);
+  const regDoneCookie = request.cookies.get(REG_DONE_COOKIE);
+
+  // Draft guard: a sessioned user whose registration hasn't completed yet
+  // can only access /auth/register (and logout).
+  if (sessionCookie && regDoneCookie?.value !== "1" && !isDraftAllowedPath(pathname)) {
+    const url = request.nextUrl.clone();
+    url.pathname = "/auth/register";
+    url.search = "";
+    return NextResponse.redirect(url);
+  }
+
   const response = NextResponse.next();
 
-  // Check if locale cookie exists
+  // Locale cookie seeding.
   const localeCookie = request.cookies.get(LOCALE_COOKIE);
-
   if (!localeCookie) {
-    // No locale cookie - set default based on domain
     const host = request.headers.get("host") || "";
     const defaultLocale = getDefaultLocaleForDomain(host);
 

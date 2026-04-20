@@ -2,38 +2,49 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import prisma from '@/lib/prisma';
 import { getLowProfileResult } from '@/lib/cardcom';
+import { getDraftAccountForUser } from '@/lib/draft-account';
 
-const TEMP_REG_COOKIE = 'temp_reg_id';
+const SESSION_COOKIE = 'user_session';
 
 /**
  * POST /api/auth/registration/payment-confirm
- * 
- * Verifies a registration payment at CardCom.
- * Called after the frontend receives HandleSubmit with IsSuccess from CardCom iframes.
- * Stores payment confirmation data in tempReg so finalize can create a Payment record.
- * 
+ *
+ * Verifies a registration payment at CardCom and stores confirmation data on
+ * the draft account so finalize can create a Payment record.
+ *
  * Body:
  *  - lowProfileId: string (required)
  */
 export async function POST(request) {
   try {
     const cookieStore = await cookies();
-    const tempRegId = cookieStore.get(TEMP_REG_COOKIE)?.value;
+    const sessionUserId = cookieStore.get(SESSION_COOKIE)?.value;
 
-    if (!tempRegId) {
+    if (!sessionUserId) {
       return NextResponse.json(
         { error: 'No registration in progress' },
         { status: 400 }
       );
     }
 
-    const tempReg = await prisma.tempRegistration.findUnique({
-      where: { id: tempRegId },
+    const user = await prisma.user.findUnique({
+      where: { id: sessionUserId },
+      select: { id: true },
     });
 
-    if (!tempReg) {
+    if (!user) {
+      cookieStore.delete(SESSION_COOKIE);
       return NextResponse.json(
-        { error: 'Registration not found' },
+        { error: 'Registration not found. Please start over.' },
+        { status: 404 }
+      );
+    }
+
+    const draftAccount = await getDraftAccountForUser(user.id);
+
+    if (!draftAccount) {
+      return NextResponse.json(
+        { error: 'No draft account found. Please start over.' },
         { status: 404 }
       );
     }
@@ -48,7 +59,6 @@ export async function POST(request) {
       );
     }
 
-    // Verify payment at CardCom
     let cardcomResult;
     try {
       cardcomResult = await getLowProfileResult(lowProfileId);
@@ -66,13 +76,13 @@ export async function POST(request) {
       );
     }
 
-    // Store payment data in tempReg interviewData (using existing JSON field)
-    const existingData = tempReg.interviewData || {};
-    await prisma.tempRegistration.update({
-      where: { id: tempRegId },
+    // Store payment confirmation inside draftInterviewData so finalize can read it.
+    const existingInterview = draftAccount.draftInterviewData || {};
+    await prisma.account.update({
+      where: { id: draftAccount.id },
       data: {
-        interviewData: {
-          ...existingData,
+        draftInterviewData: {
+          ...existingInterview,
           paymentConfirmed: true,
           paymentLowProfileId: lowProfileId,
           paymentConfirmedAt: new Date().toISOString(),

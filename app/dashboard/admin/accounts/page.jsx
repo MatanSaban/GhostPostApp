@@ -211,7 +211,7 @@ export default function PlatformAccountsPage() {
 
       if (!response.ok) {
         const error = await response.json();
-        alert(error.error || 'Failed to save account');
+        alert(error.error || t('admin.common.saveFailed'));
         return;
       }
 
@@ -219,7 +219,7 @@ export default function PlatformAccountsPage() {
       closeEditModal();
     } catch (error) {
       console.error('Error saving account:', error);
-      alert('Failed to save account');
+      alert(t('admin.common.saveFailed'));
     } finally {
       setIsSubmitting(false);
     }
@@ -242,7 +242,7 @@ export default function PlatformAccountsPage() {
 
       if (!response.ok) {
         const error = await response.json();
-        alert(error.error || 'Failed to delete account');
+        alert(error.error || t('admin.common.deleteFailed'));
         return;
       }
 
@@ -251,7 +251,7 @@ export default function PlatformAccountsPage() {
       setSelectedAccount(null);
     } catch (error) {
       console.error('Error deleting account:', error);
-      alert('Failed to delete account');
+      alert(t('admin.common.deleteFailed'));
     } finally {
       setIsSubmitting(false);
     }

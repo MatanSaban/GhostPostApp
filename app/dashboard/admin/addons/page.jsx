@@ -39,26 +39,21 @@ const typeIcons = {
   CONTENT: FileText,
 };
 
-// Add-on types with labels
-const addOnTypes = [
-  { value: 'SEATS', label: 'Team Members' },
-  { value: 'SITES', label: 'Additional Websites' },
-  { value: 'AI_CREDITS', label: 'AI Credits Pack' },
-  { value: 'STORAGE', label: 'Storage' },
-  { value: 'KEYWORDS', label: 'Keywords Tracking' },
-  { value: 'CONTENT', label: 'Content Items' },
-  { value: 'SITE_AUDITS', label: 'Site Audits' },
-];
-
-// Billing types
-const billingTypes = [
-  { value: 'RECURRING', label: 'Recurring (Monthly)' },
-  { value: 'ONE_TIME', label: 'One-Time Purchase' },
-];
+// Add-on type values (labels resolved via t() in component)
+const ADDON_TYPE_VALUES = ['SEATS', 'SITES', 'AI_CREDITS', 'STORAGE', 'KEYWORDS', 'CONTENT', 'SITE_AUDITS'];
+const BILLING_TYPE_VALUES = ['RECURRING', 'ONE_TIME'];
 
 export default function AddOnsSettingsPage() {
   const router = useRouter();
   const { t, locale } = useLocale();
+  const addOnTypes = ADDON_TYPE_VALUES.map((value) => ({
+    value,
+    label: t(`admin.addons.types.${value.toLowerCase()}`),
+  }));
+  const billingTypes = BILLING_TYPE_VALUES.map((value) => ({
+    value,
+    label: t(`admin.addons.billingTypes.${value === 'ONE_TIME' ? 'oneTime' : 'recurring'}`),
+  }));
   const { isSuperAdmin, isLoading: isUserLoading } = useUser();
   const [addOns, setAddOns] = useState([]);
   const [stats, setStats] = useState({ totalAddOns: 0, activeAddOns: 0, totalPurchases: 0 });
@@ -439,16 +434,12 @@ export default function AddOnsSettingsPage() {
 
   // Get type label
   const getTypeLabel = (type) => {
-    const typeInfo = addOnTypes.find(t => t.value === type);
-    return t(`admin.addons.types.${type.toLowerCase()}`) || typeInfo?.label || type;
+    return t(`admin.addons.types.${type.toLowerCase()}`);
   };
 
   // Get billing type label
   const getBillingLabel = (billingType) => {
-    if (billingType === 'ONE_TIME') {
-      return t('admin.addons.billingTypes.oneTime') || 'One-Time';
-    }
-    return t('admin.addons.billingTypes.recurring') || 'Recurring';
+    return t(`admin.addons.billingTypes.${billingType === 'ONE_TIME' ? 'oneTime' : 'recurring'}`);
   };
 
   if (isUserLoading) {
@@ -681,22 +672,22 @@ export default function AddOnsSettingsPage() {
             value={formData.name}
             onChange={(e) => handleNameChange(e.target.value)}
             required
-            placeholder="e.g., AI Credits Pack - 10K"
+            placeholder={t('admin.addons.placeholders.name')}
           />
           <FormInput
-            label="Slug"
+            label={t('admin.plans.form.slug')}
             value={formData.slug}
             onChange={(e) => setFormData({ ...formData, slug: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '') })}
             required
             disabled={selectedAddOn?._count?.purchases > 0}
-            placeholder="e.g., ai-credits-10k"
+            placeholder={t('admin.addons.placeholders.key')}
           />
           <FormTextarea
             label={t('admin.addons.columns.description') || 'Description'}
             value={formData.description}
             onChange={(e) => setFormData({ ...formData, description: e.target.value })}
             rows={2}
-            placeholder="Describe what this add-on provides..."
+            placeholder={t('admin.addons.placeholders.description')}
           />
           
           <FormSelect
@@ -735,7 +726,7 @@ export default function AddOnsSettingsPage() {
             min="1"
             value={formData.quantity}
             onChange={(e) => setFormData({ ...formData, quantity: e.target.value })}
-            placeholder="e.g., 10000 for AI credits pack"
+            placeholder={t('admin.addons.placeholders.quantity')}
           />
           <p style={{ fontSize: '0.75rem', color: 'var(--muted-foreground)', marginTop: '-0.5rem', marginBottom: '1rem' }}>
             {t('admin.addons.quantityHint') || 'Leave empty for add-ons that provide +1 of a resource (like additional seats or sites)'}

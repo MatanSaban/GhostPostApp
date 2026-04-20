@@ -1,45 +1,50 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import prisma from '@/lib/prisma';
+import { getDraftAccountForUser } from '@/lib/draft-account';
 
-const TEMP_REG_COOKIE = 'temp_reg_id';
+const SESSION_COOKIE = 'user_session';
 
-// POST /api/auth/registration/coupon - Save coupon code to temp registration
 export async function POST(request) {
   try {
     const body = await request.json();
     const { couponCode } = body;
 
-    // Get tempRegId from cookie
     const cookieStore = await cookies();
-    const tempRegId = cookieStore.get(TEMP_REG_COOKIE)?.value;
+    const sessionUserId = cookieStore.get(SESSION_COOKIE)?.value;
 
-    if (!tempRegId) {
+    if (!sessionUserId) {
       return NextResponse.json(
         { error: 'No registration in progress' },
         { status: 400 }
       );
     }
 
-    // Find the temp registration
-    const tempReg = await prisma.tempRegistration.findUnique({
-      where: { id: tempRegId },
+    const user = await prisma.user.findUnique({
+      where: { id: sessionUserId },
+      select: { id: true },
     });
 
-    if (!tempReg) {
-      cookieStore.delete(TEMP_REG_COOKIE);
+    if (!user) {
+      cookieStore.delete(SESSION_COOKIE);
       return NextResponse.json(
         { error: 'Registration not found. Please start over.' },
         { status: 404 }
       );
     }
 
-    // Update temp registration with coupon code (null to clear)
-    await prisma.tempRegistration.update({
-      where: { id: tempRegId },
-      data: {
-        couponCode: couponCode || null,
-      },
+    const draftAccount = await getDraftAccountForUser(user.id);
+
+    if (!draftAccount) {
+      return NextResponse.json(
+        { error: 'No draft account found. Please start over.' },
+        { status: 404 }
+      );
+    }
+
+    await prisma.account.update({
+      where: { id: draftAccount.id },
+      data: { draftCouponCode: couponCode || null },
     });
 
     return NextResponse.json({

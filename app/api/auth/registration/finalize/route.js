@@ -2,357 +2,211 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import prisma from '@/lib/prisma';
 import { getNextFirstOfMonth } from '@/lib/proration';
+import { getDraftAccountForUser } from '@/lib/draft-account';
 
-const TEMP_REG_COOKIE = 'temp_reg_id';
 const SESSION_COOKIE = 'user_session';
+const REG_DONE_COOKIE = 'reg_done';
 
-// All permissions for the Owner role (must match Permission enum in schema.prisma)
-const OWNER_PERMISSIONS = [
-  // Account Management
-  'ACCOUNT_VIEW',
-  'ACCOUNT_EDIT',
-  'ACCOUNT_DELETE',
-  'ACCOUNT_BILLING_VIEW',
-  'ACCOUNT_BILLING_MANAGE',
-  // Member Management
-  'MEMBERS_VIEW',
-  'MEMBERS_INVITE',
-  'MEMBERS_EDIT',
-  'MEMBERS_DELETE',
-  // Role Management
-  'ROLES_VIEW',
-  'ROLES_CREATE',
-  'ROLES_EDIT',
-  'ROLES_DELETE',
-  // Site Management
-  'SITES_VIEW',
-  'SITES_CREATE',
-  'SITES_EDIT',
-  'SITES_DELETE',
-  // Content Planner
-  'CONTENT_PLANNER_VIEW',
-  'CONTENT_PLANNER_CREATE',
-  'CONTENT_PLANNER_EDIT',
-  'CONTENT_PLANNER_DELETE',
-  // AI Content Wizard
-  'AI_CONTENT_VIEW',
-  'AI_CONTENT_CREATE',
-  'AI_CONTENT_EDIT',
-  'AI_CONTENT_DELETE',
-  // Entities Management
-  'ENTITIES_VIEW',
-  'ENTITIES_CREATE',
-  'ENTITIES_EDIT',
-  'ENTITIES_PUBLISH',
-  'ENTITIES_DELETE',
-  // Campaigns
-  'CAMPAIGNS_VIEW',
-  'CAMPAIGNS_CREATE',
-  'CAMPAIGNS_EDIT',
-  'CAMPAIGNS_DELETE',
-  // Keyword Management
-  'KEYWORDS_VIEW',
-  'KEYWORDS_CREATE',
-  'KEYWORDS_EDIT',
-  'KEYWORDS_DELETE',
-  // Competitor Management
-  'COMPETITORS_VIEW',
-  'COMPETITORS_CREATE',
-  'COMPETITORS_EDIT',
-  'COMPETITORS_DELETE',
-  // Redirections
-  'REDIRECTIONS_VIEW',
-  'REDIRECTIONS_CREATE',
-  'REDIRECTIONS_EDIT',
-  'REDIRECTIONS_DELETE',
-  // Interview
-  'INTERVIEW_VIEW',
-  'INTERVIEW_EDIT',
-  // Site Audit
-  'AUDIT_VIEW',
-  'AUDIT_RUN',
-  // Settings
-  'SETTINGS_GENERAL_VIEW',
-  'SETTINGS_GENERAL_EDIT',
-  'SETTINGS_AI_VIEW',
-  'SETTINGS_AI_EDIT',
-  'SETTINGS_SCHEDULING_VIEW',
-  'SETTINGS_SCHEDULING_EDIT',
-  'SETTINGS_NOTIFICATIONS_VIEW',
-  'SETTINGS_NOTIFICATIONS_EDIT',
-  'SETTINGS_SEO_VIEW',
-  'SETTINGS_SEO_EDIT',
-  'SETTINGS_INTEGRATIONS_VIEW',
-  'SETTINGS_INTEGRATIONS_EDIT',
-  'SETTINGS_USERS_VIEW',
-  'SETTINGS_USERS_EDIT',
-  'SETTINGS_TEAM_VIEW',
-  'SETTINGS_TEAM_EDIT',
-  'SETTINGS_ROLES_VIEW',
-  'SETTINGS_ROLES_EDIT',
-  'SETTINGS_SUBSCRIPTION_VIEW',
-  'SETTINGS_SUBSCRIPTION_EDIT',
-  // Reports
-  'REPORTS_VIEW',
-  'REPORTS_MANAGE',
-];
-
-export async function POST(request) {
+/**
+ * POST /api/auth/registration/finalize
+ *
+ * Activates the draft user + account created at the start of registration.
+ * Unlike the old flow, we do NOT create a new User/Account here — both already
+ * exist. We just flip the draft flag, clear draft scratch fields, create the
+ * Subscription + CouponRedemption + Site, and mark the user as COMPLETED.
+ */
+export async function POST() {
   try {
-    // Get tempRegId from cookie
     const cookieStore = await cookies();
-    const tempRegId = cookieStore.get(TEMP_REG_COOKIE)?.value;
+    const sessionUserId = cookieStore.get(SESSION_COOKIE)?.value;
 
-    if (!tempRegId) {
+    if (!sessionUserId) {
       return NextResponse.json(
         { error: 'No registration in progress' },
         { status: 400 }
       );
     }
 
-    // Get the temp registration with all data
-    const tempReg = await prisma.tempRegistration.findUnique({
-      where: { id: tempRegId },
+    const user = await prisma.user.findUnique({
+      where: { id: sessionUserId },
     });
 
-    if (!tempReg) {
-      cookieStore.delete(TEMP_REG_COOKIE);
+    if (!user) {
+      cookieStore.delete(SESSION_COOKIE);
       return NextResponse.json(
         { error: 'Registration not found. Please start over.' },
         { status: 404 }
       );
     }
 
-    // Check if temp registration has expired
-    if (new Date() > tempReg.expiresAt) {
-      await prisma.tempRegistration.delete({ where: { id: tempRegId } });
-      cookieStore.delete(TEMP_REG_COOKIE);
+    if (user.registrationStep === 'COMPLETED') {
       return NextResponse.json(
-        { error: 'Registration expired. Please start over.' },
-        { status: 410 }
+        { error: 'Registration already completed' },
+        { status: 409 }
       );
     }
 
-    // Validate that all required steps are complete
-    if (!tempReg.emailVerified && !tempReg.phoneVerified) {
+    if (!user.emailVerified && !user.phoneVerified) {
       return NextResponse.json(
         { error: 'Email or phone verification required' },
         { status: 400 }
       );
     }
 
-    if (!tempReg.accountName || !tempReg.accountSlug) {
+    const draftAccount = await getDraftAccountForUser(user.id);
+
+    if (!draftAccount) {
+      return NextResponse.json(
+        { error: 'No draft account found. Please start over.' },
+        { status: 404 }
+      );
+    }
+
+    if (!draftAccount.name || !draftAccount.slug || draftAccount.slug.startsWith('draft-')) {
       return NextResponse.json(
         { error: 'Account setup required' },
         { status: 400 }
       );
     }
 
-    if (!tempReg.selectedPlanId) {
+    if (!draftAccount.draftSelectedPlanId) {
       return NextResponse.json(
         { error: 'Plan selection required' },
         { status: 400 }
       );
     }
 
-    // Check if user already exists (shouldn't happen but safety check)
-    const existingUser = await prisma.user.findUnique({
-      where: { email: tempReg.email },
-    });
+    const interviewData = draftAccount.draftInterviewData || {};
+    const couponCode = draftAccount.draftCouponCode || null;
 
-    if (existingUser) {
-      await prisma.tempRegistration.delete({ where: { id: tempRegId } });
-      cookieStore.delete(TEMP_REG_COOKIE);
+    if (!interviewData.paymentConfirmed) {
       return NextResponse.json(
-        { error: 'A user with this email already exists' },
-        { status: 409 }
+        { error: 'Payment confirmation required' },
+        { status: 400 }
       );
     }
 
-    // Check if account slug is still available
-    const existingAccount = await prisma.account.findUnique({
-      where: { slug: tempReg.accountSlug },
+    const plan = await prisma.plan.findUnique({
+      where: { id: draftAccount.draftSelectedPlanId },
     });
 
-    if (existingAccount) {
+    if (!plan) {
       return NextResponse.json(
-        { error: 'This account slug is no longer available. Please choose a different one.' },
-        { status: 409 }
+        { error: 'Selected plan not found' },
+        { status: 404 }
       );
     }
 
-    // Create everything in a transaction
     const result = await prisma.$transaction(async (tx) => {
-      // 1. Create the real user
-      const user = await tx.user.create({
+      // 1. Activate the account: clear draft flag, clear draft fields,
+      //    fill in billing/general email.
+      const account = await tx.account.update({
+        where: { id: draftAccount.id },
         data: {
-          email: tempReg.email,
-          firstName: tempReg.firstName,
-          lastName: tempReg.lastName,
-          phoneNumber: tempReg.phoneNumber,
-          password: tempReg.password, // Already hashed
-          image: tempReg.image, // Profile image (e.g., from Google)
-          primaryAuthMethod: tempReg.authMethod || 'EMAIL',
-          emailVerified: tempReg.emailVerified,
-          phoneVerified: tempReg.phoneVerified,
-          consentGiven: tempReg.consentGiven,
-          consentDate: tempReg.consentDate,
+          isDraft: false,
+          draftInterviewData: null,
+          draftSelectedPlanId: null,
+          draftCouponCode: null,
+          billingEmail: user.email,
+          generalEmail: user.email,
+        },
+      });
+
+      // 2. Mark the user as completed.
+      const updatedUser = await tx.user.update({
+        where: { id: user.id },
+        data: {
           registrationStep: 'COMPLETED',
           isActive: true,
         },
       });
 
-      // 1b. If registered via Google, create AuthProvider record
-      if (tempReg.authMethod === 'GOOGLE' && tempReg.googleId) {
-        await tx.authProvider.create({
+      // 3. Create the subscription.
+      const subscription = await tx.subscription.create({
+        data: {
+          accountId: account.id,
+          planId: plan.id,
+          status: 'ACTIVE',
+          billingInterval: 'MONTHLY',
+          currentPeriodStart: new Date(),
+          currentPeriodEnd: getNextFirstOfMonth(new Date()),
+        },
+      });
+
+      // 4. Redeem coupon if present.
+      if (couponCode) {
+        const coupon = await tx.coupon.findUnique({
+          where: { code: couponCode },
+          include: { _count: { select: { redemptions: true } } },
+        });
+
+        if (coupon && coupon.isActive) {
+          const now = new Date();
+          const isValid = (!coupon.validFrom || now >= coupon.validFrom)
+            && (!coupon.validUntil || now <= coupon.validUntil)
+            && (!coupon.maxRedemptions || coupon._count.redemptions < coupon.maxRedemptions)
+            && (!coupon.applicablePlanIds?.length || coupon.applicablePlanIds.includes(plan.id));
+
+          if (isValid) {
+            const expiresAt = coupon.durationMonths
+              ? new Date(Date.now() + coupon.durationMonths * 30 * 24 * 60 * 60 * 1000)
+              : null;
+
+            await tx.couponRedemption.create({
+              data: {
+                couponId: coupon.id,
+                accountId: account.id,
+                subscriptionId: subscription.id,
+                discountType: coupon.discountType,
+                discountValue: coupon.discountValue,
+                limitationOverrides: coupon.limitationOverrides || [],
+                extraFeatures: coupon.extraFeatures || [],
+                durationMonths: coupon.durationMonths,
+                expiresAt,
+                status: 'ACTIVE',
+              },
+            });
+
+            console.log('[Finalize] Applied coupon:', { code: coupon.code, accountId: account.id });
+          }
+        }
+      }
+
+      // 5. Allocate plan AI credits.
+      const { getLimitFromPlan } = await import('@/lib/account-utils');
+      const planAiCredits = getLimitFromPlan(plan.limitations, 'aiCredits', 0) || 0;
+
+      if (planAiCredits > 0) {
+        await tx.account.update({
+          where: { id: account.id },
+          data: { aiCreditsBalance: planAiCredits },
+        });
+
+        await tx.aiCreditsLog.create({
           data: {
-            userId: user.id,
-            provider: 'GOOGLE',
-            providerAccountId: tempReg.googleId,
-            isPrimary: true,
+            accountId: account.id,
+            type: 'CREDIT',
+            amount: planAiCredits,
+            balance: planAiCredits,
+            source: 'plan_activation',
+            description: `Initial AI credits from ${plan.name} plan`,
           },
         });
       }
 
-      // 2. Create the account
-      const account = await tx.account.create({
-        data: {
-          name: tempReg.accountName,
-          slug: tempReg.accountSlug,
-          billingEmail: tempReg.email,
-          generalEmail: tempReg.email,
-        },
-      });
-
-      // 3. Create the Owner role for this account
-      const ownerRole = await tx.role.create({
-        data: {
-          accountId: account.id,
-          name: 'Owner',
-          description: 'Full access to all account features',
-          permissions: OWNER_PERMISSIONS,
-          isSystemRole: true,
-        },
-      });
-
-      // 4. Create the AccountMember linking user, account, and role
-      await tx.accountMember.create({
-        data: {
-          accountId: account.id,
-          userId: user.id,
-          roleId: ownerRole.id,
-          isOwner: true,
-          status: 'ACTIVE',
-        },
-      });
-
-      // 5. Update user's lastSelectedAccountId
-      await tx.user.update({
-        where: { id: user.id },
-        data: { lastSelectedAccountId: account.id },
-      });
-
-      // 6. Create subscription if plan was selected
-      if (tempReg.selectedPlanId) {
-        const plan = await tx.plan.findUnique({
-          where: { id: tempReg.selectedPlanId },
-        });
-
-        if (plan) {
-          const subscription = await tx.subscription.create({
-            data: {
-              accountId: account.id,
-              planId: plan.id,
-              status: 'ACTIVE',
-              billingInterval: 'MONTHLY', // Default to monthly
-              currentPeriodStart: new Date(),
-              currentPeriodEnd: getNextFirstOfMonth(new Date()), // Align to 1st of next month
-            },
-          });
-          
-          // 6b. Apply coupon if one was provided
-          if (tempReg.couponCode) {
-            const coupon = await tx.coupon.findUnique({
-              where: { code: tempReg.couponCode },
-              include: { _count: { select: { redemptions: true } } },
-            });
-
-            if (coupon && coupon.isActive) {
-              const now = new Date();
-              const isValid = (!coupon.validFrom || now >= coupon.validFrom)
-                && (!coupon.validUntil || now <= coupon.validUntil)
-                && (!coupon.maxRedemptions || coupon._count.redemptions < coupon.maxRedemptions)
-                && (!coupon.applicablePlanIds?.length || coupon.applicablePlanIds.includes(plan.id));
-
-              if (isValid) {
-                const expiresAt = coupon.durationMonths
-                  ? new Date(Date.now() + coupon.durationMonths * 30 * 24 * 60 * 60 * 1000)
-                  : null;
-
-                await tx.couponRedemption.create({
-                  data: {
-                    couponId: coupon.id,
-                    accountId: account.id,
-                    subscriptionId: subscription.id,
-                    discountType: coupon.discountType,
-                    discountValue: coupon.discountValue,
-                    limitationOverrides: coupon.limitationOverrides || [],
-                    extraFeatures: coupon.extraFeatures || [],
-                    durationMonths: coupon.durationMonths,
-                    expiresAt,
-                    status: 'ACTIVE',
-                  },
-                });
-
-                console.log('[Finalize] Applied coupon:', { code: coupon.code, accountId: account.id });
-              }
-            }
-          }
-          
-          // Get AI credits from plan limitations
-          const { getLimitFromPlan } = await import('@/lib/account-utils');
-          const planAiCredits = getLimitFromPlan(plan.limitations, 'aiCredits', 0) || 0;
-          
-          // Add plan's AI credits to account balance
-          if (planAiCredits > 0) {
-            await tx.account.update({
-              where: { id: account.id },
-              data: { aiCreditsBalance: planAiCredits },
-            });
-            
-            // Log the initial credit allocation
-            await tx.aiCreditsLog.create({
-              data: {
-                accountId: account.id,
-                type: 'CREDIT',
-                amount: planAiCredits,
-                balance: planAiCredits,
-                source: 'plan_activation',
-                description: `Initial AI credits from ${plan.name} plan`,
-              },
-            });
-          }
-        }
-      }
-
-      // 7. Create site from interview data if website URL was provided
+      // 6. Create site from interview data.
       let site = null;
-      const interviewData = tempReg.interviewData || {};
       const websiteUrl = interviewData.websiteUrl;
-      
+
       if (websiteUrl) {
-        // Import site key utilities
         const { generateSiteKey, generateSiteSecret, DEFAULT_SITE_PERMISSIONS } = await import('@/lib/site-keys');
-        
-        // Normalize URL
+
         let normalizedUrl = websiteUrl.trim();
         if (!normalizedUrl.startsWith('http://') && !normalizedUrl.startsWith('https://')) {
           normalizedUrl = 'https://' + normalizedUrl;
         }
-        // Remove trailing slash
         normalizedUrl = normalizedUrl.replace(/\/+$/, '');
 
-        // Check for duplicate site URL in the same account
         const normalizedForCompare = normalizedUrl.replace(/^https?:\/\//, '').replace(/^www\./, '').replace(/\/+$/, '').toLowerCase();
         const existingSites = await tx.site.findMany({
           where: { accountId: account.id, isActive: true },
@@ -364,72 +218,59 @@ export async function POST(request) {
         });
 
         if (!isDuplicate) {
-        // Extract site name from URL or use account name
-        let siteName = account.name;
-        try {
-          const urlObj = new URL(normalizedUrl);
-          siteName = urlObj.hostname.replace('www.', '');
-        } catch {
-          // Keep account name as fallback
-        }
-        
-        // Detect platform from interview analysis if available
-        const platform = interviewData.analysis?.platform?.name?.toLowerCase() || null;
-        
-        // Generate site connection keys
-        const siteKey = generateSiteKey();
-        const siteSecret = generateSiteSecret();
-        
-        site = await tx.site.create({
-          data: {
-            accountId: account.id,
-            name: siteName,
-            url: normalizedUrl,
-            platform,
-            isActive: true,
-            connectionStatus: 'PENDING',
-            siteKey,
-            siteSecret,
-            sitePermissions: DEFAULT_SITE_PERMISSIONS,
-          },
-        });
-        
-        // Update the AccountMember to set this site as selected
-        await tx.accountMember.updateMany({
-          where: { 
-            accountId: account.id,
-            userId: user.id,
-          },
-          data: { lastSelectedSiteId: site.id },
-        });
-        
-        console.log('[Finalize] Created site:', { siteId: site.id, url: normalizedUrl });
+          let siteName = account.name;
+          try {
+            const urlObj = new URL(normalizedUrl);
+            siteName = urlObj.hostname.replace('www.', '');
+          } catch {
+            // Keep account name as fallback
+          }
+
+          const platform = interviewData.analysis?.platform?.name?.toLowerCase() || null;
+          const siteKey = generateSiteKey();
+          const siteSecret = generateSiteSecret();
+
+          site = await tx.site.create({
+            data: {
+              accountId: account.id,
+              name: siteName,
+              url: normalizedUrl,
+              platform,
+              isActive: true,
+              connectionStatus: 'PENDING',
+              siteKey,
+              siteSecret,
+              sitePermissions: DEFAULT_SITE_PERMISSIONS,
+            },
+          });
+
+          await tx.accountMember.updateMany({
+            where: {
+              accountId: account.id,
+              userId: user.id,
+            },
+            data: { lastSelectedSiteId: site.id },
+          });
+
+          console.log('[Finalize] Created site:', { siteId: site.id, url: normalizedUrl });
         } else {
           console.log('[Finalize] Skipped duplicate site:', { url: normalizedUrl, accountId: account.id });
         }
       }
 
-      // 8. Delete the temp registration
-      await tx.tempRegistration.delete({
-        where: { id: tempRegId },
-      });
-
-      return { user, account, site };
+      return { user: updatedUser, account, site };
     });
 
-    // Clear the temp registration cookie
-    cookieStore.delete(TEMP_REG_COOKIE);
-
-    // Set session cookie to log in the user
-    cookieStore.set(SESSION_COOKIE, result.user.id, {
+    // Mark the session as a completed (non-draft) user so middleware allows it
+    // everywhere.
+    cookieStore.set(REG_DONE_COOKIE, '1', {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
-      maxAge: 60 * 60 * 24 * 7, // 7 days
+      maxAge: 60 * 60 * 24 * 30,
       path: '/',
     });
 
-    // Return success with user data for session
     return NextResponse.json({
       success: true,
       user: {

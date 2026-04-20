@@ -32,23 +32,23 @@ import styles from '../admin.module.css';
 
 const AVAILABLE_LANGUAGES = ['en', 'he'];
 
-const PAGE_OPTIONS = [
-  { value: 'pricing', label: 'Pricing Page' },
-  { value: 'faq', label: 'FAQ Page' },
-  { value: 'both', label: 'Both Pages' },
-];
-
-const CATEGORY_OPTIONS = [
-  { value: '', label: 'No Category' },
-  { value: 'general', label: 'General' },
-  { value: 'pricing', label: 'Pricing' },
-  { value: 'features', label: 'Features' },
-  { value: 'technical', label: 'Technical' },
-];
-
 export default function FAQManagementPage() {
   const router = useRouter();
   const { t } = useLocale();
+
+  const PAGE_OPTIONS = [
+    { value: 'pricing', label: t('admin.faq.pageOptions.pricing') },
+    { value: 'faq', label: t('admin.faq.pageOptions.faq') },
+    { value: 'both', label: t('admin.faq.pageOptions.both') },
+  ];
+
+  const CATEGORY_OPTIONS = [
+    { value: '', label: t('admin.faq.categories.none') },
+    { value: 'general', label: t('admin.faq.categories.general') },
+    { value: 'pricing', label: t('admin.faq.categories.pricing') },
+    { value: 'features', label: t('admin.faq.categories.features') },
+    { value: 'technical', label: t('admin.faq.categories.technical') },
+  ];
   const { isSuperAdmin, isLoading: isUserLoading } = useUser();
   const [faqs, setFaqs] = useState([]);
   const [stats, setStats] = useState({});
@@ -438,7 +438,7 @@ export default function FAQManagementPage() {
                             color: faq.page === 'both' ? 'white' : 'var(--foreground)',
                           }}
                         >
-                          {faq.page === 'both' ? 'Both' : faq.page === 'pricing' ? 'Pricing' : 'FAQ'}
+                          {faq.page === 'both' ? t('admin.faq.pageBadge.both') : faq.page === 'pricing' ? t('admin.faq.pageBadge.pricing') : t('admin.faq.pageBadge.faq')}
                         </span>
                       </td>
                       <td>

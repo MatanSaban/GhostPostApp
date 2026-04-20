@@ -54,6 +54,7 @@ import {
   FileText,
   TrendingUp,
   Wrench,
+  LogOut,
 } from 'lucide-react';
 import { useSite } from '@/app/context/site-context';
 import { useLocale } from '@/app/context/locale-context';
@@ -385,7 +386,7 @@ export default function SettingsContent({ translations, websiteTabs, accountTabs
       case 'profile':
         return <ProfileSettings translations={translations} />;
       case 'account':
-        return <AccountSettings translations={translations} canEdit={canEdit} />;
+        return <AccountSettings translations={translations} canEdit={canEdit} isOwner={isOwner} />;
       case 'client-reporting':
         return <ClientReportingSettings translations={translations} canEdit={canEdit} />;
       default:
@@ -4767,12 +4768,13 @@ const INDUSTRIES = [
 ];
 
 // Account Settings Component - Organization Account Settings
-function AccountSettings({ translations, canEdit = true }) {
+function AccountSettings({ translations, canEdit = true, isOwner = false }) {
   const { t } = useLocale();
   const router = useRouter();
   const { locale } = useLocale();
+  const { clearUser } = useUser();
   const accountSection = translations?.accountSection || {};
-  
+
   // Account state
   const [accountId, setAccountId] = useState(null);
   const [account, setAccount] = useState({
@@ -4786,21 +4788,26 @@ function AccountSettings({ translations, canEdit = true }) {
     billingEmail: '',
     generalEmail: '',
   });
-  
+
   // Wide logo for reports (from white-label config)
   const [wideLogo, setWideLogo] = useState(null);
   const [isUploadingWideLogo, setIsUploadingWideLogo] = useState(false);
-  
+
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [isUploadingLogo, setIsUploadingLogo] = useState(false);
   const [saveMessage, setSaveMessage] = useState({ type: '', text: '' });
-  
-  // Delete account state
+
+  // Archive (delete) state
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleteConfirmText, setDeleteConfirmText] = useState('');
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState(null);
+
+  // After-archive grace state
+  const [archiveGrace, setArchiveGrace] = useState(null); // { restoreExpiresAt }
+  const LOGOUT_GRACE_SECONDS = 5 * 60;
+  const [graceSecondsLeft, setGraceSecondsLeft] = useState(LOGOUT_GRACE_SECONDS);
   
   // The confirmation text required (language-specific)
   const requiredConfirmText = t('settings.accountSection.deleteAccountConfirmText');
@@ -4940,12 +4947,12 @@ function AccountSettings({ translations, canEdit = true }) {
     if (!file) return;
 
     if (!file.type.startsWith('image/')) {
-      setSaveMessage({ type: 'error', text: t('settings.whiteLabelReportingSection.invalidImageType') || 'Please select an image file' });
+      setSaveMessage({ type: 'error', text: t('settings.whiteLabelReportingSection.invalidImageType') });
       return;
     }
 
     if (file.size > 2 * 1024 * 1024) {
-      setSaveMessage({ type: 'error', text: t('settings.whiteLabelReportingSection.imageTooLarge') || 'Image must be under 2MB' });
+      setSaveMessage({ type: 'error', text: t('settings.whiteLabelReportingSection.imageTooLarge') });
       return;
     }
 
@@ -4972,12 +4979,12 @@ function AccountSettings({ translations, canEdit = true }) {
           body: JSON.stringify({ agencyLogo: data.url }),
         });
         
-        setSaveMessage({ type: 'success', text: t('settings.whiteLabelReportingSection.logoUploaded') || 'Logo uploaded' });
+        setSaveMessage({ type: 'success', text: t('settings.whiteLabelReportingSection.logoUploaded') });
       } else {
-        setSaveMessage({ type: 'error', text: t('settings.whiteLabelReportingSection.logoUploadError') || 'Failed to upload logo' });
+        setSaveMessage({ type: 'error', text: t('settings.whiteLabelReportingSection.logoUploadError') });
       }
     } catch (error) {
-      setSaveMessage({ type: 'error', text: t('settings.whiteLabelReportingSection.logoUploadError') || 'Failed to upload logo' });
+      setSaveMessage({ type: 'error', text: t('settings.whiteLabelReportingSection.logoUploadError') });
     } finally {
       setIsUploadingWideLogo(false);
       setTimeout(() => setSaveMessage({ type: '', text: '' }), 5000);
@@ -4985,29 +4992,74 @@ function AccountSettings({ translations, canEdit = true }) {
   };
   
   const handleDeleteAccount = async () => {
-    if (!canDelete) return;
-    
+    if (!canDelete || !isOwner) return;
+
     setIsDeleting(true);
     setDeleteError(null);
-    
+
     try {
       const response = await fetch('/api/account/delete', {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
       });
-      
+
+      const data = await response.json().catch(() => ({}));
       if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.error || 'Failed to delete account');
+        throw new Error(data.error || t('settings.accountSection.deleteAccountError'));
       }
-      
-      // Redirect to home page after successful deletion
-      router.push('/');
+
+      // Swap delete modal for grace modal. 5-minute countdown then auto-logout.
+      setShowDeleteModal(false);
+      setArchiveGrace({ restoreExpiresAt: data.restoreExpiresAt });
+      setGraceSecondsLeft(LOGOUT_GRACE_SECONDS);
     } catch (error) {
-      console.error('Delete account error:', error);
+      console.error('Archive account error:', error);
       setDeleteError(error.message);
       setIsDeleting(false);
     }
+  };
+
+  // Drive the 5-minute grace countdown and auto-logout.
+  useEffect(() => {
+    if (!archiveGrace) return;
+    if (graceSecondsLeft <= 0) {
+      (async () => {
+        try {
+          await fetch('/api/auth/logout', { method: 'POST' });
+        } catch {
+          // Ignore — still proceed to client logout.
+        }
+        clearUser();
+        router.push('/auth/login');
+      })();
+      return;
+    }
+    const id = setTimeout(() => setGraceSecondsLeft((s) => s - 1), 1000);
+    return () => clearTimeout(id);
+  }, [archiveGrace, graceSecondsLeft, clearUser, router]);
+
+  const logoutNow = async () => {
+    try {
+      await fetch('/api/auth/logout', { method: 'POST' });
+    } catch {
+      // Ignore
+    }
+    clearUser();
+    router.push('/auth/login');
+  };
+
+  const formatGraceCountdown = (s) => {
+    const mm = String(Math.floor(s / 60)).padStart(2, '0');
+    const ss = String(s % 60).padStart(2, '0');
+    return `${mm}:${ss}`;
+  };
+
+  const formatRestoreDeadline = (iso) => {
+    if (!iso) return '';
+    return new Date(iso).toLocaleString(locale || undefined, {
+      dateStyle: 'medium',
+      timeStyle: 'short',
+    });
   };
 
   if (isLoading) {
@@ -5090,13 +5142,13 @@ function AccountSettings({ translations, canEdit = true }) {
           {/* Organization Logo Icon */}
           <div className={styles.logoUploadItemIcon}>
             <label className={styles.logoPreviewLabel}>
-              {t('account.logo.iconLabel') || 'Logo Icon'}
+              {t('account.logo.iconLabel')}
             </label>
             <div className={`${styles.logoPreview} ${styles.logoPreviewIcon}`}>
               {account.logo ? (
                 <img
                   src={account.logo}
-                  alt={account.name || 'Organization logo'}
+                  alt={account.name || t('account.logo.organizationLogoAlt')}
                   className={`${styles.logoImage} ${styles.logoImageIcon}`}
                 />
               ) : (
@@ -5123,20 +5175,20 @@ function AccountSettings({ translations, canEdit = true }) {
                   t('account.logo.change')
                 )}
               </label>
-              <p className={styles.logoHint}>{t('account.logo.iconHint') || 'Square, 60x60px'}</p>
+              <p className={styles.logoHint}>{t('account.logo.iconHint')}</p>
             </div>
           </div>
 
           {/* Full Wide Logo */}
           <div className={styles.logoUploadItem}>
             <label className={styles.logoPreviewLabel}>
-              {t('settings.whiteLabelReportingSection.branding.fullWideLogo') || 'Full Wide Logo'}
+              {t('settings.whiteLabelReportingSection.branding.fullWideLogo')}
             </label>
             <div className={styles.logoPreview}>
               {wideLogo ? (
                 <img
                   src={wideLogo}
-                  alt="Wide logo"
+                  alt={t('account.logo.wideLogoAlt')}
                   className={styles.logoImage}
                 />
               ) : (
@@ -5160,11 +5212,11 @@ function AccountSettings({ translations, canEdit = true }) {
                     {t('common.loading')}
                   </>
                 ) : (
-                  t('settings.whiteLabelReportingSection.branding.uploadLogo') || 'Upload Logo'
+                  t('settings.whiteLabelReportingSection.branding.uploadLogo')
                 )}
               </label>
               <p className={styles.logoHint}>
-                {t('settings.whiteLabelReportingSection.branding.logoHint') || 'Recommended: 200x50px PNG or SVG'}
+                {t('settings.whiteLabelReportingSection.branding.logoHint')}
               </p>
             </div>
           </div>
@@ -5201,12 +5253,12 @@ function AccountSettings({ translations, canEdit = true }) {
           </div>
           <div className={styles.formGroup}>
             <label className={styles.formLabel}>{t('account.fields.website')}</label>
-            <input 
-              type="url" 
+            <input
+              type="url"
               className={styles.formInput}
               value={account.website}
               onChange={(e) => updateField('website', e.target.value)}
-              placeholder="https://example.com"
+              placeholder={t('account.fields.websitePlaceholder')}
               disabled={!canEdit}
             />
           </div>
@@ -5243,7 +5295,7 @@ function AccountSettings({ translations, canEdit = true }) {
               className={styles.formInput}
               value={account.generalEmail}
               onChange={(e) => updateField('generalEmail', e.target.value)}
-              placeholder="contact@company.com"
+              placeholder={t('account.fields.generalEmailPlaceholder')}
               disabled={!canEdit}
             />
             <span className={styles.inputHint}>{t('account.fields.generalEmailHint')}</span>
@@ -5255,7 +5307,7 @@ function AccountSettings({ translations, canEdit = true }) {
               className={styles.formInput}
               value={account.billingEmail}
               onChange={(e) => updateField('billingEmail', e.target.value)}
-              placeholder="billing@company.com"
+              placeholder={t('account.fields.billingEmailPlaceholder')}
               disabled={!canEdit}
             />
             <span className={styles.inputHint}>{t('account.fields.billingEmailHint')}</span>
@@ -5302,29 +5354,31 @@ function AccountSettings({ translations, canEdit = true }) {
       {/* White-Label Branding Section */}
       <WhiteLabelReportingSettings translations={translations} canEdit={canEdit} />
 
-      {/* Danger Zone */}
-      <div className={styles.subsection}>
-        <h3 className={styles.subsectionTitle}>
-          <AlertTriangle className={styles.subsectionIcon} />
-          {accountSection.dangerZone || t('account.dangerZone')}
-        </h3>
-        <div className={styles.warningBox}>
-          <div className={styles.warningContent}>
-            <AlertTriangle className={styles.warningIcon} />
-            <div className={styles.warningInfo}>
-              <span className={styles.warningLabel}>{accountSection.deleteAccount || t('account.deleteAccount')}</span>
-              <span className={styles.warningDescription}>{accountSection.deleteAccountDesc || t('account.deleteAccountDesc')}</span>
+      {/* Danger Zone — only the account owner can archive. */}
+      {isOwner && (
+        <div className={styles.subsection}>
+          <h3 className={styles.subsectionTitle}>
+            <AlertTriangle className={styles.subsectionIcon} />
+            {t('settings.accountSection.dangerZone')}
+          </h3>
+          <div className={styles.warningBox}>
+            <div className={styles.warningContent}>
+              <AlertTriangle className={styles.warningIcon} />
+              <div className={styles.warningInfo}>
+                <span className={styles.warningLabel}>{t('settings.accountSection.deleteAccount')}</span>
+                <span className={styles.warningDescription}>{t('settings.accountSection.deleteAccountDesc')}</span>
+              </div>
             </div>
+            <button
+              className={styles.editButton}
+              style={{ background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444' }}
+              onClick={() => setShowDeleteModal(true)}
+            >
+              {t('settings.accountSection.deleteAccount')}
+            </button>
           </div>
-          <button 
-            className={styles.editButton}
-            style={{ background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444' }}
-            onClick={() => setShowDeleteModal(true)}
-          >
-            {accountSection.deleteAccount || t('account.deleteAccount')}
-          </button>
         </div>
-      </div>
+      )}
 
       <div className={styles.saveButtonWrapper}>
         <Button 
@@ -5343,60 +5397,60 @@ function AccountSettings({ translations, canEdit = true }) {
         </Button>
       </div>
       
-      {/* Delete Account Modal */}
-      {showDeleteModal && createPortal(
+      {/* Delete (archive) Account Modal */}
+      {showDeleteModal && isOwner && createPortal(
         <div className={styles.modalOverlay} onClick={() => !isDeleting && setShowDeleteModal(false)}>
           <div className={styles.deleteAccountModal} onClick={(e) => e.stopPropagation()}>
             <div className={styles.deleteAccountHeader}>
               <AlertTriangle className={styles.deleteAccountIcon} />
               <h2 className={styles.deleteAccountTitle}>
-                {accountSection.deleteAccountTitle || 'Delete Account Permanently'}
+                {t('settings.accountSection.deleteAccountTitle')}
               </h2>
             </div>
-            
+
             <div className={styles.deleteAccountWarning}>
-              {accountSection.deleteAccountWarning || 'This action is irreversible. Once your account is deleted, the data cannot be recovered.'}
+              {t('settings.accountSection.deleteAccountWarning')}
             </div>
-            
+
             <div className={styles.deleteAccountConsequences}>
-              <h4>{accountSection.deleteAccountConsequences || 'What will be deleted:'}</h4>
+              <h4>{t('settings.accountSection.deleteAccountConsequences')}</h4>
               <ul>
-                <li><X size={14} /> {accountSection.deleteAccountConsequence1 || 'All websites linked to this account'}</li>
-                <li><X size={14} /> {accountSection.deleteAccountConsequence2 || 'All content, keywords, and data'}</li>
-                <li><X size={14} /> {accountSection.deleteAccountConsequence3 || 'All team members will lose access'}</li>
-                <li><X size={14} /> {accountSection.deleteAccountConsequence4 || 'Subscription will be cancelled without refund'}</li>
+                <li><X size={14} /> {t('settings.accountSection.deleteAccountConsequence1')}</li>
+                <li><X size={14} /> {t('settings.accountSection.deleteAccountConsequence2')}</li>
+                <li><X size={14} /> {t('settings.accountSection.deleteAccountConsequence3')}</li>
+                <li><X size={14} /> {t('settings.accountSection.deleteAccountConsequence4')}</li>
               </ul>
             </div>
-            
+
             <div className={styles.deleteAccountConfirm}>
               <label className={styles.deleteAccountConfirmLabel}>
-                {accountSection.deleteAccountConfirmLabel || `To confirm, type "${requiredConfirmText}" in the field below:`}
+                {t('settings.accountSection.deleteAccountConfirmLabel')}
               </label>
               <input
                 type="text"
                 className={styles.deleteAccountInput}
                 value={deleteConfirmText}
                 onChange={(e) => setDeleteConfirmText(e.target.value)}
-                placeholder={accountSection.deleteAccountConfirmPlaceholder || `Type ${requiredConfirmText}`}
+                placeholder={t('settings.accountSection.deleteAccountConfirmPlaceholder')}
                 disabled={isDeleting}
               />
             </div>
-            
+
             {deleteError && (
               <div className={styles.deleteAccountError}>
                 {deleteError}
               </div>
             )}
-            
+
             <div className={styles.deleteAccountActions}>
-              <button 
+              <button
                 className={styles.deleteAccountCancelBtn}
                 onClick={() => setShowDeleteModal(false)}
                 disabled={isDeleting}
               >
-                {accountSection.deleteAccountCancel || 'Cancel'}
+                {t('settings.accountSection.deleteAccountCancel')}
               </button>
-              <button 
+              <button
                 className={styles.deleteAccountConfirmBtn}
                 onClick={handleDeleteAccount}
                 disabled={!canDelete || isDeleting}
@@ -5404,14 +5458,53 @@ function AccountSettings({ translations, canEdit = true }) {
                 {isDeleting ? (
                   <>
                     <Loader2 size={16} className={styles.spinningIcon} />
-                    {accountSection.deleteAccountDeleting || 'Deleting...'}
+                    {t('settings.accountSection.deleteAccountDeleting')}
                   </>
                 ) : (
                   <>
                     <Trash2 size={16} />
-                    {accountSection.deleteAccountButton || 'Delete Account Permanently'}
+                    {t('settings.accountSection.deleteAccountButton')}
                   </>
                 )}
+              </button>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
+
+      {/* Archive-success grace modal. Non-dismissable; auto-logs-out after 5 min. */}
+      {archiveGrace && createPortal(
+        <div className={styles.modalOverlay}>
+          <div className={styles.deleteAccountModal} onClick={(e) => e.stopPropagation()}>
+            <div className={styles.deleteAccountHeader}>
+              <AlertTriangle className={styles.deleteAccountIcon} />
+              <h2 className={styles.deleteAccountTitle}>
+                {t('settings.accountSection.archivedTitle')}
+              </h2>
+            </div>
+
+            <div className={styles.deleteAccountWarning}>
+              {t('settings.accountSection.archivedBody', {
+                deadline: formatRestoreDeadline(archiveGrace.restoreExpiresAt),
+              })}
+            </div>
+
+            <div className={styles.deleteAccountConsequences}>
+              <p style={{ margin: 0 }}>
+                {t('settings.accountSection.archivedLogoutNotice', {
+                  countdown: formatGraceCountdown(graceSecondsLeft),
+                })}
+              </p>
+            </div>
+
+            <div className={styles.deleteAccountActions}>
+              <button
+                className={styles.deleteAccountConfirmBtn}
+                onClick={logoutNow}
+              >
+                <LogOut size={16} />
+                {t('settings.accountSection.archivedLogoutNow')}
               </button>
             </div>
           </div>

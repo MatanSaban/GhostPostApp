@@ -72,12 +72,12 @@ export default function CouponsPage() {
 
   // Predefined limitation keys (matching account-limits.js)
   const limitationKeys = [
-    { key: 'maxSites', label: 'Websites' },
-    { key: 'maxMembers', label: 'Team Members' },
-    { key: 'aiCredits', label: 'AI Credits' },
-    { key: 'maxKeywords', label: 'Keywords' },
-    { key: 'maxContent', label: 'Content Items' },
-    { key: 'siteAudits', label: 'Site Audits' },
+    { key: 'maxSites', label: t('admin.plans.form.maxSites') },
+    { key: 'maxMembers', label: t('admin.plans.form.maxMembers') },
+    { key: 'aiCredits', label: t('admin.plans.form.aiCredits') },
+    { key: 'maxKeywords', label: t('admin.plans.form.maxKeywords') },
+    { key: 'maxContent', label: t('admin.plans.form.maxContent') },
+    { key: 'siteAudits', label: t('admin.plans.form.siteAudits') },
   ];
 
   const loadCoupons = useCallback(async () => {
@@ -171,7 +171,7 @@ export default function CouponsPage() {
 
       if (!res.ok) {
         const err = await res.json();
-        alert(err.error || 'Failed to save coupon');
+        alert(err.error || t('admin.common.saveFailed'));
         return;
       }
 
@@ -179,7 +179,7 @@ export default function CouponsPage() {
       loadCoupons();
     } catch (err) {
       console.error('Error saving coupon:', err);
-      alert('Failed to save coupon');
+      alert(t('admin.common.saveFailed'));
     } finally {
       setIsSubmitting(false);
     }
@@ -197,7 +197,7 @@ export default function CouponsPage() {
       const res = await fetch(`/api/admin/coupons/${couponToDelete.id}`, { method: 'DELETE' });
       if (!res.ok) {
         const err = await res.json();
-        alert(err.error || 'Failed to delete coupon');
+        alert(err.error || t('admin.common.deleteFailed'));
         return;
       }
       setDeleteDialogOpen(false);
@@ -400,7 +400,7 @@ export default function CouponsPage() {
           </div>
         </div>
         <div className={styles.toolbarRight}>
-          <button className={styles.refreshButton} onClick={loadCoupons} title="Refresh">
+          <button className={styles.refreshButton} onClick={loadCoupons} title={t('admin.common.refresh')}>
             <RefreshCw size={16} />
           </button>
           <Button variant="primary" onClick={handleAdd}>
@@ -442,7 +442,7 @@ export default function CouponsPage() {
                       <button
                         className={styles.actionButton}
                         onClick={() => copyCode(coupon.code)}
-                        title="Copy code"
+                        title={t('admin.coupons.actions.copyCode')}
                         style={{ width: '1.5rem', height: '1.5rem' }}
                       >
                         <Copy size={12} />
@@ -531,10 +531,10 @@ export default function CouponsPage() {
                       <Button variant="icon" onClick={() => handleTranslate(coupon)} title={t('admin.coupons.actions.translate') || 'Translate'}>
                         <Languages size={14} />
                       </Button>
-                      <Button variant="icon" onClick={() => handleEdit(coupon)} title="Edit">
+                      <Button variant="icon" onClick={() => handleEdit(coupon)} title={t('admin.common.edit')}>
                         <Edit2 size={14} />
                       </Button>
-                      <Button variant="icon" iconDanger onClick={() => handleDeleteClick(coupon)} title="Delete">
+                      <Button variant="icon" iconDanger onClick={() => handleDeleteClick(coupon)} title={t('admin.common.delete')}>
                         <Trash2 size={14} />
                       </Button>
                     </div>

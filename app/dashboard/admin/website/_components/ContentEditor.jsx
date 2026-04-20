@@ -2,27 +2,28 @@
 
 import { useState, useCallback } from 'react';
 import { ChevronDown, ChevronRight, Plus, Trash2, GripVertical } from 'lucide-react';
+import { useLocale } from '@/app/context/locale-context';
 import styles from './ContentEditor.module.css';
 
 // Pages that have content in the dictionary
 const PAGE_KEYS = [
-  { key: 'metadata', label: 'Metadata (Global)' },
-  { key: 'nav', label: 'Navigation' },
-  { key: 'hero', label: 'Hero Section' },
-  { key: 'features', label: 'Features' },
-  { key: 'howItWorks', label: 'How It Works' },
-  { key: 'pricing', label: 'Pricing' },
-  { key: 'cta', label: 'CTA Section' },
-  { key: 'about', label: 'About Page' },
-  { key: 'contact', label: 'Contact Page' },
-  { key: 'faq', label: 'FAQ Page' },
-  { key: 'blog', label: 'Blog' },
-  { key: 'blogPost', label: 'Blog Post' },
-  { key: 'footer', label: 'Footer' },
-  { key: 'auth', label: 'Auth Pages' },
-  { key: 'terms', label: 'Terms of Service' },
-  { key: 'privacy', label: 'Privacy Policy' },
-  { key: 'common', label: 'Common Texts' }
+  'metadata',
+  'nav',
+  'hero',
+  'features',
+  'howItWorks',
+  'pricing',
+  'cta',
+  'about',
+  'contact',
+  'faq',
+  'blog',
+  'blogPost',
+  'footer',
+  'auth',
+  'terms',
+  'privacy',
+  'common'
 ];
 
 // Field types for smarter editing
@@ -47,6 +48,7 @@ function getFieldType(key, value) {
 
 // Recursive field editor
 function FieldEditor({ fieldKey, value, path, onChange, level = 0 }) {
+  const { t } = useLocale();
   const [isExpanded, setIsExpanded] = useState(level < 2);
   const fieldType = getFieldType(fieldKey, value);
   const fullPath = path ? `${path}.${fieldKey}` : fieldKey;
@@ -65,7 +67,7 @@ function FieldEditor({ fieldKey, value, path, onChange, level = 0 }) {
         >
           {isExpanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
           <span className={styles.fieldKey}>{fieldKey}</span>
-          <span className={styles.arrayCount}>{value.length} items</span>
+          <span className={styles.arrayCount}>{t('admin.website.contentEditor.itemCount', { count: value.length })}</span>
         </div>
         
         {isExpanded && (
@@ -127,7 +129,7 @@ function FieldEditor({ fieldKey, value, path, onChange, level = 0 }) {
               }}
             >
               <Plus size={14} />
-              Add Item
+              {t('admin.website.contentEditor.addItem')}
             </button>
           </div>
         )}
@@ -145,7 +147,7 @@ function FieldEditor({ fieldKey, value, path, onChange, level = 0 }) {
         >
           {isExpanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
           <span className={styles.fieldKey}>{fieldKey}</span>
-          <span className={styles.fieldCount}>{Object.keys(value).length} fields</span>
+          <span className={styles.fieldCount}>{t('admin.website.contentEditor.fieldCount', { count: Object.keys(value).length })}</span>
         </div>
         
         {isExpanded && (
@@ -196,6 +198,7 @@ function FieldEditor({ fieldKey, value, path, onChange, level = 0 }) {
 }
 
 export default function ContentEditor({ content, onChange, pageId }) {
+  const { t } = useLocale();
   const [expandedSections, setExpandedSections] = useState(['metadata', 'hero']);
 
   const toggleSection = (key) => {
@@ -233,7 +236,7 @@ export default function ContentEditor({ content, onChange, pageId }) {
   }, [content, onChange]);
 
   if (!content) {
-    return <div className={styles.empty}>No content loaded</div>;
+    return <div className={styles.empty}>{t('admin.website.contentEditor.empty')}</div>;
   }
 
   // Single page mode - show fields directly without section accordion
@@ -258,18 +261,18 @@ export default function ContentEditor({ content, onChange, pageId }) {
   // Full dictionary mode - show all sections
   return (
     <div className={styles.editor}>
-      {PAGE_KEYS.map(({ key, label }) => {
+      {PAGE_KEYS.map((key) => {
         if (!content[key]) return null;
         const isExpanded = expandedSections.includes(key);
-        
+
         return (
           <div key={key} className={styles.section}>
-            <div 
+            <div
               className={styles.sectionHeader}
               onClick={() => toggleSection(key)}
             >
               {isExpanded ? <ChevronDown size={18} /> : <ChevronRight size={18} />}
-              <span className={styles.sectionTitle}>{label}</span>
+              <span className={styles.sectionTitle}>{t(`admin.website.contentEditor.pages.${key}`)}</span>
               <span className={styles.sectionKey}>{key}</span>
             </div>
             

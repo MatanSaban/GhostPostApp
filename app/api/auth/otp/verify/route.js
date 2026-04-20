@@ -3,40 +3,45 @@ import { cookies } from 'next/headers';
 import prisma from '@/lib/prisma';
 
 const MAX_ATTEMPTS = 5;
-const TEMP_REG_COOKIE = 'temp_reg_id';
+const SESSION_COOKIE = 'user_session';
 
 export async function POST(request) {
   try {
     const body = await request.json();
-    const { tempRegId, code } = body;
+    const { code } = body;
 
-    // Get tempRegId from body or cookie
-    const cookieStore = await cookies();
-    const cookieTempRegId = cookieStore.get(TEMP_REG_COOKIE)?.value;
-    const id = tempRegId || cookieTempRegId;
-
-    if (!id || !code) {
+    if (!code) {
       return NextResponse.json(
-        { error: 'Missing tempRegId or code' },
+        { error: 'Missing verification code' },
         { status: 400 }
       );
     }
 
-    // Find the temp registration
-    const tempReg = await prisma.tempRegistration.findUnique({
-      where: { id },
+    const cookieStore = await cookies();
+    const sessionUserId = cookieStore.get(SESSION_COOKIE)?.value;
+
+    if (!sessionUserId) {
+      return NextResponse.json(
+        { error: 'No registration in progress' },
+        { status: 400 }
+      );
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { id: sessionUserId },
+      select: { id: true, registrationStep: true },
     });
 
-    if (!tempReg) {
+    if (!user) {
+      cookieStore.delete(SESSION_COOKIE);
       return NextResponse.json(
         { error: 'Registration not found. Please start over.' },
         { status: 404 }
       );
     }
 
-    // Find the most recent OTP for this temp registration
     const otpCode = await prisma.otpCode.findFirst({
-      where: { tempRegId: id },
+      where: { userId: user.id },
       orderBy: { createdAt: 'desc' },
     });
 
@@ -47,7 +52,6 @@ export async function POST(request) {
       );
     }
 
-    // Check if already verified
     if (otpCode.verified) {
       return NextResponse.json(
         { error: 'This code has already been used' },
@@ -55,7 +59,6 @@ export async function POST(request) {
       );
     }
 
-    // Check if expired
     if (new Date() > otpCode.expiresAt) {
       return NextResponse.json(
         { error: 'OTP code has expired. Please request a new one.' },
@@ -63,7 +66,6 @@ export async function POST(request) {
       );
     }
 
-    // Check max attempts
     if (otpCode.attempts >= MAX_ATTEMPTS) {
       return NextResponse.json(
         { error: 'Too many failed attempts. Please request a new code.' },
@@ -71,9 +73,7 @@ export async function POST(request) {
       );
     }
 
-    // Verify the code
     if (otpCode.code !== code) {
-      // Increment attempts
       await prisma.otpCode.update({
         where: { id: otpCode.id },
         data: { attempts: otpCode.attempts + 1 },
@@ -81,28 +81,30 @@ export async function POST(request) {
 
       const remainingAttempts = MAX_ATTEMPTS - otpCode.attempts - 1;
       return NextResponse.json(
-        { 
-          error: 'Invalid code',
-          remainingAttempts,
-        },
+        { error: 'Invalid code', remainingAttempts },
         { status: 400 }
       );
     }
 
-    // Code is valid - mark as verified
     await prisma.otpCode.update({
       where: { id: otpCode.id },
       data: { verified: true },
     });
 
-    // Update temp registration verification status and step
-    const updateData = otpCode.method === 'SMS' 
-      ? { phoneVerified: new Date(), currentStep: 'ACCOUNT_SETUP' }
-      : { emailVerified: new Date(), currentStep: 'ACCOUNT_SETUP' };
+    const verificationData = otpCode.method === 'SMS'
+      ? { phoneVerified: new Date() }
+      : { emailVerified: new Date() };
 
-    await prisma.tempRegistration.update({
-      where: { id },
-      data: updateData,
+    // Advance registration step only if still at VERIFY; don't regress a user
+    // who somehow re-verifies after progressing further.
+    await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        ...verificationData,
+        ...(user.registrationStep === 'VERIFY'
+          ? { registrationStep: 'ACCOUNT_SETUP' }
+          : {}),
+      },
     });
 
     return NextResponse.json({

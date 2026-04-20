@@ -10,6 +10,7 @@ import {
   Download,
   User,
 } from 'lucide-react';
+import { useLocale } from '@/app/context/locale-context';
 import { useUser } from '@/app/context/user-context';
 import styles from '../../admin-dashboard.module.css';
 
@@ -17,6 +18,7 @@ export default function UserAnalyticsPage() {
   const router = useRouter();
   const { id } = useParams();
   const searchParams = useSearchParams();
+  const { t } = useLocale();
   const { isSuperAdmin, isLoading: isUserLoading } = useUser();
 
   const [data, setData] = useState(null);
@@ -81,7 +83,16 @@ export default function UserAnalyticsPage() {
 
   const handleExportCSV = () => {
     if (!data?.usageData?.length) return;
-    const headers = ['Date', 'Account', 'Action Type', 'Model', 'Input Tokens', 'Output Tokens', 'Credits', 'Cost (USD)'];
+    const headers = [
+      t('admin.userAnalytics.usageLog.columns.date'),
+      t('admin.userAnalytics.usageLog.columns.account'),
+      t('admin.userAnalytics.usageLog.columns.actionType'),
+      t('admin.userAnalytics.usageLog.columns.model'),
+      t('admin.userAnalytics.usageLog.columns.inputTokens'),
+      t('admin.userAnalytics.usageLog.columns.outputTokens'),
+      t('admin.userAnalytics.usageLog.columns.credits'),
+      t('admin.userAnalytics.usageLog.columns.costUsd'),
+    ];
     const rows = data.usageData.map(row => [
       new Date(row.date).toISOString().slice(0, 19).replace('T', ' '),
       row.accountName,
@@ -120,7 +131,7 @@ export default function UserAnalyticsPage() {
         <div className={styles.errorState}>
           <AlertTriangle size={48} />
           <p>{error}</p>
-          <button onClick={() => fetchData()} className={styles.retryButton}>Retry</button>
+          <button onClick={() => fetchData()} className={styles.retryButton}>{t('admin.userAnalytics.retry')}</button>
         </div>
       </div>
     );
@@ -134,7 +145,7 @@ export default function UserAnalyticsPage() {
       {/* Back link */}
       <Link href="/dashboard/admin" className={styles.backLink}>
         <ArrowLeft size={18} />
-        Back to Admin Dashboard
+        {t('admin.userAnalytics.back')}
       </Link>
 
       {/* Header */}
@@ -145,14 +156,14 @@ export default function UserAnalyticsPage() {
             <div>
               <h1 className={styles.title}>{user.name}</h1>
               <p className={styles.subtitle}>
-                {user.email} &middot; Total AI Cost: ${totalAICost.toFixed(4)}
+                {t('admin.userAnalytics.header.details', { email: user.email, cost: totalAICost.toFixed(4) })}
               </p>
             </div>
           </div>
         </div>
         <button className={styles.filterButton} onClick={handleExportCSV}>
           <Download size={16} style={{ marginRight: 4, verticalAlign: 'text-bottom' }} />
-          Export CSV
+          {t('admin.userAnalytics.exportCsv')}
         </button>
       </div>
 
@@ -176,7 +187,7 @@ export default function UserAnalyticsPage() {
       {/* Filters */}
       <div className={styles.filtersBar}>
         <div className={styles.filterGroup}>
-          <span className={styles.filterLabel}>Date Range</span>
+          <span className={styles.filterLabel}>{t('admin.userAnalytics.filters.dateRange')}</span>
           <div className={styles.filterRow}>
             <input
               type="date"
@@ -184,7 +195,7 @@ export default function UserAnalyticsPage() {
               value={filters.from}
               onChange={e => setFilters(f => ({ ...f, from: e.target.value }))}
             />
-            <span className={styles.filterSeparator}>to</span>
+            <span className={styles.filterSeparator}>{t('admin.userAnalytics.filters.to')}</span>
             <input
               type="date"
               className={styles.filterInput}
@@ -195,23 +206,23 @@ export default function UserAnalyticsPage() {
         </div>
 
         <div className={styles.filterGroup}>
-          <span className={styles.filterLabel}>Cost ($)</span>
+          <span className={styles.filterLabel}>{t('admin.userAnalytics.filters.cost')}</span>
           <div className={styles.filterRow}>
             <input
               type="number"
               step="0.01"
               min="0"
-              placeholder="Min"
+              placeholder={t('admin.userAnalytics.filters.min')}
               className={`${styles.filterInput} ${styles.filterInputSmall}`}
               value={filters.minCost}
               onChange={e => setFilters(f => ({ ...f, minCost: e.target.value }))}
             />
-            <span className={styles.filterSeparator}>-</span>
+            <span className={styles.filterSeparator}>{t('admin.userAnalytics.filters.dash')}</span>
             <input
               type="number"
               step="0.01"
               min="0"
-              placeholder="Max"
+              placeholder={t('admin.userAnalytics.filters.max')}
               className={`${styles.filterInput} ${styles.filterInputSmall}`}
               value={filters.maxCost}
               onChange={e => setFilters(f => ({ ...f, maxCost: e.target.value }))}
@@ -220,21 +231,21 @@ export default function UserAnalyticsPage() {
         </div>
 
         <div className={styles.filterGroup}>
-          <span className={styles.filterLabel}>Tokens</span>
+          <span className={styles.filterLabel}>{t('admin.userAnalytics.filters.tokens')}</span>
           <div className={styles.filterRow}>
             <input
               type="number"
               min="0"
-              placeholder="Min"
+              placeholder={t('admin.userAnalytics.filters.min')}
               className={`${styles.filterInput} ${styles.filterInputSmall}`}
               value={filters.minTokens}
               onChange={e => setFilters(f => ({ ...f, minTokens: e.target.value }))}
             />
-            <span className={styles.filterSeparator}>-</span>
+            <span className={styles.filterSeparator}>{t('admin.userAnalytics.filters.dash')}</span>
             <input
               type="number"
               min="0"
-              placeholder="Max"
+              placeholder={t('admin.userAnalytics.filters.max')}
               className={`${styles.filterInput} ${styles.filterInputSmall}`}
               value={filters.maxTokens}
               onChange={e => setFilters(f => ({ ...f, maxTokens: e.target.value }))}
@@ -243,21 +254,21 @@ export default function UserAnalyticsPage() {
         </div>
 
         <div className={styles.filterGroup}>
-          <span className={styles.filterLabel}>Credits</span>
+          <span className={styles.filterLabel}>{t('admin.userAnalytics.filters.credits')}</span>
           <div className={styles.filterRow}>
             <input
               type="number"
               min="0"
-              placeholder="Min"
+              placeholder={t('admin.userAnalytics.filters.min')}
               className={`${styles.filterInput} ${styles.filterInputSmall}`}
               value={filters.minCredits}
               onChange={e => setFilters(f => ({ ...f, minCredits: e.target.value }))}
             />
-            <span className={styles.filterSeparator}>-</span>
+            <span className={styles.filterSeparator}>{t('admin.userAnalytics.filters.dash')}</span>
             <input
               type="number"
               min="0"
-              placeholder="Max"
+              placeholder={t('admin.userAnalytics.filters.max')}
               className={`${styles.filterInput} ${styles.filterInputSmall}`}
               value={filters.maxCredits}
               onChange={e => setFilters(f => ({ ...f, maxCredits: e.target.value }))}
@@ -267,30 +278,30 @@ export default function UserAnalyticsPage() {
 
         <button className={styles.filterButton} onClick={handleApplyFilters}>
           <Filter size={14} style={{ marginRight: 4, verticalAlign: 'text-bottom' }} />
-          Apply
+          {t('admin.userAnalytics.filters.apply')}
         </button>
         <button className={styles.clearButton} onClick={handleClearFilters}>
-          Clear
+          {t('admin.userAnalytics.filters.clear')}
         </button>
       </div>
 
       {/* Usage Data Table */}
       <div className={styles.tableCard}>
         <h2 className={styles.sectionTitle}>
-          AI Usage Log ({usageData.length} {usageData.length === 1 ? 'entry' : 'entries'})
+          {t('admin.userAnalytics.usageLog.title')} ({usageData.length === 1 ? t('admin.userAnalytics.usageLog.entry') : t('admin.userAnalytics.usageLog.entries', { count: usageData.length })})
         </h2>
         <div className={styles.tableContainer}>
           <table className={styles.table}>
             <thead className={styles.tableHeader}>
               <tr>
-                <th>Date</th>
-                <th>Account</th>
-                <th>Action Type</th>
-                <th>Model</th>
-                <th>Input Tokens</th>
-                <th>Output Tokens</th>
-                <th>Credits</th>
-                <th>Cost (USD)</th>
+                <th>{t('admin.userAnalytics.usageLog.columns.date')}</th>
+                <th>{t('admin.userAnalytics.usageLog.columns.account')}</th>
+                <th>{t('admin.userAnalytics.usageLog.columns.actionType')}</th>
+                <th>{t('admin.userAnalytics.usageLog.columns.model')}</th>
+                <th>{t('admin.userAnalytics.usageLog.columns.inputTokens')}</th>
+                <th>{t('admin.userAnalytics.usageLog.columns.outputTokens')}</th>
+                <th>{t('admin.userAnalytics.usageLog.columns.credits')}</th>
+                <th>{t('admin.userAnalytics.usageLog.columns.costUsd')}</th>
               </tr>
             </thead>
             <tbody className={styles.tableBody}>
@@ -322,7 +333,7 @@ export default function UserAnalyticsPage() {
               {usageData.length === 0 && (
                 <tr>
                   <td colSpan={8} className={styles.emptyCell}>
-                    No usage data found for the selected filters
+                    {t('admin.userAnalytics.usageLog.empty')}
                   </td>
                 </tr>
               )}

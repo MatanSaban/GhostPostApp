@@ -1,19 +1,19 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import prisma from '@/lib/prisma';
+import { getDraftAccountForUser } from '@/lib/draft-account';
 
-const TEMP_REG_COOKIE = 'temp_reg_id';
+const SESSION_COOKIE = 'user_session';
 
 export async function POST(request) {
   try {
     const body = await request.json();
     const { name, slug } = body;
 
-    // Get tempRegId from cookie
     const cookieStore = await cookies();
-    const tempRegId = cookieStore.get(TEMP_REG_COOKIE)?.value;
+    const sessionUserId = cookieStore.get(SESSION_COOKIE)?.value;
 
-    if (!tempRegId) {
+    if (!sessionUserId) {
       return NextResponse.json(
         { error: 'No registration in progress' },
         { status: 400 }
@@ -27,7 +27,6 @@ export async function POST(request) {
       );
     }
 
-    // Validate slug format
     const slugRegex = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
     if (!slugRegex.test(slug)) {
       return NextResponse.json(
@@ -36,63 +35,64 @@ export async function POST(request) {
       );
     }
 
-    // Find the temp registration
-    const tempReg = await prisma.tempRegistration.findUnique({
-      where: { id: tempRegId },
+    const user = await prisma.user.findUnique({
+      where: { id: sessionUserId },
+      select: { id: true, registrationStep: true, emailVerified: true, phoneVerified: true },
     });
 
-    if (!tempReg) {
-      cookieStore.delete(TEMP_REG_COOKIE);
+    if (!user) {
+      cookieStore.delete(SESSION_COOKIE);
       return NextResponse.json(
         { error: 'Registration not found. Please start over.' },
         { status: 404 }
       );
     }
 
-    // Check if slug is already taken by an existing account
-    const existingAccount = await prisma.account.findUnique({
-      where: { slug },
+    if (user.registrationStep === 'VERIFY' && !user.emailVerified && !user.phoneVerified) {
+      return NextResponse.json(
+        { error: 'Verification required before account setup' },
+        { status: 400 }
+      );
+    }
+
+    const draftAccount = await getDraftAccountForUser(user.id);
+
+    if (!draftAccount) {
+      return NextResponse.json(
+        { error: 'No draft account found. Please start over.' },
+        { status: 404 }
+      );
+    }
+
+    // Check the chosen slug isn't taken by another account.
+    const conflict = await prisma.account.findFirst({
+      where: { slug, id: { not: draftAccount.id } },
       select: { id: true },
     });
 
-    if (existingAccount) {
+    if (conflict) {
       return NextResponse.json(
         { error: 'This slug is already taken' },
         { status: 409 }
       );
     }
 
-    // Check if slug is reserved by another temp registration
-    const existingTempReg = await prisma.tempRegistration.findFirst({
-      where: {
-        accountSlug: slug,
-        id: { not: tempRegId },
-      },
+    await prisma.account.update({
+      where: { id: draftAccount.id },
+      data: { name, slug },
     });
 
-    if (existingTempReg) {
-      return NextResponse.json(
-        { error: 'This slug is already taken' },
-        { status: 409 }
-      );
+    // Advance registration step unless the user is further along already.
+    if (['VERIFY', 'ACCOUNT_SETUP'].includes(user.registrationStep)) {
+      await prisma.user.update({
+        where: { id: user.id },
+        data: { registrationStep: 'INTERVIEW' },
+      });
     }
-
-    // Update temp registration with account info
-    await prisma.tempRegistration.update({
-      where: { id: tempRegId },
-      data: {
-        accountName: name,
-        accountSlug: slug,
-        currentStep: 'INTERVIEW',
-      },
-    });
 
     return NextResponse.json({
       success: true,
-      accountSetup: {
-        name,
-        slug,
-      },
+      accountSetup: { name, slug },
     });
   } catch (error) {
     console.error('Account setup error:', error);

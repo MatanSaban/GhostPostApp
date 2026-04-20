@@ -7,7 +7,6 @@ import { enforceCredits } from '@/lib/account-limits';
 import { z } from 'zod';
 
 const SESSION_COOKIE = 'user_session';
-const TEMP_REG_COOKIE = 'temp_reg_id';
 
 /**
  * POST /api/interview/analyze
@@ -24,10 +23,9 @@ export async function POST(request) {
   try {
     const cookieStore = await cookies();
     const userId = cookieStore.get(SESSION_COOKIE)?.value;
-    const tempRegId = cookieStore.get(TEMP_REG_COOKIE)?.value;
 
-    // Allow both logged-in users and users in registration flow
-    if (!userId && !tempRegId) {
+    // Registered users AND mid-registration draft users both carry user_session.
+    if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 

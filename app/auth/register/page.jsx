@@ -185,6 +185,8 @@ export default async function RegisterPage({ searchParams }) {
       days: t('registration.payment.days'),
       vat: t('registration.payment.vat'),
       total: t('registration.payment.total'),
+      recurringMonthly: t('registration.payment.recurringMonthly'),
+      billingDisclaimer: t('registration.payment.billingDisclaimer'),
       coupon: {
         label: t('registration.payment.coupon.label'),
         placeholder: t('registration.payment.coupon.placeholder'),

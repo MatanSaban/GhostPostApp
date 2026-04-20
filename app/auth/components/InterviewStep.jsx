@@ -15,7 +15,7 @@ export function InterviewStep({ translations, onComplete, initialData = {}, onAn
   const questions = [
     {
       id: 'websiteUrl',
-      question: t('interviewWizard.questions.websiteUrl'),
+      question: t('registration.interview.questions.websiteUrl'),
       field: 'websiteUrl',
     },
     {

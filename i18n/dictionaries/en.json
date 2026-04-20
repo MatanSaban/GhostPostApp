@@ -213,6 +213,7 @@
   "auth": {
     "login": "Log In",
     "logout": "Log Out",
+    "loggingOut": "Logging out...",
     "register": "Sign Up",
     "firstName": "First Name",
     "lastName": "Last Name",
@@ -3915,23 +3916,28 @@
       "confirmNewPassword": "Confirm New Password",
       "confirmPasswordPlaceholder": "Confirm new password",
       "dangerZone": "Danger Zone",
+      "deleteOwnerOnly": "Only the account owner can delete this organization.",
       "deleteAccount": "Delete Account",
-      "deleteAccountDesc": "Permanently delete your account and all data",
-      "deleteAccountTitle": "Delete Account Permanently",
-      "deleteAccountWarning": "This action is irreversible. Once your account is deleted, the data cannot be recovered.",
-      "deleteAccountConsequences": "What will be deleted:",
-      "deleteAccountConsequence1": "All websites linked to this account",
-      "deleteAccountConsequence2": "All content, keywords, and data",
-      "deleteAccountConsequence3": "All team members will lose access",
-      "deleteAccountConsequence4": "Subscription will be cancelled without refund",
+      "deleteAccountDesc": "Archive this organization and all its data. You'll have 14 days to restore it.",
+      "deleteAccountTitle": "Delete Account",
+      "deleteAccountWarning": "Your organization and all its data will be archived. You have 14 days to restore it — after that, everything will be permanently deleted.",
+      "deleteAccountConsequences": "What happens when you delete:",
+      "deleteAccountConsequence1": "All websites linked to this account will be deactivated",
+      "deleteAccountConsequence2": "All content, keywords, and data will be hidden",
+      "deleteAccountConsequence3": "All team members will lose access immediately",
+      "deleteAccountConsequence4": "Your subscription will remain paused during the 14-day window",
       "deleteAccountConfirmLabel": "To confirm, type \"DELETE ACCOUNT\" in the field below:",
       "deleteAccountConfirmPlaceholder": "Type DELETE ACCOUNT",
       "deleteAccountConfirmText": "DELETE ACCOUNT",
-      "deleteAccountButton": "Delete Account Permanently",
+      "deleteAccountButton": "Delete Account",
       "deleteAccountCancel": "Cancel",
       "deleteAccountDeleting": "Deleting...",
-      "deleteAccountSuccess": "Account deleted successfully",
-      "deleteAccountError": "Error deleting account"
+      "deleteAccountSuccess": "Account archived successfully",
+      "deleteAccountError": "Failed to delete account",
+      "archivedTitle": "Account archived",
+      "archivedBody": "Your organization and all its sites have been archived. You can restore everything until {deadline}. After that, your data will be permanently deleted.",
+      "archivedLogoutNotice": "You will be logged out automatically in {countdown}.",
+      "archivedLogoutNow": "Log out now"
     },
     "integrations": "Integrations"
   },
@@ -4160,7 +4166,11 @@
     "logo": {
       "title": "Organization Logo",
       "change": "Change Logo",
-      "hint": "Upload your organization's logo. Recommended size: 200x200px. Supported formats: JPG, PNG, GIF."
+      "hint": "Upload your organization's logo. Recommended size: 200x200px. Supported formats: JPG, PNG, GIF.",
+      "iconLabel": "Logo Icon",
+      "iconHint": "Square, 60x60px",
+      "organizationLogoAlt": "Organization logo",
+      "wideLogoAlt": "Wide logo"
     },
     "general": {
       "title": "General Information"
@@ -4177,14 +4187,17 @@
       "slug": "Account URL Slug",
       "slugHint": "This cannot be changed after creation",
       "website": "Website",
+      "websitePlaceholder": "https://example.com",
       "industry": "Industry",
       "selectIndustry": "Select an industry",
       "timezone": "Timezone",
       "defaultLanguage": "Default Language",
       "generalEmail": "General Contact Email",
       "generalEmailHint": "Used for general communications and notifications",
+      "generalEmailPlaceholder": "contact@company.com",
       "billingEmail": "Billing Email",
-      "billingEmailHint": "Used for invoices and billing notifications"
+      "billingEmailHint": "Used for invoices and billing notifications",
+      "billingEmailPlaceholder": "billing@company.com"
     },
     "industries": {
       "technology": "Technology",
@@ -4201,6 +4214,20 @@
     "dangerZone": "Danger Zone",
     "deleteAccount": "Delete Account",
     "deleteAccountDesc": "Permanently delete your organization account and all associated data"
+  },
+  "restoreAccount": {
+    "title": "Restore your archived account",
+    "description": "Your organization has been archived. Restore it now to regain access to all sites, content, and team members.",
+    "noneTitle": "Nothing to restore",
+    "noneDescription": "You don't have any archived accounts that can be restored.",
+    "archivedOn": "Archived on",
+    "restoreDeadline": "Restore by",
+    "siteCount": "{count} sites",
+    "restoreButton": "Restore account",
+    "restoring": "Restoring...",
+    "loadError": "Failed to load archived accounts.",
+    "restoreError": "Failed to restore account.",
+    "goToDashboard": "Go to dashboard"
   },
   "sites": {
     "selectSite": "Select a site",
@@ -5178,7 +5205,7 @@
       "namePlaceholder": "Enter your organization name",
       "slugLabel": "Organization URL",
       "slugPlaceholder": "your-organization",
-      "slugPrefix": "ghostpost.com/",
+      "slugPrefix": "ghostpost.co.il/",
       "slugHint": "This will be your unique URL. Only lowercase letters, numbers, and hyphens allowed.",
       "slugAvailable": "Available!",
       "slugTooShort": "Slug must be at least 3 characters",
@@ -5199,7 +5226,7 @@
       "greeting": "Welcome to GhostPost! I'm your AI assistant and I'll help you set up your account. Let's learn about your business to create the perfect SEO strategy.",
       "startButton": "Start Setup",
       "questions": {
-        "websiteUrl": "What is your website address?",
+        "websiteUrl": "Which site would you like to add to GhostPost first?",
         "contentLanguage": "What language should your content be written in?",
         "businessConfirmation": "Does this information look correct?",
         "keywords": "Select keywords relevant to your business",
@@ -5435,7 +5462,9 @@
       "days": "days",
       "vat": "VAT (18%)",
       "confirmFree": "Confirm",
-      "total": "Total",
+      "total": "Total to pay now",
+      "recurringMonthly": "Recurring monthly payment",
+      "billingDisclaimer": "We will charge you {now} now on a prorated basis, and starting on {date} we will charge you {recurring} on the 1st of every month.",
       "coupon": {
         "label": "Coupon Code",
         "placeholder": "Enter coupon code",
@@ -5721,6 +5750,7 @@
       },
       "noPlans": "No plans configured",
       "form": {
+        "slug": "Slug",
         "monthly": "Monthly",
         "yearly": "Yearly",
         "yearlyPlaceholder": "Leave empty for price × 10",
@@ -5821,6 +5851,12 @@
       },
       "noAddOns": "No add-ons configured",
       "quantityHint": "Leave empty for add-ons that provide +1 of a resource (like additional seats or sites)",
+      "placeholders": {
+        "name": "e.g., AI Credits Pack - 10K",
+        "key": "e.g., ai-credits-10k",
+        "description": "Describe what this add-on provides...",
+        "quantity": "e.g., 10000 for AI credits pack"
+      },
       "stats": {
         "total": "Total Add-Ons",
         "active": "Active Add-Ons",
@@ -5850,7 +5886,8 @@
       "actions": {
         "edit": "Edit Coupon",
         "delete": "Delete Coupon",
-        "translate": "Translate"
+        "translate": "Translate",
+        "copyCode": "Copy code"
       },
       "translations": {
         "selectLanguage": "Select Language",
@@ -5980,7 +6017,8 @@
       "form": {
         "questionKey": "Translation Key",
         "placeholder": "Placeholder Text",
-        "commaSeparated": "comma-separated"
+        "commaSeparated": "comma-separated",
+        "optionsPlaceholder": "Option 1, Option 2, Option 3"
       }
     },
     "faq": {
@@ -6020,6 +6058,23 @@
         "active": "Active",
         "question": "Question",
         "answer": "Answer"
+      },
+      "pageOptions": {
+        "pricing": "Pricing Page",
+        "faq": "FAQ Page",
+        "both": "Both Pages"
+      },
+      "pageBadge": {
+        "pricing": "Pricing",
+        "faq": "FAQ",
+        "both": "Both"
+      },
+      "categories": {
+        "none": "No Category",
+        "general": "General",
+        "pricing": "Pricing",
+        "features": "Features",
+        "technical": "Technical"
       }
     },
     "common": {
@@ -6522,6 +6577,303 @@
       "statusUpdateSuccess": "Purchase status updated successfully",
       "sold": "sold",
       "unlimited": "Unlimited"
+    },
+    "dashboard": {
+      "title": "Super Admin Dashboard",
+      "subtitle": "Platform-wide AI cost analytics & profitability overview",
+      "retry": "Retry",
+      "widgets": {
+        "mrr": "Monthly Recurring Revenue",
+        "aiCost30d": "AI Cost (30 days)",
+        "profitMargin": "Profit Margin",
+        "profitMarginValue": "Profit Margin ($)",
+        "revenueMinusCost": "Revenue: ${revenue} − Cost: ${cost}",
+        "creditsConsumed": "AI Credits Consumed",
+        "totalTokens": "Total Tokens (Input + Output)",
+        "inOut": "In: {input} | Out: {output}"
+      },
+      "chart": {
+        "title": "AI Cost vs Revenue (Last 30 Days)",
+        "revenue": "Revenue",
+        "aiCost": "AI Cost"
+      },
+      "topAccounts": {
+        "title": "Top 5 Accounts by AI Cost",
+        "empty": "No AI usage data found",
+        "columns": {
+          "account": "Account",
+          "plan": "Plan",
+          "monthlyRevenue": "Monthly Revenue",
+          "aiCost30d": "AI Cost (30d)",
+          "creditsUsed": "Credits Used",
+          "status": "Status"
+        },
+        "costOverRevenue": "Cost > Revenue",
+        "profitable": "Profitable"
+      }
+    },
+    "accountAnalytics": {
+      "back": "Back to Admin Dashboard",
+      "exportCsv": "Export CSV",
+      "retry": "Retry",
+      "header": {
+        "details": "{plan} · {status} · Credits Balance: {balance} · Total Used: {total}"
+      },
+      "profitability": {
+        "planRevenue": "Plan Revenue",
+        "addOnRevenue": "Add-on Revenue",
+        "totalRevenue": "Total Revenue",
+        "aiCost": "AI Cost",
+        "netProfit": "Net Profit",
+        "margin": "Margin"
+      },
+      "filters": {
+        "dateRange": "Date Range",
+        "cost": "Cost ($)",
+        "tokens": "Tokens",
+        "credits": "Credits",
+        "min": "Min",
+        "max": "Max",
+        "to": "to",
+        "dash": "-",
+        "apply": "Apply",
+        "clear": "Clear"
+      },
+      "usageLog": {
+        "title": "AI Usage Log",
+        "entries": "{count} entries",
+        "entry": "1 entry",
+        "empty": "No usage data found for the selected filters",
+        "columns": {
+          "date": "Date",
+          "user": "User",
+          "actionType": "Action Type",
+          "model": "Model",
+          "inputTokens": "Input Tokens",
+          "outputTokens": "Output Tokens",
+          "credits": "Credits",
+          "costUsd": "Cost (USD)"
+        }
+      }
+    },
+    "website": {
+      "localeTabs": {
+        "draft": "Draft"
+      },
+      "contentEditor": {
+        "empty": "No content loaded",
+        "itemCount": "{count} items",
+        "fieldCount": "{count} fields",
+        "addItem": "Add Item",
+        "pages": {
+          "metadata": "Metadata (Global)",
+          "nav": "Navigation",
+          "hero": "Hero Section",
+          "features": "Features",
+          "howItWorks": "How It Works",
+          "pricing": "Pricing",
+          "cta": "CTA Section",
+          "about": "About Page",
+          "contact": "Contact Page",
+          "faq": "FAQ Page",
+          "blog": "Blog",
+          "blogPost": "Blog Post",
+          "footer": "Footer",
+          "auth": "Auth Pages",
+          "terms": "Terms of Service",
+          "privacy": "Privacy Policy",
+          "common": "Common Texts"
+        }
+      },
+      "seoEditor": {
+        "pages": {
+          "home": "Homepage",
+          "about": "About",
+          "features": "Features",
+          "how-it-works": "How It Works",
+          "pricing": "Pricing",
+          "contact": "Contact",
+          "faq": "FAQ",
+          "blog": "Blog",
+          "privacy": "Privacy Policy",
+          "terms": "Terms of Service"
+        },
+        "sections": {
+          "searchEngine": "Search Engine",
+          "openGraph": "Open Graph",
+          "twitterCard": "Twitter Card",
+          "structuredData": "Structured Data (JSON-LD)"
+        },
+        "fields": {
+          "title": "Title",
+          "description": "Description",
+          "canonicalUrl": "Canonical URL",
+          "robots": "Robots",
+          "ogTitle": "OG Title",
+          "ogDescription": "OG Description",
+          "ogImage": "OG Image",
+          "ogType": "OG Type",
+          "cardType": "Card Type",
+          "jsonLd": "JSON-LD"
+        },
+        "placeholders": {
+          "pageTitle": "Page title for search engines",
+          "metaDescription": "Meta description for search results",
+          "leaveEmptyForPageTitle": "Leave empty to use page title",
+          "leaveEmptyForMetaDescription": "Leave empty to use meta description",
+          "ogImagePath": "/og/page.png (leave empty for dynamic)",
+          "pagePath": "/page-path",
+          "jsonLdExample": "{\"@context\": \"https://schema.org\", ...}"
+        }
+      }
+    },
+    "pushQuestions": {
+      "title": "Push Questions",
+      "subtitle": "Questions displayed to users on the site profile page",
+      "copySuffix": " (Copy)",
+      "stats": {
+        "total": "Total Questions",
+        "active": "Active Questions",
+        "required": "Required Questions",
+        "totalAnswers": "Total Answers"
+      },
+      "toolbar": {
+        "searchPlaceholder": "Search questions...",
+        "filterAll": "All Questions",
+        "filterActive": "Active Questions",
+        "filterInactive": "Inactive Questions",
+        "addQuestion": "Add Question"
+      },
+      "questionTypes": {
+        "TEXT": "Short Text",
+        "TEXTAREA": "Long Text",
+        "CHOICE": "Single Choice",
+        "MULTI_CHOICE": "Multiple Choice",
+        "NUMBER": "Number",
+        "URL": "URL"
+      },
+      "columns": {
+        "order": "Order",
+        "question": "Question",
+        "type": "Type",
+        "target": "Target",
+        "required": "Required",
+        "status": "Status",
+        "actions": "Actions"
+      },
+      "empty": {
+        "title": "No Questions",
+        "message": "Add push questions to display to users"
+      },
+      "target": {
+        "allSites": "All Sites",
+        "specificSites": "{count} sites"
+      },
+      "answerCount": "{count} answers",
+      "rowActions": {
+        "clickDeactivate": "Click to deactivate",
+        "clickActivate": "Click to activate",
+        "moveUp": "Move Up",
+        "moveDown": "Move Down",
+        "edit": "Edit",
+        "translate": "Translate",
+        "duplicate": "Duplicate",
+        "delete": "Delete"
+      },
+      "editModal": {
+        "titleEdit": "Edit Question",
+        "titleAdd": "Add New Question",
+        "questionLabel": "Question *",
+        "descriptionLabel": "Description / Hint",
+        "descriptionPlaceholder": "Description or hint to help users understand the question",
+        "questionType": "Question Type",
+        "optionsLabel": "Options (comma separated)",
+        "optionsPlaceholder": "Option 1, Option 2, Option 3",
+        "categoryLabel": "Category (optional)",
+        "categoryPlaceholder": "e.g., Marketing, Content, Technical",
+        "showToAll": "Show to all sites",
+        "selectSpecificSites": "Select specific sites:",
+        "requiredQuestion": "Required question (cannot skip)",
+        "activeQuestion": "Active question",
+        "cancel": "Cancel",
+        "saving": "Saving...",
+        "save": "Save"
+      },
+      "translateModal": {
+        "title": "Translate: {question}",
+        "selectLanguage": "Select Language",
+        "originalLabel": "Original (EN):",
+        "questionLabel": "Question:",
+        "descriptionLabel": "Description:",
+        "optionsLabel": "Options:",
+        "translatedQuestion": "Question ({lang}) *",
+        "translatedDescription": "Description ({lang})",
+        "translatedOptions": "Options ({lang}, comma separated)",
+        "defaultOptionsPlaceholder": "Option 1, Option 2, Option 3",
+        "deleteTranslation": "Delete Translation",
+        "deleteTranslationConfirm": "Delete {lang} translation?",
+        "cancel": "Cancel",
+        "saving": "Saving...",
+        "save": "Save Translation"
+      },
+      "deleteDialog": {
+        "title": "Delete Question",
+        "message": "Are you sure you want to delete this question? All saved answers will also be deleted.",
+        "confirm": "Delete",
+        "cancel": "Cancel"
+      }
+    },
+    "pricing": {
+      "title": "AI Credit Pricing Management",
+      "subtitle": "Manage credit costs for all AI features. Changes take effect immediately.",
+      "featuresConfigured": "{count} features configured",
+      "reset": "Reset",
+      "save": "Save Changes",
+      "saving": "Saving...",
+      "saveSuccess": "Updated {count} feature price(s) successfully.",
+      "wasValue": "(was {cost})",
+      "columns": {
+        "featureKey": "Feature Key",
+        "displayName": "Display Name",
+        "creditCost": "Credit Cost",
+        "lastUpdated": "Last Updated"
+      }
+    },
+    "userAnalytics": {
+      "back": "Back to Admin Dashboard",
+      "exportCsv": "Export CSV",
+      "retry": "Retry",
+      "header": {
+        "details": "{email} · Total AI Cost: ${cost}"
+      },
+      "filters": {
+        "dateRange": "Date Range",
+        "cost": "Cost ($)",
+        "tokens": "Tokens",
+        "credits": "Credits",
+        "min": "Min",
+        "max": "Max",
+        "to": "to",
+        "dash": "-",
+        "apply": "Apply",
+        "clear": "Clear"
+      },
+      "usageLog": {
+        "title": "AI Usage Log",
+        "entries": "{count} entries",
+        "entry": "1 entry",
+        "empty": "No usage data found for the selected filters",
+        "columns": {
+          "date": "Date",
+          "account": "Account",
+          "actionType": "Action Type",
+          "model": "Model",
+          "inputTokens": "Input Tokens",
+          "outputTokens": "Output Tokens",
+          "credits": "Credits",
+          "costUsd": "Cost (USD)"
+        }
+      }
     }
   },
   "acceptInvite": {

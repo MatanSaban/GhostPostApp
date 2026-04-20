@@ -1,16 +1,25 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import prisma from '@/lib/prisma';
+import { getDraftAccountForUser } from '@/lib/draft-account';
 
-const TEMP_REG_COOKIE = 'temp_reg_id';
+const SESSION_COOKIE = 'user_session';
 
-export async function GET(request) {
+const STEP_MAP = {
+  VERIFY: 'verify',
+  ACCOUNT_SETUP: 'account-setup',
+  INTERVIEW: 'interview',
+  PLAN: 'plan',
+  PAYMENT: 'payment',
+  COMPLETED: 'completed',
+};
+
+export async function GET() {
   try {
-    // Get tempRegId from cookie
     const cookieStore = await cookies();
-    const tempRegId = cookieStore.get(TEMP_REG_COOKIE)?.value;
+    const sessionUserId = cookieStore.get(SESSION_COOKIE)?.value;
 
-    if (!tempRegId) {
+    if (!sessionUserId) {
       return NextResponse.json({
         success: true,
         hasTempRegistration: false,
@@ -18,28 +27,22 @@ export async function GET(request) {
       });
     }
 
-    const tempReg = await prisma.tempRegistration.findUnique({
-      where: { id: tempRegId },
+    const user = await prisma.user.findUnique({
+      where: { id: sessionUserId },
       select: {
         id: true,
         email: true,
         firstName: true,
         lastName: true,
         phoneNumber: true,
-        currentStep: true,
         emailVerified: true,
         phoneVerified: true,
-        accountName: true,
-        accountSlug: true,
-        interviewData: true,
-        selectedPlanId: true,
-        expiresAt: true,
+        registrationStep: true,
       },
     });
 
-    if (!tempReg) {
-      // Cookie exists but temp registration not found - clear cookie
-      cookieStore.delete(TEMP_REG_COOKIE);
+    if (!user) {
+      cookieStore.delete(SESSION_COOKIE);
       return NextResponse.json({
         success: true,
         hasTempRegistration: false,
@@ -47,46 +50,60 @@ export async function GET(request) {
       });
     }
 
-    // Check if temp registration has expired
-    if (new Date() > tempReg.expiresAt) {
-      await prisma.tempRegistration.delete({ where: { id: tempRegId } });
-      cookieStore.delete(TEMP_REG_COOKIE);
+    if (user.registrationStep === 'COMPLETED') {
+      return NextResponse.json({
+        success: true,
+        hasTempRegistration: false,
+        currentStep: 'completed',
+      });
+    }
+
+    const draftAccount = await getDraftAccountForUser(user.id);
+
+    // When a draft user exists but has no draft account, recover by clearing
+    // the session so the user starts over cleanly.
+    if (!draftAccount) {
+      cookieStore.delete(SESSION_COOKIE);
       return NextResponse.json({
         success: true,
         hasTempRegistration: false,
         currentStep: 'form',
-        expired: true,
       });
     }
 
-    // Map registration step to URL step param
-    const STEP_MAP = {
-      FORM: 'form',
-      VERIFY: 'verify',
-      ACCOUNT_SETUP: 'account-setup',
-      INTERVIEW: 'interview',
-      PLAN: 'plan',
-      PAYMENT: 'payment',
-    };
+    // If a plan is selected, hydrate the full plan object so the client can
+    // render the payment step without a second round-trip.
+    let selectedPlan = null;
+    if (draftAccount.draftSelectedPlanId) {
+      selectedPlan = await prisma.plan.findUnique({
+        where: { id: draftAccount.draftSelectedPlanId },
+      });
+    }
+
+    const urlStep = STEP_MAP[user.registrationStep] || 'form';
 
     return NextResponse.json({
       success: true,
       hasTempRegistration: true,
       tempReg: {
-        id: tempReg.id,
-        email: tempReg.email,
-        firstName: tempReg.firstName,
-        lastName: tempReg.lastName,
-        phoneNumber: tempReg.phoneNumber,
-        currentStep: tempReg.currentStep,
-        isEmailVerified: !!tempReg.emailVerified,
-        isPhoneVerified: !!tempReg.phoneVerified,
-        accountName: tempReg.accountName,
-        accountSlug: tempReg.accountSlug,
-        interviewData: tempReg.interviewData || {},
-        selectedPlanId: tempReg.selectedPlanId,
+        id: user.id,
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        phoneNumber: user.phoneNumber,
+        currentStep: user.registrationStep,
+        isEmailVerified: !!user.emailVerified,
+        isPhoneVerified: !!user.phoneVerified,
+        // Draft account fields — the client treats these the same as the
+        // former temp registration fields.
+        accountName: draftAccount.isDraft ? (draftAccount.name?.startsWith(user.firstName || '') ? null : draftAccount.name) : draftAccount.name,
+        accountSlug: draftAccount.slug?.startsWith('draft-') ? null : draftAccount.slug,
+        interviewData: draftAccount.draftInterviewData || {},
+        selectedPlanId: draftAccount.draftSelectedPlanId || null,
+        couponCode: draftAccount.draftCouponCode || null,
       },
-      currentStep: STEP_MAP[tempReg.currentStep] || 'form',
+      selectedPlan,
+      currentStep: urlStep,
     });
   } catch (error) {
     console.error('Get registration status error:', error);

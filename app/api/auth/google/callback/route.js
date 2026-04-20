@@ -2,9 +2,11 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import prisma from '@/lib/prisma';
 import { exchangeCodeForTokens, getGoogleUserInfo, parseState } from '@/lib/google-oauth';
+import { createDraftUserAndAccount, purgeDraftUserByEmail } from '@/lib/draft-account';
 
-const TEMP_REG_COOKIE = 'temp_reg_id';
 const SESSION_COOKIE = 'user_session';
+const REG_DONE_COOKIE = 'reg_done';
+const SESSION_MAX_AGE = 60 * 60 * 24 * 7; // 7 days
 
 // Map registration steps to redirect paths
 const STEP_REDIRECTS = {
@@ -16,72 +18,64 @@ const STEP_REDIRECTS = {
   COMPLETED: '/dashboard',
 };
 
+function setSessionCookie(response, userId, { completed = false } = {}) {
+  response.cookies.set(SESSION_COOKIE, userId, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
+    maxAge: SESSION_MAX_AGE,
+    path: '/',
+  });
+  if (completed) {
+    response.cookies.set(REG_DONE_COOKIE, '1', {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 60 * 60 * 24 * 30,
+      path: '/',
+    });
+  } else {
+    response.cookies.delete(REG_DONE_COOKIE);
+  }
+}
+
 /**
  * GET /api/auth/google/callback
- * Handles Google OAuth callback
  */
 export async function GET(request) {
   try {
     const { searchParams } = new URL(request.url);
     const code = searchParams.get('code');
     const error = searchParams.get('error');
-    const stateParam = searchParams.get('state');
-    
-    console.log('[Google OAuth Callback] Request URL:', request.url);
-    console.log('[Google OAuth Callback] Has code:', !!code, 'Has error:', !!error);
-    
-    // Handle OAuth errors
+
     if (error) {
       console.error('Google OAuth error:', error);
-      return NextResponse.redirect(
-        new URL(`/auth/login?error=${error}`, request.url)
-      );
+      return NextResponse.redirect(new URL(`/auth/login?error=${error}`, request.url));
     }
-    
+
     if (!code) {
-      return NextResponse.redirect(
-        new URL('/auth/login?error=no_code', request.url)
-      );
+      return NextResponse.redirect(new URL('/auth/login?error=no_code', request.url));
     }
-    
-    // Get OAuth state from cookie
+
     const cookieStore = await cookies();
     const oauthStateCookie = cookieStore.get('google_oauth_state');
-    
-    console.log('[Google OAuth Callback] Cookie found:', !!oauthStateCookie);
-    
+
     if (!oauthStateCookie) {
-      console.error('[Google OAuth Callback] Missing google_oauth_state cookie - this usually means cookies are not being sent cross-site');
-      return NextResponse.redirect(
-        new URL('/auth/login?error=invalid_state', request.url)
-      );
+      return NextResponse.redirect(new URL('/auth/login?error=invalid_state', request.url));
     }
-    
+
     let oauthState;
     try {
       oauthState = JSON.parse(oauthStateCookie.value);
-    } catch (parseError) {
-      console.error('[Google OAuth Callback] Failed to parse cookie:', parseError.message);
-      return NextResponse.redirect(
-        new URL('/auth/login?error=invalid_state', request.url)
-      );
+    } catch {
+      return NextResponse.redirect(new URL('/auth/login?error=invalid_state', request.url));
     }
-    
+
     const { mode, consent } = oauthState;
-    
-    console.log('[Google OAuth Callback] Starting token exchange...');
-    
-    // Exchange code for tokens
+
     const tokens = await exchangeCodeForTokens(code);
-    
-    console.log('[Google OAuth Callback] Token exchange successful, getting user info...');
-    
-    // Get user info from Google
     const googleUser = await getGoogleUserInfo(tokens.access_token);
-    
-    console.log('[Google OAuth Callback] Got user info:', googleUser.email, 'Mode:', mode);
-    
-    // Handle the OAuth callback
+
     const response = await handleOAuthCallback({
       mode,
       consent,
@@ -90,48 +84,34 @@ export async function GET(request) {
       request,
       cookieStore,
     });
-    
-    console.log('[Google OAuth Callback] Callback handled successfully');
-    
-    // Clear the OAuth state cookie
+
     response.cookies.delete('google_oauth_state');
-    
+
     return response;
-    
   } catch (error) {
     console.error('[Google OAuth Callback] Error:', error.message, error.stack);
-    return NextResponse.redirect(
-      new URL('/auth/login?error=oauth_failed', request.url)
-    );
+    return NextResponse.redirect(new URL('/auth/login?error=oauth_failed', request.url));
   }
 }
 
-/**
- * Handle OAuth callback based on mode
- */
 async function handleOAuthCallback({ mode, consent, googleUser, tokens, request, cookieStore }) {
   const normalizedEmail = googleUser.email.toLowerCase();
-  
+
   switch (mode) {
     case 'register':
-      return handleGoogleRegister({ consent, googleUser, normalizedEmail, tokens, request, cookieStore });
-    
+      return handleGoogleRegister({ consent, googleUser, normalizedEmail, tokens, request });
     case 'connect':
       return handleGoogleConnect({ googleUser, normalizedEmail, tokens, request, cookieStore });
-    
     case 'login':
     default:
-      return handleGoogleLogin({ googleUser, normalizedEmail, tokens, request, cookieStore });
+      return handleGoogleLogin({ googleUser, normalizedEmail, tokens, request });
   }
 }
 
 /**
- * Handle Google login
+ * Existing user logs in via Google.
  */
-async function handleGoogleLogin({ googleUser, normalizedEmail, tokens, request, cookieStore }) {
-  console.log('[Google OAuth Login] Checking for existing auth provider...');
-  
-  // Check if user exists with this Google account
+async function handleGoogleLogin({ googleUser, normalizedEmail, tokens, request }) {
   const authProvider = await prisma.authProvider.findUnique({
     where: {
       provider_providerAccountId: {
@@ -141,21 +121,14 @@ async function handleGoogleLogin({ googleUser, normalizedEmail, tokens, request,
     },
     include: { user: true },
   });
-  
-  console.log('[Google OAuth Login] Auth provider found:', !!authProvider);
-  
+
   if (authProvider?.user) {
-    // User exists with Google - log them in
     const user = authProvider.user;
-    
-    // Check if user is active
+
     if (!user.isActive) {
-      return NextResponse.redirect(
-        new URL('/auth/login?error=account_deactivated', request.url)
-      );
+      return NextResponse.redirect(new URL('/auth/login?error=account_deactivated', request.url));
     }
-    
-    // Update last login and tokens
+
     await prisma.$transaction([
       prisma.user.update({
         where: { id: user.id },
@@ -170,44 +143,31 @@ async function handleGoogleLogin({ googleUser, normalizedEmail, tokens, request,
         },
       }),
     ]);
-    
-    // Super admins always go to dashboard regardless of registration step
-    const isRegistrationComplete = user.registrationStep === 'COMPLETED';
-    const redirectTo = user.isSuperAdmin ? '/dashboard' : (STEP_REDIRECTS[user.registrationStep] || '/dashboard');
-    
-    // Set session cookie
+
+    const redirectTo = user.isSuperAdmin
+      ? '/dashboard'
+      : (STEP_REDIRECTS[user.registrationStep] || '/dashboard');
+
     const response = NextResponse.redirect(new URL(redirectTo, request.url));
-    
-    if (isRegistrationComplete || user.isSuperAdmin) {
-      response.cookies.set(SESSION_COOKIE, user.id, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
-        maxAge: 60 * 60 * 24 * 7, // 7 days
-        path: '/',
-      });
-    }
-    
+    // Always set session — drafts and completed users alike. Middleware enforces
+    // that drafts can only traverse /auth/register paths.
+    setSessionCookie(response, user.id, {
+      completed: user.registrationStep === 'COMPLETED' || !!user.isSuperAdmin,
+    });
     return response;
   }
-  
-  // Check if user exists by email (registered with credentials)
+
+  // Google account isn't linked yet but a user with this email may exist via credentials.
   const existingUser = await prisma.user.findUnique({
     where: { email: normalizedEmail },
   });
-  
+
   if (existingUser) {
-    // User exists but hasn't connected Google yet
-    // Since Google verified the email, we can auto-connect and log them in
-    
-    // Check if user is active
     if (!existingUser.isActive) {
-      return NextResponse.redirect(
-        new URL('/auth/login?error=account_deactivated', request.url)
-      );
+      return NextResponse.redirect(new URL('/auth/login?error=account_deactivated', request.url));
     }
-    
-    // Auto-connect Google to this account
+
+    // Google verified the email, so auto-link to the existing user.
     await prisma.authProvider.create({
       data: {
         userId: existingUser.id,
@@ -216,116 +176,81 @@ async function handleGoogleLogin({ googleUser, normalizedEmail, tokens, request,
         accessToken: tokens.access_token,
         refreshToken: tokens.refresh_token,
         expiresAt: tokens.expires_in ? Math.floor(Date.now() / 1000) + tokens.expires_in : null,
-        isPrimary: false, // User already has credentials as primary
+        isPrimary: !existingUser.password,
       },
     });
-    
-    // Update user with Google profile image if not set
+
     await prisma.user.update({
       where: { id: existingUser.id },
-      data: { 
+      data: {
         lastLoginAt: new Date(),
         image: existingUser.image || googleUser.picture,
+        // If the user was a draft stuck in VERIFY, Google verifying them lets
+        // them skip the OTP step.
+        ...(existingUser.registrationStep === 'VERIFY'
+          ? { emailVerified: new Date(), registrationStep: 'ACCOUNT_SETUP' }
+          : {}),
       },
     });
-    
-    // Super admins always go to dashboard regardless of registration step
-    const isRegistrationComplete = existingUser.registrationStep === 'COMPLETED';
-    const redirectTo = existingUser.isSuperAdmin ? '/dashboard' : (STEP_REDIRECTS[existingUser.registrationStep] || '/dashboard');
-    
-    // Set session cookie
+
+    const freshUser = await prisma.user.findUnique({
+      where: { id: existingUser.id },
+      select: { registrationStep: true, isSuperAdmin: true },
+    });
+
+    const redirectTo = freshUser.isSuperAdmin
+      ? '/dashboard'
+      : (STEP_REDIRECTS[freshUser.registrationStep] || '/dashboard');
+
     const response = NextResponse.redirect(new URL(redirectTo, request.url));
-    
-    if (isRegistrationComplete || existingUser.isSuperAdmin) {
-      response.cookies.set(SESSION_COOKIE, existingUser.id, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
-        maxAge: 60 * 60 * 24 * 7, // 7 days
-        path: '/',
-      });
-    }
-    
+    setSessionCookie(response, existingUser.id, {
+      completed: freshUser.registrationStep === 'COMPLETED' || !!freshUser.isSuperAdmin,
+    });
     return response;
   }
-  
-  // Check if there's a temp registration
-  const tempReg = await prisma.tempRegistration.findUnique({
-    where: { email: normalizedEmail },
-  });
-  
-  if (tempReg && new Date() < tempReg.expiresAt) {
-    // Temp registration exists - redirect to continue registration
-    return NextResponse.redirect(
-      new URL('/auth/login?error=complete_registration', request.url)
-    );
-  }
-  
-  // No user found - auto-register them with Google data
-  // Since they're trying to login with Google, we treat it as registration
-  console.log('[Google OAuth Login] No account found, auto-registering user:', normalizedEmail);
-  
+
+  // No user at all — auto-register with Google.
   return handleAutoGoogleRegister({ googleUser, normalizedEmail, tokens, request });
 }
 
 /**
- * Handle automatic Google registration when user tries to login without an account
- * Similar to handleGoogleRegister but without requiring consent from state
- * (consent is implied by clicking "Login with Google" on a site with terms displayed)
+ * Login with a Google account that has no matching user yet. Registers them
+ * with consent implied.
  */
 async function handleAutoGoogleRegister({ googleUser, normalizedEmail, tokens, request }) {
-  // Delete any existing temp registration for this email
-  await prisma.tempRegistration.deleteMany({
-    where: { email: normalizedEmail },
+  await purgeDraftUserByEmail(normalizedEmail);
+
+  const { user } = await createDraftUserAndAccount({
+    email: normalizedEmail,
+    firstName: googleUser.firstName || '',
+    lastName: googleUser.lastName || '',
+    password: null,
+    image: googleUser.picture || null,
+    authMethod: 'GOOGLE',
+    googleId: googleUser.id,
+    googleTokens: tokens,
+    emailVerified: googleUser.emailVerified ? new Date() : null,
+    consentGiven: true,
+    consentDate: new Date(),
+    registrationStep: 'ACCOUNT_SETUP',
   });
-  
-  // Create temp registration with Google data
-  // For Google registration, we skip OTP verification since email is already verified by Google
-  const tempReg = await prisma.tempRegistration.create({
-    data: {
-      email: normalizedEmail,
-      firstName: googleUser.firstName || '',
-      lastName: googleUser.lastName || '',
-      password: null, // No password for Google registration
-      authMethod: 'GOOGLE',
-      googleId: googleUser.id,
-      image: googleUser.picture,
-      consentGiven: true, // Implied consent by using Google login
-      consentDate: new Date(),
-      emailVerified: googleUser.emailVerified ? new Date() : null,
-      currentStep: 'ACCOUNT_SETUP', // Skip verification for Google users
-      expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
-    },
-  });
-  
-  // Set temp registration cookie
+
   const response = NextResponse.redirect(
-    new URL('/auth/register?step=account-setup', request.url)
+    new URL(STEP_REDIRECTS.ACCOUNT_SETUP, request.url)
   );
-  
-  response.cookies.set(TEMP_REG_COOKIE, tempReg.id, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax',
-    maxAge: 60 * 60 * 24 * 7, // 7 days
-    path: '/',
-  });
-  
+  setSessionCookie(response, user.id);
   return response;
 }
 
 /**
- * Handle Google registration
+ * Explicit "register with Google" button. Requires consent.
  */
-async function handleGoogleRegister({ consent, googleUser, normalizedEmail, tokens, request, cookieStore }) {
-  // Consent is required for registration
+async function handleGoogleRegister({ consent, googleUser, normalizedEmail, tokens, request }) {
   if (!consent) {
-    return NextResponse.redirect(
-      new URL('/auth/register?error=consent_required', request.url)
-    );
+    return NextResponse.redirect(new URL('/auth/register?error=consent_required', request.url));
   }
-  
-  // Check if user already exists with this Google account
+
+  // If the Google account is already linked to a user, log them in instead.
   const existingAuthProvider = await prisma.authProvider.findUnique({
     where: {
       provider_providerAccountId: {
@@ -335,90 +260,63 @@ async function handleGoogleRegister({ consent, googleUser, normalizedEmail, toke
     },
     include: { user: true },
   });
-  
+
   if (existingAuthProvider?.user) {
-    // User already has an account with Google - log them in instead
-    return handleGoogleLogin({ googleUser, normalizedEmail, tokens, request, cookieStore });
+    return handleGoogleLogin({ googleUser, normalizedEmail, tokens, request });
   }
-  
-  // Check if email is already registered
+
+  // Check for a completed user on this email.
   const existingUser = await prisma.user.findUnique({
     where: { email: normalizedEmail },
   });
-  
-  if (existingUser) {
-    return NextResponse.redirect(
-      new URL('/auth/login?error=email_exists', request.url)
-    );
+
+  if (existingUser && existingUser.registrationStep === 'COMPLETED') {
+    return NextResponse.redirect(new URL('/auth/login?error=email_exists', request.url));
   }
-  
-  // Delete any existing temp registration for this email
-  await prisma.tempRegistration.deleteMany({
-    where: { email: normalizedEmail },
+
+  // Wipe any stale draft on this email before creating a fresh one.
+  await purgeDraftUserByEmail(normalizedEmail);
+
+  const { user } = await createDraftUserAndAccount({
+    email: normalizedEmail,
+    firstName: googleUser.firstName || '',
+    lastName: googleUser.lastName || '',
+    password: null,
+    image: googleUser.picture || null,
+    authMethod: 'GOOGLE',
+    googleId: googleUser.id,
+    googleTokens: tokens,
+    emailVerified: googleUser.emailVerified ? new Date() : null,
+    consentGiven: true,
+    consentDate: new Date(),
+    registrationStep: 'ACCOUNT_SETUP',
   });
-  
-  // Create temp registration with Google data
-  // For Google registration, we skip OTP verification since email is already verified by Google
-  const tempReg = await prisma.tempRegistration.create({
-    data: {
-      email: normalizedEmail,
-      firstName: googleUser.firstName || '',
-      lastName: googleUser.lastName || '',
-      password: null, // No password for Google registration
-      authMethod: 'GOOGLE',
-      googleId: googleUser.id,
-      image: googleUser.picture,
-      consentGiven: true,
-      consentDate: new Date(),
-      emailVerified: googleUser.emailVerified ? new Date() : null,
-      currentStep: 'ACCOUNT_SETUP', // Skip verification for Google users
-      expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
-    },
-  });
-  
-  // Set temp registration cookie
+
   const response = NextResponse.redirect(
-    new URL('/auth/register?step=account-setup', request.url)
+    new URL(STEP_REDIRECTS.ACCOUNT_SETUP, request.url)
   );
-  
-  response.cookies.set(TEMP_REG_COOKIE, tempReg.id, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax',
-    maxAge: 60 * 60 * 24 * 7, // 7 days
-    path: '/',
-  });
-  
+  setSessionCookie(response, user.id);
   return response;
 }
 
 /**
- * Handle connecting Google to existing account
+ * Connect a Google account to a logged-in user's account.
  */
 async function handleGoogleConnect({ googleUser, normalizedEmail, tokens, request, cookieStore }) {
-  // User must be logged in
   const sessionCookie = cookieStore.get(SESSION_COOKIE);
-  
+
   if (!sessionCookie) {
-    return NextResponse.redirect(
-      new URL('/auth/login?error=login_required', request.url)
-    );
+    return NextResponse.redirect(new URL('/auth/login?error=login_required', request.url));
   }
-  
+
   const userId = sessionCookie.value;
-  
-  // Get the logged-in user
-  const user = await prisma.user.findUnique({
-    where: { id: userId },
-  });
-  
+
+  const user = await prisma.user.findUnique({ where: { id: userId } });
+
   if (!user) {
-    return NextResponse.redirect(
-      new URL('/auth/login?error=invalid_session', request.url)
-    );
+    return NextResponse.redirect(new URL('/auth/login?error=invalid_session', request.url));
   }
-  
-  // Check if this Google account is already connected to another user
+
   const existingProvider = await prisma.authProvider.findUnique({
     where: {
       provider_providerAccountId: {
@@ -427,14 +325,13 @@ async function handleGoogleConnect({ googleUser, normalizedEmail, tokens, reques
       },
     },
   });
-  
+
   if (existingProvider && existingProvider.userId !== userId) {
     return NextResponse.redirect(
       new URL('/dashboard/settings?error=google_already_connected', request.url)
     );
   }
-  
-  // Check if user already has Google connected
+
   const userGoogleProvider = await prisma.authProvider.findUnique({
     where: {
       userId_provider: {
@@ -443,9 +340,8 @@ async function handleGoogleConnect({ googleUser, normalizedEmail, tokens, reques
       },
     },
   });
-  
+
   if (userGoogleProvider) {
-    // Update existing provider
     await prisma.authProvider.update({
       where: { id: userGoogleProvider.id },
       data: {
@@ -456,7 +352,6 @@ async function handleGoogleConnect({ googleUser, normalizedEmail, tokens, reques
       },
     });
   } else {
-    // Create new provider connection
     await prisma.authProvider.create({
       data: {
         userId,
@@ -465,11 +360,10 @@ async function handleGoogleConnect({ googleUser, normalizedEmail, tokens, reques
         accessToken: tokens.access_token,
         refreshToken: tokens.refresh_token,
         expiresAt: tokens.expires_in ? Math.floor(Date.now() / 1000) + tokens.expires_in : null,
-        isPrimary: !user.password, // Make primary if no password
+        isPrimary: !user.password,
       },
     });
-    
-    // Update user image if not set
+
     if (!user.image && googleUser.picture) {
       await prisma.user.update({
         where: { id: userId },
@@ -477,7 +371,7 @@ async function handleGoogleConnect({ googleUser, normalizedEmail, tokens, reques
       });
     }
   }
-  
+
   return NextResponse.redirect(
     new URL('/dashboard/settings?success=google_connected', request.url)
   );

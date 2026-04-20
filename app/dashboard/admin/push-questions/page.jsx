@@ -27,14 +27,7 @@ import { AdminModal, ConfirmDialog, FormInput, FormTextarea, FormSelect, FormChe
 import { AdminPageSkeleton, TableSkeleton, Button } from '@/app/dashboard/components';
 import styles from '../admin.module.css';
 
-const QUESTION_TYPES = [
-  { value: 'TEXT', label: 'Short Text' },
-  { value: 'TEXTAREA', label: 'Long Text' },
-  { value: 'CHOICE', label: 'Single Choice' },
-  { value: 'MULTI_CHOICE', label: 'Multiple Choice' },
-  { value: 'NUMBER', label: 'Number' },
-  { value: 'URL', label: 'URL' },
-];
+const QUESTION_TYPE_VALUES = ['TEXT', 'TEXTAREA', 'CHOICE', 'MULTI_CHOICE', 'NUMBER', 'URL'];
 
 const AVAILABLE_LANGUAGES = ['EN', 'HE', 'FR'];
 
@@ -42,6 +35,10 @@ export default function PushQuestionsPage() {
   const router = useRouter();
   const { t } = useLocale();
   const { isSuperAdmin, isLoading: isUserLoading } = useUser();
+  const QUESTION_TYPES = QUESTION_TYPE_VALUES.map((value) => ({
+    value,
+    label: t(`admin.pushQuestions.questionTypes.${value}`),
+  }));
   const [questions, setQuestions] = useState([]);
   const [sites, setSites] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
@@ -111,7 +108,7 @@ export default function PushQuestionsPage() {
   }).sort((a, b) => a.order - b.order);
 
   const getTypeLabel = (type) => {
-    const found = QUESTION_TYPES.find(t => t.value === type);
+    const found = QUESTION_TYPES.find((qt) => qt.value === type);
     return found ? found.label : type;
   };
 
@@ -156,7 +153,7 @@ export default function PushQuestionsPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          question: `${question.question} (Copy)`,
+          question: `${question.question}${t('admin.pushQuestions.copySuffix')}`,
           description: question.description,
           questionType: question.questionType,
           options: question.options,
@@ -388,7 +385,7 @@ export default function PushQuestionsPage() {
   const handleDeleteTranslation = async () => {
     if (!selectedQuestion || !selectedLanguage) return;
     
-    if (!confirm(`Delete ${selectedLanguage} translation?`)) return;
+    if (!confirm(t('admin.pushQuestions.translateModal.deleteTranslationConfirm', { lang: selectedLanguage }))) return;
 
     try {
       const response = await fetch(
@@ -431,26 +428,26 @@ export default function PushQuestionsPage() {
     <div className={styles.adminPage}>
       {/* Header */}
       <div className={styles.adminHeader}>
-        <h1 className={styles.adminTitle}>Push Questions</h1>
-        <p className={styles.adminSubtitle}>Questions displayed to users on the site profile page</p>
+        <h1 className={styles.adminTitle}>{t('admin.pushQuestions.title')}</h1>
+        <p className={styles.adminSubtitle}>{t('admin.pushQuestions.subtitle')}</p>
       </div>
 
       {/* Stats */}
       <div className={styles.statsGrid}>
         <div className={styles.statCard}>
-          <div className={styles.statLabel}>Total Questions</div>
+          <div className={styles.statLabel}>{t('admin.pushQuestions.stats.total')}</div>
           <div className={styles.statValue}>{stats.total}</div>
         </div>
         <div className={styles.statCard}>
-          <div className={styles.statLabel}>Active Questions</div>
+          <div className={styles.statLabel}>{t('admin.pushQuestions.stats.active')}</div>
           <div className={styles.statValue}>{stats.active}</div>
         </div>
         <div className={styles.statCard}>
-          <div className={styles.statLabel}>Required Questions</div>
+          <div className={styles.statLabel}>{t('admin.pushQuestions.stats.required')}</div>
           <div className={styles.statValue}>{stats.required}</div>
         </div>
         <div className={styles.statCard}>
-          <div className={styles.statLabel}>Total Answers</div>
+          <div className={styles.statLabel}>{t('admin.pushQuestions.stats.totalAnswers')}</div>
           <div className={styles.statValue}>{stats.totalAnswers}</div>
         </div>
       </div>
@@ -463,7 +460,7 @@ export default function PushQuestionsPage() {
             <input
               type="text"
               className={styles.searchInput}
-              placeholder="Search questions..."
+              placeholder={t('admin.pushQuestions.toolbar.searchPlaceholder')}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
@@ -481,9 +478,9 @@ export default function PushQuestionsPage() {
               cursor: 'pointer',
             }}
           >
-            <option value="all">All Questions</option>
-            <option value="active">Active Questions</option>
-            <option value="inactive">Inactive Questions</option>
+            <option value="all">{t('admin.pushQuestions.toolbar.filterAll')}</option>
+            <option value="active">{t('admin.pushQuestions.toolbar.filterActive')}</option>
+            <option value="inactive">{t('admin.pushQuestions.toolbar.filterInactive')}</option>
           </select>
         </div>
         <div className={styles.toolbarRight}>
@@ -492,7 +489,7 @@ export default function PushQuestionsPage() {
           </button>
           <Button variant="primary" onClick={handleAdd}>
             <Plus size={16} />
-            <span>Add Question</span>
+            <span>{t('admin.pushQuestions.toolbar.addQuestion')}</span>
           </Button>
         </div>
       </div>
@@ -504,20 +501,20 @@ export default function PushQuestionsPage() {
         ) : filteredQuestions.length === 0 ? (
           <div className={styles.emptyState}>
             <MessageSquareMore className={styles.emptyIcon} />
-            <h3 className={styles.emptyTitle}>No Questions</h3>
-            <p className={styles.emptyMessage}>Add push questions to display to users</p>
+            <h3 className={styles.emptyTitle}>{t('admin.pushQuestions.empty.title')}</h3>
+            <p className={styles.emptyMessage}>{t('admin.pushQuestions.empty.message')}</p>
           </div>
         ) : (
           <table className={styles.table}>
             <thead className={styles.tableHeader}>
               <tr>
-                <th style={{ width: '50px' }}>Order</th>
-                <th>Question</th>
-                <th>Type</th>
-                <th>Target</th>
-                <th style={{ width: '80px' }}>Required</th>
-                <th style={{ width: '80px' }}>Status</th>
-                <th>Actions</th>
+                <th style={{ width: '50px' }}>{t('admin.pushQuestions.columns.order')}</th>
+                <th>{t('admin.pushQuestions.columns.question')}</th>
+                <th>{t('admin.pushQuestions.columns.type')}</th>
+                <th>{t('admin.pushQuestions.columns.target')}</th>
+                <th style={{ width: '80px' }}>{t('admin.pushQuestions.columns.required')}</th>
+                <th style={{ width: '80px' }}>{t('admin.pushQuestions.columns.status')}</th>
+                <th>{t('admin.pushQuestions.columns.actions')}</th>
               </tr>
             </thead>
             <tbody className={styles.tableBody}>
@@ -537,7 +534,7 @@ export default function PushQuestionsPage() {
                       )}
                       {question.answersCount > 0 && (
                         <div className={styles.userEmail} style={{ color: 'var(--primary)' }}>
-                          {question.answersCount} answers
+                          {t('admin.pushQuestions.answerCount', { count: question.answersCount })}
                         </div>
                       )}
                     </div>
@@ -551,12 +548,12 @@ export default function PushQuestionsPage() {
                     {question.targetAll ? (
                       <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', color: 'var(--success)' }}>
                         <Globe size={14} />
-                        All Sites
+                        {t('admin.pushQuestions.target.allSites')}
                       </span>
                     ) : (
                       <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', color: 'var(--warning)' }}>
                         <Target size={14} />
-                        {question.targetSiteIds?.length || 0} sites
+                        {t('admin.pushQuestions.target.specificSites', { count: question.targetSiteIds?.length || 0 })}
                       </span>
                     )}
                   </td>
@@ -576,7 +573,7 @@ export default function PushQuestionsPage() {
                         cursor: 'pointer',
                         padding: '0.25rem',
                       }}
-                      title={question.isActive ? 'Click to deactivate' : 'Click to activate'}
+                      title={question.isActive ? t('admin.pushQuestions.rowActions.clickDeactivate') : t('admin.pushQuestions.rowActions.clickActivate')}
                     >
                       {question.isActive ? (
                         <Eye size={18} style={{ color: 'var(--success)' }} />
@@ -591,7 +588,7 @@ export default function PushQuestionsPage() {
                         variant="icon"
                         onClick={() => handleMoveUp(question.id)}
                         disabled={index === 0}
-                        title="Move Up"
+                        title={t('admin.pushQuestions.rowActions.moveUp')}
                         style={{ opacity: index === 0 ? 0.5 : 1 }}
                       >
                         <ChevronUp size={16} />
@@ -600,41 +597,41 @@ export default function PushQuestionsPage() {
                         variant="icon"
                         onClick={() => handleMoveDown(question.id)}
                         disabled={index === filteredQuestions.length - 1}
-                        title="Move Down"
+                        title={t('admin.pushQuestions.rowActions.moveDown')}
                         style={{ opacity: index === filteredQuestions.length - 1 ? 0.5 : 1 }}
                       >
                         <ChevronDown size={16} />
                       </Button>
-                      <Button 
-                        variant="icon" 
-                        title="Edit"
+                      <Button
+                        variant="icon"
+                        title={t('admin.pushQuestions.rowActions.edit')}
                         onClick={() => handleEdit(question)}
                       >
                         <Edit2 size={16} />
                       </Button>
-                      <Button 
-                        variant="icon" 
-                        title="Translate"
+                      <Button
+                        variant="icon"
+                        title={t('admin.pushQuestions.rowActions.translate')}
                         onClick={() => handleTranslate(question)}
-                        style={{ 
-                          color: Object.keys(question.translations || {}).length > 0 
-                            ? 'var(--success)' 
-                            : undefined 
+                        style={{
+                          color: Object.keys(question.translations || {}).length > 0
+                            ? 'var(--success)'
+                            : undefined
                         }}
                       >
                         <Languages size={16} />
                       </Button>
-                      <Button 
-                        variant="icon" 
-                        title="Duplicate"
+                      <Button
+                        variant="icon"
+                        title={t('admin.pushQuestions.rowActions.duplicate')}
                         onClick={() => handleDuplicate(question)}
                       >
                         <Copy size={16} />
                       </Button>
-                      <Button 
-                        variant="icon" 
+                      <Button
+                        variant="icon"
                         iconDanger
-                        title="Delete"
+                        title={t('admin.pushQuestions.rowActions.delete')}
                         onClick={() => handleDeleteClick(question)}
                       >
                         <Trash2 size={16} />
@@ -652,48 +649,48 @@ export default function PushQuestionsPage() {
       <AdminModal
         isOpen={editModalOpen}
         onClose={() => setEditModalOpen(false)}
-        title={selectedQuestion ? 'Edit Question' : 'Add New Question'}
+        title={selectedQuestion ? t('admin.pushQuestions.editModal.titleEdit') : t('admin.pushQuestions.editModal.titleAdd')}
         size="large"
       >
         <form onSubmit={handleSubmit}>
           <FormInput
-            label="Question *"
+            label={t('admin.pushQuestions.editModal.questionLabel')}
             value={formData.question}
             onChange={(e) => setFormData({ ...formData, question: e.target.value })}
             required
           />
           <FormTextarea
-            label="Description / Hint"
+            label={t('admin.pushQuestions.editModal.descriptionLabel')}
             value={formData.description}
             onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-            placeholder="Description or hint to help users understand the question"
+            placeholder={t('admin.pushQuestions.editModal.descriptionPlaceholder')}
           />
           <FormSelect
-            label="Question Type"
+            label={t('admin.pushQuestions.editModal.questionType')}
             value={formData.questionType}
             onChange={(e) => setFormData({ ...formData, questionType: e.target.value })}
             options={QUESTION_TYPES}
           />
-          
+
           {['CHOICE', 'MULTI_CHOICE'].includes(formData.questionType) && (
             <FormTextarea
-              label="Options (comma separated)"
+              label={t('admin.pushQuestions.editModal.optionsLabel')}
               value={formData.options}
               onChange={(e) => setFormData({ ...formData, options: e.target.value })}
-              placeholder="Option 1, Option 2, Option 3"
+              placeholder={t('admin.pushQuestions.editModal.optionsPlaceholder')}
             />
           )}
 
           <FormInput
-            label="Category (optional)"
+            label={t('admin.pushQuestions.editModal.categoryLabel')}
             value={formData.category}
             onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-            placeholder="e.g., Marketing, Content, Technical"
+            placeholder={t('admin.pushQuestions.editModal.categoryPlaceholder')}
           />
 
           <div style={{ marginBottom: '1rem' }}>
             <FormCheckbox
-              label="Show to all sites"
+              label={t('admin.pushQuestions.editModal.showToAll')}
               checked={formData.targetAll}
               onChange={(e) => setFormData({ ...formData, targetAll: e.target.checked })}
             />
@@ -702,7 +699,7 @@ export default function PushQuestionsPage() {
           {!formData.targetAll && sites.length > 0 && (
             <div style={{ marginBottom: '1rem' }}>
               <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>
-                Select specific sites:
+                {t('admin.pushQuestions.editModal.selectSpecificSites')}
               </label>
               <div style={{ 
                 maxHeight: '150px', 
@@ -736,23 +733,23 @@ export default function PushQuestionsPage() {
           )}
 
           <FormCheckbox
-            label="Required question (cannot skip)"
+            label={t('admin.pushQuestions.editModal.requiredQuestion')}
             checked={formData.required}
             onChange={(e) => setFormData({ ...formData, required: e.target.checked })}
           />
-          
+
           <FormCheckbox
-            label="Active question"
+            label={t('admin.pushQuestions.editModal.activeQuestion')}
             checked={formData.isActive}
             onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
           />
 
           <FormActions>
             <SecondaryButton type="button" onClick={() => setEditModalOpen(false)}>
-              Cancel
+              {t('admin.pushQuestions.editModal.cancel')}
             </SecondaryButton>
             <PrimaryButton type="submit" disabled={isSubmitting}>
-              {isSubmitting ? 'Saving...' : 'Save'}
+              {isSubmitting ? t('admin.pushQuestions.editModal.saving') : t('admin.pushQuestions.editModal.save')}
             </PrimaryButton>
           </FormActions>
         </form>
@@ -762,12 +759,12 @@ export default function PushQuestionsPage() {
       <AdminModal
         isOpen={translateModalOpen}
         onClose={() => setTranslateModalOpen(false)}
-        title={`Translate: ${selectedQuestion?.question || ''}`}
+        title={t('admin.pushQuestions.translateModal.title', { question: selectedQuestion?.question || '' })}
         size="large"
       >
         <form onSubmit={handleTranslationSubmit}>
           <FormSelect
-            label="Select Language"
+            label={t('admin.pushQuestions.translateModal.selectLanguage')}
             value={selectedLanguage}
             onChange={(e) => handleLanguageChange(e.target.value)}
             options={AVAILABLE_LANGUAGES.filter(l => l !== 'EN').map(lang => ({
@@ -776,35 +773,35 @@ export default function PushQuestionsPage() {
             }))}
           />
 
-          <div style={{ 
-            background: 'var(--muted)', 
-            padding: '1rem', 
-            borderRadius: '0.5rem', 
+          <div style={{
+            background: 'var(--muted)',
+            padding: '1rem',
+            borderRadius: '0.5rem',
             marginBottom: '1rem',
             fontSize: '0.8125rem',
           }}>
-            <strong>Original (EN):</strong>
+            <strong>{t('admin.pushQuestions.translateModal.originalLabel')}</strong>
             <div style={{ marginTop: '0.5rem' }}>
-              <div><strong>Question:</strong> {selectedQuestion?.question}</div>
+              <div><strong>{t('admin.pushQuestions.translateModal.questionLabel')}</strong> {selectedQuestion?.question}</div>
               {selectedQuestion?.description && (
-                <div><strong>Description:</strong> {selectedQuestion.description}</div>
+                <div><strong>{t('admin.pushQuestions.translateModal.descriptionLabel')}</strong> {selectedQuestion.description}</div>
               )}
               {selectedQuestion?.options && selectedQuestion.options.length > 0 && (
-                <div><strong>Options:</strong> {selectedQuestion.options.join(', ')}</div>
+                <div><strong>{t('admin.pushQuestions.translateModal.optionsLabel')}</strong> {selectedQuestion.options.join(', ')}</div>
               )}
             </div>
           </div>
 
           <FormInput
-            label={`Question (${selectedLanguage}) *`}
+            label={t('admin.pushQuestions.translateModal.translatedQuestion', { lang: selectedLanguage })}
             value={translationData.question}
             onChange={(e) => setTranslationData({ ...translationData, question: e.target.value })}
             required
             placeholder={selectedQuestion?.question}
           />
-          
+
           <FormTextarea
-            label={`Description (${selectedLanguage})`}
+            label={t('admin.pushQuestions.translateModal.translatedDescription', { lang: selectedLanguage })}
             value={translationData.description}
             onChange={(e) => setTranslationData({ ...translationData, description: e.target.value })}
             placeholder={selectedQuestion?.description || ''}
@@ -812,10 +809,10 @@ export default function PushQuestionsPage() {
 
           {['CHOICE', 'MULTI_CHOICE'].includes(selectedQuestion?.questionType) && (
             <FormTextarea
-              label={`Options (${selectedLanguage}, comma separated)`}
+              label={t('admin.pushQuestions.translateModal.translatedOptions', { lang: selectedLanguage })}
               value={translationData.options}
               onChange={(e) => setTranslationData({ ...translationData, options: e.target.value })}
-              placeholder={selectedQuestion?.options?.join(', ') || 'Option 1, Option 2, Option 3'}
+              placeholder={selectedQuestion?.options?.join(', ') || t('admin.pushQuestions.translateModal.defaultOptionsPlaceholder')}
             />
           )}
 
@@ -834,14 +831,14 @@ export default function PushQuestionsPage() {
                   marginRight: 'auto',
                 }}
               >
-                Delete Translation
+                {t('admin.pushQuestions.translateModal.deleteTranslation')}
               </button>
             )}
             <SecondaryButton type="button" onClick={() => setTranslateModalOpen(false)}>
-              Cancel
+              {t('admin.pushQuestions.translateModal.cancel')}
             </SecondaryButton>
             <PrimaryButton type="submit" disabled={isSubmitting}>
-              {isSubmitting ? 'Saving...' : 'Save Translation'}
+              {isSubmitting ? t('admin.pushQuestions.translateModal.saving') : t('admin.pushQuestions.translateModal.save')}
             </PrimaryButton>
           </FormActions>
         </form>
@@ -852,10 +849,10 @@ export default function PushQuestionsPage() {
         isOpen={deleteDialogOpen}
         onClose={() => setDeleteDialogOpen(false)}
         onConfirm={handleDeleteConfirm}
-        title="Delete Question"
-        message="Are you sure you want to delete this question? All saved answers will also be deleted."
-        confirmText="Delete"
-        cancelText="Cancel"
+        title={t('admin.pushQuestions.deleteDialog.title')}
+        message={t('admin.pushQuestions.deleteDialog.message')}
+        confirmText={t('admin.pushQuestions.deleteDialog.confirm')}
+        cancelText={t('admin.pushQuestions.deleteDialog.cancel')}
         variant="danger"
       />
     </div>

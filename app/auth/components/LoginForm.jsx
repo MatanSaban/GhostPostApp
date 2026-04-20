@@ -32,23 +32,14 @@ export function LoginForm({ translations }) {
         throw new Error(data.error || translations.loginFailed);
       }
 
-      if (data.isTempRegistration) {
-        // User has a pending registration - cookie is already set by API
-        // Store temp registration info for display purposes
-        localStorage.setItem('tempRegistration', JSON.stringify({
-          email: data.tempReg.email,
-          firstName: data.tempReg.firstName,
-          lastName: data.tempReg.lastName,
-        }));
-        // Clear any existing user data
-        localStorage.removeItem('user');
-      } else {
-        // Regular user login
-        // Store user data in localStorage for now (replace with proper session management)
+      if (data.isRegistrationComplete) {
         localStorage.setItem('user', JSON.stringify(data.user));
-        // Clear any temp registration data
-        localStorage.removeItem('tempRegistration');
+      } else {
+        // Mid-registration: session is set by the API; the server resumes them
+        // at the right step when they land on /auth/register.
+        localStorage.removeItem('user');
       }
+      localStorage.removeItem('tempRegistration');
 
       // Redirect based on registration step
       router.push(data.redirectTo);

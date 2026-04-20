@@ -90,7 +90,7 @@ export default function QuestionTable({
                   className={styles.moveButton}
                   onClick={() => onMove(question.id, 'up')}
                   disabled={index === 0}
-                  title="Move up"
+                  title={t('admin.common.moveUp')}
                 >
                   <ChevronUp size={14} />
                 </button>
@@ -98,7 +98,7 @@ export default function QuestionTable({
                   className={styles.moveButton}
                   onClick={() => onMove(question.id, 'down')}
                   disabled={index === filteredQuestions.length - 1}
-                  title="Move down"
+                  title={t('admin.common.moveDown')}
                 >
                   <ChevronDown size={14} />
                 </button>
@@ -165,14 +165,14 @@ export default function QuestionTable({
                 <Button
                   variant="icon"
                   onClick={() => onEdit(question)}
-                  title="Edit"
+                  title={t('admin.common.edit')}
                 >
                   <Edit2 size={14} />
                 </Button>
                 <Button
                   variant="icon"
                   onClick={() => onDuplicate(question)}
-                  title="Duplicate"
+                  title={t('admin.common.duplicate')}
                 >
                   <Copy size={14} />
                 </Button>
@@ -180,7 +180,7 @@ export default function QuestionTable({
                   variant="icon"
                   iconDanger
                   onClick={() => onDelete(question)}
-                  title="Delete"
+                  title={t('admin.common.delete')}
                 >
                   <Trash2 size={14} />
                 </Button>

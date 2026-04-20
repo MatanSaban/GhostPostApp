@@ -480,7 +480,7 @@ export default function InterviewQuestionsPage() {
               label={`${t('admin.common.options')} (${t('admin.interviewQuestions.form.commaSeparated')})`}
               value={formData.options}
               onChange={(e) => setFormData({ ...formData, options: e.target.value })}
-              placeholder="Option 1, Option 2, Option 3"
+              placeholder={t('admin.interviewQuestions.form.optionsPlaceholder')}
             />
           )}
           <FormCheckbox

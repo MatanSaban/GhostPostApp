@@ -2,60 +2,79 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import prisma from '@/lib/prisma';
 import { createLowProfile, buildDocument } from '@/lib/cardcom';
+import { getDraftAccountForUser } from '@/lib/draft-account';
 
-const TEMP_REG_COOKIE = 'temp_reg_id';
+const SESSION_COOKIE = 'user_session';
 
 /**
  * POST /api/auth/registration/payment-init
- * 
+ *
  * Creates a CardCom LowProfile deal for registration payment.
- * Uses temp_reg_id cookie (no user_session yet during registration).
- * 
+ * Uses user_session cookie — the session is set from first registration step
+ * on the draft user.
+ *
  * Body:
  *  - amount: number (total to charge, in ILS)
  *  - language: string (default 'he')
- *  - couponCode: string (optional, for discount tracking)
  */
 export async function POST(request) {
   try {
     const cookieStore = await cookies();
-    const tempRegId = cookieStore.get(TEMP_REG_COOKIE)?.value;
+    const sessionUserId = cookieStore.get(SESSION_COOKIE)?.value;
 
-    if (!tempRegId) {
+    if (!sessionUserId) {
       return NextResponse.json(
         { error: 'No registration in progress' },
         { status: 400 }
       );
     }
 
-    const tempReg = await prisma.tempRegistration.findUnique({
-      where: { id: tempRegId },
+    const user = await prisma.user.findUnique({
+      where: { id: sessionUserId },
+      select: {
+        id: true,
+        email: true,
+        firstName: true,
+        lastName: true,
+        phoneNumber: true,
+        emailVerified: true,
+        phoneVerified: true,
+      },
     });
 
-    if (!tempReg) {
+    if (!user) {
+      cookieStore.delete(SESSION_COOKIE);
       return NextResponse.json(
-        { error: 'Registration not found' },
+        { error: 'Registration not found. Please start over.' },
         { status: 404 }
       );
     }
 
-    if (new Date() > tempReg.expiresAt) {
+    if (!user.emailVerified && !user.phoneVerified) {
       return NextResponse.json(
-        { error: 'Registration expired' },
-        { status: 410 }
+        { error: 'Verification required before payment' },
+        { status: 400 }
       );
     }
 
-    if (!tempReg.selectedPlanId) {
+    const draftAccount = await getDraftAccountForUser(user.id);
+
+    if (!draftAccount) {
+      return NextResponse.json(
+        { error: 'No draft account found. Please start over.' },
+        { status: 404 }
+      );
+    }
+
+    if (!draftAccount.draftSelectedPlanId) {
       return NextResponse.json(
         { error: 'No plan selected' },
         { status: 400 }
       );
     }
 
-    // Get the selected plan
     const plan = await prisma.plan.findUnique({
-      where: { id: tempReg.selectedPlanId },
+      where: { id: draftAccount.draftSelectedPlanId },
     });
 
     if (!plan) {
@@ -75,16 +94,14 @@ export async function POST(request) {
       );
     }
 
-    // Build webhook URL
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.NEXTAUTH_URL || '';
     const webhookUrl = baseUrl ? `${baseUrl}/api/payment/webhook` : '';
 
-    // Build document for invoice
-    const customerName = `${tempReg.firstName || ''} ${tempReg.lastName || ''}`.trim() || tempReg.email;
+    const customerName = `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.email;
     const document = buildDocument({
       customerName,
-      customerEmail: tempReg.email,
-      customerPhone: tempReg.phoneNumber || '',
+      customerEmail: user.email,
+      customerPhone: user.phoneNumber || '',
       products: [{
         description: `${plan.name} Plan - Monthly Subscription`,
         quantity: 1,
@@ -92,7 +109,6 @@ export async function POST(request) {
       }],
     });
 
-    // Create LowProfile deal at CardCom
     const lpResult = await createLowProfile({
       amount,
       currency: 'ILS',

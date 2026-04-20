@@ -442,7 +442,7 @@ export default function BotActionsPage() {
                       <Button
                         variant="icon"
                         onClick={() => handleTest(action)}
-                        title="Test"
+                        title={t('admin.common.test')}
                         style={{ color: 'var(--primary)' }}
                       >
                         <Play size={14} />
@@ -450,7 +450,7 @@ export default function BotActionsPage() {
                       <Button
                         variant="icon"
                         onClick={() => handleEdit(action)}
-                        title="Edit"
+                        title={t('admin.common.edit')}
                       >
                         <Edit2 size={14} />
                       </Button>
@@ -458,7 +458,7 @@ export default function BotActionsPage() {
                         variant="icon"
                         iconDanger
                         onClick={() => handleDeleteClick(action)}
-                        title="Delete"
+                        title={t('admin.common.delete')}
                       >
                         <Trash2 size={14} />
                       </Button>

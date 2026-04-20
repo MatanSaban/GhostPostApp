@@ -135,6 +135,19 @@ export default function DashboardLayout({ children }) {
     }
   }, [user, isUserLoading, router]);
 
+  // Archive redirect: if the user has archived-owned accounts still in the
+  // restore window AND no currently active account, force them to the restore
+  // page. Allow them to stay on /dashboard/restore-account either way.
+  useEffect(() => {
+    if (isUserLoading || !user) return;
+    if (pathname === '/dashboard/restore-account') return;
+    const hasArchived = (user.archivedOwnedAccounts || []).length > 0;
+    const hasCurrentAccount = !!user.accountId;
+    if (hasArchived && !hasCurrentAccount) {
+      router.push('/dashboard/restore-account');
+    }
+  }, [user, isUserLoading, pathname, router]);
+
   // Check if current path is accessible, redirect if not - MUST be before any early returns
   useEffect(() => {
     if (!isPermissionsLoading && !isUserLoading && pathname !== '/dashboard') {

@@ -11,7 +11,7 @@ import styles from '../admin.module.css';
 export default function AiPricingPage() {
   const router = useRouter();
   const { isSuperAdmin, isLoading: isUserLoading } = useUser();
-  const { t } = useLocale();
+  const { t, locale } = useLocale();
   const [features, setFeatures] = useState([]);
   const [editedCosts, setEditedCosts] = useState({});
   const [isLoading, setIsLoading] = useState(true);
@@ -78,7 +78,7 @@ export default function AiPricingPage() {
         setError(result.error);
         return;
       }
-      setSuccessMessage(`Updated ${updates.length} feature price(s) successfully.`);
+      setSuccessMessage(t('admin.pricing.saveSuccess', { count: updates.length }));
       await loadPricing();
     } catch (err) {
       setError(err.message);
@@ -111,10 +111,10 @@ export default function AiPricingPage() {
       <div className={styles.adminHeader}>
         <h1 className={styles.adminTitle}>
           <Coins size={24} style={{ display: 'inline', verticalAlign: 'middle', marginInlineEnd: '0.5rem' }} />
-          AI Credit Pricing Management
+          {t('admin.pricing.title')}
         </h1>
         <p className={styles.adminSubtitle}>
-          Manage credit costs for all AI features. Changes take effect immediately.
+          {t('admin.pricing.subtitle')}
         </p>
       </div>
 
@@ -153,7 +153,7 @@ export default function AiPricingPage() {
       <div className={styles.adminToolbar}>
         <div className={styles.toolbarLeft}>
           <span style={{ fontSize: '0.9375rem', color: 'var(--muted-foreground)' }}>
-            {features.length} features configured
+            {t('admin.pricing.featuresConfigured', { count: features.length })}
           </span>
         </div>
         <div className={styles.toolbarRight}>
@@ -164,7 +164,7 @@ export default function AiPricingPage() {
             style={{ opacity: hasChanges ? 1 : 0.5 }}
           >
             <RotateCcw size={16} />
-            Reset
+            {t('admin.pricing.reset')}
           </button>
           <button
             className={styles.filterButtonActive}
@@ -176,7 +176,7 @@ export default function AiPricingPage() {
             }}
           >
             <Save size={16} />
-            {isSaving ? 'Saving...' : 'Save Changes'}
+            {isSaving ? t('admin.pricing.saving') : t('admin.pricing.save')}
           </button>
         </div>
       </div>
@@ -185,10 +185,10 @@ export default function AiPricingPage() {
         <table className={styles.table}>
           <thead className={styles.tableHeader}>
             <tr>
-              <th>Feature Key</th>
-              <th>Display Name</th>
-              <th>Credit Cost</th>
-              <th>Last Updated</th>
+              <th>{t('admin.pricing.columns.featureKey')}</th>
+              <th>{t('admin.pricing.columns.displayName')}</th>
+              <th>{t('admin.pricing.columns.creditCost')}</th>
+              <th>{t('admin.pricing.columns.lastUpdated')}</th>
             </tr>
           </thead>
           <tbody className={styles.tableBody}>
@@ -231,13 +231,13 @@ export default function AiPricingPage() {
                       />
                       {isEdited && (
                         <span style={{ fontSize: '0.8125rem', color: 'var(--primary)', fontWeight: 500 }}>
-                          (was {feature.creditCost})
+                          {t('admin.pricing.wasValue', { cost: feature.creditCost })}
                         </span>
                       )}
                     </div>
                   </td>
                   <td style={{ fontSize: '0.9375rem', color: 'var(--muted-foreground)' }}>
-                    {new Date(feature.updatedAt).toLocaleDateString('en-US', {
+                    {new Date(feature.updatedAt).toLocaleDateString(locale === 'he' ? 'he-IL' : 'en-US', {
                       year: 'numeric', month: 'short', day: 'numeric',
                       hour: '2-digit', minute: '2-digit',
                     })}

@@ -48,7 +48,7 @@ export default function PlanEditModal({
           required
         />
         <FormInput
-          label="Slug"
+          label={t('admin.plans.form.slug')}
           value={formData.slug}
           onChange={(e) => setFormData({ ...formData, slug: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '') })}
           required

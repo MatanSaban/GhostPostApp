@@ -132,7 +132,7 @@ export function InterviewStep({ translations, onComplete, initialData = {}, onAn
     if (initialized) return;
     
     const welcomeMsg = t('interviewWizard.questions.welcome');
-    const urlQuestion = t('interviewWizard.questions.websiteUrl');
+    const urlQuestion = t('registration.interview.questions.websiteUrl');
     
     setMessages([
       { id: 0, type: 'agent', content: welcomeMsg },

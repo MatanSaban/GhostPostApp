@@ -213,6 +213,7 @@
   "auth": {
     "login": "התחברות",
     "logout": "התנתקות",
+    "loggingOut": "מתנתק...",
     "register": "הרשמה",
     "firstName": "שם פרטי",
     "lastName": "שם משפחה",
@@ -3920,23 +3921,28 @@
       "confirmNewPassword": "אשר סיסמה חדשה",
       "confirmPasswordPlaceholder": "אשר סיסמה חדשה",
       "dangerZone": "אזור סכנה",
+      "deleteOwnerOnly": "רק בעל החשבון יכול למחוק את הארגון.",
       "deleteAccount": "מחק חשבון",
-      "deleteAccountDesc": "מחק לצמיתות את החשבון וכל הנתונים שלך",
-      "deleteAccountTitle": "מחיקת חשבון לצמיתות",
-      "deleteAccountWarning": "פעולה זו היא בלתי הפיכה. לאחר מחיקת החשבון, לא ניתן יהיה לשחזר את הנתונים.",
-      "deleteAccountConsequences": "מה יימחק:",
-      "deleteAccountConsequence1": "כל האתרים המקושרים לחשבון",
-      "deleteAccountConsequence2": "כל התוכן, מילות המפתח והנתונים",
-      "deleteAccountConsequence3": "כל חברי הצוות יאבדו גישה",
-      "deleteAccountConsequence4": "המנוי יבוטל ללא החזר",
+      "deleteAccountDesc": "העבר את הארגון וכל הנתונים שלו לארכיון. יהיו לך 14 יום לשחזר אותו.",
+      "deleteAccountTitle": "מחיקת חשבון",
+      "deleteAccountWarning": "הארגון וכל הנתונים שלו יועברו לארכיון. יש לך 14 יום לשחזר אותם — לאחר מכן, הכל יימחק לצמיתות.",
+      "deleteAccountConsequences": "מה קורה כשמוחקים:",
+      "deleteAccountConsequence1": "כל האתרים המקושרים לחשבון יושבתו",
+      "deleteAccountConsequence2": "כל התוכן, מילות המפתח והנתונים יוסתרו",
+      "deleteAccountConsequence3": "כל חברי הצוות יאבדו גישה באופן מיידי",
+      "deleteAccountConsequence4": "המנוי יישאר מושהה במהלך 14 הימים",
       "deleteAccountConfirmLabel": "כדי לאשר, הקלד \"מחיקת חשבון\" בשדה למטה:",
       "deleteAccountConfirmPlaceholder": "הקלד מחיקת חשבון",
       "deleteAccountConfirmText": "מחיקת חשבון",
-      "deleteAccountButton": "מחק חשבון לצמיתות",
+      "deleteAccountButton": "מחק חשבון",
       "deleteAccountCancel": "ביטול",
       "deleteAccountDeleting": "מוחק...",
-      "deleteAccountSuccess": "החשבון נמחק בהצלחה",
-      "deleteAccountError": "שגיאה במחיקת החשבון"
+      "deleteAccountSuccess": "החשבון הועבר לארכיון בהצלחה",
+      "deleteAccountError": "שגיאה במחיקת החשבון",
+      "archivedTitle": "החשבון הועבר לארכיון",
+      "archivedBody": "הארגון וכל האתרים שלו הועברו לארכיון. ניתן לשחזר את הכל עד {deadline}. לאחר מכן, הנתונים יימחקו לצמיתות.",
+      "archivedLogoutNotice": "תנותק באופן אוטומטי בעוד {countdown}.",
+      "archivedLogoutNow": "התנתק עכשיו"
     },
     "integrations": "אינטגרציות"
   },
@@ -4165,7 +4171,11 @@
     "logo": {
       "title": "לוגו הארגון",
       "change": "שנה לוגו",
-      "hint": "העלה את לוגו הארגון שלך. גודל מומלץ: 200x200 פיקסלים. פורמטים נתמכים: JPG, PNG, GIF."
+      "hint": "העלה את לוגו הארגון שלך. גודל מומלץ: 200x200 פיקסלים. פורמטים נתמכים: JPG, PNG, GIF.",
+      "iconLabel": "אייקון לוגו",
+      "iconHint": "ריבועי, 60x60 פיקסלים",
+      "organizationLogoAlt": "לוגו הארגון",
+      "wideLogoAlt": "לוגו רחב"
     },
     "general": {
       "title": "מידע כללי"
@@ -4182,14 +4192,17 @@
       "slug": "כתובת URL של החשבון",
       "slugHint": "לא ניתן לשנות לאחר יצירה",
       "website": "אתר אינטרנט",
+      "websitePlaceholder": "https://example.com",
       "industry": "תעשייה",
       "selectIndustry": "בחר תעשייה",
       "timezone": "אזור זמן",
       "defaultLanguage": "שפת ברירת מחדל",
       "generalEmail": "אימייל ליצירת קשר",
       "generalEmailHint": "משמש לתקשורת כללית והתראות",
+      "generalEmailPlaceholder": "contact@company.com",
       "billingEmail": "אימייל לחיוב",
-      "billingEmailHint": "משמש לחשבוניות והתראות חיוב"
+      "billingEmailHint": "משמש לחשבוניות והתראות חיוב",
+      "billingEmailPlaceholder": "billing@company.com"
     },
     "industries": {
       "technology": "טכנולוגיה",
@@ -4206,6 +4219,20 @@
     "dangerZone": "אזור סכנה",
     "deleteAccount": "מחק חשבון",
     "deleteAccountDesc": "מחק לצמיתות את חשבון הארגון וכל הנתונים המשויכים"
+  },
+  "restoreAccount": {
+    "title": "שחזור החשבון המאורכב",
+    "description": "הארגון שלך הועבר לארכיון. שחזר אותו עכשיו כדי להחזיר גישה לכל האתרים, התוכן וחברי הצוות.",
+    "noneTitle": "אין מה לשחזר",
+    "noneDescription": "אין לך חשבונות בארכיון שניתן לשחזר.",
+    "archivedOn": "הועבר לארכיון בתאריך",
+    "restoreDeadline": "ניתן לשחזר עד",
+    "siteCount": "{count} אתרים",
+    "restoreButton": "שחזר חשבון",
+    "restoring": "משחזר...",
+    "loadError": "טעינת החשבונות מהארכיון נכשלה.",
+    "restoreError": "שחזור החשבון נכשל.",
+    "goToDashboard": "מעבר ללוח הבקרה"
   },
   "sites": {
     "selectSite": "בחר אתר",
@@ -5180,7 +5207,7 @@
       "namePlaceholder": "הזן את שם הארגון",
       "slugLabel": "כתובת URL של הארגון",
       "slugPlaceholder": "הארגון-שלך",
-      "slugPrefix": "ghostpost.com/",
+      "slugPrefix": "ghostpost.co.il/",
       "slugHint": "זו תהיה הכתובת הייחודית שלך. רק אותיות קטנות באנגלית, מספרים ומקפים מותרים.",
       "slugAvailable": "זמין!",
       "slugTooShort": "הכתובת חייבת להיות לפחות 3 תווים",
@@ -5201,7 +5228,7 @@
       "greeting": "ברוכים הבאים ל-GhostPost! אני העוזר ה-AI שלך ואעזור לך להקים את החשבון. בואו נלמד על העסק שלך כדי ליצור את אסטרטגיית ה-SEO המושלמת.",
       "startButton": "התחל הגדרה",
       "questions": {
-        "websiteUrl": "מה כתובת האתר שלך?",
+        "websiteUrl": "מה האתר הראשון שתרצה להוסיף לGhostPost?",
         "contentLanguage": "באיזו שפה התוכן שלך צריך להיכתב?",
         "businessConfirmation": "האם המידע הזה נראה נכון?",
         "keywords": "בחר מילות מפתח רלוונטיות לעסק שלך",
@@ -5437,7 +5464,9 @@
       "days": "ימים",
       "vat": "מע״מ (18%)",
       "confirmFree": "אשר",
-      "total": "סה״כ",
+      "total": "סה״כ לתשלום עכשיו",
+      "recurringMonthly": "תשלום חודשי מתחדש",
+      "billingDisclaimer": "נחייב אותך כעת בסך {now} באופן יחסי, והחל מתאריך {date} נחייב אותך בסך {recurring} בכל 1 לחודש.",
       "coupon": {
         "label": "קוד קופון",
         "placeholder": "הזן קוד קופון",
@@ -5723,6 +5752,7 @@
       },
       "noPlans": "לא הוגדרו תוכניות",
       "form": {
+        "slug": "מזהה URL",
         "monthly": "חודשי",
         "yearly": "שנתי",
         "yearlyPlaceholder": "השאר ריק למחיר × 10",
@@ -5823,6 +5853,12 @@
       },
       "noAddOns": "לא נמצאו תוספות",
       "quantityHint": "השאר ריק עבור תוספות שמספקות +1 של משאב (כמו מושבים או אתרים נוספים)",
+      "placeholders": {
+        "name": "לדוגמה: חבילת קרדיטים AI - 10K",
+        "key": "לדוגמה: ai-credits-10k",
+        "description": "תאר מה התוסף הזה מספק...",
+        "quantity": "לדוגמה: 10000 עבור חבילת קרדיטים AI"
+      },
       "stats": {
         "total": "סה\"כ תוספות",
         "active": "תוספות פעילות",
@@ -5852,7 +5888,8 @@
       "actions": {
         "edit": "עריכת קופון",
         "delete": "מחק קופון",
-        "translate": "תרגום"
+        "translate": "תרגום",
+        "copyCode": "העתק קוד"
       },
       "translations": {
         "selectLanguage": "בחר שפה",
@@ -5983,7 +6020,8 @@
       "form": {
         "questionKey": "מפתח תרגום",
         "placeholder": "טקסט מציין מקום",
-        "commaSeparated": "מופרדים בפסיקים"
+        "commaSeparated": "מופרדים בפסיקים",
+        "optionsPlaceholder": "אפשרות 1, אפשרות 2, אפשרות 3"
       }
     },
     "faq": {
@@ -6023,6 +6061,23 @@
         "active": "פעיל",
         "question": "שאלה",
         "answer": "תשובה"
+      },
+      "pageOptions": {
+        "pricing": "עמוד מחירים",
+        "faq": "עמוד שאלות נפוצות",
+        "both": "שני העמודים"
+      },
+      "pageBadge": {
+        "pricing": "מחירים",
+        "faq": "שאלות נפוצות",
+        "both": "שניהם"
+      },
+      "categories": {
+        "none": "ללא קטגוריה",
+        "general": "כללי",
+        "pricing": "מחירים",
+        "features": "תכונות",
+        "technical": "טכני"
       }
     },
     "common": {
@@ -6523,6 +6578,303 @@
       "statusUpdateSuccess": "סטטוס הרכישה עודכן בהצלחה",
       "sold": "נמכרו",
       "unlimited": "ללא הגבלה"
+    },
+    "dashboard": {
+      "title": "לוח בקרה למנהל-על",
+      "subtitle": "סקירה כלל-פלטפורמית של עלויות AI ורווחיות",
+      "retry": "נסה שוב",
+      "widgets": {
+        "mrr": "הכנסה חודשית חוזרת",
+        "aiCost30d": "עלות AI (30 ימים)",
+        "profitMargin": "שולי רווח",
+        "profitMarginValue": "שולי רווח ($)",
+        "revenueMinusCost": "הכנסה: ${revenue} − עלות: ${cost}",
+        "creditsConsumed": "קרדיטים שנצרכו",
+        "totalTokens": "סך טוקנים (קלט + פלט)",
+        "inOut": "קלט: {input} | פלט: {output}"
+      },
+      "chart": {
+        "title": "עלות AI מול הכנסה (30 ימים אחרונים)",
+        "revenue": "הכנסה",
+        "aiCost": "עלות AI"
+      },
+      "topAccounts": {
+        "title": "5 החשבונות המובילים לפי עלות AI",
+        "empty": "לא נמצאו נתוני שימוש ב-AI",
+        "columns": {
+          "account": "חשבון",
+          "plan": "תוכנית",
+          "monthlyRevenue": "הכנסה חודשית",
+          "aiCost30d": "עלות AI (30 ימים)",
+          "creditsUsed": "קרדיטים בשימוש",
+          "status": "סטטוס"
+        },
+        "costOverRevenue": "עלות > הכנסה",
+        "profitable": "רווחי"
+      }
+    },
+    "accountAnalytics": {
+      "back": "חזרה ללוח המנהל",
+      "exportCsv": "ייצוא CSV",
+      "retry": "נסה שוב",
+      "header": {
+        "details": "{plan} · {status} · יתרת קרדיטים: {balance} · סה\"כ בשימוש: {total}"
+      },
+      "profitability": {
+        "planRevenue": "הכנסות מתוכנית",
+        "addOnRevenue": "הכנסות מתוספות",
+        "totalRevenue": "סך הכנסות",
+        "aiCost": "עלות AI",
+        "netProfit": "רווח נקי",
+        "margin": "שוליים"
+      },
+      "filters": {
+        "dateRange": "טווח תאריכים",
+        "cost": "עלות ($)",
+        "tokens": "טוקנים",
+        "credits": "קרדיטים",
+        "min": "מינימום",
+        "max": "מקסימום",
+        "to": "עד",
+        "dash": "-",
+        "apply": "החל",
+        "clear": "נקה"
+      },
+      "usageLog": {
+        "title": "יומן שימוש ב-AI",
+        "entries": "{count} רשומות",
+        "entry": "רשומה אחת",
+        "empty": "לא נמצאו נתוני שימוש עבור הסינון שנבחר",
+        "columns": {
+          "date": "תאריך",
+          "user": "משתמש",
+          "actionType": "סוג פעולה",
+          "model": "מודל",
+          "inputTokens": "טוקני קלט",
+          "outputTokens": "טוקני פלט",
+          "credits": "קרדיטים",
+          "costUsd": "עלות (USD)"
+        }
+      }
+    },
+    "website": {
+      "localeTabs": {
+        "draft": "טיוטה"
+      },
+      "contentEditor": {
+        "empty": "לא נטען תוכן",
+        "itemCount": "{count} פריטים",
+        "fieldCount": "{count} שדות",
+        "addItem": "הוסף פריט",
+        "pages": {
+          "metadata": "מטא-דאטה (גלובלי)",
+          "nav": "ניווט",
+          "hero": "אזור Hero",
+          "features": "תכונות",
+          "howItWorks": "איך זה עובד",
+          "pricing": "תמחור",
+          "cta": "אזור CTA",
+          "about": "דף אודות",
+          "contact": "דף יצירת קשר",
+          "faq": "דף שאלות נפוצות",
+          "blog": "בלוג",
+          "blogPost": "פוסט בבלוג",
+          "footer": "כותרת תחתונה",
+          "auth": "דפי הזדהות",
+          "terms": "תנאי שימוש",
+          "privacy": "מדיניות פרטיות",
+          "common": "טקסטים משותפים"
+        }
+      },
+      "seoEditor": {
+        "pages": {
+          "home": "עמוד הבית",
+          "about": "אודות",
+          "features": "תכונות",
+          "how-it-works": "איך זה עובד",
+          "pricing": "תמחור",
+          "contact": "יצירת קשר",
+          "faq": "שאלות נפוצות",
+          "blog": "בלוג",
+          "privacy": "מדיניות פרטיות",
+          "terms": "תנאי שימוש"
+        },
+        "sections": {
+          "searchEngine": "מנועי חיפוש",
+          "openGraph": "Open Graph",
+          "twitterCard": "כרטיס טוויטר",
+          "structuredData": "נתונים מובנים (JSON-LD)"
+        },
+        "fields": {
+          "title": "כותרת",
+          "description": "תיאור",
+          "canonicalUrl": "כתובת קנונית",
+          "robots": "Robots",
+          "ogTitle": "כותרת OG",
+          "ogDescription": "תיאור OG",
+          "ogImage": "תמונת OG",
+          "ogType": "סוג OG",
+          "cardType": "סוג כרטיס",
+          "jsonLd": "JSON-LD"
+        },
+        "placeholders": {
+          "pageTitle": "כותרת הדף למנועי חיפוש",
+          "metaDescription": "תיאור מטא לתוצאות חיפוש",
+          "leaveEmptyForPageTitle": "השאר ריק כדי להשתמש בכותרת הדף",
+          "leaveEmptyForMetaDescription": "השאר ריק כדי להשתמש בתיאור המטא",
+          "ogImagePath": "/og/page.png (השאר ריק לדינמי)",
+          "pagePath": "/page-path",
+          "jsonLdExample": "{\"@context\": \"https://schema.org\", ...}"
+        }
+      }
+    },
+    "pushQuestions": {
+      "title": "שאלות דחיפה",
+      "subtitle": "שאלות המוצגות למשתמשים בדף פרופיל האתר",
+      "copySuffix": " (עותק)",
+      "stats": {
+        "total": "סך שאלות",
+        "active": "שאלות פעילות",
+        "required": "שאלות חובה",
+        "totalAnswers": "סך תשובות"
+      },
+      "toolbar": {
+        "searchPlaceholder": "חפש שאלות...",
+        "filterAll": "כל השאלות",
+        "filterActive": "שאלות פעילות",
+        "filterInactive": "שאלות לא פעילות",
+        "addQuestion": "הוסף שאלה"
+      },
+      "questionTypes": {
+        "TEXT": "טקסט קצר",
+        "TEXTAREA": "טקסט ארוך",
+        "CHOICE": "בחירה יחידה",
+        "MULTI_CHOICE": "בחירה מרובה",
+        "NUMBER": "מספר",
+        "URL": "URL"
+      },
+      "columns": {
+        "order": "סדר",
+        "question": "שאלה",
+        "type": "סוג",
+        "target": "יעד",
+        "required": "חובה",
+        "status": "סטטוס",
+        "actions": "פעולות"
+      },
+      "empty": {
+        "title": "אין שאלות",
+        "message": "הוסף שאלות דחיפה להצגה למשתמשים"
+      },
+      "target": {
+        "allSites": "כל האתרים",
+        "specificSites": "{count} אתרים"
+      },
+      "answerCount": "{count} תשובות",
+      "rowActions": {
+        "clickDeactivate": "לחץ להשבתה",
+        "clickActivate": "לחץ להפעלה",
+        "moveUp": "הזז למעלה",
+        "moveDown": "הזז למטה",
+        "edit": "ערוך",
+        "translate": "תרגם",
+        "duplicate": "שכפל",
+        "delete": "מחק"
+      },
+      "editModal": {
+        "titleEdit": "ערוך שאלה",
+        "titleAdd": "הוסף שאלה חדשה",
+        "questionLabel": "שאלה *",
+        "descriptionLabel": "תיאור / רמז",
+        "descriptionPlaceholder": "תיאור או רמז שיעזור למשתמשים להבין את השאלה",
+        "questionType": "סוג שאלה",
+        "optionsLabel": "אפשרויות (מופרדות בפסיקים)",
+        "optionsPlaceholder": "אפשרות 1, אפשרות 2, אפשרות 3",
+        "categoryLabel": "קטגוריה (אופציונלי)",
+        "categoryPlaceholder": "למשל: שיווק, תוכן, טכני",
+        "showToAll": "הצג לכל האתרים",
+        "selectSpecificSites": "בחר אתרים ספציפיים:",
+        "requiredQuestion": "שאלת חובה (אי אפשר לדלג)",
+        "activeQuestion": "שאלה פעילה",
+        "cancel": "ביטול",
+        "saving": "שומר...",
+        "save": "שמור"
+      },
+      "translateModal": {
+        "title": "תרגום: {question}",
+        "selectLanguage": "בחר שפה",
+        "originalLabel": "מקור (EN):",
+        "questionLabel": "שאלה:",
+        "descriptionLabel": "תיאור:",
+        "optionsLabel": "אפשרויות:",
+        "translatedQuestion": "שאלה ({lang}) *",
+        "translatedDescription": "תיאור ({lang})",
+        "translatedOptions": "אפשרויות ({lang}, מופרדות בפסיקים)",
+        "defaultOptionsPlaceholder": "אפשרות 1, אפשרות 2, אפשרות 3",
+        "deleteTranslation": "מחק תרגום",
+        "deleteTranslationConfirm": "למחוק את התרגום ל-{lang}?",
+        "cancel": "ביטול",
+        "saving": "שומר...",
+        "save": "שמור תרגום"
+      },
+      "deleteDialog": {
+        "title": "מחיקת שאלה",
+        "message": "האם למחוק שאלה זו? כל התשובות השמורות יימחקו גם הן.",
+        "confirm": "מחק",
+        "cancel": "ביטול"
+      }
+    },
+    "pricing": {
+      "title": "ניהול תמחור קרדיטים ל-AI",
+      "subtitle": "נהל עלויות קרדיטים לכל תכונות ה-AI. שינויים נכנסים לתוקף מיידית.",
+      "featuresConfigured": "{count} תכונות מוגדרות",
+      "reset": "איפוס",
+      "save": "שמור שינויים",
+      "saving": "שומר...",
+      "saveSuccess": "עודכנו בהצלחה {count} מחירי תכונה.",
+      "wasValue": "(היה {cost})",
+      "columns": {
+        "featureKey": "מפתח תכונה",
+        "displayName": "שם תצוגה",
+        "creditCost": "עלות בקרדיטים",
+        "lastUpdated": "עודכן לאחרונה"
+      }
+    },
+    "userAnalytics": {
+      "back": "חזרה ללוח המנהל",
+      "exportCsv": "ייצוא CSV",
+      "retry": "נסה שוב",
+      "header": {
+        "details": "{email} · סך עלות AI: ${cost}"
+      },
+      "filters": {
+        "dateRange": "טווח תאריכים",
+        "cost": "עלות ($)",
+        "tokens": "טוקנים",
+        "credits": "קרדיטים",
+        "min": "מינימום",
+        "max": "מקסימום",
+        "to": "עד",
+        "dash": "-",
+        "apply": "החל",
+        "clear": "נקה"
+      },
+      "usageLog": {
+        "title": "יומן שימוש ב-AI",
+        "entries": "{count} רשומות",
+        "entry": "רשומה אחת",
+        "empty": "לא נמצאו נתוני שימוש עבור הסינון שנבחר",
+        "columns": {
+          "date": "תאריך",
+          "account": "חשבון",
+          "actionType": "סוג פעולה",
+          "model": "מודל",
+          "inputTokens": "טוקני קלט",
+          "outputTokens": "טוקני פלט",
+          "credits": "קרדיטים",
+          "costUsd": "עלות (USD)"
+        }
+      }
     }
   },
   "acceptInvite": {

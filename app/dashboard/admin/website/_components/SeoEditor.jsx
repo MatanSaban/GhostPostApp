@@ -2,19 +2,20 @@
 
 import { useState } from 'react';
 import { ChevronDown, ChevronRight, Globe, Search, FileText, Twitter, Code } from 'lucide-react';
+import { useLocale } from '@/app/context/locale-context';
 import styles from './SeoEditor.module.css';
 
-const PAGES = [
-  { key: 'home', label: 'Homepage', icon: Globe },
-  { key: 'about', label: 'About', icon: FileText },
-  { key: 'features', label: 'Features', icon: FileText },
-  { key: 'how-it-works', label: 'How It Works', icon: FileText },
-  { key: 'pricing', label: 'Pricing', icon: FileText },
-  { key: 'contact', label: 'Contact', icon: FileText },
-  { key: 'faq', label: 'FAQ', icon: FileText },
-  { key: 'blog', label: 'Blog', icon: FileText },
-  { key: 'privacy', label: 'Privacy Policy', icon: FileText },
-  { key: 'terms', label: 'Terms of Service', icon: FileText }
+const PAGE_KEYS = [
+  { key: 'home', icon: Globe },
+  { key: 'about', icon: FileText },
+  { key: 'features', icon: FileText },
+  { key: 'how-it-works', icon: FileText },
+  { key: 'pricing', icon: FileText },
+  { key: 'contact', icon: FileText },
+  { key: 'faq', icon: FileText },
+  { key: 'blog', icon: FileText },
+  { key: 'privacy', icon: FileText },
+  { key: 'terms', icon: FileText }
 ];
 
 const ROBOTS_OPTIONS = [
@@ -42,8 +43,9 @@ function CharCounter({ current, max }) {
 }
 
 function PageSeoEditor({ pageKey, pageLabel, seo, onChange }) {
+  const { t } = useLocale();
   const [isExpanded, setIsExpanded] = useState(false);
-  
+
   const pageSeo = seo?.[pageKey] || {};
   
   const handleChange = (field, value) => {
@@ -68,12 +70,12 @@ function PageSeoEditor({ pageKey, pageLabel, seo, onChange }) {
           <div className={styles.seoSection}>
             <h4 className={styles.seoSectionTitle}>
               <Search size={14} />
-              Search Engine
+              {t('admin.website.seoEditor.sections.searchEngine')}
             </h4>
-            
+
             <div className={styles.field}>
               <label className={styles.fieldLabel}>
-                Title
+                {t('admin.website.seoEditor.fields.title')}
                 <CharCounter current={pageSeo.title?.length || 0} max={70} />
               </label>
               <input
@@ -81,13 +83,13 @@ function PageSeoEditor({ pageKey, pageLabel, seo, onChange }) {
                 value={pageSeo.title || ''}
                 onChange={(e) => handleChange('title', e.target.value)}
                 className={styles.textInput}
-                placeholder="Page title for search engines"
+                placeholder={t('admin.website.seoEditor.placeholders.pageTitle')}
               />
             </div>
-            
+
             <div className={styles.field}>
               <label className={styles.fieldLabel}>
-                Description
+                {t('admin.website.seoEditor.fields.description')}
                 <CharCounter current={pageSeo.description?.length || 0} max={160} />
               </label>
               <textarea
@@ -95,13 +97,13 @@ function PageSeoEditor({ pageKey, pageLabel, seo, onChange }) {
                 onChange={(e) => handleChange('description', e.target.value)}
                 className={styles.textareaInput}
                 rows={3}
-                placeholder="Meta description for search results"
+                placeholder={t('admin.website.seoEditor.placeholders.metaDescription')}
               />
             </div>
-            
+
             <div className={styles.fieldRow}>
               <div className={styles.field}>
-                <label className={styles.fieldLabel}>Canonical URL</label>
+                <label className={styles.fieldLabel}>{t('admin.website.seoEditor.fields.canonicalUrl')}</label>
                 <input
                   type="text"
                   value={pageSeo.canonical || ''}
@@ -110,9 +112,9 @@ function PageSeoEditor({ pageKey, pageLabel, seo, onChange }) {
                   placeholder={`/${pageKey === 'home' ? '' : pageKey}`}
                 />
               </div>
-              
+
               <div className={styles.field}>
-                <label className={styles.fieldLabel}>Robots</label>
+                <label className={styles.fieldLabel}>{t('admin.website.seoEditor.fields.robots')}</label>
                 <select
                   value={pageSeo.robots || 'index, follow'}
                   onChange={(e) => handleChange('robots', e.target.value)}
@@ -125,72 +127,72 @@ function PageSeoEditor({ pageKey, pageLabel, seo, onChange }) {
               </div>
             </div>
           </div>
-          
+
           {/* Open Graph */}
           <div className={styles.seoSection}>
             <h4 className={styles.seoSectionTitle}>
               <Globe size={14} />
-              Open Graph
+              {t('admin.website.seoEditor.sections.openGraph')}
             </h4>
-            
+
             <div className={styles.field}>
-              <label className={styles.fieldLabel}>OG Title</label>
+              <label className={styles.fieldLabel}>{t('admin.website.seoEditor.fields.ogTitle')}</label>
               <input
                 type="text"
                 value={pageSeo.ogTitle || ''}
                 onChange={(e) => handleChange('ogTitle', e.target.value)}
                 className={styles.textInput}
-                placeholder="Leave empty to use page title"
+                placeholder={t('admin.website.seoEditor.placeholders.leaveEmptyForPageTitle')}
               />
             </div>
-            
+
             <div className={styles.field}>
-              <label className={styles.fieldLabel}>OG Description</label>
+              <label className={styles.fieldLabel}>{t('admin.website.seoEditor.fields.ogDescription')}</label>
               <textarea
                 value={pageSeo.ogDescription || ''}
                 onChange={(e) => handleChange('ogDescription', e.target.value)}
                 className={styles.textareaInput}
                 rows={2}
-                placeholder="Leave empty to use meta description"
+                placeholder={t('admin.website.seoEditor.placeholders.leaveEmptyForMetaDescription')}
               />
             </div>
-            
+
             <div className={styles.fieldRow}>
               <div className={styles.field}>
-                <label className={styles.fieldLabel}>OG Image</label>
+                <label className={styles.fieldLabel}>{t('admin.website.seoEditor.fields.ogImage')}</label>
                 <input
                   type="text"
                   value={pageSeo.ogImage || ''}
                   onChange={(e) => handleChange('ogImage', e.target.value)}
                   className={styles.textInput}
-                  placeholder="/og/page.png (leave empty for dynamic)"
+                  placeholder={t('admin.website.seoEditor.placeholders.ogImagePath')}
                 />
               </div>
-              
+
               <div className={styles.field}>
-                <label className={styles.fieldLabel}>OG Type</label>
+                <label className={styles.fieldLabel}>{t('admin.website.seoEditor.fields.ogType')}</label>
                 <select
                   value={pageSeo.ogType || 'website'}
                   onChange={(e) => handleChange('ogType', e.target.value)}
                   className={styles.selectInput}
                 >
-                  {OG_TYPES.map(t => (
-                    <option key={t} value={t}>{t}</option>
+                  {OG_TYPES.map(ogType => (
+                    <option key={ogType} value={ogType}>{ogType}</option>
                   ))}
                 </select>
               </div>
             </div>
           </div>
-          
+
           {/* Twitter */}
           <div className={styles.seoSection}>
             <h4 className={styles.seoSectionTitle}>
               <Twitter size={14} />
-              Twitter Card
+              {t('admin.website.seoEditor.sections.twitterCard')}
             </h4>
-            
+
             <div className={styles.field}>
-              <label className={styles.fieldLabel}>Card Type</label>
+              <label className={styles.fieldLabel}>{t('admin.website.seoEditor.fields.cardType')}</label>
               <select
                 value={pageSeo.twitterCard || 'summary_large_image'}
                 onChange={(e) => handleChange('twitterCard', e.target.value)}
@@ -202,16 +204,16 @@ function PageSeoEditor({ pageKey, pageLabel, seo, onChange }) {
               </select>
             </div>
           </div>
-          
+
           {/* JSON-LD */}
           <div className={styles.seoSection}>
             <h4 className={styles.seoSectionTitle}>
               <Code size={14} />
-              Structured Data (JSON-LD)
+              {t('admin.website.seoEditor.sections.structuredData')}
             </h4>
-            
+
             <div className={styles.field}>
-              <label className={styles.fieldLabel}>JSON-LD</label>
+              <label className={styles.fieldLabel}>{t('admin.website.seoEditor.fields.jsonLd')}</label>
               <textarea
                 value={pageSeo.jsonLd ? JSON.stringify(pageSeo.jsonLd, null, 2) : ''}
                 onChange={(e) => {
@@ -224,7 +226,7 @@ function PageSeoEditor({ pageKey, pageLabel, seo, onChange }) {
                 }}
                 className={`${styles.textareaInput} ${styles.codeInput}`}
                 rows={6}
-                placeholder='{"@context": "https://schema.org", ...}'
+                placeholder={t('admin.website.seoEditor.placeholders.jsonLdExample')}
               />
             </div>
           </div>
@@ -236,6 +238,7 @@ function PageSeoEditor({ pageKey, pageLabel, seo, onChange }) {
 
 // Single page SEO editor (when editing one page)
 function SinglePageSeoEditor({ seo, onChange }) {
+  const { t } = useLocale();
   const handleChange = (field, value) => {
     onChange({ ...seo, [field]: value });
   };
@@ -246,12 +249,12 @@ function SinglePageSeoEditor({ seo, onChange }) {
       <div className={styles.seoSection}>
         <h4 className={styles.seoSectionTitle}>
           <Search size={14} />
-          Search Engine
+          {t('admin.website.seoEditor.sections.searchEngine')}
         </h4>
-        
+
         <div className={styles.field}>
           <label className={styles.fieldLabel}>
-            Title
+            {t('admin.website.seoEditor.fields.title')}
             <CharCounter current={seo?.title?.length || 0} max={70} />
           </label>
           <input
@@ -259,13 +262,13 @@ function SinglePageSeoEditor({ seo, onChange }) {
             value={seo?.title || ''}
             onChange={(e) => handleChange('title', e.target.value)}
             className={styles.textInput}
-            placeholder="Page title for search engines"
+            placeholder={t('admin.website.seoEditor.placeholders.pageTitle')}
           />
         </div>
-        
+
         <div className={styles.field}>
           <label className={styles.fieldLabel}>
-            Description
+            {t('admin.website.seoEditor.fields.description')}
             <CharCounter current={seo?.description?.length || 0} max={160} />
           </label>
           <textarea
@@ -273,24 +276,24 @@ function SinglePageSeoEditor({ seo, onChange }) {
             onChange={(e) => handleChange('description', e.target.value)}
             className={styles.textareaInput}
             rows={3}
-            placeholder="Meta description for search results"
+            placeholder={t('admin.website.seoEditor.placeholders.metaDescription')}
           />
         </div>
-        
+
         <div className={styles.fieldRow}>
           <div className={styles.field}>
-            <label className={styles.fieldLabel}>Canonical URL</label>
+            <label className={styles.fieldLabel}>{t('admin.website.seoEditor.fields.canonicalUrl')}</label>
             <input
               type="text"
               value={seo?.canonical || ''}
               onChange={(e) => handleChange('canonical', e.target.value)}
               className={styles.textInput}
-              placeholder="/page-path"
+              placeholder={t('admin.website.seoEditor.placeholders.pagePath')}
             />
           </div>
-          
+
           <div className={styles.field}>
-            <label className={styles.fieldLabel}>Robots</label>
+            <label className={styles.fieldLabel}>{t('admin.website.seoEditor.fields.robots')}</label>
             <select
               value={seo?.robots || 'index, follow'}
               onChange={(e) => handleChange('robots', e.target.value)}
@@ -303,72 +306,72 @@ function SinglePageSeoEditor({ seo, onChange }) {
           </div>
         </div>
       </div>
-      
+
       {/* Open Graph */}
       <div className={styles.seoSection}>
         <h4 className={styles.seoSectionTitle}>
           <Globe size={14} />
-          Open Graph
+          {t('admin.website.seoEditor.sections.openGraph')}
         </h4>
-        
+
         <div className={styles.field}>
-          <label className={styles.fieldLabel}>OG Title</label>
+          <label className={styles.fieldLabel}>{t('admin.website.seoEditor.fields.ogTitle')}</label>
           <input
             type="text"
             value={seo?.ogTitle || ''}
             onChange={(e) => handleChange('ogTitle', e.target.value)}
             className={styles.textInput}
-            placeholder="Leave empty to use page title"
+            placeholder={t('admin.website.seoEditor.placeholders.leaveEmptyForPageTitle')}
           />
         </div>
-        
+
         <div className={styles.field}>
-          <label className={styles.fieldLabel}>OG Description</label>
+          <label className={styles.fieldLabel}>{t('admin.website.seoEditor.fields.ogDescription')}</label>
           <textarea
             value={seo?.ogDescription || ''}
             onChange={(e) => handleChange('ogDescription', e.target.value)}
             className={styles.textareaInput}
             rows={2}
-            placeholder="Leave empty to use meta description"
+            placeholder={t('admin.website.seoEditor.placeholders.leaveEmptyForMetaDescription')}
           />
         </div>
-        
+
         <div className={styles.fieldRow}>
           <div className={styles.field}>
-            <label className={styles.fieldLabel}>OG Image</label>
+            <label className={styles.fieldLabel}>{t('admin.website.seoEditor.fields.ogImage')}</label>
             <input
               type="text"
               value={seo?.ogImage || ''}
               onChange={(e) => handleChange('ogImage', e.target.value)}
               className={styles.textInput}
-              placeholder="/og/page.png (leave empty for dynamic)"
+              placeholder={t('admin.website.seoEditor.placeholders.ogImagePath')}
             />
           </div>
-          
+
           <div className={styles.field}>
-            <label className={styles.fieldLabel}>OG Type</label>
+            <label className={styles.fieldLabel}>{t('admin.website.seoEditor.fields.ogType')}</label>
             <select
               value={seo?.ogType || 'website'}
               onChange={(e) => handleChange('ogType', e.target.value)}
               className={styles.selectInput}
             >
-              {OG_TYPES.map(t => (
-                <option key={t} value={t}>{t}</option>
+              {OG_TYPES.map(ogType => (
+                <option key={ogType} value={ogType}>{ogType}</option>
               ))}
             </select>
           </div>
         </div>
       </div>
-      
+
       {/* Twitter */}
       <div className={styles.seoSection}>
         <h4 className={styles.seoSectionTitle}>
           <Twitter size={14} />
-          Twitter Card
+          {t('admin.website.seoEditor.sections.twitterCard')}
         </h4>
-        
+
         <div className={styles.field}>
-          <label className={styles.fieldLabel}>Card Type</label>
+          <label className={styles.fieldLabel}>{t('admin.website.seoEditor.fields.cardType')}</label>
           <select
             value={seo?.twitterCard || 'summary_large_image'}
             onChange={(e) => handleChange('twitterCard', e.target.value)}
@@ -380,16 +383,16 @@ function SinglePageSeoEditor({ seo, onChange }) {
           </select>
         </div>
       </div>
-      
+
       {/* JSON-LD */}
       <div className={styles.seoSection}>
         <h4 className={styles.seoSectionTitle}>
           <Code size={14} />
-          Structured Data (JSON-LD)
+          {t('admin.website.seoEditor.sections.structuredData')}
         </h4>
-        
+
         <div className={styles.field}>
-          <label className={styles.fieldLabel}>JSON-LD</label>
+          <label className={styles.fieldLabel}>{t('admin.website.seoEditor.fields.jsonLd')}</label>
           <textarea
             value={seo?.jsonLd ? JSON.stringify(seo.jsonLd, null, 2) : ''}
             onChange={(e) => {
@@ -402,7 +405,7 @@ function SinglePageSeoEditor({ seo, onChange }) {
             }}
             className={`${styles.textareaInput} ${styles.codeInput}`}
             rows={6}
-            placeholder='{"@context": "https://schema.org", ...}'
+            placeholder={t('admin.website.seoEditor.placeholders.jsonLdExample')}
           />
         </div>
       </div>
@@ -411,6 +414,8 @@ function SinglePageSeoEditor({ seo, onChange }) {
 }
 
 export default function SeoEditor({ seo, onChange, pageId }) {
+  const { t } = useLocale();
+
   // Single page mode
   if (pageId) {
     return (
@@ -428,11 +433,11 @@ export default function SeoEditor({ seo, onChange, pageId }) {
 
   return (
     <div className={styles.editor}>
-      {PAGES.map(page => (
+      {PAGE_KEYS.map(page => (
         <PageSeoEditor
           key={page.key}
           pageKey={page.key}
-          pageLabel={page.label}
+          pageLabel={t(`admin.website.seoEditor.pages.${page.key}`)}
           seo={seo}
           onChange={handlePageChange}
         />

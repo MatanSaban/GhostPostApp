@@ -27,6 +27,20 @@ model Account {
   generalEmail    String // General contact email for the account
   isActive        Boolean  @default(true)
 
+  // Draft/onboarding state — true while the owner is still completing registration.
+  // Staging fields below hold data that has no final home yet during onboarding.
+  isDraft                Boolean @default(false)
+  draftInterviewData     Json?
+  draftSelectedPlanId    String? @db.ObjectId
+  draftCouponCode        String?
+
+  // Archive (soft-delete) state — owner-triggered archive with 14-day restore window.
+  // When archivedAt is set, account is hidden from normal queries; sites are also set isActive=false.
+  // Past archiveRestoreExpiresAt, the account is eligible for permanent purge.
+  archivedAt              DateTime?
+  archivedBy              String?   @db.ObjectId
+  archiveRestoreExpiresAt DateTime?
+
   // AI Credits tracking
   aiCreditsBalance   Int @default(0) // Current available AI credits
   aiCreditsUsedTotal Int @default(0) // Total AI credits ever used

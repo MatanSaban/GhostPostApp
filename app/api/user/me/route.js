@@ -37,6 +37,8 @@ export async function GET() {
               select: {
                 id: true,
                 name: true,
+                archivedAt: true,
+                archiveRestoreExpiresAt: true,
                 subscription: {
                   select: {
                     id: true,
@@ -83,13 +85,40 @@ export async function GET() {
       );
     }
 
-    // Get the current account (last selected or first available)
-    const accountMemberships = user.accountMemberships || [];
-    const currentMembership = user.lastSelectedAccountId
-      ? accountMemberships.find(
-          (m) => m.accountId === user.lastSelectedAccountId,
-        )
-      : accountMemberships[0];
+    // Get the current account (last selected or first available), preferring non-archived accounts.
+    // An archived account should never be auto-selected — if lastSelectedAccountId points to one,
+    // fall through to the first non-archived membership.
+    const allMemberships = user.accountMemberships || [];
+    const isArchived = (m) => !!m?.account?.archivedAt;
+    const activeMemberships = allMemberships.filter((m) => !isArchived(m));
+
+    let currentMembership = null;
+    if (user.lastSelectedAccountId) {
+      const selected = allMemberships.find(
+        (m) => m.accountId === user.lastSelectedAccountId,
+      );
+      if (selected && !isArchived(selected)) currentMembership = selected;
+    }
+    if (!currentMembership) {
+      currentMembership = activeMemberships[0] || null;
+    }
+
+    // Owned archived accounts that are still within their restore window.
+    const now = new Date();
+    const archivedOwnedAccounts = allMemberships
+      .filter(
+        (m) =>
+          m.isOwner &&
+          m.account?.archivedAt &&
+          m.account?.archiveRestoreExpiresAt &&
+          new Date(m.account.archiveRestoreExpiresAt) > now,
+      )
+      .map((m) => ({
+        id: m.accountId,
+        name: m.account.name,
+        archivedAt: m.account.archivedAt,
+        restoreExpiresAt: m.account.archiveRestoreExpiresAt,
+      }));
 
     const currentAccount = currentMembership?.account || null;
     const subscription = currentAccount?.subscription || null;
@@ -153,6 +182,8 @@ export async function GET() {
         accountName: currentAccount?.name || null,
         role: currentMembership?.role || null,
         isOwner: currentMembership?.isOwner || false,
+        // Archive / restore awareness
+        archivedOwnedAccounts,
         // Usage stats
         usageStats: usageStats,
         // Subscription data
