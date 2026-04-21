@@ -49,7 +49,7 @@ class GP_Element_Manipulator {
         // Accept both shapes for forward/backwards compatibility with the platform:
         //  - canonical: spec.target.{kind,value,tag,position}, spec.element, spec.mutation
         //  - legacy:    spec.locator.{kind,value,tag,text,selector}, spec.position (flat), spec.mutation
-        // Earlier platform builds emitted the legacy shape — if we only read
+        // Earlier platform builds emitted the legacy shape - if we only read
         // spec.target we 400 with "insert requires position…" even when the
         // caller supplied everything correctly under spec.locator + spec.position.
         $target  = isset($spec['target'])  && is_array($spec['target'])  ? $spec['target']  : array();
@@ -157,7 +157,7 @@ class GP_Element_Manipulator {
         // template that renders it. If the caller passed a widget_id and we
         // miss, check elementor_library for the widget before failing. (This
         // path is only reachable when handle_elementor was invoked against a
-        // post that DOES have _elementor_data of its own — the top-level
+        // post that DOES have _elementor_data of its own - the top-level
         // dispatcher already handled the "no data at all" case.)
         if (!$path && !$rendered_via_template && $kind === 'widget_id' && $value) {
             $hit = self::find_widget_in_templates($value);
@@ -176,7 +176,7 @@ class GP_Element_Manipulator {
                 'applied'        => false,
                 'builder'        => 'elementor',
                 'reason'         => 'no_target_matched',
-                'hint'           => 'Widget not found in this post or any Elementor template. Call get_element_structure for fresh candidates — the page may be rendered by a Theme Builder template with different widget IDs than the visual editor showed.',
+                'hint'           => 'Widget not found in this post or any Elementor template. Call get_element_structure for fresh candidates - the page may be rendered by a Theme Builder template with different widget IDs than the visual editor showed.',
                 'candidates'     => self::elementor_candidates($elements, $tag),
             );
         }
@@ -198,7 +198,7 @@ class GP_Element_Manipulator {
             $new_widget = self::build_elementor_widget($element, $design_source);
         }
 
-        // Capture text needles for render verification — MUST happen before the
+        // Capture text needles for render verification - MUST happen before the
         // mutation runs so the delete case can read the widget it's about to
         // remove. needle_positive = text that must appear after an insert/update;
         // needle_negative = text that must be gone after a delete.
@@ -225,7 +225,7 @@ class GP_Element_Manipulator {
         } elseif ($op === 'update') {
             $matched = self::elementor_update_widget($elements, $path, $element) ? 1 : 0;
         } elseif ($op === 'insert') {
-            // For insert, target path may be empty — we prepend in that case
+            // For insert, target path may be empty - we prepend in that case
             if (!$path) {
                 $container = array(
                     'id' => self::elementor_id(),
@@ -254,7 +254,7 @@ class GP_Element_Manipulator {
         // post-save lifecycle hooks so Pro regenerates Theme Builder caches and
         // the files manager clears CSS/JS for every page using this document.
         //
-        // We deliberately do NOT call $document->save() — it short-circuits
+        // We deliberately do NOT call $document->save() - it short-circuits
         // (silently, no exception) when current_user_can('edit_post', $id) is
         // false, which it always is for a signed REST request with no logged-in
         // user. That used to set $saved_via_elementor=true while writing
@@ -283,7 +283,7 @@ class GP_Element_Manipulator {
 
         // Companion metas. Without _elementor_edit_mode=builder the frontend
         // the_content filter skips _elementor_data entirely and WP serves the
-        // stale post_content — our write lands in the DB but the page doesn't
+        // stale post_content - our write lands in the DB but the page doesn't
         // change. This is the single biggest cause of "AI said it did it but
         // nothing changed" reports on pages that were never opened in the
         // Elementor editor (theme demos, imports, CPTs, etc.). Guards prevent
@@ -315,7 +315,7 @@ class GP_Element_Manipulator {
         // (default settings, ID re-generation for unrecognised formats, schema
         // migration), so the id we passed in is not necessarily the id stored
         // on disk. We can't keep using the original id for "did it persist?"
-        // checks — instead, locate the inserted widget by its unique text
+        // checks - instead, locate the inserted widget by its unique text
         // content. If we can't match anything we DON'T fail here: the render
         // verify below is the authoritative "did the user see it?" gate; a
         // text mismatch in meta usually means Elementor reshuffled the tree,
@@ -337,7 +337,7 @@ class GP_Element_Manipulator {
 
         // Render verify: fetch the live permalink with a cache-bust and confirm
         // the expected text actually appears (or, for delete, is gone). This is
-        // the only real proof the change is visible to visitors — the meta may
+        // the only real proof the change is visible to visitors - the meta may
         // be correct while the page still renders the stale content.
         // Under Theme Builder routing, verify against the original page URL,
         // not the template post (which often 404s as a standalone URL).
@@ -382,7 +382,7 @@ class GP_Element_Manipulator {
     /**
      * Elementor Pro Theme Builder support: scan the elementor_library post type
      * for a widget whose id matches $widget_id. Returns template_id + decoded
-     * elements + raw JSON on hit, or null. Capped at the first hit — if the
+     * elements + raw JSON on hit, or null. Capped at the first hit - if the
      * same id appears in multiple templates (shouldn't happen with UUIDs, but
      * custom IDs exist), we take the first.
      */
@@ -437,7 +437,7 @@ class GP_Element_Manipulator {
             isset($el['widgetType']) && $el['widgetType'] === 'heading'
         );
 
-        // tag_text — tag + text must both match
+        // tag_text - tag + text must both match
         if ($kind === 'tag_text') {
             if (!$el_is_heading) return false;
             $h_size = isset($el['settings']['header_size']) ? strtolower($el['settings']['header_size']) : 'h2';
@@ -446,14 +446,14 @@ class GP_Element_Manipulator {
             return self::text_contains($text, $value);
         }
 
-        // all_of_tag — any heading matching the tag (first wins)
+        // all_of_tag - any heading matching the tag (first wins)
         if ($kind === 'all_of_tag') {
             if (!$el_is_heading) return false;
             $h_size = isset($el['settings']['header_size']) ? strtolower($el['settings']['header_size']) : 'h2';
             return $tag ? ($h_size === $tag) : true;
         }
 
-        // text_match — scan common text-bearing fields on any widget
+        // text_match - scan common text-bearing fields on any widget
         if ($kind === 'text_match') {
             if (!isset($el['settings']) || !is_array($el['settings'])) return false;
             foreach (array('title','text','editor','heading','description') as $k) {
@@ -464,7 +464,7 @@ class GP_Element_Manipulator {
             return false;
         }
 
-        // selector — not directly meaningful in Elementor tree; caller should resolve
+        // selector - not directly meaningful in Elementor tree; caller should resolve
         // to widget_id via the AI fallback, but we do a best-effort id match (#xxx).
         if ($kind === 'selector') {
             if (isset($el['id']) && $value && $value[0] === '#' && substr($value, 1) === $el['id']) return true;
@@ -517,7 +517,7 @@ class GP_Element_Manipulator {
             array_splice($parent, $index + 1, 0, array($new_widget));
             return true;
         }
-        // inside_start / inside_end — treat the located element as the container
+        // inside_start / inside_end - treat the located element as the container
         $node = &self::elementor_ref($elements, $path);
         if (!is_array($node)) return false;
         if (!isset($node['elements']) || !is_array($node['elements'])) $node['elements'] = array();
@@ -586,8 +586,8 @@ class GP_Element_Manipulator {
         // Start from the design source's settings (deep-cloned), then strip
         // identity / content fields that must be unique per widget, then layer
         // the new content on top. This preserves typography, colors, alignment,
-        // text shadow, animation, advanced style/CSS — the "look and feel" of
-        // the existing page — while letting the caller override what's specific
+        // text shadow, animation, advanced style/CSS - the "look and feel" of
+        // the existing page - while letting the caller override what's specific
         // to the new element.
         $base_settings = array();
         if (is_array($design_source) && isset($design_source['settings']) && is_array($design_source['settings'])) {
@@ -647,7 +647,7 @@ class GP_Element_Manipulator {
      *   3. Walk up the ancestors and scan each subtree.
      *   4. Whole-tree fallback.
      * Returns the matched widget array (with 'settings'), or null if nothing
-     * suitable exists. The caller treats null as "use defaults" — Elementor
+     * suitable exists. The caller treats null as "use defaults" - Elementor
      * globals will then apply, which is decent fallback styling.
      */
     private static function find_design_source(&$elements, $anchor_path, $widget_type) {
@@ -716,7 +716,7 @@ class GP_Element_Manipulator {
 
     /**
      * Elementor expects 7-character lowercase hex IDs (e.g. "1a513f0"). Full
-     * 36-char UUIDs aren't recognised — Elementor's normalizer rewrites them
+     * 36-char UUIDs aren't recognised - Elementor's normalizer rewrites them
      * during $document->save(), which broke our post-write meta verify because
      * we couldn't find the widget by the id we passed in. Match the editor's
      * format so our id sticks and the platform can highlight the widget.
@@ -951,7 +951,7 @@ class GP_Element_Manipulator {
             $new_node = $dom->createElement($new_tag);
             $new_node->appendChild($dom->createTextNode($new_text));
             if (!$target_node) {
-                // No anchor — prepend to root
+                // No anchor - prepend to root
                 if ($root->firstChild) $root->insertBefore($new_node, $root->firstChild);
                 else $root->appendChild($new_node);
                 $matched = 1;
@@ -1065,8 +1065,8 @@ class GP_Element_Manipulator {
      * Fetch the post's public permalink and prove the mutation is visible to
      * visitors. Returns ['ok' => bool, 'url' => string, 'hint' => string].
      *
-     * $needle_positive — text that must APPEAR (for insert/update).
-     * $needle_negative — text that must be GONE (for delete).
+     * $needle_positive - text that must APPEAR (for insert/update).
+     * $needle_negative - text that must be GONE (for delete).
      *
      * Missing needles (e.g. inserts with empty text, deletes of untitled widgets)
      * downgrade to a 200-OK check so we never block on an unprovable claim.
@@ -1110,7 +1110,7 @@ class GP_Element_Manipulator {
                 return array(
                     'ok'   => false,
                     'url'  => $url,
-                    'hint' => 'expected text "' . mb_substr($needle_positive, 0, 80) . '" not found in rendered HTML — the save landed in the DB but the page does not render it. Check builder-mode metas, theme overrides, or a page cache the plugin cannot reach.',
+                    'hint' => 'expected text "' . mb_substr($needle_positive, 0, 80) . '" not found in rendered HTML - the save landed in the DB but the page does not render it. Check builder-mode metas, theme overrides, or a page cache the plugin cannot reach.',
                 );
             }
             // Stronger proof: for Elementor inserts, the newly-created widget's
@@ -1125,7 +1125,7 @@ class GP_Element_Manipulator {
                     return array(
                         'ok'   => false,
                         'url'  => $url,
-                        'hint' => 'inserted widget id "' . $widget_id . '" not found in rendered HTML — the widget was saved to _elementor_data but Elementor is not rendering it on the frontend. Likely a conflicting template, a cached HTML layer (edge/CDN), or a missing companion meta. Rolling back so the site is not left in a half-applied state.',
+                        'hint' => 'inserted widget id "' . $widget_id . '" not found in rendered HTML - the widget was saved to _elementor_data but Elementor is not rendering it on the frontend. Likely a conflicting template, a cached HTML layer (edge/CDN), or a missing companion meta. Rolling back so the site is not left in a half-applied state.',
                     );
                 }
             }
@@ -1137,7 +1137,7 @@ class GP_Element_Manipulator {
                 return array(
                     'ok'   => false,
                     'url'  => $url,
-                    'hint' => 'old text "' . mb_substr($needle_negative, 0, 80) . '" still present in rendered HTML — the delete did not propagate. Likely a page cache that GP_Cache_Manager::clear_all did not flush.',
+                    'hint' => 'old text "' . mb_substr($needle_negative, 0, 80) . '" still present in rendered HTML - the delete did not propagate. Likely a page cache that GP_Cache_Manager::clear_all did not flush.',
                 );
             }
         }

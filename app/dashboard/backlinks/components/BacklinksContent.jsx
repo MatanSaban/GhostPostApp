@@ -819,7 +819,7 @@ export function BacklinksContent() {
           setTitleTranslations(prev => ({ ...prev, ...data.translations }));
         }
       })
-      .catch(() => {}); // Silent fail — original titles still show
+      .catch(() => {}); // Silent fail - original titles still show
   }, [listings, locale]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Get display title (translated or original)

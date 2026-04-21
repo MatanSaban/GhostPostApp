@@ -59,7 +59,7 @@ export default function RestoreAccountPage() {
     try {
       await fetch('/api/auth/logout', { method: 'POST' });
     } catch {
-      // Ignore — continue to client-side logout regardless.
+      // Ignore - continue to client-side logout regardless.
     }
     clearUser();
     router.push('/auth/login');

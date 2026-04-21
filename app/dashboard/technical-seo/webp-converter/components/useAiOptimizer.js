@@ -186,7 +186,7 @@ export function useAiOptimizer() {
     }
   };
 
-  // AI Optimize — closes modal immediately, runs in background with progress bar
+  // AI Optimize - closes modal immediately, runs in background with progress bar
   const handleAiOptimize = async () => {
     if (!selectedSite?.id || selectedAiImages.size === 0 || processingRef.current) return;
     
@@ -208,7 +208,7 @@ export function useAiOptimizer() {
     addTask({
       id: taskId,
       type: 'ai-optimization',
-      title: `${t('tools.ai.title') || 'AI Image Optimization'} — ${selectedSite.name}`,
+      title: `${t('tools.ai.title') || 'AI Image Optimization'} - ${selectedSite.name}`,
       message: `0/${imageIds.length}`,
       status: 'running',
       progress: 0,
@@ -268,14 +268,14 @@ export function useAiOptimizer() {
         updateTask(taskId, {
           status: 'running',
           progress,
-          message: `${processed}/${total} — ${completed} ${t('tools.ai.optimized') || 'optimized'}${failed ? `, ${failed} ${t('tools.webp.failed') || 'failed'}` : ''}`,
+          message: `${processed}/${total} - ${completed} ${t('tools.ai.optimized') || 'optimized'}${failed ? `, ${failed} ${t('tools.webp.failed') || 'failed'}` : ''}`,
         });
       }
       
       updateTask(taskId, {
         status: failed === total ? 'error' : 'completed',
         progress: 100,
-        message: `${t('tools.ai.optimizationComplete') || 'Optimization complete'} — ${completed} ${t('tools.ai.optimized') || 'optimized'}${failed ? `, ${failed} ${t('tools.webp.failed') || 'failed'}` : ''}`,
+        message: `${t('tools.ai.optimizationComplete') || 'Optimization complete'} - ${completed} ${t('tools.ai.optimized') || 'optimized'}${failed ? `, ${failed} ${t('tools.webp.failed') || 'failed'}` : ''}`,
       });
     } catch (err) {
       console.error('AI processing error:', err);

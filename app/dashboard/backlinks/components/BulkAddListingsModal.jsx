@@ -161,7 +161,7 @@ export default function BulkAddListingsModal({ t, onClose, onDone }) {
       } else {
         setResult(data);
         if (data.created > 0 && data.errors.length === 0) {
-          // All succeeded — close after brief delay
+          // All succeeded - close after brief delay
           setTimeout(() => {
             onDone();
             onClose();

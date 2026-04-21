@@ -470,7 +470,7 @@ class GP_Content_Manager {
             }
         }
 
-        // 2. Beaver Builder — insert a heading node at the top of the first row
+        // 2. Beaver Builder - insert a heading node at the top of the first row
         if (empty($added)) {
             $bb_data = get_post_meta($post_id, '_fl_builder_data', true);
             if (!empty($bb_data) && is_array($bb_data)) {

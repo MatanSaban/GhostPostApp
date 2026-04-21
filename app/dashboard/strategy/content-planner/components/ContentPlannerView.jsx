@@ -26,7 +26,7 @@ import {
 import { useSite } from '@/app/context/site-context';
 import { usePermissions, MODULES } from '@/app/hooks/usePermissions';
 import { StatusBadge } from '../../../components';
-import { ConfirmDialog } from '@/app/dashboard/admin/components/AdminModal';
+import { ConfirmDialog } from '@/app/admin/components/AdminModal';
 import CalendarGrid from '../../_shared/CalendarGrid';
 import PostPopover from '../../_shared/PostPopover';
 import { activateCampaign, pauseCampaign, resumeCampaign } from '../../_shared/campaignActions';
@@ -289,7 +289,7 @@ export function ContentPlannerView({ translations }) {
           }).catch(() => {});
         }
       } else {
-        // DRAFT/SCHEDULED — if within 30 min, start processing so it's ready in time
+        // DRAFT/SCHEDULED - if within 30 min, start processing so it's ready in time
         if (isPastOrSoon && !isNotGenerated) {
           setPipelineContents(prev => prev.map(c =>
             c.id === draggedPost.id
@@ -420,7 +420,7 @@ export function ContentPlannerView({ translations }) {
         }
       }
     } catch {
-      // Network error — refetch
+      // Network error - refetch
       if (post.source === 'pipeline') fetchPipeline();
     } finally {
       setRescheduling(false);
@@ -617,7 +617,7 @@ export function ContentPlannerView({ translations }) {
     const month = currentDate.getMonth();
     const map = {};
 
-    // Collect entity slugs for deduplication — published pipeline Content
+    // Collect entity slugs for deduplication - published pipeline Content
     // records already appear as entity posts, so we skip them below.
     const entitySlugs = new Set(posts.map(p => p.slug).filter(Boolean));
 
@@ -760,7 +760,7 @@ export function ContentPlannerView({ translations }) {
   });
 
   // Merge entity posts + pipeline contents + planned posts for the list view
-  // (same deduplication as getPostsByDate — skip PUBLISHED pipeline posts
+  // (same deduplication as getPostsByDate - skip PUBLISHED pipeline posts
   //  that already appear as entity posts)
   const entitySlugSet = new Set(posts.map(p => p.slug).filter(Boolean));
   const allListItems = [
@@ -863,7 +863,7 @@ export function ContentPlannerView({ translations }) {
           const data = await res.json().catch(() => ({}));
           throw new Error(data.error || tp.wpTitleUpdateFailed || 'Failed to update title on WordPress');
         }
-        // WP updated — title will arrive via webhook. Refresh pipeline to pick it up.
+        // WP updated - title will arrive via webhook. Refresh pipeline to pick it up.
         fetchPipeline();
         return;
       }

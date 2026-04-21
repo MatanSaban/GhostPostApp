@@ -87,7 +87,7 @@ export async function PATCH(request, { params }) {
     }
 
     // For published posts with a title change: update WordPress FIRST.
-    // The platform Content record is NOT updated here — the WP plugin will
+    // The platform Content record is NOT updated here - the WP plugin will
     // fire the entity-updated webhook which syncs the data back.
     if (updateData.title && existing.status === 'PUBLISHED') {
       const siteRecord = await prisma.site.findUnique({
@@ -121,12 +121,12 @@ export async function PATCH(request, { params }) {
         return NextResponse.json({ error: 'Could not find post on WordPress' }, { status: 404 });
       }
 
-      // Update WordPress — if this fails the request fails (no platform change)
+      // Update WordPress - if this fails the request fails (no platform change)
       await makePluginRequest(siteRecord, `/posts/${wpPostId}`, 'PUT', {
         title: updateData.title,
       });
 
-      // Don't update the Content title locally — let the WP plugin webhook
+      // Don't update the Content title locally - let the WP plugin webhook
       // push the updated entity data back to the platform.
       delete updateData.title;
 

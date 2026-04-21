@@ -72,7 +72,7 @@ export async function POST(request) {
     const cookieStore = await cookies();
     const isRegistrationComplete = user.registrationStep === 'COMPLETED' || user.isSuperAdmin;
 
-    // Set session cookie for every authenticated user — including mid-registration
+    // Set session cookie for every authenticated user - including mid-registration
     // drafts. The middleware uses the reg_done cookie to tell completed from draft.
     cookieStore.set(SESSION_COOKIE, user.id, {
       httpOnly: true,

@@ -1,10 +1,10 @@
 ﻿/**
- * Generate Settings/Main Admin Page view — unified tabbed layout
+ * Generate Settings/Main Admin Page view - unified tabbed layout
  */
 export function getSettingsPage() {
   return `<?php
 /**
- * Ghost Post Admin — unified tabbed settings page
+ * Ghost Post Admin - unified tabbed settings page
  */
 
 if (!defined('ABSPATH')) {
@@ -695,7 +695,7 @@ $theme_class = ($gp_theme === 'light') ? 'gp-theme-light' : 'gp-theme-dark';
                                 </td>
                                 <td><span class="gp-type-badge gp-type-snippet-<?php echo esc_attr($snippet['type'] ?? 'html'); ?>"><?php echo esc_html(strtoupper(str_replace('_', ' + ', $snippet['type'] ?? 'html'))); ?></span></td>
                                 <td><?php echo intval($snippet['priority'] ?? 10); ?></td>
-                                <td class="gp-activity-time"><?php echo esc_html($snippet['updated_at'] ?? $snippet['created_at'] ?? '—'); ?></td>
+                                <td class="gp-activity-time"><?php echo esc_html($snippet['updated_at'] ?? $snippet['created_at'] ?? '-'); ?></td>
                                 <td class="gp-col-actions">
                                     <?php if ($snippet_view === 'trash'): ?>
                                         <button type="button" class="gp-btn-icon gp-restore-snippet" data-id="<?php echo esc_attr($snippet['id']); ?>" title="<?php esc_attr_e('Restore', 'ghost-post-connector'); ?>">

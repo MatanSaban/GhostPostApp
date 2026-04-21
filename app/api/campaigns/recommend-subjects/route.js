@@ -58,7 +58,7 @@ export async function POST(request) {
     const isHebrew = locale === 'he';
 
     const subjectList = subjects
-      .map((s, i) => `[${i}] "${s.title}" — ${s.articleType} — ${s.intent}\n    ${s.explanation}`)
+      .map((s, i) => `[${i}] "${s.title}" - ${s.articleType} - ${s.intent}\n    ${s.explanation}`)
       .join('\n');
 
     const system = `You are an expert SEO Content Strategist. You are helping a user build a topic cluster around the main keyword "${mainKeyword}".

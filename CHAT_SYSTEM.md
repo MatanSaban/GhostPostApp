@@ -1,6 +1,6 @@
-# Ghost Post — Chat System
+# Ghost Post - Chat System
 
-The Ghost Post chat system is an AI-powered SEO assistant that can analyze WordPress sites, provide recommendations, and **execute changes directly on WordPress** — with user approval. It uses Google Gemini models via Vertex AI, the Vercel AI SDK v6 for streaming, and an approval-gated action system that snapshots before writes and supports full rollback.
+The Ghost Post chat system is an AI-powered SEO assistant that can analyze WordPress sites, provide recommendations, and **execute changes directly on WordPress** - with user approval. It uses Google Gemini models via Vertex AI, the Vercel AI SDK v6 for streaming, and an approval-gated action system that snapshots before writes and supports full rollback.
 
 ---
 
@@ -20,7 +20,7 @@ The Ghost Post chat system is an AI-powered SEO assistant that can analyze WordP
 ┌─────────────────────────────────────────────────────────────────┐
 │  Backend (Next.js App Router)                                   │
 │  ┌─────────────────────────────────────────────────────────┐    │
-│  │  route.js — Main chat handler                           │    │
+│  │  route.js - Main chat handler                           │    │
 │  │  • Smart model routing (Flash for greetings, Pro for SEO)│   │
 │  │  • Dynamic system prompt with site context               │   │
 │  │  • 20+ tools: read-only execute inline, writes →        │   │
@@ -34,7 +34,7 @@ The Ghost Post chat system is an AI-powered SEO assistant that can analyze WordP
 │  │ + categories  │  │ 5min expiry  │  │ + rollback data   │    │
 │  └───────────────┘  └──────────────┘  └───────────────────┘    │
 │  ┌──────────────────────────────────────────────────────────┐   │
-│  │ action-rollback.js — Reverses all changes in REVERSE    │   │
+│  │ action-rollback.js - Reverses all changes in REVERSE    │   │
 │  │ order, restoring snapshots via wp-api-client             │   │
 │  └──────────────────────────────────────────────────────────┘   │
 └─────────────────────┬───────────────────────────────────────────┘
@@ -42,16 +42,16 @@ The Ghost Post chat system is an AI-powered SEO assistant that can analyze WordP
                       ▼
 ┌─────────────────────────────────────────────────────────────────┐
 │  WordPress Plugin (ghost-post/v1 REST API)                      │
-│  50+ endpoints — content, media, SEO, redirects, code snippets  │
+│  50+ endpoints - content, media, SEO, redirects, code snippets  │
 │  See: WORDPRESS_PLUGIN_SYSTEM.md                                │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
 **Key Technologies:**
 - **AI Models:** Google Gemini 2.5 Flash (routing + simple messages) and Gemini 2.5 Pro (SEO/analysis/actions) via Vertex AI
-- **AI SDK:** Vercel AI SDK v6 — `streamText`, `generateText`, `tool`, `jsonSchema`, `stepCountIs`, `hasToolCall` from `'ai'`
+- **AI SDK:** Vercel AI SDK v6 - `streamText`, `generateText`, `tool`, `jsonSchema`, `stepCountIs`, `hasToolCall` from `'ai'`
 - **Frontend:** `useChat` hook from `@ai-sdk/react` with UIMessage format (parts array)
-- **Database:** MongoDB via Prisma — `ChatConversation`, `ChatMessage`, `ChatAction` models
+- **Database:** MongoDB via Prisma - `ChatConversation`, `ChatMessage`, `ChatAction` models
 - **Platform:** Next.js App Router, deployed at `app.ghostpost.co.il`
 
 ---
@@ -91,8 +91,8 @@ const result = await generateText({
 // Returns "flash" or "pro" (defaults to "pro" on error)
 ```
 
-- **Flash model** (Gemini 2.5 Flash): Handles greetings, acknowledgments, small talk — no tools provided
-- **Pro model** (Gemini 2.5 Pro): Handles SEO analysis, content optimization, write actions — full tool suite
+- **Flash model** (Gemini 2.5 Flash): Handles greetings, acknowledgments, small talk - no tools provided
+- **Pro model** (Gemini 2.5 Pro): Handles SEO analysis, content optimization, write actions - full tool suite
 
 ---
 
@@ -102,7 +102,7 @@ The system prompt is **dynamically built per-request** using site context from W
 
 ### Base Identity
 
-The `BASE_SYSTEM_PROMPT` constant establishes the AI as a **Ghost Post AI Assistant — expert SEO advisor** with these behavioral rules:
+The `BASE_SYSTEM_PROMPT` constant establishes the AI as a **Ghost Post AI Assistant - expert SEO advisor** with these behavioral rules:
 
 - **Male identity** (for grammatically gendered languages like Hebrew)
 - Must be concise, actionable, data-driven
@@ -110,11 +110,11 @@ The `BASE_SYSTEM_PROMPT` constant establishes the AI as a **Ghost Post AI Assist
 - **Critical tool behavior:**
   - Never say "I'll check" without actually calling a tool
   - Never write text describing a tool call (stripped by `stripToolCallText`)
-  - Never ask "should I do X?" when data is available — just call the tool
+  - Never ask "should I do X?" when data is available - just call the tool
   - Use `analyze_page` for page content, `wp_get_seo_data` for SEO data, `get_keywords` for rankings
 - **Write tool rules:**
   - Must use `propose_action` for any write operation
-  - After calling `propose_action`, STOP — user sees approve/reject buttons
+  - After calling `propose_action`, STOP - user sees approve/reject buttons
   - Never execute write tools directly
 - **Page builder awareness:**
   - Elementor uses `_elementor_data` JSON, not `post_content`
@@ -244,9 +244,9 @@ const APPROVAL_REQUIRED_TOOLS = new Set([
 | `wp_upload_media` | Upload media from URL | `url` (required), `title?`, `alt?` |
 | `wp_update_media` | Update media metadata | `mediaId` (required), `data` (required) |
 
-### `propose_action` — Dynamic Tool (Added in `route.js`)
+### `propose_action` - Dynamic Tool (Added in `route.js`)
 
-This tool is **not defined in `chat-tools.js`** — it is dynamically injected into the tool set in `route.js` for every Pro model request. It serves as the **gateway for all write operations**.
+This tool is **not defined in `chat-tools.js`** - it is dynamically injected into the tool set in `route.js` for every Pro model request. It serves as the **gateway for all write operations**.
 
 ```javascript
 // Schema:
@@ -265,7 +265,7 @@ propose_action: {
 When the AI calls `propose_action`:
 1. `createActionProposal()` creates a `ChatAction` record with `PENDING_APPROVAL` status
 2. Returns `{ actionId, status: 'PENDING_APPROVAL', message, expiresInSeconds: 300 }`
-3. `stopWhen: hasToolCall('propose_action')` halts the stream — user sees the action card
+3. `stopWhen: hasToolCall('propose_action')` halts the stream - user sees the action card
 
 ### Exports
 
@@ -292,12 +292,12 @@ export { TOOL_CATEGORIES, APPROVAL_REQUIRED_TOOLS, getChatTools, toolRequiresApp
 
 ### Processing Flow
 
-1. **Auth:** `getCurrentAccountMember()` — verifies user session
+1. **Auth:** `getCurrentAccountMember()` - verifies user session
 2. **Parse:** Extract `conversationId`, `siteId`, and last user message from UIMessages
 3. **Load conversation** with site data (`id, name, url, platform, siteKey, siteSecret`)
 4. **Access check:** Account member or superAdmin
 5. **WordPress detection:** `isWordPress = platform === 'wordpress' && siteKey && siteSecret`
-6. **Expiry check:** `checkPendingActions(conversationId)` — expires stale actions, sends warnings
+6. **Expiry check:** `checkPendingActions(conversationId)` - expires stale actions, sends warnings
 7. **Save user message** to `ChatMessage` (role: `USER`)
 8. **Load history:** Last 50 messages from DB, mapped to `{ role, content }` format. Tool call text stripped from assistant messages via `stripToolCallText()`
 9. **Fetch site info:** If WordPress, call `wpApi.getSiteInfo(site)` (non-fatal)
@@ -614,7 +614,7 @@ All action routes verify account-level access (`action.accountId === member.acco
 
 3-column layout:
 - **Left sidebar** (280px): Conversation list with search, create new, rename, delete
-- **Center**: Chat area — message stream, action cards, thinking indicator, input bar
+- **Center**: Chat area - message stream, action cards, thinking indicator, input bar
 - **Right sidebar** (320px): Quick action buttons grid
 
 ### AI SDK v6 Integration
@@ -896,8 +896,8 @@ See `WORDPRESS_PLUGIN_SYSTEM.md` Section 14 for the full method reference.
 
 ### Thinking Container
 
-- `.thinkingContainer` — Expandable section with chevron toggle
-- `.toolLoading` — Flex row with spinner/checkmark + tool name
+- `.thinkingContainer` - Expandable section with chevron toggle
+- `.toolLoading` - Flex row with spinner/checkmark + tool name
 - Dots animation for typing indicator
 
 ---
@@ -948,6 +948,6 @@ await trackAIUsage({
 - `hasToolCall('propose_action')` stops the stream immediately so the user can review
 
 ### WordPress Connection Failure
-- `wpApi.getSiteInfo()` is non-fatal — if it fails, chat continues without site context
+- `wpApi.getSiteInfo()` is non-fatal - if it fails, chat continues without site context
 - Write operations will fail at execution time if WordPress is unreachable
 - Failed actions are marked `FAILED` with error details and can still be rolled back (partial rollback)

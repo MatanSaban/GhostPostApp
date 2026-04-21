@@ -11,7 +11,7 @@ const REG_DONE_COOKIE = 'reg_done';
  * POST /api/auth/registration/finalize
  *
  * Activates the draft user + account created at the start of registration.
- * Unlike the old flow, we do NOT create a new User/Account here — both already
+ * Unlike the old flow, we do NOT create a new User/Account here - both already
  * exist. We just flip the draft flag, clear draft scratch fields, create the
  * Subscription + CouponRedemption + Site, and mark the user as COMPLETED.
  */

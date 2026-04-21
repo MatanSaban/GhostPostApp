@@ -85,11 +85,11 @@ ${r.output}
 md += `## Summary
 
 ### What Was Tested
-1. **Database Diagnostic** — Queried recent AiCreditsLog DEBIT entries to check metadata presence
-2. **SDK Usage Check** — Made a REAL AI call and verified the usage object has \`inputTokens\`/\`outputTokens\` (not the old \`promptTokens\`/\`completionTokens\`)
-3. **End-to-End Tracking** — Made a REAL AI call through \`generateTextResponse\` with tracking, verified DB entry has correct metadata, verified \`calculateTokenCost\` produces non-zero cost
-4. **Code Audit** — Verified all 20+ routes that use AI pass \`accountId\` for tracking, all SDK property names are correct, no double-counting
-5. **Analytics Cost Calculation** — Verified \`calculateTokenCost\` for all models, aliases, edge cases
+1. **Database Diagnostic** - Queried recent AiCreditsLog DEBIT entries to check metadata presence
+2. **SDK Usage Check** - Made a REAL AI call and verified the usage object has \`inputTokens\`/\`outputTokens\` (not the old \`promptTokens\`/\`completionTokens\`)
+3. **End-to-End Tracking** - Made a REAL AI call through \`generateTextResponse\` with tracking, verified DB entry has correct metadata, verified \`calculateTokenCost\` produces non-zero cost
+4. **Code Audit** - Verified all 20+ routes that use AI pass \`accountId\` for tracking, all SDK property names are correct, no double-counting
+5. **Analytics Cost Calculation** - Verified \`calculateTokenCost\` for all models, aliases, edge cases
 
 ### Root Cause (Fixed)
 The Vercel AI SDK v6 renamed \`usage.promptTokens\` → \`usage.inputTokens\` and \`usage.completionTokens\` → \`usage.outputTokens\`.

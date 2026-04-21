@@ -85,10 +85,10 @@ add_action('send_headers', 'gp_send_security_headers');
  * Detect a request coming from the Ghost Post platform in editor mode.
  *
  * Two modes are accepted:
- *  1. Signed (gp_editor=1) — carries gp_origin, gp_exp, gp_sig; verified via
+ *  1. Signed (gp_editor=1) - carries gp_origin, gp_exp, gp_sig; verified via
  *     HMAC-SHA256(GP_SITE_SECRET, "GP_SITE_ID|origin|exp"). Works from any
  *     platform origin (dev, staging, prod) without a Referer allowlist.
- *  2. Legacy (gp_editor=true) — trusts the Referer origin against the baked
+ *  2. Legacy (gp_editor=true) - trusts the Referer origin against the baked
  *     GP_API_URL. Kept for backwards compatibility while older platform
  *     deployments still send the unsigned flag.
  */

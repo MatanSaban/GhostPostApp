@@ -94,7 +94,7 @@ export async function POST(request) {
           },
         });
       } catch (err) {
-        // Not found is fine — already deleted or never existed
+        // Not found is fine - already deleted or never existed
         if (err.code !== 'P2025') {
           throw err;
         }
@@ -105,7 +105,7 @@ export async function POST(request) {
       return NextResponse.json({ success: true, action: 'deleted', source: normalizedSource });
     }
 
-    // For created/updated — upsert
+    // For created/updated - upsert
     let normalizedTarget = redirect.target || '';
     try { normalizedTarget = decodeURIComponent(normalizedTarget); } catch {}
 

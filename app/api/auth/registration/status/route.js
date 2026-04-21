@@ -110,7 +110,7 @@ export async function GET(request) {
         currentStep: user.registrationStep,
         isEmailVerified: !!user.emailVerified,
         isPhoneVerified: !!user.phoneVerified,
-        // Draft account fields — the client treats these the same as the
+        // Draft account fields - the client treats these the same as the
         // former temp registration fields.
         accountName: draftAccount.isDraft ? (draftAccount.name?.startsWith(user.firstName || '') ? null : draftAccount.name) : draftAccount.name,
         accountSlug: draftAccount.slug?.startsWith('draft-') ? null : draftAccount.slug,

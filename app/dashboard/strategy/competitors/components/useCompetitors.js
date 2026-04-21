@@ -291,6 +291,7 @@ export function useCompetitors() {
 
       if (addedCompetitors.length > 0) {
         setCompetitors(prev => [...addedCompetitors, ...prev]);
+        window.dispatchEvent(new CustomEvent('ghostpost:onboarding:competitors-discovered'));
       }
 
       setShowDiscoveryModal(false);

@@ -102,7 +102,7 @@ const POPULAR_SITEMAP_PATHS = [
  * 2. WordPress plugin (if connected, uses discoverSitemapUrls)
  * 3. Popular path guessing
  * 
- * Returns { sitemaps: string[] } — deduplicated list of discovered sitemap URLs.
+ * Returns { sitemaps: string[] } - deduplicated list of discovered sitemap URLs.
  */
 export async function GET(request) {
   try {
@@ -235,7 +235,7 @@ export async function POST(request) {
     const allSuccess = results.every(r => r.success);
     const hasScopeError = results.some(r => r.error === 'SCOPE_INSUFFICIENT');
 
-    // Note: GSC has a propagation delay — newly submitted sitemaps
+    // Note: GSC has a propagation delay - newly submitted sitemaps
     // won't appear in the list API immediately, so we skip verification.
     const verified = false;
 

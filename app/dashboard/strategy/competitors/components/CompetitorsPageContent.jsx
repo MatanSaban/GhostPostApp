@@ -128,11 +128,13 @@ export function CompetitorsPageContent({ translations }) {
       >
         {canCreateCompetitors && (
           <div className={styles.headerActions}>
-            <AIDiscoverButton
-              isDiscovering={discovering}
-              onClick={() => setShowDiscoveryConfirm(true)}
-              label={t.findWithAI}
-            />
+            <span data-onboarding="competitors-ai-discover">
+              <AIDiscoverButton
+                isDiscovering={discovering}
+                onClick={() => setShowDiscoveryConfirm(true)}
+                label={t.findWithAI}
+              />
+            </span>
             <span data-onboarding="competitors-add-cta">
               <PrimaryActionButton
                 iconName="Plus"

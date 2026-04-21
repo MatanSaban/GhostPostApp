@@ -149,7 +149,7 @@ export default function DifferentiationModal({ open, onClose, job, onExecute, is
                   <div className={styles.confirmDetailIcon}><Clock size={18} /></div>
                   <div className={styles.confirmDetailText}>
                     <strong>{tc.estimatedTime || 'Estimated Time'}</strong>
-                    <span>{tc.timeExplanation || 'The AI analysis typically takes 1-3 minutes depending on content length. You can navigate away — the process runs in the background and you\'ll be notified when it\'s ready.'}</span>
+                    <span>{tc.timeExplanation || 'The AI analysis typically takes 1-3 minutes depending on content length. You can navigate away - the process runs in the background and you\'ll be notified when it\'s ready.'}</span>
                   </div>
                 </div>
 
@@ -196,7 +196,7 @@ export default function DifferentiationModal({ open, onClose, job, onExecute, is
               {job.message && (
                 <p className={styles.processingMessage}>{job.message}</p>
               )}
-              <p className={styles.processingHint}>{tt.processingHint || 'You can close this window — the process continues in the background.'}</p>
+              <p className={styles.processingHint}>{tt.processingHint || 'You can close this window - the process continues in the background.'}</p>
             </div>
           )}
 
@@ -237,7 +237,7 @@ export default function DifferentiationModal({ open, onClose, job, onExecute, is
               <div className={styles.supportingSection}>
                 <h3 className={styles.sectionTitle}>
                   <FileText size={16} />
-                  {tt.supportingTitle || 'Supporting Pages — Proposed Changes'}
+                  {tt.supportingTitle || 'Supporting Pages - Proposed Changes'}
                 </h3>
 
                 {supportingPages.map((page) => {
@@ -385,7 +385,7 @@ export default function DifferentiationModal({ open, onClose, job, onExecute, is
           <div className={styles.footer}>
             <div className={styles.executedBanner}>
               <CheckCircle size={16} />
-              {tpl(tt.executedBanner || 'Fixes executed on {date} — {credits} credits used', {
+              {tpl(tt.executedBanner || 'Fixes executed on {date} - {credits} credits used', {
                 date: new Date(resultData.executionResult.executedAt).toLocaleDateString(locale === 'he' ? 'he-IL' : 'en-US'),
                 credits: resultData.executionResult.creditsDeducted,
               })}

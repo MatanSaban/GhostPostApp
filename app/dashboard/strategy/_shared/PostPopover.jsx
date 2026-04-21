@@ -3,7 +3,7 @@
 import { useRef, useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { X, Check, Type, Tag, Calendar, Clock, Globe, ExternalLink, RefreshCw, Loader2, Sparkles, Eye, ChevronDown, ChevronUp, Pencil, Trash2 } from 'lucide-react';
-import { ConfirmDialog } from '@/app/dashboard/admin/components/AdminModal';
+import { ConfirmDialog } from '@/app/admin/components/AdminModal';
 import { useLocale } from '@/app/context/locale-context';
 import styles from './PostPopover.module.css';
 
@@ -66,7 +66,7 @@ export default function PostPopover({
   const [titleError, setTitleError] = useState(null);
   const t = translations;
 
-  // Close on outside click (skip when confirm dialog is open — it's a portal outside the popover)
+  // Close on outside click (skip when confirm dialog is open - it's a portal outside the popover)
   useEffect(() => {
     const handler = (e) => {
       if (confirmDelete) return;
@@ -80,7 +80,7 @@ export default function PostPopover({
 
   if (!post || !rect) return null;
 
-  // Extract date — for entity scheduled posts, prefer scheduledAt
+  // Extract date - for entity scheduled posts, prefer scheduledAt
   const dateStr = post.scheduledAt || post.publishedAt || post.createdAt;
   const postDate = dateStr ? new Date(dateStr) : null;
   const timeStr = postDate
@@ -91,7 +91,7 @@ export default function PostPopover({
     ? `${postDate.getFullYear()}-${String(postDate.getMonth() + 1).padStart(2, '0')}-${String(postDate.getDate()).padStart(2, '0')}`
     : null;
 
-  // Preview data — available for generated pipeline posts or entity posts
+  // Preview data - available for generated pipeline posts or entity posts
   const previewImage = post.aiResult?.featuredImage || post.featuredImage || null;
   const previewExcerpt = post.aiResult?.excerpt || post.excerpt || null;
   const previewHtml = post.aiResult?.html || post.content || null;

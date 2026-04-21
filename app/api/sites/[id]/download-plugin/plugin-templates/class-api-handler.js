@@ -472,7 +472,7 @@ class GP_API_Handler {
             'permission_callback' => array($this, 'validate_request'),
         ));
 
-        // Fetch a structural preview of a post — the unified manipulator spec the AI needs
+        // Fetch a structural preview of a post - the unified manipulator spec the AI needs
         // to locate targets without leaking raw WP meta around the chat context.
         register_rest_route($namespace, '/elements/structure/(?P<id>\\d+)', array(
             'methods' => 'GET',
@@ -536,7 +536,7 @@ class GP_API_Handler {
             'permission_callback' => array($this, 'validate_request'),
         ));
 
-        // Code snippet management — create a PHP/JS/CSS snippet and keep track
+        // Code snippet management - create a PHP/JS/CSS snippet and keep track
         // of it for rollback. Uses the Code Snippets plugin if active,
         // otherwise falls back to a mu-plugin drop-in file we write ourselves.
         register_rest_route($namespace, '/code-snippets', array(
@@ -550,7 +550,7 @@ class GP_API_Handler {
             'permission_callback' => array($this, 'validate_request'),
         ));
 
-        // Menu management — create / update / delete nav menus and items.
+        // Menu management - create / update / delete nav menus and items.
         register_rest_route($namespace, '/menus/(?P<id>\\d+)/items', array(
             array(
                 'methods' => 'POST',
@@ -571,7 +571,7 @@ class GP_API_Handler {
             ),
         ));
 
-        // Terms (categories / tags / any taxonomy) — list / create / update / delete.
+        // Terms (categories / tags / any taxonomy) - list / create / update / delete.
         // Names are gp_-prefixed to avoid collision with the pre-existing
         // create_term() on /taxonomies/{taxonomy}/terms which returns a
         // different JSON shape (full term object) than what our executor
@@ -585,7 +585,7 @@ class GP_API_Handler {
             array('methods' => 'DELETE', 'callback' => array($this, 'gp_delete_term'), 'permission_callback' => array($this, 'validate_request')),
         ));
 
-        // Comments — list / update status / reply / edit / delete.
+        // Comments - list / update status / reply / edit / delete.
         register_rest_route($namespace, '/comments', array(
             array('methods' => 'GET',  'callback' => array($this, 'list_comments'),  'permission_callback' => array($this, 'validate_request')),
             array('methods' => 'POST', 'callback' => array($this, 'reply_comment'),  'permission_callback' => array($this, 'validate_request')),
@@ -595,20 +595,20 @@ class GP_API_Handler {
             array('methods' => 'DELETE', 'callback' => array($this, 'delete_comment'), 'permission_callback' => array($this, 'validate_request')),
         ));
 
-        // WP Options — whitelisted read/write for common site settings.
+        // WP Options - whitelisted read/write for common site settings.
         register_rest_route($namespace, '/options', array(
             array('methods' => 'GET', 'callback' => array($this, 'get_options'),    'permission_callback' => array($this, 'validate_request')),
             array('methods' => 'PUT', 'callback' => array($this, 'update_options'), 'permission_callback' => array($this, 'validate_request')),
         ));
 
-        // Self-update — force the Ghost Post plugin to update to the latest version.
+        // Self-update - force the Ghost Post plugin to update to the latest version.
         register_rest_route($namespace, '/self-update', array(
             'methods' => 'POST',
             'callback' => array($this, 'self_update'),
             'permission_callback' => array($this, 'validate_request'),
         ));
 
-        // Generic REST passthrough — lets the AI call ANY WordPress / plugin REST
+        // Generic REST passthrough - lets the AI call ANY WordPress / plugin REST
         // route (WooCommerce, Yoast, RankMath, Elementor, Contact Form 7, etc.)
         // as an administrator. This is the escape hatch that gives the bot full
         // access to plugins we don't have dedicated tools for.
@@ -1544,7 +1544,7 @@ class GP_API_Handler {
         // Theme Builder / Loop / Header / Footer templates that actually render
         // on this page's frontend URL. Populated by scanning the page HTML for
         // data-elementor-id attributes. When non-empty, the AI must target
-        // widgets by their IDs in the template — writing to the page itself is
+        // widgets by their IDs in the template - writing to the page itself is
         // a silent no-op because Elementor Pro's Theme Builder takes over.
         $theme_templates = array();
 
@@ -1602,7 +1602,7 @@ class GP_API_Handler {
         // We fetch the permalink once and extract every data-elementor-id
         // value; any id that is NOT $post_id points at a template whose
         // widgets appear in the rendered HTML. Then we include each template's
-        // widget structure so the AI can target widgets by id — whether they
+        // widget structure so the AI can target widgets by id - whether they
         // live on the page itself or in a Single/Header/Footer/Loop template.
         if ($builder === 'elementor' || (empty($elementor_raw) && empty($bb_raw))) {
             $permalink = get_permalink($post_id);
@@ -1640,7 +1640,7 @@ class GP_API_Handler {
                         }
                         if (!empty($theme_templates) && $builder !== 'elementor') {
                             // Page has no _elementor_data of its own, but is
-                            // clearly rendered by Elementor templates — the
+                            // clearly rendered by Elementor templates - the
                             // manipulator's widget_id path will route there.
                             $builder = 'elementor';
                         }
@@ -1893,9 +1893,9 @@ class GP_API_Handler {
      * Create a code snippet. Tries three backends in order so the bot can always
      * add PHP/JS/CSS regardless of which snippet plugin (if any) the site runs.
      * Backends:
-     *   1. "Code Snippets" plugin (wp-snippets table) — most common
-     *   2. WPCode (code-snippets-pro) — second most common
-     *   3. mu-plugin drop-in we write ourselves — always works (last resort)
+     *   1. "Code Snippets" plugin (wp-snippets table) - most common
+     *   2. WPCode (code-snippets-pro) - second most common
+     *   3. mu-plugin drop-in we write ourselves - always works (last resort)
      * Each created snippet is tracked in the 'gp_created_snippets' option so
      * delete_code_snippet can dispatch to the correct backend for rollback.
      */
@@ -2507,7 +2507,7 @@ class GP_API_Handler {
 
         // Authenticate as the first administrator for the duration of this call.
         // The plugin's HMAC auth already proved the caller is the Ghost Post
-        // platform — we just need WP to see an admin user for capability checks.
+        // platform - we just need WP to see an admin user for capability checks.
         $admin = get_users(array('role' => 'administrator', 'number' => 1));
         if (empty($admin)) {
             return new WP_Error('no_admin', 'No administrator user found on this site', array('status' => 500));

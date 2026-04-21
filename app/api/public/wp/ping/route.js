@@ -82,7 +82,7 @@ export async function POST(request) {
       data: updateData,
     });
 
-    // Fetch widget data for the WP dashboard widget (zero-latency — piggybacks on ping)
+    // Fetch widget data for the WP dashboard widget (zero-latency - piggybacks on ping)
     const [latestAudit, pendingInsightsCount, recentRun] = await Promise.all([
       prisma.siteAudit.findFirst({
         where: { siteId: site.id },

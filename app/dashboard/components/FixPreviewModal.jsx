@@ -1503,7 +1503,7 @@ export default function FixPreviewModal({ open, onClose, insight, translations, 
                               </div>
                             )}
                             
-                            {/* Editable Merge Instructions — AI Merge Plan */}
+                            {/* Editable Merge Instructions - AI Merge Plan */}
                             {!appliedResult && (
                               <div className={styles.mergeInstructionsSection}>
                                 <label className={styles.mergeInstructionsLabel}>
@@ -1511,7 +1511,7 @@ export default function FixPreviewModal({ open, onClose, insight, translations, 
                                   {dl.mergePlanLabel || 'AI Merge Plan (Edit before applying)'}
                                 </label>
                                 <p className={styles.mergeInstructionsHint}>
-                                  {dl.mergePlanHint || 'Review the AI\'s merge plan below. Edit, remove, or add your own instructions — this brief drives the final content generation.'}
+                                  {dl.mergePlanHint || 'Review the AI\'s merge plan below. Edit, remove, or add your own instructions - this brief drives the final content generation.'}
                                 </p>
                                 <textarea
                                   className={styles.mergeInstructionsTextarea}
@@ -1525,7 +1525,7 @@ export default function FixPreviewModal({ open, onClose, insight, translations, 
                           </div>
                         )}
 
-                        {/* Merge instructions (static display) — only for non-MERGE actions, since MERGE has the editable textarea above */}
+                        {/* Merge instructions (static display) - only for non-MERGE actions, since MERGE has the editable textarea above */}
                         {p.recommendation?.mergeInstructions && p.recommendation?.recommendedAction !== 'MERGE' && (
                           <div className={styles.cannibalizationInstructions}>
                             <strong>{dl.mergeInstructions || 'Merge Instructions'}:</strong>
@@ -1670,7 +1670,7 @@ export default function FixPreviewModal({ open, onClose, insight, translations, 
             </div>
             )}
 
-            {/* Actions Summary — shown after merge apply */}
+            {/* Actions Summary - shown after merge apply */}
             {allApplied && applyResults?.actions?.length > 0 && (
               <MergeActionsSummary actions={applyResults.actions} t={t} dl={dl} styles={styles} />
             )}
@@ -2058,14 +2058,14 @@ function MergeActionsSummary({ actions, t, dl, styles }) {
               <div className={styles.actionContent}>
                 <span className={styles.actionLabel}>{icon} {label}</span>
 
-                {/* Post updated — show link to post */}
+                {/* Post updated - show link to post */}
                 {isSuccess && action.type === 'post_updated' && meta.url && (
                   <div className={styles.actionMeta}>
                     <a href={meta.url} target="_blank" rel="noopener noreferrer" className={styles.actionLink}>{formatPath(meta.url)}</a>
                   </div>
                 )}
 
-                {/* SEO updated — show old vs new title & description */}
+                {/* SEO updated - show old vs new title & description */}
                 {isSuccess && action.type === 'seo_updated' && (meta.oldTitle || meta.newTitle) && (
                   <div className={styles.actionMeta}>
                     {meta.oldTitle && meta.newTitle && meta.oldTitle !== meta.newTitle && (
@@ -2087,14 +2087,14 @@ function MergeActionsSummary({ actions, t, dl, styles }) {
                   </div>
                 )}
 
-                {/* Featured image — show thumbnail */}
+                {/* Featured image - show thumbnail */}
                 {isSuccess && action.type === 'featured_image' && meta.imageUrl && (
                   <div className={styles.actionMeta}>
                     <img src={meta.imageUrl} alt="" className={styles.actionThumbnail} />
                   </div>
                 )}
 
-                {/* Redirect — show from/to as links */}
+                {/* Redirect - show from/to as links */}
                 {isSuccess && (action.type === 'redirect_wp' || action.type === 'redirect_platform') && meta.fromUrl && (
                   <div className={styles.actionMeta}>
                     <a href={meta.fromUrl} target="_blank" rel="noopener noreferrer" className={styles.actionLink}>{meta.fromPath || formatPath(meta.fromUrl)}</a>
@@ -2103,21 +2103,21 @@ function MergeActionsSummary({ actions, t, dl, styles }) {
                   </div>
                 )}
 
-                {/* Post trashed — show link */}
+                {/* Post trashed - show link */}
                 {isSuccess && action.type === 'post_trashed' && meta.url && (
                   <div className={styles.actionMeta}>
-                    <span className={styles.actionOldValue}>{meta.title ? `${meta.title} — ` : ''}{formatPath(meta.url)}</span>
+                    <span className={styles.actionOldValue}>{meta.title ? `${meta.title} - ` : ''}{formatPath(meta.url)}</span>
                   </div>
                 )}
 
-                {/* Link healing — show count and target */}
+                {/* Link healing - show count and target */}
                 {isSuccess && action.type === 'link_healing' && meta.targetUrl && (
                   <div className={styles.actionMeta}>
                     <span>{(dl.actionLinkHealingDetail || '{count} internal links updated → {url}').replace('{count}', meta.count).replace('{url}', formatPath(meta.targetUrl))}</span>
                   </div>
                 )}
 
-                {/* GSC reindex — show URL */}
+                {/* GSC reindex - show URL */}
                 {isSuccess && action.type === 'gsc_reindex' && meta.url && (
                   <div className={styles.actionMeta}>
                     <a href={meta.url} target="_blank" rel="noopener noreferrer" className={styles.actionLink}>{formatPath(meta.url)}</a>

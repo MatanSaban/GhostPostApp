@@ -14,7 +14,7 @@ const SESSION_COOKIE = 'user_session';
  * can be restored from /dashboard/restore-account within the 14-day window.
  * After the window expires, a scheduled purge permanently deletes everything.
  *
- * The session is NOT cleared here — the client shows a 5-minute grace modal
+ * The session is NOT cleared here - the client shows a 5-minute grace modal
  * before calling the logout endpoint. If the tab closes, the session simply
  * remains valid until normal expiry; subsequent logins get redirected to the
  * restore page.

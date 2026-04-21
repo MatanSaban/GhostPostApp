@@ -244,7 +244,7 @@ export function resolveTranslation(translations, titleKey, data = {}, locale) {
  * Check if an insight is fully fixed (all items applied)
  */
 export function isInsightFullyFixed(insight) {
-  // User explicitly resolved or action was executed — always treat as fixed
+  // User explicitly resolved or action was executed - always treat as fixed
   if (insight.status === 'EXECUTED' || insight.status === 'RESOLVED') {
     return true;
   }

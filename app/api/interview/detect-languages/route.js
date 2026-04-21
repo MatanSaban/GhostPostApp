@@ -4,7 +4,7 @@ import { NextResponse } from 'next/server';
  * POST /api/interview/detect-languages
  * Lightweight: fetch the HTML of a URL and return any language variants
  * discovered via hreflang tags or locale path prefixes.
- * No AI, no DB writes, no credit tracking — safe to call before the user
+ * No AI, no DB writes, no credit tracking - safe to call before the user
  * has committed to a full analysis.
  */
 export async function POST(request) {

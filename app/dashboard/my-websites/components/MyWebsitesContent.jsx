@@ -211,7 +211,7 @@ export function MyWebsitesContent() {
     <div className={styles.container}>
       {/* Toolbar */}
       <div className={styles.toolbar}>
-        <div className={styles.searchWrapper}>
+        <div className={styles.searchWrapper} data-onboarding="my-websites-search">
           <Search size={16} className={styles.searchIcon} />
           <input
             type="text"
@@ -228,12 +228,14 @@ export function MyWebsitesContent() {
         </div>
         <div className={styles.toolbarRight}>
           {canCreate && (
-            <Button variant="primary" onClick={openAddModal}>
-              <Plus size={16} />
-              <span>{t('sites.addSite')}</span>
-            </Button>
+            <span data-onboarding="my-websites-add-cta">
+              <Button variant="primary" onClick={openAddModal}>
+                <Plus size={16} />
+                <span>{t('sites.addSite')}</span>
+              </Button>
+            </span>
           )}
-          <div className={styles.viewToggle}>
+          <div className={styles.viewToggle} data-onboarding="my-websites-view-toggle">
             <button
               className={`${styles.viewButton} ${viewMode === 'table' ? styles.viewButtonActive : ''}`}
               onClick={() => handleViewModeChange('table')}
@@ -301,7 +303,7 @@ export function MyWebsitesContent() {
         />
       ) : viewMode === 'table' ? (
         /* Table View */
-        <div className={styles.tableContainer}>
+        <div className={styles.tableContainer} data-onboarding="my-websites-list">
           <table className={styles.table}>
             <thead>
               <tr>
@@ -382,7 +384,7 @@ export function MyWebsitesContent() {
         </div>
       ) : (
         /* Cards View */
-        <div className={styles.cardsGrid}>
+        <div className={styles.cardsGrid} data-onboarding="my-websites-list">
           {filteredSites.map((site) => (
             <div key={site.id} className={styles.card}>
               <div className={styles.cardHeader}>

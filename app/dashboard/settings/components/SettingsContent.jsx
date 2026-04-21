@@ -64,7 +64,7 @@ import { SettingsFormSkeleton, TableSkeleton, FormSkeleton, Skeleton, Button } f
 import WordPressPluginSection from './WordPressPluginSection';
 import UpgradePlanModal from '@/app/components/ui/UpgradePlanModal';
 import AddCreditsModal from '@/app/components/ui/AddCreditsModal';
-import { AdminModal } from '@/app/dashboard/admin/components/AdminModal';
+import { AdminModal } from '@/app/admin/components/AdminModal';
 import styles from '../page.module.css';
 
 const iconMap = {
@@ -404,7 +404,7 @@ export default function SettingsContent({ translations, websiteTabs, accountTabs
     <>
       {/* Main Category Tabs - Only show if user can access account settings */}
       {canAccessAccountSettings && (
-        <div className={styles.mainTabsContainer}>
+        <div className={styles.mainTabsContainer} data-onboarding="settings-main-tabs">
           <div className={styles.mainTabsList} ref={mainTabsListRef}>
             <div 
               className={styles.mainTabIndicator} 
@@ -434,7 +434,7 @@ export default function SettingsContent({ translations, websiteTabs, accountTabs
       )}
 
       {/* Sub-tabs for the active category */}
-      <div className={styles.tabsContainer}>
+      <div className={styles.tabsContainer} data-onboarding="settings-tabs">
         <div className={styles.tabsList} ref={tabsListRef}>
           <div 
             className={styles.tabIndicator} 
@@ -464,7 +464,7 @@ export default function SettingsContent({ translations, websiteTabs, accountTabs
 
       {/* Content panel - only show when user has access to at least one tab */}
       {activeTab && (
-        <div className={styles.contentPanel}>
+        <div className={styles.contentPanel} data-onboarding="settings-content-panel">
           <div className={styles.sectionHeader}>
             <div className={styles.sectionIconWrapper}>
               <ActiveIcon className={styles.sectionIcon} />
@@ -1537,7 +1537,7 @@ function IntegrationsSettings({ translations, canEdit = true }) {
       </div>
 
       {/* Google Analytics Section */}
-      <div className={styles.settingsSection}>
+      <div className={styles.settingsSection} data-onboarding="ga-section">
         <div className={styles.integrationHeader}>
           <div className={styles.integrationTitleRow}>
             <svg className={styles.integrationIcon} width="20" height="20" viewBox="0 0 192 192" fill="none">
@@ -1625,7 +1625,7 @@ function IntegrationsSettings({ translations, canEdit = true }) {
       </div>
 
       {/* Google Search Console Section */}
-      <div className={styles.settingsSection}>
+      <div className={styles.settingsSection} data-onboarding="gsc-section">
         <div className={styles.integrationHeader}>
           <div className={styles.integrationTitleRow}>
             <svg className={styles.integrationIcon} width="20" height="20" viewBox="0 0 24 24" fill="none">
@@ -5029,7 +5029,7 @@ function AccountSettings({ translations, canEdit = true, isOwner = false }) {
         try {
           await fetch('/api/auth/logout', { method: 'POST' });
         } catch {
-          // Ignore — still proceed to client logout.
+          // Ignore - still proceed to client logout.
         }
         clearUser();
         router.push('/auth/login');
@@ -5356,7 +5356,7 @@ function AccountSettings({ translations, canEdit = true, isOwner = false }) {
       {/* White-Label Branding Section */}
       <WhiteLabelReportingSettings translations={translations} canEdit={canEdit} />
 
-      {/* Danger Zone — only the account owner can archive. */}
+      {/* Danger Zone - only the account owner can archive. */}
       {isOwner && (
         <div className={styles.subsection}>
           <h3 className={styles.subsectionTitle}>

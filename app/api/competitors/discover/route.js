@@ -238,7 +238,7 @@ export async function POST(request) {
     });
     console.log(`[DiscoverCompetitors] Found ${existingCompetitors.length} existing competitors`);
     
-    // C. Get entities (pages, posts) for content analysis — enabled types only
+    // C. Get entities (pages, posts) for content analysis - enabled types only
     const entities = await prisma.siteEntity.findMany({
       where: {
         siteId,

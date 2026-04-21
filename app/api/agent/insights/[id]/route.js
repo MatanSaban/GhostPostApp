@@ -83,7 +83,7 @@ export async function PATCH(request, { params }) {
         updateData = { dismissedAt: new Date() };
         break;
       case 'resolve':
-        // Mark as resolved (user acknowledged the fix) — keeps it visible in resolved history
+        // Mark as resolved (user acknowledged the fix) - keeps it visible in resolved history
         updateData = { status: 'RESOLVED', resolvedAt: new Date() };
         break;
     }

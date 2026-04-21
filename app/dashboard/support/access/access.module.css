@@ -1,0 +1,400 @@
+/* ========================================
+   Support Access Codes - user-side impersonation grants UI.
+   Layered on top of the support page module for shared layout.
+   ======================================== */
+
+.warningBanner {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 0.875rem 1rem;
+  border-radius: var(--radius-lg, 0.625rem);
+  background: rgba(234, 179, 8, 0.08);
+  border: 1px solid rgba(234, 179, 8, 0.25);
+  color: var(--foreground);
+}
+
+.warningBanner svg {
+  flex-shrink: 0;
+  color: rgb(180, 130, 0);
+  margin-top: 0.125rem;
+}
+
+.warningBanner strong {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+}
+
+.warningBanner p {
+  font-size: 0.8125rem;
+  color: var(--muted-foreground);
+  margin: 0;
+  line-height: 1.5;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1.25rem;
+  border-radius: var(--radius-lg, 0.625rem);
+  border: 1px solid var(--border);
+  background: var(--card);
+}
+
+.cardHeader h2 {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--foreground);
+  margin: 0;
+}
+
+.cardHeader p {
+  font-size: 0.8125rem;
+  color: var(--muted-foreground);
+  margin: 0.25rem 0 0;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.125rem;
+}
+
+.fieldRow {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.fieldLabel {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--foreground);
+}
+
+.fieldHint {
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+}
+
+.scopeGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 0.625rem;
+}
+
+.scopeOption {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.625rem;
+  padding: 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg, 0.625rem);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  background: var(--background);
+}
+
+.scopeOption:hover {
+  border-color: var(--primary);
+}
+
+.scopeOption input[type='radio'] {
+  margin-top: 0.25rem;
+  flex-shrink: 0;
+}
+
+.scopeOptionActive {
+  border-color: var(--primary);
+  background: rgba(123, 44, 191, 0.06);
+}
+
+.scopeOptionTitle {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--foreground);
+}
+
+.scopeOptionDesc {
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+  margin: 0.25rem 0 0;
+  line-height: 1.4;
+}
+
+.ttlGrid {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.ttlChip {
+  padding: 0.4375rem 0.875rem;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  border-radius: 9999px;
+  border: 1px solid var(--border);
+  background: var(--background);
+  color: var(--muted-foreground);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.ttlChip:hover {
+  background: var(--muted);
+  color: var(--foreground);
+}
+
+.ttlChipActive {
+  background: var(--primary);
+  color: white;
+  border-color: var(--primary);
+}
+
+.ttlChipActive:hover {
+  background: var(--primary);
+  color: white;
+}
+
+.textarea {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
+  font-family: inherit;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg, 0.625rem);
+  background: var(--background);
+  color: var(--foreground);
+  resize: vertical;
+}
+
+.textarea:focus {
+  outline: none;
+  border-color: var(--primary);
+}
+
+.formError {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: var(--radius-md, 0.5rem);
+  background: rgba(220, 38, 38, 0.08);
+  color: rgb(185, 28, 28);
+  font-size: 0.8125rem;
+}
+
+.formActions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* ---- Fresh code reveal ---- */
+.codeBanner {
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+  padding: 1.125rem 1.25rem;
+  border-radius: var(--radius-lg, 0.625rem);
+  border: 1px solid var(--primary);
+  background: linear-gradient(135deg, rgba(123, 44, 191, 0.08), rgba(123, 44, 191, 0.02));
+}
+
+.codeBannerHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--primary);
+  font-weight: 600;
+}
+
+.codeBanner p {
+  font-size: 0.8125rem;
+  color: var(--muted-foreground);
+  margin: 0;
+}
+
+.codeRow {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  flex-wrap: wrap;
+}
+
+.code {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: 0.625rem 0.875rem;
+  font-family: 'Menlo', 'Monaco', monospace;
+  font-size: 1.125rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  border-radius: var(--radius-md, 0.5rem);
+  background: var(--background);
+  border: 1px dashed var(--border);
+  color: var(--foreground);
+  word-break: break-all;
+}
+
+.dismissButton {
+  align-self: flex-end;
+  background: none;
+  border: none;
+  color: var(--muted-foreground);
+  font-size: 0.75rem;
+  cursor: pointer;
+  text-decoration: underline;
+  padding: 0;
+}
+
+.dismissButton:hover {
+  color: var(--foreground);
+}
+
+/* ---- Grant history list ---- */
+.grantList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+}
+
+.grantRow {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.875rem;
+  padding: 0.875rem 1rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md, 0.5rem);
+  background: var(--background);
+}
+
+.grantMain {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.grantTopLine {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  flex-wrap: wrap;
+}
+
+.grantPrefix {
+  font-family: 'Menlo', 'Monaco', monospace;
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--foreground);
+  letter-spacing: 0.025em;
+}
+
+.statusChip {
+  padding: 0.1875rem 0.5rem;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-radius: 9999px;
+}
+
+.status_ACTIVE {
+  background: rgba(34, 197, 94, 0.12);
+  color: rgb(21, 128, 61);
+}
+.status_USED {
+  background: rgba(59, 130, 246, 0.12);
+  color: rgb(29, 78, 216);
+}
+.status_EXPIRED {
+  background: rgba(107, 114, 128, 0.15);
+  color: rgb(75, 85, 99);
+}
+.status_REVOKED {
+  background: rgba(220, 38, 38, 0.1);
+  color: rgb(185, 28, 28);
+}
+
+.scopeBadge {
+  font-size: 0.6875rem;
+  font-weight: 500;
+  color: var(--muted-foreground);
+  padding: 0.125rem 0.4375rem;
+  border-radius: 4px;
+  background: var(--muted);
+}
+
+.grantMeta {
+  display: flex;
+  gap: 0.875rem;
+  flex-wrap: wrap;
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+}
+
+.grantReason {
+  font-style: italic;
+}
+
+.sessionsList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  margin-top: 0.375rem;
+  padding-top: 0.5rem;
+  border-top: 1px dashed var(--border);
+  font-size: 0.75rem;
+}
+
+.sessionsList strong {
+  font-size: 0.6875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted-foreground);
+  font-weight: 600;
+}
+
+.sessionRow {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  gap: 0.75rem;
+  color: var(--muted-foreground);
+}
+
+.sessionRow span:first-child {
+  color: var(--foreground);
+  font-weight: 500;
+}
+
+.revokeButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.4375rem 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md, 0.5rem);
+  background: var(--card);
+  color: rgb(185, 28, 28);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  flex-shrink: 0;
+}
+
+.revokeButton:hover {
+  background: rgba(220, 38, 38, 0.08);
+  border-color: rgba(220, 38, 38, 0.4);
+}

@@ -6,7 +6,7 @@
  * Usage:
  *   1. Make sure GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET are in your .env
  *   2. Run: node scripts/google-ads-auth.js
- *   3. A browser window opens — sign in with the Google account that owns your Ads account
+ *   3. A browser window opens - sign in with the Google account that owns your Ads account
  *   4. The refresh token will be printed in the terminal
  *   5. Copy it to .env as GOOGLE_ADS_REFRESH_TOKEN
  */

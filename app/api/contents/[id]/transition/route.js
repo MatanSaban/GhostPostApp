@@ -165,7 +165,7 @@ export async function POST(request, { params }) {
       const hasAiResult = content.aiResult && (content.aiResult.html || content.aiResult.title);
 
       if (!hasAiResult) {
-        // No content generated yet — need to generate first, then it will publish after
+        // No content generated yet - need to generate first, then it will publish after
         // Set to SCHEDULED so cron picks it up for generation → then publish
         // Only bump scheduledAt to now if the post's date is in the past
         const now = new Date();
@@ -207,7 +207,7 @@ export async function POST(request, { params }) {
         });
       }
 
-      // Has AI result — set to READY_TO_PUBLISH and dispatch publish
+      // Has AI result - set to READY_TO_PUBLISH and dispatch publish
       // Only bump scheduledAt to now if the post's date is in the past
       const now = new Date();
       const dateInPast = !content.scheduledAt || content.scheduledAt < new Date(now.getFullYear(), now.getMonth(), now.getDate());

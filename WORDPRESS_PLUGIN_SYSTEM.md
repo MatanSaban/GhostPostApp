@@ -1,6 +1,6 @@
-# Ghost Post — WordPress Plugin System
+# Ghost Post - WordPress Plugin System
 
-The Ghost Post platform integrates with WordPress via a **custom plugin that is dynamically generated per-site**. Each downloaded plugin ZIP is unique — it contains site-specific credentials (Site ID, Site Key, Site Secret) baked directly into the code. The plugin enables bidirectional communication: the platform pushes content to WordPress, and WordPress pushes real-time entity/redirect changes back to the platform.
+The Ghost Post platform integrates with WordPress via a **custom plugin that is dynamically generated per-site**. Each downloaded plugin ZIP is unique - it contains site-specific credentials (Site ID, Site Key, Site Secret) baked directly into the code. The plugin enables bidirectional communication: the platform pushes content to WordPress, and WordPress pushes real-time entity/redirect changes back to the platform.
 
 **Current Plugin Version:** `3.0.1`
 
@@ -12,24 +12,24 @@ The Ghost Post platform integrates with WordPress via a **custom plugin that is 
 
 | Class | File | Purpose |
 |-------|------|---------|
-| `Ghost_Post` | `class-ghost-post.php` | Main orchestrator — initializes all managers, registers REST routes, admin menu, dashboard widget, cron jobs |
+| `Ghost_Post` | `class-ghost-post.php` | Main orchestrator - initializes all managers, registers REST routes, admin menu, dashboard widget, cron jobs |
 | `GP_API_Handler` | `class-gp-api-handler.php` | Registers 50+ REST API endpoints, routes requests to appropriate managers |
 | `GP_Request_Validator` | `class-gp-request-validator.php` | HMAC-SHA256 signature validation with timestamp replay protection |
-| `GP_Content_Manager` | `class-gp-content-manager.php` | Posts/Pages CRUD — get_items, get_item, create, update, delete + H1 management in page builders |
+| `GP_Content_Manager` | `class-gp-content-manager.php` | Posts/Pages CRUD - get_items, get_item, create, update, delete + H1 management in page builders |
 | `GP_Media_Manager` | `class-gp-media-manager.php` | Image upload, WebP/AVIF auto-conversion, AI image optimization, queue processing |
 | `GP_SEO_Manager` | `class-gp-seo-manager.php` | Yoast + RankMath meta extraction and updates (title, description, OG, Twitter, keywords) |
-| `GP_CPT_Manager` | `class-gp-cpt-manager.php` | Custom Post Types CRUD — get_post_types, create/read/update/delete |
-| `GP_ACF_Manager` | `class-gp-acf-manager.php` | Advanced Custom Fields read/write — detects ACF, reads field groups and values |
+| `GP_CPT_Manager` | `class-gp-cpt-manager.php` | Custom Post Types CRUD - get_post_types, create/read/update/delete |
+| `GP_ACF_Manager` | `class-gp-acf-manager.php` | Advanced Custom Fields read/write - detects ACF, reads field groups and values |
 | `GP_Entity_Sync` | `class-gp-entity-sync.php` | Real-time webhook push on post create/update/trash/delete to platform |
 | `GP_Redirections_Manager` | `class-gp-redirections-manager.php` | Native redirect management + 3rd-party plugin detection and import |
 | `GP_Updater` | `class-gp-updater.php` | WordPress-native auto-update checking against the Ghost Post platform |
-| `GP_I18n` | `class-gp-i18n.php` | Internationalization — English + Hebrew (RTL) without .po/.mo files, ~200+ strings |
+| `GP_I18n` | `class-gp-i18n.php` | Internationalization - English + Hebrew (RTL) without .po/.mo files, ~200+ strings |
 
 ---
 
 ## 2. Dynamic Plugin Generation (Per-Site)
 
-The plugin is **not a static download** — it is **generated dynamically** from JavaScript template files for each site. The source PHP files under `gp-wordpress-plugin/` are **reference/development files only** and are NOT deployed to WordPress sites.
+The plugin is **not a static download** - it is **generated dynamically** from JavaScript template files for each site. The source PHP files under `gp-wordpress-plugin/` are **reference/development files only** and are NOT deployed to WordPress sites.
 
 > **CRITICAL:** When modifying plugin behavior, ALWAYS edit the template JS file in `plugin-templates/`. The source PHP files do NOT get deployed.
 
@@ -89,7 +89,7 @@ function gp_has_permission($permission) {
 
 ## 3. Download Plugin API Routes
 
-### `GET /api/sites/[id]/download-plugin` — Authenticated Dashboard Download
+### `GET /api/sites/[id]/download-plugin` - Authenticated Dashboard Download
 
 **Authentication:** User session cookie + account membership verification
 
@@ -105,7 +105,7 @@ function gp_has_permission($permission) {
 
 **API URL Resolution:** `GP_PLUGIN_API_URL` env → `NEXT_PUBLIC_BASE_URL` env → default `https://app.ghostpost.co.il`
 
-### `GET /api/plugin/download?site_key=xxx` — Unauthenticated Plugin Auto-Update Download
+### `GET /api/plugin/download?site_key=xxx` - Unauthenticated Plugin Auto-Update Download
 
 **Authentication:** Site key lookup (no user session required)
 
@@ -197,7 +197,7 @@ register_activation_hook(__FILE__, 'gp_connector_activate');
 register_deactivation_hook(__FILE__, 'gp_connector_deactivate');
 ```
 
-### Ghost_Post::init() — Initialization Sequence
+### Ghost_Post::init() - Initialization Sequence
 
 1. Initialize i18n: `GP_I18n::init()`
 2. Initialize validators and managers (`GP_Request_Validator`, `GP_API_Handler`, `GP_Redirections_Manager`, `GP_Entity_Sync`)
@@ -250,7 +250,7 @@ Content-Type:    application/json
 
 ---
 
-## 7. Plugin REST Endpoints (WordPress Side — `ghost-post/v1` namespace)
+## 7. Plugin REST Endpoints (WordPress Side - `ghost-post/v1` namespace)
 
 50+ REST API endpoints registered via `register_rest_route()`. All requests validated via `GP_Request_Validator`.
 
@@ -414,7 +414,7 @@ The chat bot system prompt uses this data to build dynamic context (active plugi
 
 ---
 
-## 9. Content Manager — H1 Heading Management (v3.0.1)
+## 9. Content Manager - H1 Heading Management (v3.0.1)
 
 The content manager handles H1 headings across page builders and raw HTML. This is critical because many WordPress sites use Elementor or other page builders where H1 lives in builder JSON, not in `post_content`.
 
@@ -428,7 +428,7 @@ The `PUT /pages/{id}` and `PUT /posts/{id}` endpoints accept these special H1 fi
 | `old_h1` | string | The current H1 text to find (used with `new_h1`) |
 | `new_h1` | string | The replacement H1 text (used with `old_h1`) |
 
-### `add_h1_to_builders($post_id, $h1_text)` — Add New H1
+### `add_h1_to_builders($post_id, $h1_text)` - Add New H1
 
 Used when a page has no H1 heading at all. Handles:
 
@@ -437,7 +437,7 @@ Used when a page has no H1 heading at all. Handles:
 
 Returns: `{ added: ['elementor'] | ['html_prepend'], h1_text: '...' }`
 
-### `update_h1_in_builders($post_id, $old_h1, $new_h1)` — Replace Existing H1
+### `update_h1_in_builders($post_id, $old_h1, $new_h1)` - Replace Existing H1
 
 Used when a page has an H1 that needs changing. Handles:
 
@@ -472,7 +472,7 @@ After modifying `_elementor_data`, the plugin:
 
 ---
 
-## 10. Content Manager — `format_post()` Response Shape
+## 10. Content Manager - `format_post()` Response Shape
 
 ```json
 {
@@ -656,7 +656,7 @@ Platform calls: POST/PUT/DELETE /wp-json/ghost-post/v1/{endpoint}
 - `GP_Entity_Sync::$is_gp_api_request` static flag prevents webhook loops on platform-originated changes
 - `GP_Entity_Sync::mark_gp_origin()` called before `wp_update_post` / `wp_insert_post`
 - `GP_Entity_Sync::clear_gp_origin()` called after operation
-- Redirect sync checks `source` field — skips webhook if `source === 'gp-platform'`
+- Redirect sync checks `source` field - skips webhook if `source === 'gp-platform'`
 - Platform uses sync locks to prevent concurrent syncs:
   ```
   acquireSyncLock(siteId, 'cron'|'manual'|'webhook')
@@ -668,7 +668,7 @@ Platform calls: POST/PUT/DELETE /wp-json/ghost-post/v1/{endpoint}
 
 ## 13. Platform Public Plugin API Routes
 
-All routes under `app/api/public/wp/` — require HMAC-SHA256 signature validation:
+All routes under `app/api/public/wp/` - require HMAC-SHA256 signature validation:
 
 | Method | Route | When | Description |
 |--------|-------|------|-------------|
@@ -768,9 +768,9 @@ The plugin auto-detects and supports multiple SEO plugins:
 
 ### URL Processing
 
-- `sanitize_redirect_url()` — Decodes percent-encoded URLs to Unicode (Hebrew support)
-- `normalize_path()` — Strips trailing slashes for consistent matching
-- `maybe_redirect()` — Hooks into `template_redirect`, matches with trailing-slash tolerance + Unicode decode
+- `sanitize_redirect_url()` - Decodes percent-encoded URLs to Unicode (Hebrew support)
+- `normalize_path()` - Strips trailing slashes for consistent matching
+- `maybe_redirect()` - Hooks into `template_redirect`, matches with trailing-slash tolerance + Unicode decode
 
 ### 3rd-Party Plugin Detection & Import
 
@@ -784,7 +784,7 @@ Detects and can import redirects from:
 
 ### Bidirectional Sync
 
-- `push_redirect_webhook()` — Pushes changes back to platform via `POST /api/public/wp/redirect-updated`
+- `push_redirect_webhook()` - Pushes changes back to platform via `POST /api/public/wp/redirect-updated`
 - Platform pushes redirects via `POST /wp-json/ghost-post/v1/redirects`
 - Source field (`'wordpress'` or `'gp-platform'`) prevents infinite loops
 
@@ -804,7 +804,7 @@ Detects and can import redirects from:
 ### Platform-Driven Queue (for batch operations)
 
 - Platform batches images for conversion
-- Calls `/media/process-queue-item` one-at-a-time (reliable — no WP-Cron dependency)
+- Calls `/media/process-queue-item` one-at-a-time (reliable - no WP-Cron dependency)
 - Progress tracked via `/media/queue-status` endpoint
 
 ### AI Image Optimization
@@ -834,7 +834,7 @@ export const PLUGIN_CHANGELOG = `
 2. Increment `PLUGIN_VERSION` in `app/api/plugin/version.js`
 3. Add changelog entry to `PLUGIN_CHANGELOG`
 4. Run: `node scripts/sync-plugin-version.mjs` (syncs version to PHP plugin header + constant)
-5. Deploy platform — all new plugin downloads automatically get the new version
+5. Deploy platform - all new plugin downloads automatically get the new version
 
 ### WordPress Auto-Update Flow
 
@@ -870,9 +870,9 @@ export const PLUGIN_CHANGELOG = `
 
 ### Languages Supported
 
-- **English (en)** — default
-- **Hebrew (he)** — RTL layout, ~200+ translated strings
-- **Auto** — detects from WordPress locale
+- **English (en)** - default
+- **Hebrew (he)** - RTL layout, ~200+ translated strings
+- **Auto** - detects from WordPress locale
 
 ### How It Works
 
@@ -896,13 +896,13 @@ GP_I18n::dir_attr();  // Returns 'rtl' or 'ltr'
 
 ---
 
-## 21. Database Schema (Site Model — Plugin-Related Fields)
+## 21. Database Schema (Site Model - Plugin-Related Fields)
 
 ```prisma
 model Site {
   // Plugin Authentication
-  siteKey              String?              // gp_site_{32-hex} — public identifier
-  siteSecret           String?              // 64-hex — HMAC signing key (never returned from API)
+  siteKey              String?              // gp_site_{32-hex} - public identifier
+  siteSecret           String?              // 64-hex - HMAC signing key (never returned from API)
   connectionStatus     SiteConnectionStatus // PENDING | CONNECTING | CONNECTED | DISCONNECTED | ERROR
   lastPingAt           DateTime?            // Last successful heartbeat
   sitePermissions      SitePermission[]     // Array of allowed operations (18 permissions)
@@ -950,16 +950,16 @@ enum SitePermission {
 
 ## 22. Security Layers Summary
 
-1. **HTTPS Only** — All communication encrypted in transit
-2. **siteSecret Never Transmitted** — Only embedded in downloaded `config.php`, never returned from any API
-3. **HMAC-SHA256 + Timestamp** — Each request uniquely signed, prevents tampering
-4. **5-Minute Replay Window** — With ±60s clock skew tolerance
-5. **Timing-Safe Comparison** — `crypto.timingSafeEqual()` / `hash_equals()` prevents timing attacks
-6. **Permission Scoping** — Platform enforces what operations are allowed per site (18 granular permissions)
-7. **Connection Status Tracking** — Alerts if plugin goes silent (missed heartbeats)
-8. **Auto-Install Credential Encryption** — AES-256-GCM with 5-minute TTL, cleared after use
-9. **Conflict Prevention** — Source flags and sync locks prevent bidirectional echo loops
-10. **Input Sanitization** — All incoming data sanitized: `sanitize_text_field()`, `wp_kses_post()`, `sanitize_textarea_field()`
+1. **HTTPS Only** - All communication encrypted in transit
+2. **siteSecret Never Transmitted** - Only embedded in downloaded `config.php`, never returned from any API
+3. **HMAC-SHA256 + Timestamp** - Each request uniquely signed, prevents tampering
+4. **5-Minute Replay Window** - With ±60s clock skew tolerance
+5. **Timing-Safe Comparison** - `crypto.timingSafeEqual()` / `hash_equals()` prevents timing attacks
+6. **Permission Scoping** - Platform enforces what operations are allowed per site (18 granular permissions)
+7. **Connection Status Tracking** - Alerts if plugin goes silent (missed heartbeats)
+8. **Auto-Install Credential Encryption** - AES-256-GCM with 5-minute TTL, cleared after use
+9. **Conflict Prevention** - Source flags and sync locks prevent bidirectional echo loops
+10. **Input Sanitization** - All incoming data sanitized: `sanitize_text_field()`, `wp_kses_post()`, `sanitize_textarea_field()`
 
 ---
 
@@ -967,16 +967,16 @@ enum SitePermission {
 
 ```
 = 3.0.1 =
-* NEW: H1 heading management — add or replace H1 in Elementor, Beaver Builder, and raw HTML pages
+* NEW: H1 heading management - add or replace H1 in Elementor, Beaver Builder, and raw HTML pages
 * NEW: Site info now reports active plugins list, parent theme, Elementor and WooCommerce detection
 * FIX: Update response now includes H1 update result for verification
 
 = 3.0.0 =
-* NEW: SEO Insights tab — traffic stats, AI traffic chart, top 10 keywords, top 10 pages, AI agent issues
-* NEW: Code Snippets tab — manage custom PHP/JS/HTML/CSS snippets with active/inactive toggle, trash, priority, and frontend execution
-* NEW: Version section in Settings tab — check for updates from platform, injects into WP update system
+* NEW: SEO Insights tab - traffic stats, AI traffic chart, top 10 keywords, top 10 pages, AI agent issues
+* NEW: Code Snippets tab - manage custom PHP/JS/HTML/CSS snippets with active/inactive toggle, trash, priority, and frontend execution
+* NEW: Version section in Settings tab - check for updates from platform, injects into WP update system
 * NEW: Update button in header bar when new version is available
-* NEW: Full i18n support — all strings translatable via WordPress gettext system
+* NEW: Full i18n support - all strings translatable via WordPress gettext system
 * NEW: Complete Hebrew translation file (languages/he.php)
 * REMOVE: Site Key row from Connection tab details table
 

@@ -140,7 +140,7 @@ export function BackgroundTasksProvider({ children }) {
   /**
    * Start polling an API endpoint to update a task's progress.
    * Persists across page navigation since this runs in the layout-level provider.
-   * Idempotent — won't duplicate if already polling for this task.
+   * Idempotent - won't duplicate if already polling for this task.
    * @param {string} taskId - Task ID to update
    * @param {Object} config
    * @param {string} config.url - API endpoint to poll
@@ -159,7 +159,7 @@ export function BackgroundTasksProvider({ children }) {
         if (!latest) return;
 
         if (latest.status !== 'PENDING' && latest.status !== 'RUNNING') {
-          // Task finished — update status and stop polling
+          // Task finished - update status and stop polling
           updateTask(taskId, {
             status: latest.status === 'COMPLETED' ? 'completed' : 'error',
             progress: 100,

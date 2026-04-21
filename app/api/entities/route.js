@@ -69,7 +69,7 @@ export async function GET(request) {
       );
     }
 
-    // Build query — restrict to enabled entity types so the Entities list never
+    // Build query - restrict to enabled entity types so the Entities list never
     // shows items from types the user toggled off.
     const where = { siteId, entityType: { isEnabled: true } };
     

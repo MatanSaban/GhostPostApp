@@ -91,7 +91,7 @@ export default function VisualEditorPage() {
     // Build context prefix if an element is selected
     let messageText = text;
     if (selectedElement) {
-      const ctx = `[Targeting: <${selectedElement.tag}> "${selectedElement.text?.substring(0, 80)}" — selector: ${selectedElement.selector}]\n\n`;
+      const ctx = `[Targeting: <${selectedElement.tag}> "${selectedElement.text?.substring(0, 80)}" - selector: ${selectedElement.selector}]\n\n`;
       messageText = ctx + text;
     }
 

@@ -256,7 +256,7 @@ export function useWebpConverter() {
           updateTask(taskId, {
             status: 'completed',
             progress: 100,
-            message: `${t('tools.webp.conversionComplete') || 'Conversion complete'} — ${data.completed || 0} ${t('tools.webp.converted') || 'converted'}${data.failed ? `, ${data.failed} ${t('tools.webp.failed') || 'failed'}` : ''}`,
+            message: `${t('tools.webp.conversionComplete') || 'Conversion complete'} - ${data.completed || 0} ${t('tools.webp.converted') || 'converted'}${data.failed ? `, ${data.failed} ${t('tools.webp.failed') || 'failed'}` : ''}`,
           });
           setQueueStatus({ pending: 0, completed: data.completed || 0, failed: data.failed || 0, total, is_processing: false });
           break;
@@ -265,7 +265,7 @@ export function useWebpConverter() {
         updateTask(taskId, {
           status: 'running',
           progress,
-          message: `${processed}/${total} — ${data.completed || 0} ${t('tools.webp.converted') || 'converted'}${data.failed ? `, ${data.failed} ${t('tools.webp.failed') || 'failed'}` : ''}`,
+          message: `${processed}/${total} - ${data.completed || 0} ${t('tools.webp.converted') || 'converted'}${data.failed ? `, ${data.failed} ${t('tools.webp.failed') || 'failed'}` : ''}`,
         });
 
         setQueueStatus({ pending: data.pending || 0, completed: data.completed || 0, failed: data.failed || 0, total, is_processing: true });
@@ -328,7 +328,7 @@ export function useWebpConverter() {
       addTask({
         id: taskId,
         type: 'webp-conversion',
-        title: `${t('tools.webp.title') || 'WebP Conversion'} — ${selectedSite.name}`,
+        title: `${t('tools.webp.title') || 'WebP Conversion'} - ${selectedSite.name}`,
         message: `0/${totalQueued}`,
         status: 'running',
         progress: 0,
@@ -336,7 +336,7 @@ export function useWebpConverter() {
         metadata: { siteId: selectedSite.id },
       });
 
-      // Drive processing from the platform (don't await — runs in background)
+      // Drive processing from the platform (don't await - runs in background)
       driveQueueProcessing(selectedSite.id, taskId, totalQueued);
 
     } catch (error) {

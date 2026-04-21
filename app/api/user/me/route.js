@@ -86,7 +86,7 @@ export async function GET() {
     }
 
     // Get the current account (last selected or first available), preferring non-archived accounts.
-    // An archived account should never be auto-selected — if lastSelectedAccountId points to one,
+    // An archived account should never be auto-selected - if lastSelectedAccountId points to one,
     // fall through to the first non-archived membership.
     const allMemberships = user.accountMemberships || [];
     const isArchived = (m) => !!m?.account?.archivedAt;

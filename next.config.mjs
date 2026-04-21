@@ -21,6 +21,12 @@ const nextConfig = {
     ],
   },
   outputFileTracingRoot: __dirname,
+  async redirects() {
+    return [
+      { source: '/dashboard/admin', destination: '/admin', permanent: false },
+      { source: '/dashboard/admin/:path*', destination: '/admin/:path*', permanent: false },
+    ];
+  },
 };
 
 export default nextConfig;

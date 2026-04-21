@@ -3,11 +3,11 @@
  */
 export function getAdminCss() {
   return `/**
- * Ghost Post Admin — Tabbed UI + Dashboard Widget
+ * Ghost Post Admin - Tabbed UI + Dashboard Widget
  */
 
 /* ==========================================
-   WordPress Sidebar — Purple Branding
+   WordPress Sidebar - Purple Branding
    ========================================== */
 
 #adminmenu .toplevel_page_ghost-post-connector .wp-menu-image img {
@@ -45,7 +45,7 @@ export function getAdminCss() {
 }
 
 /* ==========================================
-   Design Tokens — Dark Theme (default)
+   Design Tokens - Dark Theme (default)
    ========================================== */
 .gp-admin-wrap {
     --gp-bg: #0f0f1a;
@@ -1289,7 +1289,7 @@ export function getAdminCss() {
 }
 
 /* ==========================================
-   Dashboard Widget — Design Tokens
+   Dashboard Widget - Design Tokens
    ========================================== */
 
 .gp-wrap {

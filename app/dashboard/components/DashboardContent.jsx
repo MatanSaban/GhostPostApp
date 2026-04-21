@@ -287,7 +287,7 @@ export default function DashboardContent({ translations }) {
     const end = new Date(chartEndDate);
     const dayCount = Math.max(1, Math.ceil((end - start) / (1000 * 60 * 60 * 24)) + 1);
     
-    // Generate smooth wave animation — gentle rolling curves like a breathing pulse
+    // Generate smooth wave animation - gentle rolling curves like a breathing pulse
     let tick = 0;
     const generateAnimatedData = () => {
       const points = [];
@@ -1208,13 +1208,13 @@ export default function DashboardContent({ translations }) {
   // engine slices are pulled from the same GA4 query as the donut.
   const renderAiTimeseriesChart = (timeseries, engines) => {
     if (!timeseries?.length) return null;
-    // Skip rendering when every day is zero — keeps the section clean.
+    // Skip rendering when every day is zero - keeps the section clean.
     const hasAny = timeseries.some(d => d.sessions > 0);
     if (!hasAny) return null;
 
     // Larger viewBox so axis labels (in viewBox units) end up readable when
     // the SVG is scaled down to typical card width. preserveAspectRatio is
-    // left as the default (xMidYMid meet) — this keeps text proportional
+    // left as the default (xMidYMid meet) - this keeps text proportional
     // instead of being squashed when the container narrows.
     const W = 800, H = 280;
     const padL = 56, padR = 16, padT = 16, padB = 36;
@@ -2152,7 +2152,7 @@ export default function DashboardContent({ translations }) {
     <>
       {/* Welcome Section */}
       {selectedSite && (
-        <div className={styles.welcomeSection}>
+        <div className={styles.welcomeSection} data-onboarding="dashboard-welcome">
           <div
             className={styles.welcomeLogo}
             style={{
@@ -2233,14 +2233,16 @@ export default function DashboardContent({ translations }) {
                   </div>
                 )}
               </div>
-              <KpiSlider>
-                {(gaCards || []).map((kpi, index) => (
-                  <StatsCard key={`ga-${index}`} {...kpi} loading={gaLoading} />
-                ))}
-                {(gscCards || []).map((kpi, index) => (
-                  <StatsCard key={`gsc-${index}`} {...kpi} loading={gscLoading} />
-                ))}
-              </KpiSlider>
+              <div data-onboarding="dashboard-kpis">
+                <KpiSlider>
+                  {(gaCards || []).map((kpi, index) => (
+                    <StatsCard key={`ga-${index}`} {...kpi} loading={gaLoading} />
+                  ))}
+                  {(gscCards || []).map((kpi, index) => (
+                    <StatsCard key={`gsc-${index}`} {...kpi} loading={gscLoading} />
+                  ))}
+                </KpiSlider>
+              </div>
             </>
           ) : !data?.gaConnected ? (
             <IntegrationCTA
@@ -2257,6 +2259,7 @@ export default function DashboardContent({ translations }) {
             <SectionSkeleton height={300} />
           ) : data?.gaConnected ? (
             <DashboardCard
+              dataOnboarding="dashboard-chart"
               title={t.trafficOverview}
               headerRight={
                 <DateRangeSelect
@@ -2323,6 +2326,7 @@ export default function DashboardContent({ translations }) {
             <SectionSkeleton height={250} />
           ) : data?.gscConnected && (data?.topQueries?.length > 0 || keywordsData !== null || data?.tokenError) ? (
             <DashboardCard
+              dataOnboarding="dashboard-top-keywords"
               title={t.topKeywords || 'Top Keywords'}
               headerRight={!data?.tokenError ?
                 <DateRangeSelect
@@ -2378,6 +2382,7 @@ export default function DashboardContent({ translations }) {
             <SectionSkeleton height={250} />
           ) : data?.gscConnected && (data?.topPages?.length > 0 || pagesData !== null || data?.tokenError) ? (
             <DashboardCard
+              dataOnboarding="dashboard-top-pages"
               title={t.topPages}
               headerRight={!data?.tokenError ?
                 <DateRangeSelect
@@ -2431,7 +2436,7 @@ export default function DashboardContent({ translations }) {
             </>
           ) : data?.gaConnected ? (
             <>
-              <div className={styles.dashboardSectionHeader}>
+              <div className={styles.dashboardSectionHeader} data-onboarding="dashboard-ai-traffic">
                 <AIIcon />
                 <h2 className={styles.dashboardSectionTitle}>{t.aiTrafficTitle || 'AI Traffic Overview'}</h2>
                 <div className={styles.dashboardSectionRight}>
@@ -2507,7 +2512,7 @@ export default function DashboardContent({ translations }) {
                     {renderEngineBreakdown(aiData.engines, aiData.enginePages)}
                   </DashboardCard>
 
-                  {/* Row 3: Daily timeseries (stacked by engine) — commented out per user request.
+                  {/* Row 3: Daily timeseries (stacked by engine) - commented out per user request.
                   {aiData.dailyTimeseries?.length > 0 && (
                     <DashboardCard title={t.aiTimeseriesTitle || 'AI Sessions Over Time'}>
                       {renderAiTimeseriesChart(aiData.dailyTimeseries, aiData.engines)}

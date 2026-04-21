@@ -1850,7 +1850,7 @@
   font-size: 0.6875rem;
 }
 
-/* Hide the label on narrow screens — keep just the ghost emoji */
+/* Hide the label on narrow screens - keep just the ghost emoji */
 @media (max-width: 640px) {
   .aiOptimizeBtnLabel {
     display: none;

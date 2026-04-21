@@ -149,7 +149,7 @@ async function handleGoogleLogin({ googleUser, normalizedEmail, tokens, request 
       : (STEP_REDIRECTS[user.registrationStep] || '/dashboard');
 
     const response = NextResponse.redirect(new URL(redirectTo, request.url));
-    // Always set session — drafts and completed users alike. Middleware enforces
+    // Always set session - drafts and completed users alike. Middleware enforces
     // that drafts can only traverse /auth/register paths.
     setSessionCookie(response, user.id, {
       completed: user.registrationStep === 'COMPLETED' || !!user.isSuperAdmin,
@@ -209,7 +209,7 @@ async function handleGoogleLogin({ googleUser, normalizedEmail, tokens, request 
     return response;
   }
 
-  // No user at all — auto-register with Google.
+  // No user at all - auto-register with Google.
   return handleAutoGoogleRegister({ googleUser, normalizedEmail, tokens, request });
 }
 

@@ -9,7 +9,7 @@ config({ path: '.env.local' });
 config({ path: '.env' });
 
 async function main() {
-  console.log('=== Gemini 3.1 Pro Preview — Vertex smoke test ===\n');
+  console.log('=== Gemini 3.1 Pro Preview - Vertex smoke test ===\n');
   console.log('Location:', process.env.GOOGLE_VERTEX_LOCATION);
   console.log('Project :', process.env.GOOGLE_VERTEX_PROJECT);
   console.log('');
@@ -32,9 +32,9 @@ async function main() {
   console.log('Response text:', JSON.stringify(result.text));
   console.log('Latency     :', ms, 'ms');
   console.log('Usage       :', JSON.stringify(result.usage));
-  console.log('\nPASS — text model is callable.\n');
+  console.log('\nPASS - text model is callable.\n');
 
-  console.log('=== Flash model smoke test — gemini-3-flash-preview ===\n');
+  console.log('=== Flash model smoke test - gemini-3-flash-preview ===\n');
   const FLASH_MODEL_ID = 'gemini-3-flash-preview';
   console.log('Model       :', FLASH_MODEL_ID);
   console.log('Sending a minimal prompt...\n');
@@ -49,9 +49,9 @@ async function main() {
   console.log('Response text:', JSON.stringify(flashResult.text));
   console.log('Latency     :', fMs, 'ms');
   console.log('Usage       :', JSON.stringify(flashResult.usage));
-  console.log('\nPASS — flash model is callable.\n');
+  console.log('\nPASS - flash model is callable.\n');
 
-  console.log('=== Image model smoke test — gemini-3-pro-image-preview ===\n');
+  console.log('=== Image model smoke test - gemini-3-pro-image-preview ===\n');
   const IMAGE_MODEL_ID = 'gemini-3-pro-image-preview';
   console.log('Model       :', IMAGE_MODEL_ID);
   console.log('Generating a tiny image...\n');
@@ -74,16 +74,16 @@ async function main() {
   console.log('Images      :', images.length);
   if (images.length > 0) {
     console.log('First image :', images[0].mediaType, `(${images[0].base64?.length || 0} b64 chars)`);
-    console.log('\nPASS — image model is callable.');
+    console.log('\nPASS - image model is callable.');
   } else {
-    console.log('\nFAIL — no image returned');
+    console.log('\nFAIL - no image returned');
     console.log('Raw files:', JSON.stringify(imgResult.files));
     process.exit(1);
   }
 }
 
 main().catch((err) => {
-  console.error('\nFAIL —', err?.message || err);
+  console.error('\nFAIL -', err?.message || err);
   if (err?.response?.data) console.error('Response:', JSON.stringify(err.response.data, null, 2));
   if (err?.cause) console.error('Cause:', err.cause);
   process.exit(1);

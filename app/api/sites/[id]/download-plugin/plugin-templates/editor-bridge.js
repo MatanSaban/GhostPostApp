@@ -21,7 +21,7 @@ export function getEditorBridgeJs() {
   // parentOrigin must be the platform origin (the window hosting the iframe).
   // On the initial iframe load document.referrer points at the platform and
   // that's fine, but after a same-origin link navigation INSIDE the iframe,
-  // document.referrer becomes the PREVIOUS site page — which would make
+  // document.referrer becomes the PREVIOUS site page - which would make
   // every postMessage target the site's own origin and the browser silently
   // drops the traffic in both directions (platform->bridge AND
   // bridge->platform). The signed preview URL carries gp_origin (the platform
@@ -304,7 +304,7 @@ export function getEditorBridgeJs() {
     if (!el) { box.style.display = 'none'; return; }
     var r = el.getBoundingClientRect();
     var o = fixedOrigin();
-    // translate3d is direction-agnostic — unlike left, which is re-interpreted
+    // translate3d is direction-agnostic - unlike left, which is re-interpreted
     // as start-side on some RTL layouts with horizontal overflow.
     box.style.transform = 'translate3d(' + (r.left - o.x) + 'px,' + (r.top - o.y) + 'px,0)';
     box.style.width = r.width + 'px';
@@ -362,7 +362,7 @@ export function getEditorBridgeJs() {
       return;
     }
 
-    // Inspector OFF — let the user follow links. Accept direct anchor clicks
+    // Inspector OFF - let the user follow links. Accept direct anchor clicks
     // and bubble up through ancestor anchors (common for anchor-wrapped
     // images / headings in Elementor themes).
     var clickedAnchor = (e.target.tagName === 'A' && e.target.getAttribute('href')) ? e.target : null;

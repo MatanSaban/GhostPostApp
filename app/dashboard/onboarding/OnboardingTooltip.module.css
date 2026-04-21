@@ -145,3 +145,32 @@
   color: var(--foreground);
   background: var(--muted);
 }
+
+.actionHint {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.45rem 0.75rem;
+  border-radius: var(--radius-md);
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: var(--muted-foreground);
+  background: linear-gradient(135deg, rgba(124, 58, 237, 0.08), rgba(217, 70, 239, 0.06));
+  border: 1px dashed rgba(124, 58, 237, 0.35);
+}
+
+.pulseDot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #7c3aed;
+  box-shadow: 0 0 0 0 rgba(124, 58, 237, 0.6);
+  animation: tooltipPulse 1.4s ease-out infinite;
+}
+
+@keyframes tooltipPulse {
+  0% { box-shadow: 0 0 0 0 rgba(124, 58, 237, 0.6); }
+  70% { box-shadow: 0 0 0 8px rgba(124, 58, 237, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(124, 58, 237, 0); }
+}

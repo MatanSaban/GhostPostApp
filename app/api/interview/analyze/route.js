@@ -30,7 +30,7 @@ export async function POST(request) {
     }
 
     // Load the user's account. For mid-registration drafts we skip credits
-    // entirely — the account has no balance yet and isn't a real customer.
+    // entirely - the account has no balance yet and isn't a real customer.
     let accountId = null;
     let isDraftAccount = false;
     {
@@ -308,7 +308,7 @@ async function analyzeWebsite(url) {
     results.competitors = await findCompetitors(results);
   }
 
-  // Step 7: Lightweight SEO audit — rule-based checks on the raw data we
+  // Step 7: Lightweight SEO audit - rule-based checks on the raw data we
   // already have. Surfaced to the user at the end of the onboarding flow.
   results.seoIssues = detectSeoIssues(results, html);
 
@@ -355,7 +355,7 @@ function detectSeoIssues(results, html) {
     issues.push({ type: 'LOW_HEADING_COUNT', severity: 'warning', meta: { count: headings.length } });
   }
 
-  // Image alt text — scan for <img> tags missing alt attributes (simple check)
+  // Image alt text - scan for <img> tags missing alt attributes (simple check)
   const imgTags = (html.match(/<img\b[^>]*>/gi) || []);
   if (imgTags.length) {
     const missingAlt = imgTags.filter((tag) => !/\balt=["']/.test(tag)).length;
@@ -368,7 +368,7 @@ function detectSeoIssues(results, html) {
     }
   }
 
-  // Open Graph check — no og:title
+  // Open Graph check - no og:title
   if (!/<meta[^>]+property=["']og:title["']/i.test(html)) {
     issues.push({ type: 'MISSING_OG_TAGS', severity: 'info' });
   }
@@ -888,7 +888,7 @@ function extractLanguageVariants(html, baseUrl, detectedLanguage) {
       continue;
     }
 
-    // x-default points to the fallback language — track the URL but not a code
+    // x-default points to the fallback language - track the URL but not a code
     if (rawCode === 'x-default') {
       if (!variants.has('__x_default__')) {
         variants.set('__x_default__', { code: 'x-default', url: href, isDefault: true });
@@ -905,7 +905,7 @@ function extractLanguageVariants(html, baseUrl, detectedLanguage) {
     }
   }
 
-  // Remove x-default placeholder — it's just metadata
+  // Remove x-default placeholder - it's just metadata
   const xDefault = variants.get('__x_default__');
   variants.delete('__x_default__');
 
@@ -1005,7 +1005,7 @@ function extractPathPrefixLocales(html, baseUrl) {
   }
 
   // If we only saw a single locale prefix, also infer the un-prefixed root as
-  // another variant — the base site itself may be in a different language.
+  // another variant - the base site itself may be in a different language.
   if (found.size === 1) {
     // We don't know the root's language here, so skip adding a synthetic entry.
     // The caller will treat a single-entry map as "not multi-language" anyway.

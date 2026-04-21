@@ -1,4 +1,4 @@
-# Ghost Post Platform — Complete System Documentation
+# Ghost Post Platform - Complete System Documentation
 
 > **Single-document reference** for the entire Ghost Post platform: architecture, data models, permissions, subscriptions, AI infrastructure, every page & feature, plugin system, background jobs, API routes, and workflows.
 
@@ -53,16 +53,16 @@
 
 ## 1. Platform Overview & Vision
 
-**Ghost Post** is an AI-powered SEO automation platform for managing websites and content. It allows businesses to manage multiple sites, generate content intelligently, track keywords, analyze competitors, and perform SEO audits — all driven by artificial intelligence.
+**Ghost Post** is an AI-powered SEO automation platform for managing websites and content. It allows businesses to manage multiple sites, generate content intelligently, track keywords, analyze competitors, and perform SEO audits - all driven by artificial intelligence.
 
 ### Product Vision
 
 The system is designed to be the "ultimate SEO platform" combining:
 
-- **Full Automation** — From initial interview to content publication
-- **AI as a Partner** — Not just a tool, but an active participant
-- **Deep Integration** — Full WordPress plugin connection
-- **Tracking & Analytics** — Every important SEO metric in one place
+- **Full Automation** - From initial interview to content publication
+- **AI as a Partner** - Not just a tool, but an active participant
+- **Deep Integration** - Full WordPress plugin connection
+- **Tracking & Analytics** - Every important SEO metric in one place
 
 ### System Scope
 
@@ -77,21 +77,21 @@ The system is designed to be the "ultimate SEO platform" combining:
 ## 2. Technology Stack
 
 ### Frontend
-- **Framework**: Next.js 15.0.0+ (App Router) — Server Components, Server Actions, Streaming SSR, Automatic Code Splitting, Image Optimization
-- **React**: 19.0.0+ — Server Components, Suspense Boundaries, Error Boundaries, Context API
+- **Framework**: Next.js 15.0.0+ (App Router) - Server Components, Server Actions, Streaming SSR, Automatic Code Splitting, Image Optimization
+- **React**: 19.0.0+ - Server Components, Suspense Boundaries, Error Boundaries, Context API
 - **Styling**: CSS Modules with Nested Syntax
 - **UI Libraries**:
-  - `framer-motion` 12.0.0+ — Smooth animations
-  - `lucide-react` 0.460.0+ — 1000+ icons
-  - `@tiptap/react` 3.18.0+ — Advanced WYSIWYG editor
-  - `@floating-ui/dom` 1.7.5+ — Tooltips and popovers
+  - `framer-motion` 12.0.0+ - Smooth animations
+  - `lucide-react` 0.460.0+ - 1000+ icons
+  - `@tiptap/react` 3.18.0+ - Advanced WYSIWYG editor
+  - `@floating-ui/dom` 1.7.5+ - Tooltips and popovers
 
 ### Backend
 - **Runtime**: Node.js 18+
 - **Framework**: Next.js API Routes
 - **Database**: MongoDB 6.0+ (Atlas Cloud or on-premise, Replica Set for HA)
-- **ORM**: Prisma 6.0.0+ — Type-safe client, schema management, migrations
-- **Authentication**: Custom JWT + Sessions — bcryptjs (cost factor 10), OTP (SMS + Email), OAuth 2.0 (Google, GitHub, Facebook, Apple)
+- **ORM**: Prisma 6.0.0+ - Type-safe client, schema management, migrations
+- **Authentication**: Custom JWT + Sessions - bcryptjs (cost factor 10), OTP (SMS + Email), OAuth 2.0 (Google, GitHub, Facebook, Apple)
 
 ### AI
 - **Provider**: Google AI (Gemini)
@@ -104,10 +104,10 @@ The system is designed to be the "ultimate SEO platform" combining:
 - **Use Cases**: Registration OTP, Password reset, Team invitations, Billing, Audit reports
 
 ### Security
-- **HMAC-SHA256** — Plugin authentication
-- **JWT/Session** — User authentication
-- **bcryptjs** — Password hashing
-- **OTP** — Two-factor verification
+- **HMAC-SHA256** - Plugin authentication
+- **JWT/Session** - User authentication
+- **bcryptjs** - Password hashing
+- **OTP** - Two-factor verification
 
 ---
 
@@ -291,7 +291,7 @@ gp-platform/
 
 Three layers:
 
-#### Layer 1 — Base (`gemini.js`)
+#### Layer 1 - Base (`gemini.js`)
 
 ```javascript
 export const MODELS = {
@@ -331,13 +331,13 @@ export async function generateStructuredResponse({ system, prompt, schema, tempe
 export async function generateImage({ prompt, aspectRatio, n, operation, metadata }) { ... }
 ```
 
-#### Layer 2 — Interview (`interview-ai.js`)
+#### Layer 2 - Interview (`interview-ai.js`)
 - Custom system prompts for interview context
 - Function calling for bot actions
 - Context management across questions
 - Personality injection
 
-#### Layer 3 — Legacy Service (`service.js`)
+#### Layer 3 - Legacy Service (`service.js`)
 - Backward compatibility with OpenAI/Anthropic
 - Abstraction layer
 
@@ -504,29 +504,29 @@ enum MemberStatus {
      - **ACTIVE** → Error: "User is already a member"
      - **SUSPENDED** → Error: "User is suspended"
      - **REMOVED** → Reactivates with new token
-2. **Unique `inviteToken` generated** — 32 random bytes (hex)
-3. **Email sent** in `inviteLanguage` via `sendEmail()` with `emailTemplates.invitation()` — contains account name, inviter name, role, and accept link
+2. **Unique `inviteToken` generated** - 32 random bytes (hex)
+3. **Email sent** in `inviteLanguage` via `sendEmail()` with `emailTemplates.invitation()` - contains account name, inviter name, role, and accept link
 4. **User clicks link** → redirected to `/auth/accept-invite?token={inviteToken}`
 5. **Token verification** via `GET /api/auth/accept-invite/verify?token={token}` (public endpoint):
    - Validates token exists and status is PENDING
    - Checks expiration (7 days from `invitedAt`)
    - Returns: `{ email, accountName, roleName, inviterName, existingUser }`
 6. **Acceptance** via `POST /api/auth/accept-invite`:
-   - **Scenario A — New user** (no existing account): Creates a new `User` record with hashed password, sets `registrationStep: COMPLETED` (skips normal registration), links `userId` to the `AccountMember`
-   - **Scenario B — Existing user**: Validates password against stored hash, links existing `userId` to the `AccountMember`
+   - **Scenario A - New user** (no existing account): Creates a new `User` record with hashed password, sets `registrationStep: COMPLETED` (skips normal registration), links `userId` to the `AccountMember`
+   - **Scenario B - Existing user**: Validates password against stored hash, links existing `userId` to the `AccountMember`
    - In both cases: status → `ACTIVE`, `joinedAt` set, session cookie created, `lastSelectedAccountId` set to the inviting account
-7. **Resend** via `POST /api/settings/users/{memberId}/resend` — generates new token, resets `invitedAt`, resends email (only for PENDING members)
+7. **Resend** via `POST /api/settings/users/{memberId}/resend` - generates new token, resets `invitedAt`, resends email (only for PENDING members)
 
 **Invitation Expiration:** Tokens expire 7 days after `invitedAt`. Expired invites return error code `EXPIRED` and can be reset by resending.
 
 ### Ownership Rules
 
 - **Owner is set during registration**: When a user creates an account, an `Owner` system role is auto-created with ALL permissions, and the `AccountMember` is created with `isOwner: true`
-- **Owner role is a system role** (`isSystemRole: true`) — cannot be deleted or modified
-- **Cannot assign Owner via invite** — the invite API explicitly rejects `role.name === 'Owner'`
-- **Cannot remove the owner** — `DELETE /api/settings/users/{memberId}` checks `isOwner` and rejects
-- **Cannot modify owner's role** — `PATCH` rejects if target member has `isOwner: true`
-- **One owner per account** — enforced via application-level validation in `lib/account-utils.js`
+- **Owner role is a system role** (`isSystemRole: true`) - cannot be deleted or modified
+- **Cannot assign Owner via invite** - the invite API explicitly rejects `role.name === 'Owner'`
+- **Cannot remove the owner** - `DELETE /api/settings/users/{memberId}` checks `isOwner` and rejects
+- **Cannot modify owner's role** - `PATCH` rejects if target member has `isOwner: true`
+- **One owner per account** - enforced via application-level validation in `lib/account-utils.js`
 
 ### Multi-Account Support & Account Switching
 
@@ -543,7 +543,7 @@ A user can belong to multiple accounts simultaneously:
   6. Return full context: `{ userId, accountId, membership, role, permissions, isOwner, account }`
 - All API calls and permission checks operate within the context of the currently selected account
 - Users see an account switcher in the dashboard to change their active account
-- Permissions are **per-account** — a user may be an Owner in one account and an Editor in another
+- Permissions are **per-account** - a user may be an Owner in one account and an Editor in another
 
 ### Site (Website)
 
@@ -655,12 +655,12 @@ model Plan {
 ```
 
 **Common Limitations Keys:**
-- `maxMembers` — Team members
-- `maxSites` — Websites
-- `aiCredits` — Monthly AI credits
-- `maxKeywords` — Tracked keywords
-- `maxContent` — Content items
-- `maxAddOnSeats`, `maxAddOnSites` — Add-on purchase limits
+- `maxMembers` - Team members
+- `maxSites` - Websites
+- `aiCredits` - Monthly AI credits
+- `maxKeywords` - Tracked keywords
+- `maxContent` - Content items
+- `maxAddOnSeats`, `maxAddOnSites` - Add-on purchase limits
 
 ### Add-Ons
 
@@ -752,27 +752,27 @@ enum BillingInterval {
 
 ### Payment Integration (CardCom)
 
-**Gateway**: CardCom — Israeli PCI-compliant payment processor
+**Gateway**: CardCom - Israeli PCI-compliant payment processor
 **Module**: `lib/cardcom.js`
 
 **Currency Support**: ILS (1), USD (2), EUR (3), GBP (4)
 
 **Main Functions**:
-- `createLowProfile()` — Creates a payment deal, returns a `LowProfileId` (secure token for iframe)
-- `getLowProfileResult()` — Verifies payment completion after user submits
-- `buildDocument()` — Generates invoice/receipt document
+- `createLowProfile()` - Creates a payment deal, returns a `LowProfileId` (secure token for iframe)
+- `getLowProfileResult()` - Verifies payment completion after user submits
+- `buildDocument()` - Generates invoice/receipt document
 
 **Payment Flow**:
 1. User selects plan → `POST /api/subscription/init` calls `createLowProfile()` → returns iframe URL
-2. User enters card details in CardCom's secure iframe (PCI-compliant — card data never touches our server)
+2. User enters card details in CardCom's secure iframe (PCI-compliant - card data never touches our server)
 3. CardCom processes payment → redirects back with result
 4. `POST /api/subscription/confirm` calls `getLowProfileResult()` to verify
 5. On success: Subscription created, Payment record stored, AI credits allocated
 6. Invoice generated via `buildDocument()`
 
 **Special Flows**:
-- `POST /api/payment/free-with-coupon` — Coupon grants 100% discount, bypasses payment entirely
-- `POST /api/subscription/prorate` — Calculates cost difference for plan changes
+- `POST /api/payment/free-with-coupon` - Coupon grants 100% discount, bypasses payment entirely
+- `POST /api/subscription/prorate` - Calculates cost difference for plan changes
 
 ### Coupons System
 
@@ -812,12 +812,12 @@ model CouponRedemption {
 - **Discount types**: Percentage (e.g., 50% off) or fixed amount (e.g., $50 off)
 - **Usage limits**: Max total redemptions + max per account
 - **Validity window**: `validFrom`/`validUntil` date range
-- **Plan restriction**: Optional — only applicable to specific plans
+- **Plan restriction**: Optional - only applicable to specific plans
 - **Limitation overrides**: Can grant more generous limits than the plan itself (e.g., +5 extra sites, +10,000 AI credits)
 - **Extra features**: Grant premium capabilities not in the plan (e.g., priority support)
-- **Duration**: `durationMonths` — how many billing cycles the discount applies
+- **Duration**: `durationMonths` - how many billing cycles the discount applies
 - **Redemption snapshot**: Full benefit details frozen at redemption time for auditing
-- **Validation endpoint**: `POST /api/public/coupons/validate` — checkout-time validation
+- **Validation endpoint**: `POST /api/public/coupons/validate` - checkout-time validation
 - **Multi-language**: Per-language descriptions via `CouponTranslation`
 
 ### AI Credits Economy
@@ -825,8 +825,8 @@ model CouponRedemption {
 Every Account maintains a credit balance. All AI operations deduct credits; plan renewals and add-on purchases add credits.
 
 **Two-Pool Model** (`lib/ai/credits-service.js`):
-- **Period Pool**: Plan base allocation + recurring add-ons — resets to zero every billing period and re-allocates
-- **One-Time Pool**: ONE_TIME add-on packs (`creditsRemaining` on `AddOnPurchase`) — persists across periods, consumed FIFO after the period pool is exhausted
+- **Period Pool**: Plan base allocation + recurring add-ons - resets to zero every billing period and re-allocates
+- **One-Time Pool**: ONE_TIME add-on packs (`creditsRemaining` on `AddOnPurchase`) - persists across periods, consumed FIFO after the period pool is exhausted
 - When an AI operation costs credits: period allocation is consumed first; when depleted, one-time packs drain oldest-first
 - `AddOnPurchaseStatus.DEPLETED` marks a fully consumed one-time pack
 
@@ -893,16 +893,16 @@ Unified resource tracking that combines plan limits + add-on bonuses + coupon ov
 Granular RBAC with 50+ built-in permissions.
 
 ### System Roles
-- **Owner** — Full access (bypasses all permission checks)
-- **Admin** — Full access except account deletion
-- **Editor** — Content and entity management
-- **Viewer** — Read-only access
+- **Owner** - Full access (bypasses all permission checks)
+- **Admin** - Full access except account deletion
+- **Editor** - Content and entity management
+- **Viewer** - Read-only access
 
 ### Custom Roles
 Accounts can create custom roles with specific permission sets.
 
 ### Permission Format
-`MODULE_CAPABILITY` — e.g., `SITES_VIEW`, `CONTENT_EDIT`, `KEYWORDS_DELETE`, `SETTINGS_AI_EDIT`
+`MODULE_CAPABILITY` - e.g., `SITES_VIEW`, `CONTENT_EDIT`, `KEYWORDS_DELETE`, `SETTINGS_AI_EDIT`
 
 ### Permission Categories
 - View, Create, Edit, Delete, Publish per module
@@ -919,10 +919,10 @@ An AI-powered onboarding interview that guides new users through site setup.
 ### Architecture
 
 4 core components:
-1. **InterviewQuestion** — Question templates (admin-configured)
-2. **UserInterview** — User session
-3. **InterviewMessage** — Conversation history
-4. **BotAction** — Actions the AI can execute
+1. **InterviewQuestion** - Question templates (admin-configured)
+2. **UserInterview** - User session
+3. **InterviewMessage** - Conversation history
+4. **BotAction** - Actions the AI can execute
 
 ### 12 Question Types
 
@@ -943,7 +943,7 @@ enum InterviewQuestionType {
 }
 ```
 
-**Example — INPUT_WITH_AI:**
+**Example - INPUT_WITH_AI:**
 ```json
 {
   "questionType": "INPUT_WITH_AI",
@@ -953,7 +953,7 @@ enum InterviewQuestionType {
 }
 ```
 
-**Example — SELECTION:**
+**Example - SELECTION:**
 ```json
 {
   "questionType": "SELECTION",
@@ -970,7 +970,7 @@ enum InterviewQuestionType {
 }
 ```
 
-**Example — AUTO_ACTION:**
+**Example - AUTO_ACTION:**
 ```json
 {
   "questionType": "AUTO_ACTION",
@@ -1138,7 +1138,7 @@ model Campaign {
   contentSettings   Json                                         // {wordCounts, featuredImage, contentImages, ...}
   subjects          String[]       @default([])                 // Selected subject titles
   subjectSuggestions Json?                                       // All AI-generated suggestions [{title, explanation, articleType, intent}]
-  keywordIds        String[]       @db.ObjectId @default([])   // DEPRECATED — was keyword-based flow
+  keywordIds        String[]       @db.ObjectId @default([])   // DEPRECATED - was keyword-based flow
 
   // AI Prompts
   textPrompt        String?        @default("")                 // Custom text generation prompt
@@ -1241,10 +1241,10 @@ model I18nTranslation {
 
 ### Implementation
 
-- **Dictionary files**: `i18n/dictionaries/{locale}.json` — Full key/value translation maps
+- **Dictionary files**: `i18n/dictionaries/{locale}.json` - Full key/value translation maps
 - **Server-side**: `getDictionary(locale)` loads cached dictionary; used in Server Components
 - **Client-side**: `useLocale()` hook from `LocaleContext` provides `t()` function, current locale, and text direction
-- **Config**: `i18n/config.js` — RTL locale detection, direction helpers
+- **Config**: `i18n/config.js` - RTL locale detection, direction helpers
 - **Locale detection**: Domain-based (`.co.il` → Hebrew) set via middleware cookie
 
 ### Database Translations
@@ -1270,45 +1270,45 @@ Plans, add-ons, coupons, and interview questions support per-language translatio
 
 A **7-step progressive registration** process with a visual stepper UI:
 
-#### Step 1 — Registration Form
+#### Step 1 - Registration Form
 - Fields: first name, last name, phone, email, password
 - Terms of service and privacy policy consent checkbox
 - Google OAuth option as an alternative
 - Real-time validation on all fields
 
-#### Step 2 — OTP Verification
+#### Step 2 - OTP Verification
 - User chooses verification method: SMS or email
 - 6-digit code entry form
 - Resend timer with cooldown
 - Dev mode support for testing (auto-fills code)
 
-#### Step 3 — Account Setup
+#### Step 3 - Account Setup
 - Create organization/business name
 - Generate unique URL slug (subdomain-style)
 - Real-time slug availability checking
 - Auto-suggestion based on business name
 
-#### Step 4 — Site Interview
+#### Step 4 - Site Interview
 - Questionnaire loaded from admin-configured interview flow
 - Collects information about the site's purpose, niche, audience, and goals
 - Helps the AI agent understand the business for personalized SEO strategy
 - Dynamic question types: text, multiple-choice, rating, select, conditional logic
 
-#### Step 5 — Plan Selection
+#### Step 5 - Plan Selection
 - 3-tier pricing display: Basic, Pro, Enterprise
 - Feature comparison table per plan
 - Billing period toggle (Monthly / Yearly)
 - Coupon code input (if applicable)
 - Highlights recommended plan
 
-#### Step 6 — Payment
+#### Step 6 - Payment
 - CardCom payment gateway integration (supports Israeli Shekel)
 - Fields: card number, expiry date, CVV, cardholder name
 - Order summary with plan details and total
 - Proration calculation for mid-cycle changes
 - Free plan option (with coupon) bypasses payment
 
-#### Step 7 — Success
+#### Step 7 - Success
 - Confirmation screen with chosen plan details
 - "Go to Dashboard" button redirects to the main app
 
@@ -1317,8 +1317,8 @@ A **7-step progressive registration** process with a visual stepper UI:
 - Reads `token` from URL query parameter
 - Calls verification endpoint to validate token and check expiration (7-day window)
 - Displays: account name, inviter name, and assigned role
-- **New user path**: Shows registration form (first name, last name, password) — user is created with `registrationStep: COMPLETED`, skipping the normal multi-step registration
-- **Existing user path**: Shows login form (password only) — validates credentials, then links existing user to the account
+- **New user path**: Shows registration form (first name, last name, password) - user is created with `registrationStep: COMPLETED`, skipping the normal multi-step registration
+- **Existing user path**: Shows login form (password only) - validates credentials, then links existing user to the account
 - On success: creates session, sets `lastSelectedAccountId` to the inviting account, redirects to dashboard
 - Handles error states: expired token, already accepted, invalid token, suspended membership
 
@@ -1331,20 +1331,20 @@ A **7-step progressive registration** process with a visual stepper UI:
 Sidebar + header layout:
 
 #### Top Header Bar
-- **Logo & Branding** — Ghost Post logo/icon
-- **Site Selector Dropdown** — Switch between connected websites (multi-site support)
-- **Breadcrumb Navigation** — Shows current section path
-- **Global Search Bar** — Quick search across the platform
-- **Notifications Bell** — Badge with unread count, opens notifications panel
-- **User Menu Dropdown** — Profile, Settings, Help, Logout
-- **Theme Toggle** — Dark / light mode
-- **Language Selector** — i18n dropdown for UI language
+- **Logo & Branding** - Ghost Post logo/icon
+- **Site Selector Dropdown** - Switch between connected websites (multi-site support)
+- **Breadcrumb Navigation** - Shows current section path
+- **Global Search Bar** - Quick search across the platform
+- **Notifications Bell** - Badge with unread count, opens notifications panel
+- **User Menu Dropdown** - Profile, Settings, Help, Logout
+- **Theme Toggle** - Dark / light mode
+- **Language Selector** - i18n dropdown for UI language
 
 #### Sidebar Navigation
 
 **Always Visible:**
-- **Dashboard** — Main command center
-- **Agent** — AI insights and actions
+- **Dashboard** - Main command center
+- **Agent** - AI insights and actions
 
 **Collapsible Accordion Menus** (only one open at a time):
 
@@ -1364,16 +1364,16 @@ Sidebar + header layout:
 - Browse Posts / Pages / Products / etc.
 - Sitemaps management
 
-**Admin** (SuperAdmin only — hidden for regular users):
+**Admin** (SuperAdmin only - hidden for regular users):
 - Accounts, Users, Subscriptions, Plans, Addons, Coupons
 - Interview Flow, Push Questions, Bot Actions
 - Translations, Backlinks, Website Settings
 
 #### Navigation Features
-- Accordion behavior — only one section expanded at a time
+- Accordion behavior - only one section expanded at a time
 - Active section highlighting with visual indicator
 - Icon per menu item
-- Permission-based filtering — items hidden if user lacks access
+- Permission-based filtering - items hidden if user lacks access
 - Page transition animations (fade effect)
 - Ghost Chat popup integration for help/support
 
@@ -1390,11 +1390,11 @@ Sidebar + header layout:
 
 ### KPI Cards (Slider)
 Animated metric cards with comparison deltas against the previous period:
-- **Visitors** — Total unique visitors
-- **Page Views** — Total page views
-- **Sessions** — Total sessions
-- **New Users** — First-time visitors
-- **Engaged Sessions** — Sessions with meaningful engagement (>10s, 2+ pages, or conversion)
+- **Visitors** - Total unique visitors
+- **Page Views** - Total page views
+- **Sessions** - Total sessions
+- **New Users** - First-time visitors
+- **Engaged Sessions** - Sessions with meaningful engagement (>10s, 2+ pages, or conversion)
 
 Each card shows: current value, trend arrow (↑/↓), percentage change, color-coded indicator (green = positive, red = negative).
 
@@ -1406,7 +1406,7 @@ Custom SVG multi-line area chart:
 - Hover tooltip with crosshair showing exact values
 - Animated sine-wave loading state while fetching
 
-**Data Sources:** Google Analytics 4 (GA4) via OAuth, Google Search Console (GSC) — clicks, impressions, average position (3-day data lag)
+**Data Sources:** Google Analytics 4 (GA4) via OAuth, Google Search Console (GSC) - clicks, impressions, average position (3-day data lag)
 
 ### Agent Insights Section
 - AI-generated recommendations displayed inline
@@ -1515,9 +1515,9 @@ All 15 modules run in parallel via `Promise.allSettled()` within `runSiteAnalysi
 **Types:**
 | Type | Behavior |
 |------|----------|
-| `DISCOVERY` | Found something noteworthy — informational, no action needed |
+| `DISCOVERY` | Found something noteworthy - informational, no action needed |
 | `SUGGESTION` | Recommends a specific action for the user to consider |
-| `ACTION` | Agent can execute this automatically — requires user approval first |
+| `ACTION` | Agent can execute this automatically - requires user approval first |
 | `ANALYSIS` | Detailed report with data and comparison metrics |
 | `ALERT` | Urgent issue requiring immediate attention (e.g., >50% traffic drop) |
 
@@ -1550,7 +1550,7 @@ Each insight has a **dedup key** that prevents duplicate insights across runs:
 buildDedupKey(titleKey, data):
   - Per-keyword insights → "keywordStrikeZone:{keyword}" (tracked individually)
   - Cannibalization insights → "{titleKey}:{sortedUrls.join('|')}" (sorted URL paths)
-  - Aggregate insights → "{titleKey}" (e.g., "staleContent" — one per site)
+  - Aggregate insights → "{titleKey}" (e.g., "staleContent" - one per site)
 ```
 
 **Per-run deduplication flow:**
@@ -1563,7 +1563,7 @@ buildDedupKey(titleKey, data):
 
 **Cannibalization-specific deduplication:**
 
-`cannibalizationKeysOverlap(keyA, keyB)` — Extracts URLs from dedup keys. Returns `true` if **any** URL in keyB exists in keyA's URL set. This handles partial fixes where a 4-URL group becomes a 2-URL group after merging.
+`cannibalizationKeysOverlap(keyA, keyB)` - Extracts URLs from dedup keys. Returns `true` if **any** URL in keyB exists in keyA's URL set. This handles partial fixes where a 4-URL group becomes a 2-URL group after merging.
 
 **EXECUTED → PENDING reset logic:** When an EXECUTED cannibalization insight overlaps with a newly-detected cluster but the URL set has changed (e.g., partial fix), the existing insight is updated with the new URL set, `status` is reset from `EXECUTED` → `PENDING`, and `executedAt`/`executionResult` are cleared. If no overlap → old insight is marked `RESOLVED`.
 
@@ -1579,7 +1579,7 @@ A specialized multi-layer detection system that identifies pages competing for t
 |----------|-------|---------|
 | `PROACTIVE_SIMILARITY_THRESHOLD` | `0.60` | Min combined Jaccard similarity to flag a pair |
 | `GROUP_MERGE_THRESHOLD` | `50` | Min score for Union-Find transitive grouping |
-| `MAX_GROUP_SIZE` | `6` | Safety cap — groups exceeding this are split |
+| `MAX_GROUP_SIZE` | `6` | Safety cap - groups exceeding this are split |
 | `HIGH_CONFIDENCE_SCORE` | `60` | Score threshold to bypass AI verification |
 | `HIGH_CONFIDENCE_URLS` | `3` | URL count threshold to bypass AI verification |
 | `GSC_ROW_LIMIT` | `5000` | Max GSC rows fetched (paginated) |
@@ -1607,7 +1607,7 @@ A specialized multi-layer detection system that identifies pages competing for t
 | `extractBigrams(tokens)` | Adjacent pairs joined with `\|` | Input for bigramOverlap |
 | `hasPrefixMatch(A, B)` | First 2 normalized tokens match | Title/H1 prefix detection |
 
-#### Layer 1 — Proactive Detection (no GSC needed)
+#### Layer 1 - Proactive Detection (no GSC needed)
 
 Compares all published entities pairwise. A pair is flagged if **ANY** condition is true:
 
@@ -1622,7 +1622,7 @@ Compares all published entities pairwise. A pair is flagged if **ANY** condition
 
 **Score formula:** `rawScore = combinedSimilarity × 100 + bonuses`, capped at 100.
 
-#### Layer 2 — Reactive GSC Detection
+#### Layer 2 - Reactive GSC Detection
 
 Analyzes GSC query data to find queries where multiple site pages rank:
 
@@ -1651,10 +1651,10 @@ Additional score bonuses: multi-track detection → +10 confidence, 3+ URLs → 
 
 #### Orchestrator: `runCannibalizationEngine(site, getValidAccessToken, options)`
 
-1. **Track 1 — Proactive:** Fetch all PUBLISHED entities with enabled types → `detectProactive(entities)`
-2. **Track 2 — Reactive GSC:** If GSC connected, fetch 30-day data (paginated up to 5000 rows) → `detectReactiveGsc(gscData)` → scope-filter against enabled entity URLs
-3. **Track 3 — Deduplication:** `deduplicateCandidates(proactive, reactive)`
-4. **Track 4 — Grouping:** `groupCandidates(deduplicated)` via Union-Find
+1. **Track 1 - Proactive:** Fetch all PUBLISHED entities with enabled types → `detectProactive(entities)`
+2. **Track 2 - Reactive GSC:** If GSC connected, fetch 30-day data (paginated up to 5000 rows) → `detectReactiveGsc(gscData)` → scope-filter against enabled entity URLs
+3. **Track 3 - Deduplication:** `deduplicateCandidates(proactive, reactive)`
+4. **Track 4 - Grouping:** `groupCandidates(deduplicated)` via Union-Find
 5. **AI Verification:** Split into high-confidence (bypass) + borderline (AI-verified)
 6. **Return:** `{ issues: [...highConfidence, ...aiVerified], stats: { proactive, reactive, deduplicated, grouped, verified } }`
 
@@ -1736,7 +1736,7 @@ Per-site settings stored in `site.toolSettings.agentConfig`:
 }
 ```
 
-**`missingSeo` (ACTION — can be auto-fixed):**
+**`missingSeo` (ACTION - can be auto-fixed):**
 ```json
 {
   "category": "TECHNICAL", "type": "ACTION", "priority": "HIGH",
@@ -1781,7 +1781,7 @@ Per-site settings stored in `site.toolSettings.agentConfig`:
 
 #### FixPreviewModal (`app/dashboard/components/FixPreviewModal.jsx`)
 
-**ContentPreview** — 3 edit modes:
+**ContentPreview** - 3 edit modes:
 
 | Mode | Key | UI |
 |------|-----|----|
@@ -1789,7 +1789,7 @@ Per-site settings stored in `site.toolSettings.agentConfig`:
 | Block Editor | `'parallel'` | Parsed HTML into blocks (headings, figures, content). Drag-and-drop reordering. Inline editing per block. |
 | Full Editor | `'free'` | TipTap WYSIWYG rich text editor |
 
-**MergeActionsSummary** — Renders 8 action types with icons and rich meta details:
+**MergeActionsSummary** - Renders 8 action types with icons and rich meta details:
 
 | Action Type | Icon | Rich Detail |
 |-------------|------|-------------|
@@ -1870,7 +1870,7 @@ Returns `CannibalizationFixSchema`: `{ recommendedAction, reasoning, pagesChange
 6. If `contentImagesCount > 0`: generate N content images, insert into HTML via `insertContentImages()` (section-aware positioning at intro/H2 boundaries)
 7. Return `{ success, post: { title, html, seoTitle, seoDescription, excerpt, focusKeyword, featuredImage, featuredImageAlt, contentImages[], wordCount } }`
 
-#### `applyMergedContent()` — 7-Step Apply Flow (N-Page Support)
+#### `applyMergedContent()` - 7-Step Apply Flow (N-Page Support)
 
 Each step produces an entry in the `actions[]` array with `{ type, status, detail, meta }`:
 
@@ -1888,7 +1888,7 @@ Each step produces an entry in the `actions[]` array with `{ type, status, detai
 Steps 4–6 iterate over **all** secondary pages (not just one pair).
 
 #### `healInternalLinks(site, trashedUrls, primaryUrl)`
-For each trashed URL: extracts pathname, calls `searchReplaceLinks(site, trashedPath, primaryPath)` which bulk-replaces all internal links across the entire WordPress site. Non-fatal — the 301 redirect serves as fallback.
+For each trashed URL: extracts pathname, calls `searchReplaceLinks(site, trashedPath, primaryPath)` which bulk-replaces all internal links across the entire WordPress site. Non-fatal - the 301 redirect serves as fallback.
 
 #### `requestGscReindex(accessToken, pageUrl)`
 POST to `https://indexing.googleapis.com/v3/urlNotifications:publish` with `{ url, type: 'URL_UPDATED' }`. Returns `{ success, detail }`. 403 = Indexing API scope not available, suggests manual re-indexing.
@@ -1967,9 +1967,9 @@ Ensures every newly generated intent is unique across the entire site, not just 
 
 | Layer | Name | Mechanism | When |
 |-------|------|-----------|------|
-| 1 | **Pre-Check Against DB** | `preCheckIntent()` — queries all SiteEntity records for the site, checks if any existing page's `seoTitle`, `focusKeyword`, or `slug` matches the proposed new intent (normalized word overlap) | Before AI generation |
+| 1 | **Pre-Check Against DB** | `preCheckIntent()` - queries all SiteEntity records for the site, checks if any existing page's `seoTitle`, `focusKeyword`, or `slug` matches the proposed new intent (normalized word overlap) | Before AI generation |
 | 2 | **Negative Prompting** | Injects a `BLACKLIST` of all existing focus intents into the AI prompt. AI is instructed: "Do NOT use or rephrase any blacklisted intent" | During AI generation |
-| 3 | **Post-Generation Validation** | `validateNoOverlap()` — tokenizes the generated H1 and compares against every blacklisted intent using word overlap. Threshold: >50% overlap = rejection → retry with higher temperature | After AI generation |
+| 3 | **Post-Generation Validation** | `validateNoOverlap()` - tokenizes the generated H1 and compares against every blacklisted intent using word overlap. Threshold: >50% overlap = rejection → retry with higher temperature | After AI generation |
 
 **Retry Logic:** Max 2 retries (`MAX_AI_RETRIES`). Temperature increases on each retry (+0.1) to encourage more creative differentiation. If all retries fail, the page result includes `error: "Could not generate unique intent"`.
 
@@ -1981,10 +1981,10 @@ For each supporting page (not the alpha):
 2. **Call Gemini AI** (`gemini-3.1-pro-preview`, structured output via Zod):
    - Input: supporting page content, alpha page content, blacklist, site language
    - Output: `DifferentiationOutputSchema` →
-     - `newFocusIntent` — unique keyword/angle
-     - `newH1` — rewritten H1 reflecting new intent
-     - `contentDiffs[]` — array of `{ location, oldSnippet, newSnippet }` paragraph-level changes
-     - `internalLinkSentence` — suggested sentence linking back to alpha page
+     - `newFocusIntent` - unique keyword/angle
+     - `newH1` - rewritten H1 reflecting new intent
+     - `contentDiffs[]` - array of `{ location, oldSnippet, newSnippet }` paragraph-level changes
+     - `internalLinkSentence` - suggested sentence linking back to alpha page
 3. **Validate:** Layer 3 overlap check against blacklist
 4. **Update Progress:** Job progress incremented per page (30% → 80% range)
 
@@ -1996,12 +1996,12 @@ An 80vw × 80vh modal rendered via `createPortal` showing the full differentiati
 
 | Section | Visual Treatment |
 |---------|-----------------|
-| **Alpha Page Box** | 👑 Crown icon, golden `#f59e0b` border, displays current H1 and focus intent — unchanged |
+| **Alpha Page Box** | 👑 Crown icon, golden `#f59e0b` border, displays current H1 and focus intent - unchanged |
 | **Supporting Pages** | Accordion (expand/collapse per page) |
 | **H1 Diff** | Old H1 in red strikethrough → New H1 in green |
 | **Content Diffs** | Per-paragraph: "Old" badge (red bg) + "New" badge (green bg) with location label |
 | **Internal Link** | Preview of suggested linking sentence to alpha page |
-| **Footer** | "Approve & Execute Fixes (X Credits)" button — calculates total from supporting page count × 25 |
+| **Footer** | "Approve & Execute Fixes (X Credits)" button - calculates total from supporting page count × 25 |
 
 **States:**
 - **Processing:** Centered spinner + progress bar + status message (mirrors BackgroundJobWidget)
@@ -2084,21 +2084,21 @@ Before running analysis, the system checks that the site has synced entities (co
 - **By priority:** High, Medium, Low
 
 **Actions per Insight:**
-- **Approve** — Accept the AI recommendation
-- **Reject** — Discard the recommendation
-- **Execute** / **Fix with AI** — Generate and apply fixes (triggers FixPreviewModal)
+- **Approve** - Accept the AI recommendation
+- **Reject** - Discard the recommendation
+- **Execute** / **Fix with AI** - Generate and apply fixes (triggers FixPreviewModal)
 
 **Run Analysis Button:** Manual trigger with loading state; polls for completion every 2 seconds.
 
 ### Internationalization
 
 All user-visible strings use i18n translation keys:
-- `agent.insights.{insightType}.title` — Insight titles (e.g., "Stale Content Found")
-- `agent.insights.{insightType}.description` — Insight descriptions
-- `agent.categories.{CATEGORY}` — Category labels
-- `agent.types.{TYPE}` — Type labels
-- `agent.priorities.{PRIORITY}` — Priority labels
-- `agent.detailLabels.{field}` — Detail field labels (e.g., "Search Volume")
+- `agent.insights.{insightType}.title` - Insight titles (e.g., "Stale Content Found")
+- `agent.insights.{insightType}.description` - Insight descriptions
+- `agent.categories.{CATEGORY}` - Category labels
+- `agent.types.{TYPE}` - Type labels
+- `agent.priorities.{PRIORITY}` - Priority labels
+- `agent.detailLabels.{field}` - Detail field labels (e.g., "Search Volume")
 
 ---
 
@@ -2155,18 +2155,18 @@ A **9-step topic-cluster wizard** for bulk AI content generation built around a 
 **File Structure:**
 ```
 ai-content-wizard/
-  ├── page.jsx                  // Server component — loads i18n, passes translations
+  ├── page.jsx                  // Server component - loads i18n, passes translations
   ├── page.module.css
   ├── wizardConfig.js           // WIZARD_STEPS, INITIAL_WIZARD_STATE, ARTICLE_TYPES, translateIntent()
   ├── loading.jsx
   └── components/
-      ├── WizardContent.jsx     // Client orchestrator — manages wizard state, step navigation
+      ├── WizardContent.jsx     // Client orchestrator - manages wizard state, step navigation
       └── steps/
           ├── CampaignStep.jsx      (Step 1)
           ├── PillarPageStep.jsx    (Step 2)
           ├── MainKeywordStep.jsx   (Step 3)
           ├── PostCountStep.jsx     (Step 4)
-          ├── ArticleTypesStep.jsx  (Step 5 — merged article types + content settings)
+          ├── ArticleTypesStep.jsx  (Step 5 - merged article types + content settings)
           ├── SubjectsStep.jsx      (Step 6)
           ├── PromptsStep.jsx       (Step 7)
           ├── ScheduleStep.jsx      (Step 8)
@@ -2181,11 +2181,11 @@ ai-content-wizard/
 | 2 | `pillarPage` | Globe | PillarPageStep | Select anchor/pillar page from ALL entity types (posts, pages, products, etc.) or enter a custom URL. Entity type badges, decoded Hebrew URLs (via `decodeUrl()`) |
 | 3 | `mainKeyword` | Search | MainKeywordStep | Enter main keyword for the topic cluster. AI auto-suggests 3 keywords based on pillar page analysis (title, slug, excerpt, SEO data) via `/api/campaigns/suggest-keyword` |
 | 4 | `postCount` | Hash | PostCountStep | Number of articles to generate |
-| 5 | `articleTypes` | FileText | ArticleTypesStep | Merged step — mix of content types (SEO Article, Blog Post, Guide, How-To, Listicle, Comparison, Review, News, Tutorial, Case Study) + word count range, featured image toggle, content images toggle, custom prompt |
+| 5 | `articleTypes` | FileText | ArticleTypesStep | Merged step - mix of content types (SEO Article, Blog Post, Guide, How-To, Listicle, Comparison, Review, News, Tutorial, Case Study) + word count range, featured image toggle, content images toggle, custom prompt |
 | 6 | `subjects` | BookOpen | SubjectsStep | AI generates 3× `postsCount` subject suggestions via **SSE streaming**. AI auto-recommends the best combination and auto-selects them. Shows translated intent badges. Explanation banner with AI reasoning |
 | 7 | `prompts` | MessageSquare | PromptsStep | Custom text and image generation prompts for the AI |
 | 8 | `schedule` | Calendar | ScheduleStep | Start/end dates, publishing days (checkboxes), publish time mode (fixed time or random range) |
-| 9 | `summary` | Sparkles | SummaryStep | Review all settings — decoded Hebrew URLs, translated intent badges, article type distribution, schedule preview |
+| 9 | `summary` | Sparkles | SummaryStep | Review all settings - decoded Hebrew URLs, translated intent badges, article type distribution, schedule preview |
 
 #### Topic Cluster Architecture
 
@@ -2204,7 +2204,7 @@ The wizard is built around the **pillar page → topic cluster** strategy:
 
 **SSE Streaming Subject Generation (Step 6):**
 - Calls `POST /api/campaigns/generate-subjects` which uses Vercel AI SDK `streamText()` + `Output.object()`
-- Subjects stream incrementally via Server-Sent Events — each suggestion appears in the UI as soon as all 4 fields are complete (title, explanation, articleType, intent)
+- Subjects stream incrementally via Server-Sent Events - each suggestion appears in the UI as soon as all 4 fields are complete (title, explanation, articleType, intent)
 - Generates 3× `postsCount` options for user to choose from
 - Sends `[DONE]` signal on completion
 
@@ -2213,12 +2213,12 @@ The wizard is built around the **pillar page → topic cluster** strategy:
 - AI picks the best `postsCount` subjects from the full list and explains why
 - Recommended subjects are auto-selected with checkmarks
 - Explanation displayed in a banner with AI icon
-- Results cached per locale in `AiCache` (SHA256 key + locale) — re-fetches on locale change
+- Results cached per locale in `AiCache` (SHA256 key + locale) - re-fetches on locale change
 
 **Anti-Cannibalization (3 Layers in generate-subjects):**
-1. **Data Fetching Layer** — Fetches all published entities on the site + all active/draft campaign subjects to build existing content context
-2. **Prompt Engineering Layer** — Strict rules: no semantic overlap with existing/planned content, intra-cluster intent separation, relevance to pillar page
-3. **Output Verification Layer** — Each suggestion includes an `intent` field (e.g., "Informational - How-to", "Transactional - Comparison") for separation verification
+1. **Data Fetching Layer** - Fetches all published entities on the site + all active/draft campaign subjects to build existing content context
+2. **Prompt Engineering Layer** - Strict rules: no semantic overlap with existing/planned content, intra-cluster intent separation, relevance to pillar page
+3. **Output Verification Layer** - Each suggestion includes an `intent` field (e.g., "Informational - How-to", "Transactional - Comparison") for separation verification
 
 **Intent Translation System:**
 - `translateIntent(intentStr, intentsMap)` in `wizardConfig.js` splits intent strings by `' - '` and translates each part using the locale's intents map (30 terms in EN/HE)
@@ -2246,7 +2246,7 @@ The wizard is built around the **pillar page → topic cluster** strategy:
   publishDays: ['sun', 'mon', 'tue', 'wed', 'thu'],
   publishTimeMode: 'random', publishTimeStart: '09:00', publishTimeEnd: '18:00',
   generatedPlan: null, planNeedsRegeneration: false,
-  selectedKeywordIds: [], manualKeywords: [],  // DEPRECATED — backward compat
+  selectedKeywordIds: [], manualKeywords: [],  // DEPRECATED - backward compat
 }
 ```
 
@@ -2320,7 +2320,7 @@ Full redirect management with WordPress plugin sync.
 
 **Performance Trend:** 4-week line chart with trending badge.
 
-**Recommendations:** Three severity levels — Warning (auto-fixable with "Apply Fix" button), Info (should-fix), Suggestion (nice-to-have).
+**Recommendations:** Three severity levels - Warning (auto-fixable with "Apply Fix" button), Info (should-fix), Suggestion (nice-to-have).
 
 ---
 
@@ -2337,10 +2337,10 @@ Full redirect management with WordPress plugin sync.
 | Success Rate | Percentage without errors |
 
 ### 4 Pre-Configured Automations
-1. **Content Publishing** — Auto-publishes scheduled content to WordPress
-2. **Internal Linking** — Auto-adds relevant internal links to content
-3. **Image Optimization** — Compresses and optimizes images
-4. **Meta Updates** — Auto-updates meta tags using AI
+1. **Content Publishing** - Auto-publishes scheduled content to WordPress
+2. **Internal Linking** - Auto-adds relevant internal links to content
+3. **Image Optimization** - Compresses and optimizes images
+4. **Meta Updates** - Auto-updates meta tags using AI
 
 Each has: tasks completed count, last run time, active/inactive toggle.
 
@@ -2364,8 +2364,8 @@ Timestamped entries with success/error status, action description, relative time
 - Conflict warnings for reserved names
 
 ### Populate & Sync Card
-- **"Save and Populate"** — Sync from WordPress
-- **"Discover by Crawling"** — Find new entity types
+- **"Save and Populate"** - Sync from WordPress
+- **"Discover by Crawling"** - Find new entity types
 - Real-time progress (percentage bar, current message, stop button)
 - Sync lock (prevents concurrent syncs)
 - Population report: created / updated / unchanged
@@ -2395,7 +2395,7 @@ Each card: site name, domain, connection status (Connected/Disconnected/Error), 
 
 ### Link Building (`app/dashboard/link-building/page.jsx`)
 
-**Stats Cards (4):** Total Backlinks, Referring Domains, Domain Authority, New Opportunities — each with trend indicator.
+**Stats Cards (4):** Total Backlinks, Referring Domains, Domain Authority, New Opportunities - each with trend indicator.
 
 **Link Opportunities:** Domain list with category tags, match score (0–100%), level badges, "Contact" button, sortable.
 
@@ -2461,13 +2461,13 @@ model BacklinkPurchase {
 - **AI_CREDITS**: Pay with AI credits instead of money
 
 #### Fulfillment Workflow
-1. **PENDING** — Buyer places order (selects listing, target URL, anchor text)
-2. **APPROVED** — Seller/admin reviews and approves the request
-3. **PUBLISHED** — Link is live on the seller's site (verified URL stored)
-4. **REJECTED** — Seller/admin declines with reason; refund capability
+1. **PENDING** - Buyer places order (selects listing, target URL, anchor text)
+2. **APPROVED** - Seller/admin reviews and approves the request
+3. **PUBLISHED** - Link is live on the seller's site (verified URL stored)
+4. **REJECTED** - Seller/admin declines with reason; refund capability
 
 #### SEO Metrics
-Each listing displays: Domain Authority (DA), Domain Rating (DR), Estimated Monthly Traffic — fetched via `GET /api/backlinks/domain-metrics`
+Each listing displays: Domain Authority (DA), Domain Rating (DR), Estimated Monthly Traffic - fetched via `GET /api/backlinks/domain-metrics`
 
 #### API Endpoints
 | Method | Path | Description |
@@ -2544,7 +2544,7 @@ Split into **Website Settings** (per-site) and **Account Settings** (per-account
 
 ## 23. Admin Panel (SuperAdmin)
 
-**Path:** `app/dashboard/admin/` — Only visible to `isSuperAdmin` users.
+**Path:** `app/dashboard/admin/` - Only visible to `isSuperAdmin` users.
 
 ### 23a. Users (`admin/users/`)
 
@@ -2602,13 +2602,13 @@ Split into **Website Settings** (per-site) and **Account Settings** (per-account
 - **Options:** Answer choices for multiple-choice, conditional logic per option
 
 ### 23f. Other Admin Pages
-- **Accounts** — Manage business accounts
-- **Addons** — Manage add-on products with pricing/features
-- **Bot Actions** — Configure AI agent action templates
-- **Push Questions** — Distribute interview questions
-- **Translations** — Manage UI translation strings across languages
-- **Website Settings** — Site-specific admin configuration
-- **Backlinks** — Admin backlink management
+- **Accounts** - Manage business accounts
+- **Addons** - Manage add-on products with pricing/features
+- **Bot Actions** - Configure AI agent action templates
+- **Push Questions** - Distribute interview questions
+- **Translations** - Manage UI translation strings across languages
+- **Website Settings** - Site-specific admin configuration
+- **Backlinks** - Admin backlink management
 
 ---
 
@@ -2618,7 +2618,7 @@ Split into **Website Settings** (per-site) and **Account Settings** (per-account
 
 ## 24. WordPress Plugin System
 
-The Ghost Post platform integrates with WordPress via a **custom plugin that is dynamically generated per-site**. Each downloaded plugin ZIP is unique — it contains site-specific credentials (Site ID, Site Key, Site Secret) baked directly into the code. The plugin enables bidirectional communication: the platform pushes content to WordPress, and WordPress pushes real-time entity/redirect changes back to the platform.
+The Ghost Post platform integrates with WordPress via a **custom plugin that is dynamically generated per-site**. Each downloaded plugin ZIP is unique - it contains site-specific credentials (Site ID, Site Key, Site Secret) baked directly into the code. The plugin enables bidirectional communication: the platform pushes content to WordPress, and WordPress pushes real-time entity/redirect changes back to the platform.
 
 ### 24a. Plugin Architecture Overview
 
@@ -2626,22 +2626,22 @@ The Ghost Post platform integrates with WordPress via a **custom plugin that is 
 
 | Class | File | Purpose |
 |-------|------|---------|
-| `Ghost_Post` | `class-ghost-post.php` | Main orchestrator — initializes all managers, registers REST routes, admin menu |
+| `Ghost_Post` | `class-ghost-post.php` | Main orchestrator - initializes all managers, registers REST routes, admin menu |
 | `GP_API_Handler` | `class-gp-api-handler.php` | Registers 30+ REST API endpoints, routes requests to appropriate managers |
 | `GP_Request_Validator` | `class-gp-request-validator.php` | HMAC-SHA256 signature validation with timestamp replay protection |
-| `GP_Content_Manager` | `class-gp-content-manager.php` | Posts/Pages CRUD — get_items, get_item, create, update, delete |
+| `GP_Content_Manager` | `class-gp-content-manager.php` | Posts/Pages CRUD - get_items, get_item, create, update, delete |
 | `GP_Media_Manager` | `class-gp-media-manager.php` | Image upload, WebP/AVIF auto-conversion, AI image optimization, queue processing |
 | `GP_SEO_Manager` | `class-gp-seo-manager.php` | Yoast + RankMath meta extraction and updates (title, description, OG, Twitter, keywords) |
-| `GP_CPT_Manager` | `class-gp-cpt-manager.php` | Custom Post Types CRUD — get_post_types, create/read/update/delete |
-| `GP_ACF_Manager` | `class-gp-acf-manager.php` | Advanced Custom Fields read/write — detects ACF, reads field groups and values |
+| `GP_CPT_Manager` | `class-gp-cpt-manager.php` | Custom Post Types CRUD - get_post_types, create/read/update/delete |
+| `GP_ACF_Manager` | `class-gp-acf-manager.php` | Advanced Custom Fields read/write - detects ACF, reads field groups and values |
 | `GP_Entity_Sync` | `class-gp-entity-sync.php` | Real-time webhook push on post create/update/trash/delete to platform |
 | `GP_Redirections_Manager` | `class-gp-redirections-manager.php` | Native redirect management + 3rd-party plugin detection and import |
 | `GP_Updater` | `class-gp-updater.php` | WordPress-native auto-update checking against the Ghost Post platform |
-| `GP_I18n` | `class-gp-i18n.php` | Internationalization — English + Hebrew (RTL) without .po/.mo files |
+| `GP_I18n` | `class-gp-i18n.php` | Internationalization - English + Hebrew (RTL) without .po/.mo files |
 
 ### 24b. Dynamic Plugin Generation (Per-Site)
 
-The plugin is **not a static download** — it is **generated dynamically** from JavaScript template files for each site.
+The plugin is **not a static download** - it is **generated dynamically** from JavaScript template files for each site.
 
 **Template Location:** `app/api/sites/[id]/download-plugin/plugin-templates/`
 
@@ -2815,7 +2815,7 @@ Content-Type:    application/json
 | `generateConnectionToken(siteId, siteKey)` | Base64url JWT with 30-min expiration |
 | `validateConnectionToken(token)` | Decodes and validates expiration |
 
-### 24g. Plugin REST Endpoints (WordPress Side — `ghost-post/v1` namespace)
+### 24g. Plugin REST Endpoints (WordPress Side - `ghost-post/v1` namespace)
 
 30+ REST API endpoints registered via `register_rest_route()`:
 
@@ -2948,7 +2948,7 @@ Alternative to manual plugin installation:
 
 **Conflict Prevention:**
 - `GP_Entity_Sync::$is_gp_api_request` flag prevents webhook loops on platform-originated changes
-- Redirect sync checks `source` field — skips webhook if `source === 'gp-platform'`
+- Redirect sync checks `source` field - skips webhook if `source === 'gp-platform'`
 - Platform uses sync locks to prevent concurrent syncs:
   ```
   acquireSyncLock(siteId, 'cron'|'manual'|'webhook')
@@ -2959,7 +2959,7 @@ Alternative to manual plugin installation:
 
 ### 24k. Platform Public Plugin API Routes
 
-All routes under `app/api/public/wp/` — require HMAC-SHA256 signature validation:
+All routes under `app/api/public/wp/` - require HMAC-SHA256 signature validation:
 
 | Method | Route | When | Updates |
 |--------|-------|------|---------|
@@ -2988,15 +2988,15 @@ The plugin auto-detects and supports multiple SEO plugins:
 ### 24m. Redirect Management (Plugin-Side)
 
 **URL Processing:**
-- `sanitize_redirect_url()` — Decodes percent-encoded URLs to Unicode (Hebrew support)
-- `normalize_path()` — Strips trailing slashes for consistent matching
-- `maybe_redirect()` — Hooks into `template_redirect`, matches with trailing-slash tolerance + Unicode decode
+- `sanitize_redirect_url()` - Decodes percent-encoded URLs to Unicode (Hebrew support)
+- `normalize_path()` - Strips trailing slashes for consistent matching
+- `maybe_redirect()` - Hooks into `template_redirect`, matches with trailing-slash tolerance + Unicode decode
 
 **3rd-Party Plugin Detection:** Detects and recommends importing from:
 - Redirection, Yoast Premium Redirects, Rank Math Redirects, Safe Redirect Manager, Simple 301 Redirects
 
 **Bidirectional Sync:**
-- `push_redirect_webhook()` — Pushes changes back to platform via `POST /api/public/wp/redirect-updated`
+- `push_redirect_webhook()` - Pushes changes back to platform via `POST /api/public/wp/redirect-updated`
 - Platform pushes redirects via `POST /wp-json/ghost-post/v1/redirects`
 - Source field prevents infinite loops
 
@@ -3012,7 +3012,7 @@ The plugin auto-detects and supports multiple SEO plugins:
 
 **Platform-Driven Queue (for batch operations):**
 - Platform batches images for conversion
-- Calls `/media/process-queue-item` one-at-a-time (reliable — no WP-Cron dependency)
+- Calls `/media/process-queue-item` one-at-a-time (reliable - no WP-Cron dependency)
 - Progress tracked via `/media/queue-status` endpoint
 
 **AI Image Optimization:**
@@ -3033,7 +3033,7 @@ export const PLUGIN_CHANGELOG = `= 2.4.9 =\n* FIX: Scheduling published posts...
 2. Increment `PLUGIN_VERSION` in `app/api/plugin/version.js` (by 0.0.1)
 3. Add changelog entry to `PLUGIN_CHANGELOG`
 4. Run: `node scripts/sync-plugin-version.mjs` (syncs version to main.php template header + constant)
-5. Deploy platform — all new plugin downloads automatically get the new version
+5. Deploy platform - all new plugin downloads automatically get the new version
 
 **WordPress Auto-Update:**
 - `GP_Updater` hooks into WordPress `pre_set_site_transient_update_plugins`
@@ -3044,13 +3044,13 @@ export const PLUGIN_CHANGELOG = `= 2.4.9 =\n* FIX: Scheduling published posts...
 
 **Current Version:** 2.4.9
 
-### 24p. Database Schema (Site Model — Plugin-Related Fields)
+### 24p. Database Schema (Site Model - Plugin-Related Fields)
 
 ```prisma
 model Site {
   // Plugin Authentication
-  siteKey              String?              // gp_site_{32-hex} — public identifier
-  siteSecret           String?              // 64-hex — HMAC signing key (never returned from API)
+  siteKey              String?              // gp_site_{32-hex} - public identifier
+  siteSecret           String?              // 64-hex - HMAC signing key (never returned from API)
   connectionStatus     SiteConnectionStatus // PENDING | CONNECTING | CONNECTED | DISCONNECTED | ERROR
   lastPingAt           DateTime?            // Last successful heartbeat
   sitePermissions      SitePermission[]     // Array of allowed operations (18 permissions)
@@ -3096,15 +3096,15 @@ enum SitePermission {
 
 ### 24q. Security Layers Summary
 
-1. **HTTPS Only** — All communication encrypted in transit
-2. **siteSecret Never Transmitted** — Only embedded in downloaded `config.php`, never returned from any API
-3. **HMAC-SHA256 + Timestamp** — Each request uniquely signed, prevents tampering
-4. **5-Minute Replay Window** — With ±60s clock skew tolerance
-5. **Timing-Safe Comparison** — `crypto.timingSafeEqual()` / `hash_equals()` prevents timing attacks
-6. **Permission Scoping** — Platform enforces what operations are allowed per site
-7. **Connection Status Tracking** — Alerts if plugin goes silent (missed heartbeats)
-8. **Auto-Install Credential Encryption** — AES-256-GCM with 5-minute TTL, cleared after use
-9. **Conflict Prevention** — Source flags and sync locks prevent bidirectional echo loops
+1. **HTTPS Only** - All communication encrypted in transit
+2. **siteSecret Never Transmitted** - Only embedded in downloaded `config.php`, never returned from any API
+3. **HMAC-SHA256 + Timestamp** - Each request uniquely signed, prevents tampering
+4. **5-Minute Replay Window** - With ±60s clock skew tolerance
+5. **Timing-Safe Comparison** - `crypto.timingSafeEqual()` / `hash_equals()` prevents timing attacks
+6. **Permission Scoping** - Platform enforces what operations are allowed per site
+7. **Connection Status Tracking** - Alerts if plugin goes silent (missed heartbeats)
+8. **Auto-Install Credential Encryption** - AES-256-GCM with 5-minute TTL, cleared after use
+9. **Conflict Prevention** - Source flags and sync locks prevent bidirectional echo loops
 
 ---
 
@@ -3122,9 +3122,9 @@ The platform uses a **BackgroundJob** model for long-running AI operations that 
 5. On `COMPLETED`: `resultData` contains the full output; on `FAILED`: `error` contains the message
 
 **Currently used by:**
-- **Content Differentiation Engine** (`type: "CONTENT_DIFFERENTIATION"`) — processes N-page differentiation with Alpha Page selection and AI generation
+- **Content Differentiation Engine** (`type: "CONTENT_DIFFERENTIATION"`) - processes N-page differentiation with Alpha Page selection and AI generation
 
-**Hook:** `useBackgroundJobPolling(jobId)` — returns `{ job, isLoading, error, refetch }`. Auto-starts/stops polling based on job status.
+**Hook:** `useBackgroundJobPolling(jobId)` - returns `{ job, isLoading, error, refetch }`. Auto-starts/stops polling based on job status.
 
 ### Content Lifecycle
 
@@ -3133,51 +3133,51 @@ Campaign Created (via AI Content Wizard)
     ↓
 Content items set to SCHEDULED with target dates
     ↓
-[Cron: process-content] — Picks up due SCHEDULED items
+[Cron: process-content] - Picks up due SCHEDULED items
     ↓
 Status: SCHEDULED → PROCESSING → dispatches generate-article worker
     ↓
-[Worker: generate-article] — AI generates the article
+[Worker: generate-article] - AI generates the article
     ↓
 Status: PROCESSING → READY_TO_PUBLISH
     ↓
-[Cron: publish-content] — Picks up READY_TO_PUBLISH items
+[Cron: publish-content] - Picks up READY_TO_PUBLISH items
     ↓
 Dispatches publish-article worker (max 1 per site per run)
     ↓
-[Worker: publish-article] — Publishes to WordPress
+[Worker: publish-article] - Publishes to WordPress
     ↓
 Status: READY_TO_PUBLISH → PUBLISHED
 ```
 
 ### Cron Jobs (Dispatchers)
 
-#### `sync-entities` — `/api/cron/sync-entities`
+#### `sync-entities` - `/api/cron/sync-entities`
 - **Frequency:** Hourly
 - **Purpose:** Sync entities from all connected websites
 - **Process:** Find active sites with `connectionStatus=CONNECTED` → acquire sync lock → execute sync → release lock. Skips WP sites with plugin (real-time webhooks handle those).
 - **Output:** Per-site stats (created/updated/unchanged)
 
-#### `process-content` — `/api/cron/process-content`
+#### `process-content` - `/api/cron/process-content`
 - **Frequency:** Hourly
 - **Purpose:** Move scheduled content into AI generation
 - **Process:** Atomically acquire batch of due SCHEDULED items → flip to PROCESSING → recover stale locks (>10 min stuck) → dispatch up to 50 `generate-article` workers in parallel
 - **Smart locking:** WHERE guard prevents concurrent processing
 
-#### `publish-content` — `/api/cron/publish-content`
+#### `publish-content` - `/api/cron/publish-content`
 - **Frequency:** Hourly
 - **Purpose:** Publish ready content to WordPress
 - **Process:** Fetch READY_TO_PUBLISH items → tenant throttle (max 1 per site per run) → dispatch `publish-article` per item → auto-complete campaigns when all done
 - **Retry:** Max 3 publish attempts per item
 
-#### `agent-analysis` — `/api/cron/agent-analysis`
+#### `agent-analysis` - `/api/cron/agent-analysis`
 - **Frequency:** Plan-based (Basic: weekly, Pro/Enterprise: daily)
 - **Purpose:** Run AI analysis for actionable insights
 - **Process:** Expire old insights (>14 days) → find eligible sites → check cooldown → run analysis → store insights
 
 ### Worker Jobs (Executors)
 
-#### `generate-article` — `/api/worker/generate-article`
+#### `generate-article` - `/api/worker/generate-article`
 - **Triggered by:** `process-content` cron
 - **Input:** Content ID via HMAC-signed request
 - **Process:**
@@ -3188,7 +3188,7 @@ Status: READY_TO_PUBLISH → PUBLISHED
   5. Update content: HTML body, featured image alt, SEO metadata, word count
   6. Status: PROCESSING → READY_TO_PUBLISH
 
-#### `publish-article` — `/api/worker/publish-article`
+#### `publish-article` - `/api/worker/publish-article`
 - **Triggered by:** `publish-content` cron
 - **Input:** Content ID via HMAC-signed request
 - **Process:**
@@ -3218,7 +3218,7 @@ Status: READY_TO_PUBLISH → PUBLISHED
 | **AuthModalContext** | Login/register modal state |
 | **AgentContext** | AI agent insights, pending approvals, execution history |
 | **BackgroundTasksContext** | Long-running task progress (entity syncs, audits, content gen) |
-| **LimitGuardContext** | Resource limits enforcement — blocks actions when limits exceeded |
+| **LimitGuardContext** | Resource limits enforcement - blocks actions when limits exceeded |
 | **NotificationsContext** | Notification list, unread count, read status, filtering, real-time updates |
 
 ---
@@ -3230,7 +3230,7 @@ Status: READY_TO_PUBLISH → PUBLISHED
 - **Locale detection:** Sets `locale` cookie based on request domain (`.co.il` → `he`, all others → `en`)
 - **Cookie:** 1-year expiry, `SameSite=Lax`, path `/`
 - **Scope:** All routes except `_next`, `api`, static assets
-- **No authentication checks** — Auth handled by individual API routes
+- **No authentication checks** - Auth handled by individual API routes
 
 ---
 
@@ -3268,7 +3268,7 @@ Status: READY_TO_PUBLISH → PUBLISHED
 | `FixPreviewModal.jsx` | WYSIWYG preview for AI fixes with merge/apply |
 | `BackgroundJobWidget.jsx` | Sticky sidebar widget for async job progress (spinner, progress bar, completion state) |
 | `DifferentiationModal.jsx` | 80vw×80vh surgical diff viewer for content differentiation results (Alpha Page box, accordion diffs) |
-| `DifferentiationToast.jsx` | Global completion toast — auto-dismisses after 10s, click opens modal |
+| `DifferentiationToast.jsx` | Global completion toast - auto-dismisses after 10s, click opens modal |
 | `KpiSlider.jsx` | Horizontal scrollable KPI slider |
 | `QuickActions.jsx` | Quick action toolbar |
 | `MediaModal/` | Media selection and management |
@@ -3465,12 +3465,12 @@ Status: READY_TO_PUBLISH → PUBLISHED
 | File | Purpose |
 |------|---------|
 | `prisma.js` | Prisma ORM singleton with optimized MongoDB connection pooling |
-| `permissions.js` | RBAC — module/capability checking system |
+| `permissions.js` | RBAC - module/capability checking system |
 | `auth-permissions.js` | Permission checking helper functions |
 | `account-utils.js` | Account ownership, limits, add-on management, AI credit operations |
 | `account-limits.js` | Resource usage tracking vs. plan limits (sites, members, credits, audits) |
 | `site-keys.js` | Site key/secret generation, HMAC-SHA256 signature creation & verification |
-| `wp-api-client.js` | WordPress REST API client — CRUD via HMAC-signed requests. All functions normalize plural post types (`'posts'`→`'post'`, `'pages'`→`'page'`). Key functions: `getPost()`, `getPosts()`, `getPostBySlug()`, `createPost()`, `updatePost()`, `getSeoData()`, `updateSeoData()`, `createRedirect()`, `searchReplaceLinks()` (bulk internal link replacement), `resolveUrl()`, `resolveMediaUrls()` |
+| `wp-api-client.js` | WordPress REST API client - CRUD via HMAC-signed requests. All functions normalize plural post types (`'posts'`→`'post'`, `'pages'`→`'page'`). Key functions: `getPost()`, `getPosts()`, `getPostBySlug()`, `createPost()`, `updatePost()`, `getSeoData()`, `updateSeoData()`, `createRedirect()`, `searchReplaceLinks()` (bulk internal link replacement), `resolveUrl()`, `resolveMediaUrls()` |
 | `worker-auth.js` | Background worker authentication via HMAC signatures |
 | `cloudinary-upload.js` | Image & media upload to Cloudinary CDN |
 | `cardcom.js` | CardCom payment gateway integration |
@@ -3479,14 +3479,14 @@ Status: READY_TO_PUBLISH → PUBLISHED
 | `notifications.js` | Notification creation and broadcasting |
 | `google-integration.js` | Google Analytics 4 + Search Console OAuth integration |
 | `google-oauth.js` | Google authentication flow management |
-| `fetch-interceptor.js` | Global fetch wrapper — auto-logout on 401 |
+| `fetch-interceptor.js` | Global fetch wrapper - auto-logout on 401 |
 | `domain-metrics.js` | SEO metrics calculation and domain analysis |
-| `agent-analysis.js` | AI agent analysis engine — generates insights from site data |
-| `agent-fix.js` | AI agent fix execution — content merging (N-page support), redirect creation, link healing, GSC re-indexing. Produces enriched `actions[]` with `{type, status, detail, meta}` per step |
+| `agent-analysis.js` | AI agent analysis engine - generates insights from site data |
+| `agent-fix.js` | AI agent fix execution - content merging (N-page support), redirect creation, link healing, GSC re-indexing. Produces enriched `actions[]` with `{type, status, detail, meta}` per step |
 | `competitor-scraper.js` | Competitor website scraping and analysis |
 | `entity-sync.js` | WordPress entity synchronization (posts, pages, custom types) |
-| `cannibalization-engine.js` | Content cannibalization detection — 3-layer hybrid (proactive/reactive/AI), Union-Find N-URL grouping, Hebrew-aware text normalization, high-confidence AI bypass |
-| `actions/content-differentiation.js` | Content Differentiation Engine — Alpha Page Algorithm, 3-Layer Anti-Cannibalization Safety Net, async background job processing, surgical diff generation, WordPress execution |
+| `cannibalization-engine.js` | Content cannibalization detection - 3-layer hybrid (proactive/reactive/AI), Union-Find N-URL grouping, Hebrew-aware text normalization, high-confidence AI bypass |
+| `actions/content-differentiation.js` | Content Differentiation Engine - Alpha Page Algorithm, 3-Layer Anti-Cannibalization Safety Net, async background job processing, surgical diff generation, WordPress execution |
 | `urlDisplay.js` | URL formatting and display utilities |
 | `ai/gemini.js` | Gemini model config, `generateTextResponse`, `streamTextResponse`, `generateStructuredResponse` |
 | `ai/interview-ai.js` | Interview-specific AI prompts and function calling |
@@ -3606,16 +3606,16 @@ Status: READY_TO_PUBLISH → PUBLISHED
 
 **Ghost Post Platform** is a comprehensive AI-powered SEO and content management system combining:
 
-1. **Modern Architecture** — Next.js 15, React 19, MongoDB, Prisma
-2. **Advanced AI** — Gemini 2.0 with function calling and structured output
-3. **Full Multi-Tenancy** — Accounts, Users, Sites with complete separation
-4. **Granular Permissions** — 50+ permissions, custom roles
-5. **Dynamic Subscriptions** — Plans + Add-Ons with no hardcoded logic
-6. **Deep WordPress Integration** — Custom plugin with HMAC authentication
-7. **AI-Powered Interview** — 12 question types, bot actions, flow engine
-8. **Full i18n** — 12 languages, RTL support
-9. **AI Credits Economy** — Precise tracking, logging, refills
-10. **Automated Content Pipeline** — Cron dispatchers + worker executors + async background jobs
-11. **Complete Technical SEO** — Redirections, WebP conversion, site audits, content differentiation
-12. **Competitor Intelligence** — Discovery, scanning, gap analysis
-13. **Scalability** — Ready for thousands of accounts and millions of entities
+1. **Modern Architecture** - Next.js 15, React 19, MongoDB, Prisma
+2. **Advanced AI** - Gemini 2.0 with function calling and structured output
+3. **Full Multi-Tenancy** - Accounts, Users, Sites with complete separation
+4. **Granular Permissions** - 50+ permissions, custom roles
+5. **Dynamic Subscriptions** - Plans + Add-Ons with no hardcoded logic
+6. **Deep WordPress Integration** - Custom plugin with HMAC authentication
+7. **AI-Powered Interview** - 12 question types, bot actions, flow engine
+8. **Full i18n** - 12 languages, RTL support
+9. **AI Credits Economy** - Precise tracking, logging, refills
+10. **Automated Content Pipeline** - Cron dispatchers + worker executors + async background jobs
+11. **Complete Technical SEO** - Redirections, WebP conversion, site audits, content differentiation
+12. **Competitor Intelligence** - Discovery, scanning, gap analysis
+13. **Scalability** - Ready for thousands of accounts and millions of entities

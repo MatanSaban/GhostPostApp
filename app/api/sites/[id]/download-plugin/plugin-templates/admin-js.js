@@ -396,9 +396,9 @@ export function getAdminJs() {
     }
 
     function renderSeoData(data) {
-        $('#gp-seo-total-traffic').text(data.totalTraffic || '—');
-        $('#gp-seo-ai-traffic').text(data.aiTraffic || '—');
-        $('#gp-seo-keywords-count').text(data.keywordsCount || '—');
+        $('#gp-seo-total-traffic').text(data.totalTraffic || '-');
+        $('#gp-seo-ai-traffic').text(data.aiTraffic || '-');
+        $('#gp-seo-keywords-count').text(data.keywordsCount || '-');
         $('#gp-seo-issues-count').text(data.issuesCount || '0');
 
         // Render traffic chart
@@ -461,8 +461,8 @@ export function getAdminJs() {
             for (var i = 0; i < data.topKeywords.length; i++) {
                 var kw = data.topKeywords[i];
                 var changeClass = (kw.change > 0) ? 'gp-change-up' : (kw.change < 0 ? 'gp-change-down' : '');
-                var changeSymbol = (kw.change > 0) ? '&#9650;' : (kw.change < 0 ? '&#9660;' : '—');
-                kwHtml += '<tr><td>' + (i + 1) + '</td><td>' + $('<span>').text(kw.keyword || '').html() + '</td><td>' + (kw.position || '—') + '</td><td>' + (kw.volume || '—') + '</td><td class="' + changeClass + '">' + changeSymbol + ' ' + Math.abs(kw.change || 0) + '</td></tr>';
+                var changeSymbol = (kw.change > 0) ? '&#9650;' : (kw.change < 0 ? '&#9660;' : '-');
+                kwHtml += '<tr><td>' + (i + 1) + '</td><td>' + $('<span>').text(kw.keyword || '').html() + '</td><td>' + (kw.position || '-') + '</td><td>' + (kw.volume || '-') + '</td><td class="' + changeClass + '">' + changeSymbol + ' ' + Math.abs(kw.change || 0) + '</td></tr>';
             }
             $kwBody.html(kwHtml);
         }
@@ -473,7 +473,7 @@ export function getAdminJs() {
             var pgHtml = '';
             for (var i = 0; i < data.topPages.length; i++) {
                 var pg = data.topPages[i];
-                pgHtml += '<tr><td>' + (i + 1) + '</td><td>' + $('<span>').text(pg.page || '').html() + '</td><td>' + (pg.traffic || '—') + '</td><td>' + (pg.avgPosition || '—') + '</td></tr>';
+                pgHtml += '<tr><td>' + (i + 1) + '</td><td>' + $('<span>').text(pg.page || '').html() + '</td><td>' + (pg.traffic || '-') + '</td><td>' + (pg.avgPosition || '-') + '</td></tr>';
             }
             $pgBody.html(pgHtml);
         }

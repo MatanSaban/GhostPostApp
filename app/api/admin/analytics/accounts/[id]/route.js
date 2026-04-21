@@ -138,7 +138,9 @@ export async function GET(request, { params }) {
       const inputTokens = meta.inputTokens || 0;
       const outputTokens = meta.outputTokens || 0;
       const model = meta.model || 'pro';
-      const cost = calculateTokenCost(inputTokens, outputTokens, model);
+      const imageCount = meta.imageCount || 0;
+      const imageTier = meta.imageTier || undefined;
+      const cost = calculateTokenCost(inputTokens, outputTokens, model, { imageCount, imageTier });
       const totalTokensForLog = inputTokens + outputTokens;
 
       // Apply filters

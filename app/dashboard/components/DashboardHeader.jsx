@@ -21,6 +21,9 @@ import {
   Activity,
   Mail,
   MailOpen,
+  Shield,
+  LayoutDashboard,
+  MessageSquare,
 } from 'lucide-react';
 import { ThemeToggle } from '@/app/components/ui/theme-toggle';
 import { LanguageSwitcher } from '@/app/components/ui/language-switcher';
@@ -73,6 +76,7 @@ const NOTIFICATION_ICONS = {
   alert: AlertCircle,
   success: TrendingUp,
   content_publish_failed: AlertCircle,
+  support_reply: MessageSquare,
 };
 
 // Relative time helper
@@ -137,11 +141,12 @@ const segmentTranslationKeys = {
   'translations': 'nav.admin.translations',
 };
 
-export function DashboardHeader() {
+export function DashboardHeader({ variant = 'user' }) {
   const pathname = usePathname();
   const router = useRouter();
   const { t, locale } = useLocale();
-  const { user: contextUser, clearUser } = useUser();
+  const { user: contextUser, clearUser, isSuperAdmin } = useUser();
+  const isAdminView = variant === 'admin';
   const { selectedSite } = useSite();
   const { isOwner, canAccessTab } = usePermissions();
   const {
@@ -389,8 +394,29 @@ export function DashboardHeader() {
       </div>
 
       <div className={styles.headerActions}>
+        {isSuperAdmin && (
+          <Link
+            href={isAdminView ? '/dashboard' : '/admin'}
+            className={styles.notificationButton}
+            title={isAdminView ? t('admin.header.toggleToUser') : t('admin.header.toggleToAdmin')}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '0.4rem',
+              padding: '0.4rem 0.75rem',
+              width: 'auto',
+              background: isAdminView ? 'rgba(123, 44, 191, 0.12)' : 'transparent',
+              color: isAdminView ? '#7b2cbf' : undefined,
+              fontSize: '0.75rem',
+              fontWeight: 600,
+            }}
+          >
+            {isAdminView ? <LayoutDashboard size={16} /> : <Shield size={16} />}
+            <span>{isAdminView ? t('admin.header.toggleToUser') : t('admin.header.toggleToAdmin')}</span>
+          </Link>
+        )}
         <LanguageSwitcher variant="compact" />
-        <HelpButton />
+        {!isAdminView && <HelpButton />}
         <ThemeToggle />
         
         {/* Notifications */}
@@ -554,7 +580,8 @@ export function DashboardHeader() {
                 </div>
               </div>
 
-              {/* Plan Display - Visible to everyone */}
+              {/* Plan Display - Visible to everyone (hidden in admin view) */}
+              {!isAdminView && (
               <div className={styles.creditsSection}>
                 <div className={styles.creditsHeader}>
                   <span className={styles.currentPlanLabel}>{t('user.currentPlan') || 'Current Plan'}</span>
@@ -578,6 +605,7 @@ export function DashboardHeader() {
                   </div>
                 )}
               </div>
+              )}
 
               {/* My Profile - Visible to everyone */}
               <div className={styles.userMenuItems}>
@@ -591,8 +619,8 @@ export function DashboardHeader() {
                 </Link>
               </div>
 
-              {/* Billing Menu Items - Only show if user has permissions */}
-              {canAccessBilling && (
+              {/* Billing Menu Items - Only show if user has permissions (hidden in admin view) */}
+              {!isAdminView && canAccessBilling && (
                 <div className={styles.userMenuItems}>
                   <Link 
                     href="/dashboard/settings?tab=account" 
@@ -621,8 +649,8 @@ export function DashboardHeader() {
                 </div>
               )}
 
-              {/* Action Buttons - Only show if user can access billing */}
-              {canAccessBilling && (
+              {/* Action Buttons - Only show if user can access billing (hidden in admin view) */}
+              {!isAdminView && canAccessBilling && (
                 <div className={styles.userMenuActions}>
                   <button 
                     className={styles.addCreditsButton}

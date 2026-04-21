@@ -109,7 +109,7 @@ export const GhostChatPopup = forwardRef(function GhostChatPopup({ isOpen, onClo
   const reloadIframeRef = useRef(reloadIframe);
   useEffect(() => { reloadIframeRef.current = reloadIframe; }, [reloadIframe]);
 
-  // Blur the iframe during (re)loads — flips true when src or preview-url
+  // Blur the iframe during (re)loads - flips true when src or preview-url
   // changes, flips false on the iframe's onLoad event.
   useEffect(() => {
     if (previewIframeSrc) setPreviewLoading(true);
@@ -153,7 +153,7 @@ export const GhostChatPopup = forwardRef(function GhostChatPopup({ isOpen, onClo
     setChatAreaWidth(CHAT_AREA_MIN);
   }, [previewOpen]);
 
-  // Bridge-timeout surfaces as an inline toolbar warning (below), not a toast —
+  // Bridge-timeout surfaces as an inline toolbar warning (below), not a toast -
   // the site itself still renders fine, only the click-to-inspect feature is
   // unavailable, so a blocking notification is overkill.
 
@@ -421,7 +421,7 @@ export const GhostChatPopup = forwardRef(function GhostChatPopup({ isOpen, onClo
 
   // Local input state (AI SDK v6 no longer manages input)
   const [input, setInput] = useState('');
-  // Inline edit state — when set, the matching user bubble renders as a textarea
+  // Inline edit state - when set, the matching user bubble renders as a textarea
   const [editingMessageId, setEditingMessageId] = useState(null);
   const [editingText, setEditingText] = useState('');
   const editTextareaRef = useRef(null);
@@ -869,7 +869,7 @@ export const GhostChatPopup = forwardRef(function GhostChatPopup({ isOpen, onClo
     const rawText = (overrideInput || input || '').trim();
     if (!rawText || isAiLoading) return;
 
-    // Keep the visible message text clean — the user sees just what they typed.
+    // Keep the visible message text clean - the user sees just what they typed.
     // Full element context (selector, elementor_id, outerHTML, ancestors, screenshot)
     // is passed separately in the request body so the server can inject it into the
     // AI conversation without polluting the chat bubble. A small selection chip is
@@ -909,7 +909,7 @@ export const GhostChatPopup = forwardRef(function GhostChatPopup({ isOpen, onClo
         if (res.ok) {
           const data = await res.json();
           setConversations(prev => [data.conversation, ...prev]);
-          skipNextLoadMessagesRef.current = true; // Don't load DB messages — useChat will manage them
+          skipNextLoadMessagesRef.current = true; // Don't load DB messages - useChat will manage them
           setActiveConversationId(data.conversation.id);
           // Update ref immediately so sendMessage picks up the new conversationId
           activeConversationIdRef.current = data.conversation.id;
@@ -944,7 +944,7 @@ export const GhostChatPopup = forwardRef(function GhostChatPopup({ isOpen, onClo
         if (res.ok) {
           const data = await res.json();
           setConversations(prev => [data.conversation, ...prev]);
-          skipNextLoadMessagesRef.current = true; // Don't load DB messages — useChat will manage them
+          skipNextLoadMessagesRef.current = true; // Don't load DB messages - useChat will manage them
           setActiveConversationId(data.conversation.id);
           // Update ref immediately so sendMessage picks up the new conversationId
           activeConversationIdRef.current = data.conversation.id;
@@ -1022,7 +1022,7 @@ export const GhostChatPopup = forwardRef(function GhostChatPopup({ isOpen, onClo
     );
   };
 
-  // Live substep phase cycler shown during EXECUTING — no backend signal yet,
+  // Live substep phase cycler shown during EXECUTING - no backend signal yet,
   // so we just rotate through the typical phases of a WP action so the user
   // sees *something* changing instead of a frozen "Executing..." label.
   const ExecutingProgress = ({ tool, startedAt }) => {
@@ -1108,7 +1108,7 @@ export const GhostChatPopup = forwardRef(function GhostChatPopup({ isOpen, onClo
         className={`${styles.chatPanel} ${isClosing ? styles.chatPanelClosing : ''} ${activeResize ? styles.panelResizing : ''}`}
         style={{ width: `${panelWidth}px` }}
       >
-        {/* Resize Handle (left edge of panel — resizes whole popup width) */}
+        {/* Resize Handle (left edge of panel - resizes whole popup width) */}
         <div
           className={styles.resizeHandle}
           onMouseDown={startResize('panel')}
@@ -1166,7 +1166,7 @@ export const GhostChatPopup = forwardRef(function GhostChatPopup({ isOpen, onClo
             ) : (
               filteredConversations.map((conv) => {
                 if (previewOpen) {
-                  // Compact rail: icon, initiator initials, time — no actions/title/preview
+                  // Compact rail: icon, initiator initials, time - no actions/title/preview
                   const initiator = getUserDisplayName(conv.createdByUser) || '';
                   const initials = initiator
                     .split(/\s+/)
@@ -1426,7 +1426,7 @@ export const GhostChatPopup = forwardRef(function GhostChatPopup({ isOpen, onClo
                   {/* AI Message */}
                   {message.role === 'assistant' && (
                     <div className={styles.agentMessage}>
-                      {/* Reasoning / thinking — collapsible, shows the model's thought process for this message */}
+                      {/* Reasoning / thinking - collapsible, shows the model's thought process for this message */}
                       {(() => {
                         const reasoningText = (message.parts || [])
                           .filter(p => p.type === 'reasoning' && p.text)
@@ -1480,7 +1480,7 @@ export const GhostChatPopup = forwardRef(function GhostChatPopup({ isOpen, onClo
                             const toolName = part.type === 'dynamic-tool' ? part.toolName : part.type.replace(/^tool-/, '');
                             const { state: toolState, input, output, errorText } = part;
 
-                            // propose_action tool — render action card
+                            // propose_action tool - render action card
                             if (toolName === 'propose_action' && input) {
                               let parsedOutput = null;
                               try {
@@ -1526,7 +1526,7 @@ export const GhostChatPopup = forwardRef(function GhostChatPopup({ isOpen, onClo
                                     </div>
                                   )}
 
-                                  {/* Image prompt review + reference images — only for generate_image
+                                  {/* Image prompt review + reference images - only for generate_image
                                       actions that are still pending approval. */}
                                   {currentStatus === 'PENDING_APPROVAL' && actionId && input.actions?.map((action, i) => {
                                     if (action.tool !== 'generate_image') return null;
@@ -1699,7 +1699,7 @@ export const GhostChatPopup = forwardRef(function GhostChatPopup({ isOpen, onClo
                               );
                             }
 
-                            // Other tool invocations — show loading or hide result
+                            // Other tool invocations - show loading or hide result
                             if (toolState === 'input-streaming' || toolState === 'input-available') {
                               return (
                                 <div key={partIdx} className={styles.toolLoading}>
@@ -1709,7 +1709,7 @@ export const GhostChatPopup = forwardRef(function GhostChatPopup({ isOpen, onClo
                               );
                             }
 
-                            // Tool completed (output-available, output-error) — don't render (the AI will summarize)
+                            // Tool completed (output-available, output-error) - don't render (the AI will summarize)
                             return null;
                           }
 
@@ -2030,7 +2030,7 @@ export const GhostChatPopup = forwardRef(function GhostChatPopup({ isOpen, onClo
           />
         )}
 
-        {/* Right Sidebar — Preview panel when open, Quick Actions otherwise */}
+        {/* Right Sidebar - Preview panel when open, Quick Actions otherwise */}
         {previewOpen && previewSupported ? (
           <div className={styles.previewPanel}>
             <div className={styles.previewToolbar}>

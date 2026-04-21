@@ -144,21 +144,8 @@ export async function POST(request) {
       return NextResponse.json({ suggestions: [] });
     }
 
-    // Deduct credits for AI generation (1 credit for the batch)
-    const deduction = await deductAiCredits(site.accountId, 1, {
-      userId: user.id,
-      siteId,
-      source: 'ai_alt_suggestions',
-      description: `AI Alt Text Suggestions: ${imagesToProcess.length} image(s)`,
-      metadata: { model: 'gemini-2.5-pro' },
-    });
-    if (!deduction.success) {
-      const isInsufficient = deduction.error?.includes('Insufficient');
-      return NextResponse.json(
-        { error: deduction.error || 'Credit deduction failed', code: isInsufficient ? 'INSUFFICIENT_CREDITS' : 'CREDIT_ERROR', resourceKey: isInsufficient ? 'aiCredits' : undefined },
-        { status: 402 }
-      );
-    }
+    const MODEL = 'gemini-2.5-pro';
+    const totalUsage = { inputTokens: 0, outputTokens: 0, totalTokens: 0 };
 
     // Detect website language from page titles in audit data
     const pageResults = audit.pageResults || [];
@@ -187,7 +174,7 @@ export async function POST(request) {
 
           try {
             const result = await generateObject({
-              model: google('gemini-2.5-pro'),
+              model: google(MODEL),
               schema: altTextSchema,
               messages: [
                 {
@@ -223,6 +210,11 @@ Generate the alt text.`,
               temperature: 0.3,
             });
 
+            const usage = result.usage || {};
+            totalUsage.inputTokens += usage.inputTokens || 0;
+            totalUsage.outputTokens += usage.outputTokens || 0;
+            totalUsage.totalTokens += usage.totalTokens || 0;
+
             return {
               ...img,
               altText: result.object.altText,
@@ -240,6 +232,26 @@ Generate the alt text.`,
           suggestions.push(result.value);
         }
       }
+    }
+
+    const deduction = await deductAiCredits(site.accountId, 1, {
+      userId: user.id,
+      siteId,
+      source: 'ai_alt_suggestions',
+      description: `AI Alt Text Suggestions: ${imagesToProcess.length} image(s)`,
+      metadata: {
+        model: MODEL,
+        inputTokens: totalUsage.inputTokens,
+        outputTokens: totalUsage.outputTokens,
+        totalTokens: totalUsage.totalTokens,
+      },
+    });
+    if (!deduction.success) {
+      const isInsufficient = deduction.error?.includes('Insufficient');
+      return NextResponse.json(
+        { error: deduction.error || 'Credit deduction failed', code: isInsufficient ? 'INSUFFICIENT_CREDITS' : 'CREDIT_ERROR', resourceKey: isInsufficient ? 'aiCredits' : undefined },
+        { status: 402 }
+      );
     }
 
     return NextResponse.json({

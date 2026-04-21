@@ -55,7 +55,7 @@ export async function GET(request) {
     
     let siteEntitiesMap = new Map();
     if (urlList.length > 0) {
-      // Get posts entity type — skip if disabled so keyword data doesn't link
+      // Get posts entity type - skip if disabled so keyword data doesn't link
       // to entities the user has toggled off.
       const postsType = await prisma.siteEntityType.findFirst({
         where: { siteId, slug: 'posts', isEnabled: true },

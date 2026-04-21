@@ -344,8 +344,8 @@ async function main() {
   console.log('\n🎉 Seeding complete!');
   console.log('\nNext steps:');
   console.log('1. Start the development server: npm run dev');
-  console.log('2. Visit /dashboard/admin/interview-flow to manage questions');
-  console.log('3. Visit /dashboard/admin/bot-actions to manage actions');
+  console.log('2. Visit /admin/interview-flow to manage questions');
+  console.log('3. Visit /admin/bot-actions to manage actions');
   console.log('4. Start a new interview at /dashboard/site-interview');
 }
 

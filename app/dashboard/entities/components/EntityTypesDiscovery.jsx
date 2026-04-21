@@ -281,6 +281,7 @@ export function EntityTypesDiscovery({
             onClick={onDiscoverByCrawling}
             disabled={isCrawling}
             className={styles.crawlButton}
+            data-onboarding="entities-scan-button"
           >
             {isCrawling ? (
               <>
@@ -334,6 +335,7 @@ export function EntityTypesDiscovery({
           onClick={() => onDiscoverEntityTypes()}
           disabled={isDiscovering}
           className={styles.detectButton}
+          data-onboarding="entities-scan-button"
         >
           {isDiscovering ? (
             <>

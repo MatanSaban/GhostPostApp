@@ -39,7 +39,7 @@ export function InterviewStep({ translations, onComplete, initialData = {}, onAn
 
   // When the user returns to the interview after already finishing it, skip
   // the whole flow and mount directly in COMPLETE with a summary view. The
-  // analysis/confirmations are already saved on the server — re-running the
+  // analysis/confirmations are already saved on the server - re-running the
   // chat would wipe them.
   const isResumed = !!(alreadyCompleted && initialData?.analysis);
 
@@ -60,7 +60,7 @@ export function InterviewStep({ translations, onComplete, initialData = {}, onAn
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
 
-  // Confirmation questions — uses the analysis data and the user's prior
+  // Confirmation questions - uses the analysis data and the user's prior
   // language choice. Accepts an optional `data` argument so callers that are
   // about to commit `setAnalysisData(data)` can build the list before React
   // has flushed state.
@@ -69,7 +69,7 @@ export function InterviewStep({ translations, onComplete, initialData = {}, onAn
 
     const questions = [];
 
-    // 1. Platform + language recap — the user already saw a URL probe, now we
+    // 1. Platform + language recap - the user already saw a URL probe, now we
     //    reveal what the full analysis found. Approve or edit.
     questions.push({
       id: 'platformLanguage',
@@ -102,7 +102,7 @@ export function InterviewStep({ translations, onComplete, initialData = {}, onAn
       }),
     });
 
-    // 2. Business character — name + niche + description in one statement.
+    // 2. Business character - name + niche + description in one statement.
     questions.push({
       id: 'character',
       field: 'businessCharacter',
@@ -165,7 +165,7 @@ export function InterviewStep({ translations, onComplete, initialData = {}, onAn
           ?.map(k => typeof k === 'string' ? k : k.keyword) || [],
     });
 
-    // 5. SEO issues audit — only if the rule-based detector surfaced any.
+    // 5. SEO issues audit - only if the rule-based detector surfaced any.
     const seoIssues = Array.isArray(data.seoIssues) ? data.seoIssues : [];
     if (seoIssues.length > 0) {
       questions.push({
@@ -191,7 +191,7 @@ export function InterviewStep({ translations, onComplete, initialData = {}, onAn
     if (isResumed) {
       // Rebuild a minimal transcript so the returning user sees evidence of
       // the prior conversation instead of a blank slate. The full Q&A isn't
-      // reconstructed — the summary card below fills that role.
+      // reconstructed - the summary card below fills that role.
       const resumedMessages = [
         { id: 0, type: 'agent', content: welcomeMsg },
         { id: 1, type: 'agent', content: urlQuestion },
@@ -274,7 +274,7 @@ export function InterviewStep({ translations, onComplete, initialData = {}, onAn
         return;
       }
 
-      // No multi-language variants — go straight into full analysis.
+      // No multi-language variants - go straight into full analysis.
       // If the probe resolved to a canonical URL, use it.
       if (data?.url && data.url !== url) setWebsiteUrl(data.url);
       setPhase(PHASES.ANALYZING);
@@ -286,7 +286,7 @@ export function InterviewStep({ translations, onComplete, initialData = {}, onAn
     }
   };
 
-  // Handle analysis complete — save the analysis and kick off confirmation.
+  // Handle analysis complete - save the analysis and kick off confirmation.
   // Multi-language detection already happened before analysis (in
   // handleUrlSubmit), so by the time we reach here the language variant is
   // locked in and we just need to surface the results.
@@ -328,7 +328,7 @@ export function InterviewStep({ translations, onComplete, initialData = {}, onAn
   };
 
   // Handle user picking a language variant. At this point the full analysis
-  // hasn't run yet — we just capture the choice, point at the variant URL,
+  // hasn't run yet - we just capture the choice, point at the variant URL,
   // and transition to ANALYZING so /analyze runs against the right locale.
   const handleLanguageSelect = (variant) => {
     const label = getLanguageLabel(variant.code, locale);
@@ -702,7 +702,7 @@ export function InterviewStep({ translations, onComplete, initialData = {}, onAn
             </div>
           )}
 
-          {/* Resumed summary — shown when returning to an already-completed
+          {/* Resumed summary - shown when returning to an already-completed
               interview step. Recaps what we learned so the user has context,
               plus a Continue button to advance manually (no auto-advance). */}
           {phase === PHASES.COMPLETE && isResumed && (

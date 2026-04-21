@@ -174,7 +174,7 @@ export async function GET(request, { params }) {
     let availablePosts = [];
     
     // First try to get posts from SiteEntity (synced from WordPress).
-    // Skip if the posts type is disabled — the user has opted out of surfacing them.
+    // Skip if the posts type is disabled - the user has opted out of surfacing them.
     const postEntityType = await prisma.siteEntityType.findFirst({
       where: { siteId: site.id, slug: { in: ['posts', 'post'] }, isEnabled: true },
     });

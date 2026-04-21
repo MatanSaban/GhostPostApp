@@ -112,7 +112,7 @@ export async function GET(request) {
       // Show listings from ALL of this user's accounts (not just selected)
       const userAccountIds = user.accountMemberships.map(m => m.accountId);
       if (user.isSuperAdmin && userAccountIds.length === 0) {
-        // Superadmin with no accounts — show all user listings
+        // Superadmin with no accounts - show all user listings
         where = { publisherType: 'USER' };
       } else {
         where = {

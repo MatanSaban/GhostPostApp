@@ -8,7 +8,7 @@ import {
 import styles from './SitemapSubmissionModal.module.css';
 
 /**
- * SitemapSubmissionModal — Multi-step sitemap discovery & GSC submission flow.
+ * SitemapSubmissionModal - Multi-step sitemap discovery & GSC submission flow.
  *
  * Steps:
  *  1. discovering  – Fetch sitemaps from platform, stream results to user
@@ -145,15 +145,15 @@ export default function SitemapSubmissionModal({ open, onClose, siteId, insight,
       setSubmitResults(data);
 
       if (data.hasScopeError) {
-        // Scope insufficient — user needs to reconnect Google
+        // Scope insufficient - user needs to reconnect Google
         setStep('error');
       } else if (data.allSuccess) {
-        // All submissions returned 200 — treat as success
+        // All submissions returned 200 - treat as success
         // (GSC verification may lag due to propagation delay)
         setSubmitProgress(100);
         setTimeout(() => setStep('success'), 500);
       } else if (retryRef.current < MAX_RETRIES) {
-        // Some failed — retry automatically
+        // Some failed - retry automatically
         retryRef.current += 1;
         setRetryCount(retryRef.current);
         setSubmitProgress(0);

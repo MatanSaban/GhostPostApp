@@ -27,14 +27,14 @@ model Account {
   generalEmail    String // General contact email for the account
   isActive        Boolean  @default(true)
 
-  // Draft/onboarding state — true while the owner is still completing registration.
+  // Draft/onboarding state - true while the owner is still completing registration.
   // Staging fields below hold data that has no final home yet during onboarding.
-  isDraft                Boolean @default(false)
-  draftInterviewData     Json?
-  draftSelectedPlanId    String? @db.ObjectId
-  draftCouponCode        String?
+  isDraft             Boolean @default(false)
+  draftInterviewData  Json?
+  draftSelectedPlanId String? @db.ObjectId
+  draftCouponCode     String?
 
-  // Archive (soft-delete) state — owner-triggered archive with 14-day restore window.
+  // Archive (soft-delete) state - owner-triggered archive with 14-day restore window.
   // When archivedAt is set, account is hidden from normal queries; sites are also set isActive=false.
   // Past archiveRestoreExpiresAt, the account is eligible for permanent purge.
   archivedAt              DateTime?
@@ -51,24 +51,33 @@ model Account {
 
   // First-time dashboard onboarding walkthrough state.
   // Step values come from OnboardingStep enum in lib/onboarding.js.
-  onboardingStep        String    @default("GREETING")
-  onboardingCompleted   Boolean   @default(false)
-  onboardingSkipped     Boolean   @default(false)
-  onboardingStartedAt   DateTime?
-  onboardingCompletedAt DateTime?
+  onboardingStep         String    @default("GREETING")
+  onboardingCompleted    Boolean   @default(false)
+  onboardingSkipped      Boolean   @default(false)
+  onboardingStartedAt    DateTime?
+  onboardingCompletedAt  DateTime?
+  // Set once the user dismisses the FinishedModal. Prevents the celebratory
+  // modal from reappearing on every page refresh after the flow completes.
+  onboardingFinishedSeen Boolean   @default(false)
 
-  createdAt      DateTime        @default(now())
-  updatedAt      DateTime        @updatedAt
+  // Per-feature guide completion. Array of guide IDs from lib/guides.js
+  // that the user has finished at least once. Used by the GuidesCenter to
+  // show checkmarks next to completed walkthroughs.
+  completedGuides Json @default("[]")
+
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
   // Relations
-  members        AccountMember[]
-  sites          Site[]
-  subscription   Subscription?
-  payments       Payment[]
-  roles          Role[]
-  aiCreditsLogs    AiCreditsLog[]
-  reportArchives   ReportArchive[]
+  members           AccountMember[]
+  sites             Site[]
+  subscription      Subscription?
+  payments          Payment[]
+  roles             Role[]
+  aiCreditsLogs     AiCreditsLog[]
+  reportArchives    ReportArchive[]
   chatConversations ChatConversation[]
   chatActions       ChatAction[]
+  supportTickets    SupportTicket[]
 }
 
 // ==========================================
@@ -212,6 +221,11 @@ enum Permission {
   // Reports (White-Label PDF Reports)
   REPORTS_VIEW
   REPORTS_MANAGE
+
+  // Support Tickets
+  SUPPORT_VIEW
+  SUPPORT_CREATE
+  SUPPORT_REPLY
 }
 
 model AccountMember {
@@ -278,16 +292,22 @@ model User {
   updatedAt             DateTime         @updatedAt
 
   // Relations
-  authProviders      AuthProvider[]
-  sessions           Session[]
-  accountMemberships AccountMember[]
-  otpCodes           OtpCode[]
-  interviews              UserInterview[]
-  sitePreferences         UserSitePreference[]
-  sitemapScans            SiteSitemap[]
-  chatConversationsCreated ChatConversation[] @relation("ChatConversationCreator")
-  chatMessagesSent         ChatMessage[]      @relation("ChatMessageSender")
-  chatActionsRequested     ChatAction[]       @relation("ChatActionUser")
+  authProviders                 AuthProvider[]
+  sessions                      Session[]
+  accountMemberships            AccountMember[]
+  otpCodes                      OtpCode[]
+  interviews                    UserInterview[]
+  sitePreferences               UserSitePreference[]
+  sitemapScans                  SiteSitemap[]
+  chatConversationsCreated      ChatConversation[]     @relation("ChatConversationCreator")
+  chatMessagesSent              ChatMessage[]          @relation("ChatMessageSender")
+  chatActionsRequested          ChatAction[]           @relation("ChatActionUser")
+  supportTicketsCreated         SupportTicket[]        @relation("SupportTicketCreator")
+  supportTicketsAssigned        SupportTicket[]        @relation("SupportTicketAssignee")
+  supportMessagesSent           SupportMessage[]       @relation("SupportMessageSender")
+  impersonationGrants           ImpersonationGrant[]   @relation("ImpersonationGrantUser")
+  impersonationSessionsAsAdmin  ImpersonationSession[] @relation("ImpersonationSessionAdmin")
+  impersonationSessionsAsTarget ImpersonationSession[] @relation("ImpersonationSessionTarget")
 }
 
 enum RegistrationStep {
@@ -808,7 +828,7 @@ model Site {
   phpVersion       String?
   wpTimezone       String?
   wpLocale         String?
-  pluginLanguage   String?  @default("auto")
+  pluginLanguage   String?              @default("auto")
   sitePermissions  SitePermission[]
 
   // Auto-install credentials (temporary, deleted after install)
@@ -1730,7 +1750,7 @@ model ChatConversation {
   title           String?
   messages        ChatMessage[]
   chatActions     ChatAction[]
-  activeUsers     Json?         // [{userId, userName, lastSeen}] for concurrent usage detection
+  activeUsers     Json? // [{userId, userName, lastSeen}] for concurrent usage detection
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
 
@@ -1740,14 +1760,14 @@ model ChatConversation {
 }
 
 model ChatMessage {
-  id              String           @id @default(auto()) @map("_id") @db.ObjectId
-  conversationId  String           @db.ObjectId
-  conversation    ChatConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
-  role            MessageRole
-  userId          String?          @db.ObjectId
-  user            User?            @relation("ChatMessageSender", fields: [userId], references: [id])
-  content         String
-  createdAt       DateTime         @default(now())
+  id             String           @id @default(auto()) @map("_id") @db.ObjectId
+  conversationId String           @db.ObjectId
+  conversation   ChatConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  role           MessageRole
+  userId         String?          @db.ObjectId
+  user           User?            @relation("ChatMessageSender", fields: [userId], references: [id])
+  content        String
+  createdAt      DateTime         @default(now())
 
   @@index([conversationId])
   @@map("chat_messages")
@@ -1776,36 +1796,36 @@ enum ChatActionType {
 }
 
 model ChatAction {
-  id              String           @id @default(auto()) @map("_id") @db.ObjectId
-  conversationId  String           @db.ObjectId
-  conversation    ChatConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
-  siteId          String           @db.ObjectId
-  site            Site             @relation(fields: [siteId], references: [id], onDelete: Cascade)
-  accountId       String           @db.ObjectId
-  account         Account          @relation(fields: [accountId], references: [id], onDelete: Cascade)
-  userId          String           @db.ObjectId
-  user            User             @relation("ChatActionUser", fields: [userId], references: [id])
+  id             String           @id @default(auto()) @map("_id") @db.ObjectId
+  conversationId String           @db.ObjectId
+  conversation   ChatConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  siteId         String           @db.ObjectId
+  site           Site             @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  accountId      String           @db.ObjectId
+  account        Account          @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  userId         String           @db.ObjectId
+  user           User             @relation("ChatActionUser", fields: [userId], references: [id])
 
-  type            ChatActionType
-  status          ChatActionStatus @default(PENDING_APPROVAL)
-  plan            Json             // Human-readable plan { title, steps: [{ description, tool, args }] }
-  actions         Json[]           // Array of atomic actions: { tool, args, description }
-  rollbackData    Json[]           // Snapshots: { tool, originalValue, newValue, executedAt }
-  result          Json?            // Execution result summary
-  error           String?          // Error message if failed
+  type         ChatActionType
+  status       ChatActionStatus @default(PENDING_APPROVAL)
+  plan         Json // Human-readable plan { title, steps: [{ description, tool, args }] }
+  actions      Json[] // Array of atomic actions: { tool, args, description }
+  rollbackData Json[] // Snapshots: { tool, originalValue, newValue, executedAt }
+  result       Json? // Execution result summary
+  error        String? // Error message if failed
 
   // Approval timing
-  expiresAt       DateTime         // 5 min from creation
-  warningAt       DateTime         // 2 min from creation
-  warningSent     Boolean          @default(false)
+  expiresAt   DateTime // 5 min from creation
+  warningAt   DateTime // 2 min from creation
+  warningSent Boolean  @default(false)
 
   // Lifecycle timestamps
-  approvedAt      DateTime?
-  rejectedAt      DateTime?
-  executedAt      DateTime?
-  rolledBackAt    DateTime?
-  createdAt       DateTime         @default(now())
-  updatedAt       DateTime         @updatedAt
+  approvedAt   DateTime?
+  rejectedAt   DateTime?
+  executedAt   DateTime?
+  rolledBackAt DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
 
   @@index([conversationId])
   @@index([status, expiresAt])
@@ -2235,21 +2255,21 @@ model AgentRun {
 
 // Sticky memory of insights the user has dismissed/rejected.
 // The agent cron consults this to suppress regenerating the same insight
-// after a user has explicitly said "not for me" — closing the trust gap
+// after a user has explicitly said "not for me" - closing the trust gap
 // where rejected suggestions kept reappearing on every run.
 //
 // `dedupKey` is the same key the insight emitter uses to identify its
 // suggestion (e.g. `cannibalization:<sortedUrlsHash>`). Indexed by
 // (siteId, dedupKey) for the cron-time existence check.
 model AgentRejection {
-  id         String   @id @default(auto()) @map("_id") @db.ObjectId
-  siteId     String   @db.ObjectId
-  accountId  String   @db.ObjectId
-  dedupKey   String // Stable identity of the suggestion (insight type + payload hash)
-  insightType String? // e.g. "cannibalization", "missingSeo" — for analytics
-  reason     String? // Optional user-supplied reason
-  rejectedAt DateTime @default(now())
-  expiresAt  DateTime // Auto-expire so we don't suppress forever (default: +60d)
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  siteId      String   @db.ObjectId
+  accountId   String   @db.ObjectId
+  dedupKey    String // Stable identity of the suggestion (insight type + payload hash)
+  insightType String? // e.g. "cannibalization", "missingSeo" - for analytics
+  reason      String? // Optional user-supplied reason
+  rejectedAt  DateTime @default(now())
+  expiresAt   DateTime // Auto-expire so we don't suppress forever (default: +60d)
 
   @@unique([siteId, dedupKey])
   @@index([siteId, expiresAt])
@@ -2262,14 +2282,14 @@ model AgentRejection {
 // metrics now vs. before the fix. Used to grade the AI's recommendations
 // and feed back into thresholds.
 model AgentFixOutcome {
-  id              String   @id @default(auto()) @map("_id") @db.ObjectId
-  siteId          String   @db.ObjectId
-  accountId       String   @db.ObjectId
-  insightId       String?  @db.ObjectId // The AgentInsight that triggered the fix
+  id              String    @id @default(auto()) @map("_id") @db.ObjectId
+  siteId          String    @db.ObjectId
+  accountId       String    @db.ObjectId
+  insightId       String?   @db.ObjectId // The AgentInsight that triggered the fix
   insightType     String // "cannibalization" | "missingSeo" | ...
   action          String // "MERGE" | "CANONICAL" | "REDIRECT_301" | "DIFFERENTIATE"
   affectedUrls    String[] // URLs touched by the fix
-  appliedAt       DateTime @default(now())
+  appliedAt       DateTime  @default(now())
   measureAt       DateTime // When to take the post-fix snapshot (appliedAt + 14d)
   baselineMetrics Json // GSC snapshot at apply time (clicks/impressions/position)
   resultMetrics   Json? // GSC snapshot at measureAt
@@ -2523,4 +2543,198 @@ model BackgroundJob {
   @@index([userId, status])
   @@index([accountId, status])
   @@index([status, createdAt])
+}
+
+// ==========================================
+// SUPPORT TICKETS (User ↔ SuperAdmin)
+// ==========================================
+
+model SupportTicket {
+  id           String          @id @default(auto()) @map("_id") @db.ObjectId
+  ticketNumber Int             @unique
+  subject      String
+  category     SupportCategory @default(GENERAL)
+  priority     SupportPriority @default(NORMAL)
+  status       SupportStatus   @default(OPEN)
+  language     Language        @default(EN)
+
+  accountId       String  @db.ObjectId
+  createdById     String  @db.ObjectId
+  assignedAdminId String? @db.ObjectId
+
+  contextSiteId String? @db.ObjectId
+  contextUrl    String?
+  contextMeta   Json?
+
+  lastMessageAt   DateTime  @default(now())
+  lastMessageById String?   @db.ObjectId
+  resolvedAt      DateTime?
+  closedAt        DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  account       Account             @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  createdBy     User                @relation("SupportTicketCreator", fields: [createdById], references: [id])
+  assignedAdmin User?               @relation("SupportTicketAssignee", fields: [assignedAdminId], references: [id])
+  messages      SupportMessage[]
+  attachments   SupportAttachment[]
+
+  @@index([accountId, status, lastMessageAt(sort: Desc)])
+  @@index([assignedAdminId, status])
+  @@index([status, priority, lastMessageAt(sort: Desc)])
+  @@index([createdById, lastMessageAt(sort: Desc)])
+}
+
+model SupportMessage {
+  id          String            @id @default(auto()) @map("_id") @db.ObjectId
+  ticketId    String            @db.ObjectId
+  senderId    String            @db.ObjectId
+  senderRole  SupportSenderRole
+  body        String
+  isInternal  Boolean           @default(false)
+  readByUser  Boolean           @default(false)
+  readByAdmin Boolean           @default(false)
+  createdAt   DateTime          @default(now())
+
+  ticket      SupportTicket       @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  sender      User                @relation("SupportMessageSender", fields: [senderId], references: [id])
+  attachments SupportAttachment[]
+
+  @@index([ticketId, createdAt])
+}
+
+model SupportAttachment {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  ticketId   String   @db.ObjectId
+  messageId  String?  @db.ObjectId
+  url        String
+  publicId   String
+  filename   String
+  mimeType   String
+  sizeBytes  Int
+  uploadedBy String   @db.ObjectId
+  createdAt  DateTime @default(now())
+
+  ticket  SupportTicket   @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  message SupportMessage? @relation(fields: [messageId], references: [id], onDelete: SetNull)
+
+  @@index([ticketId])
+}
+
+// Counter doc for human-readable ticket numbers
+model SupportCounter {
+  id    String @id @default(auto()) @map("_id") @db.ObjectId
+  key   String @unique
+  value Int    @default(0)
+}
+
+enum SupportCategory {
+  BILLING
+  TECHNICAL
+  BUG
+  FEATURE_REQUEST
+  GENERAL
+}
+
+enum SupportPriority {
+  LOW
+  NORMAL
+  HIGH
+  URGENT
+}
+
+enum SupportStatus {
+  OPEN
+  PENDING_USER
+  PENDING_ADMIN
+  RESOLVED
+  CLOSED
+}
+
+enum SupportSenderRole {
+  USER
+  SUPERADMIN
+  SYSTEM
+}
+
+// ==========================================
+// IMPERSONATION (SuperAdmin views-as user with user-issued code)
+// ==========================================
+
+model ImpersonationGrant {
+  id            String                   @id @default(auto()) @map("_id") @db.ObjectId
+  userId        String                   @db.ObjectId
+  accountId     String                   @db.ObjectId
+  codeHash      String                   @unique
+  codePrefix    String
+  scope         ImpersonationScope       @default(READ_ONLY)
+  reason        String?
+  expiresAt     DateTime
+  maxUses       Int                      @default(1)
+  usedCount     Int                      @default(0)
+  status        ImpersonationGrantStatus @default(ACTIVE)
+  revokedAt     DateTime?
+  revokedReason String?
+  createdAt     DateTime                 @default(now())
+  createdIp     String?
+
+  user     User                   @relation("ImpersonationGrantUser", fields: [userId], references: [id], onDelete: Cascade)
+  sessions ImpersonationSession[]
+
+  @@index([userId, status])
+  @@index([status, expiresAt])
+  @@index([codePrefix, status])
+}
+
+model ImpersonationSession {
+  id              String             @id @default(auto()) @map("_id") @db.ObjectId
+  grantId         String             @db.ObjectId
+  adminUserId     String             @db.ObjectId
+  targetUserId    String             @db.ObjectId
+  targetAccountId String             @db.ObjectId
+  scope           ImpersonationScope
+  adminReason     String
+  sessionToken    String             @unique
+  startedAt       DateTime           @default(now())
+  expiresAt       DateTime
+  endedAt         DateTime?
+  endReason       String?
+  ipAddress       String?
+  userAgent       String?
+
+  grant      ImpersonationGrant    @relation(fields: [grantId], references: [id])
+  adminUser  User                  @relation("ImpersonationSessionAdmin", fields: [adminUserId], references: [id])
+  targetUser User                  @relation("ImpersonationSessionTarget", fields: [targetUserId], references: [id])
+  actions    ImpersonationAction[]
+
+  @@index([adminUserId, startedAt(sort: Desc)])
+  @@index([targetUserId, startedAt(sort: Desc)])
+  @@index([endedAt, expiresAt])
+}
+
+model ImpersonationAction {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  sessionId   String   @db.ObjectId
+  method      String
+  path        String
+  statusCode  Int?
+  bodyPreview String?
+  createdAt   DateTime @default(now())
+
+  session ImpersonationSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@index([sessionId, createdAt])
+}
+
+enum ImpersonationScope {
+  READ_ONLY
+  FULL
+}
+
+enum ImpersonationGrantStatus {
+  ACTIVE
+  USED
+  EXPIRED
+  REVOKED
 }

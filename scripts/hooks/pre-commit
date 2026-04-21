@@ -3,7 +3,7 @@
 # Runs automatically on commit when version.js is staged.
 
 if git diff --cached --name-only | grep -q "app/api/plugin/version.js"; then
-  echo "[pre-commit] version.js changed — syncing to PHP plugin..."
+  echo "[pre-commit] version.js changed - syncing to PHP plugin..."
   node scripts/sync-plugin-version.mjs
   echo "[pre-commit] Plugin version synced."
 fi

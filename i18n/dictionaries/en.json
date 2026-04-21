@@ -294,6 +294,7 @@
       "siteAudit": "Site Health Report"
     },
     "settings": "Settings",
+    "support": "Support",
     "myWebsites": "My Websites",
     "backlinks": "Backlinks",
     "entities": {
@@ -322,7 +323,8 @@
       "botActions": "Bot Actions",
       "backlinks": "Backlinks",
       "website": "Website Content",
-      "faq": "FAQ Management"
+      "faq": "FAQ Management",
+      "support": "Support Tickets"
     }
   },
   "websiteAdmin": {
@@ -662,7 +664,7 @@
       "tipAiShare": "Percentage of your total site traffic that comes from AI sources.",
       "aiKeywordsTitle": "Search terms on AI-linked pages",
       "noAiKeywordsData": "No Google search terms found for the AI-linked pages in this period.",
-      "tipAiKeywords": "AI engines (ChatGPT, Perplexity, etc.) don't share the prompts users type — those are private. This shows the next-best signal: Google Search queries that landed on the same pages AI engines are linking to. A page that ranks for both = a page worth doubling down on.",
+      "tipAiKeywords": "AI engines (ChatGPT, Perplexity, etc.) don't share the prompts users type - those are private. This shows the next-best signal: Google Search queries that landed on the same pages AI engines are linking to. A page that ranks for both = a page worth doubling down on.",
       "engagedSessions": "Engaged AI Sessions",
       "engagementRate": "AI Engagement Rate",
       "avgDuration": "Avg. AI Session Duration",
@@ -1934,9 +1936,9 @@
       "inpPoor": "Interaction to Next Paint is poor (over 500ms)",
       "inpNeedsWork": "Interaction to Next Paint needs improvement (over 200ms)",
       "inpGood": "Interaction to Next Paint is good",
-      "redirectChain": "Redirect chain detected — URL passes through multiple redirects before reaching its destination",
-      "redirectLoop": "Redirect loop detected — URL redirects in an infinite cycle",
-      "brokenInternalLink": "Broken internal link found — an on-page link points to a page that returns a 404 error"
+      "redirectChain": "Redirect chain detected - URL passes through multiple redirects before reaching its destination",
+      "redirectLoop": "Redirect loop detected - URL redirects in an infinite cycle",
+      "brokenInternalLink": "Broken internal link found - an on-page link points to a page that returns a 404 error"
     },
     "suggestions": {
       "checkUrl": "Verify your website URL is correct and the site is online",
@@ -2154,7 +2156,7 @@
       "imagesNotLazy": "Add loading=\"lazy\" to images that appear below the fold (not visible on initial load). Keep loading=\"eager\" or no attribute for above-the-fold images like your hero image or logo.",
       "imagesNoDimensions": "Add explicit width and height attributes to your <img> tags. This allows the browser to reserve the correct space before the image loads, preventing layout shifts. Use CSS for responsive sizing.",
       "imagesNotNextGen": "Convert your images to WebP or AVIF format using tools like Squoosh, Sharp, or your image CDN. Use the <picture> element with <source> tags to serve next-gen formats while keeping a JPEG/PNG fallback for older browsers.",
-      "imagesTooLarge": "Compress images using tools like TinyPNG, Squoosh, or ImageOptim. Resize images to the actual display dimensions — don't serve a 4000px image for a 800px container. Consider using an image CDN that auto-optimizes on delivery.",
+      "imagesTooLarge": "Compress images using tools like TinyPNG, Squoosh, or ImageOptim. Resize images to the actual display dimensions - don't serve a 4000px image for a 800px container. Consider using an image CDN that auto-optimizes on delivery.",
       "imagesLargeWarning": "Review images over 200KB and compress them further. Use appropriate quality settings (80-85% for JPEG is usually sufficient). Resize to actual display dimensions and consider using responsive images with srcset.",
       "noCompression": "Enable gzip or brotli compression on your web server. For Apache, enable mod_deflate. For Nginx, add gzip directives. Most hosting providers and CDNs support enabling compression through their control panel.",
       "noCacheHeaders": "Add Cache-Control headers to your server configuration. Set long cache durations for static assets (images, CSS, JS) and shorter durations for HTML. Use file versioning to bust stale caches when files change.",
@@ -2683,7 +2685,7 @@
       "type": {
         "title": "Redirect Type",
         "description": "The HTTP status code used for the redirect.",
-        "details": "301 (Permanent) tells search engines the page has permanently moved — SEO value transfers to the new URL. 302 (Temporary) indicates a temporary move — search engines keep indexing the original URL. 307 (Temporary Redirect) is similar to 302 but preserves the HTTP method (POST stays POST)."
+        "details": "301 (Permanent) tells search engines the page has permanently moved - SEO value transfers to the new URL. 302 (Temporary) indicates a temporary move - search engines keep indexing the original URL. 307 (Temporary Redirect) is similar to 302 but preserves the HTTP method (POST stays POST)."
       },
       "hits": {
         "title": "Hit Count",
@@ -3010,7 +3012,7 @@
       "publishManual": "Manual",
       "publishAutoHint": "Backlink posts will be published automatically on your WordPress site via the Ghost Post plugin.",
       "publishManualHint": "You can switch to automatic publishing since your site supports it.",
-      "publishManualOnly": "Manual only — connect the Ghost Post WordPress plugin to enable automatic publishing.",
+      "publishManualOnly": "Manual only - connect the Ghost Post WordPress plugin to enable automatic publishing.",
       "aiGenerating": "AI is generating..."
     },
     "bulk": {
@@ -3920,7 +3922,7 @@
       "deleteAccount": "Delete Account",
       "deleteAccountDesc": "Archive this organization and all its data. You'll have 14 days to restore it.",
       "deleteAccountTitle": "Delete Account",
-      "deleteAccountWarning": "Your organization and all its data will be archived. You have 14 days to restore it — after that, everything will be permanently deleted.",
+      "deleteAccountWarning": "Your organization and all its data will be archived. You have 14 days to restore it - after that, everything will be permanently deleted.",
       "deleteAccountConsequences": "What happens when you delete:",
       "deleteAccountConsequence1": "All websites linked to this account will be deactivated",
       "deleteAccountConsequence2": "All content, keywords, and data will be hidden",
@@ -3982,6 +3984,10 @@
         "desktop": "Desktop",
         "mobile": "Mobile"
       }
+    },
+    "support": {
+      "title": "Support reply on #{ticketNumber}",
+      "message": "{subject}"
     },
     "auditFailed": {
       "title": "Site Audit Failed",
@@ -4341,7 +4347,7 @@
       "usingForResponses": "Using {engine} for responses"
     },
     "welcome": {
-      "greeting": "Hi! I'm your SEO agent. I can run actions on your site, analyze pages, research keywords, and fix issues — just ask. Try one of these, or type anything SEO-related:",
+      "greeting": "Hi! I'm your SEO agent. I can run actions on your site, analyze pages, research keywords, and fix issues - just ask. Try one of these, or type anything SEO-related:",
       "suggestions": {
         "siteAudit": {
           "label": "Run a full site audit",
@@ -4362,7 +4368,7 @@
       }
     },
     "contextMessages": {
-      "dashboard": "Hi! I'm your SEO agent. I can run actions on your site, analyze pages, research keywords, and fix issues — just ask. Try one of the suggestions below, or type anything SEO-related:",
+      "dashboard": "Hi! I'm your SEO agent. I can run actions on your site, analyze pages, research keywords, and fix issues - just ask. Try one of the suggestions below, or type anything SEO-related:",
       "siteInterview": "I noticed you haven't completed the technical details section. Shall I help gather that information?",
       "contentPlanner": "I can help you plan and organize content for your website. Want me to analyze trends and suggest article ideas?",
       "automations": "I can create a new automation to fix broken links automatically. Want me to set it up?",
@@ -4625,7 +4631,7 @@
       "createError": "Failed to create campaign. Please try again.",
       "existingCampaigns": "Your Campaigns",
       "topicClusterInfoTitle": "Topic Cluster Strategy",
-      "topicClusterInfoText": "This wizard creates a topic cluster — a group of related articles that link to a central pillar page. This strategy boosts SEO authority by building strong internal link structures around your core topics."
+      "topicClusterInfoText": "This wizard creates a topic cluster - a group of related articles that link to a central pillar page. This strategy boosts SEO authority by building strong internal link structures around your core topics."
     },
     "postCount": {
       "title": "Number of Posts",
@@ -4961,7 +4967,7 @@
       "downloadButton": "Download Plugin",
       "connected": "WordPress plugin connected successfully!",
       "waitingForConnection": "Waiting for plugin connection... Install and activate the plugin in WordPress.",
-      "checkConnection": "I installed & activated it — Check Connection",
+      "checkConnection": "I installed & activated it - Check Connection",
       "connectionTimeout": "We couldn't detect the plugin connection. You can try again or skip and set it up later in Settings.",
       "noSiteKey": "Plugin will be available after setup is complete.",
       "skipText": "Skip \u2014 I'll install it later"
@@ -5050,19 +5056,19 @@
         "analysisFailed": "Website analysis failed. Please try again in a moment."
       },
       "selectingLanguage": "Pick a language",
-      "languagesFound": "I detected your website in {count} languages. Pick the one to start with — on multilingual sites, each language is saved as a separate site on the platform.",
+      "languagesFound": "I detected your website in {count} languages. Pick the one to start with - on multilingual sites, each language is saved as a separate site on the platform.",
       "languageDefaultBadge": "Default",
       "detectingLanguages": "Checking if your site has multiple languages...",
       "platformLanguageConfirm": "I detected your site is built with {platform} and its language is {language}. Is that right?",
       "platformLanguageConfirmNoPlatform": "I detected your site's language is {language}. Is that right?",
       "characterConfirmIntro": "I've reviewed the content. This is {name}{nicheClause}. {description} Does this match the site's character and goals?",
       "characterNicheClause": ", specializing in {niche}",
-      "seoIssuesIntro": "Before we finish — I ran a quick SEO check on your site and spotted {count} issues worth addressing:",
+      "seoIssuesIntro": "Before we finish - I ran a quick SEO check on your site and spotted {count} issues worth addressing:",
       "seoIssuesOutro": "A deeper scan will likely surface more, and you'll be able to fix most of them with one click via the Ghost Agent. Shall we continue?",
       "seoIssues": {
         "MISSING_TITLE": {
           "title": "Missing Title tag",
-          "description": "Your site has no title tag — a critical SEO factor."
+          "description": "Your site has no title tag - a critical SEO factor."
         },
         "SHORT_TITLE": {
           "title": "Title too short ({length} chars)",
@@ -5612,7 +5618,8 @@
       "start": "Start",
       "continue": "Continue",
       "finish": "Finish",
-      "nextStage": "Next stage"
+      "nextStage": "Next stage",
+      "waitingForAction": "Waiting for your action…"
     },
     "helpButton": {
       "ariaLabel": "Open guides center"
@@ -5620,9 +5627,133 @@
     "guidesCenter": {
       "title": "Guides & Walkthroughs",
       "subtitle": "Replay guided tours or jump into a specific walkthrough.",
+      "progress": "{completed} of {total} guides completed",
+      "minutes": "{n} min",
+      "comingSoonBadge": "Coming soon",
       "replayFirstRun": "Replay first-run onboarding",
       "replayFirstRunHint": "Start the full welcome tour from the beginning.",
-      "comingSoon": "More guides coming soon."
+      "replayFirstRunCompletedHint": "Completed - click to replay from the beginning.",
+      "comingSoon": "More guides coming soon.",
+      "categories": {
+        "ALL": "All",
+        "CORE": "Core",
+        "STRATEGY": "Strategy",
+        "ENTITIES": "Entities",
+        "TECHNICAL_SEO": "Technical SEO",
+        "SEO_EDITOR": "SEO Editor",
+        "LINKS": "Links",
+        "AUTOMATION": "Automation"
+      }
+    },
+    "guides": {
+      "connect-analytics": {
+        "title": "Connect Analytics",
+        "description": "Link Google Analytics and Search Console to unlock traffic, impressions, and CTR data across the platform."
+      },
+      "install-plugin": {
+        "title": "Install WordPress Plugin",
+        "description": "Install the GhostPost plugin on your WordPress site so the platform can read content, push SEO fixes, and run audits directly."
+      },
+      "detect-entities": {
+        "title": "Detect Entities",
+        "description": "Automatically discover your pages, posts, and media. Entities are the foundation for every audit, suggestion, and automation."
+      },
+      "keywords": {
+        "title": "Keyword Strategy",
+        "description": "Build a tailored keyword list with AI, track volume and competition, and assign keywords to target pages."
+      },
+      "competitors": {
+        "title": "Competitors",
+        "description": "Let AI discover competitors, benchmark their SEO footprint, and surface content gaps you can win."
+      },
+      "site-audit": {
+        "title": "Site Audit",
+        "description": "Run a deep technical audit of every page - issues, warnings, and fixes prioritized by impact."
+      },
+      "ai-agent": {
+        "title": "AI Agent",
+        "description": "Chat with your site's data. Ask questions, get recommendations, and let the agent take action on your behalf."
+      },
+      "content-planner": {
+        "title": "Content Planner",
+        "description": "Plan and schedule articles, briefs, and topical clusters. Keep a roadmap of what to publish and when."
+      },
+      "content-wizard": {
+        "title": "AI Content Wizard",
+        "description": "Generate fully-SEO-optimized articles in minutes - outlines, drafts, images, internal links, and metadata."
+      },
+      "dashboard-home": {
+        "title": "Dashboard Home",
+        "description": "Your daily command center - KPIs, recent activity, and quick jumps into every area of the platform."
+      },
+      "my-websites": {
+        "title": "My Websites",
+        "description": "Manage every site you run from a single place - switch between them, add new ones, and configure each independently."
+      },
+      "notifications": {
+        "title": "Notifications",
+        "description": "Track task progress, alerts, and background jobs in one inbox so nothing slips through the cracks."
+      },
+      "settings": {
+        "title": "Settings",
+        "description": "Account preferences, team members, integrations, and billing - everything that runs your workspace lives here."
+      },
+      "strategy-hub": {
+        "title": "Strategy Hub",
+        "description": "A tour of the strategy area - site profile, keywords, competitors, content planner, and the AI content wizard."
+      },
+      "site-profile": {
+        "title": "Site Profile (AI Interview)",
+        "description": "Answer a short AI-guided interview so GhostPost understands your business, audience, and goals. Every other feature gets smarter after this."
+      },
+      "entities-manager": {
+        "title": "Entities Manager",
+        "description": "Browse, filter, and edit every piece of content GhostPost tracks - pages, posts, categories, media, and more."
+      },
+      "sitemaps": {
+        "title": "Sitemaps",
+        "description": "Import XML sitemaps, re-sync on demand, and see exactly which URLs GhostPost is monitoring."
+      },
+      "media-library": {
+        "title": "Media Library",
+        "description": "Search, tag, and optimize every image on your site - alt text, compression, and format conversion from one place."
+      },
+      "technical-seo-hub": {
+        "title": "Technical SEO Hub",
+        "description": "A tour of the technical SEO area - audits, redirections, image optimization, and other on-site fixes."
+      },
+      "redirections": {
+        "title": "Redirections",
+        "description": "Create and manage 301/302 redirects to preserve link equity when URLs change. Import, export, and validate in bulk."
+      },
+      "webp-converter": {
+        "title": "WebP Converter",
+        "description": "Batch-convert site images to WebP for faster page loads without quality loss. Track savings per file."
+      },
+      "seo-backend": {
+        "title": "SEO Backend",
+        "description": "Edit meta titles, descriptions, canonicals, schema, and robots directives for every page - bulk-edit mode included."
+      },
+      "seo-frontend": {
+        "title": "SEO Frontend",
+        "description": "Preview exactly how each page appears in Google, social cards, and rich results before you publish."
+      },
+      "visual-editor": {
+        "title": "Visual Editor",
+        "description": "Edit on-page content visually without writing code - see SEO scoring and suggestions live as you type."
+      },
+      "backlinks": {
+        "title": "Backlinks",
+        "description": "Track inbound links, monitor lost or broken backlinks, and analyze referring domains across your whole profile."
+      },
+      "link-building": {
+        "title": "Link Building",
+        "description": "Run outreach campaigns - find prospects, send templated emails, and track replies directly inside GhostPost."
+      },
+      "automations": {
+        "title": "Automations",
+        "description": "Wire up triggers and actions so SEO fixes, content updates, and alerts happen without manual intervention."
+      }
     },
     "greeting": {
       "title": "Welcome to GhostPost",
@@ -5700,12 +5831,20 @@
       "step3": {
         "title": "Connect with Google",
         "content": "Click here to authorize GhostPost to read your Search Console and Analytics data."
+      },
+      "stepGa": {
+        "title": "Enable Google Analytics",
+        "content": "Grant Analytics permissions and pick the GA4 property for this site. GhostPost uses it to surface traffic, engagement, and conversion signals."
+      },
+      "stepGsc": {
+        "title": "Enable Search Console",
+        "content": "Grant Search Console permissions and pick the matching site. This unlocks keyword, impression, and ranking data across the platform."
       }
     },
     "detectEntities": {
       "step1": {
         "title": "Open Entities",
-        "content": "Entities are the content types on your site — pages, posts, products, and more."
+        "content": "Entities are the content types on your site - pages, posts, products, and more."
       },
       "step2": {
         "title": "Your entity workspace",
@@ -5713,15 +5852,22 @@
       },
       "step3": {
         "title": "Detect your platform",
-        "content": "Run detection so we can identify whether your site runs on WordPress, Shopify, or another CMS."
+        "content": "Click Detect so we can identify whether your site runs on WordPress, Shopify, or another CMS.",
+        "actionHint": "Detecting - auto-continues when ready…"
+      },
+      "stepScan": {
+        "title": "Scan your site",
+        "content": "Click Scan to crawl your sitemap (or fall back to a full site crawl). This is what uncovers every entity type GhostPost can track.",
+        "actionHint": "Scanning - auto-continues when entities appear…"
       },
       "step4": {
         "title": "Pick your entity types",
-        "content": "After discovery, select the content types you want GhostPost to track — pages, posts, products, and anything else that lives on your site."
+        "content": "Review what we found and toggle the content types you want GhostPost to track - pages, posts, products, and anything else that lives on your site."
       },
       "step5": {
         "title": "Populate your entities",
-        "content": "Hit Save & Populate to pull every URL for the selected types into your workspace. This is what makes the rest of GhostPost useful."
+        "content": "Hit Save & Populate to kick off the sync. It runs in the background - we'll notify you from the tasks tray when every URL is in, so you can move on.",
+        "actionHint": "Waiting for you to start the sync…"
       }
     },
     "installPlugin": {
@@ -5743,9 +5889,14 @@
         "title": "Your keyword workspace",
         "content": "Track rankings, search volume, and intent for every keyword that matters to your business."
       },
-      "step3": {
-        "title": "Add your first keyword",
-        "content": "Click here to add the primary keyword you want to rank for — we'll pull volume and competition data automatically."
+      "stepAiInterview": {
+        "title": "Start with the AI Interview",
+        "content": "The fastest way to seed your keyword list: answer a few questions about your business and GhostPost will build a tailored keyword set for you.",
+        "actionHint": "Waiting for you to start the interview…"
+      },
+      "stepAdd": {
+        "title": "Or add keywords manually",
+        "content": "Prefer to add keywords yourself? Click here to enter one - we'll pull volume and competition data automatically."
       }
     },
     "competitors": {
@@ -5757,9 +5908,14 @@
         "title": "Your competitor workspace",
         "content": "Compare keyword overlap, content gaps, and ranking trends side by side."
       },
-      "step3": {
-        "title": "Add a competitor",
-        "content": "Add a competitor domain manually, or let the AI discover competitors based on your keywords."
+      "stepAiDiscover": {
+        "title": "Let AI find your competitors",
+        "content": "Click here and GhostPost will analyze your keywords to surface the competitors that actually matter. Pick the ones you want to track.",
+        "actionHint": "Waiting for you to pick competitors and save…"
+      },
+      "stepAdd": {
+        "title": "Or add one manually",
+        "content": "Already know a competitor you want to track? Add their domain here."
       }
     },
     "siteAudit": {
@@ -5773,7 +5929,7 @@
       },
       "step3": {
         "title": "Run your first audit",
-        "content": "Click here to kick off a full audit — results usually arrive in a few minutes."
+        "content": "Click here to kick off a full audit - results usually arrive in a few minutes."
       }
     },
     "aiAgent": {
@@ -5811,7 +5967,99 @@
       },
       "step2": {
         "title": "Your wizard workspace",
-        "content": "Pick a keyword, let GhostPost draft, review the output, and publish — all from here."
+        "content": "Pick a keyword, let GhostPost draft, review the output, and publish - all from here."
+      }
+    },
+    "dashboardHome": {
+      "step1": {
+        "title": "Dashboard",
+        "content": "This is your daily launch pad - one click gets you back to an at-a-glance view of the site you're working on."
+      },
+      "step2": {
+        "title": "The site you're managing",
+        "content": "The logo, name, and URL up top confirm which website every metric and action on this page refers to."
+      },
+      "step3": {
+        "title": "Your top-line KPIs",
+        "content": "Live numbers from Google Analytics and Search Console - visitors, impressions, clicks, CTR, and average position. Swipe through the row to see all of them."
+      },
+      "step4": {
+        "title": "Traffic over time",
+        "content": "Track visitors, page views, sessions, new users, and engaged sessions. Toggle each line on or off in the legend, and use the date selector to zoom in."
+      },
+      "step5": {
+        "title": "Top keywords and pages",
+        "content": "See exactly which queries and URLs are driving results from Google Search. Click a keyword to add it to tracking or generate a post around it."
+      },
+      "step6": {
+        "title": "AI traffic insights",
+        "content": "GhostPost tracks AI-referred traffic separately - ChatGPT, Perplexity, Gemini, and more - so you can see how AI engines are discovering your content."
+      }
+    },
+    "myWebsites": {
+      "step1": {
+        "title": "My Websites",
+        "content": "Every site you manage lives here. Switch between them, add new ones, and configure each one independently."
+      },
+      "step2": {
+        "title": "Your sites at a glance",
+        "content": "Name, URL, platform, connection status, and when each site was added - everything you need to keep them organized."
+      },
+      "step3": {
+        "title": "Add a new website",
+        "content": "Click here to onboard a new site. We'll pull its URL, detect the platform, and run a short AI interview to tune the experience to that site."
+      },
+      "step4": {
+        "title": "Search your sites",
+        "content": "If you manage a lot of properties, search by name or URL to find the one you want in a click."
+      },
+      "step5": {
+        "title": "Table or cards",
+        "content": "Toggle between a compact table and a card grid - whichever layout fits your workflow best."
+      },
+      "step6": {
+        "title": "Manage, rename, or remove",
+        "content": "Click a row to jump into that site's dashboard. The actions column lets you rename a site or remove it entirely."
+      }
+    },
+    "notifications": {
+      "step1": {
+        "title": "Notification Center",
+        "content": "Every alert, job update, and agent insight lands here so nothing slips through the cracks."
+      },
+      "step2": {
+        "title": "Your unified inbox",
+        "content": "Audits, content jobs, plugin events, AI insights - all in one feed. The subtitle always shows how many are still unread."
+      },
+      "step3": {
+        "title": "Filter the feed",
+        "content": "Focus on unread items, revisit read ones, or see the full history. Use this when the feed gets busy."
+      },
+      "step4": {
+        "title": "Act on a notification",
+        "content": "Click any item to jump straight to the related page. Use the icons on each row to toggle read/unread or dismiss. The top-right actions mark everything read or clear the whole list."
+      }
+    },
+    "settings": {
+      "step1": {
+        "title": "Settings",
+        "content": "Everything that configures your workspace lives here - per-site options, integrations, team members, billing, and more."
+      },
+      "step2": {
+        "title": "Website vs. Account",
+        "content": "Switch between settings that apply to the selected website (AI, scheduling, SEO) and settings that apply to your whole account (users, roles, billing, profile)."
+      },
+      "step3": {
+        "title": "Pick a section",
+        "content": "Each sub-tab opens a dedicated settings panel. Tabs you can see depend on your role and permissions."
+      },
+      "step4": {
+        "title": "Integrations live here",
+        "content": "Google Analytics, Search Console, and the WordPress plugin connect from the Integrations tab. If something on the dashboard says \"not connected,\" this is where you fix it."
+      },
+      "step5": {
+        "title": "Save your changes",
+        "content": "The active panel opens here. Adjust what you need and hit Save - changes apply instantly to the selected site or account."
       }
     },
     "finished": {
@@ -6868,22 +7116,49 @@
     },
     "dashboard": {
       "title": "Super Admin Dashboard",
-      "subtitle": "Platform-wide AI cost analytics & profitability overview",
+      "subtitle": "Platform-wide overview, usage, and health",
       "retry": "Retry",
+      "refresh": "Refresh",
+      "viewAll": "View all",
+      "groups": {
+        "financial": "Financial",
+        "platform": "Platform",
+        "health": "System Health"
+      },
       "widgets": {
         "mrr": "Monthly Recurring Revenue",
+        "arr": "ARR",
         "aiCost30d": "AI Cost (30 days)",
         "profitMargin": "Profit Margin",
         "profitMarginValue": "Profit Margin ($)",
         "revenueMinusCost": "Revenue: ${revenue} − Cost: ${cost}",
+        "netProfit": "Net Profit (30d)",
+        "margin": "margin",
+        "avgRevPerAccount": "Avg Revenue / Account",
         "creditsConsumed": "AI Credits Consumed",
         "totalTokens": "Total Tokens (Input + Output)",
-        "inOut": "In: {input} | Out: {output}"
+        "inOut": "In: {input} | Out: {output}",
+        "totalAccounts": "Total Accounts",
+        "last30d": "last 30d",
+        "totalUsers": "Total Users",
+        "activeSubs": "Active Subscriptions",
+        "totalSites": "Total Sites",
+        "publishedLast30d": "Content Published (30d)",
+        "today": "today",
+        "activeImpersonations": "Active Impersonations",
+        "contentFailed7d": "Failed Publishes (7d)",
+        "supportOpen": "Open Support Tickets",
+        "paymentsFailed30d": "Failed Payments (30d)",
+        "jobsFailed24h": "Failed Background Jobs (24h)"
       },
       "chart": {
         "title": "AI Cost vs Revenue (Last 30 Days)",
         "revenue": "Revenue",
-        "aiCost": "AI Cost"
+        "aiCost": "AI Cost",
+        "signups": "New Signups (30d)",
+        "signupsLabel": "Signups",
+        "published": "Content Published (30d)",
+        "publishedLabel": "Published"
       },
       "topAccounts": {
         "title": "Top 5 Accounts by AI Cost",
@@ -6898,7 +7173,43 @@
         },
         "costOverRevenue": "Cost > Revenue",
         "profitable": "Profitable"
+      },
+      "costOverRevenue": {
+        "title": "Accounts where AI cost exceeds revenue",
+        "delta": "Delta"
+      },
+      "recentSignups": {
+        "title": "Recent signups",
+        "empty": "No new signups in the last 30 days"
+      },
+      "failedPublishes": {
+        "title": "Recent failed publishes",
+        "empty": "No failed publishes in the last 7 days"
+      },
+      "openTickets": {
+        "title": "Open support tickets",
+        "subject": "Subject",
+        "account": "Account",
+        "priority": "Priority",
+        "status": "Status",
+        "lastMessage": "Last message",
+        "empty": "No open tickets"
       }
+    },
+    "nav": {
+      "title": "Admin Panel",
+      "overview": "Overview",
+      "exitToDashboard": "Exit to Dashboard",
+      "sections": {
+        "overview": "Overview",
+        "billing": "Accounts & Billing",
+        "contentOps": "Content Ops",
+        "system": "System"
+      }
+    },
+    "header": {
+      "toggleToAdmin": "Admin view",
+      "toggleToUser": "User view"
     },
     "accountAnalytics": {
       "back": "Back to Admin Dashboard",
@@ -7555,7 +7866,7 @@
       },
       "weekendTrafficPattern": {
         "title": "Weekday vs Weekend Traffic Pattern",
-        "description": "Your traffic is {skewPercent}% higher on {dominantPeriod}s — averaging {weekdayAvg} visitors on weekdays vs {weekendAvg} on weekends. This reveals your audience behavior and can guide content scheduling."
+        "description": "Your traffic is {skewPercent}% higher on {dominantPeriod}s - averaging {weekdayAvg} visitors on weekdays vs {weekendAvg} on weekends. This reveals your audience behavior and can guide content scheduling."
       },
       "trafficSpike": {
         "title": "Traffic Spike Detected",
@@ -7575,11 +7886,11 @@
       },
       "aiCitedByEngine": {
         "title": "Cited by {engine}",
-        "description": "{engine} is driving {sessions} sessions ({sharePercent}% of your AI traffic) in {periodStart} to {periodEnd}. Your content is being surfaced in this engine's answers — keep reinforcing the patterns that work here."
+        "description": "{engine} is driving {sessions} sessions ({sharePercent}% of your AI traffic) in {periodStart} to {periodEnd}. Your content is being surfaced in this engine's answers - keep reinforcing the patterns that work here."
       },
       "aiEngineGap": {
         "title": "AI Engine Coverage Gap",
-        "description": "{page} gets strong traffic from {primaryEngine} ({primarySessions} sessions) but is invisible to {missingEngines}. Each AI engine weights signals differently — broaden coverage by clarifying the page's core answer, adding structured data, and improving topical depth."
+        "description": "{page} gets strong traffic from {primaryEngine} ({primarySessions} sessions) but is invisible to {missingEngines}. Each AI engine weights signals differently - broaden coverage by clarifying the page's core answer, adding structured data, and improving topical depth."
       },
       "aiPageMissingSchema": {
         "title": "Top AI Page Missing Schema",
@@ -7587,7 +7898,7 @@
       },
       "aiAnswerableButNotConcise": {
         "title": "AI-Landing Page Not Concise",
-        "description": "{page} is cited by AI engines but its first paragraph is {firstParaWords} words and has no TL;DR or FAQ block. AI models prefer pages that answer the question in the first 60 words — add a short summary up top."
+        "description": "{page} is cited by AI engines but its first paragraph is {firstParaWords} words and has no TL;DR or FAQ block. AI models prefer pages that answer the question in the first 60 words - add a short summary up top."
       },
       "trafficConcentration": {
         "title": "Traffic Over-Concentrated",
@@ -7595,7 +7906,7 @@
       },
       "sgeTrafficTheft": {
         "title": "SGE Traffic Theft Detected on Top Keywords",
-        "description": "{count} top-ranking keywords lost significant CTR despite stable positions and impressions in {periodStart} to {periodEnd} vs {comparePeriodStart} to {comparePeriodEnd}. An estimated {totalClicksLost} clicks were lost — likely absorbed by Google's AI Overviews. Inject personal experience, proprietary data, or strong opinions into these pages to combat AI-generated answers."
+        "description": "{count} top-ranking keywords lost significant CTR despite stable positions and impressions in {periodStart} to {periodEnd} vs {comparePeriodStart} to {comparePeriodEnd}. An estimated {totalClicksLost} clicks were lost - likely absorbed by Google's AI Overviews. Inject personal experience, proprietary data, or strong opinions into these pages to combat AI-generated answers."
       },
       "missingFeaturedImage": {
         "title": "Posts Missing Featured Images",
@@ -7615,7 +7926,7 @@
       },
       "multipleH1Tags": {
         "title": "Pages With Multiple H1 Tags",
-        "description": "{count} published pages have more than one H1 heading tag. Each page should have exactly one H1 tag — multiple H1 tags dilute heading hierarchy and can confuse search engines."
+        "description": "{count} published pages have more than one H1 heading tag. Each page should have exactly one H1 tag - multiple H1 tags dilute heading hierarchy and can confuse search engines."
       }
     },
     "detailLabels": {
@@ -7690,7 +8001,7 @@
       "mergeInstructionsLabel": "Merge Instructions for AI",
       "mergeInstructionsPlaceholder": "Add custom instructions for how the AI should merge the content...",
       "mergePlanLabel": "AI Merge Plan (Edit before applying)",
-      "mergePlanHint": "Review the AI's merge plan below. Edit, remove, or add your own instructions — this brief drives the final content generation.",
+      "mergePlanHint": "Review the AI's merge plan below. Edit, remove, or add your own instructions - this brief drives the final content generation.",
       "mergedPagePreview": "Merged Page Preview",
       "articleType": "Article Type",
       "contentImagesToGenerate": "Content images to generate",
@@ -7815,7 +8126,7 @@
         "creditsCost": "Credits Cost",
         "creditsExplanation": "This process costs {creditsPerPage} AI credits per supporting page. For {pageCount} competing pages, the analysis will cost {analysisCost} credits. Execution costs will be shown before approval.",
         "estimatedTime": "Estimated Time",
-        "timeExplanation": "The AI analysis typically takes 1-3 minutes depending on content length. You can navigate away — the process runs in the background and you'll be notified when it's ready.",
+        "timeExplanation": "The AI analysis typically takes 1-3 minutes depending on content length. You can navigate away - the process runs in the background and you'll be notified when it's ready.",
         "whileRunning": "While Running",
         "whileRunningExplanation": "You can continue using the platform normally. The analysis runs in the background. A notification will appear when the strategy is ready for your review.",
         "reviewBefore": "Review Before Applying",
@@ -7831,10 +8142,10 @@
         "failedTitle": "Differentiation Failed",
         "successSummary": "{success} of {total} supporting pages differentiated",
         "failedSuffix": "({failed} failed)",
-        "processingHint": "You can close this window — the process continues in the background.",
+        "processingHint": "You can close this window - the process continues in the background.",
         "alphaDescription": "This is your strongest page. It will not be altered. Other pages will link to it.",
         "gscClicks": "{clicks} GSC clicks",
-        "supportingTitle": "Supporting Pages — Proposed Changes",
+        "supportingTitle": "Supporting Pages - Proposed Changes",
         "newIntent": "New Search Intent",
         "h1Change": "H1 Change",
         "contentChanges": "Content Changes ({count} paragraph)",
@@ -7843,7 +8154,7 @@
         "closeButton": "Close",
         "executingButton": "Executing...",
         "executeButton": "Approve & Execute Fixes ({credits} Credits)",
-        "executedBanner": "Fixes executed on {date} — {credits} credits used",
+        "executedBanner": "Fixes executed on {date} - {credits} credits used",
         "failedMessage": "An unexpected error occurred",
         "diffOld": "Old",
         "diffNew": "New"
@@ -7852,6 +8163,168 @@
         "completed": "Content differentiation strategy is ready for review!",
         "pagesDifferentiated": "{count} pages differentiated"
       }
+    }
+  },
+  "support": {
+    "title": "Support",
+    "subtitle": "Get help from our team",
+    "newTicket": "New ticket",
+    "accessCodes": "Support access",
+    "noTickets": "No support tickets yet",
+    "noTicketsHint": "Open a ticket to get help from our team.",
+    "ticketNumber": "#{number}",
+    "subject": "Subject",
+    "subjectPlaceholder": "Briefly describe the issue",
+    "body": "Message",
+    "bodyPlaceholder": "Describe what's happening, what you expected, and any steps to reproduce.",
+    "category": "Category",
+    "send": "Send",
+    "sending": "Sending…",
+    "reply": "Reply",
+    "replyPlaceholder": "Type your reply…",
+    "closeTicket": "Close ticket",
+    "reopenTicket": "Reopen",
+    "closedNote": "This ticket is closed. Open a new ticket to continue.",
+    "resolvedNote": "Marked resolved by support - replying will reopen it.",
+    "back": "Back to tickets",
+    "you": "You",
+    "support": "Support",
+    "system": "System",
+    "loading": "Loading…",
+    "loadFailed": "Failed to load tickets",
+    "createFailed": "Couldn't create the ticket",
+    "replyFailed": "Couldn't send your reply",
+    "filters": {
+      "all": "All",
+      "open": "Open",
+      "pendingAdmin": "Awaiting support",
+      "pendingUser": "Awaiting you",
+      "resolved": "Resolved",
+      "closed": "Closed"
+    },
+    "categories": {
+      "BILLING": "Billing",
+      "TECHNICAL": "Technical",
+      "BUG": "Bug report",
+      "FEATURE_REQUEST": "Feature request",
+      "GENERAL": "General"
+    },
+    "statuses": {
+      "OPEN": "Open",
+      "PENDING_USER": "Awaiting you",
+      "PENDING_ADMIN": "Awaiting support",
+      "RESOLVED": "Resolved",
+      "CLOSED": "Closed"
+    },
+    "priorities": {
+      "LOW": "Low",
+      "NORMAL": "Normal",
+      "HIGH": "High",
+      "URGENT": "Urgent"
+    },
+    "admin": {
+      "title": "Support tickets",
+      "subtitle": "Cross-account ticket queue",
+      "loadFailed": "Failed to load tickets",
+      "replyFailed": "Couldn't send the reply",
+      "notFound": "Ticket not found",
+      "empty": "No tickets match these filters.",
+      "searchPlaceholder": "Search by subject…",
+      "refresh": "Refresh",
+      "unassigned": "Unassigned",
+      "assigned": "Assigned to",
+      "fields": "Ticket fields",
+      "actions": "Actions",
+      "account": "Account",
+      "accountName": "Name",
+      "openedBy": "Opened by",
+      "userEmail": "Email",
+      "created": "Created",
+      "lastActivity": "Last activity",
+      "internalNote": "Internal note",
+      "internalToggle": "Internal note (only visible to admins)",
+      "internalPlaceholder": "Internal note - not visible to the user…",
+      "replyPlaceholder": "Reply to the user…",
+      "saveNote": "Save note",
+      "markResolved": "Mark resolved",
+      "closedReplyNote": "This ticket is closed. Replying will reopen it.",
+      "stats": {
+        "open": "Open",
+        "awaitingAdmin": "Awaiting reply",
+        "assignedToMe": "Assigned to me",
+        "urgent": "Urgent",
+        "total": "Total"
+      },
+      "filters": {
+        "anyStatus": "Any status",
+        "anyPriority": "Any priority",
+        "anyCategory": "Any category",
+        "assignedToMe": "Assigned to me"
+      },
+      "columns": {
+        "subject": "Subject",
+        "account": "Account",
+        "status": "Status",
+        "priority": "Priority",
+        "category": "Category",
+        "assigned": "Assigned",
+        "lastActivity": "Last activity"
+      }
+    },
+    "access": {
+      "title": "Support access codes",
+      "subtitle": "Generate a one-time code that lets a Ghost Post support engineer view your account.",
+      "backToSupport": "Back to support",
+      "howItWorks": "How support access works",
+      "howItWorksDesc": "Generate a code, share it with our support team, and they can sign in as you for a limited time. Only you can issue codes - admins cannot create them. You can revoke any active code at any moment.",
+      "generateTitle": "Generate a new code",
+      "generateDesc": "The code is shown once. We store only a hash - if you lose it, generate a new one.",
+      "scopeLabel": "Access level",
+      "scopeReadOnly": "Read-only",
+      "scopeReadOnlyDesc": "Support can view your screens but cannot save changes, send messages, or trigger billing actions.",
+      "scopeFull": "Full access",
+      "scopeFullDesc": "Support can take any action you can, including changes to settings and content.",
+      "ttlLabel": "Code expires after",
+      "ttl": {
+        "m15": "15 minutes",
+        "h1": "1 hour",
+        "h4": "4 hours",
+        "h24": "24 hours"
+      },
+      "reasonLabel": "Reason (optional)",
+      "reasonPlaceholder": "What do you need help with?",
+      "reasonHint": "Helps you remember why you issued this code. Visible to support.",
+      "generateButton": "Generate code",
+      "createFailed": "Couldn't generate the code. Please try again.",
+      "loadFailed": "Couldn't load your access codes",
+      "loading": "Loading…",
+      "codeReady": "Code ready - share it with support",
+      "codeReadyDesc": "This is the only time we'll show the full code. Copy it now and send it to support through the ticket where you need help.",
+      "copy": "Copy",
+      "copied": "Copied",
+      "dismissCode": "I've saved the code, hide it",
+      "historyTitle": "Recent codes",
+      "historyDesc": "Codes you've issued, plus any sessions admins started with them.",
+      "noGrants": "No codes yet",
+      "noGrantsHint": "When you generate a support access code, it will appear here.",
+      "createdAt": "Created {date}",
+      "expired": "Expired",
+      "expiresInMinutes": "Expires in {count} min",
+      "expiresInHours": "Expires in {count} h",
+      "expiresInDays": "Expires in {count} d",
+      "status": {
+        "active": "Active",
+        "used": "Used",
+        "expired": "Expired",
+        "revoked": "Revoked"
+      },
+      "revoke": "Revoke",
+      "revokeConfirm": "Revoke this code? Any live support session using it will end immediately.",
+      "revokeFailed": "Couldn't revoke the code",
+      "sessionsLabel": "Sessions",
+      "sessionLive": "Live",
+      "sessionEnded": "Ended ({reason})",
+      "unknownAdmin": "Support engineer"
     }
   }
 }

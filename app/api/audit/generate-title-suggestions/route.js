@@ -135,13 +135,26 @@ ${pagesContext}
 
 Generate a new title for each page.`;
 
-    // Deduct credits for AI generation
+    const MODEL = 'gemini-2.5-pro';
+    const result = await generateObject({
+      model: google(MODEL),
+      schema: suggestionsSchema,
+      messages: [{ role: 'user', content: prompt }],
+      temperature: 0.4,
+    });
+
+    const usage = result.usage || {};
     const deduction = await deductAiCredits(site.accountId, 1, {
       userId: user.id,
       siteId,
       source: 'ai_title_suggestions',
       description: `AI Title Suggestions: ${fixableUrls.length} page(s)`,
-      metadata: { model: 'gemini-2.5-pro' },
+      metadata: {
+        model: MODEL,
+        inputTokens: usage.inputTokens || 0,
+        outputTokens: usage.outputTokens || 0,
+        totalTokens: usage.totalTokens || 0,
+      },
     });
     if (!deduction.success) {
       const isInsufficient = deduction.error?.includes('Insufficient');
@@ -150,13 +163,6 @@ Generate a new title for each page.`;
         { status: 402 }
       );
     }
-
-    const result = await generateObject({
-      model: google('gemini-2.5-pro'),
-      schema: suggestionsSchema,
-      messages: [{ role: 'user', content: prompt }],
-      temperature: 0.4,
-    });
 
     return NextResponse.json({
       suggestions: result.object.suggestions,

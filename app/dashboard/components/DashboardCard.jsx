@@ -1,8 +1,8 @@
 import styles from './shared.module.css';
 
-export function DashboardCard({ title, subtitle, headerRight, children, className = '' }) {
+export function DashboardCard({ title, subtitle, headerRight, children, className = '', dataOnboarding }) {
   return (
-    <div className={`${styles.dashboardCard} ${className}`}>
+    <div className={`${styles.dashboardCard} ${className}`} data-onboarding={dataOnboarding}>
       <div className={styles.dashboardCardGlow} />
       <div className={styles.dashboardCardContent}>
         {(title || headerRight) && (

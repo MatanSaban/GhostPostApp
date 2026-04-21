@@ -57,7 +57,7 @@ export async function GET(request) {
       return NextResponse.json({ error: 'Site not found' }, { status: 404 });
     }
 
-    // Fetch last 10 completed audits (light — only scores + dates + issue counts)
+    // Fetch last 10 completed audits (light - only scores + dates + issue counts)
     const audits = await prisma.siteAudit.findMany({
       where: {
         siteId,

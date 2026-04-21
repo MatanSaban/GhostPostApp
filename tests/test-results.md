@@ -265,7 +265,7 @@ Total: 11 PASS, 0 FAIL
 **Status:** PASS
 
 ```
-=== TEST 04: Code Audit — AI Action Tracking ===
+=== TEST 04: Code Audit - AI Action Tracking ===
 
 --- Section 1: gemini.js wrappers ---
 --- Section 2: Routes using gemini.js (should pass accountId) ---
@@ -279,56 +279,56 @@ Total: 11 PASS, 0 FAIL
 
 === RESULTS ===
 
-✅ [PASS] generateTextResponse uses usage.inputTokens — OK
-✅ [PASS] generateStructuredResponse uses usage.inputTokens — OK
-✅ [PASS] generateImage uses usage.inputTokens — OK
-✅ [PASS] trackAIUsage called when accountId provided — OK
-✅ [PASS] keywords/generate-post: passes accountId — accountId found in file
-✅ [PASS] keywords/suggest-article-type: passes accountId — accountId found in file
-✅ [PASS] keywords/suggest-related: passes accountId — accountId found in file
-✅ [PASS] backlinks/generate-listing: passes accountId — accountId found in file
-✅ [PASS] worker/generate-article: passes accountId — accountId found in file
-✅ [PASS] campaigns/suggest-keyword: passes accountId — accountId found in file
-✅ [PASS] campaigns/recommend-subjects: passes accountId — accountId found in file
-✅ [PASS] sites/validate: passes accountId — accountId found in file
-✅ [PASS] sites/suggest-name: passes accountId — accountId found in file
-✅ [PASS] sites/tools/ai-optimize-image: passes accountId — accountId found in file
-✅ [PASS] sites/tools/ai-image-optimize: passes accountId — accountId found in file
-✅ [PASS] entities/discover: passes accountId — accountId found in file
-✅ [PASS] entities/refresh: passes accountId — accountId found in file
-✅ [PASS] entities/detect-platform: passes accountId — accountId found in file
-✅ [PASS] entities/scan: passes accountId — accountId found in file
-✅ [PASS] interview/analyze: passes accountId — accountId found in file
-✅ [PASS] agent/insights/suggest-traffic: passes accountId — accountId found in file
-✅ [PASS] competitors/discover: passes accountId — accountId found in file
-✅ [PASS] cron/generate-reports: passes accountId — accountId found in file
-✅ [PASS] reports/generate: passes accountId — accountId found in file
-✅ [PASS] analyzeKeywordIntent passes accountId — OK
-✅ [PASS] keywords PATCH passes tracking params — OK
-✅ [PASS] audit/fix-issue: deductAiCredits with metadata (AI route) — OK
-✅ [PASS] audit/a11y-fix: deductAiCredits with metadata (AI route) — OK
-✅ [PASS] audit/rescan: deductAiCredits (no-AI apply route) — No token metadata needed (no AI call)
-✅ [PASS] audit/apply-title-fix: deductAiCredits (no-AI apply route) — No token metadata needed (no AI call)
-✅ [PASS] audit/apply-og-fix: deductAiCredits (no-AI apply route) — No token metadata needed (no AI call)
-✅ [PASS] audit/apply-description-fix: deductAiCredits (no-AI apply route) — No token metadata needed (no AI call)
-✅ [PASS] audit/apply-alt-fix: deductAiCredits (no-AI apply route) — No token metadata needed (no AI call)
-✅ [PASS] audit/apply-image-format-fix: deductAiCredits (no-AI apply route) — No token metadata needed (no AI call)
-✅ [PASS] audit/fix-404: deductAiCredits (no-AI apply route) — No token metadata needed (no AI call)
-✅ [PASS] lib/ai/service.js: no old SDK property names — No legacy SDK names found
-✅ [PASS] lib/ai/image-context.js: no old SDK property names — No legacy SDK names found
-✅ [PASS] lib/audit/vision-analyzer.js: no old SDK property names — No legacy SDK names found
-✅ [PASS] lib/audit/summary-generator.js: no old SDK property names — No legacy SDK names found
-✅ [PASS] app/api/audit/translate-summary/route.js: no old SDK property names — No legacy SDK names found
-✅ [PASS] app/api/audit/translate-issues/route.js: no old SDK property names — No legacy SDK names found
-✅ [PASS] app/api/campaigns/generate-subjects/route.js: no old SDK property names — No legacy SDK names found
-✅ [PASS] app/api/sites/[id]/logo/route.js: no old SDK property names — No legacy SDK names found
-✅ [PASS] trackAIUsage stores inputTokens in metadata — OK
-✅ [PASS] trackAIUsage creates DEBIT log entry — OK
-✅ [PASS] deductAiCredits accepts metadata parameter — OK
-✅ [PASS] reads meta.inputTokens — OK
-✅ [PASS] reads meta.outputTokens — OK
-✅ [PASS] calls calculateTokenCost — OK
-✅ [PASS] executeDifferentiationFixes: no active deductAiCredits call — No double-counting — credits tracked via gemini.js trackAIUsage
+✅ [PASS] generateTextResponse uses usage.inputTokens - OK
+✅ [PASS] generateStructuredResponse uses usage.inputTokens - OK
+✅ [PASS] generateImage uses usage.inputTokens - OK
+✅ [PASS] trackAIUsage called when accountId provided - OK
+✅ [PASS] keywords/generate-post: passes accountId - accountId found in file
+✅ [PASS] keywords/suggest-article-type: passes accountId - accountId found in file
+✅ [PASS] keywords/suggest-related: passes accountId - accountId found in file
+✅ [PASS] backlinks/generate-listing: passes accountId - accountId found in file
+✅ [PASS] worker/generate-article: passes accountId - accountId found in file
+✅ [PASS] campaigns/suggest-keyword: passes accountId - accountId found in file
+✅ [PASS] campaigns/recommend-subjects: passes accountId - accountId found in file
+✅ [PASS] sites/validate: passes accountId - accountId found in file
+✅ [PASS] sites/suggest-name: passes accountId - accountId found in file
+✅ [PASS] sites/tools/ai-optimize-image: passes accountId - accountId found in file
+✅ [PASS] sites/tools/ai-image-optimize: passes accountId - accountId found in file
+✅ [PASS] entities/discover: passes accountId - accountId found in file
+✅ [PASS] entities/refresh: passes accountId - accountId found in file
+✅ [PASS] entities/detect-platform: passes accountId - accountId found in file
+✅ [PASS] entities/scan: passes accountId - accountId found in file
+✅ [PASS] interview/analyze: passes accountId - accountId found in file
+✅ [PASS] agent/insights/suggest-traffic: passes accountId - accountId found in file
+✅ [PASS] competitors/discover: passes accountId - accountId found in file
+✅ [PASS] cron/generate-reports: passes accountId - accountId found in file
+✅ [PASS] reports/generate: passes accountId - accountId found in file
+✅ [PASS] analyzeKeywordIntent passes accountId - OK
+✅ [PASS] keywords PATCH passes tracking params - OK
+✅ [PASS] audit/fix-issue: deductAiCredits with metadata (AI route) - OK
+✅ [PASS] audit/a11y-fix: deductAiCredits with metadata (AI route) - OK
+✅ [PASS] audit/rescan: deductAiCredits (no-AI apply route) - No token metadata needed (no AI call)
+✅ [PASS] audit/apply-title-fix: deductAiCredits (no-AI apply route) - No token metadata needed (no AI call)
+✅ [PASS] audit/apply-og-fix: deductAiCredits (no-AI apply route) - No token metadata needed (no AI call)
+✅ [PASS] audit/apply-description-fix: deductAiCredits (no-AI apply route) - No token metadata needed (no AI call)
+✅ [PASS] audit/apply-alt-fix: deductAiCredits (no-AI apply route) - No token metadata needed (no AI call)
+✅ [PASS] audit/apply-image-format-fix: deductAiCredits (no-AI apply route) - No token metadata needed (no AI call)
+✅ [PASS] audit/fix-404: deductAiCredits (no-AI apply route) - No token metadata needed (no AI call)
+✅ [PASS] lib/ai/service.js: no old SDK property names - No legacy SDK names found
+✅ [PASS] lib/ai/image-context.js: no old SDK property names - No legacy SDK names found
+✅ [PASS] lib/audit/vision-analyzer.js: no old SDK property names - No legacy SDK names found
+✅ [PASS] lib/audit/summary-generator.js: no old SDK property names - No legacy SDK names found
+✅ [PASS] app/api/audit/translate-summary/route.js: no old SDK property names - No legacy SDK names found
+✅ [PASS] app/api/audit/translate-issues/route.js: no old SDK property names - No legacy SDK names found
+✅ [PASS] app/api/campaigns/generate-subjects/route.js: no old SDK property names - No legacy SDK names found
+✅ [PASS] app/api/sites/[id]/logo/route.js: no old SDK property names - No legacy SDK names found
+✅ [PASS] trackAIUsage stores inputTokens in metadata - OK
+✅ [PASS] trackAIUsage creates DEBIT log entry - OK
+✅ [PASS] deductAiCredits accepts metadata parameter - OK
+✅ [PASS] reads meta.inputTokens - OK
+✅ [PASS] reads meta.outputTokens - OK
+✅ [PASS] calls calculateTokenCost - OK
+✅ [PASS] executeDifferentiationFixes: no active deductAiCredits call - No double-counting - credits tracked via gemini.js trackAIUsage
 
 Total: 50 PASS, 0 FAIL, 0 SKIP
 ```
@@ -365,11 +365,11 @@ Total: 12 PASS, 0 FAIL
 ## Summary
 
 ### What Was Tested
-1. **Database Diagnostic** — Queried recent AiCreditsLog DEBIT entries to check metadata presence
-2. **SDK Usage Check** — Made a REAL AI call and verified the usage object has `inputTokens`/`outputTokens` (not the old `promptTokens`/`completionTokens`)
-3. **End-to-End Tracking** — Made a REAL AI call through `generateTextResponse` with tracking, verified DB entry has correct metadata, verified `calculateTokenCost` produces non-zero cost
-4. **Code Audit** — Verified all 20+ routes that use AI pass `accountId` for tracking, all SDK property names are correct, no double-counting
-5. **Analytics Cost Calculation** — Verified `calculateTokenCost` for all models, aliases, edge cases
+1. **Database Diagnostic** - Queried recent AiCreditsLog DEBIT entries to check metadata presence
+2. **SDK Usage Check** - Made a REAL AI call and verified the usage object has `inputTokens`/`outputTokens` (not the old `promptTokens`/`completionTokens`)
+3. **End-to-End Tracking** - Made a REAL AI call through `generateTextResponse` with tracking, verified DB entry has correct metadata, verified `calculateTokenCost` produces non-zero cost
+4. **Code Audit** - Verified all 20+ routes that use AI pass `accountId` for tracking, all SDK property names are correct, no double-counting
+5. **Analytics Cost Calculation** - Verified `calculateTokenCost` for all models, aliases, edge cases
 
 ### Root Cause (Fixed)
 The Vercel AI SDK v6 renamed `usage.promptTokens` → `usage.inputTokens` and `usage.completionTokens` → `usage.outputTokens`.

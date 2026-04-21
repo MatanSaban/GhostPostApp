@@ -12,7 +12,7 @@ if (!before) {
 console.log('Before:', JSON.stringify({ id: before.id, status: before.status, startedAt: before.startedAt }, null, 2));
 
 if (before.status !== 'RUNNING') {
-  console.log(`Run is already ${before.status} — no change made.`);
+  console.log(`Run is already ${before.status} - no change made.`);
   await prisma.$disconnect();
   process.exit(0);
 }

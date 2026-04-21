@@ -353,7 +353,7 @@ export async function PATCH(request, { params }) {
         }
       } catch (wpErr) {
         console.error(`[Entity PATCH ${id}] WP sync failed:`, wpErr.message);
-        // Don't fail the request — entity is already updated locally
+        // Don't fail the request - entity is already updated locally
       }
     }
 

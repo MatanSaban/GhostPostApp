@@ -35,6 +35,7 @@ export async function GET() {
         onboardingSkipped: true,
         onboardingStartedAt: true,
         onboardingCompletedAt: true,
+        onboardingFinishedSeen: true,
       },
     });
 
@@ -48,6 +49,7 @@ export async function GET() {
       skipped: account.onboardingSkipped,
       startedAt: account.onboardingStartedAt,
       completedAt: account.onboardingCompletedAt,
+      finishedSeen: account.onboardingFinishedSeen,
       order: ONBOARDING_ORDER,
     });
   } catch (error) {
@@ -99,6 +101,9 @@ export async function POST(request) {
       data.onboardingSkipped = false;
       data.onboardingStartedAt = now;
       data.onboardingCompletedAt = null;
+      data.onboardingFinishedSeen = false;
+    } else if (action === 'dismissFinished') {
+      data.onboardingFinishedSeen = true;
     } else if (action === 'setStep') {
       if (!isValidOnboardingStep(step)) {
         return NextResponse.json({ error: 'Invalid step' }, { status: 400 });
@@ -121,6 +126,7 @@ export async function POST(request) {
         onboardingSkipped: true,
         onboardingStartedAt: true,
         onboardingCompletedAt: true,
+        onboardingFinishedSeen: true,
       },
     });
 
@@ -130,6 +136,7 @@ export async function POST(request) {
       skipped: updated.onboardingSkipped,
       startedAt: updated.onboardingStartedAt,
       completedAt: updated.onboardingCompletedAt,
+      finishedSeen: updated.onboardingFinishedSeen,
     });
   } catch (error) {
     console.error('Onboarding POST error:', error);

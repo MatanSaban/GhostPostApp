@@ -138,21 +138,7 @@ export async function POST(request) {
       return NextResponse.json({ suggestions: [] });
     }
 
-    // Deduct credits for AI generation
-    const deduction = await deductAiCredits(site.accountId, 1, {
-      userId: user.id,
-      siteId,
-      source: 'ai_image_optimization',
-      description: `AI Image Format Suggestions: ${imagesToProcess.length} image(s)`,
-      metadata: { model: 'gemini-2.5-pro' },
-    });
-    if (!deduction.success) {
-      const isInsufficient = deduction.error?.includes('Insufficient');
-      return NextResponse.json(
-        { error: deduction.error || 'Credit deduction failed', code: isInsufficient ? 'INSUFFICIENT_CREDITS' : 'CREDIT_ERROR', resourceKey: isInsufficient ? 'aiCredits' : undefined },
-        { status: 402 }
-      );
-    }
+    const MODEL = 'gemini-2.5-pro';
 
     // Build the image list for the AI prompt
     const imageList = imagesToProcess
@@ -165,7 +151,7 @@ export async function POST(request) {
 
     // Use AI to recommend optimal format per image
     const result = await generateObject({
-      model: google('gemini-2.5-pro'),
+      model: google(MODEL),
       schema: imageOptimizationSchema,
       messages: [
         {
@@ -237,6 +223,27 @@ ${imageList}
     const actionableSuggestions = suggestions.filter(
       (s) => s.recommendedFormat !== 'keep'
     );
+
+    const usage = result.usage || {};
+    const deduction = await deductAiCredits(site.accountId, 1, {
+      userId: user.id,
+      siteId,
+      source: 'ai_image_optimization',
+      description: `AI Image Format Suggestions: ${imagesToProcess.length} image(s)`,
+      metadata: {
+        model: MODEL,
+        inputTokens: usage.inputTokens || 0,
+        outputTokens: usage.outputTokens || 0,
+        totalTokens: usage.totalTokens || 0,
+      },
+    });
+    if (!deduction.success) {
+      const isInsufficient = deduction.error?.includes('Insufficient');
+      return NextResponse.json(
+        { error: deduction.error || 'Credit deduction failed', code: isInsufficient ? 'INSUFFICIENT_CREDITS' : 'CREDIT_ERROR', resourceKey: isInsufficient ? 'aiCredits' : undefined },
+        { status: 402 }
+      );
+    }
 
     return NextResponse.json({
       suggestions: actionableSuggestions,

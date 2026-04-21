@@ -90,7 +90,7 @@ export async function POST(request) {
     }
 
     if (action === 'suggest') {
-      return handleSuggest(site, body);
+      return handleSuggest(site, body, user);
     } else if (action === 'apply') {
       return handleApply(site, body, user);
     }
@@ -107,7 +107,7 @@ export async function POST(request) {
 
 // ─── Suggest: Find best redirect targets via AI ───────────────
 
-async function handleSuggest(site, { auditId, siteId, locale }) {
+async function handleSuggest(site, { auditId, siteId, locale }, user) {
   // Get the audit
   const audit = await prisma.siteAudit.findFirst({
     where: { id: auditId, siteId },
@@ -134,7 +134,7 @@ async function handleSuggest(site, { auditId, siteId, locale }) {
     );
   }
 
-  // Get all published entities for context — enabled types only, otherwise
+  // Get all published entities for context - enabled types only, otherwise
   // the AI may suggest redirecting broken URLs to pages the user has hidden.
   const entities = await prisma.siteEntity.findMany({
     where: { siteId, status: 'PUBLISHED', entityType: { isEnabled: true } },
@@ -185,12 +185,40 @@ For each broken link:
 
 Return redirect suggestions for each broken link. Use the FULL URL for suggestedUrl (including the domain).`;
 
+  const MODEL = 'gemini-2.5-pro';
   const result = await generateObject({
-    model: google('gemini-2.5-pro'),
+    model: google(MODEL),
     schema: suggestionsSchema,
     messages: [{ role: 'user', content: prompt }],
     temperature: 0.3,
   });
+
+  // Log AI usage for cost tracking (suggest is FREE - no credit charge, but
+  // we still log the real Gemini API cost so admin analytics reflect reality).
+  try {
+    const usage = result.usage || {};
+    await prisma.aiCreditsLog.create({
+      data: {
+        accountId: site.accountId,
+        userId: user?.id,
+        siteId,
+        type: 'DEBIT',
+        amount: 0,
+        balance: 0,
+        source: 'ai_broken_link_suggest',
+        description: `AI Broken Link Suggestions: ${brokenData.length} link(s)`,
+        metadata: {
+          model: MODEL,
+          inputTokens: usage.inputTokens || 0,
+          outputTokens: usage.outputTokens || 0,
+          totalTokens: usage.totalTokens || 0,
+          freePreview: true,
+        },
+      },
+    });
+  } catch (logErr) {
+    console.warn('[fix-404/suggest] Usage log failed (non-fatal):', logErr.message);
+  }
 
   return NextResponse.json({
     suggestions: result.object.suggestions,

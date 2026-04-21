@@ -350,7 +350,7 @@ export function RegistrationFlow({ translations, initialStep = 'form', initialFo
 
   const handleStepClick = (stepId, stepIndex) => {
     const currentIndex = getCurrentStepIndex();
-    // Allow navigating to any step the user has already reached — either
+    // Allow navigating to any step the user has already reached - either
     // a prior step (before current) or a previously-completed step they
     // navigated away from (index <= highestCompletedIndex).
     if (stepIndex !== currentIndex && (stepIndex < currentIndex || stepIndex <= highestCompletedIndex)) {

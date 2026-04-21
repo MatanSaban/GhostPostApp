@@ -10,7 +10,7 @@ const SESSION_COOKIE = 'user_session';
  * POST /api/auth/registration/payment-init
  *
  * Creates a CardCom LowProfile deal for registration payment.
- * Uses user_session cookie — the session is set from first registration step
+ * Uses user_session cookie - the session is set from first registration step
  * on the draft user.
  *
  * Body:

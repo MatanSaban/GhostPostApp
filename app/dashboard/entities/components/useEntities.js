@@ -139,6 +139,10 @@ export function useEntities() {
       if (data.platform) {
         setPlatform(data.platform);
         setDetectionResult({ success: true, platform: data.platform });
+        // Notify onboarding tour that platform detection finished.
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new CustomEvent('ghostpost:onboarding:platform-detected'));
+        }
         // Refresh site context so other pages see the updated platform
         refreshSites();
         if (data.platform === 'wordpress') {
@@ -176,6 +180,9 @@ export function useEntities() {
           .map(t => t.slug);
         setSelectedTypes(autoSelect);
         if (data.source?.sitemapNotFound) setSitemapNotFound(true);
+        if (typeof window !== 'undefined' && data.postTypes.length > 0) {
+          window.dispatchEvent(new CustomEvent('ghostpost:onboarding:entities-discovered'));
+        }
       } else if (data.source?.sitemapNotFound) {
         setSitemapNotFound(true);
       } else {
@@ -219,6 +226,9 @@ export function useEntities() {
           .filter(t => t.isCore || t.entityCount > 0)
           .map(t => t.slug);
         setSelectedTypes(autoSelect);
+        if (typeof window !== 'undefined' && data.postTypes.length > 0) {
+          window.dispatchEvent(new CustomEvent('ghostpost:onboarding:entities-discovered'));
+        }
       } else {
         setDiscoveryError(data.error || t('entities.discovery.crawlFailed'));
       }
@@ -282,6 +292,12 @@ export function useEntities() {
       setEnabledTypes(saveData.types || []);
       setDiscoveredTypes([]);
       setSelectedTypes([]);
+
+      // Notify onboarding tour that populate kicked off - the background task
+      // runs independently; the tour should advance without waiting for sync.
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('ghostpost:onboarding:entities-populate-started'));
+      }
 
       const isPluginConnected = selectedSite?.connectionStatus === 'CONNECTED';
       if (isPluginConnected) {

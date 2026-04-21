@@ -54,7 +54,7 @@ export async function GET() {
           siteCount: account._count.sites,
         });
       } else {
-        // Expired — lazy-purge so it stops lingering.
+        // Expired - lazy-purge so it stops lingering.
         purgeArchivedAccount({ accountId: account.id }).catch((err) => {
           console.error('[archived-owned] Lazy purge failed:', err);
         });

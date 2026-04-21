@@ -91,7 +91,7 @@ export const INITIAL_WIZARD_STATE = {
   generatedPlan: null,
   planNeedsRegeneration: false,
 
-  // DEPRECATED — kept for backward compat with old campaigns
+  // DEPRECATED - kept for backward compat with old campaigns
   selectedKeywordIds: [],
   manualKeywords: [],
 };

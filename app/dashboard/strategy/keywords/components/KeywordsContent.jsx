@@ -892,7 +892,12 @@ export function KeywordsContent() {
             <Tag size={24} />
             <p>{t('keywordStrategy.noKeywords')}</p>
             <p className={styles.emptyStateHint}>{t('keywordStrategy.noKeywordsHint')}</p>
-            <Link href="/dashboard/strategy/site-profile" className={styles.startInterviewBtn}>
+            <Link
+              href="/dashboard/strategy/site-profile"
+              className={styles.startInterviewBtn}
+              data-onboarding="keywords-empty-ai-interview"
+              onClick={() => window.dispatchEvent(new CustomEvent('ghostpost:onboarding:keywords-interview-started'))}
+            >
               <Sparkles size={16} />
               {t('keywordStrategy.startInterview')}
             </Link>

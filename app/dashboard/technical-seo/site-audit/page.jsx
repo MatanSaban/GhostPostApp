@@ -291,6 +291,7 @@ export default function SiteAuditPage() {
   const pollRefs = useRef({});       // siteId → intervalId
   const stepIntervalRefs = useRef({}); // siteId → intervalId
   const bgTaskIds = useRef({});       // siteId → taskId
+  const isStartingRef = useRef(false); // sync double-click guard for handleStartAudit
   const hasRestoredFromUrl = useRef(false);
 
   // ─── URL State Sync ─────────────────────────────────────────
@@ -353,7 +354,7 @@ export default function SiteAuditPage() {
     const siteId = selectedSite.id;
 
     // Reconnect to existing background task if one exists for this site.
-    // After a full page refresh, no task exists in context — re-create it
+    // After a full page refresh, no task exists in context - re-create it
     // and start context-level polling so the floating bar stays updated
     // even when the user navigates away from this page.
     const reconnectBgTask = (siteId) => {
@@ -364,13 +365,13 @@ export default function SiteAuditPage() {
           taskId = existingTask.id;
           bgTaskIds.current[siteId] = taskId;
         } else {
-          // After full refresh — re-create background task
+          // After full refresh - re-create background task
           taskId = `site-audit-${siteId}-${Date.now()}`;
           bgTaskIds.current[siteId] = taskId;
           addTask({
             id: taskId,
             type: 'site-audit',
-            title: `${t('siteAudit.title')} — ${selectedSite?.name || ''}`,
+            title: `${t('siteAudit.title')} - ${selectedSite?.name || ''}`,
             message: t('siteAudit.scanning'),
             status: 'running',
             progress: 0,
@@ -422,7 +423,7 @@ export default function SiteAuditPage() {
         reconnectBgTask(siteId);
         startPolling(siteId, activeDevice);
       } else if (latest && (latest.status === 'COMPLETED' || latest.status === 'FAILED')) {
-        // Audit finished while we were away — mark background task as done
+        // Audit finished while we were away - mark background task as done
         const existingTask = findActiveTask('site-audit', { siteId });
         if (existingTask) {
           updateTask(existingTask.id, {
@@ -501,7 +502,7 @@ export default function SiteAuditPage() {
     }, 2500);
 
     pollRefs.current[siteId] = setInterval(async () => {
-      // Lightweight status check — only updates page state if this is the active site
+      // Lightweight status check - only updates page state if this is the active site
       try {
         const res = await fetch(`/api/audit?siteId=${siteId}&deviceType=${device || 'desktop'}`);
         if (!res.ok) return;
@@ -571,30 +572,36 @@ export default function SiteAuditPage() {
   // ─── Actions ──────────────────────────────────────────────────
 
   const handleStartAudit = async () => {
-    if (!selectedSite?.id || isStarting) return;
+    if (!selectedSite?.id) return;
+    // Synchronous guard - React state updates are async, so setIsStarting
+    // from a previous click may not be visible yet when a rapid second click
+    // re-enters this handler. The ref flips immediately and blocks the retry.
+    if (isStartingRef.current || isStarting) return;
     // Prevent starting a duplicate audit for the same site
     if (pollingSiteIds.has(selectedSite.id)) return;
 
-    // Check entities exist first
-    try {
-      const entRes = await fetch(`/api/entities?siteId=${selectedSite.id}`);
-      if (entRes.ok) {
-        const entData = await entRes.json();
-        if (!entData.entities?.length) {
-          setShowEntitiesRequired(true);
-          return;
-        }
-      }
-    } catch {
-      // If entity check fails, proceed anyway
-    }
-
-    // Invalidate cache for both devices since POST creates both audits
-    auditCacheRef.current = {};
+    isStartingRef.current = true;
     setIsStarting(true);
     setError(null);
 
     try {
+      // Check entities exist first
+      try {
+        const entRes = await fetch(`/api/entities?siteId=${selectedSite.id}`);
+        if (entRes.ok) {
+          const entData = await entRes.json();
+          if (!entData.entities?.length) {
+            setShowEntitiesRequired(true);
+            return;
+          }
+        }
+      } catch {
+        // If entity check fails, proceed anyway
+      }
+
+      // Invalidate cache for both devices since POST creates both audits
+      auditCacheRef.current = {};
+
       const res = await fetch('/api/audit', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -620,7 +627,7 @@ export default function SiteAuditPage() {
       addTask({
         id: taskId,
         type: 'site-audit',
-        title: `${t('siteAudit.title')} — ${selectedSite.name}`,
+        title: `${t('siteAudit.title')} - ${selectedSite.name}`,
         message: t('siteAudit.scanning'),
         status: 'running',
         progress: 0,
@@ -640,6 +647,7 @@ export default function SiteAuditPage() {
       setError(err.message);
     } finally {
       setIsStarting(false);
+      isStartingRef.current = false;
     }
   };
 

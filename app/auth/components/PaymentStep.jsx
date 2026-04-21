@@ -51,7 +51,7 @@ export function PaymentStep({ translations, selectedPlan, userData, onComplete }
   const [couponLoading, setCouponLoading] = useState(false);
   const [couponError, setCouponError] = useState('');
 
-  // Prices are stored in USD (per the Plan seed convention) — always convert
+  // Prices are stored in USD (per the Plan seed convention) - always convert
   // to ILS using the live rate. If the plan's own rate is missing (e.g. on a
   // resumed session before the status endpoint responded) fall back to 3.6.
   const USD_TO_ILS_RATE = selectedPlan?.usdToIlsRate || 3.6;

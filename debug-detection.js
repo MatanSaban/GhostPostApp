@@ -31,7 +31,7 @@ async function main() {
   const highConf = groups.filter(g => g.combinedScore >= HIGH_CONFIDENCE_SCORE || g.urls.length >= HIGH_CONFIDENCE_URLS);
   const borderline = groups.filter(g => g.combinedScore < HIGH_CONFIDENCE_SCORE && g.urls.length < HIGH_CONFIDENCE_URLS);
   
-  console.log(`\n=== HIGH CONFIDENCE (bypass AI) — ${highConf.length} groups ===`);
+  console.log(`\n=== HIGH CONFIDENCE (bypass AI) - ${highConf.length} groups ===`);
   for (const g of highConf) {
     console.log(`\nScore: ${g.combinedScore}% | URLs: ${g.urls.length}`);
     for (let i = 0; i < g.urls.length; i++) {
@@ -47,7 +47,7 @@ async function main() {
     }
   }
   
-  console.log(`\n=== BORDERLINE (needs AI) — ${borderline.length} groups ===`);
+  console.log(`\n=== BORDERLINE (needs AI) - ${borderline.length} groups ===`);
   for (const g of borderline) {
     console.log(`  Score: ${g.combinedScore}% | ${g.entities.map(e => e.title?.substring(0, 50)).join(' <-> ')}`);
   }

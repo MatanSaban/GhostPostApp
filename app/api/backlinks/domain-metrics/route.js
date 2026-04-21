@@ -15,7 +15,7 @@ const FIVE_MIN = 5 * 60 * 1000;
  * 2. Compute a "recent baseline" from the last 3 months (or fewer).
  * 3. Walk backwards: a month is "meaningful" if it has ≥ 10 % of the baseline.
  *    The first month that falls below the threshold marks the end of the
- *    "pre-traffic" era — earlier months are excluded.
+ *    "pre-traffic" era - earlier months are excluded.
  * 4. Average the remaining meaningful months (capped at 12).
  *
  * Examples:
@@ -130,7 +130,7 @@ export async function GET(request) {
             });
           }
 
-          // Priority 1: GA4 — smart average over up to 12 complete months
+          // Priority 1: GA4 - smart average over up to 12 complete months
           if (integration.gaConnected && integration.gaPropertyId) {
             try {
               const monthlyData = await fetchGAMonthlyTraffic(accessToken, integration.gaPropertyId, 12);
@@ -154,7 +154,7 @@ export async function GET(request) {
             }
           }
 
-          // Priority 2: GSC — organic search clicks last 30 days (if GA4 unavailable)
+          // Priority 2: GSC - organic search clicks last 30 days (if GA4 unavailable)
           if (monthlyTraffic == null && integration.gscConnected && integration.gscSiteUrl) {
             try {
               const gscReport = await fetchGSCReport(accessToken, integration.gscSiteUrl, 30);

@@ -57,7 +57,7 @@ export async function POST(_request, { params }) {
     }
 
     if (!isWithinRestoreWindow(account)) {
-      // Restore window has passed — purge now so we don't leave dangling archived rows.
+      // Restore window has passed - purge now so we don't leave dangling archived rows.
       await purgeArchivedAccount({ accountId }).catch((err) => {
         console.error('[Account Restore] Lazy purge failed:', err);
       });

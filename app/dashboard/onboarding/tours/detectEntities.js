@@ -15,11 +15,24 @@ export function buildDetectEntitiesSteps(t) {
       disableBeacon: true,
     },
     {
-      target: '[data-onboarding="entities-detect-section"]',
+      target: '[data-onboarding="entities-detect-button"]',
       title: t('onboarding.detectEntities.step3.title'),
       content: t('onboarding.detectEntities.step3.content'),
       placement: 'bottom',
       disableBeacon: true,
+      hideFooter: true,
+      waitForEvent: 'ghostpost:onboarding:platform-detected',
+      actionHint: t('onboarding.detectEntities.step3.actionHint'),
+    },
+    {
+      target: '[data-onboarding="entities-scan-button"]',
+      title: t('onboarding.detectEntities.stepScan.title'),
+      content: t('onboarding.detectEntities.stepScan.content'),
+      placement: 'top',
+      disableBeacon: true,
+      hideFooter: true,
+      waitForEvent: 'ghostpost:onboarding:entities-discovered',
+      actionHint: t('onboarding.detectEntities.stepScan.actionHint'),
     },
     {
       target: '[data-onboarding="entities-discovery-card"]',
@@ -34,6 +47,9 @@ export function buildDetectEntitiesSteps(t) {
       content: t('onboarding.detectEntities.step5.content'),
       placement: 'top',
       disableBeacon: true,
+      hideFooter: true,
+      waitForEvent: 'ghostpost:onboarding:entities-populate-started',
+      actionHint: t('onboarding.detectEntities.step5.actionHint'),
     },
   ];
 }

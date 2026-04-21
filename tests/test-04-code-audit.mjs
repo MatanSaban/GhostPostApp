@@ -1,5 +1,5 @@
 /**
- * Test 04: Code Audit — Verify all AI action callers pass accountId
+ * Test 04: Code Audit - Verify all AI action callers pass accountId
  * 
  * This test reads the source code of each AI-calling function/route
  * and checks if accountId is being passed to gemini.js wrappers or
@@ -26,10 +26,10 @@ function check(filePath, description, condition, detail = '') {
   results.push({ file: filePath, test: description, status: ok ? 'PASS' : 'FAIL', detail: detail || (ok ? 'OK' : 'Missing') });
 }
 
-console.log('=== TEST 04: Code Audit — AI Action Tracking ===\n');
+console.log('=== TEST 04: Code Audit - AI Action Tracking ===\n');
 
 // ============================================================
-// SECTION 1: gemini.js wrappers — verify they extract usage correctly
+// SECTION 1: gemini.js wrappers - verify they extract usage correctly
 // ============================================================
 console.log('--- Section 1: gemini.js wrappers ---');
 
@@ -46,7 +46,7 @@ check('lib/ai/gemini.js', 'trackAIUsage called when accountId provided',
   c => c.includes('if (accountId)') && c.includes('trackAIUsage('));
 
 // ============================================================
-// SECTION 2: Routes that use gemini.js wrappers — verify accountId passed
+// SECTION 2: Routes that use gemini.js wrappers - verify accountId passed
 // ============================================================
 console.log('--- Section 2: Routes using gemini.js (should pass accountId) ---');
 
@@ -80,7 +80,7 @@ for (const r of geminiRoutes) {
 }
 
 // ============================================================
-// SECTION 3: Keyword intent — verify passes accountId to gemini.js
+// SECTION 3: Keyword intent - verify passes accountId to gemini.js
 // ============================================================
 console.log('--- Section 3: Keyword intent tracking ---');
 
@@ -91,7 +91,7 @@ check('app/api/keywords/route.js', 'keywords PATCH passes tracking params',
   c => c.includes('accountId') && c.includes('analyzeKeywordIntent'));
 
 // ============================================================
-// SECTION 4: deductAiCredits routes — check for metadata
+// SECTION 4: deductAiCredits routes - check for metadata
 // ============================================================
 console.log('--- Section 4: deductAiCredits routes (metadata check) ---');
 
@@ -118,7 +118,7 @@ for (const r of deductRoutes) {
 }
 
 // ============================================================
-// SECTION 5: Direct SDK callers — verify they use correct property names
+// SECTION 5: Direct SDK callers - verify they use correct property names
 // ============================================================
 console.log('--- Section 5: Direct SDK callers (property name check) ---');
 
@@ -140,7 +140,7 @@ for (const file of directSdkFiles) {
 }
 
 // ============================================================
-// SECTION 6: credits-service.js — verify trackAIUsage stores metadata
+// SECTION 6: credits-service.js - verify trackAIUsage stores metadata
 // ============================================================
 console.log('--- Section 6: credits-service.js ---');
 
@@ -151,7 +151,7 @@ check('lib/ai/credits-service.js', 'trackAIUsage creates DEBIT log entry',
   c => c.includes("type: 'DEBIT'") && c.includes('prisma.aiCreditsLog.create'));
 
 // ============================================================
-// SECTION 7: account-utils.js — verify deductAiCredits supports metadata
+// SECTION 7: account-utils.js - verify deductAiCredits supports metadata
 // ============================================================
 console.log('--- Section 7: account-utils.js ---');
 
@@ -159,7 +159,7 @@ check('lib/account-utils.js', 'deductAiCredits accepts metadata parameter',
   c => c.includes('metadata') && c.includes('deductAiCredits'));
 
 // ============================================================
-// SECTION 8: Analytics API — verify reads metadata correctly
+// SECTION 8: Analytics API - verify reads metadata correctly
 // ============================================================
 console.log('--- Section 8: Analytics API ---');
 
@@ -173,7 +173,7 @@ check('app/api/admin/analytics/route.js', 'calls calculateTokenCost',
   c => c.includes('calculateTokenCost'));
 
 // ============================================================
-// SECTION 9: Content differentiation — verify no double counting
+// SECTION 9: Content differentiation - verify no double counting
 // ============================================================
 console.log('--- Section 9: Content differentiation ---');
 
@@ -183,7 +183,7 @@ check('lib/actions/content-differentiation.js', 'executeDifferentiationFixes: no
     const lines = c.split('\n');
     return !lines.some(l => l.includes('deductAiCredits') && !l.trim().startsWith('//') && !l.trim().startsWith('*'));
   },
-  'No double-counting — credits tracked via gemini.js trackAIUsage');
+  'No double-counting - credits tracked via gemini.js trackAIUsage');
 
 // ============================================================
 // PRINT RESULTS
@@ -193,7 +193,7 @@ console.log('\n=== RESULTS ===\n');
 let pass = 0, fail = 0, skip = 0;
 for (const r of results) {
   const icon = r.status === 'PASS' ? '✅' : r.status === 'SKIP' ? '⏭️' : '❌';
-  console.log(`${icon} [${r.status}] ${r.test} — ${r.detail}`);
+  console.log(`${icon} [${r.status}] ${r.test} - ${r.detail}`);
   if (r.status === 'PASS') pass++;
   else if (r.status === 'FAIL') fail++;
   else skip++;

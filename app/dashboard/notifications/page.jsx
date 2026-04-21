@@ -18,6 +18,7 @@ import {
   Eye,
   Mail,
   MailOpen,
+  MessageSquare,
 } from 'lucide-react';
 import { useLocale } from '@/app/context/locale-context';
 import { useNotifications } from '@/app/context/notifications-context';
@@ -31,6 +32,7 @@ const NOTIFICATION_ICONS = {
   ai: Sparkles,
   alert: AlertCircle,
   success: TrendingUp,
+  support_reply: MessageSquare,
 };
 
 // Available filter types
@@ -217,7 +219,7 @@ export default function NotificationsPage() {
   return (
     <div className={styles.page}>
       {/* Page Header */}
-      <div className={styles.pageHeader}>
+      <div className={styles.pageHeader} data-onboarding="page-notifications">
         <div className={styles.headerLeft}>
           <div className={styles.headerIcon}>
             <Bell size={24} />
@@ -233,7 +235,7 @@ export default function NotificationsPage() {
         </div>
 
         {notifications.length > 0 && (
-          <div className={styles.headerActions}>
+          <div className={styles.headerActions} data-onboarding="notifications-header-actions">
             {unreadCount > 0 && (
               <button
                 className={styles.headerAction}
@@ -257,7 +259,7 @@ export default function NotificationsPage() {
       </div>
 
       {/* Filters */}
-      <div className={styles.filters}>
+      <div className={styles.filters} data-onboarding="notifications-filters">
         <Filter size={16} className={styles.filterIcon} />
         {FILTER_TYPES.map((filter) => (
           <button
@@ -284,7 +286,7 @@ export default function NotificationsPage() {
       )}
 
       {/* Content */}
-      <div className={styles.content}>
+      <div className={styles.content} data-onboarding="notifications-list">
         {isLoading ? (
           <div className={styles.loadingState}>
             <Loader2 size={32} className={styles.spinner} />

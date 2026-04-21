@@ -101,7 +101,7 @@ export function usePreviewBridge({ siteUrl, siteId, iframeRef, enabled = true, b
 
   const handleMessage = useCallback((event) => {
     // Trust messages that came from our own iframe's contentWindow regardless
-    // of origin — this handles apex↔www redirects where the post-redirect
+    // of origin - this handles apex↔www redirects where the post-redirect
     // origin legitimately differs from the configured site URL.
     const iframeWindow = iframeRef?.current?.contentWindow;
     const fromOurIframe = iframeWindow && event.source === iframeWindow;
@@ -122,7 +122,7 @@ export function usePreviewBridge({ siteUrl, siteId, iframeRef, enabled = true, b
         // After a navigation the bridge script re-runs and defaults its
         // internal inspectorEnabled to true; the platform's stored state
         // stays as-is. Force both back to enabled so the toolbar icon, the
-        // iframe overlay, and the bridge stay in sync — matches the "click
+        // iframe overlay, and the bridge stay in sync - matches the "click
         // a link → inspect becomes active" UX the popup advertises.
         setInspectorEnabled(true);
         break;
@@ -130,7 +130,7 @@ export function usePreviewBridge({ siteUrl, siteId, iframeRef, enabled = true, b
         setCurrentPreviewUrl(data.url);
         break;
       case 'GP_LINK_NAVIGATING':
-        // Bridge is about to reload for a link nav — pre-update the URL
+        // Bridge is about to reload for a link nav - pre-update the URL
         // pill and flip inspector back on so the icon matches the state
         // the new page will boot into.
         if (data.url) setCurrentPreviewUrl(data.url);
@@ -183,7 +183,7 @@ export function usePreviewBridge({ siteUrl, siteId, iframeRef, enabled = true, b
 
   const buildSrc = useCallback((path) => {
     if (!siteUrl) return '';
-    // If a siteId was supplied, the caller expects signed URLs — wait for the
+    // If a siteId was supplied, the caller expects signed URLs - wait for the
     // token before emitting a src (prevents the plugin from rejecting an
     // unsigned request while the token is still in flight).
     if (siteId) {

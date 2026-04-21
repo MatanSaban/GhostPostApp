@@ -2731,7 +2731,7 @@ async function deepCrawlEntities(site, options = {}, msg = SCAN_MESSAGES.en) {
     // selection and produces misleading progress totals (e.g. 3306 when only 34 were selected).
     // Surface the failure instead so the UI can prompt the user to re-detect sitemaps.
     if (urlsToProcess.length === 0) {
-      console.warn('[Scan] No URLs resolved from enabled entity types\' sitemaps — aborting without fallback');
+      console.warn('[Scan] No URLs resolved from enabled entity types\' sitemaps - aborting without fallback');
       return {
         ...stats,
         message: 'No sitemap URLs found for enabled entity types. Re-discover sitemaps for the selected types and try again.',
@@ -2747,7 +2747,7 @@ async function deepCrawlEntities(site, options = {}, msg = SCAN_MESSAGES.en) {
   // 1. Have needsDeepCrawl flag set in metadata
   // 2. Have no seoData (never crawled)
   // 3. Have title that looks like a slug (needs real title)
-  // Always restrict to entities whose entity type is currently enabled — disabled types
+  // Always restrict to entities whose entity type is currently enabled - disabled types
   // (toggled off in the Entities page) must not contribute to progress totals or get re-crawled.
   const baseWhere = { siteId: site.id, entityType: { isEnabled: true } };
 

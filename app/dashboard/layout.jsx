@@ -13,26 +13,16 @@ import {
   LogOut,
   X,
   Shield,
-  Building2,
-  Users,
-  CreditCard,
-  FileStack,
-  Languages,
   Bot,
   Zap,
   Database,
   ChevronRight,
-  Lock,
   Wrench,
   Lightbulb,
-  Globe,
-  Package,
   Monitor,
   Bell,
   Link2,
-  Ticket,
-  MessageSquarePlus,
-  HelpCircle,
+  LifeBuoy,
 } from 'lucide-react';
 import { GhostChatPopup } from '@/app/components/ui/ghost-chat-popup';
 import { SiteSelector } from '@/app/components/ui/site-selector';
@@ -40,6 +30,7 @@ import { DashboardHeader } from '@/app/dashboard/components/DashboardHeader';
 import ContentPipelineWorker from '@/app/dashboard/components/ContentPipelineWorker';
 import { OnboardingProvider } from '@/app/dashboard/onboarding/OnboardingProvider';
 import { OnboardingController } from '@/app/dashboard/onboarding/OnboardingController';
+import { FeatureGuideRunner } from '@/app/dashboard/onboarding/FeatureGuideRunner';
 import { useLocale } from '@/app/context/locale-context';
 import { useUser } from '@/app/context/user-context';
 import { useSite } from '@/app/context/site-context';
@@ -73,22 +64,6 @@ const toolsItemsConfig = [
   { labelKey: 'nav.tools.siteAudit', path: '/dashboard/technical-seo/site-audit' },
 ];
 
-// Admin menu items - only visible to super admins
-const adminMenuItemsConfig = [
-  { icon: Building2, labelKey: 'nav.admin.accounts', path: '/dashboard/admin/accounts' },
-  { icon: Users, labelKey: 'nav.admin.users', path: '/dashboard/admin/users' },
-  { icon: CreditCard, labelKey: 'nav.admin.subscriptions', path: '/dashboard/admin/subscriptions' },
-  { icon: FileStack, labelKey: 'nav.admin.plans', path: '/dashboard/admin/plans' },
-  { icon: Package, labelKey: 'nav.admin.addons', path: '/dashboard/admin/addons' },
-  { icon: Ticket, labelKey: 'nav.admin.coupons', path: '/dashboard/admin/coupons' },
-  { icon: Bot, labelKey: 'nav.admin.interviewFlow', path: '/dashboard/admin/interview-flow' },
-  { icon: MessageSquarePlus, labelKey: 'nav.admin.pushQuestions', path: '/dashboard/admin/push-questions' },
-  { icon: Zap, labelKey: 'nav.admin.botActions', path: '/dashboard/admin/bot-actions' },
-  { icon: Languages, labelKey: 'nav.admin.translations', path: '/dashboard/admin/translations' },
-  { icon: Link2, labelKey: 'nav.admin.backlinks', path: '/dashboard/admin/backlinks' },
-  { icon: Globe, labelKey: 'nav.admin.website', path: '/dashboard/admin/website' },
-  { icon: HelpCircle, labelKey: 'nav.admin.faq', path: '/dashboard/admin/faq' },
-];
 
 export default function DashboardLayout({ children }) {
   const pathname = usePathname();
@@ -99,7 +74,7 @@ export default function DashboardLayout({ children }) {
   const { filterMenuItems, canViewPath, canAccessAnySettingsTab, isLoading: isPermissionsLoading } = usePermissions();
   const [isChatOpen, setIsChatOpen] = useState(false);
   // Single state for open menu - only one can be open at a time (accordion behavior)
-  const [openMenu, setOpenMenu] = useState(null); // 'strategy' | 'entities' | 'tools' | 'admin' | null
+  const [openMenu, setOpenMenu] = useState(null); // 'strategy' | 'entities' | 'tools' | null
   const [transitionKey, setTransitionKey] = useState(0);
   const [isPageVisible, setIsPageVisible] = useState(true);
   const [entityTypes, setEntityTypes] = useState([]);
@@ -296,12 +271,6 @@ export default function DashboardLayout({ children }) {
     setOpenMenu(openMenu === 'tools' ? null : 'tools');
   };
 
-  const handleAdminChevronClick = (e) => {
-    e.stopPropagation();
-    e.preventDefault();
-    setOpenMenu(openMenu === 'admin' ? null : 'admin');
-  };
-
   return (
     <OnboardingProvider>
     <div className={styles.dashboardContainer}>
@@ -342,7 +311,11 @@ export default function DashboardLayout({ children }) {
 
           {/* Strategy Section - Expandable sub-items (only show if user has access to at least one item) */}
           {filteredStrategyItems.length > 0 && (
-            <div className={styles.navGroup}>
+            <div
+              className={styles.navGroup}
+              data-nav-group="strategy"
+              data-nav-group-open={openMenu === 'strategy' ? 'true' : 'false'}
+            >
               <Link
                 href="/dashboard/strategy"
                 className={`${styles.navItem} ${styles.navGroupToggle} ${pathname.startsWith('/dashboard/strategy') ? styles.active : ''}`}
@@ -353,6 +326,7 @@ export default function DashboardLayout({ children }) {
                 <button
                   className={styles.navChevronButton}
                   onClick={handleStrategyChevronClick}
+                  data-nav-group-chevron="strategy"
                   aria-label={openMenu === 'strategy' ? t('common.collapse') : t('common.expand')}
                 >
                   <ChevronRight className={`${styles.navChevron} ${openMenu === 'strategy' ? styles.navChevronOpen : ''}`} />
@@ -382,7 +356,11 @@ export default function DashboardLayout({ children }) {
 
           {/* Entities Section - Dynamic with expandable sub-items */}
           {canViewPath('/dashboard/entities') && (
-            <div className={styles.navGroup}>
+            <div
+              className={styles.navGroup}
+              data-nav-group="entities"
+              data-nav-group-open={openMenu === 'entities' ? 'true' : 'false'}
+            >
               <Link
                 href="/dashboard/entities"
                 className={`${styles.navItem} ${styles.navGroupToggle} ${pathname.startsWith('/dashboard/entities') ? styles.active : ''}`}
@@ -394,6 +372,7 @@ export default function DashboardLayout({ children }) {
                   <button
                     className={styles.navChevronButton}
                     onClick={handleChevronClick}
+                    data-nav-group-chevron="entities"
                     aria-label={openMenu === 'entities' ? t('common.collapse') : t('common.expand')}
                   >
                     <ChevronRight className={`${styles.navChevron} ${openMenu === 'entities' ? styles.navChevronOpen : ''}`} />
@@ -441,7 +420,11 @@ export default function DashboardLayout({ children }) {
 
           {/* Tools Section (Technical SEO) - Expandable sub-items (only show if user has access to at least one item) */}
           {filteredToolsItems.length > 0 && (
-            <div className={styles.navGroup}>
+            <div
+              className={styles.navGroup}
+              data-nav-group="tools"
+              data-nav-group-open={openMenu === 'tools' ? 'true' : 'false'}
+            >
               <Link
                 href="/dashboard/technical-seo"
                 className={`${styles.navItem} ${styles.navGroupToggle} ${pathname.startsWith('/dashboard/technical-seo') ? styles.active : ''}`}
@@ -452,6 +435,7 @@ export default function DashboardLayout({ children }) {
                 <button
                   className={styles.navChevronButton}
                   onClick={handleToolsChevronClick}
+                  data-nav-group-chevron="tools"
                   aria-label={openMenu === 'tools' ? t('common.collapse') : t('common.expand')}
                 >
                   <ChevronRight className={`${styles.navChevron} ${openMenu === 'tools' ? styles.navChevronOpen : ''}`} />
@@ -507,9 +491,22 @@ export default function DashboardLayout({ children }) {
             <Link
               href="/dashboard/notifications"
               className={`${styles.navItem} ${pathname === '/dashboard/notifications' ? styles.active : ''}`}
+              data-onboarding="nav-notifications"
             >
               <Bell className={styles.navIcon} />
               <span className={styles.navLabel}>{t('notificationCenter.navTitle')}</span>
+            </Link>
+          )}
+
+          {/* Support tickets - open to every member; API enforces permissions */}
+          {!isPermissionsLoading && (
+            <Link
+              href="/dashboard/support"
+              className={`${styles.navItem} ${pathname.startsWith('/dashboard/support') ? styles.active : ''}`}
+              data-onboarding="nav-support"
+            >
+              <LifeBuoy className={styles.navIcon} />
+              <span className={styles.navLabel}>{t('nav.support')}</span>
             </Link>
           )}
 
@@ -525,43 +522,15 @@ export default function DashboardLayout({ children }) {
             </Link>
           )}
 
-          {/* Admin Section - Only visible to super admins */}
+          {/* Admin Panel - toggle button in DashboardHeader navigates to /admin */}
           {!isUserLoading && isSuperAdmin && (
-            <div className={styles.navGroup}>
-              <Link
-                href="/dashboard/admin"
-                className={`${styles.navItem} ${styles.navGroupToggle} ${styles.adminNavItem} ${pathname === '/dashboard/admin' ? styles.active : ''}`}
-              >
-                <Shield className={styles.navIcon} />
-                <span className={styles.navLabel}>{t('nav.admin.title')}</span>
-                <button
-                  className={styles.navChevronButton}
-                  onClick={handleAdminChevronClick}
-                  aria-label={openMenu === 'admin' ? t('common.collapse') : t('common.expand')}
-                >
-                  <ChevronRight className={`${styles.navChevron} ${openMenu === 'admin' ? styles.navChevronOpen : ''}`} />
-                </button>
-              </Link>
-              <div className={`${styles.navGroupItems} ${openMenu === 'admin' ? styles.navGroupItemsOpen : ''}`}>
-                <div className={styles.navGroupItemsInner}>
-                  {adminMenuItemsConfig.map((item) => {
-                    const Icon = item.icon;
-                    const isActive = pathname === item.path || pathname.startsWith(item.path + '/');
-
-                    return (
-                      <Link
-                        key={item.path}
-                        href={item.path}
-                        className={`${styles.navItem} ${styles.navSubItem} ${styles.adminNavItem} ${isActive ? styles.active : ''}`}
-                      >
-                        <Icon className={styles.navIcon} />
-                        <span className={styles.navLabel}>{t(item.labelKey)}</span>
-                      </Link>
-                    );
-                  })}
-                </div>
-              </div>
-            </div>
+            <Link
+              href="/admin"
+              className={`${styles.navItem} ${styles.adminNavItem}`}
+            >
+              <Shield className={styles.navIcon} />
+              <span className={styles.navLabel}>{t('nav.admin.title')}</span>
+            </Link>
           )}
         </nav>
 
@@ -613,6 +582,9 @@ export default function DashboardLayout({ children }) {
 
       {/* Onboarding UI (greeting modal, guided tour, blocking banner) */}
       <OnboardingController />
+
+      {/* On-demand feature-guide runner (launched from GuidesCenter) */}
+      <FeatureGuideRunner />
     </div>
     </OnboardingProvider>
   );

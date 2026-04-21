@@ -38,7 +38,7 @@ export async function GET(request, { params }) {
     user.isSuperAdmin || user.accountMemberships.some((m) => m.accountId === site.accountId);
   if (!hasAccess) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   if (!site.siteSecret) {
-    return NextResponse.json({ error: 'Site has no siteSecret — reconnect plugin' }, { status: 400 });
+    return NextResponse.json({ error: 'Site has no siteSecret - reconnect plugin' }, { status: 400 });
   }
 
   const hdrs = await headers();
