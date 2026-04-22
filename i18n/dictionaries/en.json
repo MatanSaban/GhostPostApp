@@ -3,6 +3,98 @@
     "name": "Ghost Post",
     "initial": "G"
   },
+  "meta": {
+    "default": {
+      "title": "Ghost Post — AI-Powered SEO Automation",
+      "description": "Automate your SEO strategy with Ghost Post. AI-powered content creation, optimization, and site management."
+    },
+    "home": {
+      "title": "Ghost Post — AI-Powered SEO Automation",
+      "description": "Let intelligent agents handle your content strategy while you focus on growth."
+    },
+    "auth": {
+      "index": { "title": "Authentication", "description": "Sign in or create an account for Ghost Post." },
+      "login": { "title": "Sign In", "description": "Sign in to your Ghost Post account." },
+      "register": { "title": "Create Account", "description": "Create your Ghost Post account and start automating SEO." },
+      "thankYou": { "title": "Thanks for Signing Up", "description": "Your Ghost Post account is being prepared." },
+      "acceptInvite": { "title": "Accept Invitation", "description": "Accept your invitation to join an account on Ghost Post." }
+    },
+    "dashboard": {
+      "home": { "title": "Dashboard", "description": "Overview of your sites, content pipeline, and SEO performance." },
+      "agent": { "title": "Agent", "description": "Chat with your AI SEO agent and review automated actions." },
+      "automations": { "title": "Automations", "description": "Manage scheduled SEO automations across your sites." },
+      "strategy": {
+        "index": { "title": "Strategy", "description": "Plan your SEO strategy with AI-driven insights." },
+        "siteProfile": { "title": "Site Profile", "description": "Configure your site profile and brand voice." },
+        "keywords": { "title": "Keywords", "description": "Research and prioritize target keywords for your site." },
+        "competitors": { "title": "Competitor Analysis", "description": "Track competitor content, keywords, and backlinks." },
+        "contentPlanner": { "title": "Content Planner", "description": "Plan, schedule, and track the content pipeline." },
+        "aiWizard": { "title": "AI Content Wizard", "description": "Generate content briefs and drafts with AI." }
+      },
+      "entities": {
+        "index": { "title": "Entities", "description": "Browse all entity types synced from your site." },
+        "type": { "title": "Entities", "description": "Manage entities of this type." },
+        "detail": { "title": "Entity", "description": "Edit an individual entity." },
+        "media": { "title": "Media Library", "description": "Browse media assets synced from your site." },
+        "sitemaps": { "title": "Sitemaps", "description": "Inspect and manage sitemaps for your sites." },
+        "sitemapDetail": { "title": "Sitemap", "description": "View URLs and status for an individual sitemap." }
+      },
+      "technicalSeo": {
+        "index": { "title": "Technical SEO", "description": "Tools for the technical health of your site." },
+        "redirections": { "title": "Redirections", "description": "Create and manage URL redirects." },
+        "webp": { "title": "WebP Converter", "description": "Convert images to WebP for faster page loads." },
+        "audit": { "title": "Site Audit", "description": "Crawl your site to surface technical SEO issues." }
+      },
+      "siteAudit": { "title": "Site Audit", "description": "Crawl your site to surface technical SEO issues." },
+      "seoFrontend": { "title": "Frontend SEO", "description": "Optimize page-level frontend SEO signals." },
+      "seoBackend": { "title": "Backend SEO", "description": "Optimize backend SEO settings and integrations." },
+      "backlinks": { "title": "Backlinks Marketplace", "description": "Discover and acquire high-quality backlinks." },
+      "linkBuilding": { "title": "Link Building", "description": "Plan and track link-building campaigns." },
+      "myWebsites": { "title": "My Websites", "description": "Manage every site connected to your Ghost Post account." },
+      "notifications": { "title": "Notifications", "description": "Review notifications and platform alerts." },
+      "settings": { "title": "Settings", "description": "Account, team, billing, and platform settings." },
+      "support": {
+        "index": { "title": "Support", "description": "Open and track support tickets." },
+        "new": { "title": "New Support Ticket", "description": "Open a new support ticket." },
+        "access": { "title": "Support Access", "description": "Manage support access for your account." },
+        "detail": { "title": "Support Ticket", "description": "View and reply to a support ticket." }
+      },
+      "visualEditor": { "title": "Visual Editor", "description": "Edit pages visually on your connected site." },
+      "restoreAccount": { "title": "Restore Account", "description": "Restore an archived Ghost Post account." }
+    },
+    "admin": {
+      "home": { "title": "Admin Overview", "description": "Platform-wide admin overview and metrics." },
+      "accounts": { "title": "Accounts", "description": "Manage customer accounts." },
+      "accountDetail": { "title": "Account", "description": "View and manage an individual account." },
+      "users": { "title": "Users", "description": "Manage platform users." },
+      "userDetail": { "title": "User", "description": "View and manage an individual user." },
+      "subscriptions": { "title": "Subscriptions", "description": "Manage active subscriptions and billing." },
+      "plans": { "title": "Plans", "description": "Configure platform plans and pricing tiers." },
+      "addons": { "title": "Add-ons", "description": "Configure platform add-ons." },
+      "coupons": { "title": "Coupons", "description": "Create and manage promotional coupons." },
+      "pricing": { "title": "Pricing", "description": "Review and update pricing." },
+      "interviewFlow": { "title": "Interview Flow", "description": "Configure the customer onboarding interview flow." },
+      "interviewQuestions": { "title": "Interview Questions", "description": "Manage interview questions and prompts." },
+      "pushQuestions": { "title": "Push Questions", "description": "Configure push questions for the agent." },
+      "botActions": { "title": "Bot Actions", "description": "Configure automated bot actions." },
+      "translations": { "title": "Translations", "description": "Manage platform translations and copy." },
+      "backlinks": { "title": "Backlinks Admin", "description": "Manage the backlinks marketplace inventory." },
+      "website": {
+        "index": { "title": "Marketing Site", "description": "Manage the marketing website content." },
+        "settings": { "title": "Marketing Site Settings", "description": "Configure marketing site settings." },
+        "blog": { "title": "Blog", "description": "Manage marketing blog posts." },
+        "blogNew": { "title": "New Blog Post", "description": "Create a new marketing blog post." },
+        "blogEdit": { "title": "Edit Blog Post", "description": "Edit an existing marketing blog post." },
+        "pages": { "title": "Pages", "description": "Manage marketing site pages." },
+        "pageEdit": { "title": "Edit Page", "description": "Edit a marketing site page." }
+      },
+      "faq": { "title": "FAQ", "description": "Manage the FAQ content." },
+      "support": { "title": "Support Inbox", "description": "Manage incoming support tickets." },
+      "supportDetail": { "title": "Support Ticket", "description": "Reply to a support ticket." },
+      "impersonation": { "title": "Impersonation", "description": "Impersonate accounts for support and debugging." },
+      "impersonationSession": { "title": "Impersonation Session", "description": "View an impersonation session." }
+    }
+  },
   "homepage": {
     "taglineHighlight": "AI-Powered SEO Automation",
     "taglineText": "for modern businesses. Let our intelligent agents handle your content strategy while you focus on growth.",
@@ -324,7 +416,8 @@
       "backlinks": "Backlinks",
       "website": "Website Content",
       "faq": "FAQ Management",
-      "support": "Support Tickets"
+      "support": "Support Tickets",
+      "impersonation": "Impersonation"
     }
   },
   "websiteAdmin": {
@@ -985,6 +1078,7 @@
     },
     "aiFix": {
       "label": "AI Fix",
+      "labelWithCredits": "AI Fix · {credits} credits",
       "title": "Fix this issue with AI",
       "pluginRequired": "WordPress Plugin Required",
       "pluginDescription": "To automatically fix issues on your website, you need to connect the Ghost Post plugin to your WordPress site. The plugin allows Ghost Post to safely apply changes directly to your pages.",
@@ -1132,6 +1226,9 @@
       "title": "Fix this issue",
       "fixing": "Fixing...",
       "faviconModalTitle": "Select Favicon Image"
+    },
+    "quickFix": {
+      "free": "Free"
     },
     "whatIsIt": "What is it?",
     "howToFix": "How to fix?",
@@ -1873,6 +1970,13 @@
       "structuredDataFound": "Structured data (JSON-LD) is present",
       "noLangAttribute": "Missing language attribute on HTML tag",
       "langAttributeGood": "Language attribute is properly set",
+      "noViewportMeta": "Missing viewport meta tag - page will not render correctly on mobile",
+      "viewportMetaWeak": "Viewport meta tag is present but missing width=device-width",
+      "viewportMetaGood": "Viewport meta tag is properly configured",
+      "noCharset": "Missing charset declaration - browsers may guess the encoding",
+      "charsetGood": "Charset is declared",
+      "duplicateTitle": "Page title is duplicated across multiple pages",
+      "duplicateMetaDescription": "Meta description is duplicated across multiple pages",
       "fewInternalLinks": "Very few internal links found (less than 3)",
       "internalLinksGood": "Good number of internal links found",
       "noFavicon": "No favicon detected",
@@ -1966,6 +2070,10 @@
       "addAltText": "Add descriptive alt text to all images for accessibility and SEO",
       "addStructuredData": "Add JSON-LD structured data to help search engines understand your content",
       "addLangAttribute": "Add a lang attribute to the HTML tag (e.g., lang=\"en\")",
+      "addViewportMeta": "Add <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"> inside <head>",
+      "addCharset": "Add <meta charset=\"utf-8\"> as the first element inside <head>",
+      "uniqueTitle": "Give each page a unique <title> that reflects its specific content",
+      "uniqueMetaDescription": "Write a unique meta description for each page to avoid competing for the same search results",
       "addInternalLinks": "Add more internal links to improve site navigation and SEO",
       "addFavicon": "Add a favicon to improve brand recognition in browser tabs",
       "removeNoindex": "Remove the noindex directive to allow search engines to index this page. If intentional, you can ignore this warning.",
@@ -8325,6 +8433,69 @@
       "sessionLive": "Live",
       "sessionEnded": "Ended ({reason})",
       "unknownAdmin": "Support engineer"
+    }
+  },
+  "impersonation": {
+    "banner": {
+      "title": "{admin} is signed in as {target}",
+      "scopeReadOnly": "Read-only",
+      "scopeFull": "Full access",
+      "endSession": "End session",
+      "expired": "Session expired",
+      "minutesLeft": "{count} min left",
+      "hoursLeft": "{count} h left",
+      "unknownAdmin": "Support engineer",
+      "unknownUser": "User"
+    },
+    "admin": {
+      "title": "Impersonation",
+      "subtitle": "Sign in as a user using a code they generated.",
+      "warningTitle": "Every action is recorded",
+      "warningDesc": "Sessions are bound to the user's permissions and the access level they granted. The user can revoke the code at any time, and we keep an audit trail of everything you do while impersonating.",
+      "loading": "Checking impersonation status…",
+      "activeTitle": "Active session",
+      "target": "Signed in as",
+      "scope": "Access level",
+      "scopeReadOnly": "Read-only",
+      "scopeFull": "Full access",
+      "startedAt": "Started",
+      "expiresAt": "Expires",
+      "endNow": "End session now",
+      "endConfirm": "End the active impersonation session?",
+      "startTitle": "Start a new session",
+      "startDesc": "Paste the code the user shared with you and explain why you're signing in.",
+      "codeLabel": "Access code",
+      "codeHint": "Format: AB7K-9XQR-MN3P-T5VW (case-insensitive, dashes optional).",
+      "reasonLabel": "Reason",
+      "reasonPlaceholder": "Investigating the billing issue reported in ticket #1234…",
+      "reasonHint": "Required, min 10 characters. Stored on the audit log.",
+      "startButton": "Start impersonation",
+      "startFailed": "Couldn't start impersonation. The code may be invalid, used, or expired.",
+      "historyTitle": "Recent sessions",
+      "historyDesc": "Last 25 impersonation sessions across the platform.",
+      "historyEmpty": "No impersonation sessions yet.",
+      "byAdmin": "By {name}",
+      "actionCount": "{count} actions",
+      "liveTag": "Live",
+      "backToList": "Back to impersonation",
+      "detailTitle": "{admin} as {target}",
+      "detailMetaTitle": "Session details",
+      "detailLoadFailed": "Couldn't load session details.",
+      "adminUser": "Admin",
+      "endedAt": "Ended",
+      "endReason": "End reason",
+      "stillActive": "Still active",
+      "ipAddress": "IP address",
+      "actionsTitle": "Action log ({count})",
+      "actionsDesc": "Every mutating request the admin made while impersonating, plus any blocked attempts.",
+      "actionsTruncated": "Showing the 500 most recent actions.",
+      "noActions": "No actions recorded for this session.",
+      "col": {
+        "time": "Time",
+        "method": "Method",
+        "path": "Path",
+        "status": "Status"
+      }
     }
   }
 }

@@ -176,7 +176,7 @@
   align-items: center;
   gap: 8px;
   margin: 1rem 0 0.5rem;
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   font-weight: 600;
   color: var(--success-color, #22c55e);
 }

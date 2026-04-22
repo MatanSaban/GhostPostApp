@@ -140,7 +140,7 @@
 }
 
 .progressText {
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   font-weight: 700;
   color: #7c3aed;
   min-width: 36px;
@@ -253,7 +253,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   font-weight: 700;
   color: var(--foreground, #111);
   margin: 0 0 12px;
@@ -361,7 +361,7 @@
 
 .newIntent {
   display: inline-block;
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   font-weight: 600;
   color: #7c3aed;
   background: rgba(124, 58, 237, 0.08);
@@ -393,7 +393,7 @@
 }
 
 .newText {
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   color: #22c55e;
   background: rgba(34, 197, 94, 0.08);
   padding: 4px 10px;
@@ -488,7 +488,7 @@
 
 .cancelBtn {
   padding: 10px 20px;
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   font-weight: 600;
   color: var(--muted-foreground, #6b7280);
   background: transparent;
@@ -507,7 +507,7 @@
   align-items: center;
   gap: 8px;
   padding: 10px 24px;
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   font-weight: 700;
   color: #fff;
   background: linear-gradient(135deg, #7c3aed, #6d28d9);
@@ -532,7 +532,7 @@
   align-items: center;
   gap: 8px;
   flex: 1;
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   font-weight: 600;
   color: #22c55e;
 }
@@ -578,7 +578,7 @@
 }
 
 .confirmSectionTitle {
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   font-weight: 700;
   color: var(--foreground, #111);
   margin: 0;
@@ -652,7 +652,7 @@
 }
 
 .confirmDetailText strong {
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   font-weight: 700;
   color: var(--foreground, #111);
 }

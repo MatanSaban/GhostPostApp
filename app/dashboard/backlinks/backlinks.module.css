@@ -311,7 +311,7 @@
 }
 
 .domainName {
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   font-weight: 600;
   color: var(--foreground);
   direction: ltr;
@@ -396,7 +396,7 @@
 }
 
 .metricValue {
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   font-weight: 600;
   color: var(--foreground);
 }
@@ -777,7 +777,7 @@
 }
 
 .paymentName {
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   font-weight: 600;
   color: var(--foreground);
 }
@@ -1067,7 +1067,7 @@
 
 .tableDomainName {
   font-weight: 600;
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   color: var(--foreground);
 }
 

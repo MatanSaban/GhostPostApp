@@ -1,12 +1,13 @@
 /**
  * Site Posts API
- * Returns available posts for a site, fetches from WordPress if needed
+ * Returns available posts for a site, fetches from the connected CMS if needed
+ * (WordPress plugin or Shopify GraphQL via the dispatcher).
  */
 
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import prisma from '@/lib/prisma';
-import { getPosts } from '@/lib/wp-api-client';
+import { cms } from '@/lib/cms';
 
 const SESSION_COOKIE = 'user_session';
 
@@ -141,32 +142,14 @@ export async function POST(request, { params }) {
     const { id: siteId } = await params;
     const { limit = 20 } = await request.json().catch(() => ({}));
 
-    // Verify site access and get site data
+    // Verify site access and get the full site row (adapter may need any field).
     let site;
     if (user.isSuperAdmin) {
-      site = await prisma.site.findUnique({
-        where: { id: siteId },
-        select: {
-          id: true,
-          url: true,
-          platform: true,
-          connectionStatus: true,
-          siteKey: true,
-          siteSecret: true,
-        },
-      });
+      site = await prisma.site.findUnique({ where: { id: siteId } });
     } else {
       const accountIds = user.accountMemberships.map(m => m.accountId);
       site = await prisma.site.findFirst({
         where: user.isSuperAdmin ? { id: siteId } : { id: siteId, accountId: { in: accountIds } },
-        select: {
-          id: true,
-          url: true,
-          platform: true,
-          connectionStatus: true,
-          siteKey: true,
-          siteSecret: true,
-        },
       });
     }
 
@@ -176,29 +159,31 @@ export async function POST(request, { params }) {
 
     let posts = [];
 
-    // Try WordPress plugin API first
+    // Try the CMS dispatcher first (WP plugin or Shopify GraphQL).
     if (site.connectionStatus === 'CONNECTED') {
       try {
-        const result = await getPosts(site, 'post', 1, limit, false);
-        const wpPosts = Array.isArray(result) ? result : (result.posts || result.data || []);
-        
-        if (wpPosts.length > 0) {
-          posts = wpPosts.map(post => ({
+        // Shopify exposes 'articles' rather than 'post'; fall back if first slug returns nothing.
+        const slug = site.platform === 'shopify' ? 'articles' : 'post';
+        const result = await cms.getPosts(site, slug, 1, limit, false);
+        const fetched = Array.isArray(result) ? result : (result.items || result.posts || result.data || []);
+
+        if (fetched.length > 0) {
+          posts = fetched.map(post => ({
             id: String(post.id),
             title: typeof post.title === 'object' ? post.title.rendered?.replace(/<[^>]+>/g, '').trim() : post.title,
-            url: post.link || post.url,
-            excerpt: typeof post.excerpt === 'object' ?
-              post.excerpt.rendered?.replace(/<[^>]+>/g, '').trim().substring(0, 200) :
-              post.excerpt?.substring(0, 200),
+            url: post.link || post.permalink || post.url,
+            excerpt: typeof post.excerpt === 'object'
+              ? post.excerpt.rendered?.replace(/<[^>]+>/g, '').trim().substring(0, 200)
+              : post.excerpt?.substring(0, 200),
             image: post.featured_image || post.featuredImage || null,
           }));
         }
       } catch (error) {
-        console.log('[SitePosts] Plugin API error:', error.message);
+        console.log('[SitePosts] CMS dispatcher error:', error.message);
       }
     }
 
-    // Try WordPress REST API if plugin didn't work and site is WordPress
+    // Final fallback: anonymous WP REST (only meaningful for WordPress sites).
     if (posts.length === 0 && site.platform === 'wordpress') {
       const baseUrl = site.url.replace(/\/$/, '');
       try {

@@ -215,7 +215,7 @@
 }
 
 .stepLabel {
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   font-weight: 600;
   color: #111827;
   white-space: nowrap;
@@ -311,7 +311,7 @@
   border-radius: 50%;
   background: linear-gradient(to right, #9333ea, #3b82f6);
   color: white;
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   font-weight: 600;
   box-shadow: 0 4px 14px rgba(147, 51, 234, 0.4);
 }
@@ -428,7 +428,7 @@
   color: white;
   font-family: 'Poppins', sans-serif;
   font-weight: 600;
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   cursor: pointer;
   transition: transform 0.2s ease, opacity 0.2s ease;
 }

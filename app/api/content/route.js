@@ -7,8 +7,10 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import prisma from '@/lib/prisma';
-import { createPost, uploadMediaFromUrl, updateSeoData, getPost } from '@/lib/wp-api-client';
+import { cms, getCapabilities } from '@/lib/cms';
 import { uploadBase64ToCloudinary, processBase64ImagesInHtml } from '@/lib/cloudinary-upload';
+
+const SESSION_COOKIE = 'user_session';
 
 // Get authenticated user
 async function getAuthenticatedUser() {
@@ -158,14 +160,18 @@ export async function POST(request) {
       },
     });
 
-    // If READY_TO_PUBLISH and site is connected WordPress, push to WP
-    const shouldPublish = (status === 'READY_TO_PUBLISH' || status === 'SCHEDULED') 
-      && site.platform === 'wordpress' 
+    // If READY_TO_PUBLISH and site is connected (WP or Shopify), push it.
+    const caps = getCapabilities(site);
+    const isShopifyConnected = !!site.shopifyAccessToken && !!site.shopifyDomain;
+    const isWpConnected = !!site.siteKey && !!site.siteSecret;
+    const isPlatformConnected = caps.platform === 'shopify' ? isShopifyConnected : isWpConnected;
+    const shouldPublish = (status === 'READY_TO_PUBLISH' || status === 'SCHEDULED')
       && site.connectionStatus === 'CONNECTED'
-      && site.siteKey && site.siteSecret;
+      && isPlatformConnected;
 
     let wpPostId = null;
     let wpPostUrl = null;
+    let siteEntityId = null;
 
     if (shouldPublish) {
       try {
@@ -183,8 +189,8 @@ export async function POST(request) {
               featuredImageCdnUrl = imageUrl;
               console.log('[Content API] Featured image uploaded to Cloudinary:', imageUrl);
             }
-            // Now upload the URL to WP media
-            const mediaResult = await uploadMediaFromUrl(site, imageUrl, {
+            // Now upload the URL to the connected CMS's media library.
+            const mediaResult = await cms.uploadMediaFromUrl(site, imageUrl, {
               alt: featuredImageAlt || title,
               title: featuredImageAlt || title,
             });
@@ -225,17 +231,18 @@ export async function POST(request) {
           wpData.date = new Date(scheduledAt).toISOString().replace('T', ' ').replace('Z', '');
         }
 
-        const wpResult = await createPost(site, 'post', wpData);
-        console.log('[Content API] WP create result:', JSON.stringify(wpResult));
+        // Shopify maps 'post' → 'articles' internally via the content manager.
+        const cmsSlug = caps.platform === 'shopify' ? 'articles' : 'post';
+        const wpResult = await cms.createPost(site, cmsSlug, wpData);
+        console.log('[Content API] CMS create result:', JSON.stringify(wpResult));
 
-        // Verify the post was created with content
         if (wpResult?.id) {
           try {
-            const verifyPost = await getPost(site, 'post', wpResult.id);
-            const wpContent = verifyPost?.content || verifyPost?.post_content || '';
-            console.log('[Content API] WP verify - post content length:', wpContent.length, '| preview:', String(wpContent).substring(0, 200));
+            const verifyPost = await cms.getPost(site, cmsSlug, wpResult.id);
+            const verifyContent = verifyPost?.content || verifyPost?.post_content || '';
+            console.log('[Content API] CMS verify - post content length:', verifyContent.length, '| preview:', String(verifyContent).substring(0, 200));
           } catch (verifyErr) {
-            console.warn('[Content API] Could not verify WP post content:', verifyErr.message);
+            console.warn('[Content API] Could not verify CMS post content:', verifyErr.message);
           }
         }
         wpPostId = wpResult?.id;
@@ -244,10 +251,10 @@ export async function POST(request) {
           // Update SEO data if meta title/description provided
           if (metaTitle || metaDescription) {
             try {
-              await updateSeoData(site, wpPostId, {
+              await cms.updateSeoData(site, wpPostId, {
                 title: metaTitle || title,
                 description: metaDescription || '',
-              });
+              }, cmsSlug);
             } catch (seoError) {
               console.error('[Content API] SEO update failed:', seoError.message);
             }
@@ -270,7 +277,6 @@ export async function POST(request) {
           content.publishedAt = new Date();
 
           // Create or update SiteEntity so it appears in dashboard entities
-          let siteEntityId = null;
           try {
             // Find the "posts" entity type for this site
             let entityType = await prisma.siteEntityType.findFirst({

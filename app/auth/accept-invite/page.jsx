@@ -1,17 +1,10 @@
 import { HeaderActions } from '@/app/components/ui/header-actions';
 import { AcceptInviteFlow } from './AcceptInviteFlow';
 import { getTranslations } from '@/i18n/server';
+import { createGenerateMetadata } from '@/lib/seo/metadata';
 import styles from '../auth.module.css';
 
-export const metadata = {
-  title: 'Accept Invitation | Ghost Post',
-  description: 'Accept your invitation to join an account on Ghost Post',
-  icons: {
-    icon: '/ghostpost_logo.png',
-    shortcut: '/ghostpost_logo.png',
-    apple: '/ghostpost_logo.png',
-  },
-};
+export const generateMetadata = createGenerateMetadata('/auth/accept-invite');
 
 export default async function AcceptInvitePage({ searchParams }) {
   const t = await getTranslations();

@@ -357,7 +357,7 @@
 }
 
 .scanInfoTitle {
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   font-weight: 600;
   color: var(--foreground);
   margin-bottom: 0.75rem;
@@ -410,7 +410,7 @@
 }
 
 .urlPreviewTitle {
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   font-weight: 600;
   color: var(--foreground);
 }

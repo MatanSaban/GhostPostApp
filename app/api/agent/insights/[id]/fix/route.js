@@ -3,8 +3,64 @@ import { cookies } from 'next/headers';
 import prisma from '@/lib/prisma';
 import { generateInsightPreview, applyInsightFix, regenerateItem, isFixableType, generateMergedContent, applyMergedContent } from '@/lib/agent-fix';
 import { invalidateAgentInsights } from '@/lib/cache/invalidate.js';
+import { enforceCredits } from '@/lib/account-limits';
+import { notifyThirdPartyAiFailure } from '@/lib/admin-alerts';
 
 const SESSION_COOKIE = 'user_session';
+
+// Lower-bound credit floors per insight type. Real charging is dynamic
+// (token-based, inside generateStructuredResponse / generateImage), but the
+// preflight uses these to refuse near-empty accounts BEFORE we kick off an
+// expensive call that's guaranteed to fail at deduction time.
+const PREFLIGHT_CREDIT_FLOOR = {
+  missingSeo: 3,
+  keywordStrikeZone: 3,
+  lowCtrForPosition: 3,
+  cannibalization: 30,
+  missingFeaturedImage: 8,
+  insufficientContentImages: 8,
+  aiPageMissingSchema: 4,
+  aiAnswerableButNotConcise: 4,
+};
+
+function getInsightType(titleKey) {
+  if (!titleKey) return null;
+  if (titleKey.includes('cannibalization')) return 'cannibalization';
+  return titleKey.match(/agent\.insights\.(\w+)\.title/)?.[1] || null;
+}
+
+// Mirror of the audit dispatcher's classifier — Vertex/Gemini upstream
+// failures bubble up as fetch errors with these markers.
+function isThirdPartyAiError(e) {
+  if (!e) return false;
+  if (e.thirdParty === true) return true;
+  const msg = String(e.message || '').toLowerCase();
+  return (
+    msg.includes('vertex')
+    || msg.includes('gemini')
+    || msg.includes('googleapis')
+    || msg.includes('imagen')
+    || msg.includes('resource_exhausted')
+    || msg.includes('unavailable')
+    || msg.includes('upstream')
+    || /\b(429|500|502|503|504)\b/.test(msg)
+  );
+}
+
+function aiApologyResponse(e, { operation, accountId, siteId, userId }) {
+  notifyThirdPartyAiFailure({
+    provider: e.provider || 'gemini',
+    model: e.model,
+    operation,
+    errorMessage: e.message,
+    accountId, siteId, userId,
+  });
+  return NextResponse.json({
+    error: 'Our AI provider is temporarily unavailable. We have notified the team and you have not been charged.',
+    code: 'AI_PROVIDER_FAILED',
+    provider: e.provider || 'gemini',
+  }, { status: 503 });
+}
 
 async function getAuthenticatedUser() {
   try {
@@ -83,6 +139,23 @@ async function runFixInBackground(insightId, siteId, mode, executeFn) {
     invalidateAgentInsights(siteId);
   } catch (error) {
     console.error(`[Agent Fix] Background ${mode} failed for insight ${insightId}:`, error);
+    const wasThirdParty = isThirdPartyAiError(error);
+    if (wasThirdParty) {
+      try {
+        const insightForAlert = await prisma.agentInsight.findUnique({
+          where: { id: insightId },
+          select: { siteId: true, accountId: true },
+        });
+        notifyThirdPartyAiFailure({
+          provider: error.provider || 'gemini',
+          model: error.model,
+          operation: `agent fix ${mode}`,
+          errorMessage: error.message,
+          accountId: insightForAlert?.accountId,
+          siteId: insightForAlert?.siteId,
+        });
+      } catch { /* alert is best-effort */ }
+    }
     try {
       const latest = await prisma.agentInsight.findUnique({ where: { id: insightId } });
       await prisma.agentInsight.update({
@@ -92,7 +165,11 @@ async function runFixInBackground(insightId, siteId, mode, executeFn) {
             ...(latest?.executionResult || {}),
             fixStatus: 'FAILED',
             fixCompletedAt: new Date().toISOString(),
-            fixError: error.message,
+            fixError: wasThirdParty
+              ? 'Our AI provider is temporarily unavailable. We have notified the team and you have not been charged.'
+              : error.message,
+            fixErrorCode: wasThirdParty ? 'AI_PROVIDER_FAILED' : 'INTERNAL',
+            wasThirdPartyError: wasThirdParty,
             fixMode: mode,
           },
         },
@@ -142,6 +219,9 @@ export async function GET(request, { params }) {
       fixStatus: execResult.fixStatus || null,
       executionResult: execResult,
       insightStatus: insight.status,
+      fixError: execResult.fixError || null,
+      fixErrorCode: execResult.fixErrorCode || null,
+      wasThirdPartyError: !!execResult.wasThirdPartyError,
     });
   } catch (error) {
     console.error('[Agent API] GET fix status error:', error);
@@ -220,16 +300,102 @@ export async function POST(request, { params }) {
       return NextResponse.json({ error: 'Insight cannot be fixed in this status' }, { status: 400 });
     }
 
+    // ─── Credit preflight ────────────────────────────────────
+    // Refuse near-empty accounts BEFORE we kick off an AI call that's
+    // guaranteed to fail at deduction time. The floor is a lower bound;
+    // real charging is dynamic and happens inside the AI helpers.
+    // 'apply' on cannibalization re-runs an AI generate so it's gated too.
+    const insightType = getInsightType(insight.titleKey);
+    const isCannibalization = insightType === 'cannibalization';
+    const billableModes = new Set(['preview', 'regenerate', 'generate']);
+    if (isCannibalization && mode === 'apply') billableModes.add('apply');
+
+    if (billableModes.has(mode)) {
+      const floor = PREFLIGHT_CREDIT_FLOOR[insightType] ?? 3;
+      const check = await enforceCredits(site.accountId, floor);
+      if (!check.allowed) {
+        return NextResponse.json({
+          error: check.error || 'Insufficient AI credits',
+          code: 'INSUFFICIENT_CREDITS',
+          resourceKey: 'aiCredits',
+          required: floor,
+        }, { status: 402 });
+      }
+    }
+
+    const apologyCtx = {
+      accountId: site.accountId,
+      siteId: site.id,
+      userId: user.id,
+    };
+
     // ─── Preview mode: generate proposals ─────────────────────
+    // Cached on insight.executionResult.previewCache so re-opening the modal
+    // doesn't re-charge token costs. Pass `fresh: true` to force regeneration.
     if (mode === 'preview') {
-      const result = await generateInsightPreview(insight, site, user.id);
+      const cached = insight.executionResult?.previewCache;
+      if (cached?.result && !body.fresh) {
+        return NextResponse.json({ ...cached.result, cached: true, cachedAt: cached.generatedAt });
+      }
+
+      let result;
+      try {
+        result = await generateInsightPreview(insight, site, user.id);
+      } catch (e) {
+        if (isThirdPartyAiError(e)) return aiApologyResponse(e, { operation: `preview ${insightType}`, ...apologyCtx });
+        throw e;
+      }
+
+      // Only cache successful previews so a transient empty/error result isn't
+      // remembered. Failed proposals can still be retried with regenerate.
+      if (result?.success !== false) {
+        await prisma.agentInsight.update({
+          where: { id },
+          data: {
+            executionResult: {
+              ...(insight.executionResult || {}),
+              previewCache: {
+                result,
+                generatedAt: new Date().toISOString(),
+              },
+            },
+          },
+        }).catch((e) => console.warn('[Agent Fix] previewCache write failed:', e.message));
+      }
       return NextResponse.json(result);
     }
 
     // ─── Regenerate mode: regenerate one item ─────────────────
+    // Surgically replaces previewCache.result.proposals[itemIndex] so the
+    // updated item is preserved on next modal re-open.
     if (mode === 'regenerate') {
       const itemIndex = typeof body.itemIndex === 'number' ? body.itemIndex : 0;
-      const result = await regenerateItem(insight, site, itemIndex);
+      let result;
+      try {
+        result = await regenerateItem(insight, site, itemIndex);
+      } catch (e) {
+        if (isThirdPartyAiError(e)) return aiApologyResponse(e, { operation: `regenerate ${insightType}`, ...apologyCtx });
+        throw e;
+      }
+
+      const cached = insight.executionResult?.previewCache;
+      if (result?.proposal && cached?.result?.proposals) {
+        const updatedProposals = [...cached.result.proposals];
+        updatedProposals[itemIndex] = result.proposal;
+        await prisma.agentInsight.update({
+          where: { id },
+          data: {
+            executionResult: {
+              ...(insight.executionResult || {}),
+              previewCache: {
+                ...cached,
+                result: { ...cached.result, proposals: updatedProposals },
+                generatedAt: new Date().toISOString(),
+              },
+            },
+          },
+        }).catch((e) => console.warn('[Agent Fix] previewCache regenerate write failed:', e.message));
+      }
       return NextResponse.json(result);
     }
 
@@ -333,8 +499,6 @@ export async function POST(request, { params }) {
         generateContentImages: body.generateContentImages || false,
       };
 
-      const isCannibalization = insight.titleKey?.includes('cannibalization');
-
       if (isCannibalization) {
         // Prevent concurrent fix operations
         const currentFixStatus = insight.executionResult?.fixStatus;
@@ -366,7 +530,13 @@ export async function POST(request, { params }) {
       }
 
       // Non-cannibalization: keep synchronous (fast SEO updates)
-      const result = await applyInsightFix(insight, site, proposals, options);
+      let result;
+      try {
+        result = await applyInsightFix(insight, site, proposals, options);
+      } catch (e) {
+        if (isThirdPartyAiError(e)) return aiApologyResponse(e, { operation: `apply ${insightType}`, ...apologyCtx });
+        throw e;
+      }
 
       // Merge with previously fixed items
       const prevResults = insight.executionResult?.results || [];
@@ -376,6 +546,9 @@ export async function POST(request, { params }) {
         if (existingIdx >= 0) allResults[existingIdx] = r;
         else allResults.push(r);
       }
+      // executionResult is replaced wholesale here, which implicitly drops
+      // previewCache — the proposals are now consumed; a future re-open
+      // would regenerate against the post-apply state.
       const mergedResult = { ...result, results: allResults };
 
       await prisma.agentInsight.update({

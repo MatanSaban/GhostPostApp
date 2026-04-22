@@ -39,7 +39,7 @@
   gap: 0.5rem;
   padding: 0.375rem 0.75rem;
   border-radius: var(--radius-full);
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   font-weight: 600;
   width: fit-content;
 
@@ -92,7 +92,7 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0.5rem 1rem;
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   font-weight: 600;
   color: white;
   background: var(--gradient-primary);
@@ -117,7 +117,7 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0.5rem 1rem;
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   font-weight: 600;
   color: var(--foreground);
   background: var(--card);
@@ -137,7 +137,7 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0.5rem 1rem;
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   font-weight: 600;
   color: #ef4444;
   background: rgba(239, 68, 68, 0.1);
@@ -202,7 +202,7 @@
 .formHeader {
   h4 {
     margin: 0 0 0.5rem 0;
-    font-size: 0.75rem;
+    font-size: 0.8125rem;
     font-weight: 600;
     color: var(--foreground);
   }
@@ -347,7 +347,7 @@
 
 .stepsTitle {
   margin: 0 0 0.75rem 0;
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   font-weight: 600;
   color: var(--foreground);
 }

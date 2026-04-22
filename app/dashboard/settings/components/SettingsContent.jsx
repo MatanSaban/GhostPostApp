@@ -62,6 +62,8 @@ import { useUser } from '@/app/context/user-context';
 import { usePermissions } from '@/app/hooks/usePermissions';
 import { SettingsFormSkeleton, TableSkeleton, FormSkeleton, Skeleton, Button } from '@/app/dashboard/components';
 import WordPressPluginSection from './WordPressPluginSection';
+import ShopifyConnectionSection from './ShopifyConnectionSection';
+import { useCapabilities } from '@/app/hooks/useCapabilities';
 import UpgradePlanModal from '@/app/components/ui/UpgradePlanModal';
 import AddCreditsModal from '@/app/components/ui/AddCreditsModal';
 import { AdminModal } from '@/app/admin/components/AdminModal';
@@ -689,7 +691,7 @@ function GeneralSettings({ general, setGeneral, translations, canEdit = true }) 
         </div>
       </div>
 
-      <div className={styles.subsection}>
+      {/* <div className={styles.subsection}>
         <div className={styles.warningBox}>
           <div className={styles.warningContent}>
             <AlertTriangle className={styles.warningIcon} />
@@ -698,14 +700,14 @@ function GeneralSettings({ general, setGeneral, translations, canEdit = true }) 
               <span className={styles.warningDescription}>{t.maintenanceDescription}</span>
             </div>
           </div>
-          <button 
+          <button
             className={`${styles.toggleSwitch} ${general.maintenanceMode ? styles.active : ''}`}
             onClick={() => updateField('maintenanceMode', !general.maintenanceMode)}
           >
             <div className={styles.toggleKnob}></div>
           </button>
         </div>
-      </div>
+      </div> */}
 
       <div className={styles.saveButtonWrapper}>
         {saveError && <span className={styles.saveError}>{saveError}</span>}
@@ -739,10 +741,10 @@ function AIConfigSettings({ aiConfig, setAiConfig, translations, canEdit = true 
 
   return (
     <>
-      <div className={styles.formGrid}>
+      {/* <div className={styles.formGrid}>
         <div className={styles.formGroup}>
           <label className={styles.formLabel}>{t.aiTextModel}</label>
-          <select 
+          <select
             className={styles.formSelect}
             value={aiConfig.textModel}
             onChange={(e) => updateField('textModel', e.target.value)}
@@ -755,7 +757,7 @@ function AIConfigSettings({ aiConfig, setAiConfig, translations, canEdit = true 
         </div>
         <div className={styles.formGroup}>
           <label className={styles.formLabel}>{t.aiImageModel}</label>
-          <select 
+          <select
             className={styles.formSelect}
             value={aiConfig.imageModel}
             onChange={(e) => updateField('imageModel', e.target.value)}
@@ -774,7 +776,7 @@ function AIConfigSettings({ aiConfig, setAiConfig, translations, canEdit = true 
             <label className={styles.formLabel}>{t.aiMaxTokens}</label>
             <span className={styles.rangeValue}>{(aiConfig.maxMonthlyTokens / 1000).toFixed(0)}K</span>
           </div>
-          <input 
+          <input
             type="range"
             className={styles.rangeInput}
             min="100000"
@@ -793,7 +795,7 @@ function AIConfigSettings({ aiConfig, setAiConfig, translations, canEdit = true 
             <label className={styles.formLabel}>{t.aiTemperature}</label>
             <span className={styles.rangeValue}>{aiConfig.creativityTemperature}</span>
           </div>
-          <input 
+          <input
             type="range"
             className={styles.rangeInput}
             min="0"
@@ -817,7 +819,7 @@ function AIConfigSettings({ aiConfig, setAiConfig, translations, canEdit = true 
         <div className={styles.formGrid}>
           <div className={styles.formGroup}>
             <label className={styles.formLabel}>{t.aiTextPrompt}</label>
-            <textarea 
+            <textarea
               className={`${styles.formTextarea} ${styles.codeTextarea}`}
               value={aiConfig.textPrompt}
               onChange={(e) => updateField('textPrompt', e.target.value)}
@@ -826,7 +828,7 @@ function AIConfigSettings({ aiConfig, setAiConfig, translations, canEdit = true 
           </div>
           <div className={styles.formGroup}>
             <label className={styles.formLabel}>{t.aiImagePrompt}</label>
-            <textarea 
+            <textarea
               className={`${styles.formTextarea} ${styles.codeTextarea}`}
               value={aiConfig.imagePrompt}
               onChange={(e) => updateField('imagePrompt', e.target.value)}
@@ -834,7 +836,7 @@ function AIConfigSettings({ aiConfig, setAiConfig, translations, canEdit = true 
             />
           </div>
         </div>
-      </div>
+      </div> */}
 
       <div className={styles.subsection}>
         <h3 className={styles.subsectionTitle}>
@@ -1194,6 +1196,7 @@ function IntegrationsSettings({ translations, canEdit = true }) {
   const { selectedSite } = useSite();
   const { locale } = useLocale();
   const searchParams = useSearchParams();
+  const caps = useCapabilities();
 
   const [loading, setLoading] = useState(true);
   const [integration, setIntegration] = useState(null);
@@ -1734,19 +1737,35 @@ function IntegrationsSettings({ translations, canEdit = true }) {
         )}
       </div>
 
-      {/* WordPress Plugin Integration */}
-      <div className={styles.settingsSection}>
-        <div className={styles.integrationHeader}>
-          <div className={styles.integrationTitleRow}>
-            <svg className={styles.integrationIcon} width="20" height="20" viewBox="0 0 24 24" fill="none">
-              <circle cx="12" cy="12" r="10" fill="#21759B"/>
-              <path d="M3.01 12c0 3.59 2.09 6.7 5.12 8.17L3.86 8.41A9.95 9.95 0 003.01 12zm15.06-1.23c0-1.12-.4-1.89-.75-2.49-.46-.75-.9-1.38-.9-2.13 0-.84.63-1.61 1.52-1.61h.11a9.96 9.96 0 00-15.08 1.1h.73c1.18 0 3.01-.14 3.01-.14.61-.04.68.86.07.93 0 0-.61.07-1.29.11l4.11 12.23 2.47-7.4-1.76-4.83c-.61-.04-1.18-.11-1.18-.11-.61-.03-.54-.97.07-.93 0 0 1.87.14 2.97.14 1.18 0 3.01-.14 3.01-.14.61-.04.68.86.07.93 0 0-.61.07-1.29.11l4.08 12.13.46-1.52c.51-1.3.75-2.25.75-3.15zm-6.87 1.44L8.13 20.63c1.2.35 2.47.55 3.79.55 1.56 0 3.06-.27 4.45-.76a.87.87 0 01-.07-.12L11.2 12.21z" fill="white"/>
-            </svg>
-            <h3 className={styles.sectionTitle}>{t.wordpressTitle || int.wordpress || 'WordPress'}</h3>
+      {/* Platform connection — WordPress or Shopify, gated by capabilities */}
+      {selectedSite?.platform === 'wordpress' && caps.supportsPlugin && (
+        <div className={styles.settingsSection}>
+          <div className={styles.integrationHeader}>
+            <div className={styles.integrationTitleRow}>
+              <svg className={styles.integrationIcon} width="20" height="20" viewBox="0 0 24 24" fill="none">
+                <circle cx="12" cy="12" r="10" fill="#21759B"/>
+                <path d="M3.01 12c0 3.59 2.09 6.7 5.12 8.17L3.86 8.41A9.95 9.95 0 003.01 12zm15.06-1.23c0-1.12-.4-1.89-.75-2.49-.46-.75-.9-1.38-.9-2.13 0-.84.63-1.61 1.52-1.61h.11a9.96 9.96 0 00-15.08 1.1h.73c1.18 0 3.01-.14 3.01-.14.61-.04.68.86.07.93 0 0-.61.07-1.29.11l4.11 12.23 2.47-7.4-1.76-4.83c-.61-.04-1.18-.11-1.18-.11-.61-.03-.54-.97.07-.93 0 0 1.87.14 2.97.14 1.18 0 3.01-.14 3.01-.14.61-.04.68.86.07.93 0 0-.61.07-1.29.11l4.08 12.13.46-1.52c.51-1.3.75-2.25.75-3.15zm-6.87 1.44L8.13 20.63c1.2.35 2.47.55 3.79.55 1.56 0 3.06-.27 4.45-.76a.87.87 0 01-.07-.12L11.2 12.21z" fill="white"/>
+              </svg>
+              <h3 className={styles.sectionTitle}>{t.wordpressTitle || int.wordpress || 'WordPress'}</h3>
+            </div>
           </div>
+          <WordPressPluginSection />
         </div>
-        <WordPressPluginSection />
-      </div>
+      )}
+      {caps.platform === 'shopify' && (
+        <div className={styles.settingsSection}>
+          <div className={styles.integrationHeader}>
+            <div className={styles.integrationTitleRow}>
+              <svg className={styles.integrationIcon} width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <circle cx="12" cy="12" r="10" fill="#95BF46"/>
+                <path d="M15.35 8.55c-.02-.12-.11-.19-.19-.19-.08-.01-1.32-.02-1.32-.02s-1.04-1.01-1.15-1.12c-.11-.11-.31-.07-.4-.05-.01 0-.21.06-.54.17-.33-.94-.91-1.81-1.92-1.81h-.1c-.29-.38-.65-.55-.96-.55-2.37 0-3.51 2.97-3.86 4.47-.92.28-1.57.49-1.66.52-.51.16-.53.18-.6.66C2.57 10.91 1 23 1 23l12.09 2.28L20 23s-4.63-14.32-4.65-14.45zM10.85 7.07c-.01 0-.03 0-.04.01-.2.06-.41.13-.64.2 0-1.04-.22-1.53-.41-1.85.54.07.9.68 1.09 1.64zm-1.39-1.53c.23.29.37.7.37 1.25v.09c-.42.13-.87.27-1.33.41.26-1 .74-1.48 1.05-1.68.01-.04-.04-.05-.09-.07zm-.55-.55c.07 0 .14.03.2.07-.44.21-.91.73-1.11 1.78-.36.11-.72.23-1.07.34.41-1.39 1.19-2.19 1.98-2.19z" fill="white"/>
+              </svg>
+              <h3 className={styles.sectionTitle}>Shopify</h3>
+            </div>
+          </div>
+          <ShopifyConnectionSection />
+        </div>
+      )}
     </>
   );
 }

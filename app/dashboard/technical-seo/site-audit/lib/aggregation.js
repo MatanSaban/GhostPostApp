@@ -68,7 +68,7 @@ export function aggregateIssues(issues) {
     }
 
     // Keep the "worst" severity if mixed
-    const severityRank = { error: 0, warning: 1, info: 2, passed: 3 };
+    const severityRank = { error: 0, warning: 1, info: 2, notice: 2, passed: 3 };
     if ((severityRank[issue.severity] ?? 4) < (severityRank[group.severity] ?? 4)) {
       group.severity = issue.severity;
     }
@@ -87,7 +87,7 @@ export function aggregateIssues(issues) {
   // Within same severity: sort by source (html → browser → pagespeed → ai-vision → system → fetch)
   const result = Array.from(groups.values());
   result.sort((a, b) => {
-    const severityOrder = { error: 0, warning: 1, info: 2, passed: 3 };
+    const severityOrder = { error: 0, warning: 1, info: 2, notice: 2, passed: 3 };
     const sevDiff = (severityOrder[a.severity] ?? 4) - (severityOrder[b.severity] ?? 4);
     if (sevDiff !== 0) return sevDiff;
 
@@ -132,13 +132,15 @@ export function getAffectedPages(issues, pageResults, issueKey) {
 }
 
 /**
- * Count issues by severity for a given set of issues
+ * Count issues by severity for a given set of issues.
+ * 'info' includes both 'info' and 'notice' to match the scoring engine
+ * (lib/audit/scoring.js treats them equivalently).
  */
 export function countBySeverity(issues = []) {
   return {
     passed: issues.filter((i) => i.severity === 'passed').length,
     warnings: issues.filter((i) => i.severity === 'warning').length,
     errors: issues.filter((i) => i.severity === 'error').length,
-    info: issues.filter((i) => i.severity === 'info').length,
+    info: issues.filter((i) => i.severity === 'info' || i.severity === 'notice').length,
   };
 }

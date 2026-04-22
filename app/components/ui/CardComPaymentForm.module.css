@@ -188,7 +188,7 @@
 .couponApplyBtn {
   height: 36px;
   padding: 0 1rem;
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   font-weight: 600;
   color: var(--primary, #7b2cbf);
   background: rgba(123, 44, 191, 0.08);
@@ -230,7 +230,7 @@
 .couponAppliedCode {
   font-family: monospace;
   font-weight: 600;
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   letter-spacing: 0.05em;
   color: var(--foreground, #111);
 }
@@ -241,7 +241,7 @@
 }
 
 .couponBonusBadge {
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   font-weight: 600;
   color: #7b2cbf;
   background: rgba(123, 44, 191, 0.1);
@@ -463,7 +463,7 @@
   width: 100%;
   height: 46px;
   padding: 0 1.5rem;
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   font-weight: 600;
   color: white;
   background: var(--primary, #7b2cbf);

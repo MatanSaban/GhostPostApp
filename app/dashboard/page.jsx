@@ -1,6 +1,10 @@
 import { getTranslations, getLocaleInfo } from '@/i18n/server';
 import DashboardContent from './components/DashboardContent';
 
+import { createGenerateMetadata } from '@/lib/seo/metadata';
+
+export const generateMetadata = createGenerateMetadata('/dashboard');
+
 export default async function DashboardPage() {
   const t = await getTranslations();
   const { dictionary } = await getLocaleInfo();

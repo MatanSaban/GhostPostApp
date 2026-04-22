@@ -1,12 +1,17 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import prisma from '@/lib/prisma';
-import { generateText } from 'ai';
-import { google } from '@/lib/ai/vertex-provider.js';
-import { deductAiCredits } from '@/lib/account-utils';
+import { translateAuditSummary } from '@/lib/audit/summary-generator.js';
+import { invalidateAudit } from '@/lib/cache/invalidate.js';
 
 const SESSION_COOKIE = 'user_session';
-const MODEL = 'gemini-2.5-pro';
+
+// In-flight dedup: when two requests arrive simultaneously for the same
+// (auditId, lang) pair, the second one awaits the first instead of calling
+// Gemini again. Survives only per-process, which is fine — we're protecting
+// against React StrictMode double-renders and rapid refetches, not a true
+// distributed race (cache check + write already handles the cross-process case).
+const inflight = new Map();
 
 async function getAuthenticatedUser() {
   try {
@@ -80,76 +85,64 @@ export async function POST(request) {
       return NextResponse.json({ translation: translations[targetLang] });
     }
 
-    // Language name mapping for the prompt
-    const LANG_NAMES = {
-      en: 'English',
-      he: 'Hebrew',
-      ar: 'Arabic',
-      es: 'Spanish',
-      fr: 'French',
-      de: 'German',
-      ru: 'Russian',
-      pt: 'Portuguese',
-      zh: 'Chinese',
-      ja: 'Japanese',
-    };
+    const lockKey = `${auditId}:${targetLang}`;
+    if (inflight.has(lockKey)) {
+      const translation = await inflight.get(lockKey);
+      if (!translation) {
+        return NextResponse.json({ error: 'Translation failed' }, { status: 500 });
+      }
+      return NextResponse.json({ translation });
+    }
 
-    const langName = LANG_NAMES[targetLang] || targetLang;
+    const task = (async () => {
+      // Translate via the shared helper (deducts credits + tracks usage).
+      const translation = await translateAuditSummary(audit.summary, targetLang, {
+        accountId: audit.site.accountId,
+        userId: user.id,
+        siteId: audit.siteId,
+      });
 
-    // Translate using Gemini
-    const result = await generateText({
-      model: google(MODEL),
-      system: `You are a professional translator. Translate the following website audit summary to ${langName}. 
-Maintain the same formatting (markdown bullets, bold, etc.). 
-Keep technical terms like SEO, TTFB, LCP, CLS, PSI in English.
-Only output the translated text - no preamble or explanation.`,
-      prompt: audit.summary,
-      temperature: 0.1,
-      maxTokens: 800,
-    });
+      if (!translation) return null;
 
-    const translation = result.text?.trim();
+      // Cache the translation (retry on write conflict)
+      const MAX_RETRIES = 5;
+      for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
+        try {
+          const fresh = await prisma.siteAudit.findUnique({
+            where: { id: auditId },
+            select: { summaryTranslations: true },
+          });
+          const merged = { ...(fresh?.summaryTranslations || {}), [targetLang]: translation };
+          await prisma.siteAudit.update({
+            where: { id: auditId },
+            data: { summaryTranslations: merged },
+          });
+          // Bust the cached audit payload so the next /api/audit fetch
+          // includes this translation without an extra translate-summary call.
+          invalidateAudit(audit.siteId);
+          break;
+        } catch (retryErr) {
+          if (retryErr.code === 'P2034' && attempt < MAX_RETRIES - 1) {
+            await new Promise((r) => setTimeout(r, 200 * (attempt + 1)));
+            continue;
+          }
+          throw retryErr;
+        }
+      }
+
+      return translation;
+    })();
+
+    inflight.set(lockKey, task);
+    let translation;
+    try {
+      translation = await task;
+    } finally {
+      inflight.delete(lockKey);
+    }
 
     if (!translation) {
       return NextResponse.json({ error: 'Translation failed' }, { status: 500 });
-    }
-
-    // Deduct credits and track AI usage
-    const usage = result.usage || {};
-    await deductAiCredits(audit.site.accountId, 1, {
-      userId: user.id,
-      siteId: audit.siteId,
-      source: 'audit_translate_summary',
-      description: `Translate audit summary to ${langName}`,
-      metadata: {
-        model: MODEL,
-        inputTokens: usage.inputTokens || 0,
-        outputTokens: usage.outputTokens || 0,
-        totalTokens: usage.totalTokens || 0,
-      },
-    });
-
-    // Cache the translation (retry on write conflict)
-    const MAX_RETRIES = 5;
-    for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
-      try {
-        const fresh = await prisma.siteAudit.findUnique({
-          where: { id: auditId },
-          select: { summaryTranslations: true },
-        });
-        const merged = { ...(fresh?.summaryTranslations || {}), [targetLang]: translation };
-        await prisma.siteAudit.update({
-          where: { id: auditId },
-          data: { summaryTranslations: merged },
-        });
-        break;
-      } catch (retryErr) {
-        if (retryErr.code === 'P2034' && attempt < MAX_RETRIES - 1) {
-          await new Promise((r) => setTimeout(r, 200 * (attempt + 1)));
-          continue;
-        }
-        throw retryErr;
-      }
     }
 
     return NextResponse.json({ translation });

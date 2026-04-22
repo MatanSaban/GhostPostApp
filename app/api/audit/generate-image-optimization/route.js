@@ -2,7 +2,8 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import prisma from '@/lib/prisma';
 import { generateObject } from 'ai';
-import { google } from '@/lib/ai/vertex-provider.js';
+import { googleGlobal } from '@/lib/ai/vertex-provider.js';
+import { GEMINI_MODEL } from '@/lib/ai/models.js';
 import { z } from 'zod';
 import { deductAiCredits } from '@/lib/account-utils';
 
@@ -138,8 +139,6 @@ export async function POST(request) {
       return NextResponse.json({ suggestions: [] });
     }
 
-    const MODEL = 'gemini-2.5-pro';
-
     // Build the image list for the AI prompt
     const imageList = imagesToProcess
       .map((img, i) => {
@@ -151,7 +150,7 @@ export async function POST(request) {
 
     // Use AI to recommend optimal format per image
     const result = await generateObject({
-      model: google(MODEL),
+      model: googleGlobal(GEMINI_MODEL),
       schema: imageOptimizationSchema,
       messages: [
         {
@@ -231,7 +230,7 @@ ${imageList}
       source: 'ai_image_optimization',
       description: `AI Image Format Suggestions: ${imagesToProcess.length} image(s)`,
       metadata: {
-        model: MODEL,
+        model: GEMINI_MODEL,
         inputTokens: usage.inputTokens || 0,
         outputTokens: usage.outputTokens || 0,
         totalTokens: usage.totalTokens || 0,

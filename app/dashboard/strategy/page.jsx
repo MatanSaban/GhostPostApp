@@ -10,6 +10,10 @@ import {
 import { getTranslations } from '@/i18n/server';
 import styles from './strategy.module.css';
 
+import { createGenerateMetadata } from '@/lib/seo/metadata';
+
+export const generateMetadata = createGenerateMetadata('/dashboard/strategy');
+
 const strategyFeaturesConfig = [
   {
     id: 'siteProfile',

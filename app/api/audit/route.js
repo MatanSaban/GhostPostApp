@@ -153,7 +153,13 @@ export async function GET(request) {
       if (audit.status === 'PENDING' || audit.status === 'RUNNING') {
         const started = audit.startedAt || audit.createdAt;
         if (now - new Date(started).getTime() > STALE_MS) {
-          console.warn(`[API/audit] GET: marking stale audit ${audit.id} as FAILED`);
+          const p = audit.progress || {};
+          const stuckAt = p.labelKey || 'unknown';
+          const stuckStep = p.currentStep ?? null;
+          const stuckTotal = p.totalSteps ?? null;
+          console.warn(
+            `[API/audit] GET: marking stale audit ${audit.id} as FAILED (stuck at: ${stuckAt}${stuckStep != null ? ` step ${stuckStep}/${stuckTotal}` : ''})`
+          );
           audit.status = 'FAILED';
           audit.completedAt = new Date();
           audit.score = 0;
@@ -170,6 +176,12 @@ export async function GET(request) {
                 message: 'audit.issues.auditTimedOut',
                 suggestion: 'audit.suggestions.retryAudit',
                 source: 'system',
+                details: {
+                  stuckAt,
+                  currentStep: stuckStep,
+                  totalSteps: stuckTotal,
+                  deviceType: audit.deviceType || null,
+                },
               }],
             },
           })
@@ -274,7 +286,13 @@ export async function POST(request) {
     for (const audit of runningAudits) {
       const started = audit.startedAt || audit.createdAt;
       if (now - new Date(started).getTime() > STALE_MS) {
-        console.warn(`[API/audit] Marking stale audit ${audit.id} as FAILED (stuck since ${started})`);
+        const p = audit.progress || {};
+        const stuckAt = p.labelKey || 'unknown';
+        const stuckStep = p.currentStep ?? null;
+        const stuckTotal = p.totalSteps ?? null;
+        console.warn(
+          `[API/audit] Marking stale audit ${audit.id} as FAILED (stuck at: ${stuckAt}${stuckStep != null ? ` step ${stuckStep}/${stuckTotal}` : ''}, since ${started})`
+        );
         await prisma.siteAudit.update({
           where: { id: audit.id },
           data: {
@@ -287,6 +305,12 @@ export async function POST(request) {
               message: 'audit.issues.auditTimedOut',
               suggestion: 'audit.suggestions.retryAudit',
               source: 'system',
+              details: {
+                stuckAt,
+                currentStep: stuckStep,
+                totalSteps: stuckTotal,
+                deviceType: audit.deviceType || null,
+              },
             }],
           },
         }).catch(() => {});
@@ -325,7 +349,18 @@ export async function POST(request) {
     const urls = Array.isArray(requestedUrls)
       ? requestedUrls.filter(u => typeof u === 'string' && u.startsWith('http')).slice(0, maxPages)
       : null;
-    const auditOptions = { maxPages, userId: user.id, ...(urls?.length ? { urls } : {}) };
+
+    // Pull the initiating user's locale so the summary generator can
+    // pre-cache a translation for them. Falls back to 'en'.
+    const localeCookie = (await cookies()).get('ghost-post-locale')?.value;
+    const userLocale = localeCookie || 'en';
+
+    const auditOptions = {
+      maxPages,
+      userId: user.id,
+      userLocale,
+      ...(urls?.length ? { urls } : {}),
+    };
     runSiteAudit(desktopAudit.id, site.url, siteId, 'desktop', auditOptions).catch(err => {
       console.error(`[API/audit] Background desktop audit error for ${desktopAudit.id}:`, err);
     });

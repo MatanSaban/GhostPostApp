@@ -3,7 +3,10 @@ import { CheckCircle } from 'lucide-react';
 import { HeaderActions } from '@/app/components/ui/header-actions';
 import { ArrowIcon } from '@/app/components/ui/arrow-icon';
 import { getTranslations } from '@/i18n/server';
+import { createGenerateMetadata } from '@/lib/seo/metadata';
 import styles from '../../auth.module.css';
+
+export const generateMetadata = createGenerateMetadata('/auth/register/thank-you');
 
 export default async function ThankYouPage() {
   const t = await getTranslations();

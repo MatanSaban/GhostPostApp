@@ -24,9 +24,10 @@
 }
 
 .pageTitle {
-  font-size: 1.8125rem;
-  font-weight: 600;
+  font-size: 1.6875rem;
+  font-weight: 700;
   color: var(--foreground);
+  margin: 0 0 0.5rem;
 }
 
 .pageTitleEditable {
@@ -212,7 +213,7 @@
 }
 
 .tableTitle {
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   font-weight: 600;
   color: var(--foreground);
 }
@@ -264,7 +265,7 @@
 }
 
 .table th {
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -974,7 +975,7 @@
 }
 
 .sitemapNotFoundTitle {
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   font-weight: 600;
   color: var(--foreground);
   margin: 0 0 0.25rem;
@@ -1116,7 +1117,7 @@
 }
 
 .sectionTitle {
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   font-weight: 600;
   color: var(--foreground);
   margin: 0 0 0.25rem;
@@ -1386,7 +1387,7 @@
   gap: 0.75rem;
 
   h4 {
-    font-size: 0.75rem;
+    font-size: 0.8125rem;
     font-weight: 600;
     color: var(--foreground);
     margin: 0;
@@ -1457,7 +1458,7 @@
   padding: 0 0.375rem;
   background: var(--muted);
   color: var(--muted-foreground);
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   font-weight: 600;
   border-radius: var(--radius-full);
   margin-inline-start: 0.25rem;
@@ -1584,7 +1585,7 @@
 }
 
 .pluginInstructionsTitle {
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   font-weight: 600;
   color: var(--foreground);
   margin: 0 0 0.75rem 0;
@@ -1619,7 +1620,7 @@
   color: white;
   border: none;
   border-radius: var(--radius-md);
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   font-weight: 600;
   cursor: pointer;
   transition: all var(--transition-fast);
@@ -1704,7 +1705,7 @@
 }
 
 .syncProgressPercent {
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   font-weight: 600;
   color: var(--primary);
 }
@@ -1788,7 +1789,7 @@
   color: white;
   border: none;
   border-radius: var(--radius-md);
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   font-weight: 600;
   cursor: pointer;
   transition: all var(--transition-fast);
@@ -2225,7 +2226,7 @@
 /* Status Badges */
 .statusBadge {
   padding: 0.25rem 0.75rem;
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   font-weight: 600;
   border-radius: var(--radius-full);
   text-transform: uppercase;

@@ -3,7 +3,10 @@ import Image from 'next/image';
 import { HeaderActions } from '@/app/components/ui/header-actions';
 import { LoginForm } from '../components';
 import { getTranslations } from '@/i18n/server';
+import { createGenerateMetadata } from '@/lib/seo/metadata';
 import styles from '../auth.module.css';
+
+export const generateMetadata = createGenerateMetadata('/auth/login');
 
 export default async function LoginPage() {
   const t = await getTranslations();

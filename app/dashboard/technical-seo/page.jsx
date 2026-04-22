@@ -1,13 +1,18 @@
 import Link from 'next/link';
-import { 
-  ImageIcon, 
+import {
+  ImageIcon,
   ArrowRightLeft,
   Activity,
   ArrowRight,
+  Wrench,
 } from 'lucide-react';
 import { getTranslations } from '@/i18n/server';
 import { PageHeader } from '../components';
 import styles from './technical-seo.module.css';
+
+import { createGenerateMetadata } from '@/lib/seo/metadata';
+
+export const generateMetadata = createGenerateMetadata('/dashboard/technical-seo');
 
 const toolsConfig = [
   {
@@ -42,6 +47,7 @@ export default async function ToolsOverviewPage() {
   return (
     <>
       <PageHeader
+        icon={Wrench}
         title={t('tools.overview.title')}
         subtitle={t('tools.overview.subtitle')}
       />

@@ -1,7 +1,12 @@
+import { Calendar } from 'lucide-react';
 import { PageHeader, PrimaryActionButton } from '../../components';
 import { ContentPlannerView } from './components';
 import Link from 'next/link';
 import { getTranslations } from '@/i18n/server';
+
+import { createGenerateMetadata } from '@/lib/seo/metadata';
+
+export const generateMetadata = createGenerateMetadata('/dashboard/strategy/content-planner');
 
 export default async function ContentPlannerPage() {
   const t = await getTranslations();
@@ -198,6 +203,7 @@ export default async function ContentPlannerPage() {
   return (
     <>
       <PageHeader
+        icon={Calendar}
         title={t('contentPlanner.title')}
         subtitle={t('contentPlanner.subtitle')}
         dataOnboarding="page-content-planner"

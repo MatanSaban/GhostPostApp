@@ -51,7 +51,7 @@
 }
 
 .sidebarTitle {
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   font-weight: 600;
   color: var(--foreground);
   flex: 1;
@@ -973,7 +973,7 @@
   }
 
   h4, h5, h6 {
-    font-size: 0.75rem;
+    font-size: 0.8125rem;
     font-weight: 600;
     margin: 0.875rem 0 0.375rem;
     color: var(--foreground);
@@ -1184,7 +1184,7 @@
 }
 
 .formLabel {
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   font-weight: 600;
   color: var(--muted-foreground);
 }
@@ -1408,7 +1408,7 @@
 }
 
 .postPopoverTitle {
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   font-weight: 600;
   color: var(--foreground);
   line-height: 1.4;

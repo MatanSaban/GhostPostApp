@@ -4,6 +4,7 @@ import prisma from '@/lib/prisma';
 import { deductAiCredits } from '@/lib/account-utils';
 import { updateSeoData, resolveUrl } from '@/lib/wp-api-client';
 import { recalculateAuditAfterFix } from '@/lib/audit/recalculate-after-fix';
+import { GEMINI_MODEL } from '@/lib/ai/models.js';
 
 const SESSION_COOKIE = 'user_session';
 const DESC_FIX_CREDIT_COST = 1; // 1 credit per page
@@ -91,7 +92,7 @@ export async function POST(request) {
       siteId,
       source: 'ai_description_fix',
       description: `AI Description Fix: ${fixes.length} page(s)`,
-      metadata: { model: 'gemini-2.5-pro' },
+      metadata: { model: GEMINI_MODEL },
     });
 
     if (!deduction.success) {

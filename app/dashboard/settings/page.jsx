@@ -1,7 +1,12 @@
+import { Settings as SettingsIcon } from 'lucide-react';
 import { SettingsContent } from './components';
 import { PageHeader } from '../components';
 import { getTranslations } from '@/i18n/server';
 import styles from './page.module.css';
+
+import { createGenerateMetadata } from '@/lib/seo/metadata';
+
+export const generateMetadata = createGenerateMetadata('/dashboard/settings');
 
 export default async function SettingsPage() {
   const t = await getTranslations();
@@ -450,6 +455,7 @@ export default async function SettingsPage() {
   return (
     <>
       <PageHeader
+        icon={SettingsIcon}
         title={t('settings.title')}
         subtitle={t('settings.subtitle')}
       />

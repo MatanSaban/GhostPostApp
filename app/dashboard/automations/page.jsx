@@ -1,7 +1,12 @@
+import { Zap } from 'lucide-react';
 import { PageHeader, StatsGrid, PrimaryActionButton } from '../components';
 import { AutomationsList } from './components';
 import { getTranslations } from '@/i18n/server';
 import styles from './page.module.css';
+
+import { createGenerateMetadata } from '@/lib/seo/metadata';
+
+export const generateMetadata = createGenerateMetadata('/dashboard/automations');
 
 export default async function AutomationsPage() {
   const t = await getTranslations();
@@ -72,6 +77,7 @@ export default async function AutomationsPage() {
   return (
     <>
       <PageHeader
+        icon={Zap}
         title={t('automations.title')}
         subtitle={t('automations.subtitle')}
       >

@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import prisma from '@/lib/prisma';
-import { syncAllEntities, getSiteInfo, getMenus, getPosts } from '@/lib/wp-api-client';
+import { cms } from '@/lib/cms';
 import { acquireSyncLock, releaseSyncLock, buildEntityData } from '@/lib/entity-sync';
 
 const SESSION_COOKIE = 'user_session';
@@ -80,14 +80,25 @@ export async function POST(request) {
     }
 
     if (site.connectionStatus !== 'CONNECTED') {
-      return NextResponse.json({ 
-        error: 'Site is not connected. Please install and activate the WordPress plugin first.',
+      const isShopify = site.platform === 'shopify';
+      return NextResponse.json({
+        error: isShopify
+          ? 'Site is not connected. Please install the Ghost Post Shopify app first.'
+          : 'Site is not connected. Please install and activate the WordPress plugin first.',
         errorCode: 'NOT_CONNECTED',
       }, { status: 400 });
     }
 
-    if (!site.siteKey || !site.siteSecret) {
-      return NextResponse.json({ 
+    const isShopify = site.platform === 'shopify';
+    if (isShopify) {
+      if (!site.shopifyAccessToken || !site.shopifyDomain) {
+        return NextResponse.json({
+          error: 'Shopify connection is missing — please reinstall the Ghost Post Shopify app.',
+          errorCode: 'MISSING_KEYS',
+        }, { status: 400 });
+      }
+    } else if (!site.siteKey || !site.siteSecret) {
+      return NextResponse.json({
         error: 'Site connection keys missing. Please reinstall the WordPress plugin.',
         errorCode: 'MISSING_KEYS',
       }, { status: 400 });
@@ -331,10 +342,22 @@ async function performFullSync(site, messages) {
     
     let siteInfo;
     try {
-      siteInfo = await getSiteInfo(site);
+      siteInfo = await cms.getSiteInfo(site);
     } catch (e) {
       errors.push({ type: 'site_info', error: e.message });
       // Continue with fallback
+    }
+
+    // Shopify's getSiteInfo returns an empty postTypes array (registry lives
+    // in the content manager). Fall back to the dispatcher's getPostTypes so
+    // articles/pages/products show up in the entity-type table.
+    if (!siteInfo?.postTypes?.length) {
+      try {
+        const fallbackTypes = await cms.getPostTypes(site);
+        siteInfo = { ...(siteInfo || {}), postTypes: fallbackTypes };
+      } catch (e) {
+        errors.push({ type: 'post_types_fallback', error: e.message });
+      }
     }
 
     // Step 2: Create/update entity types from post types
@@ -541,8 +564,8 @@ async function syncEntitiesForType(site, entityType) {
 
   while (hasMore) {
     try {
-      // Use the authenticated plugin API with full=true to get all data
-      const response = await getPosts(site, postTypeSlug, page, 50, true);
+      // Route through the dispatcher — WP hits the plugin, Shopify hits GraphQL.
+      const response = await cms.getPosts(site, postTypeSlug, page, 50, true);
       
       // The plugin returns { items: [...], total, pages, page }
       const posts = response.items || response;
@@ -691,8 +714,10 @@ async function syncMenus(site) {
   let count = 0;
 
   try {
-    const menusData = await getMenus(site);
-    const menus = menusData?.menus || menusData || [];
+    const menusData = await cms.getMenus(site);
+    // WP plugin returns either an array or { menus: [] }. Shopify returns
+    // { items: [], total }. Accept all three shapes.
+    const menus = menusData?.items || menusData?.menus || (Array.isArray(menusData) ? menusData : []) || [];
 
     for (const menu of menus) {
       try {

@@ -1,13 +1,13 @@
 .container {
-  padding: 24px;
-  min-height: calc(100vh - 64px);
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
 }
 
 .header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 24px;
   flex-wrap: wrap;
   gap: 16px;
 }
@@ -19,10 +19,10 @@
 }
 
 .title {
-  font-size: 1.4375rem;
-  font-weight: 600;
-  color: var(--color-text);
-  margin: 0;
+  font-size: 1.6875rem;
+  font-weight: 700;
+  color: var(--foreground);
+  margin: 0 0 0.5rem;
 }
 
 .count {
@@ -246,7 +246,7 @@
 }
 
 .detailsTitle {
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   font-weight: 600;
   margin: 0;
   color: var(--color-text);

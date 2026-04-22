@@ -2,6 +2,10 @@ import { Monitor } from 'lucide-react';
 import { getTranslations } from '@/i18n/server';
 import styles from '../page.module.css';
 
+import { createGenerateMetadata } from '@/lib/seo/metadata';
+
+export const generateMetadata = createGenerateMetadata('/dashboard/seo-frontend');
+
 export default async function SEOFrontendPage() {
   const t = await getTranslations();
   

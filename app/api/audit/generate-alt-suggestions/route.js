@@ -2,7 +2,8 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import prisma from '@/lib/prisma';
 import { generateObject } from 'ai';
-import { google } from '@/lib/ai/vertex-provider.js';
+import { googleGlobal } from '@/lib/ai/vertex-provider.js';
+import { GEMINI_MODEL } from '@/lib/ai/models.js';
 import { z } from 'zod';
 import { deductAiCredits } from '@/lib/account-utils';
 
@@ -144,7 +145,6 @@ export async function POST(request) {
       return NextResponse.json({ suggestions: [] });
     }
 
-    const MODEL = 'gemini-2.5-pro';
     const totalUsage = { inputTokens: 0, outputTokens: 0, totalTokens: 0 };
 
     // Detect website language from page titles in audit data
@@ -174,7 +174,7 @@ export async function POST(request) {
 
           try {
             const result = await generateObject({
-              model: google(MODEL),
+              model: googleGlobal(GEMINI_MODEL),
               schema: altTextSchema,
               messages: [
                 {
@@ -240,7 +240,7 @@ Generate the alt text.`,
       source: 'ai_alt_suggestions',
       description: `AI Alt Text Suggestions: ${imagesToProcess.length} image(s)`,
       metadata: {
-        model: MODEL,
+        model: GEMINI_MODEL,
         inputTokens: totalUsage.inputTokens,
         outputTokens: totalUsage.outputTokens,
         totalTokens: totalUsage.totalTokens,

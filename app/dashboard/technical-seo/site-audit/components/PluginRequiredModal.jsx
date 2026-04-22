@@ -7,28 +7,34 @@ import {
   Download,
   Loader2,
   Plug,
-  Wand2,
   ExternalLink,
+  ShoppingBag,
 } from 'lucide-react';
 import { useLocale } from '@/app/context/locale-context';
 import { useSite } from '@/app/context/site-context';
+import { useCapabilities } from '@/app/hooks/useCapabilities';
 import styles from './PluginRequiredModal.module.css';
 
 /**
- * PluginRequiredModal - Shown when AI Fix requires a connected WP plugin
+ * ConnectionRequiredModal — shown when an action needs the site to be
+ * connected (WP plugin for WordPress, OAuth app for Shopify). The modal
+ * swaps copy + primary CTA based on capabilities instead of assuming
+ * WordPress.
  *
- * Props:
- * - open: boolean
- * - onClose: () => void
+ * Kept the original `PluginRequiredModal` export name for backwards
+ * compatibility with existing call sites.
  */
 export default function PluginRequiredModal({ open, onClose }) {
   const { t } = useLocale();
   const { selectedSite, refreshSites } = useSite();
+  const caps = useCapabilities();
   const [isDownloading, setIsDownloading] = useState(false);
 
   if (!open) return null;
 
-  const handleDownload = async () => {
+  const isShopify = caps.platform === 'shopify';
+
+  const handleWordPressDownload = async () => {
     if (!selectedSite?.id) return;
     setIsDownloading(true);
 
@@ -58,6 +64,39 @@ export default function PluginRequiredModal({ open, onClose }) {
     }
   };
 
+  const handleShopifyConnect = () => {
+    if (!selectedSite?.id) return;
+    // Start the Shopify install flow. If we don't already know the shop
+    // domain, defer to the Settings page where the merchant can type it.
+    const shop = selectedSite.shopifyDomain || selectedSite.url?.replace(/^https?:\/\//, '').replace(/\/.*$/, '');
+    if (shop && /\.myshopify\.com$/i.test(shop)) {
+      window.location.href = `/api/shopify/install?shop=${encodeURIComponent(shop)}&siteId=${encodeURIComponent(selectedSite.id)}`;
+      return;
+    }
+    window.location.href = '/dashboard/settings';
+  };
+
+  const title = isShopify
+    ? t('siteAudit.aiFix.shopifyRequired') || 'Shopify app not connected'
+    : t('siteAudit.aiFix.pluginRequired');
+  const description = isShopify
+    ? t('siteAudit.aiFix.shopifyDescription') ||
+      'Install the Ghost Post Shopify app on your store to let AI Fix apply changes on your behalf.'
+    : t('siteAudit.aiFix.pluginDescription');
+
+  const steps = isShopify
+    ? [
+        t('siteAudit.aiFix.shopifyStep1') || 'Click "Connect Shopify" and approve the OAuth install.',
+        t('siteAudit.aiFix.shopifyStep2') || 'Shopify redirects you back here once the app is authorized.',
+        t('siteAudit.aiFix.shopifyStep3') || 'Ghost Post can now read + edit products, pages, redirects, SEO.',
+      ]
+    : [
+        t('siteAudit.aiFix.step1'),
+        t('siteAudit.aiFix.step2'),
+        t('siteAudit.aiFix.step3'),
+        t('siteAudit.aiFix.step4'),
+      ];
+
   return createPortal(
     <div className={styles.overlay} onClick={onClose}>
       <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
@@ -65,46 +104,42 @@ export default function PluginRequiredModal({ open, onClose }) {
           <X size={18} />
         </button>
 
-        {/* Header */}
         <div className={styles.header}>
           <div className={styles.iconWrap}>
-            <Plug size={28} />
+            {isShopify ? <ShoppingBag size={28} /> : <Plug size={28} />}
           </div>
-          <h3 className={styles.title}>{t('siteAudit.aiFix.pluginRequired')}</h3>
-          <p className={styles.description}>{t('siteAudit.aiFix.pluginDescription')}</p>
+          <h3 className={styles.title}>{title}</h3>
+          <p className={styles.description}>{description}</p>
         </div>
 
-        {/* Steps */}
         <ol className={styles.steps}>
-          <li>
-            <span className={styles.stepNum}>1</span>
-            <span>{t('siteAudit.aiFix.step1')}</span>
-          </li>
-          <li>
-            <span className={styles.stepNum}>2</span>
-            <span>{t('siteAudit.aiFix.step2')}</span>
-          </li>
-          <li>
-            <span className={styles.stepNum}>3</span>
-            <span>{t('siteAudit.aiFix.step3')}</span>
-          </li>
-          <li>
-            <span className={styles.stepNum}>4</span>
-            <span>{t('siteAudit.aiFix.step4')}</span>
-          </li>
+          {steps.map((text, idx) => (
+            <li key={idx}>
+              <span className={styles.stepNum}>{idx + 1}</span>
+              <span>{text}</span>
+            </li>
+          ))}
         </ol>
 
-        {/* Download Button */}
-        <button
-          className={styles.downloadBtn}
-          onClick={handleDownload}
-          disabled={isDownloading}
-        >
-          {isDownloading ? <Loader2 size={16} className={styles.spinning} /> : <Download size={16} />}
-          {t('siteAudit.aiFix.downloadPlugin')}
-        </button>
+        {isShopify ? (
+          <button
+            className={styles.downloadBtn}
+            onClick={handleShopifyConnect}
+          >
+            <ShoppingBag size={16} />
+            {t('siteAudit.aiFix.connectShopify') || 'Connect Shopify'}
+          </button>
+        ) : (
+          <button
+            className={styles.downloadBtn}
+            onClick={handleWordPressDownload}
+            disabled={isDownloading}
+          >
+            {isDownloading ? <Loader2 size={16} className={styles.spinning} /> : <Download size={16} />}
+            {t('siteAudit.aiFix.downloadPlugin')}
+          </button>
+        )}
 
-        {/* Settings Link */}
         <a
           href="/dashboard/settings"
           className={styles.settingsLink}

@@ -549,7 +549,7 @@
   gap: 1rem;
   padding: 0.875rem 1.25rem;
   background: var(--muted);
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   font-weight: 600;
   color: var(--muted-foreground);
   text-transform: uppercase;

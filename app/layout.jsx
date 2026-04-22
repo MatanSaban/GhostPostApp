@@ -11,17 +11,18 @@ import { AgentProvider } from '@/app/context/agent-context';
 import { SiteLocaleSync } from '@/app/components/SiteLocaleSync';
 import { BackgroundTasksNotification } from '@/app/components/ui/background-tasks-notification';
 import { locales, defaultLocale, getDirection } from '@/i18n/config';
+import { buildRootMetadata, defaultViewport } from '@/lib/seo/metadata';
 
-export const metadata = {
-  title: 'Ghost Post Platform - AI-Powered SEO Automation',
-  description: 'Automate your SEO strategy with Ghost Post. AI-powered content creation, optimization, and site management.',
-  keywords: 'SEO, AI, automation, content, optimization, Ghost Post',
-  icons: {
-    icon: '/ghostpost_logo.png',
-    shortcut: '/ghostpost_logo.png',
-    apple: '/ghostpost_logo.png',
-  },
-};
+export async function generateMetadata() {
+  const cookieStore = await cookies();
+  const localeCookie = cookieStore.get('ghost-post-locale');
+  const locale = localeCookie?.value && locales.includes(localeCookie.value)
+    ? localeCookie.value
+    : defaultLocale;
+  return buildRootMetadata({ locale });
+}
+
+export const viewport = defaultViewport;
 
 export default async function RootLayout({ children }) {
   // Read locale from cookie server-side

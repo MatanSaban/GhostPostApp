@@ -84,7 +84,7 @@
 
 .cardTitle {
   font-weight: 600;
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   color: var(--text-primary);
   line-height: 1.4;
 }
@@ -464,7 +464,7 @@
   background: transparent;
   color: var(--primary);
   font-weight: 600;
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   cursor: pointer;
   transition: background 0.15s, color 0.15s;
 }

@@ -1793,6 +1793,7 @@ export default function AgentPageContent({ translations, mode = 'full', onInsigh
   return (
     <>
       <PageHeader
+        icon={Bot}
         title={t.title || 'AI Agent'}
         subtitle={lastRun ? (t.lastRun || 'Last run: {time}').replace('{time}', `${getTimeAgo(lastRun.startedAt, t)} - ${lastRun.insightsCount} ${t.agent?.insightsCountLabel || 'insights'}`) : null}
         dataOnboarding="page-agent"

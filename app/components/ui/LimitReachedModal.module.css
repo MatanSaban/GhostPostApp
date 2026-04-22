@@ -158,7 +158,7 @@
 }
 
 .addonName {
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   font-weight: 600;
   color: var(--foreground, #111);
 }
@@ -180,13 +180,13 @@
 }
 
 .addonQty {
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   font-weight: 600;
   color: #7b2cbf;
 }
 
 .addonPrice {
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   font-weight: 700;
   color: var(--foreground, #111);
 }

@@ -103,7 +103,7 @@
   border-radius: 50%;
   background: var(--warning, #eab308);
   color: white;
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   font-weight: 600;
   display: flex;
   align-items: center;
@@ -120,7 +120,7 @@
   border-radius: 10px;
   background: var(--primary);
   color: white;
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   font-weight: 600;
   cursor: pointer;
   text-decoration: none;

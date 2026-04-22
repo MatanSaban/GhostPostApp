@@ -91,7 +91,7 @@
   border-radius: 20px;
   background: var(--warning-bg, rgba(234, 179, 8, 0.1));
   color: var(--warning, #eab308);
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   font-weight: 600;
 }
 
@@ -245,7 +245,7 @@
 .titleLabel {
   flex-shrink: 0;
   font-weight: 600;
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   padding: 2px 8px;
   border-radius: 4px;
   min-width: 44px;
@@ -368,7 +368,7 @@
   border-radius: 8px;
   background: var(--primary);
   color: white;
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   font-weight: 600;
   cursor: pointer;
   transition: opacity 0.15s;
@@ -391,7 +391,7 @@
   border-radius: 8px;
   background: rgba(34, 197, 94, 0.1);
   color: var(--success, #22c55e);
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   font-weight: 600;
 }
 
@@ -403,7 +403,7 @@
   border-radius: 8px;
   background: rgba(239, 68, 68, 0.1);
   color: var(--error, #ef4444);
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   font-weight: 600;
 }
 
@@ -453,7 +453,7 @@
   border-radius: 10px;
   background: var(--primary);
   color: white;
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   font-weight: 600;
   cursor: pointer;
   transition: opacity 0.15s;

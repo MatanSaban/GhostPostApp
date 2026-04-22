@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { getCurrentAccountMember } from '@/lib/auth-permissions';
+import { gateImpersonation } from '@/lib/impersonation-context';
 
 /**
  * DELETE /api/support/impersonation-grants/:id
@@ -9,8 +10,13 @@ import { getCurrentAccountMember } from '@/lib/auth-permissions';
  * Also ends any live sessions spawned from this grant - the resolver checks
  * grant.status before allowing a session to remain valid.
  */
-export async function DELETE(_request, context) {
+export async function DELETE(request, context) {
   try {
+    // Block during impersonation: an admin can't revoke their own access while
+    // they're using it (the user must do it themselves to terminate the session).
+    const gate = await gateImpersonation(request);
+    if (gate.response) return gate.response;
+
     const auth = await getCurrentAccountMember();
     if (!auth.authorized) {
       return NextResponse.json({ error: auth.error || 'Unauthorized' }, { status: 401 });

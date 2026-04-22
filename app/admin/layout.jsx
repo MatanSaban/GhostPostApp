@@ -20,10 +20,13 @@ import {
   Globe,
   HelpCircle,
   LifeBuoy,
+  Eye,
   LogOut,
   ChevronDown,
 } from 'lucide-react';
 import { DashboardHeader } from '@/app/dashboard/components/DashboardHeader';
+import { ImpersonationBanner } from '@/app/components/ImpersonationBanner';
+import { PageMeta } from '@/app/components/PageMeta';
 import { useLocale } from '@/app/context/locale-context';
 import { useUser } from '@/app/context/user-context';
 import styles from '@/app/dashboard/dashboard.module.css';
@@ -62,6 +65,7 @@ const SECTIONS = [
       { icon: Globe, labelKey: 'nav.admin.website', path: '/admin/website' },
       { icon: HelpCircle, labelKey: 'nav.admin.faq', path: '/admin/faq' },
       { icon: LifeBuoy, labelKey: 'nav.admin.support', path: '/admin/support' },
+      { icon: Eye, labelKey: 'nav.admin.impersonation', path: '/admin/impersonation' },
     ],
   },
 ];
@@ -93,6 +97,7 @@ export default function AdminLayout({ children }) {
 
   return (
     <div className={styles.dashboardContainer}>
+      <PageMeta />
       <aside className={styles.sidebar}>
         <div className={styles.sidebarLogo}>
           <Shield className={styles.logoIcon} style={{ color: '#7b2cbf' }} />
@@ -151,6 +156,7 @@ export default function AdminLayout({ children }) {
       </aside>
 
       <main className={styles.mainContent}>
+        <ImpersonationBanner />
         <DashboardHeader variant="admin" />
         <div className={styles.contentArea}>
           <div className={`${styles.pageContainer} ${styles.pageIn}`}>

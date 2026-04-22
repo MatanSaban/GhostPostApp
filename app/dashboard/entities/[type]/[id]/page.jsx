@@ -17,6 +17,7 @@ import {
 import { useLocale } from '@/app/context/locale-context';
 import { useSite } from '@/app/context/site-context';
 import { EntityDetailSkeleton, Button } from '@/app/dashboard/components';
+import { useDynamicPageMeta } from '@/app/components/PageMeta';
 import styles from './edit.module.css';
 
 // Field components
@@ -63,6 +64,9 @@ export default function EntityEditPage({ params }) {
     acfData: null,
     metadata: null,
   });
+
+  // Show the actual entity title (post/page name) in the browser tab.
+  useDynamicPageMeta(decodeText(formData.title) || null);
 
   useEffect(() => {
     if (id) {

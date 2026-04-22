@@ -7,14 +7,9 @@
   align-items: center;
   justify-content: space-between;
   padding: 1rem 1.5rem;
-  background: var(--background);
-  border-bottom: 1px solid var(--border);
+  background: var(--header-background);
+  border-bottom: 1px solid var(--header-border);
   transition: all var(--transition-normal);
-
-  :global(.dark) & {
-    background: linear-gradient(90deg, #0A0A0A 0%, #0f0f1a 100%);
-    border-color: rgba(123, 44, 191, 0.1);
-  }
 }
 
 /* Breadcrumbs */
@@ -151,7 +146,7 @@
 }
 
 .notificationsTitle {
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   font-weight: 600;
   color: var(--foreground);
 }
@@ -299,7 +294,7 @@
 }
 
 .notificationTitle {
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   font-weight: 600;
   color: var(--foreground);
   margin-bottom: 0.125rem;
@@ -417,7 +412,7 @@
   align-items: center;
   justify-content: center;
   color: white;
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   font-weight: 600;
   overflow: hidden;
 }
@@ -476,7 +471,7 @@
   align-items: center;
   justify-content: center;
   color: white;
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   font-weight: 600;
   overflow: hidden;
   flex-shrink: 0;
@@ -488,7 +483,7 @@
 }
 
 .userMenuName {
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   font-weight: 600;
   color: var(--foreground);
 }
@@ -579,7 +574,7 @@
 }
 
 .creditsValue {
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   font-weight: 600;
   color: white;
 }

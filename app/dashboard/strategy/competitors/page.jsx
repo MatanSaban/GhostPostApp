@@ -1,6 +1,10 @@
 import { getTranslations } from '@/i18n/server';
 import { CompetitorsPageContent } from './components';
 
+import { createGenerateMetadata } from '@/lib/seo/metadata';
+
+export const generateMetadata = createGenerateMetadata('/dashboard/strategy/competitors');
+
 export default async function CompetitorAnalysisPage() {
   const t = await getTranslations();
   

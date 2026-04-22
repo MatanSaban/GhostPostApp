@@ -273,7 +273,7 @@ export default function NotificationsPage() {
       </div>
 
       {/* Stats Bar */}
-      {!isLoading && (
+      {(!isLoading || notifications.length > 0) && (
         <div className={styles.statsBar}>
           <span className={styles.statItem}>
             {t('notificationCenter.stats.total', { count: totalCount })}
@@ -287,7 +287,7 @@ export default function NotificationsPage() {
 
       {/* Content */}
       <div className={styles.content} data-onboarding="notifications-list">
-        {isLoading ? (
+        {isLoading && notifications.length === 0 ? (
           <div className={styles.loadingState}>
             <Loader2 size={32} className={styles.spinner} />
             <p>{t('notificationCenter.loading')}</p>

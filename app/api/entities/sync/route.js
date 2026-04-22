@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import prisma from '@/lib/prisma';
-import { getPosts } from '@/lib/wp-api-client';
+import { cms } from '@/lib/cms';
 
 const SESSION_COOKIE = 'user_session';
 
@@ -36,8 +36,8 @@ async function getAuthenticatedUser() {
   }
 }
 
-// Fetch entities from WordPress using authenticated plugin API
-async function fetchWordPressEntities(site, postTypeSlug) {
+// Fetch entities from the connected CMS via the dispatcher.
+async function fetchEntities(site, postTypeSlug) {
   const entities = [];
 
   if (!postTypeSlug) return entities;
@@ -46,10 +46,10 @@ async function fetchWordPressEntities(site, postTypeSlug) {
     let page = 1;
     let hasMore = true;
     const perPage = 100;
-    
+
     while (hasMore) {
-      // Use authenticated plugin API with full=true (default)
-      const response = await getPosts(site, postTypeSlug, page, perPage, true);
+      // Dispatcher routes to WordPress plugin or Shopify GraphQL by site.platform.
+      const response = await cms.getPosts(site, postTypeSlug, page, perPage, true);
       
       // The plugin returns { items: [...], total, pages, page }
       const items = response.items || response;
@@ -61,7 +61,8 @@ async function fetchWordPressEntities(site, postTypeSlug) {
       }
 
       for (const item of items) {
-        // Map WordPress status to our EntityStatus
+        // WP statuses + Shopify-mapped statuses (mappers in shopify/managers/content
+        // already normalize to 'publish' / 'draft').
         const statusMap = {
           'publish': 'PUBLISHED',
           'draft': 'DRAFT',
@@ -103,9 +104,9 @@ async function fetchWordPressEntities(site, postTypeSlug) {
       }
     }
     
-    console.log(`Fetched ${entities.length} ${postTypeSlug} from plugin API`);
+    console.log(`Fetched ${entities.length} ${postTypeSlug} from CMS adapter`);
   } catch (error) {
-    console.error(`Failed to fetch ${postTypeSlug} from plugin API:`, error.message);
+    console.error(`Failed to fetch ${postTypeSlug} from CMS adapter:`, error.message);
   }
 
   return entities;
@@ -132,16 +133,9 @@ export async function POST(request) {
     // Get user's account IDs
     const accountIds = user.accountMemberships.map(m => m.accountId);
 
-    // Get the site with connection details
+    // Get the site with connection details (full row — adapter may need any field)
     const site = await prisma.site.findFirst({
       where: user.isSuperAdmin ? { id: siteId } : { id: siteId, accountId: { in: accountIds } },
-      select: {
-        id: true,
-        url: true,
-        siteKey: true,
-        siteSecret: true,
-        connectionStatus: true,
-      },
     });
 
     if (!site) {
@@ -151,10 +145,20 @@ export async function POST(request) {
       );
     }
 
-    // Check if site is connected
-    if (!site.siteKey || !site.siteSecret || site.connectionStatus !== 'CONNECTED') {
+    // Platform-aware connection check
+    const isShopifySite = site.platform === 'shopify';
+    const isConnected = site.connectionStatus === 'CONNECTED' && (
+      isShopifySite
+        ? !!site.shopifyAccessToken && !!site.shopifyDomain
+        : !!site.siteKey && !!site.siteSecret
+    );
+    if (!isConnected) {
       return NextResponse.json(
-        { error: 'Site is not connected. Please install and activate the WordPress plugin.' },
+        {
+          error: isShopifySite
+            ? 'Site is not connected. Please install the Ghost Post Shopify app.'
+            : 'Site is not connected. Please install and activate the WordPress plugin.',
+        },
         { status: 400 }
       );
     }
@@ -182,8 +186,8 @@ export async function POST(request) {
     let totalDeleted = 0;
     
     for (const entityType of entityTypes) {
-      // Fetch entities using authenticated plugin API with post type slug
-      const fetchedEntities = await fetchWordPressEntities(site, entityType.slug);
+      // Fetch entities using the dispatcher (WP plugin or Shopify GraphQL)
+      const fetchedEntities = await fetchEntities(site, entityType.slug);
       const seenExternalIds = new Set();
       
       // Upsert each entity - try to match by externalId first, then by slug
@@ -210,7 +214,7 @@ export async function POST(request) {
             });
             
             if (existingEntity) {
-              console.log(`[Sync] Found existing entity by slug "${entity.slug}" - will update with WordPress data`);
+              console.log(`[Sync] Found existing entity by slug "${entity.slug}" - will update with CMS data`);
             }
           }
 
@@ -254,7 +258,7 @@ export async function POST(request) {
         }
       }
 
-      // Remove entities that have an externalId but no longer exist on WordPress
+      // Remove entities that have an externalId but no longer exist on the CMS
       if (seenExternalIds.size > 0) {
         const staleEntities = await prisma.siteEntity.findMany({
           where: {

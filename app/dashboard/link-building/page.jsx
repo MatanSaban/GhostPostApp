@@ -1,9 +1,14 @@
-import { 
-  ExternalLink
+import {
+  ExternalLink,
+  Link2
 } from 'lucide-react';
 import { getTranslations } from '@/i18n/server';
 import { PageHeader, StatsGrid, StatusBadge, PrimaryActionButton } from '../components';
 import styles from './page.module.css';
+
+import { createGenerateMetadata } from '@/lib/seo/metadata';
+
+export const generateMetadata = createGenerateMetadata('/dashboard/link-building');
 
 export default async function LinkBuildingPage() {
   const t = await getTranslations();
@@ -32,6 +37,7 @@ export default async function LinkBuildingPage() {
   return (
     <>
       <PageHeader
+        icon={Link2}
         title={t('linkBuilding.title')}
         subtitle={t('linkBuilding.subtitle')}
       >

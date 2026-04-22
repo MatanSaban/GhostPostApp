@@ -26,7 +26,7 @@ function formatDate(dateStr, locale) {
 
 export default function SupportPage() {
   const { t, locale } = useLocale();
-  const [activeFilter, setActiveFilter] = useState('all');
+  const [activeFilter, setActiveFilter] = useState('pendingUser');
   const [tickets, setTickets] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);

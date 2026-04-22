@@ -511,7 +511,7 @@
 }
 
 .detailSubTitle {
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   font-weight: 600;
   color: var(--foreground);
   margin-bottom: 0.4rem;
@@ -969,7 +969,7 @@
 }
 
 .confidenceBadge {
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   font-weight: 600;
   padding: 0.25rem 0.5rem;
   border-radius: var(--radius-sm);
@@ -1000,7 +1000,7 @@
   display: flex;
   align-items: center;
   gap: 0.4rem;
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   font-weight: 600;
   color: var(--muted-foreground);
   margin-bottom: 0.5rem;
@@ -1035,7 +1035,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   font-weight: 700;
   color: #fff;
   background: var(--primary);
@@ -1049,7 +1049,7 @@
 }
 
 .pageTitle {
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   font-weight: 600;
   color: var(--foreground);
   margin-bottom: 0.25rem;
@@ -1117,7 +1117,7 @@
   width: 100%;
   margin-top: 1rem;
   padding: 0.6rem 1rem;
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   font-weight: 600;
   color: #fff;
   background: linear-gradient(135deg, var(--primary), #a855f7);

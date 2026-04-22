@@ -4,6 +4,7 @@ import prisma from '@/lib/prisma';
 import { deductAiCredits } from '@/lib/account-utils';
 import { updateSeoData, resolveUrl } from '@/lib/wp-api-client';
 import { invalidateAudit } from '@/lib/cache/invalidate.js';
+import { GEMINI_MODEL } from '@/lib/ai/models.js';
 
 const SESSION_COOKIE = 'user_session';
 const TITLE_FIX_CREDIT_COST = 1; // 1 credit per page
@@ -91,7 +92,7 @@ export async function POST(request) {
       siteId,
       source: 'ai_title_fix',
       description: `AI Title Fix: ${fixes.length} page(s)`,
-      metadata: { model: 'gemini-2.5-pro' },
+      metadata: { model: GEMINI_MODEL },
     });
 
     if (!deduction.success) {

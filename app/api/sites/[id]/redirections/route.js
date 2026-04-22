@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { getRedirects, createRedirect as wpCreateRedirect, bulkSyncRedirects, importRedirects, getDetectedRedirectPlugins } from '@/lib/wp-api-client';
+import { cms, getCapabilities } from '@/lib/cms';
 
 /**
  * GET /api/sites/[id]/redirections
@@ -11,52 +11,49 @@ export async function GET(request, { params }) {
   try {
     const { id } = await params;
     
-    const site = await prisma.site.findUnique({
-      where: { id },
-      select: {
-        id: true,
-        url: true,
-        siteKey: true,
-        siteSecret: true,
-        platform: true,
-      },
-    });
-    
+    const site = await prisma.site.findUnique({ where: { id } });
+
     if (!site) {
       return NextResponse.json({ error: 'Site not found' }, { status: 404 });
     }
-    
+
     // Get redirections from database
     const redirections = await prisma.redirection.findMany({
       where: { siteId: id },
       orderBy: { createdAt: 'desc' },
     });
-    
+
     // Get stats
     const stats = {
       total: redirections.length,
       active: redirections.filter(r => r.isActive).length,
       totalHits: redirections.reduce((sum, r) => sum + r.hitCount, 0),
     };
-    
-    // Check for detected WordPress redirect plugins if site is connected
+
+    // Detected redirect backends — WP returns plugin list, Shopify returns
+    // a single synthetic "shopify-native" provider.
+    const caps = getCapabilities(site);
+    const isShopifyConnected = !!site.shopifyAccessToken && !!site.shopifyDomain;
+    const isWpConnected = !!site.siteKey && !!site.siteSecret;
+    const isConnected = caps.platform === 'shopify' ? isShopifyConnected : isWpConnected;
+
     let detectedPlugins = [];
-    let wpRedirects = [];
-    if (site.siteKey && site.siteSecret && site.platform === 'wordpress') {
+    if (isConnected) {
       try {
-        const pluginData = await getDetectedRedirectPlugins(site);
-        detectedPlugins = pluginData.plugins || [];
+        const pluginData = await cms.getDetectedRedirectPlugins(site);
+        detectedPlugins = pluginData.plugins || pluginData.detected || [];
       } catch {
-        // Plugin endpoint not available - that's fine
+        // endpoint not available — fine
       }
     }
-    
+
     return NextResponse.json({
       redirections,
       stats,
       detectedPlugins,
-      isConnected: !!(site.siteKey && site.siteSecret),
-      isWordPress: site.platform === 'wordpress',
+      isConnected,
+      isWordPress: caps.platform === 'wordpress',
+      platform: caps.platform,
     });
     
   } catch (error) {
@@ -86,15 +83,12 @@ export async function POST(request, { params }) {
       );
     }
     
-    const site = await prisma.site.findUnique({
-      where: { id },
-      select: { id: true, url: true, siteKey: true, siteSecret: true, platform: true },
-    });
-    
+    const site = await prisma.site.findUnique({ where: { id } });
+
     if (!site) {
       return NextResponse.json({ error: 'Site not found' }, { status: 404 });
     }
-    
+
     // Normalize source URL - ensure it starts with /, decode percent-encoded chars, strip trailing slash
     let normalizedSource = sourceUrl.startsWith('/') ? sourceUrl : `/${sourceUrl}`;
     try { normalizedSource = decodeURIComponent(normalizedSource); } catch {}
@@ -105,11 +99,11 @@ export async function POST(request, { params }) {
     // Decode target URL if percent-encoded
     let normalizedTarget = targetUrl;
     try { normalizedTarget = decodeURIComponent(normalizedTarget); } catch {}
-    
+
     // Map type string to enum
     const typeMap = { '301': 'PERMANENT', '302': 'TEMPORARY', '307': 'FOUND', 'PERMANENT': 'PERMANENT', 'TEMPORARY': 'TEMPORARY', 'FOUND': 'FOUND' };
     const redirectType = typeMap[String(type)] || 'PERMANENT';
-    
+
     // Create in database
     const redirection = await prisma.redirection.create({
       data: {
@@ -119,18 +113,23 @@ export async function POST(request, { params }) {
         type: redirectType,
       },
     });
-    
-    // Sync to WordPress if connected
-    if (site.siteKey && site.siteSecret && site.platform === 'wordpress') {
+
+    // Sync to the connected platform (WP plugin or Shopify native)
+    const caps = getCapabilities(site);
+    const isShopifyConnected = !!site.shopifyAccessToken && !!site.shopifyDomain;
+    const isWpConnected = !!site.siteKey && !!site.siteSecret;
+    const isConnected = caps.platform === 'shopify' ? isShopifyConnected : isWpConnected;
+
+    if (isConnected) {
       try {
         const typeCodeMap = { PERMANENT: 301, TEMPORARY: 302, FOUND: 307 };
-        await wpCreateRedirect(site, {
+        await cms.createRedirect(site, {
           source: normalizedSource,
           target: normalizedTarget,
           type: typeCodeMap[redirectType] || 301,
         });
       } catch (err) {
-        console.warn('Failed to sync redirect to WordPress:', err.message);
+        console.warn(`Failed to sync redirect to ${caps.platform}:`, err.message);
       }
     }
     

@@ -837,6 +837,17 @@ model Site {
   wpAdminPassword      String? // Encrypted, temporary
   autoInstallExpiresAt DateTime? // Credentials expire after this time
 
+  // Shopify Connection (OAuth-based — alternative to WordPress plugin)
+  shopifyDomain         String? // Canonical identifier: foo.myshopify.com
+  shopifyAccessToken    String? // AES-256-GCM encrypted offline access token
+  shopifyScopes         String[] @default([]) // Granted OAuth scopes
+  shopifyAppInstalledAt DateTime?
+  shopifyWebhookIds     Json? // { topic: webhookId } map for cleanup on uninstall
+  shopifyLocationId     String? // Default location for product/inventory ops
+  shopifyPrimaryLocale  String?
+  shopifyCurrency       String?
+  shopifyPlanName       String?
+
   // Entity sync tracking
   entitySyncStatus   EntitySyncStatus @default(NEVER)
   entitySyncProgress Int? // 0-100 percentage
@@ -885,6 +896,7 @@ model Site {
   chatActions       ChatAction[]
 
   @@index([siteKey])
+  @@index([shopifyDomain])
 }
 
 // ==========================================
@@ -1526,6 +1538,7 @@ model SiteAudit {
   summary             String? // AI-generated audit summary (default language)
   summaryTranslations Json? // { "en": "...", "he": "..." }
   issueTranslations   Json? // { "<locale>": { "<msgHash>": { message, suggestion } } }
+  fixPreviews         Json? // { "<issueType>": { suggestions, manualOutputs, generatedAt, charged, usage } } - cached per-audit AI Fix previews; cleared on next audit run
   progress            Json? // { currentStep, totalSteps, label, percentage }
   startedAt           DateTime?
   completedAt         DateTime?

@@ -25,8 +25,10 @@ import {
   LifeBuoy,
 } from 'lucide-react';
 import { GhostChatPopup } from '@/app/components/ui/ghost-chat-popup';
+import { PageMeta } from '@/app/components/PageMeta';
 import { SiteSelector } from '@/app/components/ui/site-selector';
 import { DashboardHeader } from '@/app/dashboard/components/DashboardHeader';
+import { ImpersonationBanner } from '@/app/components/ImpersonationBanner';
 import ContentPipelineWorker from '@/app/dashboard/components/ContentPipelineWorker';
 import { OnboardingProvider } from '@/app/dashboard/onboarding/OnboardingProvider';
 import { OnboardingController } from '@/app/dashboard/onboarding/OnboardingController';
@@ -273,6 +275,7 @@ export default function DashboardLayout({ children }) {
 
   return (
     <OnboardingProvider>
+    <PageMeta />
     <div className={styles.dashboardContainer}>
       {/* Sidebar */}
       <aside className={styles.sidebar}>
@@ -545,6 +548,7 @@ export default function DashboardLayout({ children }) {
 
       {/* Main Content */}
       <main className={styles.mainContent}>
+        <ImpersonationBanner />
         {/* Header */}
         <DashboardHeader />
 

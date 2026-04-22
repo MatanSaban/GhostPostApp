@@ -6,6 +6,7 @@ import { useLocale } from '@/app/context/locale-context';
 import { useSite } from '@/app/context/site-context';
 import { handleLimitError } from '@/app/context/limit-guard-context';
 import { StatsCard, StatsGridSkeleton, TableSkeleton, PageHeaderSkeleton } from '@/app/dashboard/components';
+import { useDynamicPageMeta } from '@/app/components/PageMeta';
 import { EntitiesTable } from '../components';
 import styles from '../entities.module.css';
 
@@ -59,6 +60,11 @@ export default function EntityTypePage({ params }) {
 
   // Resolved localized display name
   const displayName = getLocalizedName(entityType, locale);
+
+  // Override the document title with the user-customized entity-type name
+  // (e.g. "פוסטים", "Services", or whatever the user renamed it to). Falls
+  // back to the route param while the entity type is still loading.
+  useDynamicPageMeta(displayName || (type ? type[0].toUpperCase() + type.slice(1) : null));
 
   // Start inline editing
   const handleStartEditTitle = useCallback(() => {

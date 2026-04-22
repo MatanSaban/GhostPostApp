@@ -1,114 +1,110 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { getRedirects, bulkSyncRedirects, importRedirects } from '@/lib/wp-api-client';
+import { cms, getCapabilities } from '@/lib/cms';
 
 /**
  * POST /api/sites/[id]/redirections/sync
- * Sync redirections between platform and WordPress.
- * 
- * Body: { direction: 'from-wp' | 'to-wp' }
- * - from-wp: Import redirects from WordPress into the platform database
- * - to-wp: Push platform redirects to WordPress plugin
+ * Sync redirections between platform and the connected CMS (WP plugin or Shopify).
+ *
+ * Body: { direction: 'from-cms' | 'to-cms' | 'import-external' }
+ *   from-cms        Pull redirects from the CMS into the platform DB
+ *   to-cms          Push platform redirects to the CMS (bulk replace)
+ *   import-external WP-only: scrape detected third-party redirect plugin, then pull
+ *
+ * Legacy aliases ('from-wp' / 'to-wp') still accepted.
  */
 export async function POST(request, { params }) {
   try {
     const { id } = await params;
     const body = await request.json();
-    const direction = body.direction || 'from-wp';
-    
-    const site = await prisma.site.findUnique({
-      where: { id },
-      select: {
-        id: true,
-        url: true,
-        siteKey: true,
-        siteSecret: true,
-        platform: true,
-      },
-    });
-    
+    const rawDirection = body.direction || 'from-cms';
+    const direction = rawDirection === 'from-wp' ? 'from-cms' : rawDirection === 'to-wp' ? 'to-cms' : rawDirection;
+
+    const site = await prisma.site.findUnique({ where: { id } });
+
     if (!site) {
       return NextResponse.json({ error: 'Site not found' }, { status: 404 });
     }
-    
-    if (!site.siteKey || !site.siteSecret) {
+
+    const caps = getCapabilities(site);
+    const isShopifyConnected = !!site.shopifyAccessToken && !!site.shopifyDomain;
+    const isWpConnected = !!site.siteKey && !!site.siteSecret;
+    const isConnected = caps.platform === 'shopify' ? isShopifyConnected : isWpConnected;
+
+    if (!isConnected) {
       return NextResponse.json(
-        { error: 'Site is not connected to WordPress plugin' },
-        { status: 400 }
+        {
+          error: caps.platform === 'shopify'
+            ? 'Site is not connected. Install the Ghost Post Shopify app.'
+            : 'Site is not connected to WordPress plugin',
+        },
+        { status: 400 },
       );
     }
-    
-    if (direction === 'from-wp') {
-      // Import from WordPress plugin into platform database
-      const wpData = await getRedirects(site);
-      const wpRedirects = wpData.redirects || wpData || [];
-      
+
+    if (direction === 'from-cms') {
+      const remoteData = await cms.getRedirects(site);
+      const remoteRedirects = remoteData.redirects || remoteData || [];
+
       let imported = 0;
       let skipped = 0;
-      
-      for (const r of wpRedirects) {
-        const source = r.source || '';
-        const target = r.target || '';
+
+      for (const r of remoteRedirects) {
+        const source = r.source || r.sourceUrl || '';
+        const target = r.target || r.targetUrl || '';
         if (!source || !target) continue;
-        
+
         let normalizedSource = source.startsWith('/') ? source : `/${source}`;
         try { normalizedSource = decodeURIComponent(normalizedSource); } catch {}
         if (normalizedSource.length > 1 && normalizedSource.endsWith('/')) normalizedSource = normalizedSource.slice(0, -1);
         let normalizedTarget = target;
         try { normalizedTarget = decodeURIComponent(normalizedTarget); } catch {}
-        
-        // Map numeric type to enum
+
         const typeNum = parseInt(r.type, 10);
         let typeEnum = 'PERMANENT';
         if (typeNum === 302) typeEnum = 'TEMPORARY';
         else if (typeNum === 307) typeEnum = 'FOUND';
-        
+
         try {
           await prisma.redirection.upsert({
             where: {
-              siteId_sourceUrl: {
-                siteId: id,
-                sourceUrl: normalizedSource,
-              },
+              siteId_sourceUrl: { siteId: id, sourceUrl: normalizedSource },
             },
             update: {
               targetUrl: normalizedTarget,
               type: typeEnum,
-              isActive: r.is_active !== false,
-              hitCount: parseInt(r.hit_count, 10) || 0,
+              isActive: r.is_active !== false && r.isActive !== false,
+              hitCount: parseInt(r.hit_count ?? r.hitCount, 10) || 0,
             },
             create: {
               siteId: id,
               sourceUrl: normalizedSource,
               targetUrl: normalizedTarget,
               type: typeEnum,
-              isActive: r.is_active !== false,
-              hitCount: parseInt(r.hit_count, 10) || 0,
+              isActive: r.is_active !== false && r.isActive !== false,
+              hitCount: parseInt(r.hit_count ?? r.hitCount, 10) || 0,
             },
           });
           imported++;
-        } catch (err) {
+        } catch {
           skipped++;
         }
       }
-      
+
       return NextResponse.json({
         success: true,
-        direction: 'from-wp',
+        direction: 'from-cms',
         imported,
         skipped,
-        total: wpRedirects.length,
+        total: remoteRedirects.length,
       });
-      
-    } else if (direction === 'to-wp') {
-      // Push platform redirects to WordPress plugin
-      const redirections = await prisma.redirection.findMany({
-        where: { siteId: id },
-      });
-      
+    }
+
+    if (direction === 'to-cms') {
+      const redirections = await prisma.redirection.findMany({ where: { siteId: id } });
+
       const typeCodeMap = { PERMANENT: 301, TEMPORARY: 302, FOUND: 307 };
-      
-      const forWp = redirections.map(r => ({
+      const payload = redirections.map(r => ({
         sourceUrl: r.sourceUrl,
         targetUrl: r.targetUrl,
         type: typeCodeMap[r.type] || 301,
@@ -116,30 +112,36 @@ export async function POST(request, { params }) {
         hitCount: r.hitCount,
         createdAt: r.createdAt,
       }));
-      
-      const result = await bulkSyncRedirects(site, forWp);
-      
+
+      const result = await cms.bulkSyncRedirects(site, payload);
+
       return NextResponse.json({
         success: true,
-        direction: 'to-wp',
+        direction: 'to-cms',
         count: result.count || redirections.length,
       });
-      
-    } else if (direction === 'import-external') {
-      // Import from detected third-party redirect plugin on WordPress,
-      // then import those into our platform
-      const importResult = await importRedirects(site);
-      
-      // Now fetch the GP storage redirects and save to platform
-      const wpData = await getRedirects(site);
-      const wpRedirects = wpData.redirects || wpData || [];
-      
+    }
+
+    if (direction === 'import-external') {
+      // Only meaningful on WP — Shopify has no third-party redirect plugin concept.
+      if (caps.platform !== 'wordpress') {
+        return NextResponse.json(
+          { error: 'External plugin import is only available on WordPress sites' },
+          { status: 400 },
+        );
+      }
+
+      const importResult = await cms.importRedirects(site);
+
+      const remoteData = await cms.getRedirects(site);
+      const remoteRedirects = remoteData.redirects || remoteData || [];
+
       let imported = 0;
-      for (const r of wpRedirects) {
+      for (const r of remoteRedirects) {
         const source = r.source || '';
         const target = r.target || '';
         if (!source || !target) continue;
-        
+
         let normalizedSource = source.startsWith('/') ? source : `/${source}`;
         try { normalizedSource = decodeURIComponent(normalizedSource); } catch {}
         if (normalizedSource.length > 1 && normalizedSource.endsWith('/')) normalizedSource = normalizedSource.slice(0, -1);
@@ -149,14 +151,11 @@ export async function POST(request, { params }) {
         let typeEnum = 'PERMANENT';
         if (typeNum === 302) typeEnum = 'TEMPORARY';
         else if (typeNum === 307) typeEnum = 'FOUND';
-        
+
         try {
           await prisma.redirection.upsert({
             where: {
-              siteId_sourceUrl: {
-                siteId: id,
-                sourceUrl: normalizedSource,
-              },
+              siteId_sourceUrl: { siteId: id, sourceUrl: normalizedSource },
             },
             update: {
               targetUrl: normalizedTarget,
@@ -176,7 +175,7 @@ export async function POST(request, { params }) {
           // Skip duplicates
         }
       }
-      
+
       return NextResponse.json({
         success: true,
         direction: 'import-external',
@@ -186,14 +185,13 @@ export async function POST(request, { params }) {
         source: importResult.source || 'unknown',
       });
     }
-    
+
     return NextResponse.json({ error: 'Invalid direction' }, { status: 400 });
-    
   } catch (error) {
     console.error('Error syncing redirections:', error);
     return NextResponse.json(
       { error: error.message || 'Internal server error' },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

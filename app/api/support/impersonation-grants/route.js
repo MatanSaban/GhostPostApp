@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { getCurrentAccountMember } from '@/lib/auth-permissions';
+import { gateImpersonation } from '@/lib/impersonation-context';
 import {
   IMPERSONATION_SCOPES,
   TTL_PRESETS,
@@ -85,6 +86,12 @@ export async function GET() {
  */
 export async function POST(request) {
   try {
+    // Hard-block this surface during impersonation (denylist), so an admin
+    // who's signed in as a user can't extend their own access by minting a
+    // new code on the user's behalf.
+    const gate = await gateImpersonation(request);
+    if (gate.response) return gate.response;
+
     const auth = await getCurrentAccountMember();
     if (!auth.authorized) {
       return NextResponse.json({ error: auth.error || 'Unauthorized' }, { status: 401 });

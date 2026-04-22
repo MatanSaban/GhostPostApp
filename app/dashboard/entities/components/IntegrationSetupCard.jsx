@@ -2,6 +2,8 @@
 
 import { useLocale } from '@/app/context/locale-context';
 import WordPressPluginSection from '@/app/dashboard/settings/components/WordPressPluginSection';
+import ShopifyConnectionSection from '@/app/dashboard/settings/components/ShopifyConnectionSection';
+import { capabilitiesFor } from '@/lib/cms/capabilities';
 import styles from '../entities.module.css';
 
 export function IntegrationSetupCard({
@@ -31,7 +33,10 @@ export function IntegrationSetupCard({
     );
   };
 
+  const caps = capabilitiesFor(platform);
   const isWordPress = platform === 'wordpress';
+  const isShopify = platform === 'shopify';
+  const isKnownPlatform = isWordPress || isShopify;
   const isConnected = selectedSite?.connectionStatus === 'CONNECTED';
 
   return (
@@ -114,7 +119,7 @@ export function IntegrationSetupCard({
         </div>
       )}
 
-      {platform && !isWordPress && (
+      {platform && !isKnownPlatform && (
         <div className={styles.nonWordPressNotice}>
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <circle cx="12" cy="12" r="10" />
@@ -129,7 +134,7 @@ export function IntegrationSetupCard({
       )}
 
       {/* WordPress Plugin Connection */}
-      {isWordPress && (
+      {isWordPress && caps.supportsPlugin && (
         <>
           <div className={styles.sectionDivider} />
           <WordPressPluginSection
@@ -137,6 +142,14 @@ export function IntegrationSetupCard({
             compact={isConnected}
             onConnectionChange={() => {}}
           />
+        </>
+      )}
+
+      {/* Shopify OAuth Connection */}
+      {isShopify && (
+        <>
+          <div className={styles.sectionDivider} />
+          <ShopifyConnectionSection />
         </>
       )}
     </div>

@@ -3,6 +3,98 @@
     "name": "Ghost Post",
     "initial": "G"
   },
+  "meta": {
+    "default": {
+      "title": "Ghost Post — אוטומציית SEO מבוססת AI",
+      "description": "הפכו את אסטרטגיית ה-SEO לאוטומטית עם Ghost Post. יצירת תוכן, אופטימיזציה וניהול אתר באמצעות בינה מלאכותית."
+    },
+    "home": {
+      "title": "Ghost Post — אוטומציית SEO מבוססת AI",
+      "description": "תנו לסוכנים החכמים שלנו לנהל את אסטרטגיית התוכן בזמן שאתם מתמקדים בצמיחה."
+    },
+    "auth": {
+      "index": { "title": "אימות", "description": "התחברו או צרו חשבון ב-Ghost Post." },
+      "login": { "title": "התחברות", "description": "התחברו לחשבון Ghost Post שלכם." },
+      "register": { "title": "יצירת חשבון", "description": "צרו חשבון Ghost Post והתחילו לאוטומט את ה-SEO." },
+      "thankYou": { "title": "תודה על ההרשמה", "description": "החשבון שלכם ב-Ghost Post בהכנה." },
+      "acceptInvite": { "title": "קבלת הזמנה", "description": "אשרו את ההזמנה שלכם להצטרף לחשבון ב-Ghost Post." }
+    },
+    "dashboard": {
+      "home": { "title": "דשבורד", "description": "סקירה של האתרים, צינור התוכן וביצועי ה-SEO שלכם." },
+      "agent": { "title": "סוכן", "description": "שוחחו עם סוכן ה-SEO החכם וצפו בפעולות אוטומטיות." },
+      "automations": { "title": "אוטומציות", "description": "ניהול אוטומציות SEO מתוזמנות לכל האתרים." },
+      "strategy": {
+        "index": { "title": "אסטרטגיה", "description": "תכננו את אסטרטגיית ה-SEO עם תובנות מבוססות AI." },
+        "siteProfile": { "title": "פרופיל אתר", "description": "הגדירו את פרופיל האתר וקול המותג שלכם." },
+        "keywords": { "title": "מילות מפתח", "description": "מחקר ותעדוף מילות מפתח עבור האתר." },
+        "competitors": { "title": "ניתוח מתחרים", "description": "עקבו אחרי תוכן, מילות מפתח וקישורים של מתחרים." },
+        "contentPlanner": { "title": "מתכנן תוכן", "description": "תכננו, תזמנו ועקבו אחר צינור התוכן." },
+        "aiWizard": { "title": "אשף תוכן AI", "description": "צרו תקצירי תוכן וטיוטות באמצעות AI." }
+      },
+      "entities": {
+        "index": { "title": "ישויות", "description": "עיינו בכל סוגי הישויות שסונכרנו מהאתר שלכם." },
+        "type": { "title": "ישויות", "description": "ניהול ישויות מסוג זה." },
+        "detail": { "title": "ישות", "description": "עריכת ישות יחידה." },
+        "media": { "title": "ספריית מדיה", "description": "עיינו בנכסי מדיה שסונכרנו מהאתר." },
+        "sitemaps": { "title": "מפות אתר", "description": "בדיקה וניהול של מפות אתר עבור האתרים שלכם." },
+        "sitemapDetail": { "title": "מפת אתר", "description": "צפייה בכתובות וסטטוסים של מפת אתר בודדת." }
+      },
+      "technicalSeo": {
+        "index": { "title": "SEO טכני", "description": "כלים לבריאות הטכנית של האתר." },
+        "redirections": { "title": "הפניות", "description": "יצירה וניהול של הפניות URL." },
+        "webp": { "title": "ממיר WebP", "description": "המירו תמונות ל-WebP לטעינה מהירה יותר." },
+        "audit": { "title": "ביקורת אתר", "description": "סריקה של האתר לאיתור בעיות SEO טכניות." }
+      },
+      "siteAudit": { "title": "ביקורת אתר", "description": "סריקה של האתר לאיתור בעיות SEO טכניות." },
+      "seoFrontend": { "title": "SEO צד-לקוח", "description": "אופטימיזציה של אותות SEO ברמת העמוד." },
+      "seoBackend": { "title": "SEO צד-שרת", "description": "אופטימיזציה של הגדרות SEO והאינטגרציות." },
+      "backlinks": { "title": "שוק קישורים", "description": "גלו ורכשו קישורים נכנסים איכותיים." },
+      "linkBuilding": { "title": "בניית קישורים", "description": "תכנון ומעקב אחר קמפייני בניית קישורים." },
+      "myWebsites": { "title": "האתרים שלי", "description": "ניהול כל האתרים המחוברים לחשבון Ghost Post." },
+      "notifications": { "title": "התראות", "description": "צפייה בהתראות והודעות הפלטפורמה." },
+      "settings": { "title": "הגדרות", "description": "הגדרות חשבון, צוות, חיוב ופלטפורמה." },
+      "support": {
+        "index": { "title": "תמיכה", "description": "פתיחה ומעקב אחר פניות תמיכה." },
+        "new": { "title": "פנייה חדשה לתמיכה", "description": "פתיחת פנייה חדשה לתמיכה." },
+        "access": { "title": "גישת תמיכה", "description": "ניהול גישת תמיכה לחשבון." },
+        "detail": { "title": "פניית תמיכה", "description": "צפייה ומענה לפניית תמיכה." }
+      },
+      "visualEditor": { "title": "עורך ויזואלי", "description": "עריכת עמודים ויזואלית באתר המחובר." },
+      "restoreAccount": { "title": "שחזור חשבון", "description": "שחזור חשבון Ghost Post שאוחסן." }
+    },
+    "admin": {
+      "home": { "title": "סקירת מנהל", "description": "סקירה ומדדים של הפלטפורמה כולה." },
+      "accounts": { "title": "חשבונות", "description": "ניהול חשבונות לקוחות." },
+      "accountDetail": { "title": "חשבון", "description": "צפייה וניהול של חשבון בודד." },
+      "users": { "title": "משתמשים", "description": "ניהול משתמשי הפלטפורמה." },
+      "userDetail": { "title": "משתמש", "description": "צפייה וניהול של משתמש בודד." },
+      "subscriptions": { "title": "מנויים", "description": "ניהול מנויים פעילים וחיוב." },
+      "plans": { "title": "תוכניות", "description": "הגדרת תוכניות ושכבות תמחור." },
+      "addons": { "title": "תוספות", "description": "הגדרת תוספות פלטפורמה." },
+      "coupons": { "title": "קופונים", "description": "יצירה וניהול של קופונים." },
+      "pricing": { "title": "תמחור", "description": "סקירה ועדכון של התמחור." },
+      "interviewFlow": { "title": "תהליך ראיון", "description": "הגדרת תהליך ראיון הקליטה ללקוחות." },
+      "interviewQuestions": { "title": "שאלות ראיון", "description": "ניהול שאלות והנחיות לראיון." },
+      "pushQuestions": { "title": "שאלות יזומות", "description": "הגדרת שאלות יזומות עבור הסוכן." },
+      "botActions": { "title": "פעולות בוט", "description": "הגדרת פעולות בוט אוטומטיות." },
+      "translations": { "title": "תרגומים", "description": "ניהול תרגומי הפלטפורמה." },
+      "backlinks": { "title": "ניהול קישורים", "description": "ניהול מלאי שוק הקישורים." },
+      "website": {
+        "index": { "title": "אתר שיווק", "description": "ניהול תוכן אתר השיווק." },
+        "settings": { "title": "הגדרות אתר שיווק", "description": "הגדרת אתר השיווק." },
+        "blog": { "title": "בלוג", "description": "ניהול פוסטים בבלוג השיווקי." },
+        "blogNew": { "title": "פוסט חדש", "description": "יצירת פוסט חדש בבלוג השיווקי." },
+        "blogEdit": { "title": "עריכת פוסט", "description": "עריכת פוסט קיים בבלוג השיווקי." },
+        "pages": { "title": "עמודים", "description": "ניהול עמודי אתר השיווק." },
+        "pageEdit": { "title": "עריכת עמוד", "description": "עריכת עמוד באתר השיווק." }
+      },
+      "faq": { "title": "שאלות נפוצות", "description": "ניהול תוכן השאלות הנפוצות." },
+      "support": { "title": "תיבת תמיכה", "description": "ניהול פניות תמיכה נכנסות." },
+      "supportDetail": { "title": "פניית תמיכה", "description": "מענה לפניית תמיכה." },
+      "impersonation": { "title": "התחזות", "description": "התחזות לחשבונות לצורך תמיכה ודיבוג." },
+      "impersonationSession": { "title": "סשן התחזות", "description": "צפייה בסשן התחזות." }
+    }
+  },
   "homepage": {
     "taglineHighlight": "אוטומציית SEO מבוססת AI",
     "taglineText": "לעסקים מודרניים. תנו לסוכנים החכמים שלנו לטפל באסטרטגיית התוכן בזמן שאתם מתמקדים בצמיחה.",
@@ -324,7 +416,8 @@
       "backlinks": "קישורים נכנסים",
       "website": "תוכן אתר",
       "faq": "ניהול שאלות נפוצות",
-      "support": "טיקטים"
+      "support": "טיקטים",
+      "impersonation": "התחזות"
     }
   },
   "websiteAdmin": {
@@ -985,6 +1078,7 @@
     },
     "aiFix": {
       "label": "תיקון AI",
+      "labelWithCredits": "תיקון AI · {credits} קרדיטים",
       "title": "תקן בעיה זו בעזרת AI",
       "pluginRequired": "נדרש תוסף WordPress",
       "pluginDescription": "כדי לתקן בעיות באתר שלך באופן אוטומטי, עליך לחבר את תוסף Ghost Post לאתר ה-WordPress שלך. התוסף מאפשר ל-Ghost Post לבצע שינויים באופן בטוח ישירות בדפים שלך.",
@@ -1132,6 +1226,9 @@
       "title": "תקן בעיה זו",
       "fixing": "מתקן...",
       "faviconModalTitle": "בחר תמונת Favicon"
+    },
+    "quickFix": {
+      "free": "חינם"
     },
     "whatIsIt": "מה זה?",
     "howToFix": "איך לתקן?",
@@ -1873,6 +1970,13 @@
       "structuredDataFound": "נתונים מובנים (JSON-LD) קיימים",
       "noLangAttribute": "חסרה תכונת שפה בתגית HTML",
       "langAttributeGood": "תכונת השפה מוגדרת כראוי",
+      "noViewportMeta": "חסרה תגית viewport - הדף לא יוצג כראוי במובייל",
+      "viewportMetaWeak": "תגית viewport קיימת אך ללא width=device-width",
+      "viewportMetaGood": "תגית viewport מוגדרת כראוי",
+      "noCharset": "חסרה הצהרת charset - ייתכן שהדפדפן ינחש את הקידוד",
+      "charsetGood": "הצהרת charset קיימת",
+      "duplicateTitle": "כותרת הדף משוכפלת במספר עמודים",
+      "duplicateMetaDescription": "תיאור המטא משוכפל במספר עמודים",
       "fewInternalLinks": "נמצאו מעט מאוד קישורים פנימיים (פחות מ-3)",
       "internalLinksGood": "נמצא מספר טוב של קישורים פנימיים",
       "noFavicon": "לא זוהה favicon",
@@ -1966,6 +2070,10 @@
       "addAltText": "הוסף טקסט חלופי תיאורי לכל התמונות לנגישות ו-SEO",
       "addStructuredData": "הוסף נתונים מובנים JSON-LD לעזור למנועי חיפוש להבין את התוכן",
       "addLangAttribute": "הוסף תכונת lang לתגית HTML (לדוגמה: lang=\"he\")",
+      "addViewportMeta": "הוסף בתוך <head> את התגית <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">",
+      "addCharset": "הוסף <meta charset=\"utf-8\"> כאלמנט הראשון בתוך <head>",
+      "uniqueTitle": "תן לכל עמוד תגית <title> ייחודית שמשקפת את תוכנו הספציפי",
+      "uniqueMetaDescription": "כתוב תיאור מטא ייחודי לכל עמוד כדי להימנע מתחרות על אותן תוצאות חיפוש",
       "addInternalLinks": "הוסף קישורים פנימיים נוספים לשיפור הניווט באתר וה-SEO",
       "addFavicon": "הוסף favicon לשיפור זיהוי המותג בלשוניות הדפדפן",
       "removeNoindex": "הסר את הנחיית ה-noindex כדי לאפשר למנועי חיפוש להוסיף דף זה לאינדקס. אם זה מכוון, ניתן להתעלם מאזהרה זו.",
@@ -8326,6 +8434,69 @@
       "sessionLive": "פעיל",
       "sessionEnded": "נסגר ({reason})",
       "unknownAdmin": "מהנדס תמיכה"
+    }
+  },
+  "impersonation": {
+    "banner": {
+      "title": "{admin} מחובר/ת בתור {target}",
+      "scopeReadOnly": "קריאה בלבד",
+      "scopeFull": "גישה מלאה",
+      "endSession": "סיים פגישה",
+      "expired": "הפגישה פגה",
+      "minutesLeft": "נותרו {count} דק'",
+      "hoursLeft": "נותרו {count} שע'",
+      "unknownAdmin": "מהנדס תמיכה",
+      "unknownUser": "משתמש"
+    },
+    "admin": {
+      "title": "התחזות",
+      "subtitle": "התחבר בתור משתמש באמצעות קוד שהפיק עבורך.",
+      "warningTitle": "כל פעולה נרשמת",
+      "warningDesc": "הפגישה כפופה להרשאות המשתמש ולרמת הגישה שהוא העניק. המשתמש יכול לבטל את הקוד בכל רגע, ואנחנו שומרים יומן מלא של הפעולות שביצעת בזמן ההתחזות.",
+      "loading": "בודק מצב התחזות…",
+      "activeTitle": "פגישה פעילה",
+      "target": "מחובר בתור",
+      "scope": "רמת גישה",
+      "scopeReadOnly": "קריאה בלבד",
+      "scopeFull": "גישה מלאה",
+      "startedAt": "התחיל",
+      "expiresAt": "פוקע",
+      "endNow": "סיים עכשיו",
+      "endConfirm": "לסיים את פגישת ההתחזות הפעילה?",
+      "startTitle": "התחל פגישה חדשה",
+      "startDesc": "הדבק את הקוד שהמשתמש שיתף איתך והסבר מדוע אתה מתחבר.",
+      "codeLabel": "קוד גישה",
+      "codeHint": "פורמט: AB7K-9XQR-MN3P-T5VW (לא תלוי-רישיות, מקפים אופציונליים).",
+      "reasonLabel": "סיבה",
+      "reasonPlaceholder": "בודק את בעיית החיוב מטיקט #1234…",
+      "reasonHint": "חובה, לפחות 10 תווים. נשמר ביומן הביקורת.",
+      "startButton": "התחל התחזות",
+      "startFailed": "ההתחזות נכשלה. ייתכן שהקוד שגוי, נוצל או פג תוקף.",
+      "historyTitle": "פגישות אחרונות",
+      "historyDesc": "25 פגישות ההתחזות האחרונות בפלטפורמה.",
+      "historyEmpty": "עדיין לא בוצעו פגישות התחזות.",
+      "byAdmin": "ע\"י {name}",
+      "actionCount": "{count} פעולות",
+      "liveTag": "פעיל",
+      "backToList": "חזרה לרשימת ההתחזויות",
+      "detailTitle": "{admin} בתור {target}",
+      "detailMetaTitle": "פרטי פגישה",
+      "detailLoadFailed": "טעינת פרטי הפגישה נכשלה.",
+      "adminUser": "מנהל",
+      "endedAt": "הסתיים",
+      "endReason": "סיבת סיום",
+      "stillActive": "עדיין פעיל",
+      "ipAddress": "כתובת IP",
+      "actionsTitle": "יומן פעולות ({count})",
+      "actionsDesc": "כל בקשת שינוי שהמנהל ביצע בזמן ההתחזות, וגם ניסיונות שנחסמו.",
+      "actionsTruncated": "מוצגות 500 הפעולות האחרונות.",
+      "noActions": "לא נרשמו פעולות עבור הפגישה הזו.",
+      "col": {
+        "time": "זמן",
+        "method": "Method",
+        "path": "Path",
+        "status": "סטטוס"
+      }
     }
   }
 }

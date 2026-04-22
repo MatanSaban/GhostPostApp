@@ -5,7 +5,8 @@ import { deductAiCredits } from '@/lib/account-utils';
 import { createRedirect } from '@/lib/wp-api-client';
 import { invalidateAudit } from '@/lib/cache/invalidate.js';
 import { generateObject } from 'ai';
-import { google } from '@/lib/ai/vertex-provider.js';
+import { googleGlobal } from '@/lib/ai/vertex-provider.js';
+import { GEMINI_MODEL } from '@/lib/ai/models.js';
 import { z } from 'zod';
 
 const SESSION_COOKIE = 'user_session';
@@ -185,9 +186,8 @@ For each broken link:
 
 Return redirect suggestions for each broken link. Use the FULL URL for suggestedUrl (including the domain).`;
 
-  const MODEL = 'gemini-2.5-pro';
   const result = await generateObject({
-    model: google(MODEL),
+    model: googleGlobal(GEMINI_MODEL),
     schema: suggestionsSchema,
     messages: [{ role: 'user', content: prompt }],
     temperature: 0.3,
@@ -208,7 +208,7 @@ Return redirect suggestions for each broken link. Use the FULL URL for suggested
         source: 'ai_broken_link_suggest',
         description: `AI Broken Link Suggestions: ${brokenData.length} link(s)`,
         metadata: {
-          model: MODEL,
+          model: GEMINI_MODEL,
           inputTokens: usage.inputTokens || 0,
           outputTokens: usage.outputTokens || 0,
           totalTokens: usage.totalTokens || 0,
@@ -256,7 +256,7 @@ async function handleApply(site, { auditId, siteId, fixes }, user) {
     siteId,
     source: 'ai_broken_link_fix',
     description: `Broken Link Fix: ${fixes.length} redirect(s)`,
-    metadata: { model: 'gemini-2.5-pro' },
+    metadata: { model: GEMINI_MODEL },
   });
 
   if (!deduction.success) {

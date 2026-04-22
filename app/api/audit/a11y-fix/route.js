@@ -4,7 +4,8 @@ import prisma from '@/lib/prisma';
 import { deductAiCredits } from '@/lib/account-utils';
 import { enforceCredits } from '@/lib/account-limits';
 import { generateText } from 'ai';
-import { google } from '@/lib/ai/vertex-provider.js';
+import { googleGlobal } from '@/lib/ai/vertex-provider.js';
+import { GEMINI_MODEL } from '@/lib/ai/models.js';
 import { makePluginRequest } from '@/lib/wp-api-client';
 
 const SESSION_COOKIE = 'user_session';
@@ -123,7 +124,7 @@ Respond with ONLY the alt text, nothing else.`,
     }
 
     const result = await generateText({
-      model: google('gemini-2.5-pro'),
+      model: googleGlobal(GEMINI_MODEL),
       messages,
       temperature: 0.3,
       maxTokens: 200,
@@ -142,7 +143,7 @@ Respond with ONLY the alt text, nothing else.`,
         inputTokens: usage.inputTokens || 0,
         outputTokens: usage.outputTokens || 0,
         totalTokens: usage.totalTokens || 0,
-        model: 'gemini-2.5-pro',
+        model: GEMINI_MODEL,
       },
     });
 

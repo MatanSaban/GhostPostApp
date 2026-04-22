@@ -4,7 +4,8 @@ import prisma from '@/lib/prisma';
 import { deductAiCredits } from '@/lib/account-utils';
 import { enforceCredits } from '@/lib/account-limits';
 import { generateObject } from 'ai';
-import { google } from '@/lib/ai/vertex-provider.js';
+import { googleGlobal } from '@/lib/ai/vertex-provider.js';
+import { GEMINI_MODEL } from '@/lib/ai/models.js';
 import { z } from 'zod';
 import { makePluginRequest } from '@/lib/wp-api-client';
 
@@ -119,7 +120,7 @@ export async function POST(request) {
     const prompt = buildFixPrompt(issueType, pageUrl, site.name, currentTitle, currentDesc);
 
     const result = await generateObject({
-      model: google('gemini-2.5-pro'),
+      model: googleGlobal(GEMINI_MODEL),
       schema: fixSchema,
       messages: [{ role: 'user', content: prompt }],
       temperature: 0.3,
@@ -138,7 +139,7 @@ export async function POST(request) {
         inputTokens: usage.inputTokens || 0,
         outputTokens: usage.outputTokens || 0,
         totalTokens: usage.totalTokens || 0,
-        model: 'gemini-2.5-pro',
+        model: GEMINI_MODEL,
       },
     });
 

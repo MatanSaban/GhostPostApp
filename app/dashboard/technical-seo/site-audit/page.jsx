@@ -30,7 +30,6 @@ import {
   LayoutDashboard,
   Coins,
   Accessibility,
-  Wand2,
   Wrench,
   HelpCircle,
   Lightbulb,
@@ -53,6 +52,7 @@ import {
   countBySeverity,
 } from './lib/aggregation';
 import { toImgSrc, filmSrc } from './lib/img-src';
+import { calculateAuditScore } from '@/lib/audit/scoring';
 import PluginRequiredModal from './components/PluginRequiredModal';
 import FixTitlePreviewModal from './components/FixTitlePreviewModal';
 import FixDescriptionPreviewModal from './components/FixDescriptionPreviewModal';
@@ -63,6 +63,8 @@ import FixBrokenLinkModal from './components/FixBrokenLinkModal';
 import SecurityHeadersModal from './components/SecurityHeadersModal';
 import IssueInfoPopup from './components/IssueInfoPopup';
 import AuditEntitySelector from './components/AuditEntitySelector';
+import FixButton from './components/FixButton';
+import { getFixer, isAiFixable, isFreeFixable } from '@/lib/audit/fix-registry';
 import { MediaModal } from '@/app/dashboard/components/MediaModal/MediaModal';
 import EntitiesRequiredModal from '@/app/dashboard/components/EntitiesRequiredModal/EntitiesRequiredModal';
 import { useModalResize, ModalResizeButton } from '@/app/components/ui/ModalResizeButton';
@@ -72,20 +74,13 @@ import styles from './site-audit.module.css';
 
 const POLL_INTERVAL = 3000;
 
-/** Issue message keys that support AI Fix via the WP plugin (costs credits) */
-const AI_FIXABLE_ISSUES = new Set([
-  'audit.issues.noMetaDescription',
-  'audit.issues.metaDescriptionShort',
-  'audit.issues.titleTooShort',
-  'audit.issues.missingOG',
-  'audit.issues.imagesNoAlt',
-  'audit.issues.imagesNotNextGen',
-  'audit.issues.imagesTooLarge',
-  'audit.issues.imagesLargeWarning',
-  'audit.issues.brokenInternalLink',
-]);
+/**
+ * Fixable-issue classification lives in lib/audit/fix-registry.js as the single
+ * source of truth. Use isAiFixable() / isFreeFixable() / getFixer() helpers.
+ * The Wand2/Wrench/Loader2 icons are rendered by the FixButton component.
+ */
 
-/** Issue keys for missing security headers - fixable via plugin */
+/** Security header issue keys — used to filter into the SecurityHeadersModal. */
 const SECURITY_HEADER_ISSUES = new Set([
   'audit.issues.noHsts',
   'audit.issues.noXFrameOptions',
@@ -93,15 +88,6 @@ const SECURITY_HEADER_ISSUES = new Set([
   'audit.issues.noCsp',
   'audit.issues.noReferrerPolicy',
   'audit.issues.noPermissionsPolicy',
-]);
-
-/** Issue message keys that support free Fix via the WP plugin (no credits) */
-const FREE_FIXABLE_ISSUES = new Set([
-  'audit.issues.noFavicon',
-  'audit.issues.metaRobotsNoindex',
-  'audit.issues.metaRobotsNofollow',
-  'audit.issues.wpSearchEngineDiscouraged',
-  ...SECURITY_HEADER_ISSUES,
 ]);
 
 const TABS = [
@@ -176,40 +162,6 @@ function shortenUrl(url) {
       return url.length > 50 ? url.slice(0, 47) + '...' : url;
     }
   }
-}
-
-function calculateCategoryScores(issues = []) {
-  const RATIO_CATS = new Set(['technical', 'performance', 'accessibility']);
-  const categories = ['technical', 'performance', 'visual', 'accessibility'];
-  const scores = {};
-
-  for (const cat of categories) {
-    const ci = issues.filter(i => i.type === cat);
-    const errors   = ci.filter(i => i.severity === 'error').length;
-    const warnings = ci.filter(i => i.severity === 'warning').length;
-    const passed   = ci.filter(i => i.severity === 'passed').length;
-    const info     = ci.filter(i => i.severity === 'info' || i.severity === 'notice').length;
-    const total = errors + warnings + passed + info;
-
-    if (total === 0) {
-      // No issues: ratio-based = null (no data), deduction-based = 100 (no violations)
-      scores[cat] = RATIO_CATS.has(cat) ? null : 100;
-      continue;
-    }
-
-    if (RATIO_CATS.has(cat)) {
-      const checkCount = passed + warnings + errors;
-      if (checkCount === 0) { scores[cat] = null; continue; }
-      const maxPts = checkCount * 100;
-      const earned = (passed * 100) + (warnings * 30);
-      scores[cat] = Math.round(Math.min(100, (earned / maxPts) * 100));
-    } else {
-      // Deduction-based (visual, accessibility): diminishing returns
-      const penalty = errors * 0.3 + warnings * 0.1 + info * 0.03;
-      scores[cat] = Math.round(100 / (1 + penalty));
-    }
-  }
-  return scores;
 }
 
 // ─── Component ──────────────────────────────────────────────────
@@ -319,7 +271,7 @@ export default function SiteAuditPage() {
       // Capture plan max pages if returned
       if (data.planMaxPages) {
         setPlanMaxPages(data.planMaxPages);
-        setMaxPages(prev => prev > data.planMaxPages ? data.planMaxPages : prev);
+        setMaxPages(data.planMaxPages);
       }
 
       let latest = data.latest;
@@ -664,21 +616,13 @@ export default function SiteAuditPage() {
   const isCompleted = latestAudit?.status === 'COMPLETED';
   const isFailed = latestAudit?.status === 'FAILED';
   const categoryScores = isCompleted
-    ? calculateCategoryScores(latestAudit.issues)
+    ? calculateAuditScore(latestAudit.issues || []).categoryScores
     : {};
 
   // Use the DB score (same value the AI summary receives) to avoid rounding discrepancies
   const overallScore = isCompleted && latestAudit?.score != null
     ? latestAudit.score
-    : (() => {
-        const weights = { technical: 0.35, performance: 0.30, visual: 0.15, accessibility: 0.20 };
-        let wSum = 0, wTotal = 0;
-        for (const [cat, w] of Object.entries(weights)) {
-          const s = categoryScores[cat];
-          if (s != null && s !== 0) { wSum += s * w; wTotal += w; }
-        }
-        return wTotal > 0 ? Math.round(wSum / wTotal) : 0;
-      })();
+    : (isCompleted ? calculateAuditScore(latestAudit.issues || []).score : 0);
 
   const allIssues = isCompleted ? (latestAudit.issues || []) : [];
   const allCounts = isCompleted ? countBySeverity(allIssues) : { passed: 0, warnings: 0, errors: 0, info: 0 };
@@ -1053,26 +997,6 @@ export default function SiteAuditPage() {
           <p className={styles.subtitle}>{t('siteAudit.subtitle')}</p>
         </div>
         <div className={styles.headerActions}>
-          {!isRunning && (
-            <div className={styles.pageLimitControl}>
-              <label className={styles.pageLimitLabel} htmlFor="maxPagesInput">
-                {t('siteAudit.maxPages')}
-              </label>
-              <input
-                id="maxPagesInput"
-                type="number"
-                min={1}
-                max={planMaxPages}
-                value={maxPages}
-                onChange={(e) => {
-                  const val = Math.max(1, Math.min(planMaxPages, Math.floor(Number(e.target.value) || 1)));
-                  setMaxPages(val);
-                }}
-                className={styles.pageLimitInput}
-              />
-              <span className={styles.pageLimitMax}>/ {planMaxPages}</span>
-            </div>
-          )}
           {auditHistory.length > 1 && (
             <button
               className={styles.historyButton}
@@ -1452,33 +1376,19 @@ export default function SiteAuditPage() {
                                   <span>{t('siteAudit.howToFix')}</span>
                                 </span>
                               )}
-                              {AI_FIXABLE_ISSUES.has(agg.key) && (
-                                <span
-                                  role="button"
-                                  tabIndex={0}
-                                  className={styles.aiFixBtn}
-                                  onClick={(e) => { e.stopPropagation(); handleAiFix(agg.key, agg); }}
-                                  onKeyDown={(e) => { if (e.key === 'Enter') { e.stopPropagation(); handleAiFix(agg.key, agg); } }}
-                                  title={t('siteAudit.aiFix.title')}
-                                >
-                                  <Wand2 size={13} />
-                                  <span>{t('siteAudit.aiFix.label')}</span>
-                                </span>
-                              )}
-                              {FREE_FIXABLE_ISSUES.has(agg.key) && (
-                                <span
-                                  role="button"
-                                  tabIndex={0}
-                                  className={styles.fixBtn}
-                                  onClick={(e) => { e.stopPropagation(); if (!fixingIssueKey) handleFix(agg.key, agg); }}
-                                  onKeyDown={(e) => { if (e.key === 'Enter') { e.stopPropagation(); if (!fixingIssueKey) handleFix(agg.key, agg); } }}
-                                  title={t('siteAudit.fix.title')}
-                                  style={fixingIssueKey ? { opacity: 0.6, pointerEvents: 'none' } : undefined}
-                                >
-                                  {fixingIssueKey === agg.key ? <Loader2 size={13} className={styles.spinning} /> : <Wrench size={13} />}
-                                  <span>{fixingIssueKey === agg.key ? t('siteAudit.fix.fixing') || 'Fixing...' : t('siteAudit.fix.label')}</span>
-                                </span>
-                              )}
+                              {(() => {
+                                const aggFixer = getFixer(agg.key);
+                                if (!aggFixer) return null;
+                                return (
+                                  <FixButton
+                                    fixer={aggFixer}
+                                    busy={aggFixer.kind === 'free' && fixingIssueKey === agg.key}
+                                    disabled={aggFixer.kind === 'free' && !!fixingIssueKey && fixingIssueKey !== agg.key}
+                                    stopPropagation
+                                    onClick={() => (aggFixer.kind === 'ai' ? handleAiFix(agg.key, agg) : handleFix(agg.key, agg))}
+                                  />
+                                );
+                              })()}
                               {agg.count > 1 && (
                                 <span className={styles.aggCount}>
                                   {agg.urls.length} {t('siteAudit.pages')}
@@ -1536,25 +1446,18 @@ export default function SiteAuditPage() {
                               {SOURCE_KEYS[drillDownAgg.source] ? t(SOURCE_KEYS[drillDownAgg.source]) : drillDownAgg.source}
                             </span>
                           )}
-                          {AI_FIXABLE_ISSUES.has(drillDownAgg.key) && (
-                            <button
-                              className={styles.aiFixBtn}
-                              onClick={() => handleAiFix(drillDownAgg.key, drillDownAgg)}
-                            >
-                              <Wand2 size={13} />
-                              <span>{t('siteAudit.aiFix.label')}</span>
-                            </button>
-                          )}
-                          {FREE_FIXABLE_ISSUES.has(drillDownAgg.key) && (
-                            <button
-                              className={styles.fixBtn}
-                              onClick={() => { if (!fixingIssueKey) handleFix(drillDownAgg.key, drillDownAgg); }}
-                              disabled={!!fixingIssueKey}
-                            >
-                              {fixingIssueKey === drillDownAgg.key ? <Loader2 size={13} className={styles.spinning} /> : <Wrench size={13} />}
-                              <span>{fixingIssueKey === drillDownAgg.key ? t('siteAudit.fix.fixing') || 'Fixing...' : t('siteAudit.fix.label')}</span>
-                            </button>
-                          )}
+                          {(() => {
+                            const ddFixer = getFixer(drillDownAgg.key);
+                            if (!ddFixer) return null;
+                            return (
+                              <FixButton
+                                fixer={ddFixer}
+                                busy={ddFixer.kind === 'free' && fixingIssueKey === drillDownAgg.key}
+                                disabled={ddFixer.kind === 'free' && !!fixingIssueKey && fixingIssueKey !== drillDownAgg.key}
+                                onClick={() => (ddFixer.kind === 'ai' ? handleAiFix(drillDownAgg.key, drillDownAgg) : handleFix(drillDownAgg.key, drillDownAgg))}
+                              />
+                            );
+                          })()}
                           <button
                             className={styles.infoBtn}
                             onClick={() => setIssueInfoPopup({ type: 'whatIsIt', key: drillDownAgg.key, title: getIssueTitle(drillDownAgg) })}
@@ -1730,24 +1633,6 @@ export default function SiteAuditPage() {
           <Activity className={styles.emptyIcon} />
           <h3 className={styles.emptyTitle}>{t('siteAudit.noScans')}</h3>
           <p className={styles.emptyDescription}>{t('siteAudit.noScansDescription')}</p>
-          <div className={styles.pageLimitControl} style={{ justifyContent: 'center', marginBottom: 12 }}>
-            <label className={styles.pageLimitLabel} htmlFor="maxPagesInputEmpty">
-              {t('siteAudit.maxPages')}
-            </label>
-            <input
-              id="maxPagesInputEmpty"
-              type="number"
-              min={1}
-              max={planMaxPages}
-              value={maxPages}
-              onChange={(e) => {
-                const val = Math.max(1, Math.min(planMaxPages, Math.floor(Number(e.target.value) || 1)));
-                setMaxPages(val);
-              }}
-              className={styles.pageLimitInput}
-            />
-            <span className={styles.pageLimitMax}>/ {planMaxPages}</span>
-          </div>
           <SmartActionButton
             resourceKey="siteAudits"
             accountId={user?.accountId}
@@ -1889,27 +1774,19 @@ export default function SiteAuditPage() {
                           </div>
                         )}
                       </div>
-                      {AI_FIXABLE_ISSUES.has(issue.message) && (
-                        <button
-                          className={styles.aiFixBtnSmall}
-                          onClick={() => handleAiFix(issue.message, issue)}
-                          title={t('siteAudit.aiFix.title')}
-                        >
-                          <Wand2 size={12} />
-                          <span>{t('siteAudit.aiFix.label')}</span>
-                        </button>
-                      )}
-                      {FREE_FIXABLE_ISSUES.has(issue.message) && (
-                        <button
-                          className={styles.fixBtnSmall}
-                          onClick={() => { if (!fixingIssueKey) handleFix(issue.message, issue); }}
-                          disabled={!!fixingIssueKey}
-                          title={t('siteAudit.fix.title')}
-                        >
-                          {fixingIssueKey === issue.message ? <Loader2 size={12} className={styles.spinning} /> : <Wrench size={12} />}
-                          <span>{fixingIssueKey === issue.message ? t('siteAudit.fix.fixing') || 'Fixing...' : t('siteAudit.fix.label')}</span>
-                        </button>
-                      )}
+                      {(() => {
+                        const issFixer = getFixer(issue.message);
+                        if (!issFixer) return null;
+                        return (
+                          <FixButton
+                            fixer={issFixer}
+                            size="small"
+                            busy={issFixer.kind === 'free' && fixingIssueKey === issue.message}
+                            disabled={issFixer.kind === 'free' && !!fixingIssueKey && fixingIssueKey !== issue.message}
+                            onClick={() => (issFixer.kind === 'ai' ? handleAiFix(issue.message, issue) : handleFix(issue.message, issue))}
+                          />
+                        );
+                      })()}
                       <button
                         className={styles.infoBtnSmall}
                         onClick={() => setIssueInfoPopup({ type: 'whatIsIt', key: issue.message, title: issue.source === 'ai-vision' ? translateIssueMsg(issue.message, 'message') : (issue.message?.startsWith('audit.') ? t(issue.message) : issue.message) })}

@@ -1,18 +1,13 @@
 import { ThemeProvider } from '@/app/context/theme-context';
+import { PageMeta } from '@/app/components/PageMeta';
+import { createGenerateMetadata } from '@/lib/seo/metadata';
 
-export const metadata = {
-  title: 'Ghost Post - Authentication',
-  description: 'Sign in or create an account for Ghost Post Platform',
-  icons: {
-    icon: '/ghostpost_logo.png',
-    shortcut: '/ghostpost_logo.png',
-    apple: '/ghostpost_logo.png',
-  },
-};
+export const generateMetadata = createGenerateMetadata('/auth');
 
 export default function AuthLayout({ children }) {
   return (
     <ThemeProvider>
+      <PageMeta />
       {children}
     </ThemeProvider>
   );

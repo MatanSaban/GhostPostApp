@@ -67,6 +67,7 @@
 /* Navigation */
 .navigation {
   flex: 1;
+  padding: 0 0 0 1rem;
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
@@ -99,7 +100,6 @@
     color: var(--primary);
     background: var(--sidebar-active);
     border-color: var(--sidebar-active-border);
-    box-shadow: var(--shadow-purple);
 
     .dark & {
       color: #c084fc;
@@ -464,7 +464,7 @@
 }
 
 .notificationsTitle {
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   font-weight: 600;
   color: var(--foreground);
 }
@@ -583,7 +583,7 @@
 }
 
 .notificationTitle {
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   font-weight: 600;
   color: var(--foreground);
   margin-bottom: 0.125rem;
@@ -678,7 +678,7 @@
   align-items: center;
   justify-content: center;
   color: white;
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   font-weight: 600;
 }
 
@@ -724,7 +724,7 @@
   align-items: center;
   justify-content: center;
   color: white;
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   font-weight: 600;
 }
 
@@ -734,7 +734,7 @@
 }
 
 .userMenuName {
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   font-weight: 600;
   color: var(--foreground);
 }
@@ -775,7 +775,7 @@
 }
 
 .creditsValue {
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   font-weight: 600;
   color: var(--foreground);
 }

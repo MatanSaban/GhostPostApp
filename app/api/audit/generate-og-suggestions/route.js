@@ -2,7 +2,8 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import prisma from '@/lib/prisma';
 import { generateObject } from 'ai';
-import { google } from '@/lib/ai/vertex-provider.js';
+import { googleGlobal } from '@/lib/ai/vertex-provider.js';
+import { GEMINI_MODEL } from '@/lib/ai/models.js';
 import { z } from 'zod';
 import { deductAiCredits } from '@/lib/account-utils';
 
@@ -139,9 +140,8 @@ ${pagesContext}
 
 Generate og:title and og:description for each page.`;
 
-    const MODEL = 'gemini-2.5-pro';
     const result = await generateObject({
-      model: google(MODEL),
+      model: googleGlobal(GEMINI_MODEL),
       schema: suggestionsSchema,
       messages: [{ role: 'user', content: prompt }],
       temperature: 0.4,
@@ -154,7 +154,7 @@ Generate og:title and og:description for each page.`;
       source: 'ai_og_suggestions',
       description: `AI OG Suggestions: ${fixableUrls.length} page(s)`,
       metadata: {
-        model: MODEL,
+        model: GEMINI_MODEL,
         inputTokens: usage.inputTokens || 0,
         outputTokens: usage.outputTokens || 0,
         totalTokens: usage.totalTokens || 0,

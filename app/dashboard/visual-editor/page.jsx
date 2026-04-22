@@ -23,6 +23,8 @@ import {
   normaliseSiteUrl,
   usePreviewBridge,
 } from '@/app/hooks/usePreviewBridge';
+import { useCapabilities } from '@/app/hooks/useCapabilities';
+import { PlatformUnsupportedNotice } from '@/app/components/ui/PlatformUnsupportedNotice';
 import styles from './visual-editor.module.css';
 
 /* ------------------------------------------------------------------ */
@@ -33,6 +35,7 @@ export default function VisualEditorPage() {
   const { selectedSite } = useSite();
   const { user } = useUser();
   const { t, isRtl } = useLocale();
+  const caps = useCapabilities();
 
   /* ---- iframe + bridge ---- */
   const iframeRef = useRef(null);
@@ -131,7 +134,16 @@ export default function VisualEditorPage() {
     );
   }
 
-  if (selectedSite.platform !== 'wordpress' || !selectedSite.siteKey) {
+  if (!caps.supportsVisualEditor) {
+    return (
+      <PlatformUnsupportedNotice
+        feature={t('visualEditor.title') || 'Visual Editor'}
+        platform={caps.platform}
+        reason={t('visualEditor.unsupportedReason') || 'The Visual Editor needs live DOM manipulation via the Ghost Post WordPress plugin — which is WordPress-specific.'}
+      />
+    );
+  }
+  if (!selectedSite.siteKey) {
     return (
       <div className={styles.emptyState}>
         <p>Visual Editor requires a connected WordPress site with the Ghost Post plugin.</p>

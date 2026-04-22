@@ -1,6 +1,10 @@
 import { getTranslations, getLocaleInfo } from '@/i18n/server';
 import AgentPageContent from './AgentPageContent';
 
+import { createGenerateMetadata } from '@/lib/seo/metadata';
+
+export const generateMetadata = createGenerateMetadata('/dashboard/agent');
+
 export default async function AgentPage() {
   const t = await getTranslations();
   const { dictionary } = await getLocaleInfo();

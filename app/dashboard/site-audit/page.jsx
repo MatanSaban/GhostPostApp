@@ -11,6 +11,10 @@ import {
 import { getTranslations } from '@/i18n/server';
 import styles from './page.module.css';
 
+import { createGenerateMetadata } from '@/lib/seo/metadata';
+
+export const generateMetadata = createGenerateMetadata('/dashboard/site-audit');
+
 const vitalData = [
   { metric: 'LCP', nameKey: 'lcp', value: 2.1, threshold: 2.5, unit: 's', status: 'good' },
   { metric: 'FID', nameKey: 'fid', value: 45, threshold: 100, unit: 'ms', status: 'good' },

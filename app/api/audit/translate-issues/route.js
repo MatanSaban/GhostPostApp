@@ -2,12 +2,12 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import prisma from '@/lib/prisma';
 import { generateObject } from 'ai';
-import { google } from '@/lib/ai/vertex-provider.js';
+import { googleGlobal } from '@/lib/ai/vertex-provider.js';
+import { GEMINI_MODEL } from '@/lib/ai/models.js';
 import { z } from 'zod';
 import { deductAiCredits } from '@/lib/account-utils';
 
 const SESSION_COOKIE = 'user_session';
-const MODEL = 'gemini-2.5-pro';
 
 async function getAuthenticatedUser() {
   try {
@@ -113,7 +113,7 @@ export async function POST(request) {
       if (needExplainers.length > 0) {
         try {
           const aiResult = await generateObject({
-            model: google(MODEL),
+            model: googleGlobal(GEMINI_MODEL),
             schema: translationSchema,
             system: `You are a web development expert. For each website audit issue, generate:
 - "message": return the exact original message unchanged
@@ -135,7 +135,7 @@ Keep technical terms like SEO, CSS, HTML, viewport, CTA unchanged.`,
             source: 'audit_translate_issues',
             description: `AI issue explainers: ${needExplainers.length} issue(s)`,
             metadata: {
-              model: MODEL,
+              model: GEMINI_MODEL,
               inputTokens: usage.inputTokens || 0,
               outputTokens: usage.outputTokens || 0,
               totalTokens: usage.totalTokens || 0,
@@ -191,7 +191,7 @@ Keep technical terms like SEO, CSS, HTML, viewport, CTA unchanged.`,
     const langName = LANG_NAMES[targetLang] || targetLang;
 
     const aiResult = await generateObject({
-      model: google(MODEL),
+      model: googleGlobal(GEMINI_MODEL),
       schema: translationSchema,
       system: `You are a professional translator and web development expert. Translate the following website audit issue messages and suggestions to ${langName}.
 Also generate for each issue:
@@ -221,7 +221,7 @@ Maintain the same tone and specificity. Return the translations in the same orde
       source: 'audit_translate_issues',
       description: `Translate ${toTranslate.length} audit issues to ${langName}`,
       metadata: {
-        model: MODEL,
+        model: GEMINI_MODEL,
         inputTokens: usage.inputTokens || 0,
         outputTokens: usage.outputTokens || 0,
         totalTokens: usage.totalTokens || 0,

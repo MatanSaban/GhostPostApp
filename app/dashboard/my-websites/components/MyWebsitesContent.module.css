@@ -122,7 +122,7 @@
   text-align: start;
   font-weight: 600;
   color: var(--muted-foreground);
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   text-transform: uppercase;
   letter-spacing: 0.05em;
   white-space: nowrap;
@@ -280,7 +280,7 @@
 }
 
 .cardTitle h3 {
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   font-weight: 600;
   color: var(--foreground);
   overflow: hidden;

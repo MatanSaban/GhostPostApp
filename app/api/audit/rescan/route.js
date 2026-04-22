@@ -6,6 +6,7 @@ import { analyzeHtml } from '@/lib/audit/html-analyzer';
 import { deductAiCredits } from '@/lib/account-utils';
 import { recalculateAuditAfterFix } from '@/lib/audit/recalculate-after-fix';
 import { invalidateAudit } from '@/lib/cache/invalidate.js';
+import { GEMINI_MODEL } from '@/lib/ai/models.js';
 
 export const maxDuration = 300;
 
@@ -86,7 +87,7 @@ export async function POST(request) {
         siteId,
         source: 'audit_rescan',
         description: `Rescan page: ${url}`,
-        metadata: { model: 'gemini-2.5-pro' },
+        metadata: { model: GEMINI_MODEL },
       });
 
       if (!deduction.success) {

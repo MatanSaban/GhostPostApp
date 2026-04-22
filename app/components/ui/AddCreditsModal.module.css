@@ -168,7 +168,7 @@
   display: flex;
   align-items: center;
   gap: 0.375rem;
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   font-weight: 600;
   color: var(--foreground);
 }
@@ -188,7 +188,7 @@
   display: inline-block;
   margin-top: 0.375rem;
   padding: 0.125rem 0.5rem;
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   font-weight: 600;
   color: var(--primary, #7b2cbf);
   background: rgba(123, 44, 191, 0.08);
@@ -302,7 +302,7 @@
 .quantityValue {
   min-width: 1.5rem;
   text-align: center;
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   font-weight: 600;
 }
 
@@ -311,7 +311,7 @@
   align-items: center;
   gap: 0.375rem;
   padding: 0.375rem 0.75rem;
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   font-weight: 600;
   border: none;
   border-radius: var(--radius-md, 8px);
@@ -373,7 +373,7 @@
   color: #fff;
   border: none;
   border-radius: 0.5rem;
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   font-weight: 600;
   cursor: pointer;
   transition: opacity 0.15s, transform 0.15s;

@@ -8,6 +8,8 @@ import {
 } from 'lucide-react';
 import { useLocale } from '@/app/context/locale-context';
 import { useSite } from '@/app/context/site-context';
+import { useCapabilities } from '@/app/hooks/useCapabilities';
+import { PlatformUnsupportedNotice } from '@/app/components/ui/PlatformUnsupportedNotice';
 import styles from '../technical-seo.module.css';
 
 import {
@@ -25,23 +27,35 @@ import {
 export default function WebpConverterPage() {
   const { t } = useLocale();
   const { selectedSite, isLoading: isSiteLoading } = useSite();
-  
+  const caps = useCapabilities();
+
   // WebP Conversion hook
   const webp = useWebpConverter();
-  
+
   // AI Optimizer hook
   const ai = useAiOptimizer();
-  
+
   // Modal option states (kept here as they're UI-only)
   const [keepBackups, setKeepBackups] = useState(true);
   const [flushCache, setFlushCache] = useState(true);
   const [replaceUrls, setReplaceUrls] = useState(true);
-  
+
+  // Shopify (and any future non-WP platform) can't run server-side WebP
+  // conversion — there's no file-system hook to re-encode originals.
+  if (selectedSite && !caps.supportsWebpConversion) {
+    return (
+      <PlatformUnsupportedNotice
+        feature={t('tools.webp.title') || 'WebP Converter'}
+        platform={caps.platform}
+      />
+    );
+  }
+
   // Loading state
   if (isSiteLoading || webp.isLoadingSettings) {
     return <WebpConverterSkeleton />;
   }
-  
+
   // No site selected
   if (!selectedSite) {
     return (

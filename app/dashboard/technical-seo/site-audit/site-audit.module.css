@@ -4,8 +4,6 @@
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
-  padding: 24px;
-  min-height: calc(100vh - 64px);
 }
 
 /* ─── Header ───────────────────────────────────────────────── */
@@ -25,10 +23,10 @@
 }
 
 .title {
-  font-size: 1.4375rem;
-  font-weight: 600;
+  font-size: 1.6875rem;
+  font-weight: 700;
   color: var(--foreground);
-  margin: 0;
+  margin: 0 0 0.5rem;
 }
 
 .subtitle {
@@ -119,7 +117,7 @@
   padding: 1px 7px;
   border-radius: 10px;
   background: rgba(255, 255, 255, 0.2);
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   font-weight: 600;
   letter-spacing: 0.02em;
   line-height: 1.4;
@@ -225,7 +223,7 @@
   border-radius: var(--radius-md, 8px);
   background: #ef4444;
   color: white;
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   font-weight: 600;
   cursor: pointer;
   transition: background 0.15s, transform 0.1s;
@@ -321,7 +319,7 @@
 }
 
 .scanProgressLabel {
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   font-weight: 600;
   color: var(--primary, #7b2cbf);
   margin-top: 2px;
@@ -517,14 +515,14 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   font-weight: 600;
   color: var(--foreground);
   margin: 0 0 16px 0;
 }
 
 .sectionTitleInline {
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   font-weight: 600;
   color: var(--foreground);
   margin: 0;
@@ -705,7 +703,7 @@
   height: 24px;
   padding: 0 6px;
   border-radius: 6px;
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   font-weight: 600;
 
   &.good {
@@ -873,7 +871,7 @@
   border-radius: 8px;
   background: transparent;
   color: var(--primary);
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   font-weight: 600;
   cursor: pointer;
   transition: background 0.15s, color 0.15s;
@@ -918,7 +916,7 @@
   border-radius: 8px;
   background: transparent;
   color: var(--accent, #10b981);
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   font-weight: 600;
   cursor: pointer;
   transition: background 0.15s, color 0.15s;
@@ -1043,7 +1041,7 @@
 }
 
 .drillDownTitle {
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   font-weight: 600;
   color: var(--foreground);
   margin: 0;
@@ -1075,7 +1073,7 @@
 }
 
 .drillDownSubtitle {
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   font-weight: 600;
   color: var(--foreground);
   margin: 0 0 12px 0;
@@ -1321,7 +1319,7 @@
   color: var(--primary-foreground);
   border: none;
   border-radius: var(--radius-md);
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   font-weight: 600;
   cursor: pointer;
   transition: opacity 0.2s;
@@ -1415,14 +1413,14 @@
 }
 
 .pdMetricValue {
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   font-weight: 600;
   color: var(--foreground);
   font-family: ui-monospace, SFMono-Regular, monospace;
 }
 
 .pageDetailSubtitle {
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   font-weight: 600;
   color: var(--foreground);
   margin: 0 0 10px 0;
@@ -1542,7 +1540,7 @@
   background: rgba(99, 102, 241, 0.08);
   color: #6366f1;
   border-radius: 4px;
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   width: fit-content;
   font-weight: 600;
   font-family: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, monospace;
@@ -1658,7 +1656,7 @@
 }
 
 .historyTitle {
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   font-weight: 600;
   color: var(--foreground);
   margin: 0 0 16px 0;
@@ -1706,7 +1704,7 @@
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   font-weight: 600;
   background: var(--muted, rgba(0, 0, 0, 0.04));
   color: var(--muted-foreground);

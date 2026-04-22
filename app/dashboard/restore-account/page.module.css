@@ -29,10 +29,10 @@
 }
 
 .title {
-  font-size: 1.5rem;
-  font-weight: 600;
-  margin: 0;
+  font-size: 1.6875rem;
+  font-weight: 700;
   color: var(--foreground);
+  margin: 0 0 0.5rem;
 }
 
 .description {
@@ -134,7 +134,7 @@
 }
 
 .accountDeadline {
-  font-size: 0.8125rem;
+  font-size: 0.75rem;
   color: #ef4444;
   font-weight: 500;
 }

@@ -1,5 +1,6 @@
 'use client';
 
+import { Users } from 'lucide-react';
 import {
   PageHeader,
   StatsGrid,
@@ -111,6 +112,7 @@ export function CompetitorsPageContent({ translations }) {
     return (
       <>
         <PageHeader
+          icon={Users}
           title={t.title}
           subtitle={t.subtitle}
         />
@@ -122,6 +124,7 @@ export function CompetitorsPageContent({ translations }) {
   return (
     <>
       <PageHeader
+        icon={Users}
         title={t.title}
         subtitle={t.subtitle}
         dataOnboarding="page-competitors"

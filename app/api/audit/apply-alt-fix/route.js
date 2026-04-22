@@ -4,6 +4,7 @@ import prisma from '@/lib/prisma';
 import { deductAiCredits } from '@/lib/account-utils';
 import { updateMedia, getMedia } from '@/lib/wp-api-client';
 import { recalculateAuditAfterFix } from '@/lib/audit/recalculate-after-fix';
+import { GEMINI_MODEL } from '@/lib/ai/models.js';
 
 const SESSION_COOKIE = 'user_session';
 const ALT_FIX_CREDIT_COST = 1; // 1 credit per image
@@ -253,7 +254,7 @@ export async function POST(request) {
       siteId,
       source: 'ai_alt_fix',
       description: `AI Alt Text Fix: ${fixes.length} image(s)`,
-      metadata: { model: 'gemini-2.5-pro' },
+      metadata: { model: GEMINI_MODEL },
     });
 
     if (!deduction.success) {
