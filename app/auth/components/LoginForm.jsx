@@ -5,10 +5,12 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Loader2 } from 'lucide-react';
 import { ArrowIcon } from '@/app/components/ui/arrow-icon';
+import { useUser } from '@/app/context/user-context';
 import styles from '../auth.module.css';
 
 export function LoginForm({ translations }) {
   const router = useRouter();
+  const { updateUser } = useUser();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -33,11 +35,16 @@ export function LoginForm({ translations }) {
       }
 
       if (data.isRegistrationComplete) {
-        localStorage.setItem('user', JSON.stringify(data.user));
+        // Update both localStorage AND the UserProvider state so the dashboard
+        // layout sees the authenticated user immediately on soft navigation.
+        // Without this, UserProvider's mount-time useEffect (which already ran
+        // on /auth/login with no stored user) leaves user=null, and the
+        // dashboard's auth guard bounces us back to /auth/login.
+        updateUser(data.user);
       } else {
         // Mid-registration: session is set by the API; the server resumes them
         // at the right step when they land on /auth/register.
-        localStorage.removeItem('user');
+        updateUser(null);
       }
       localStorage.removeItem('tempRegistration');
 

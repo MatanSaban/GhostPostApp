@@ -246,6 +246,11 @@
     "description": "תיאור",
     "url": "כתובת הקובץ",
     "confirmDelete": "האם אתה בטוח שברצונך למחוק את פריט המדיה הזה?",
+    "pagination": {
+      "previous": "העמוד הקודם",
+      "next": "העמוד הבא",
+      "pageOf": "עמוד {current} מתוך {total}"
+    },
     "modal": {
       "title": "ספריית מדיה",
       "library": "ספריית מדיה",

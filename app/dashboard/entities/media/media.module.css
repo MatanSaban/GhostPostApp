@@ -190,6 +190,19 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
+  color: var(--color-text-secondary);
+  background: var(--color-bg-secondary);
+  font-size: 0.6875rem;
+  text-align: center;
+  padding: 8px;
+  word-break: break-word;
+  display: block;
+}
+
+.skeletonItem {
+  aspect-ratio: 1;
+  width: 100%;
+  border-radius: 8px;
 }
 
 .filePreview {

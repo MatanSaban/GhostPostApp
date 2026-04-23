@@ -246,6 +246,11 @@
     "description": "Description",
     "url": "File URL",
     "confirmDelete": "Are you sure you want to delete this media item?",
+    "pagination": {
+      "previous": "Previous page",
+      "next": "Next page",
+      "pageOf": "Page {current} of {total}"
+    },
     "modal": {
       "title": "Media Library",
       "library": "Media Library",

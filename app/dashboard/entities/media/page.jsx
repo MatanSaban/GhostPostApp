@@ -22,7 +22,7 @@ import {
 import { useSite } from '@/app/context/site-context';
 import { useLocale } from '@/app/context/locale-context';
 import { usePermissions, MODULES } from '@/app/hooks/usePermissions';
-import { ContentGridSkeleton, PageHeaderSkeleton, Button } from '@/app/dashboard/components';
+import { Skeleton, PageHeaderSkeleton, Button } from '@/app/dashboard/components';
 import styles from './media.module.css';
 
 /**
@@ -39,7 +39,8 @@ export default function MediaPage() {
   const canEditMedia = canEdit(MODULES.ENTITIES);
   const canDeleteMedia = canDelete(MODULES.ENTITIES);
   const fileInputRef = useRef(null);
-  
+  const pageCacheRef = useRef(new Map());
+
   const [media, setMedia] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
@@ -69,6 +70,11 @@ export default function MediaPage() {
     }, 300);
     return () => clearTimeout(timer);
   }, [search]);
+
+  // Clear cache when the site or search term changes — those invalidate every cached page.
+  useEffect(() => {
+    pageCacheRef.current.clear();
+  }, [selectedSite?.id, searchDebounce]);
   
   // Update editable fields when selected item changes
   useEffect(() => {
@@ -80,34 +86,51 @@ export default function MediaPage() {
     }
   }, [selectedItem]);
   
-  // Fetch media
-  const fetchMedia = useCallback(async () => {
+  // Fetch media — uses an in-memory page cache so revisiting a page is instant.
+  const fetchMedia = useCallback(async ({ force = false } = {}) => {
     if (!selectedSite?.id) return;
-    
+
+    const cacheKey = `${page}`;
+    if (!force) {
+      const cached = pageCacheRef.current.get(cacheKey);
+      if (cached) {
+        setMedia(cached.items);
+        setTotalPages(cached.totalPages);
+        setTotalItems(cached.total);
+        setError(null);
+        setIsLoading(false);
+        return;
+      }
+    }
+
     setIsLoading(true);
     setError(null);
-    
+
     try {
       const params = new URLSearchParams({
         page: page.toString(),
         per_page: '24',
       });
-      
+
       if (searchDebounce) {
         params.set('search', searchDebounce);
       }
-      
+
       const response = await fetch(`/api/sites/${selectedSite.id}/media?${params}`);
-      
+
       if (!response.ok) {
         const data = await response.json();
         throw new Error(data.error || 'Failed to fetch media');
       }
-      
+
       const data = await response.json();
-      setMedia(data.items || []);
-      setTotalPages(data.totalPages || 1);
-      setTotalItems(data.total || 0);
+      const items = data.items || [];
+      const totalPages = data.totalPages || 1;
+      const total = data.total || 0;
+      pageCacheRef.current.set(cacheKey, { items, totalPages, total });
+      setMedia(items);
+      setTotalPages(totalPages);
+      setTotalItems(total);
     } catch (err) {
       console.error('Error fetching media:', err);
       setError(err.message);
@@ -164,7 +187,8 @@ export default function MediaPage() {
       }
       
       // Refresh the media list
-      await fetchMedia();
+      pageCacheRef.current.clear();
+      await fetchMedia({ force: true });
     } catch (err) {
       console.error('Error uploading file:', err);
       setError(err.message);
@@ -216,12 +240,15 @@ export default function MediaPage() {
       setSaveSuccess(true);
       setTimeout(() => setSaveSuccess(false), 2000);
       
-      // Update in list
-      setMedia(prev => prev.map(item => 
-        item.id === selectedItem.id 
+      // Update in list and in cache so the change persists across navigation
+      const updateItem = (item) =>
+        item.id === selectedItem.id
           ? { ...item, alt_text: editAlt, title: { rendered: editTitle } }
-          : item
-      ));
+          : item;
+      setMedia(prev => prev.map(updateItem));
+      pageCacheRef.current.forEach((entry, key) => {
+        pageCacheRef.current.set(key, { ...entry, items: entry.items.map(updateItem) });
+      });
     } catch (err) {
       console.error('Error saving media:', err);
       setError(err.message);
@@ -247,7 +274,8 @@ export default function MediaPage() {
       }
       
       setSelectedItem(null);
-      await fetchMedia();
+      pageCacheRef.current.clear();
+      await fetchMedia({ force: true });
     } catch (err) {
       console.error('Error deleting media:', err);
       setError(err.message);
@@ -269,7 +297,11 @@ export default function MediaPage() {
       return (
         <div className={styles.container}>
           <PageHeaderSkeleton />
-          <ContentGridSkeleton count={12} columns={4} />
+          <div className={styles.mediaGrid}>
+            {Array.from({ length: 12 }).map((_, i) => (
+              <Skeleton key={i} className={styles.skeletonItem} />
+            ))}
+          </div>
         </div>
       );
     }
@@ -349,7 +381,9 @@ export default function MediaPage() {
       <div className={styles.content}>
         <div className={styles.mediaGrid}>
           {isLoading ? (
-            <ContentGridSkeleton count={12} columns={4} />
+            Array.from({ length: 12 }).map((_, i) => (
+              <Skeleton key={i} className={styles.skeletonItem} />
+            ))
           ) : media.length === 0 ? (
             <div className={styles.emptyState}>
               <ImageIcon className={styles.emptyIcon} />
@@ -529,16 +563,18 @@ export default function MediaPage() {
             onClick={() => setPage(p => Math.max(1, p - 1))}
             disabled={page === 1 || isLoading}
             className={styles.paginationButton}
+            aria-label={t('media.pagination.previous')}
           >
             {isRtl ? <ChevronRight /> : <ChevronLeft />}
           </button>
           <span className={styles.paginationInfo}>
-            {t('common.page')} {page} / {totalPages}
+            {t('media.pagination.pageOf', { current: page, total: totalPages })}
           </span>
           <button
             onClick={() => setPage(p => Math.min(totalPages, p + 1))}
             disabled={page === totalPages || isLoading}
             className={styles.paginationButton}
+            aria-label={t('media.pagination.next')}
           >
             {isRtl ? <ChevronLeft /> : <ChevronRight />}
           </button>
