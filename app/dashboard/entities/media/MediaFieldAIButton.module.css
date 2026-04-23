@@ -1,0 +1,46 @@
+.button {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: #fff;
+  background: linear-gradient(135deg, var(--brand-primary, var(--primary)) 0%, var(--brand-secondary, var(--secondary)) 100%);
+  border: none;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: filter 0.15s, opacity 0.15s;
+  flex-shrink: 0;
+  line-height: 1;
+}
+
+.button:hover:not(:disabled) {
+  filter: brightness(1.08);
+}
+
+.button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.cost {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 14px;
+  padding: 0 4px;
+  background: rgba(255, 255, 255, 0.25);
+  border-radius: 999px;
+  font-size: 0.625rem;
+  font-weight: 700;
+}
+
+.spinIcon {
+  animation: mediaFieldAiSpin 1s linear infinite;
+}
+
+@keyframes mediaFieldAiSpin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}

@@ -7,19 +7,21 @@
   width: 40px;
   height: 40px;
   border-radius: var(--radius-lg);
-  color: var(--muted-foreground);
   background: transparent;
-  border: none;
+  border: 1px solid transparent;
+  color: var(--muted-foreground);
   cursor: pointer;
   transition: all var(--transition-fast);
 }
 
 .button:hover {
-  background: var(--muted);
-  color: var(--foreground);
+  background: rgba(123, 44, 191, 0.2);
+  border-color: rgba(123, 44, 191, 0.3);
+  color: var(--primary);
 }
 
 :global(.dark) .button:hover {
-  background: rgba(255, 255, 255, 0.05);
-  color: var(--primary);
+  background: rgba(123, 44, 191, 0.3);
+  border-color: rgba(123, 44, 191, 0.3);
+  color: #c084fc;
 }

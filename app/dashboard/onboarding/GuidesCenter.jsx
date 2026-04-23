@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { X, PlayCircle, CheckCircle2, Clock, Lock, RotateCcw } from 'lucide-react';
 import { useLocale } from '@/app/context/locale-context';
 import { useOnboarding } from './OnboardingProvider';
@@ -42,7 +43,7 @@ export function GuidesCenter({ isOpen, onClose }) {
   const completionCount = completedGuides.length;
   const totalCount = GUIDES_CATALOG.length;
 
-  return (
+  return createPortal(
     <div className={styles.backdrop} onClick={onClose}>
       <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
         <div className={styles.header}>
@@ -166,6 +167,7 @@ export function GuidesCenter({ isOpen, onClose }) {
           })}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

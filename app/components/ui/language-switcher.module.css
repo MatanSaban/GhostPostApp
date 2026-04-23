@@ -35,6 +35,26 @@
   display: flex;
   justify-content: center;
   align-items: center;
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--muted-foreground);
+}
+
+.buttonCompact:hover {
+  background: rgba(123, 44, 191, 0.2);
+  border-color: rgba(123, 44, 191, 0.3);
+  color: var(--primary);
+}
+
+:global(.dark) .buttonCompact:hover {
+  background: rgba(123, 44, 191, 0.3);
+  border-color: rgba(123, 44, 191, 0.3);
+  color: #c084fc;
+}
+
+.buttonCompact .icon {
+  width: 1.25rem;
+  height: 1.25rem;
 }
 
 .icon {

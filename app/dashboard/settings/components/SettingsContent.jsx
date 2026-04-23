@@ -1223,6 +1223,7 @@ function IntegrationsSettings({ translations, canEdit = true }) {
   const [needsScopes, setNeedsScopes] = useState(false);
   const [needsGAScope, setNeedsGAScope] = useState(false);
   const [needsGSCScope, setNeedsGSCScope] = useState(false);
+  const [needsDriveScope, setNeedsDriveScope] = useState(false);
 
   // Auto-reconnect: when redirected from dashboard with reconnect=google
   const reconnectTriggered = useRef(false);
@@ -1269,6 +1270,7 @@ function IntegrationsSettings({ translations, canEdit = true }) {
         setNeedsScopes(data.needsScopes || false);
         setNeedsGAScope(data.needsGAScope || false);
         setNeedsGSCScope(data.needsGSCScope || false);
+        setNeedsDriveScope(data.needsDriveScope || false);
       }
     } catch (err) {
       console.error('Failed to fetch integration status:', err);
@@ -1733,6 +1735,62 @@ function IntegrationsSettings({ translations, canEdit = true }) {
                 })}
               </div>
             )}
+          </div>
+        )}
+      </div>
+
+      {/* Google Drive — lives on the same OAuth grant as Analytics/Search
+          Console. Mirrors the section structure of the GA/GSC blocks above
+          (connectedBadgeSmall, scopesBanner, grantScopesBtn) so it feels
+          like one page, not a one-off card. */}
+      <div className={styles.settingsSection}>
+        <div className={styles.integrationHeader}>
+          <div className={styles.integrationTitleRow}>
+            <svg className={styles.integrationIcon} width="20" height="20" viewBox="0 0 87.3 78" fill="none">
+              <path d="m6.6 66.85 3.85 6.65c.8 1.4 1.95 2.5 3.3 3.3L27.5 53H0c0 1.55.4 3.1 1.2 4.5z" fill="#0066da"/>
+              <path d="M43.65 25 29.9 1.2C28.55 2 27.4 3.1 26.6 4.5L1.2 48.5c-.8 1.4-1.2 2.95-1.2 4.5h27.5z" fill="#00ac47"/>
+              <path d="M73.55 76.8c1.35-.8 2.5-1.9 3.3-3.3l1.6-2.75 7.65-13.25c.8-1.4 1.2-2.95 1.2-4.5H59.8l5.85 11.5z" fill="#ea4335"/>
+              <path d="M43.65 25 57.4 1.2c-1.35-.8-2.9-1.2-4.5-1.2h-18.5c-1.6 0-3.15.45-4.5 1.2z" fill="#00832d"/>
+              <path d="M59.8 53H27.5L13.75 76.8c1.35.8 2.9 1.2 4.5 1.2h50.8c1.6 0 3.15-.45 4.5-1.2z" fill="#2684fc"/>
+              <path d="m73.4 26.5-12.7-22c-.8-1.4-1.95-2.5-3.3-3.3L43.65 25 59.8 53h27.45c0-1.55-.4-3.1-1.2-4.5z" fill="#ffba00"/>
+            </svg>
+            <h3 className={styles.sectionTitle}>{int.driveTitle || 'Google Drive'}</h3>
+          </div>
+          {connected && !needsDriveScope && (
+            <span className={styles.connectedBadgeSmall}>
+              <Check size={12} />
+              {int.active || 'Active'}
+            </span>
+          )}
+        </div>
+
+        {!connected ? (
+          <p className={styles.integrationDisabled}>
+            {int.driveNotConnectedDesc ||
+              'Connect your Google account above and grant Drive access when prompted. Once granted, the "Import from Google Drive" button on the Media page will work.'}
+          </p>
+        ) : needsDriveScope ? (
+          <div className={styles.scopesBanner}>
+            <div className={styles.scopesBannerText}>
+              <AlertCircle size={16} />
+              <span>
+                {int.driveNeedsScopesDesc ||
+                  'Grant Drive permissions to import files from Google Drive into the media library.'}
+              </span>
+            </div>
+            <button className={styles.grantScopesBtn} onClick={handleConnect} disabled={connecting}>
+              {connecting ? <Loader2 size={14} className={styles.spinning} /> : <ExternalLink size={14} />}
+              <span>{int.driveGrantAccess || int.grantPermissions || 'Grant Drive access'}</span>
+            </button>
+          </div>
+        ) : (
+          <div className={styles.integrationConnected}>
+            <div className={styles.integrationDetail}>
+              <span className={styles.detailValue}>
+                {int.driveConnectedDesc ||
+                  'You can import files from Google Drive on the Media page.'}
+              </span>
+            </div>
           </div>
         )}
       </div>

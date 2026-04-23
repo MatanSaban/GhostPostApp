@@ -21,12 +21,12 @@
   );
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite ease-in-out;
-  
+
   /* Light mode colors */
   --skeleton-base: rgba(0, 0, 0, 0.08);
   --skeleton-shine: rgba(0, 0, 0, 0.12);
 
-  .dark & {
+  :global(.dark) & {
     --skeleton-base: rgba(255, 255, 255, 0.08);
     --skeleton-shine: rgba(255, 255, 255, 0.15);
   }

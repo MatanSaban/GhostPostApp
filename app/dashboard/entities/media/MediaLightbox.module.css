@@ -1,0 +1,358 @@
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  background: rgba(0, 0, 0, 0.88);
+  backdrop-filter: blur(6px);
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+  animation: fadeIn 0.18s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.stage {
+  flex: 1;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 340px;
+  gap: 24px;
+  padding: 56px 72px;
+  max-width: 1600px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.viewer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.image,
+.video {
+  max-width: 100%;
+  max-height: calc(100vh - 112px);
+  object-fit: contain;
+  border-radius: 8px;
+  background: #000;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+}
+
+.video {
+  outline: none;
+}
+
+.fileFallback {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  padding: 48px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.fileIcon {
+  width: 72px;
+  height: 72px;
+  opacity: 0.8;
+}
+
+.fileLabel {
+  font-size: 0.875rem;
+  text-align: center;
+  word-break: break-all;
+  max-width: 400px;
+}
+
+.openOriginal {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: 6px;
+  background: rgba(123, 44, 191, 0.25);
+  border: 1px solid rgba(123, 44, 191, 0.45);
+  color: #fff;
+  font-size: 0.75rem;
+  text-decoration: none;
+  transition: background 0.15s;
+}
+
+.openOriginal:hover {
+  background: rgba(123, 44, 191, 0.4);
+}
+
+.infoPanel {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 18px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  color: rgba(255, 255, 255, 0.92);
+  overflow-y: auto;
+  max-height: calc(100vh - 112px);
+  align-self: center;
+  width: 340px;
+}
+
+.counter {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.7);
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.infoField {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.editField {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.editFieldHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.editInput,
+.editTextarea {
+  width: 100%;
+  padding: 7px 10px;
+  font-size: 0.8125rem;
+  font-family: inherit;
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  color: rgba(255, 255, 255, 0.95);
+  line-height: 1.4;
+}
+
+.editInput:focus,
+.editTextarea:focus {
+  outline: none;
+  border-color: rgba(123, 44, 191, 0.55);
+}
+
+.editInput:read-only,
+.editTextarea:read-only {
+  background: rgba(0, 0, 0, 0.25);
+  border-color: transparent;
+  color: rgba(255, 255, 255, 0.85);
+  cursor: default;
+}
+
+.editTextarea {
+  resize: vertical;
+  min-height: 54px;
+}
+
+.saveButton {
+  margin-top: 8px;
+  padding: 9px 14px;
+  width: 100%;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #fff;
+  background: linear-gradient(135deg, var(--brand-primary, var(--primary)) 0%, var(--brand-secondary, var(--secondary)) 100%);
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: filter 0.15s, opacity 0.15s;
+}
+
+.saveButton:hover:not(:disabled) {
+  filter: brightness(1.08);
+}
+
+.saveButton:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.infoLabel {
+  font-size: 0.6875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.infoValue {
+  font-size: 0.8125rem;
+  line-height: 1.45;
+  color: rgba(255, 255, 255, 0.95);
+  word-break: break-word;
+}
+
+.urlRow {
+  display: flex;
+  gap: 4px;
+  margin-top: 4px;
+}
+
+.urlInput {
+  flex: 1;
+  min-width: 0;
+  padding: 7px 10px;
+  font-size: 0.6875rem;
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  color: rgba(255, 255, 255, 0.9);
+  font-family: monospace;
+}
+
+.urlInput:focus {
+  outline: none;
+  border-color: rgba(123, 44, 191, 0.5);
+}
+
+.copyButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  width: 32px;
+  height: 32px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  color: rgba(255, 255, 255, 0.85);
+  cursor: pointer;
+  transition: background 0.15s;
+  flex-shrink: 0;
+}
+
+.copyButton:hover {
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.regenerateButton {
+  margin-top: 10px;
+  width: 100%;
+  justify-content: center;
+  gap: 8px;
+  background: linear-gradient(135deg, var(--brand-primary, var(--primary)) 0%, var(--brand-secondary, var(--secondary)) 100%);
+  color: #fff;
+  border: none;
+}
+
+.regenerateButton:hover:not(:disabled) {
+  filter: brightness(1.08);
+}
+
+.regenerateCost {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1px 8px;
+  margin-inline-start: 4px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.22);
+  color: #fff;
+  font-size: 0.6875rem;
+  font-weight: 700;
+}
+
+.closeButton,
+.navButton {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  color: rgba(255, 255, 255, 0.95);
+  cursor: pointer;
+  transition: background 0.15s, transform 0.15s;
+  z-index: 10;
+}
+
+.closeButton {
+  top: 16px;
+  inset-inline-end: 16px;
+}
+
+.closeButton svg,
+.navButton svg {
+  width: 22px;
+  height: 22px;
+}
+
+.closeButton:hover,
+.navButton:not(:disabled):hover {
+  background: rgba(0, 0, 0, 0.8);
+}
+
+.navButton {
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.navLeft {
+  left: 16px;
+}
+
+.navRight {
+  right: 16px;
+}
+
+/*
+ * A global rule in app/globals.css auto-flips any svg whose class contains
+ * "chevron" in RTL (html[dir="rtl"] [class*="chevron"]:not(...):not(...)).
+ * That rule has 4 attribute selectors of specificity — more than we can
+ * beat with a plain class+type combo — so we use !important here to keep
+ * ChevronLeft pointing left and ChevronRight pointing right inside the
+ * lightbox.
+ */
+html[dir="rtl"] .navButton svg {
+  transform: none !important;
+}
+
+.navButton:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+@media (max-width: 900px) {
+  .stage {
+    grid-template-columns: minmax(0, 1fr);
+    padding: 56px 24px 24px;
+  }
+
+  [dir="rtl"] .stage {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .infoPanel {
+    width: auto;
+    max-height: 40vh;
+  }
+
+  .image,
+  .video {
+    max-height: 50vh;
+  }
+}

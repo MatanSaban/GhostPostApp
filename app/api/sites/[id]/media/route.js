@@ -2,6 +2,14 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { cms, getCapabilities } from '@/lib/cms';
 
+const ALLOWED_PER_PAGE = [10, 15, 20, 25, 30, 50, 100, 200];
+const DEFAULT_PER_PAGE = 20;
+
+function normalizePerPage(raw) {
+  const parsed = parseInt(raw, 10);
+  return ALLOWED_PER_PAGE.includes(parsed) ? parsed : DEFAULT_PER_PAGE;
+}
+
 function checkConnection(site) {
   const caps = getCapabilities(site);
   const isShopifyConnected = !!site.shopifyAccessToken && !!site.shopifyDomain;
@@ -69,8 +77,9 @@ export async function GET(request, { params }) {
     const { id } = await params;
     const { searchParams } = new URL(request.url);
 
-    const page = parseInt(searchParams.get('page') || '1');
-    const perPage = parseInt(searchParams.get('per_page') || '20');
+    const pageRaw = parseInt(searchParams.get('page') || '1', 10);
+    const page = Number.isFinite(pageRaw) && pageRaw > 0 ? pageRaw : 1;
+    const perPage = normalizePerPage(searchParams.get('per_page'));
     const mimeType = searchParams.get('mime_type') || '';
     const search = searchParams.get('search') || '';
 
@@ -127,6 +136,8 @@ export async function POST(request, { params }) {
         caption: body.caption,
         description: body.description,
         postId: body.postId,
+        mimeType: body.mimeType,
+        contentType: body.mimeType,
       });
     } else if (body.base64 && body.filename) {
       result = await cms.uploadMediaFromBase64(site, body.base64, body.filename, {
@@ -135,6 +146,7 @@ export async function POST(request, { params }) {
         caption: body.caption,
         description: body.description,
         postId: body.postId,
+        mimeType: body.mimeType,
       });
     } else {
       return NextResponse.json(
@@ -143,7 +155,7 @@ export async function POST(request, { params }) {
       );
     }
 
-    return NextResponse.json(result, { status: 201 });
+    return NextResponse.json(normalizePluginMediaItem(result), { status: 201 });
   } catch (error) {
     console.error('Error uploading media:', error);
     return NextResponse.json(

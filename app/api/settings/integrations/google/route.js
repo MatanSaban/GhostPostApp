@@ -173,9 +173,13 @@ export async function GET(request) {
       }
     }
 
-    // Check if integration has GA/GSC scopes
+    // Check which capabilities the current OAuth grant covers. Drive is
+    // matched strictly to `drive.readonly` — users who only have the
+    // narrower `drive.file` scope from an earlier version can't list their
+    // full Drive, so we treat them as needing to reconnect.
     const hasGAScope = integration?.scopes?.some(s => s.includes('analytics'));
     const hasGSCScope = integration?.scopes?.some(s => s.includes('webmasters'));
+    const hasDriveScope = integration?.scopes?.some(s => s.includes('drive.readonly'));
 
     // Strip sensitive fields before sending to client
     const safeIntegration = integration ? {
@@ -194,9 +198,11 @@ export async function GET(request) {
       connected: !!integration,
       integration: safeIntegration,
       siteUrl: site.url,
-      needsScopes: integration ? (!hasGAScope || !hasGSCScope) : false,
+      needsScopes: integration ? (!hasGAScope || !hasGSCScope || !hasDriveScope) : false,
       needsGAScope: integration ? !hasGAScope : false,
       needsGSCScope: integration ? !hasGSCScope : false,
+      needsDriveScope: integration ? !hasDriveScope : false,
+      hasDriveScope: !!hasDriveScope,
     });
   } catch (error) {
     console.error('[API/integrations/google] GET error:', error);

@@ -333,6 +333,11 @@ export default async function SettingsPage() {
       grantPermissions: t('settings.integrationsSection.grantPermissions'),
       gaNeedsScopesDesc: t('settings.integrationsSection.gaNeedsScopesDesc'),
       gscNeedsScopesDesc: t('settings.integrationsSection.gscNeedsScopesDesc'),
+      driveTitle: t('settings.integrationsSection.driveTitle'),
+      driveConnectedDesc: t('settings.integrationsSection.driveConnectedDesc'),
+      driveNotConnectedDesc: t('settings.integrationsSection.driveNotConnectedDesc'),
+      driveGrantAccess: t('settings.integrationsSection.driveGrantAccess'),
+      driveNeedsScopesDesc: t('settings.integrationsSection.driveNeedsScopesDesc'),
     },
     
     // Team Settings

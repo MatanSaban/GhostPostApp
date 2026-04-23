@@ -400,19 +400,11 @@ export function DashboardHeader({ variant = 'user' }) {
             className={styles.notificationButton}
             title={isAdminView ? t('admin.header.toggleToUser') : t('admin.header.toggleToAdmin')}
             style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '0.4rem',
-              padding: '0.4rem 0.75rem',
-              width: 'auto',
-              background: isAdminView ? 'rgba(123, 44, 191, 0.12)' : 'transparent',
+              background: isAdminView ? 'rgba(123, 44, 191, 0.12)' : undefined,
               color: isAdminView ? '#7b2cbf' : undefined,
-              fontSize: '0.75rem',
-              fontWeight: 600,
             }}
           >
-            {isAdminView ? <LayoutDashboard size={16} /> : <Shield size={16} />}
-            <span>{isAdminView ? t('admin.header.toggleToUser') : t('admin.header.toggleToAdmin')}</span>
+            {isAdminView ? <LayoutDashboard size={20} /> : <Shield size={20} />}
           </Link>
         )}
         <LanguageSwitcher variant="compact" />
