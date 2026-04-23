@@ -13,7 +13,7 @@ export default async function MyWebsitesPage() {
   return (
     <>
       <PageHeader
-        icon={Globe}
+        icon={<Globe size={24} />}
         title={t('myWebsites.title')}
         subtitle={t('myWebsites.subtitle')}
         dataOnboarding="page-my-websites"

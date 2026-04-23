@@ -37,7 +37,7 @@ export default async function LinkBuildingPage() {
   return (
     <>
       <PageHeader
-        icon={Link2}
+        icon={<Link2 size={24} />}
         title={t('linkBuilding.title')}
         subtitle={t('linkBuilding.subtitle')}
       >

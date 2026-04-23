@@ -77,7 +77,7 @@ export default async function AutomationsPage() {
   return (
     <>
       <PageHeader
-        icon={Zap}
+        icon={<Zap size={24} />}
         title={t('automations.title')}
         subtitle={t('automations.subtitle')}
       >

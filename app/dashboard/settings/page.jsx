@@ -455,7 +455,7 @@ export default async function SettingsPage() {
   return (
     <>
       <PageHeader
-        icon={SettingsIcon}
+        icon={<SettingsIcon size={24} />}
         title={t('settings.title')}
         subtitle={t('settings.subtitle')}
       />

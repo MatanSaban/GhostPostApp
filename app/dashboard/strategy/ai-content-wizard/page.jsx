@@ -391,7 +391,7 @@ export default async function AIContentWizardPage() {
   return (
     <>
       <PageHeader
-        icon={Sparkles}
+        icon={<Sparkles size={24} />}
         title={t('aiWizard.title')}
         subtitle={t('aiWizard.subtitle')}
         dataOnboarding="page-ai-wizard"

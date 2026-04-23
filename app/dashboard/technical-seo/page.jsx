@@ -47,7 +47,7 @@ export default async function ToolsOverviewPage() {
   return (
     <>
       <PageHeader
-        icon={Wrench}
+        icon={<Wrench size={24} />}
         title={t('tools.overview.title')}
         subtitle={t('tools.overview.subtitle')}
       />

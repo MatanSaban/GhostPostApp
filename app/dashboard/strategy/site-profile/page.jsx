@@ -24,7 +24,7 @@ export default async function SiteInterviewPage() {
   return (
     <div className={styles.container}>
       <PageHeader
-        icon={UserCircle}
+        icon={<UserCircle size={24} />}
         title={t('strategy.siteProfile.title')}
         subtitle={t('strategy.siteProfile.cardDescription')}
       />

@@ -13,7 +13,7 @@ export default async function KeywordStrategyPage() {
   return (
     <>
       <PageHeader
-        icon={Search}
+        icon={<Search size={24} />}
         title={t('keywordStrategy.title')}
         subtitle={t('keywordStrategy.subtitle')}
         dataOnboarding="page-keywords"

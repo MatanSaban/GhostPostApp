@@ -13,7 +13,7 @@ export default async function BacklinksPage() {
   return (
     <>
       <PageHeader
-        icon={LinkIcon}
+        icon={<LinkIcon size={24} />}
         title={t('backlinks.title')}
         subtitle={t('backlinks.subtitle')}
       />

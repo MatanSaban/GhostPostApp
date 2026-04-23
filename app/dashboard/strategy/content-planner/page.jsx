@@ -203,7 +203,7 @@ export default async function ContentPlannerPage() {
   return (
     <>
       <PageHeader
-        icon={Calendar}
+        icon={<Calendar size={24} />}
         title={t('contentPlanner.title')}
         subtitle={t('contentPlanner.subtitle')}
         dataOnboarding="page-content-planner"
