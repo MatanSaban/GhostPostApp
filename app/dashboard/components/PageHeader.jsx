@@ -1,5 +1,6 @@
 'use client';
 
+import { isValidElement } from 'react';
 import styles from './shared.module.css';
 
 /**
@@ -13,11 +14,9 @@ import styles from './shared.module.css';
 export function PageHeader({ title, subtitle, icon, children, dataOnboarding }) {
   const IconNode = (() => {
     if (!icon) return null;
-    if (typeof icon === 'function') {
-      const Icon = icon;
-      return <Icon size={24} />;
-    }
-    return icon;
+    if (isValidElement(icon)) return icon;
+    const Icon = icon;
+    return <Icon size={24} />;
   })();
 
   return (
