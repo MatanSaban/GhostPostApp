@@ -1,0 +1,674 @@
+/* ===========================
+   Report Preview Modal
+   =========================== */
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  width: 100dvw;
+  height: 100dvh;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  padding: 1rem;
+  animation: fadeIn 0.2s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.modal {
+  width: 100%;
+  max-width: 880px;
+  max-height: 92dvh;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-xl);
+  display: flex;
+  flex-direction: column;
+  animation: modalSlideIn 0.3s ease-out;
+}
+
+@keyframes modalSlideIn {
+  from { opacity: 0; transform: translateY(-20px) scale(0.95); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 1.125rem 1.5rem;
+  border-bottom: 1px solid var(--border);
+  gap: 1rem;
+}
+
+.title {
+  font-size: 1.0625rem;
+  font-weight: 600;
+  color: var(--foreground);
+  margin: 0 0 0.125rem;
+}
+
+.subtitle {
+  font-size: 0.8125rem;
+  color: var(--muted-foreground);
+  margin: 0;
+}
+
+.headerActions {
+  display: flex;
+  gap: 0.375rem;
+  align-items: center;
+}
+
+.iconBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--muted-foreground);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.iconBtn:hover {
+  background: var(--muted);
+  color: var(--foreground);
+}
+
+.body {
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.loadingState,
+.errorState {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 2rem;
+  color: var(--muted-foreground);
+  font-size: 0.875rem;
+}
+
+.errorState {
+  color: var(--destructive, #ef4444);
+}
+
+.pendingBanner {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.625rem 0.875rem;
+  background: color-mix(in srgb, var(--primary) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--primary) 25%, transparent);
+  border-radius: var(--radius-md);
+  font-size: 0.8125rem;
+  color: var(--primary);
+}
+
+/* Brand header preview (mirrors PDF header) */
+.brandHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding-bottom: 0.875rem;
+  border-bottom: 2px solid;
+  gap: 1rem;
+}
+
+.brandLogo {
+  /* Same fixed dimensions as the site logo on the row below so the
+     two brand marks read as a balanced pair regardless of the source
+     image's aspect ratio. Hard-cap at 40×40 with `object-fit: contain`. */
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
+  margin-bottom: 0.375rem;
+  display: block;
+}
+
+.brandName {
+  font-size: 0.9375rem;
+  font-weight: 700;
+}
+
+/* Contact lines (email / website / phone) under the agency name in
+   the preview header. Always LTR so URLs and phone numbers stay
+   readable inside an RTL preview. */
+.brandContact {
+  display: flex;
+  flex-direction: column;
+  gap: 0.0625rem;
+  margin-top: 0.25rem;
+  direction: ltr;
+  text-align: start;
+}
+
+.brandContact span {
+  font-size: 0.6875rem;
+  color: var(--muted-foreground);
+  line-height: 1.4;
+}
+
+.brandRight {
+  text-align: end;
+}
+
+.reportTitle {
+  font-size: 1rem;
+  font-weight: 700;
+  margin-bottom: 0.125rem;
+}
+
+.reportDate {
+  font-size: 0.8125rem;
+  color: var(--muted-foreground);
+}
+
+.comparisonPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  margin-top: 0.375rem;
+  padding: 0.1875rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+}
+
+/* Site block — logo + name + url, all in a row. */
+.siteBlock {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.625rem 0;
+}
+
+.siteLogo {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-md);
+  object-fit: contain;
+  background: var(--card);
+  border: 1px solid var(--border);
+  flex-shrink: 0;
+  padding: 2px;
+}
+
+.siteName {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--foreground);
+}
+
+.siteUrl {
+  font-size: 0.8125rem;
+  color: var(--muted-foreground);
+  direction: ltr;
+}
+
+/* Section */
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+}
+
+.sectionTitle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  margin: 0;
+  padding-bottom: 0.4375rem;
+  border-bottom: 1px solid var(--border);
+}
+
+/* Per-section edit toolbar — only visible while in sections-edit mode. */
+.sectionEditControls {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.sectionEditBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--muted-foreground);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.sectionEditBtn:hover:not(:disabled) {
+  background: var(--muted);
+  color: var(--foreground);
+}
+
+.sectionEditBtn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.sectionEditBtnDanger:hover:not(:disabled) {
+  color: #dc2626;
+  border-color: color-mix(in srgb, #dc2626 35%, transparent);
+  background: color-mix(in srgb, #dc2626 12%, transparent);
+}
+
+/* Add-section row — chips of the currently-removed sections you can
+   click to bring back. */
+.addSectionRow {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.375rem;
+  padding: 0.5rem 0.75rem;
+  background: var(--muted);
+  border: 1px dashed var(--border);
+  border-radius: var(--radius-md);
+}
+
+.addSectionLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--muted-foreground);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-inline-end: 0.25rem;
+}
+
+.addSectionChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.25rem 0.5rem;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  font-size: 0.75rem;
+  color: var(--foreground);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.addSectionChip:hover {
+  background: color-mix(in srgb, var(--primary) 12%, transparent);
+  border-color: color-mix(in srgb, var(--primary) 35%, transparent);
+  color: var(--primary);
+}
+
+/* Save bar — pinned at the bottom of the body while in edit mode. */
+.saveBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.875rem 1.25rem;
+  border-top: 1px solid var(--border);
+  background: var(--card);
+}
+
+.saveBarHint {
+  font-size: 0.8125rem;
+  color: var(--muted-foreground);
+}
+
+.saveBarActions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.sectionBody {
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+}
+
+/* AI summary */
+.summaryView {
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+}
+
+.summaryBox {
+  padding: 0.875rem 1rem;
+  border-radius: var(--radius-md);
+  border-inline-start-width: 4px;
+  border-inline-start-style: solid;
+  font-size: 0.875rem;
+  line-height: 1.6;
+  color: var(--foreground);
+  white-space: pre-wrap;
+}
+
+.summaryActions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.summaryEdit {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.summaryTextarea {
+  width: 100%;
+  padding: 0.625rem 0.75rem;
+  background: var(--input-background);
+  border: 1px solid var(--input-border);
+  border-radius: var(--radius-md);
+  color: var(--foreground);
+  font-size: 0.875rem;
+  font-family: inherit;
+  resize: vertical;
+}
+
+.summaryEditActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
+/* Buttons */
+.primaryBtn,
+.secondaryBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.4375rem 0.75rem;
+  border-radius: var(--radius-md);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: all var(--transition-fast);
+}
+
+.primaryBtn {
+  background: linear-gradient(135deg, var(--primary), var(--secondary));
+  color: var(--primary-foreground, #fff);
+}
+
+.primaryBtn:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+.secondaryBtn {
+  background: transparent;
+  border-color: var(--border);
+  color: var(--foreground);
+}
+
+.secondaryBtn:hover:not(:disabled) {
+  background: var(--muted);
+}
+
+.primaryBtn:disabled,
+.secondaryBtn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* Overview tiles */
+.overviewGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 0.625rem;
+}
+
+.overviewTile {
+  padding: 0.875rem;
+  border-radius: var(--radius-md);
+  border-inline-start-width: 3px;
+  border-inline-start-style: solid;
+}
+
+.overviewLabel {
+  font-size: 0.6875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muted-foreground);
+  margin-bottom: 0.25rem;
+}
+
+.overviewValue {
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+/* Score block */
+.scoreBlock {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.scoreCircle {
+  width: 78px;
+  height: 78px;
+  border-radius: 50%;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  flex-shrink: 0;
+}
+
+.scoreValue {
+  font-size: 1.5rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.scoreLabel {
+  font-size: 0.6875rem;
+  opacity: 0.9;
+  margin-top: 0.125rem;
+}
+
+.scoreDetails {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  flex: 1;
+}
+
+.deltaPill {
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.previousScore {
+  font-size: 0.8125rem;
+  color: var(--muted-foreground);
+}
+
+/* Category grid */
+.categoryGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 0.5rem;
+  margin-top: 0.375rem;
+}
+
+.categoryCard {
+  padding: 0.5rem 0.625rem;
+  background: var(--muted);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+}
+
+.categoryName {
+  font-size: 0.6875rem;
+  text-transform: uppercase;
+  color: var(--muted-foreground);
+  margin-bottom: 0.25rem;
+  letter-spacing: 0.04em;
+}
+
+.categoryScoreRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.categoryScore {
+  font-size: 1.0625rem;
+  font-weight: 700;
+}
+
+/* Tables — column count is driven by `--cols` set inline by each block,
+   which keeps every column equally sized regardless of how many there
+   are (1 for competitors, 3 for keywords / actions / audits, etc.). */
+.dataTable {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+.dataTableHead,
+.dataTableRow {
+  display: grid;
+  grid-template-columns: repeat(var(--cols, 3), minmax(0, 1fr));
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  align-items: center;
+}
+
+.dataTableHead {
+  background: var(--muted);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muted-foreground);
+}
+
+.dataTableRow {
+  font-size: 0.8125rem;
+  border-top: 1px solid var(--border);
+}
+
+/* Long values (like full domain strings or recipient lists) shouldn't
+   force the grid track wider than its 1fr share — `minmax(0, 1fr)`
+   above lets the cell shrink, this just ensures the text inside
+   truncates rather than overflowing. */
+.dataTableHead > *,
+.dataTableRow > * {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* KV list (SEO/GEO) */
+.kvList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.kvRow {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.875rem;
+}
+
+.kvRow span {
+  color: var(--muted-foreground);
+}
+
+.kvRow strong {
+  color: var(--foreground);
+  font-weight: 600;
+}
+
+/* Chips (target locations) */
+.chipsRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem;
+}
+
+.chip {
+  padding: 0.1875rem 0.5rem;
+  border-radius: 999px;
+  background: var(--muted);
+  color: var(--foreground);
+  font-size: 0.75rem;
+}
+
+.emptyText {
+  font-size: 0.8125rem;
+  color: var(--muted-foreground);
+  margin: 0;
+}
+
+/* Friendly placeholder when the report has no persisted snapshot —
+   typically older reports generated before snapshot fields existed. */
+.snapshotMissingState {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 0.875rem 1rem;
+  background: var(--muted);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  flex-wrap: wrap;
+}
+
+.snapshotMissingTitle {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--foreground);
+  margin-bottom: 0.25rem;
+}
+
+.snapshotMissingBody {
+  font-size: 0.8125rem;
+  color: var(--muted-foreground);
+  line-height: 1.5;
+}
+
+.spinningIcon {
+  animation: spin 0.9s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}

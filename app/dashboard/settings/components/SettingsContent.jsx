@@ -55,17 +55,30 @@ import {
   TrendingUp,
   Wrench,
   LogOut,
+  ChevronUp,
+  ChevronDown,
+  ChevronLeft,
+  ChevronRight,
+  GitCompareArrows,
 } from 'lucide-react';
 import { useSite } from '@/app/context/site-context';
 import { useLocale } from '@/app/context/locale-context';
 import { useUser } from '@/app/context/user-context';
 import { usePermissions } from '@/app/hooks/usePermissions';
 import { SettingsFormSkeleton, TableSkeleton, FormSkeleton, Skeleton, Button } from '@/app/dashboard/components';
+import { DataTable } from '@/app/dashboard/components/Table';
 import WordPressPluginSection from './WordPressPluginSection';
 import ShopifyConnectionSection from './ShopifyConnectionSection';
 import { useCapabilities } from '@/app/hooks/useCapabilities';
 import UpgradePlanModal from '@/app/components/ui/UpgradePlanModal';
 import AddCreditsModal from '@/app/components/ui/AddCreditsModal';
+import { GenerateReportWizard } from '@/app/components/ui/GenerateReportWizard';
+import { ReportPreviewModal } from '@/app/components/ui/ReportPreviewModal';
+import { RecipientsModal } from '@/app/components/ui/RecipientsModal';
+import { ConfirmModal } from '@/app/components/ui/ConfirmModal';
+import { SectionsInfoModal } from '@/app/components/ui/SectionsInfoModal';
+import { LanguagesModal } from '@/app/components/ui/LanguagesModal';
+import { LanguagePickerModal } from '@/app/components/ui/LanguagePickerModal';
 import { AdminModal } from '@/app/admin/components/AdminModal';
 import styles from '../page.module.css';
 
@@ -247,7 +260,13 @@ export default function SettingsContent({ translations, websiteTabs, accountTabs
     const aiCreditsUsed = user?.aiCreditsUsed || 0;
     
     // Get usage stats from user context
-    const usageStats = user?.usageStats || { sitesCount: 0, membersCount: 0, siteAuditsCount: 0 };
+    const usageStats = user?.usageStats || {
+      sitesCount: 0,
+      membersCount: 0,
+      siteAuditsCount: 0,
+      keywordsCount: 0,
+      competitorsCount: 0,
+    };
     
     return {
       plan: plan.slug || 'free',
@@ -390,7 +409,7 @@ export default function SettingsContent({ translations, websiteTabs, accountTabs
       case 'account':
         return <AccountSettings translations={translations} canEdit={canEdit} isOwner={isOwner} />;
       case 'client-reporting':
-        return <ClientReportingSettings translations={translations} canEdit={canEdit} />;
+        return <ClientReportingSettings translations={translations} canEdit={canEdit} onSwitchTab={handleTabChange} onSwitchMainCategory={handleMainCategoryChange} />;
       default:
         return null;
     }
@@ -2826,31 +2845,79 @@ function SubscriptionSettings({ subscription, translations, canEdit = true, isLo
         const data = await res.json();
         const purchases = data.purchases || [];
         
-        // Group bonuses by limitation key
+        // Group bonuses by limitation key. Each AddOnPurchase is kept as
+        // a separate entry so the UI can render one badge per purchase —
+        // users who bought the same add-on type in multiple separate
+        // purchases will see each one individually (a qty-3 purchase still
+        // renders as a single combined badge, since they were bought
+        // together). Summed totals are kept in parallel for the progress-
+        // bar / plan-vs-temp math.
         const bonuses = {};
         for (const p of purchases) {
           const addon = p.addOn;
           if (!addon) continue;
           const limitKey = ADDON_TYPE_TO_LIMIT_KEY[addon.type];
           if (!limitKey) continue;
-          
+
           const qty = (addon.quantity || 1) * (p.quantity || 1);
           const isPermanent = addon.billingType === 'RECURRING';
           const isOneTime = addon.billingType === 'ONE_TIME';
-          
+
           if (!bonuses[limitKey]) {
-            bonuses[limitKey] = { permanent: 0, oneTime: 0 };
+            bonuses[limitKey] = {
+              permanent: 0,
+              oneTime: 0,            // summed remaining (aggregate)
+              oneTimeTotal: 0,       // summed original purchased total
+              oneTimeUsed: 0,        // summed derived used
+              purchases: [],         // per-purchase breakdown for rendering
+            };
           }
+
           if (isPermanent) {
             bonuses[limitKey].permanent += qty;
+            bonuses[limitKey].purchases.push({
+              id: p.id,
+              kind: 'permanent',
+              total: qty,
+              remaining: qty,
+              used: 0,
+              name: addon.name || addon.type,
+              purchasedAt: p.purchasedAt,
+            });
           } else if (isOneTime) {
-            // For AI_CREDITS one-time, use creditsRemaining if available
-            if (addon.type === 'AI_CREDITS' && p.creditsRemaining != null) {
-              bonuses[limitKey].oneTime += p.creditsRemaining;
-            } else {
-              bonuses[limitKey].oneTime += qty;
-            }
+            bonuses[limitKey].oneTimeTotal += qty;
+            // For AI_CREDITS one-time, creditsRemaining reflects the current
+            // unused balance. Fall back to the full purchased qty for other
+            // one-time addons where we don't track consumption.
+            const remaining =
+              addon.type === 'AI_CREDITS' && p.creditsRemaining != null
+                ? p.creditsRemaining
+                : qty;
+            const used = Math.max(0, qty - remaining);
+            bonuses[limitKey].oneTime += remaining;
+            bonuses[limitKey].purchases.push({
+              id: p.id,
+              kind: 'oneTime',
+              total: qty,
+              remaining,
+              used,
+              name: addon.name || addon.type,
+              purchasedAt: p.purchasedAt,
+            });
           }
+        }
+        for (const key of Object.keys(bonuses)) {
+          bonuses[key].oneTimeUsed = Math.max(
+            0,
+            bonuses[key].oneTimeTotal - bonuses[key].oneTime,
+          );
+          // Stable order: oldest purchase first so the visual row doesn't
+          // reshuffle every time a new pack is bought.
+          bonuses[key].purchases.sort((a, b) => {
+            const tA = a.purchasedAt ? new Date(a.purchasedAt).getTime() : 0;
+            const tB = b.purchasedAt ? new Date(b.purchasedAt).getTime() : 0;
+            return tA - tB;
+          });
         }
         setAddonBonuses(bonuses);
       } catch (e) { console.error('Error fetching addon bonuses:', e); }
@@ -2878,15 +2945,18 @@ function SubscriptionSettings({ subscription, translations, canEdit = true, isLo
     }).format(price);
   };
 
-  // Format number with K/M suffix
+  // Format number for display. Under 10,000 we show the exact value with a
+  // locale-aware thousands separator (e.g. 1,480) so the subscription tab
+  // matches the precision of the user-menu credit counter. Larger values
+  // fall back to K/M abbreviations — with one decimal for K so we don't
+  // collapse 1,480 and 1,390 down to the same "1K".
   const formatNumber = (num) => {
-    if (num >= 1000000) {
-      return `${(num / 1000000).toFixed(1)}M`;
-    }
-    if (num >= 1000) {
-      return `${(num / 1000).toFixed(0)}K`;
-    }
-    return num.toString();
+    if (num == null) return '0';
+    const n = Number(num);
+    if (!Number.isFinite(n)) return '0';
+    if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
+    if (n >= 10_000) return `${(n / 1_000).toFixed(1)}K`;
+    return n.toLocaleString(locale === 'he' ? 'he-IL' : 'en-US');
   };
 
   // Get period label based on interval
@@ -2933,6 +3003,12 @@ function SubscriptionSettings({ subscription, translations, canEdit = true, isLo
         return usageStats.membersCount || 0;
       case 'siteAudits':
         return usageStats.siteAuditsCount || 0;
+      case 'maxKeywords':
+      case 'keywords':
+        return usageStats.keywordsCount || 0;
+      case 'maxCompetitors':
+      case 'competitors':
+        return usageStats.competitorsCount || 0;
       case 'aiCredits':
         // AI credits usage is tracked directly as used amount
         return subscription.aiCreditsUsed || 0;
@@ -3026,27 +3102,56 @@ function SubscriptionSettings({ subscription, translations, canEdit = true, isLo
       <div className={styles.subscriptionCard}>
         <div className={styles.subscriptionHeader}>
           <div className={styles.planInfo}>
-            <div className={styles.planName}>
-              <Crown size={20} style={{ display: 'inline', marginInlineEnd: '0.5rem' }} />
-              {getPlanDisplayName()}
+            <div className={styles.planNameRow}>
+              <div className={styles.planName}>
+                <span className={styles.planCrown} aria-hidden="true">
+                  <Crown size={18} />
+                </span>
+                <span>{getPlanDisplayName()}</span>
+              </div>
+              <button
+                type="button"
+                className={styles.planChangeChip}
+                onClick={() => setShowUpgradeModal(true)}
+                title={t.subscriptionUpgradePlan}
+              >
+                <Sparkles size={12} />
+                <span>{translate('settings.subscriptionSection.changePlan') || t.subscriptionUpgradePlan}</span>
+              </button>
             </div>
-            <div className={`${styles.planStatus} ${subscription.status !== 'ACTIVE' ? styles.statusWarning : ''}`}>
-              {subscription.status === 'ACTIVE' ? <Check size={14} /> : <AlertTriangle size={14} />}
-              {subscription.statusLabel}
-              {subscription.cancelAtPeriodEnd && (
-                <span className={styles.cancelNotice}> ({translate('settings.subscriptionSection.cancelsAtPeriodEnd') || 'Cancels at period end'})</span>
-              )}
-            </div>
+            {/*
+             * Status ("Active") pill removed — implied by the card being
+             * shown at all. Keep only the cancel-at-period-end notice,
+             * since that's a state the user needs to see.
+             */}
+            {subscription.cancelAtPeriodEnd && (
+              <div className={`${styles.planStatus} ${styles.statusWarning}`}>
+                <AlertTriangle size={14} />
+                <span>
+                  {translate('settings.subscriptionSection.cancelsAtPeriodEnd') || 'Cancels at period end'}
+                </span>
+              </div>
+            )}
           </div>
           <div className={styles.planPrice}>
-            <div className={styles.priceAmount}>{formatPrice(subscription.price, subscription.currency)}</div>
+            {/*
+             * Always format the displayed plan price in USD so users see the
+             * canonical price regardless of what currency the plan record
+             * was created in. `subscription.price` is the plan's numeric
+             * price — we force the USD Intl currency formatter.
+             */}
+            <div className={styles.priceAmount}>{formatPrice(subscription.price, 'USD')}</div>
             <div className={styles.pricePeriod}>{getPeriodLabel()}</div>
           </div>
         </div>
 
         {subscription.nextBillingDate && (
-          <p style={{ fontSize: '0.8125rem', color: 'var(--muted-foreground)', marginTop: '1rem' }}>
-            {t.subscriptionNextBillingDate} <strong>{formatDate(subscription.nextBillingDate)}</strong>
+          <p className={styles.nextBillingLine}>
+            <CreditCard size={13} />
+            <span>
+              {t.subscriptionNextBillingDate}{' '}
+              <strong>{formatDate(subscription.nextBillingDate)}</strong>
+            </span>
           </p>
         )}
       </div>
@@ -3060,25 +3165,62 @@ function SubscriptionSettings({ subscription, translations, canEdit = true, isLo
           </h3>
           <div className={styles.limitationsList}>
             {limitations.map((limitation, index) => {
-              const currentUsage = getCurrentUsage(limitation.key);
-              const limit = limitation.value || 0;
-              const isUnlimited = limit === -1 || limitation.type === 'unlimited';
-              const translatedLabel = getLimitationLabel(limitation);
-              
-              // Addon bonuses for this limitation
+              const isAiCredits = limitation.key === 'aiCredits';
+
+              // Plan base vs. addon contributions.
+              const planLimit = limitation.value || 0;
               const bonus = addonBonuses[limitation.key];
               const totalBonus = (bonus?.permanent || 0) + (bonus?.oneTime || 0);
-              const effectiveLimit = limit > 0 ? limit + totalBonus : limit;
-              
-              // For AI credits, show used/limit
-              const isAiCredits = limitation.key === 'aiCredits';
-              const used = isAiCredits ? subscription.aiCreditsUsed : 0;
-              const usagePercent = effectiveLimit > 0 
-                ? (isAiCredits ? (used / effectiveLimit) * 100 : (currentUsage / effectiveLimit) * 100)
+
+              const isUnlimited = planLimit === -1 || limitation.type === 'unlimited';
+              const translatedLabel = getLimitationLabel(limitation);
+
+              // For AI credits, `subscription.aiCreditsLimit` already comes
+              // from /api/credits/balance which is addon-aware — prefer it
+              // so we don't double-count bonuses. For everything else we
+              // show the plan's raw value plus any addon bonuses.
+              const currentUsage = isAiCredits
+                ? (subscription.aiCreditsUsed || 0)
+                : getCurrentUsage(limitation.key);
+              const effectiveLimit = isAiCredits
+                ? (subscription.aiCreditsLimit || 0)
+                : (planLimit > 0 ? planLimit + totalBonus : planLimit);
+
+              // For AI credits, split total usage into plan vs. temp buckets
+              // so the user sees both parts independently:
+              //   - plan_used   = min(total used, plan limit)
+              //   - temp_used   = max(0, total used - plan limit)
+              //   - temp_total  = sum of original purchased one-time packs
+              // This matches how billing actually consumes: the plan's
+              // monthly allotment is drawn down first, then one-time packs.
+              const aiTempTotal = isAiCredits ? (bonus?.oneTimeTotal || 0) : 0;
+              const aiPlanTotal = isAiCredits ? (planLimit > 0 ? planLimit : 0) : 0;
+              const aiPlanUsed = isAiCredits ? Math.min(currentUsage, aiPlanTotal) : 0;
+              const aiTempUsed = isAiCredits ? Math.max(0, currentUsage - aiPlanTotal) : 0;
+
+              // Per-purchase breakdown for the badges. Every AddOnPurchase is
+              // rendered as its own badge; multiple separate purchases of the
+              // same add-on type show up as separate pills. For AI credits
+              // we FIFO-allocate the total temp consumption across packs by
+              // purchase date so the per-pack used/total numbers actually
+              // add up to `aiTempUsed` (the stored `creditsRemaining` field
+              // hasn't proven reliable across periods).
+              const purchasesForBadges = (bonus?.purchases || []).slice();
+              if (isAiCredits) {
+                let unallocated = aiTempUsed;
+                for (const p of purchasesForBadges) {
+                  if (p.kind !== 'oneTime') continue;
+                  const consumed = Math.min(unallocated, p.total);
+                  p.used = consumed;
+                  p.remaining = p.total - consumed;
+                  unallocated -= consumed;
+                }
+              }
+
+              const usagePercent = effectiveLimit > 0
+                ? (currentUsage / effectiveLimit) * 100
                 : 0;
-              const hasPermanentBonus = bonus?.permanent > 0;
-              const hasOneTimeBonus = bonus?.oneTime > 0;
-              
+
               return (
                 <div key={limitation.key || index} className={styles.limitationCard}>
                   <div className={styles.limitationHeader}>
@@ -3086,29 +3228,67 @@ function SubscriptionSettings({ subscription, translations, canEdit = true, isLo
                     <span className={styles.limitationValue}>
                       {isUnlimited ? (
                         translate('settings.subscriptionSection.unlimited') || 'Unlimited'
+                      ) : isAiCredits ? (
+                        // AI credits show the plan portion here and the
+                        // temp (one-time addon) portion in the badge below.
+                        `${formatNumber(aiPlanUsed)} / ${formatNumber(aiPlanTotal)}`
                       ) : shouldShowProgressBar(limitation) ? (
-                        isAiCredits 
-                          ? `${formatNumber(used)} / ${formatNumber(limit)}`
-                          : `${formatNumber(currentUsage)} / ${formatNumber(limit)}`
+                        // Other capped resources compare against the addon-
+                        // aware effective limit so users see the real
+                        // headroom they paid for.
+                        `${formatNumber(currentUsage)} / ${formatNumber(effectiveLimit)}`
                       ) : (
-                        formatNumber(limit)
+                        formatNumber(planLimit)
                       )}
-                      {hasPermanentBonus && (
-                        <span className={styles.addonBonusBadge}>
-                          +{formatNumber(bonus.permanent)}
-                        </span>
-                      )}
-                      {hasOneTimeBonus && (
-                        <span className={`${styles.addonBonusBadge} ${styles.addonBonusOneTime}`}>
-                          +{formatNumber(bonus.oneTime)} ({translate('settings.subscriptionSection.temporary') || 'temp'})
-                        </span>
-                      )}
+                      {/*
+                       * One badge per individual AddOnPurchase. A purchase
+                       * with quantity > 1 (bought N-at-a-time) still renders
+                       * as a single badge since they were purchased together;
+                       * only separate purchases become separate pills.
+                       *   - permanent / recurring → "+N"
+                       *   - one-time             → "used/total (temp)" when
+                       *                              any has been consumed,
+                       *                              else "+N (temp)"
+                       */}
+                      {purchasesForBadges.map((pp) => {
+                        // Build the used/total fragment. Because the digit
+                        // runs + "/" form a single LTR super-run under the
+                        // Unicode Bidi Algorithm, they don't auto-flip in
+                        // RTL paragraphs. To get "limit/usage" visually in
+                        // RTL we explicitly reverse the order in the string.
+                        let body;
+                        if (pp.kind === 'oneTime') {
+                          if (pp.used > 0) {
+                            const usedText = formatNumber(pp.used);
+                            const totalText = formatNumber(pp.total);
+                            body = direction === 'rtl'
+                              ? `${totalText}/${usedText}`
+                              : `${usedText}/${totalText}`;
+                          } else {
+                            body = `+${formatNumber(pp.total)}`;
+                          }
+                        } else {
+                          body = `+${formatNumber(pp.total)}`;
+                        }
+                        return (
+                          <span
+                            key={pp.id}
+                            className={`${styles.addonBonusBadge} ${pp.kind === 'oneTime' ? styles.addonBonusOneTime : ''}`}
+                          >
+                            {' '}
+                            {body}
+                            {pp.kind === 'oneTime'
+                              ? ` (${translate('settings.subscriptionSection.temporary') || 'temp'})`
+                              : ''}
+                          </span>
+                        );
+                      })}
                     </span>
                   </div>
                   {shouldShowProgressBar(limitation) && !isUnlimited && (
                     <div className={styles.usageTrack}>
-                      <div 
-                        className={`${styles.usageFill} ${!isAiCredits && usagePercent >= 90 ? styles.usageWarning : ''} ${!isAiCredits && usagePercent >= 100 ? styles.usageDanger : ''} ${isAiCredits && usagePercent <= 10 ? styles.usageWarning : ''} ${isAiCredits && usagePercent <= 0 ? styles.usageDanger : ''}`}
+                      <div
+                        className={`${styles.usageFill} ${!isAiCredits && usagePercent >= 90 ? styles.usageWarning : ''} ${!isAiCredits && usagePercent >= 100 ? styles.usageDanger : ''} ${isAiCredits && usagePercent >= 90 ? styles.usageWarning : ''} ${isAiCredits && usagePercent >= 100 ? styles.usageDanger : ''}`}
                         style={{ width: `${Math.min(usagePercent, 100)}%` }}
                       ></div>
                     </div>
@@ -3148,17 +3328,14 @@ function SubscriptionSettings({ subscription, translations, canEdit = true, isLo
         icon={Package}
       />
 
-      {/* Billing Actions */}
+      {/* Billing Actions — the "Upgrade plan" button moved up into the plan
+          header card, next to the plan name. */}
       <div className={styles.subsection}>
         <h3 className={styles.subsectionTitle}>
           <CreditCard className={styles.subsectionIcon} />
           {t.subscriptionBillingActions}
         </h3>
         <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
-          <button className={styles.editButton} onClick={() => setShowUpgradeModal(true)}>
-            <Crown size={14} style={{ marginInlineEnd: '0.25rem' }} />
-            {t.subscriptionUpgradePlan}
-          </button>
           <button className={styles.editButton}>
             <CreditCard size={14} style={{ marginInlineEnd: '0.25rem' }} />
             {t.subscriptionUpdatePaymentMethod}
@@ -3305,12 +3482,13 @@ function PurchasedAddonsList({ translate, locale, filterType, title, icon: IconC
                   {typeIcons[purchase.addOn?.type] || '📦'}
                 </span>
                 <span style={{ fontWeight: 600 }}>{getAddonName(purchase.addOn)}</span>
-                {purchase.addOn?.type === 'AI_CREDITS' && purchase.addOn?.quantity && (
-                  <span className={styles.addonPurchaseCountBadge}>
-                    +{formatCredits(purchase.addOn.quantity * (purchase.quantity || 1))}
-                  </span>
-                )}
-                {!purchase.addOn?.type?.includes('AI_CREDITS') && (purchase.quantity || 1) > 1 && (
+                {/*
+                 * Show how many of this add-on were bought in this
+                 * transaction ("×5"), not the total amount added. For
+                 * a qty-of-1 purchase we hide the badge entirely — the
+                 * add-on name already communicates what the user got.
+                 */}
+                {(purchase.quantity || 1) > 1 && (
                   <span className={styles.addonPurchaseCountBadge}>
                     ×{purchase.quantity}
                   </span>
@@ -3867,6 +4045,47 @@ function AddonsSettings({ translations, canEdit = true }) {
   const [purchasing, setPurchasing] = useState({});
   const [purchaseMessages, setPurchaseMessages] = useState({});
 
+  // Per-addon-type caps from the current plan's limitations. Today the only
+  // addon types the plan actually caps are SEATS (`maxAddOnSeats`) and SITES
+  // (`maxAddOnSites`); all other types fall through as uncapped. When a new
+  // cap key is added to plans (e.g. `maxAddOnKeywords`) it only needs to be
+  // mapped here and the UI picks it up.
+  const ADDON_CAP_KEYS = {
+    SEATS: 'maxAddOnSeats',
+    SITES: 'maxAddOnSites',
+  };
+
+  const planLimitations = user?.subscription?.plan?.limitations || [];
+  const getPlanLimit = (key) => {
+    const entry = planLimitations.find((l) => l.key === key);
+    // `-1` and missing both mean "no cap" in this codebase
+    if (!entry || entry.value == null || entry.value === -1) return null;
+    return Number(entry.value) || 0;
+  };
+
+  // Sum purchased quantity per addon type — mirrors how the backend computes
+  // `seatAddOnsCount` / `siteAddOnsCount` in canPurchaseAddOn.
+  const purchasedByType = purchasedAddons.reduce((acc, p) => {
+    if (!p?.addOn?.type || p.status !== 'ACTIVE') return acc;
+    const qty = p.quantity || 1;
+    acc[p.addOn.type] = (acc[p.addOn.type] || 0) + qty;
+    return acc;
+  }, {});
+
+  /**
+   * For a given addon, return how much of the plan-level cap is used and
+   * how much headroom remains. Returns `null` if the type isn't capped on
+   * this plan (purchase is unrestricted from the plan's perspective).
+   */
+  const getAddonCap = (addon) => {
+    const capKey = ADDON_CAP_KEYS[addon.type];
+    if (!capKey) return null;
+    const max = getPlanLimit(capKey);
+    if (max == null) return null;
+    const used = purchasedByType[addon.type] || 0;
+    return { max, used, remaining: Math.max(0, max - used) };
+  };
+
   // Type icons mapping
   const typeIcons = {
     SEATS: '👥',
@@ -3921,9 +4140,17 @@ function AddonsSettings({ translations, canEdit = true }) {
   // Get quantity for an addon
   const getQuantity = (addonId) => quantities[addonId] || 1;
 
-  // Set quantity for an addon
+  // Set quantity for an addon — clamp to [1, remaining plan headroom]
+  // so the counter can't even be typed past the plan limit. The backend
+  // still validates on POST as a safety net.
   const setQuantity = (addonId, qty) => {
-    setQuantities(prev => ({ ...prev, [addonId]: Math.max(1, qty) }));
+    setQuantities(prev => {
+      const addon = addons.find((a) => a.id === addonId);
+      const cap = addon ? getAddonCap(addon) : null;
+      const max = cap ? Math.max(1, cap.remaining) : Infinity;
+      const next = Math.min(max, Math.max(1, qty));
+      return { ...prev, [addonId]: next };
+    });
   };
 
   // Handle purchase
@@ -4005,7 +4232,7 @@ function AddonsSettings({ translations, canEdit = true }) {
           {translate('settings.addonsSection.title') || 'Available Add-ons'}
         </h3>
         <p style={{ color: 'var(--muted-foreground)', marginBottom: '1.5rem' }}>
-          {translate('settings.addonsSection.description') || 'Enhance your Ghost Post experience with additional features and capabilities.'}
+          {translate('settings.addonsSection.description') || 'Enhance your GhostSEO experience with additional features and capabilities.'}
         </p>
         
         {isLoading ? (
@@ -4048,7 +4275,12 @@ function AddonsSettings({ translations, canEdit = true }) {
               const purchaseCount = getAddonPurchaseCount(addon.id);
               const isPurchased = purchaseCount > 0;
               const msg = purchaseMessages[addon.id];
-              
+              // Plan-level cap for this addon type (or null if uncapped).
+              const cap = getAddonCap(addon);
+              const atCap = !!cap && cap.remaining <= 0;
+              const wouldExceedCap = !!cap && qty > cap.remaining;
+              const cannotPurchase = atCap || wouldExceedCap;
+
               return (
                 <div 
                   key={addon.id} 
@@ -4072,10 +4304,21 @@ function AddonsSettings({ translations, canEdit = true }) {
                       {isPurchased && (
                         <div className={styles.addonPurchasedBadge}>
                           <Check size={12} />
-                          {purchaseCount === 1 
+                          {purchaseCount === 1
                             ? (translate('settings.addonsSection.alreadyPurchased') || 'You have already purchased this add-on')
                             : (translate('settings.addonsSection.alreadyPurchasedCount') || 'You have purchased this add-on {count} times').replace('{count}', purchaseCount)
                           }
+                        </div>
+                      )}
+                      {cap && (
+                        <div
+                          className={styles.addonPurchasedBadge}
+                          style={atCap ? { color: 'var(--danger, #ef4444)', background: 'rgba(239, 68, 68, 0.08)' } : undefined}
+                        >
+                          {atCap ? <AlertCircle size={12} /> : <Package size={12} />}
+                          {(translate('settings.addonsSection.planCapUsage') || '{used} / {max} via add-ons on your plan')
+                            .replace('{used}', cap.used)
+                            .replace('{max}', cap.max)}
                         </div>
                       )}
                     </div>
@@ -4086,38 +4329,48 @@ function AddonsSettings({ translations, canEdit = true }) {
                           <div className={styles.pricePeriod}>/{period}</div>
                         )}
                       </div>
-                      {/* Quantity counter */}
+                      {/* Quantity counter — clamped to the plan's addon cap */}
                       <div className={styles.addonQuantityRow}>
                         <div className={styles.addonQuantityCounter}>
-                          <button 
+                          <button
                             className={styles.addonQuantityBtn}
                             onClick={() => setQuantity(addon.id, qty - 1)}
-                            disabled={qty <= 1 || purchasing[addon.id]}
+                            disabled={qty <= 1 || purchasing[addon.id] || atCap}
                             aria-label="Decrease quantity"
                           >
                             <Minus size={14} />
                           </button>
                           <span className={styles.addonQuantityValue}>{qty}</span>
-                          <button 
+                          <button
                             className={styles.addonQuantityBtn}
                             onClick={() => setQuantity(addon.id, qty + 1)}
-                            disabled={purchasing[addon.id]}
+                            disabled={purchasing[addon.id] || (cap && qty >= cap.remaining)}
                             aria-label="Increase quantity"
+                            title={
+                              cap && qty >= cap.remaining
+                                ? (translate('settings.addonsSection.planCapReached') || 'Plan add-on limit reached')
+                                : undefined
+                            }
                           >
                             <Plus size={14} />
                           </button>
                         </div>
-                        <button 
-                          className={styles.editButton} 
-                          disabled={!canEdit || purchasing[addon.id]}
+                        <button
+                          className={styles.editButton}
+                          disabled={!canEdit || purchasing[addon.id] || cannotPurchase}
                           onClick={() => handlePurchase(addon)}
+                          title={
+                            atCap
+                              ? (translate('settings.addonsSection.planCapReached') || 'Plan add-on limit reached')
+                              : undefined
+                          }
                         >
                           {purchasing[addon.id] ? (
                             <Loader2 size={14} className="animate-spin" style={{ marginInlineEnd: '0.25rem' }} />
                           ) : (
                             <ShoppingCart size={14} style={{ marginInlineEnd: '0.25rem' }} />
                           )}
-                          {addon.billingType === 'ONE_TIME' 
+                          {addon.billingType === 'ONE_TIME'
                             ? (translate('settings.addonsSection.buy') || 'Buy')
                             : (translate('settings.addonsSection.subscribe') || 'Subscribe')
                           }
@@ -5049,15 +5302,28 @@ function AccountSettings({ translations, canEdit = true, isOwner = false }) {
 
       if (response.ok) {
         const data = await response.json();
-        setWideLogo(data.url);
-        
-        // Also save to white-label config
-        await fetch('/api/account/white-label-config', {
+
+        // Persist the logo URL to the white-label config. Previously we
+        // didn't check this response, so a 403/500 here looked like a
+        // success to the user and the logo silently vanished on refresh.
+        const persistResponse = await fetch('/api/account/white-label-config', {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ agencyLogo: data.url }),
         });
-        
+
+        if (!persistResponse.ok) {
+          const persistError = await persistResponse.json().catch(() => ({}));
+          setSaveMessage({
+            type: 'error',
+            text:
+              persistError.error ||
+              t('settings.whiteLabelReportingSection.logoUploadError'),
+          });
+          return;
+        }
+
+        setWideLogo(data.url);
         setSaveMessage({ type: 'success', text: t('settings.whiteLabelReportingSection.logoUploaded') });
       } else {
         setSaveMessage({ type: 'error', text: t('settings.whiteLabelReportingSection.logoUploadError') });
@@ -5603,6 +5869,13 @@ function WhiteLabelReportingSettings({ translations, canEdit = true }) {
   const [config, setConfig] = useState({
     accentColor: '#6366f1',
     replyToEmail: '',
+    // Contact info shown under the agency logo in PDF reports +
+    // preview. Email defaults to replyToEmail (or the account's
+    // generalEmail at the API layer); website + phone are
+    // user-supplied since the platform doesn't otherwise have a
+    // canonical home for them.
+    website: '',
+    phone: '',
   });
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -5627,6 +5900,8 @@ function WhiteLabelReportingSettings({ translations, canEdit = true }) {
           setConfig({
             accentColor: data.config.accentColor || '#6366f1',
             replyToEmail: data.config.replyToEmail || defaultEmail,
+            website: data.config.website || '',
+            phone: data.config.phone || '',
           });
         } else {
           // No config yet, set default email
@@ -5751,8 +6026,8 @@ function WhiteLabelReportingSettings({ translations, canEdit = true }) {
             <label className={styles.formLabel}>
               {t('settings.whiteLabelReportingSection.branding.replyToEmail') || 'Reply-To Email'}
             </label>
-            <input 
-              type="email" 
+            <input
+              type="email"
               className={styles.formInput}
               value={config.replyToEmail}
               onChange={(e) => updateField('replyToEmail', e.target.value)}
@@ -5761,6 +6036,44 @@ function WhiteLabelReportingSettings({ translations, canEdit = true }) {
             />
             <span className={styles.inputHint}>
               {t('settings.whiteLabelReportingSection.branding.replyToEmailHint') || 'Clients will reply to this email when they receive reports'}
+            </span>
+          </div>
+
+          {/* Website + Phone — surfaced as contact lines under the
+              agency logo in both the in-platform preview and the
+              downloadable PDF. Optional; empty values just don't
+              render in the report. */}
+          <div className={styles.formGroup}>
+            <label className={styles.formLabel}>
+              {t('settings.whiteLabelReportingSection.branding.website') || 'Agency Website'}
+            </label>
+            <input
+              type="url"
+              className={styles.formInput}
+              value={config.website}
+              onChange={(e) => updateField('website', e.target.value)}
+              placeholder="https://youragency.com"
+              disabled={!canEdit}
+            />
+            <span className={styles.inputHint}>
+              {t('settings.whiteLabelReportingSection.branding.websiteHint') || 'Shown under the agency name in report headers.'}
+            </span>
+          </div>
+
+          <div className={styles.formGroup}>
+            <label className={styles.formLabel}>
+              {t('settings.whiteLabelReportingSection.branding.phone') || 'Phone'}
+            </label>
+            <input
+              type="tel"
+              className={styles.formInput}
+              value={config.phone}
+              onChange={(e) => updateField('phone', e.target.value)}
+              placeholder="+972 50 000 0000"
+              disabled={!canEdit}
+            />
+            <span className={styles.inputHint}>
+              {t('settings.whiteLabelReportingSection.branding.phoneHint') || 'Shown under the agency name in report headers.'}
             </span>
           </div>
         </div>
@@ -5791,46 +6104,105 @@ function WhiteLabelReportingSettings({ translations, canEdit = true }) {
 }
 
 // Client Reporting Settings Component (Site-level)
-function ClientReportingSettings({ translations, canEdit = true }) {
+/*
+ * The client-reporting tab is now a reports browser: list of generated
+ * reports with filters + pagination. The actual creation flow has moved
+ * into the GenerateReportWizard popup so this view stays focused on
+ * reviewing/sending past reports.
+ */
+const REPORTS_PER_PAGE = 10;
+
+function ClientReportingSettings({ translations, canEdit = true, onSwitchTab, onSwitchMainCategory }) {
   const { t, locale } = useLocale();
   const { selectedSite } = useSite();
-  
-  // State
-  const [config, setConfig] = useState({
-    enabled: false,
-    recipients: '',
-    deliveryMode: 'manual', // 'manual', 'monthly', 'weekly'
-    includeAiSummary: true,
-    includeActions: true,
-    includeHealthScore: true,
-  });
+
   const [isLoading, setIsLoading] = useState(true);
-  const [isSaving, setIsSaving] = useState(false);
-  const [isGenerating, setIsGenerating] = useState(false);
-  const [saveMessage, setSaveMessage] = useState({ type: '', text: '' });
+  const [statusMessage, setStatusMessage] = useState({ type: '', text: '' });
   const [hasFeature, setHasFeature] = useState(false);
-  const [recentReports, setRecentReports] = useState([]);
+  const [reports, setReports] = useState([]);
   const [brandingConfigured, setBrandingConfigured] = useState(false);
 
-  // Fetch config on mount or site change
+  // Filters + pagination
+  const [searchQuery, setSearchQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all'); // 'all' | 'DRAFT' | 'SENT'
+  const [yearFilter, setYearFilter] = useState('all');
+  const [languageFilter, setLanguageFilter] = useState('all'); // 'all' | 'en' | 'he'
+  const [currentPage, setCurrentPage] = useState(1);
+
+  // Wizard popup
+  const [wizardOpen, setWizardOpen] = useState(false);
+
+  // Preview modal
+  const [previewReportId, setPreviewReportId] = useState(null);
+
+  // Recipients modal: { mode: 'edit' | 'send', report }
+  const [recipientsModal, setRecipientsModal] = useState(null);
+
+  // Delete confirmation modal — { reportId, isPending }
+  const [deleteConfirm, setDeleteConfirm] = useState(null);
+
+  // Sections info modal — opened from clicking the Sections cell.
+  const [sectionsInfoReport, setSectionsInfoReport] = useState(null);
+
+  // Tracks which row's download or preview is mid-click. Lets us
+  // disable the button + show a spinner so a slow Cloudinary fetch
+  // or a heavy preview load doesn't read as an unresponsive UI.
+  const [downloadingId, setDownloadingId] = useState(null);
+  const [previewLoadingId, setPreviewLoadingId] = useState(null);
+
+  // Languages modal — opened from clicking the Languages cell. Lets the
+  // user view current locales and queue generation for new ones.
+  const [languagesModalReport, setLanguagesModalReport] = useState(null);
+
+  // Language picker — opened when the user clicks Preview or Download
+  // on a row that has multiple languages. The picker resolves to a
+  // single reportId before invoking the actual action. Shape:
+  //   { intent: 'preview' | 'download', languages: [...] }
+  const [languagePicker, setLanguagePicker] = useState(null);
+
   useEffect(() => {
     if (selectedSite?.id) {
-      fetchConfig();
+      fetchReports();
       checkBrandingConfig();
     }
   }, [selectedSite?.id]);
 
+  // Auto-refresh whenever a row in the list is still PENDING. Beyond the
+  // wizard's own poller, this keeps the row in sync if the user reloaded
+  // the page mid-generation (so they're not staring at a stale spinner).
+  useEffect(() => {
+    const hasPending = reports.some((r) => r.status === 'PENDING');
+    if (!hasPending) return;
+    const interval = setInterval(() => { fetchReports(); }, 4000);
+    return () => clearInterval(interval);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [reports]);
+
+  // Reset filters + page whenever the site changes so we don't carry
+  // stale filter state from the previous site.
+  useEffect(() => {
+    setSearchQuery('');
+    setStatusFilter('all');
+    setYearFilter('all');
+    setLanguageFilter('all');
+    setCurrentPage(1);
+  }, [selectedSite?.id]);
+
   const checkBrandingConfig = async () => {
     try {
-      // Check account has name and white-label logo configured
+      // Check account has name and white-label logo configured. The
+      // account endpoint is `/api/account/current` — we were hitting
+      // `/api/account` which 404s, so `hasAccountName` stayed false no
+      // matter what the user entered and this screen kept nagging them
+      // to "configure branding" even when it already was.
       const [accountRes, whiteLabelRes] = await Promise.all([
-        fetch('/api/account'),
+        fetch('/api/account/current'),
         fetch('/api/account/white-label-config'),
       ]);
-      
+
       let hasAccountName = false;
       let hasLogo = false;
-      
+
       if (accountRes.ok) {
         const accountData = await accountRes.json();
         hasAccountName = !!accountData.account?.name;
@@ -5848,177 +6220,271 @@ function ClientReportingSettings({ translations, canEdit = true }) {
     }
   };
 
-  const fetchConfig = async () => {
+  const fetchReports = async () => {
+    if (!selectedSite?.id) return;
     try {
       setIsLoading(true);
+      // Existing endpoint returns hasFeature + recentReports + the saved
+      // config; the wizard owns the config side now, so here we only
+      // hold on to the feature flag and the reports list.
       const response = await fetch(`/api/sites/${selectedSite.id}/report-config`);
       if (response.ok) {
         const data = await response.json();
         setHasFeature(data.hasFeature);
-        if (data.config) {
-          setConfig({
-            enabled: data.config.enabled || false,
-            recipients: Array.isArray(data.config.recipients) ? data.config.recipients.join(', ') : (data.config.recipients || ''),
-            deliveryMode: data.config.deliveryMode || 'manual',
-            includeAiSummary: data.config.includeAiSummary !== false,
-            includeActions: data.config.includeActions !== false,
-            includeHealthScore: data.config.includeHealthScore !== false,
-          });
-        }
-        setRecentReports(data.recentReports || []);
+        setReports(Array.isArray(data.recentReports) ? data.recentReports : []);
       }
     } catch (error) {
-      console.error('Error fetching report config:', error);
+      console.error('Error fetching reports:', error);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const fetchRecentReports = async () => {
-    if (!selectedSite?.id) return;
-    try {
-      const response = await fetch(`/api/sites/${selectedSite.id}/report-config`);
-      if (response.ok) {
-        const data = await response.json();
-        setRecentReports(data.recentReports || []);
-      }
-    } catch (error) {
-      console.error('Error fetching recent reports:', error);
-    }
-  };
-
-  const updateField = (field, value) => {
-    setConfig(prev => ({ ...prev, [field]: value }));
-  };
-
-  const handleSave = async () => {
-    if (!selectedSite?.id) return;
-    
-    try {
-      setIsSaving(true);
-      setSaveMessage({ type: '', text: '' });
-
-      // Parse recipients into array
-      const recipientsList = config.recipients
-        .split(',')
-        .map(email => email.trim())
-        .filter(email => email.length > 0);
-
-      const response = await fetch(`/api/sites/${selectedSite.id}/report-config`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...config,
-          recipients: recipientsList,
-        }),
-      });
-
-      if (response.ok) {
-        setSaveMessage({ type: 'success', text: t('settings.clientReportingSection.saveSuccess') || 'Settings saved successfully' });
-      } else {
-        const error = await response.json();
-        setSaveMessage({ type: 'error', text: error.error || t('settings.clientReportingSection.saveError') || 'Failed to save settings' });
-      }
-    } catch (error) {
-      setSaveMessage({ type: 'error', text: t('settings.clientReportingSection.saveError') || 'Failed to save settings' });
-    } finally {
-      setIsSaving(false);
-      setTimeout(() => setSaveMessage({ type: '', text: '' }), 5000);
-    }
-  };
-
-  const handleGenerateReport = async () => {
-    if (!selectedSite?.id) return;
-    
-    try {
-      setIsGenerating(true);
-      setSaveMessage({ type: '', text: '' });
-
-      const response = await fetch('/api/reports/generate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          siteId: selectedSite.id,
-          locale,
-        }),
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        setSaveMessage({ type: 'success', text: t('settings.clientReportingSection.reportGenerated') || 'Report generated successfully!' });
-        // Refresh reports list only
-        fetchRecentReports();
-      } else {
-        const error = await response.json();
-        setSaveMessage({ type: 'error', text: error.error || t('settings.clientReportingSection.reportError') || 'Failed to generate report' });
-      }
-    } catch (error) {
-      setSaveMessage({ type: 'error', text: t('settings.clientReportingSection.reportError') || 'Failed to generate report' });
-    } finally {
-      setIsGenerating(false);
-      setTimeout(() => setSaveMessage({ type: '', text: '' }), 8000);
-    }
-  };
-
-  const handleSendReport = async (reportId) => {
-    try {
-      setSaveMessage({ type: '', text: '' });
-
-      // Parse recipients
-      const recipientsList = config.recipients
-        .split(',')
-        .map(email => email.trim())
-        .filter(email => email.length > 0);
-
-      if (recipientsList.length === 0) {
-        setSaveMessage({ type: 'error', text: t('settings.clientReportingSection.noRecipients') || 'Please add recipient emails first' });
-        return;
-      }
-
-      const response = await fetch('/api/reports/send', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          reportId,
-          recipients: recipientsList,
-        }),
-      });
-
-      if (response.ok) {
-        setSaveMessage({ type: 'success', text: t('settings.clientReportingSection.reportSent') || 'Report sent successfully!' });
-        fetchRecentReports();
-      } else {
-        const error = await response.json();
-        setSaveMessage({ type: 'error', text: error.error || t('settings.clientReportingSection.sendError') || 'Failed to send report' });
-      }
-    } catch (error) {
-      setSaveMessage({ type: 'error', text: t('settings.clientReportingSection.sendError') || 'Failed to send report' });
-    }
-  };
-
-  const handleDeleteReport = async (reportId) => {
-    if (!window.confirm(t('settings.clientReportingSection.confirmDelete') || 'Are you sure you want to delete this report?')) {
+  const handleSendReport = async (report) => {
+    // When the report has no recipients yet, route the user through the
+    // RecipientsModal in 'send' mode so they can pick recipients + the
+    // language and send in one go. Otherwise, send directly using the
+    // report's own recipients (the row reflects what was sent).
+    const list = Array.isArray(report?.recipients) ? report.recipients : [];
+    if (list.length === 0) {
+      setRecipientsModal({ mode: 'send', report });
       return;
     }
 
     try {
-      setSaveMessage({ type: '', text: '' });
-
-      const response = await fetch(`/api/reports/${reportId}`, {
-        method: 'DELETE',
+      setStatusMessage({ type: '', text: '' });
+      const response = await fetch('/api/reports/send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          reportId: report.id,
+          recipients: list,
+          locale: report.locale || locale,
+        }),
       });
 
       if (response.ok) {
-        setSaveMessage({ type: 'success', text: t('settings.clientReportingSection.reportDeleted') || 'Report deleted successfully' });
-        fetchRecentReports();
+        setStatusMessage({ type: 'success', text: t('settings.clientReportingSection.reportSent') || 'Report sent successfully!' });
+        fetchReports();
       } else {
-        const error = await response.json();
-        setSaveMessage({ type: 'error', text: error.error || t('settings.clientReportingSection.deleteError') || 'Failed to delete report' });
+        const error = await response.json().catch(() => ({}));
+        setStatusMessage({ type: 'error', text: error.error || t('settings.clientReportingSection.sendError') || 'Failed to send report' });
       }
     } catch (error) {
-      setSaveMessage({ type: 'error', text: t('settings.clientReportingSection.deleteError') || 'Failed to delete report' });
+      setStatusMessage({ type: 'error', text: t('settings.clientReportingSection.sendError') || 'Failed to send report' });
     }
   };
+
+  // Click-from-row → open confirmation modal. The actual DELETE
+  // request fires from the modal's onConfirm so a misclick never
+  // destroys data.
+  const handleDeleteReport = (reportId) => {
+    setDeleteConfirm({ reportId, isPending: false });
+  };
+
+  const confirmDeleteReport = async () => {
+    const reportId = deleteConfirm?.reportId;
+    if (!reportId) return;
+    setDeleteConfirm((prev) => (prev ? { ...prev, isPending: true } : prev));
+    try {
+      setStatusMessage({ type: '', text: '' });
+      const response = await fetch(`/api/reports/${reportId}`, { method: 'DELETE' });
+      if (response.ok) {
+        setStatusMessage({ type: 'success', text: t('settings.clientReportingSection.reportDeleted') || 'Report deleted successfully' });
+        // Optimistic in-place update — avoids the full re-fetch +
+        // re-render the user noticed as "reloading all the component".
+        // Two cases per row:
+        //   1. The deleted report is the displayed row.id (single
+        //      language or the anchor of a multi-language group) →
+        //      either drop the row entirely (if no other languages
+        //      remain) or promote another language to be the anchor.
+        //   2. The deleted report is a non-anchor language in the
+        //      group → just strip it from row.languages.
+        setReports((prev) => prev
+          .map((row) => {
+            const langs = Array.isArray(row.languages) ? row.languages : [];
+            const filteredLangs = langs.filter((l) => l.reportId !== reportId);
+            if (row.id === reportId) {
+              // Anchor row deleted. If there are remaining sibling
+              // languages, promote the first one to be the new anchor.
+              if (filteredLangs.length > 0) {
+                const next = filteredLangs[0];
+                return {
+                  ...row,
+                  id: next.reportId,
+                  status: next.status,
+                  pdfUrl: next.pdfUrl,
+                  locale: next.locale,
+                  languages: filteredLangs,
+                };
+              }
+              // No siblings → caller filters this row out below.
+              return null;
+            }
+            // Non-anchor language was deleted from a multi-language row.
+            if (filteredLangs.length !== langs.length) {
+              return { ...row, languages: filteredLangs };
+            }
+            return row;
+          })
+          .filter(Boolean)
+        );
+        setDeleteConfirm(null);
+      } else {
+        const error = await response.json().catch(() => ({}));
+        setStatusMessage({ type: 'error', text: error.error || t('settings.clientReportingSection.deleteError') || 'Failed to delete report' });
+        setDeleteConfirm((prev) => (prev ? { ...prev, isPending: false } : prev));
+      }
+    } catch (error) {
+      setStatusMessage({ type: 'error', text: t('settings.clientReportingSection.deleteError') || 'Failed to delete report' });
+      setDeleteConfirm((prev) => (prev ? { ...prev, isPending: false } : prev));
+    }
+  };
+
+  const handleGeneratedFromWizard = (reportData) => {
+    // Two paths: (a) wizard just submitted and report is PENDING; show
+    // the "started" toast and refresh so the new pending row appears.
+    // (b) the wizard's poller flipped the report to DRAFT/ERROR; show
+    // the "ready" toast (or the error) and refresh so the row updates.
+    if (!reportData?.report || reportData?.status === 'PENDING') {
+      setStatusMessage({
+        type: 'success',
+        text: t('settings.clientReportingSection.reportStarted') || 'Report is being generated. We\'ll notify you when it\'s ready.',
+      });
+    } else if (reportData.report?.status === 'ERROR') {
+      setStatusMessage({
+        type: 'error',
+        text: reportData.report.error || (t('settings.clientReportingSection.reportError') || 'Failed to generate report'),
+      });
+    } else {
+      setStatusMessage({
+        type: 'success',
+        text: t('settings.clientReportingSection.reportGenerated') || 'Report generated successfully!',
+      });
+    }
+    fetchReports();
+    setTimeout(() => setStatusMessage({ type: '', text: '' }), 6000);
+  };
+
+  const downloadReportPdf = async (reportId) => {
+    if (!reportId) return;
+    setDownloadingId(reportId);
+    try {
+      // Programmatic anchor click triggers the browser's native
+      // download behavior. Most browsers fire this synchronously;
+      // we still keep the button disabled briefly so the user
+      // sees a deliberate "going to download" affordance and
+      // doesn't double-click while the file is fetched.
+      const a = document.createElement('a');
+      a.href = `/api/reports/${reportId}/download`;
+      a.rel = 'noopener';
+      a.target = '_blank';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      // Brief artificial delay so the spinner is visible. The actual
+      // download streams in the background of the new tab.
+      await new Promise((r) => setTimeout(r, 600));
+    } finally {
+      setDownloadingId(null);
+    }
+  };
+
+  // Wraps the preview-modal open with a transient pending flag so the
+  // button shows a spinner while the modal mounts + fetches. The flag
+  // clears as soon as the modal opens (the modal owns its own loading
+  // spinner from there).
+  const openPreviewById = (reportId) => {
+    if (!reportId) return;
+    setPreviewLoadingId(reportId);
+    setPreviewReportId(reportId);
+    setTimeout(() => setPreviewLoadingId(null), 400);
+  };
+
+  // Row Preview click: when the report has >1 language, open the
+  // picker so the user chooses which locale to preview. Single-locale
+  // rows route directly to the only available report.
+  const handlePreviewClick = (row) => {
+    const langs = Array.isArray(row?.languages) ? row.languages : [];
+    if (langs.length > 1) {
+      setLanguagePicker({ intent: 'preview', languages: langs });
+      return;
+    }
+    const target = langs[0]?.reportId || row?.id;
+    openPreviewById(target);
+  };
+
+  // Row Download click: same multi-language flow. For single-locale,
+  // skip straight to the file download.
+  const handleDownloadClick = (row) => {
+    const langs = Array.isArray(row?.languages) ? row.languages : [];
+    if (langs.length > 1) {
+      setLanguagePicker({ intent: 'download', languages: langs });
+      return;
+    }
+    const target = langs[0]?.reportId || row?.id;
+    downloadReportPdf(target);
+  };
+
+  const handleStatusChange = async (reportId, nextStatus) => {
+    try {
+      const res = await fetch(`/api/reports/${reportId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: nextStatus }),
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        setStatusMessage({ type: 'error', text: err.error || 'Failed to update status' });
+        return;
+      }
+      fetchReports();
+    } catch {
+      setStatusMessage({ type: 'error', text: 'Failed to update status' });
+    }
+  };
+
+  // Year buckets derived from the actual reports list. We don't pre-populate
+  // the picker with synthetic years so it stays in sync with what the user
+  // actually has.
+  const availableYears = useMemo(() => {
+    const set = new Set();
+    for (const r of reports) {
+      const y = new Date(r.createdAt).getFullYear();
+      if (!Number.isNaN(y)) set.add(y);
+    }
+    return [...set].sort((a, b) => b - a);
+  }, [reports]);
+
+  const filteredReports = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+    return reports.filter((r) => {
+      if (statusFilter !== 'all' && r.status !== statusFilter) return false;
+      if (yearFilter !== 'all' && new Date(r.createdAt).getFullYear() !== Number(yearFilter)) return false;
+      // Language filter compares against the locale stored at generation
+      // time (en/he). Older reports without a locale field fall under
+      // their effective rendered language → default to 'en' so they
+      // don't disappear from the filter bucket.
+      if (languageFilter !== 'all' && (r.locale || 'en') !== languageFilter) return false;
+      if (!q) return true;
+      const hay = [
+        r.month || '',
+        r.status || '',
+        Array.isArray(r.recipients) ? r.recipients.join(' ') : '',
+      ].join(' ').toLowerCase();
+      return hay.includes(q);
+    });
+  }, [reports, searchQuery, statusFilter, yearFilter, languageFilter]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredReports.length / REPORTS_PER_PAGE));
+  const safePage = Math.min(currentPage, totalPages);
+  const pageStart = (safePage - 1) * REPORTS_PER_PAGE;
+  const pageReports = filteredReports.slice(pageStart, pageStart + REPORTS_PER_PAGE);
+
+  // Keep page in range when filters shrink the list past the current page.
+  useEffect(() => {
+    if (currentPage > totalPages) setCurrentPage(totalPages);
+  }, [currentPage, totalPages]);
 
   if (!selectedSite) {
     return (
@@ -6064,17 +6530,35 @@ function ClientReportingSettings({ translations, canEdit = true }) {
     );
   }
 
-  // Branding not configured (account name + logo)
+  // Branding not configured (account name + white-label logo).
+  // i18n keys in the dictionary are `whiteLabelRequired` / `whiteLabelRequiredMessage`
+  // / `configureWhiteLabel`; we were referencing `branding*` which didn't exist
+  // anywhere, so both en and he fell back to showing the raw key.
   if (!brandingConfigured) {
     return (
       <div className={styles.emptyState}>
         <AlertTriangle className={`${styles.emptyIcon} ${styles.warningIcon}`} />
-        <h3 className={styles.emptyTitle}>{t('settings.clientReportingSection.brandingRequired') || 'Configure Branding First'}</h3>
+        <h3 className={styles.emptyTitle}>{t('settings.clientReportingSection.whiteLabelRequired') || 'Configure White-Label First'}</h3>
         <p className={styles.emptyText}>
-          {t('settings.clientReportingSection.brandingRequiredMessage') || 'Please configure your organization name and logo in the Account settings before setting up client reports.'}
+          {t('settings.clientReportingSection.whiteLabelRequiredMessage') || 'Please configure your agency branding (name and logo) in the White-Label Reporting settings before setting up client reports.'}
         </p>
-        <Button variant="primary" onClick={() => window.location.href = '/dashboard/settings?tab=account'}>
-          {t('settings.clientReportingSection.configureBranding') || 'Configure Account Settings'}
+        <Button
+          variant="primary"
+          onClick={() => {
+            // Switch to the Account tab without a full page reload. `account`
+            // is an account-category tab (not a website-category one) so we
+            // flip the main category first, then switch the sub-tab.
+            if (typeof onSwitchMainCategory === 'function') {
+              onSwitchMainCategory('account');
+            }
+            if (typeof onSwitchTab === 'function') {
+              onSwitchTab('account');
+            } else {
+              window.location.href = '/dashboard/settings?tab=account';
+            }
+          }}
+        >
+          {t('settings.clientReportingSection.configureWhiteLabel') || 'Configure White-Label Settings'}
         </Button>
       </div>
     );
@@ -6082,225 +6566,487 @@ function ClientReportingSettings({ translations, canEdit = true }) {
 
   return (
     <>
-      {saveMessage.text && (
-        <div className={`${styles.saveMessage} ${styles[saveMessage.type]}`}>
-          {saveMessage.type === 'success' ? <Check size={16} /> : <AlertTriangle size={16} />}
-          <span>{saveMessage.text}</span>
+      {statusMessage.text && (
+        <div className={`${styles.saveMessage} ${styles[statusMessage.type]}`}>
+          {statusMessage.type === 'success' ? <Check size={16} /> : <AlertTriangle size={16} />}
+          <span>{statusMessage.text}</span>
         </div>
       )}
 
-      {/* Report Configuration */}
       <div className={styles.subsection}>
-        <h3 className={styles.subsectionTitle}>
-          <FileText className={styles.subsectionIcon} />
-          {t('settings.clientReportingSection.config.title') || 'Report Configuration'}
-        </h3>
-
-        <div className={styles.formGrid}>
-          {/* Enable Toggle */}
-          <div className={`${styles.formGroup} ${styles.fullWidth}`}>
-            <label className={styles.toggleLabel}>
-              <span className={styles.toggleText}>
-                {t('settings.clientReportingSection.config.enabled') || 'Enable Client Reporting'}
-              </span>
-              <div className={styles.toggleSwitch}>
-                <input
-                  type="checkbox"
-                  checked={config.enabled}
-                  onChange={(e) => updateField('enabled', e.target.checked)}
-                  disabled={!canEdit}
-                />
-                <span className={styles.toggleSlider}></span>
-              </div>
-            </label>
-            <span className={styles.inputHint}>
-              {t('settings.clientReportingSection.config.enabledHint') || 'Allow generating and sending reports for this website'}
-            </span>
-          </div>
-
-          {/* Recipients */}
-          <div className={`${styles.formGroup} ${styles.fullWidth}`}>
-            <label className={styles.formLabel}>
-              {t('settings.clientReportingSection.config.recipients') || 'Recipient Emails'}
-            </label>
-            <input 
-              type="text" 
-              className={styles.formInput}
-              value={config.recipients}
-              onChange={(e) => updateField('recipients', e.target.value)}
-              placeholder={t('settings.clientReportingSection.config.recipientsPlaceholder') || 'client@example.com, partner@example.com'}
-              disabled={!canEdit}
-            />
-            <span className={styles.inputHint}>
-              {t('settings.clientReportingSection.config.recipientsHint') || 'Comma-separated list of email addresses'}
-            </span>
-          </div>
-
-          {/* Delivery Mode */}
-          <div className={styles.formGroup}>
-            <label className={styles.formLabel}>
-              {t('settings.clientReportingSection.config.deliveryMode') || 'Delivery Mode'}
-            </label>
-            <select 
-              className={styles.formSelect}
-              value={config.deliveryMode}
-              onChange={(e) => updateField('deliveryMode', e.target.value)}
-              disabled={!canEdit}
-            >
-              <option value="manual">{t('settings.clientReportingSection.deliveryModes.manual') || 'Manual Only'}</option>
-              <option value="monthly">{t('settings.clientReportingSection.deliveryModes.monthly') || 'Monthly (1st of month)'}</option>
-              <option value="weekly">{t('settings.clientReportingSection.deliveryModes.weekly') || 'Weekly (Every Monday)'}</option>
-            </select>
-          </div>
-        </div>
-
-        {/* Report Options */}
-        <div className={styles.optionsGroup}>
-          <label className={styles.optionsGroupLabel}>
-            {t('settings.clientReportingSection.config.includeInReport') || 'Include in Report'}
-          </label>
-          <div className={styles.checkboxList}>
-            <label className={styles.checkboxLabel}>
-              <input
-                type="checkbox"
-                checked={config.includeAiSummary}
-                onChange={(e) => updateField('includeAiSummary', e.target.checked)}
-                disabled={!canEdit}
-              />
-              <span>{t('settings.clientReportingSection.options.aiSummary') || 'AI Executive Summary'}</span>
-            </label>
-            <label className={styles.checkboxLabel}>
-              <input
-                type="checkbox"
-                checked={config.includeHealthScore}
-                onChange={(e) => updateField('includeHealthScore', e.target.checked)}
-                disabled={!canEdit}
-              />
-              <span>{t('settings.clientReportingSection.options.healthScore') || 'Site Health Score & Progress'}</span>
-            </label>
-            <label className={styles.checkboxLabel}>
-              <input
-                type="checkbox"
-                checked={config.includeActions}
-                onChange={(e) => updateField('includeActions', e.target.checked)}
-                disabled={!canEdit}
-              />
-              <span>{t('settings.clientReportingSection.options.actions') || 'AI Actions Performed'}</span>
-            </label>
-          </div>
-        </div>
-      </div>
-
-      {/* Generate Report Button */}
-      <div className={styles.subsection}>
-        <h3 className={styles.subsectionTitle}>
-          <Download className={styles.subsectionIcon} />
-          {t('settings.clientReportingSection.generate.title') || 'Generate Report'}
-        </h3>
-        <p className={styles.subsectionDescription}>
-          {t('settings.clientReportingSection.generate.description') || 'Generate a PDF report for the current reporting period.'}
-        </p>
-        
-        <Button
-          variant="primary"
-          onClick={handleGenerateReport}
-          disabled={isGenerating || !config.enabled}
-          className={styles.generateButton}
-        >
-          {isGenerating ? (
-            <>
-              <Loader2 size={16} className={styles.spinningIcon} />
-              {t('settings.clientReportingSection.generate.generating') || 'Generating...'}
-            </>
-          ) : (
-            <>
-              <FileText size={16} />
-              {t('settings.clientReportingSection.generate.button') || 'Generate Report Now'}
-            </>
-          )}
-        </Button>
-
-        {/* Recent Reports */}
-        <div className={styles.recentReports}>
-          <h4>
-            {t('settings.clientReportingSection.recentReports') || 'Recent Reports'}
-          </h4>
-          {recentReports.length === 0 ? (
-            <p className={styles.noReports}>
-              {t('settings.clientReportingSection.noReportsYet') || 'No reports generated yet. Generate your first report above.'}
+        {/* Top bar: title + Generate button */}
+        <div className={styles.reportsHeader}>
+          <div>
+            <h3 className={styles.subsectionTitle}>
+              <FileText className={styles.subsectionIcon} />
+              {t('settings.clientReportingSection.reportsTitle') || 'Reports'}
+            </h3>
+            <p className={styles.subsectionDescription}>
+              {t('settings.clientReportingSection.reportsDescription') || 'Browse, download, and send the reports you’ve generated for this site.'}
             </p>
-          ) : (
-            <div className={styles.reportsList}>
-              {recentReports.map(report => {
-                // Format date based on locale
-                const reportDate = new Date(report.createdAt);
-                const formattedMonth = reportDate.toLocaleDateString(
-                  locale === 'he' ? 'he-IL' : 'en-US',
-                  { month: 'long', year: 'numeric' }
-                );
-                
-                return (
-                  <div key={report.id} className={styles.reportItem}>
-                    <div className={styles.reportInfo}>
-                      <span className={styles.reportMonth}>{formattedMonth}</span>
-                      <span className={`${styles.reportStatus} ${styles[report.status.toLowerCase()]}`}>
-                        {t(`settings.clientReportingSection.statuses.${report.status.toLowerCase()}`) || report.status}
-                      </span>
-                    </div>
-                  <div className={styles.reportActions}>
-                    <a href={`/api/reports/${report.id}/download`} download className={styles.reportLink}>
-                      <Download size={14} />
-                    </a>
-                    {report.status === 'DRAFT' && (
-                      <Button
-                        variant="primary"
-                        iconOnly
-                        size="sm"
-                        onClick={() => handleSendReport(report.id)}
-                        title={t('settings.clientReportingSection.sendReport') || 'Send to recipients'}
-                      >
-                        <Send size={14} />
-                      </Button>
-                    )}
-                    <Button
-                      variant="danger"
-                      iconOnly
-                      size="sm"
-                      onClick={() => handleDeleteReport(report.id)}
-                      title={t('settings.clientReportingSection.deleteReport') || 'Delete report'}
-                    >
-                      <Trash2 size={14} />
-                    </Button>
-                  </div>
-                </div>
-                );
-              })}
+          </div>
+          {canEdit && (
+            <Button
+              variant="primary"
+              onClick={() => setWizardOpen(true)}
+              className={styles.generateButton}
+            >
+              <FileText size={16} />
+              {t('settings.clientReportingSection.generate.button') || 'Generate Report'}
+            </Button>
+          )}
+        </div>
+
+        {/* Filters bar */}
+        <div className={styles.reportsFilters}>
+          <div className={styles.reportsSearchWrapper}>
+            <Search size={14} className={styles.reportsSearchIcon} />
+            <input
+              type="text"
+              className={styles.reportsSearchInput}
+              value={searchQuery}
+              onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }}
+              placeholder={t('settings.clientReportingSection.filters.searchPlaceholder') || 'Search by month or recipient'}
+            />
+          </div>
+          <select
+            className={styles.reportsFilterSelect}
+            value={statusFilter}
+            onChange={(e) => { setStatusFilter(e.target.value); setCurrentPage(1); }}
+          >
+            <option value="all">{t('settings.clientReportingSection.filters.allStatuses') || 'All statuses'}</option>
+            <option value="DRAFT">{t('settings.clientReportingSection.statuses.draft') || 'Draft'}</option>
+            <option value="SENT">{t('settings.clientReportingSection.statuses.sent') || 'Sent'}</option>
+          </select>
+          <select
+            className={styles.reportsFilterSelect}
+            value={yearFilter}
+            onChange={(e) => { setYearFilter(e.target.value); setCurrentPage(1); }}
+          >
+            <option value="all">{t('settings.clientReportingSection.filters.allYears') || 'All years'}</option>
+            {availableYears.map((y) => (
+              <option key={y} value={y}>{y}</option>
+            ))}
+          </select>
+          <select
+            className={styles.reportsFilterSelect}
+            value={languageFilter}
+            onChange={(e) => { setLanguageFilter(e.target.value); setCurrentPage(1); }}
+          >
+            <option value="all">{t('settings.clientReportingSection.filters.allLanguages') || 'All languages'}</option>
+            <option value="en">English</option>
+            <option value="he">עברית</option>
+          </select>
+
+          {/* Inline pagination — sits flush to the end of the filter
+              bar so users can flip pages without scrolling to the
+              bottom of the list. Hidden when only one page exists. */}
+          {filteredReports.length > REPORTS_PER_PAGE && (
+            <div className={styles.reportsFilterPagination}>
+              <button
+                type="button"
+                className={styles.reportsFilterPageBtn}
+                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                disabled={safePage === 1}
+                aria-label={t('common.previous') || 'Previous'}
+              >
+                <ChevronLeft size={14} />
+              </button>
+              <span className={styles.reportsFilterPageInfo}>
+                {(t('common.pageOf') || 'Page {current} of {total}')
+                  .replace('{current}', safePage)
+                  .replace('{total}', totalPages)}
+              </span>
+              <button
+                type="button"
+                className={styles.reportsFilterPageBtn}
+                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                disabled={safePage === totalPages}
+                aria-label={t('common.next') || 'Next'}
+              >
+                <ChevronRight size={14} />
+              </button>
             </div>
           )}
         </div>
+
+        {/* Reports table — wrapper class lets us override the row-border
+            leak and force consistent end-alignment for the actions column,
+            both of which the shared DataTable styles don't get right by
+            themselves in this RTL context. */}
+        <div className={styles.reportsTable}>
+        <DataTable
+          columns={[
+            {
+              key: 'month',
+              label: t('settings.clientReportingSection.columns.month') || 'Month',
+              render: (_, row) => {
+                // When the report was generated as a comparison between two
+                // months, we want the cell to show "previous → current"
+                // rather than just one month label. The labels live in
+                // metadata.{previous,current}PeriodLabel; fall back to the
+                // single `month` string for legacy / single-period reports.
+                const md = row.metadata || {};
+                if (md.previousPeriodLabel && md.currentPeriodLabel) {
+                  // Comparison range — render the two months on either
+                  // side of a small compare icon so the relationship is
+                  // recognizable across both LTR and RTL contexts (a
+                  // bare arrow flips meaning in RTL).
+                  return (
+                    <span className={styles.reportMonthCompare}>
+                      <span>{md.previousPeriodLabel}</span>
+                      <GitCompareArrows size={12} className={styles.reportMonthCompareIcon} aria-hidden="true" />
+                      <span>{md.currentPeriodLabel}</span>
+                    </span>
+                  );
+                }
+                const reportDate = new Date(row.createdAt);
+                return row.month || reportDate.toLocaleDateString(
+                  locale === 'he' ? 'he-IL' : 'en-US',
+                  { month: 'long', year: 'numeric' }
+                );
+              },
+            },
+            {
+              key: 'status',
+              label: t('common.status') || 'Status',
+              render: (_, row) => (
+                <ReportStatusBadge
+                  report={row}
+                  canEdit={canEdit}
+                  onChange={(next) => handleStatusChange(row.id, next)}
+                  t={t}
+                />
+              ),
+            },
+            {
+              key: 'recipients',
+              label: t('settings.clientReportingSection.columns.recipients') || 'Recipients',
+              render: (_, row) => {
+                const list = Array.isArray(row.recipients) ? row.recipients : [];
+                // The whole cell is a button that opens the RecipientsModal
+                // in 'edit' mode, so the user can add/edit/remove emails.
+                // Disabled while the row is generating.
+                const disabled = row.status === 'PENDING' || !canEdit;
+                const onOpen = () => {
+                  if (!disabled) setRecipientsModal({ mode: 'edit', report: row });
+                };
+                if (list.length === 0) {
+                  return (
+                    <button
+                      type="button"
+                      className={`${styles.reportRecipientsBtn} ${styles.reportRecipientsEmpty}`}
+                      onClick={onOpen}
+                      disabled={disabled}
+                    >
+                      {t('settings.clientReportingSection.noRecipientsLabel') || 'No recipients'}
+                    </button>
+                  );
+                }
+                return (
+                  <button
+                    type="button"
+                    className={`${styles.reportRecipientsBtn} ${styles.reportRecipients}`}
+                    onClick={onOpen}
+                    title={list.join(', ')}
+                    disabled={disabled}
+                  >
+                    {list.length <= 2 ? list.join(', ') : `${list.slice(0, 2).join(', ')} +${list.length - 2}`}
+                  </button>
+                );
+              },
+            },
+            {
+              key: 'createdAt',
+              label: t('settings.clientReportingSection.columns.generated') || 'Generated',
+              render: (_, row) => {
+                const d = new Date(row.createdAt);
+                const dateStr = d.toLocaleDateString(
+                  locale === 'he' ? 'he-IL' : 'en-US',
+                  { day: 'numeric', month: 'short', year: 'numeric' }
+                );
+                const timeStr = d.toLocaleTimeString(
+                  locale === 'he' ? 'he-IL' : 'en-US',
+                  { hour: '2-digit', minute: '2-digit' }
+                );
+                return (
+                  <span className={styles.reportGeneratedCell}>
+                    <span>{dateStr}</span>
+                    <span className={styles.reportGeneratedTime}>{timeStr}</span>
+                  </span>
+                );
+              },
+            },
+            {
+              key: 'languages',
+              label: t('settings.clientReportingSection.columns.languages') || 'Languages',
+              render: (_, row) => {
+                const langs = Array.isArray(row.languages) && row.languages.length
+                  ? row.languages
+                  : [{ locale: row.locale || 'en' }];
+                // Whole cell is a button → opens LanguagesModal so the
+                // user can view existing languages or add new ones.
+                return (
+                  <button
+                    type="button"
+                    className={`${styles.reportRecipientsBtn} ${styles.reportLanguagesCell}`}
+                    onClick={() => setLanguagesModalReport(row)}
+                    title={langs.map((l) => l.locale.toUpperCase()).join(', ')}
+                  >
+                    {langs.map((l) => (
+                      <span key={l.locale} className={styles.reportLanguageChip}>
+                        {l.locale.toUpperCase()}
+                      </span>
+                    ))}
+                  </button>
+                );
+              },
+            },
+            {
+              key: 'sections',
+              label: t('settings.clientReportingSection.columns.sections') || 'Sections',
+              render: (_, row) => {
+                const sections = Array.isArray(row.sectionsConfig?.sections)
+                  ? row.sectionsConfig.sections.filter((s) => s?.enabled !== false).map((s) => s.id)
+                  : [];
+                // Empty state stays a non-interactive em-dash since
+                // there's nothing to inspect.
+                if (sections.length === 0) {
+                  return <span className={styles.reportRecipientsEmpty}>—</span>;
+                }
+                const titles = sections.map(
+                  (id) => t(`settings.clientReportingSection.options.${id}`) || id
+                );
+                // Whole cell is a button → opens SectionsInfoModal which
+                // lists each included section with a short explanation.
+                return (
+                  <button
+                    type="button"
+                    className={`${styles.reportRecipientsBtn} ${styles.reportSectionsCell}`}
+                    onClick={() => setSectionsInfoReport(row)}
+                    title={titles.join(', ')}
+                  >
+                    {sections.length <= 2
+                      ? titles.join(', ')
+                      : `${titles.slice(0, 2).join(', ')} +${sections.length - 2}`}
+                  </button>
+                );
+              },
+            },
+            {
+              key: 'actions',
+              label: t('common.actions') || 'Actions',
+              render: (_, row) => (
+                <div className={styles.reportActions}>
+                  {/* All action buttons share the same ghost icon-only style
+                      so the row reads as a unified toolbar. Color is reserved
+                      for hover hints (delete tints red) — no filled buttons
+                      stealing visual weight. */}
+                  <Button
+                    variant="ghost"
+                    iconOnly
+                    size="sm"
+                    onClick={() => handlePreviewClick(row)}
+                    disabled={row.status === 'PENDING' || previewLoadingId === row.id}
+                    title={t('settings.clientReportingSection.previewReport') || 'Preview'}
+                  >
+                    {previewLoadingId === row.id
+                      ? <Loader2 size={14} className={styles.spinningIcon} />
+                      : <Eye size={14} />}
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    iconOnly
+                    size="sm"
+                    onClick={() => handleDownloadClick(row)}
+                    disabled={row.status === 'PENDING' || !row.pdfUrl || downloadingId === row.id}
+                    title={t('common.download') || 'Download'}
+                  >
+                    {downloadingId === row.id
+                      ? <Loader2 size={14} className={styles.spinningIcon} />
+                      : <Download size={14} />}
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    iconOnly
+                    size="sm"
+                    onClick={() => handleSendReport(row)}
+                    disabled={row.status === 'PENDING'}
+                    title={t('settings.clientReportingSection.sendReport') || 'Send to recipients'}
+                  >
+                    <Send size={14} />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    iconOnly
+                    size="sm"
+                    className={styles.reportActionDanger}
+                    onClick={() => handleDeleteReport(row.id)}
+                    title={t('settings.clientReportingSection.deleteReport') || 'Delete report'}
+                  >
+                    <Trash2 size={14} />
+                  </Button>
+                </div>
+              ),
+            },
+          ]}
+          data={pageReports}
+          emptyMessage={
+            reports.length === 0
+              ? (t('settings.clientReportingSection.noReportsYet') || 'No reports generated yet.')
+              : (t('settings.clientReportingSection.noReportsMatch') || 'No reports match your filters.')
+          }
+        />
+        </div>
+
+        {/* Pagination — only render when more than one page */}
+        {filteredReports.length > REPORTS_PER_PAGE && (
+          <div className={styles.reportsPagination}>
+            <button
+              type="button"
+              className={styles.reportsPageBtn}
+              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+              disabled={safePage === 1}
+            >
+              <ChevronLeft size={14} />
+              {t('common.previous') || 'Previous'}
+            </button>
+            <span className={styles.reportsPageInfo}>
+              {(t('common.pageOf') || 'Page {current} of {total}')
+                .replace('{current}', safePage)
+                .replace('{total}', totalPages)}
+            </span>
+            <button
+              type="button"
+              className={styles.reportsPageBtn}
+              onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+              disabled={safePage === totalPages}
+            >
+              {t('common.next') || 'Next'}
+              <ChevronRight size={14} />
+            </button>
+          </div>
+        )}
       </div>
 
-      {/* Save Button */}
-      <div className={styles.saveButtonWrapper}>
-        <Button
-          variant="primary"
-          onClick={handleSave}
-          disabled={isSaving || !canEdit}
-        >
-          {isSaving ? (
-            <>
-              <Loader2 size={16} className={styles.spinningIcon} />
-              {t('common.saving') || 'Saving...'}
-            </>
-          ) : (
-            <>
-              <Check size={16} />
-              {t('common.save') || 'Save Changes'}
-            </>
-          )}
-        </Button>
-      </div>
+      <GenerateReportWizard
+        isOpen={wizardOpen}
+        onClose={() => setWizardOpen(false)}
+        site={selectedSite}
+        onGenerated={handleGeneratedFromWizard}
+      />
+
+      <ReportPreviewModal
+        isOpen={!!previewReportId}
+        reportId={previewReportId}
+        onClose={() => setPreviewReportId(null)}
+        onUpdated={() => fetchReports()}
+      />
+
+      <RecipientsModal
+        isOpen={!!recipientsModal}
+        mode={recipientsModal?.mode || 'edit'}
+        report={recipientsModal?.report}
+        onClose={() => setRecipientsModal(null)}
+        onSaved={() => {
+          if (recipientsModal?.mode === 'send') {
+            setStatusMessage({
+              type: 'success',
+              text: t('settings.clientReportingSection.reportSent') || 'Report sent successfully!',
+            });
+            setTimeout(() => setStatusMessage({ type: '', text: '' }), 6000);
+          }
+          fetchReports();
+        }}
+      />
+
+      <ConfirmModal
+        isOpen={!!deleteConfirm}
+        onClose={() => deleteConfirm?.isPending ? null : setDeleteConfirm(null)}
+        onConfirm={confirmDeleteReport}
+        isPending={deleteConfirm?.isPending}
+        variant="danger"
+        title={t('settings.clientReportingSection.confirmDeleteTitle') || 'Delete report?'}
+        description={t('settings.clientReportingSection.confirmDelete') || 'Are you sure you want to delete this report? This action cannot be undone.'}
+        confirmLabel={t('common.delete') || 'Delete'}
+      />
+
+      <SectionsInfoModal
+        isOpen={!!sectionsInfoReport}
+        report={sectionsInfoReport}
+        onClose={() => setSectionsInfoReport(null)}
+      />
+
+      <LanguagesModal
+        isOpen={!!languagesModalReport}
+        report={languagesModalReport}
+        onClose={() => setLanguagesModalReport(null)}
+        onSaved={() => {
+          setStatusMessage({
+            type: 'success',
+            text: t('settings.clientReportingSection.languagesModal.queued') || 'Generation started for the selected languages.',
+          });
+          fetchReports();
+          setTimeout(() => setStatusMessage({ type: '', text: '' }), 6000);
+        }}
+      />
+
+      <LanguagePickerModal
+        isOpen={!!languagePicker}
+        intent={languagePicker?.intent || 'preview'}
+        languages={languagePicker?.languages || []}
+        onClose={() => setLanguagePicker(null)}
+        onPick={({ reportId }) => {
+          const intent = languagePicker?.intent;
+          setLanguagePicker(null);
+          if (intent === 'download') downloadReportPdf(reportId);
+          else openPreviewById(reportId);
+        }}
+      />
     </>
+  );
+}
+
+/**
+ * Status pill that doubles as a manual status change menu. PENDING is
+ * shown as a non-interactive spinning indicator since the user can't
+ * override it — that status is owned by the generation pipeline.
+ */
+function ReportStatusBadge({ report, canEdit, onChange, t }) {
+  const status = report?.status || 'DRAFT';
+  const label = t(`settings.clientReportingSection.statuses.${status.toLowerCase()}`) || status;
+
+  if (status === 'PENDING') {
+    return (
+      <span className={`${styles.reportStatus} ${styles.pending}`}>
+        <Loader2 size={12} className={styles.spinningIcon} />
+        {label}
+      </span>
+    );
+  }
+
+  if (!canEdit) {
+    return <span className={`${styles.reportStatus} ${styles[status.toLowerCase()]}`}>{label}</span>;
+  }
+
+  // Wrap the select + caret in a span so we can render a single, properly
+  // sized chevron icon next to the select without relying on browser
+  // native arrows (which leak through on some platforms even with
+  // `appearance: none`).
+  return (
+    <span className={`${styles.reportStatusWrap} ${styles[status.toLowerCase()]}`}>
+      <select
+        className={styles.reportStatusSelect}
+        value={status}
+        onChange={(e) => onChange(e.target.value)}
+        aria-label={t('settings.clientReportingSection.changeStatus') || 'Change status'}
+      >
+        <option value="DRAFT">{t('settings.clientReportingSection.statuses.draft') || 'Draft'}</option>
+        <option value="SENT">{t('settings.clientReportingSection.statuses.sent') || 'Sent'}</option>
+        <option value="ERROR">{t('settings.clientReportingSection.statuses.error') || 'Error'}</option>
+      </select>
+      <ChevronDown size={12} className={styles.reportStatusCaret} aria-hidden="true" />
+    </span>
   );
 }
 

@@ -318,7 +318,7 @@ const interviewQuestions = [
     validation: {
       required: false,
     },
-    aiPromptHint: 'If the website runs on WordPress, offer to install the Ghost Post WordPress plugin. This enables direct article publishing and management.',
+    aiPromptHint: 'If the website runs on WordPress, offer to install the GhostSEO WordPress plugin. This enables direct article publishing and management.',
     allowedActions: [],
     autoActions: null,
     saveToField: 'wordpressPlugin',

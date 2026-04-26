@@ -142,7 +142,7 @@ export async function POST(request) {
               severity: 'passed',
               message: PASSED_ISSUE_MAP[issue.message] || issue.message,
               suggestion: null,
-              details: 'Fixed via Ghost Post plugin',
+              details: 'Fixed via GhostSEO plugin',
             };
           });
 

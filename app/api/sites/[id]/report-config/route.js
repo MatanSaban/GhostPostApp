@@ -74,18 +74,74 @@ export async function GET(request, { params }) {
     // Get recent reports for this site
     let recentReports = [];
     try {
-      recentReports = await prisma.reportArchive.findMany({
+      const rawReports = await prisma.reportArchive.findMany({
         where: { siteId },
         orderBy: { createdAt: 'desc' },
-        take: 5,
+        // Pull a generous window so the client-side filters
+        // (status / year / language / search) have data to narrow
+        // down rather than getting capped server-side at 5.
+        take: 200,
         select: {
           id: true,
+          siteId: true,
+          accountId: true,
+          reportGroupId: true,
           month: true,
           status: true,
           pdfUrl: true,
+          recipients: true,
+          metadata: true,
+          sectionsConfig: true,
+          locale: true,
+          sentAt: true,
+          error: true,
           createdAt: true,
         },
       });
+
+      // Collapse multi-language rows into one row per `reportGroupId`.
+      // The displayed row uses the most-recent locale's metadata; the
+      // `languages` array exposes every (locale → reportId) pair so
+      // the table can show pills + drive the add-language flow.
+      const groups = new Map();
+      for (const r of rawReports) {
+        const groupKey = r.reportGroupId || r.id; // legacy rows without group → singleton
+        const existing = groups.get(groupKey);
+        const langEntry = {
+          locale: r.locale || 'en',
+          reportId: r.id,
+          status: r.status,
+          pdfUrl: r.pdfUrl,
+          generatedAt: r.createdAt,
+        };
+        if (!existing) {
+          groups.set(groupKey, {
+            // We surface the most-recent row's fields as the row's
+            // identity. The `id` here is the row a user sees / acts
+            // on (Preview, Send, Delete) — they pick a different
+            // language via the languages column.
+            ...r,
+            reportGroupId: groupKey,
+            languages: [langEntry],
+          });
+        } else {
+          existing.languages.push(langEntry);
+          // If the newer record (we're iterating desc) has a richer
+          // status (DRAFT/SENT over PENDING/ERROR), prefer it as the
+          // row's display anchor.
+          if (existing.status === 'PENDING' && r.status !== 'PENDING') {
+            Object.assign(existing, r, { reportGroupId: groupKey, languages: existing.languages });
+          }
+        }
+      }
+      // Sort groups newest-first by their displayed createdAt before
+      // capping. Map iteration order is insertion order (which IS
+      // newest-first since the source query is ordered desc), but
+      // making the sort explicit guarantees correctness if the order
+      // ever changes upstream.
+      recentReports = [...groups.values()]
+        .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+        .slice(0, 50);
     } catch (e) {
       // ReportArchive model might not exist yet
       console.log('ReportArchive not available:', e.message);

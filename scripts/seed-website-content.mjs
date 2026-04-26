@@ -52,14 +52,14 @@ function generatePageSeo(content, locale, page) {
   // Extract SEO from content based on page structure
   switch (page) {
     case 'home':
-      seo.title = content.metadata?.title || 'Ghost Post - AI-Powered SEO Automation';
+      seo.title = content.metadata?.title || 'GhostSEO - AI-Powered SEO Automation';
       seo.description = content.metadata?.description || content.hero?.subtitle || '';
       seo.ogTitle = seo.title;
       seo.ogDescription = seo.description;
       seo.jsonLd = {
         '@context': 'https://schema.org',
         '@type': 'WebSite',
-        name: 'Ghost Post',
+        name: 'GhostSEO',
         url: 'https://ghostpost.co.il',
         description: seo.description,
         potentialAction: {
@@ -71,7 +71,7 @@ function generatePageSeo(content, locale, page) {
       break;
       
     case 'about':
-      seo.title = content.about?.metaTitle || 'About - Ghost Post';
+      seo.title = content.about?.metaTitle || 'About - GhostSEO';
       seo.description = content.about?.metaDescription || content.about?.subtitle || '';
       seo.ogTitle = seo.title;
       seo.ogDescription = seo.description;
@@ -82,14 +82,14 @@ function generatePageSeo(content, locale, page) {
         description: seo.description,
         mainEntity: {
           '@type': 'Organization',
-          name: 'Ghost Post',
+          name: 'GhostSEO',
           url: 'https://ghostpost.co.il'
         }
       };
       break;
       
     case 'contact':
-      seo.title = content.contact?.metaTitle || 'Contact - Ghost Post';
+      seo.title = content.contact?.metaTitle || 'Contact - GhostSEO';
       seo.description = content.contact?.metaDescription || content.contact?.subtitle || '';
       seo.ogTitle = seo.title;
       seo.ogDescription = seo.description;
@@ -102,8 +102,8 @@ function generatePageSeo(content, locale, page) {
       break;
       
     case 'faq':
-      seo.title = `FAQ - Ghost Post`;
-      seo.description = content.faq?.subtitle || 'Frequently asked questions about Ghost Post';
+      seo.title = `FAQ - GhostSEO`;
+      seo.description = content.faq?.subtitle || 'Frequently asked questions about GhostSEO';
       seo.ogTitle = seo.title;
       seo.ogDescription = seo.description;
       // FAQPage schema would be generated from actual FAQ items
@@ -117,53 +117,53 @@ function generatePageSeo(content, locale, page) {
       break;
       
     case 'features':
-      seo.title = content.features?.metaTitle || 'Features - Ghost Post';
+      seo.title = content.features?.metaTitle || 'Features - GhostSEO';
       seo.description = content.features?.metaDescription || content.features?.subtitle || '';
       seo.ogTitle = seo.title;
       seo.ogDescription = seo.description;
       break;
       
     case 'how-it-works':
-      seo.title = content.howItWorks?.metaTitle || 'How It Works - Ghost Post';
+      seo.title = content.howItWorks?.metaTitle || 'How It Works - GhostSEO';
       seo.description = content.howItWorks?.metaDescription || content.howItWorks?.subtitle || '';
       seo.ogTitle = seo.title;
       seo.ogDescription = seo.description;
       break;
       
     case 'pricing':
-      seo.title = `Pricing - Ghost Post`;
-      seo.description = content.pricing?.subtitle || 'Simple, transparent pricing for Ghost Post';
+      seo.title = `Pricing - GhostSEO`;
+      seo.description = content.pricing?.subtitle || 'Simple, transparent pricing for GhostSEO';
       seo.ogTitle = seo.title;
       seo.ogDescription = seo.description;
       seo.jsonLd = {
         '@context': 'https://schema.org',
         '@type': 'Product',
-        name: 'Ghost Post',
+        name: 'GhostSEO',
         description: seo.description,
         brand: {
           '@type': 'Brand',
-          name: 'Ghost Post'
+          name: 'GhostSEO'
         }
       };
       break;
       
     case 'privacy':
-      seo.title = content.privacy?.metaTitle || 'Privacy Policy - Ghost Post';
-      seo.description = content.privacy?.metaDescription || 'Ghost Post Privacy Policy';
+      seo.title = content.privacy?.metaTitle || 'Privacy Policy - GhostSEO';
+      seo.description = content.privacy?.metaDescription || 'GhostSEO Privacy Policy';
       seo.ogTitle = seo.title;
       seo.ogDescription = seo.description;
       break;
       
     case 'terms':
-      seo.title = content.terms?.metaTitle || 'Terms of Service - Ghost Post';
-      seo.description = content.terms?.metaDescription || 'Ghost Post Terms of Service';
+      seo.title = content.terms?.metaTitle || 'Terms of Service - GhostSEO';
+      seo.description = content.terms?.metaDescription || 'GhostSEO Terms of Service';
       seo.ogTitle = seo.title;
       seo.ogDescription = seo.description;
       break;
       
     case 'blog':
-      seo.title = `Blog - Ghost Post`;
-      seo.description = content.blog?.subtitle || 'Latest updates from Ghost Post';
+      seo.title = `Blog - GhostSEO`;
+      seo.description = content.blog?.subtitle || 'Latest updates from GhostSEO';
       seo.ogTitle = seo.title;
       seo.ogDescription = seo.description;
       seo.jsonLd = {
@@ -189,9 +189,9 @@ async function seedWebsiteContent() {
     create: {
       websiteId: 'gp-ws',
       siteName: {
-        en: 'Ghost Post',
-        he: 'גוסט פוסט',
-        fr: 'Ghost Post'
+        en: 'GhostSEO',
+        he: 'GhostSEO',
+        fr: 'GhostSEO'
       },
       siteUrl: 'https://ghostpost.co.il',
       defaultOgImage: '/og/default.png',
@@ -200,9 +200,9 @@ async function seedWebsiteContent() {
     },
     update: {
       siteName: {
-        en: 'Ghost Post',
-        he: 'גוסט פוסט',
-        fr: 'Ghost Post'
+        en: 'GhostSEO',
+        he: 'GhostSEO',
+        fr: 'GhostSEO'
       },
       siteUrl: 'https://ghostpost.co.il'
     }

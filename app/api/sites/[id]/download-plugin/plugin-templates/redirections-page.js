@@ -4,7 +4,7 @@
 export function getRedirectionsPage() {
   return `<?php
 /**
- * Ghost Post Redirections Admin Page
+ * GhostSEO Redirections Admin Page
  */
 
 if (!defined('ABSPATH')) {
@@ -44,7 +44,7 @@ $theme_class = ($gp_theme === 'light') ? 'gp-theme-light' : '';
                 <?php
                 $plugin_names = array_map(function($p) { return '<strong>' . esc_html($p['name']) . '</strong>' . ($p['version'] ? ' v' . esc_html($p['version']) : ''); }, $detected_plugins);
                 printf(
-                    esc_html__('We detected %s on your site. We recommend importing your existing redirects into Ghost Post and then deactivating the external plugin to avoid conflicts and improve performance.', 'ghost-post-connector'),
+                    esc_html__('We detected %s on your site. We recommend importing your existing redirects into GhostSEO and then deactivating the external plugin to avoid conflicts and improve performance.', 'ghost-post-connector'),
                     implode(', ', $plugin_names)
                 );
                 ?>
@@ -221,7 +221,7 @@ $theme_class = ($gp_theme === 'light') ? 'gp-theme-light' : '';
         <?php
         printf(
             esc_html__('Powered by %s', 'ghost-post-connector'),
-            '<a href="https://ghostpost.co.il" target="_blank" rel="noopener">Ghost Post</a>'
+            '<a href="https://ghostpost.co.il" target="_blank" rel="noopener">GhostSEO</a>'
         );
         ?>
     </div>

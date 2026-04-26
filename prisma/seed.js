@@ -167,7 +167,7 @@ async function main() {
       currency: 'USD',
       interval: 'MONTHLY',
       features: [
-        { key: 'white_label', label: 'White-label reports' },
+        { key: 'whiteLabelReports', label: 'White-label reports' },
         { key: 'dedicated_support', label: 'Dedicated support' },
         { key: 'custom_integrations', label: 'Custom integrations' },
         { key: 'sla', label: 'SLA guarantee' },

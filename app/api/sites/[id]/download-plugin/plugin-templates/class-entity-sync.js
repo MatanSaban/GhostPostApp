@@ -2,15 +2,15 @@
  * Generate Entity Sync class
  * 
  * Watches for WordPress content changes (create, update, delete, trash)
- * and pushes real-time updates to Ghost Post platform via webhook.
+ * and pushes real-time updates to GhostSEO platform via webhook.
  */
 export function getClassEntitySync() {
   return `<?php
 /**
- * Ghost Post Entity Sync Handler
+ * GhostSEO Entity Sync Handler
  * 
  * Watches for WordPress content changes (create, update, delete, trash)
- * and pushes real-time updates to the Ghost Post platform via webhook.
+ * and pushes real-time updates to the GhostSEO platform via webhook.
  * 
  * This enables instant entity sync for WordPress sites with the plugin connected,
  * instead of waiting for the hourly cron sync.
@@ -197,7 +197,7 @@ class GP_Entity_Sync {
     }
     
     /**
-     * Push entity update to Ghost Post platform via webhook
+     * Push entity update to GhostSEO platform via webhook
      * 
      * @param WP_Post $post
      * @param string  $action  "created" | "updated" | "trashed" | "deleted"

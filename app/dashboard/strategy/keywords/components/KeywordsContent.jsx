@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
-import { TrendingUp, TrendingDown, Minus, Search, Loader2, Tag, Trash2, Plus, X, Sparkles, BarChart3, Crosshair, Trophy, ChevronDown, ChevronUp, Info, Navigation, ShoppingCart, DollarSign, ExternalLink, FileText, Wand2, Calendar, ArrowUpDown } from 'lucide-react';
+import { TrendingUp, TrendingDown, Minus, Search, Loader2, Tag, Trash2, Plus, X, Sparkles, BarChart3, Crosshair, Trophy, ChevronDown, ChevronUp, Info, Navigation, ShoppingCart, DollarSign, ExternalLink, FileText, Wand2, Calendar, ArrowUpDown, Link2, Link2Off } from 'lucide-react';
 import { useSite } from '@/app/context/site-context';
 import { useTranslation } from '@/app/context/locale-context';
 import { emitCreditsUpdated } from '@/app/context/user-context';
@@ -11,6 +11,7 @@ import { usePermissions } from '@/app/hooks/usePermissions';
 import { Skeleton } from '@/app/dashboard/components/Skeleton';
 import { Button } from '@/app/dashboard/components';
 import GeneratePostModal from './GeneratePostModal';
+import { LinkEntityModal } from './LinkEntityModal';
 import styles from '../page.module.css';
 
 const getPositionClass = (position) => {
@@ -186,6 +187,8 @@ export function KeywordsContent() {
   const [editingIntent, setEditingIntent] = useState(null); // keywordId being edited
   const [updatingKeywords, setUpdatingKeywords] = useState(new Set()); // keywordIds being updated
   const [generatePostKeyword, setGeneratePostKeyword] = useState(null); // keyword for post generation modal
+  const [linkEntityKeyword, setLinkEntityKeyword] = useState(null); // keyword for the "link existing entity" modal
+  const [unlinkingKeywordId, setUnlinkingKeywordId] = useState(null); // keyword mid-unlink (spinner on its button)
   const [gscData, setGscData] = useState(null); // GSC metrics keyed by query
   const [gscLoading, setGscLoading] = useState(false);
   const [gscPreset, setGscPreset] = useState('30d');
@@ -374,6 +377,49 @@ export function KeywordsContent() {
       setAddError(t('keywordStrategy.addError'));
     } finally {
       setAddingKeyword(false);
+    }
+  };
+
+  // Called by LinkEntityModal after a successful PATCH — patch our local
+  // state so the row updates without a full refetch.
+  const handleEntityLinked = (keywordId, entity) => {
+    setKeywords(prev => prev.map(kw =>
+      kw.id === keywordId
+        ? {
+            ...kw,
+            url: entity.url,
+            relatedPost: {
+              id: entity.id,
+              title: entity.title,
+              url: entity.url,
+              entityTypeSlug: entity.entityTypeSlug,
+              entityTypeName: entity.entityTypeName,
+              entityTypeLabels: entity.entityTypeLabels,
+            },
+          }
+        : kw
+    ));
+  };
+
+  const handleUnlinkEntity = async (keywordId) => {
+    setUnlinkingKeywordId(keywordId);
+    try {
+      const res = await fetch('/api/keywords', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ keywordId, url: null }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || 'Failed to unlink entity');
+      }
+      setKeywords(prev => prev.map(kw =>
+        kw.id === keywordId ? { ...kw, url: null, relatedPost: null } : kw
+      ));
+    } catch (err) {
+      console.error('[Keywords] unlink failed:', err);
+    } finally {
+      setUnlinkingKeywordId(null);
     }
   };
 
@@ -1086,40 +1132,78 @@ export function KeywordsContent() {
                         )}
                       </div>
                     </div>
-                    {/* Related Post Column */}
-                    <div className={`${styles.cell} ${styles.relatedPostCell}`}>
-                      {kw.relatedPost ? (
-                        <div className={styles.relatedPostLinks}>
-                          <Link 
-                            href={`/dashboard/entities/posts/${kw.relatedPost.id}`}
-                            className={styles.relatedPostLink}
-                            title={kw.relatedPost.title}
-                          >
-                            <FileText size={12} />
-                          </Link>
-                          {kw.relatedPost.url && (
-                            <a 
-                              href={kw.relatedPost.url}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className={styles.externalLink}
-                              title={kw.relatedPost.url}
-                            >
-                              <ExternalLink size={12} />
-                            </a>
+                    {/* Related Post / Entity Column.
+                        A keyword is considered to have a pillar page as soon as
+                        `kw.url` is set — whether or not we managed to resolve
+                        that URL back to a populated site entity. When a pillar
+                        exists, don't offer "Generate with AI" (redundant) —
+                        only the navigation + unlink actions. */}
+                    {(() => {
+                      const hasPillar = !!kw.url;
+                      const matched = kw.relatedPost;
+                      return (
+                        <div className={`${styles.cell} ${styles.relatedPostCell}`}>
+                          {hasPillar ? (
+                            <div className={styles.relatedPostLinks}>
+                              {matched && (
+                                <Link
+                                  href={`/dashboard/entities/${matched.entityTypeSlug || 'posts'}/${matched.id}`}
+                                  className={styles.relatedPostLink}
+                                  title={matched.title}
+                                >
+                                  <FileText size={12} />
+                                </Link>
+                              )}
+                              {(matched?.url || kw.url) && (
+                                <a
+                                  href={matched?.url || kw.url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className={styles.externalLink}
+                                  title={matched?.url || kw.url}
+                                >
+                                  <ExternalLink size={12} />
+                                </a>
+                              )}
+                              {canEditKeywords && (
+                                <button
+                                  type="button"
+                                  className={styles.addPostBtn}
+                                  onClick={() => handleUnlinkEntity(kw.id)}
+                                  disabled={unlinkingKeywordId === kw.id}
+                                  title={t('keywordStrategy.unlinkExisting')}
+                                >
+                                  {unlinkingKeywordId === kw.id
+                                    ? <Loader2 size={12} className={styles.spinner} />
+                                    : <Link2Off size={12} />}
+                                </button>
+                              )}
+                            </div>
+                          ) : (
+                            <div className={styles.relatedPostLinks}>
+                              {canEditKeywords && (
+                                <button
+                                  type="button"
+                                  className={styles.addPostBtn}
+                                  onClick={() => setLinkEntityKeyword(kw)}
+                                  title={t('keywordStrategy.linkExisting')}
+                                >
+                                  <Link2 size={12} />
+                                </button>
+                              )}
+                              <button
+                                className={styles.addPostBtn}
+                                onClick={() => setGeneratePostKeyword(kw)}
+                                title={t('keywordStrategy.generatePost')}
+                              >
+                                <Wand2 size={12} />
+                                <Plus size={10} />
+                              </button>
+                            </div>
                           )}
                         </div>
-                      ) : (
-                        <button 
-                          className={styles.addPostBtn}
-                          onClick={() => setGeneratePostKeyword(kw)}
-                          title={t('keywordStrategy.generatePost')}
-                        >
-                          <Wand2 size={12} />
-                          <Plus size={10} />
-                        </button>
-                      )}
-                    </div>
+                      );
+                    })()}
                     {/* Status Column */}
                     <div className={`${styles.cell} ${styles.statusCell}`} ref={editingStatus === kw.id ? dropdownRef : null}>
                       <div className={styles.dropdownWrapper}>
@@ -1182,6 +1266,15 @@ export function KeywordsContent() {
             fetchKeywords(selectedSite.id);
           }
         }}
+      />
+
+      {/* Link to an existing SiteEntity (page, post, category, custom types) */}
+      <LinkEntityModal
+        isOpen={!!linkEntityKeyword}
+        onClose={() => setLinkEntityKeyword(null)}
+        siteId={selectedSite?.id}
+        keyword={linkEntityKeyword}
+        onLinked={handleEntityLinked}
       />
     </>
   );

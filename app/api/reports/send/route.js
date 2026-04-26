@@ -9,7 +9,7 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { sendEmail } from '@/lib/mailer';
-import { getAuthSession } from '@/lib/auth-permissions';
+import { getCurrentAccountMember } from '@/lib/auth-permissions';
 import { hasPermission, CAPABILITIES } from '@/lib/permissions';
 import { getDefaultBranding } from '@/lib/reports/pdf-generator';
 
@@ -140,13 +140,13 @@ function generateReportEmailHtml({ branding, siteName, month, pdfUrl, locale = '
  */
 export async function POST(request) {
   try {
-    const session = await getAuthSession();
-    if (!session?.member) {
+    const { authorized, member } = await getCurrentAccountMember();
+    if (!authorized || !member) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
-    
+
     // Check permission
-    if (!hasPermission(session.member, 'REPORTS', 'MANAGE')) {
+    if (!hasPermission(member, 'REPORTS', 'MANAGE')) {
       return NextResponse.json({ error: 'Permission denied' }, { status: 403 });
     }
     
@@ -170,7 +170,7 @@ export async function POST(request) {
     }
     
     // Verify access
-    if (report.accountId !== session.member.accountId) {
+    if (report.accountId !== member.accountId) {
       return NextResponse.json({ error: 'Access denied' }, { status: 403 });
     }
     

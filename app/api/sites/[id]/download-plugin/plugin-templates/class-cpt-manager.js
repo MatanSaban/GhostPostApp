@@ -4,7 +4,7 @@
 export function getClassCptManager() {
   return `<?php
 /**
- * Ghost Post CPT Manager
+ * GhostSEO CPT Manager
  * 
  * Handles Custom Post Types CRUD operations
  */

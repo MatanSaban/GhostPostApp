@@ -573,6 +573,14 @@
   padding: 0 0.75rem;
   z-index: 1;
   mix-blend-mode: difference;
+  /*
+   * Let the container inherit the page direction so the label and value
+   * land on their natural sides (label on right + value on left in RTL,
+   * label on left + value on right in LTR). The `direction: ltr` +
+   * `unicode-bidi: isolate` on `.creditsValue` below still forces the
+   * "used / total" numeric text to render in LTR reading order so the
+   * digits don't flip within the span.
+   */
 }
 
 .creditsLabel {
@@ -585,6 +593,15 @@
   font-size: 0.8125rem;
   font-weight: 600;
   color: white;
+  /*
+   * Let the bidi algorithm render the two numbers in the natural paragraph
+   * direction of the page:
+   *   - LTR:  "1,390 / 1,480"  (usage on the left, limit on the right)
+   *   - RTL:  "1,480 / 1,390"  (limit on the left, usage on the right)
+   * which RTL readers read right-to-left as "usage first, then limit" —
+   * matching how we render every other "used / total" pair in the app
+   * for Hebrew users.
+   */
 }
 
 .planBadge {

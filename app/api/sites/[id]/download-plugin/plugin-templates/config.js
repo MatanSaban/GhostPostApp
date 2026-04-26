@@ -6,10 +6,10 @@ export function getPluginConfigFile({ siteId, siteKey, siteSecret, apiUrl, permi
   
   return `<?php
 /**
- * Ghost Post Connector Configuration
+ * GhostSEO Connector Configuration
  * 
  * WARNING: Do not share this file or its contents.
- * It contains sensitive credentials for your Ghost Post connection.
+ * It contains sensitive credentials for your GhostSEO connection.
  * 
  * This file is auto-generated. Do not edit manually.
  */
@@ -24,17 +24,17 @@ define('GP_SITE_ID', '${siteId}');
 define('GP_SITE_KEY', '${siteKey}');
 define('GP_SITE_SECRET', '${siteSecret}');
 
-// Ghost Post API endpoint
+// GhostSEO API endpoint
 define('GP_API_URL', '${apiUrl}');
 
-// Allowed permissions (what Ghost Post can do on this site)
+// Allowed permissions (what GhostSEO can do on this site)
 define('GP_PERMISSIONS', serialize(array(
     ${permissionsArray}
 )));
 
 /**
  * Check if a permission is granted
- * Ghost Post connector requires full access to function properly.
+ * GhostSEO connector requires full access to function properly.
  * 
  * @param string $permission Permission to check
  * @return bool Always returns true

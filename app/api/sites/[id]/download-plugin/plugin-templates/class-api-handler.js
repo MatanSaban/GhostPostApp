@@ -4,9 +4,9 @@
 export function getClassApiHandler() {
   return `<?php
 /**
- * Ghost Post API Handler
+ * GhostSEO API Handler
  * 
- * Handles incoming REST API requests from Ghost Post platform
+ * Handles incoming REST API requests from GhostSEO platform
  */
 
 if (!defined('ABSPATH')) {
@@ -601,7 +601,7 @@ class GP_API_Handler {
             array('methods' => 'PUT', 'callback' => array($this, 'update_options'), 'permission_callback' => array($this, 'validate_request')),
         ));
 
-        // Self-update - force the Ghost Post plugin to update to the latest version.
+        // Self-update - force the GhostSEO plugin to update to the latest version.
         register_rest_route($namespace, '/self-update', array(
             'methods' => 'POST',
             'callback' => array($this, 'self_update'),
@@ -2424,7 +2424,7 @@ class GP_API_Handler {
 
     /**
      * Force this plugin to update itself to the latest version published by the
-     * Ghost Post platform. Triggers WP's normal plugin upgrader.
+     * GhostSEO platform. Triggers WP's normal plugin upgrader.
      */
     public function self_update(WP_REST_Request $request) {
         if (!function_exists('get_plugins')) {
@@ -2506,7 +2506,7 @@ class GP_API_Handler {
         }
 
         // Authenticate as the first administrator for the duration of this call.
-        // The plugin's HMAC auth already proved the caller is the Ghost Post
+        // The plugin's HMAC auth already proved the caller is the GhostSEO
         // platform - we just need WP to see an admin user for capability checks.
         $admin = get_users(array('role' => 'administrator', 'number' => 1));
         if (empty($admin)) {

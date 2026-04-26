@@ -4,7 +4,7 @@
 export function getClassRequestValidator() {
   return `<?php
 /**
- * Ghost Post Request Validator
+ * GhostSEO Request Validator
  * 
  * Validates incoming requests using HMAC-SHA256 signatures
  */

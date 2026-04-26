@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import prisma from '@/lib/prisma';
+import { getAccountUsage, getSiteCompetitorCapacity } from '@/lib/account-limits';
 import { 
   getNextQuestion, 
   shouldShowQuestion, 
@@ -404,7 +405,7 @@ export async function POST(request) {
             });
             const existingSet = new Set(existingKeywords.map(k => k.keyword.toLowerCase().trim()));
             
-            const newKeywords = keywordsData
+            let newKeywords = keywordsData
               .filter(kw => typeof kw === 'string' && kw.trim() && !existingSet.has(kw.toLowerCase().trim()))
               .map(kw => ({
                 siteId: interview.siteId,
@@ -412,7 +413,31 @@ export async function POST(request) {
                 status: 'TRACKING',
                 tags: ['interview'],
               }));
-            
+
+            // Respect the plan's maxKeywords cap — truncate overflow so
+            // the interview auto-save doesn't bypass the plan limits.
+            if (newKeywords.length > 0) {
+              try {
+                const siteForCap = await prisma.site.findUnique({
+                  where: { id: interview.siteId },
+                  select: { accountId: true },
+                });
+                if (siteForCap?.accountId) {
+                  const usage = await getAccountUsage(siteForCap.accountId, 'maxKeywords');
+                  if (usage.remaining !== null && newKeywords.length > usage.remaining) {
+                    const skipped = newKeywords.length - Math.max(0, usage.remaining);
+                    newKeywords = newKeywords.slice(0, Math.max(0, usage.remaining));
+                    console.log(
+                      `[Interview] Truncated keywords to fit plan maxKeywords cap ` +
+                      `(${usage.used}/${usage.limit}, dropped ${skipped}).`,
+                    );
+                  }
+                }
+              } catch (capErr) {
+                console.warn('[Interview] keyword capacity check failed:', capErr.message);
+              }
+            }
+
             if (newKeywords.length > 0) {
               await prisma.keyword.createMany({ data: newKeywords });
               console.log(`[Interview] Saved ${newKeywords.length} keywords to Keyword model`);
@@ -427,19 +452,40 @@ export async function POST(request) {
       if (question.saveToField === 'competitors') {
         try {
           const competitorUrls = Array.isArray(response) ? response : [];
+          // Track remaining per-site competitor headroom so we don't blow
+          // past the plan's maxCompetitors cap.
+          let remainingCap = Infinity;
+          if (competitorUrls.length > 0) {
+            try {
+              const siteForCap = await prisma.site.findUnique({
+                where: { id: interview.siteId },
+                select: { accountId: true },
+              });
+              if (siteForCap?.accountId) {
+                const cap = await getSiteCompetitorCapacity(siteForCap.accountId, interview.siteId);
+                remainingCap = cap.remaining;
+              }
+            } catch (capErr) {
+              console.warn('[Interview] competitor capacity check failed:', capErr.message);
+            }
+          }
           for (const url of competitorUrls) {
             try {
               const parsedUrl = new URL(url.startsWith('http') ? url : `https://${url}`);
               const domain = parsedUrl.hostname.replace(/^www\./, '');
-              
+
               const existing = await prisma.competitor.findFirst({
                 where: {
                   siteId: interview.siteId,
                   OR: [{ url: parsedUrl.href }, { domain }],
                 },
               });
-              
+
               if (!existing) {
+                if (remainingCap <= 0) {
+                  console.log(`[Interview] Skipping competitor ${domain} — maxCompetitors cap reached.`);
+                  continue;
+                }
                 await prisma.competitor.create({
                   data: {
                     siteId: interview.siteId,
@@ -451,6 +497,7 @@ export async function POST(request) {
                     scanStatus: 'PENDING',
                   },
                 });
+                if (Number.isFinite(remainingCap)) remainingCap -= 1;
               } else if (!existing.isActive) {
                 await prisma.competitor.update({
                   where: { id: existing.id },

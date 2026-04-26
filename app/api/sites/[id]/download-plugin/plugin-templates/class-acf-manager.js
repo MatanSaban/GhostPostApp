@@ -4,7 +4,7 @@
 export function getClassAcfManager() {
   return `<?php
 /**
- * Ghost Post ACF Manager
+ * GhostSEO ACF Manager
  * 
  * Handles Advanced Custom Fields read/write operations
  */

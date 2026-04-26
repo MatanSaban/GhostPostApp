@@ -1,4 +1,4 @@
-// Server-side i18n utilities for Ghost Post Platform
+// Server-side i18n utilities for GhostSEO Platform
 import { cookies, headers } from 'next/headers';
 import { defaultLocale, locales, isRtlLocale, getDirection } from './config';
 

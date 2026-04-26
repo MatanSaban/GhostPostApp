@@ -249,7 +249,7 @@ export default async function RegisterPage({ searchParams }) {
         
         <div className={styles.authHeader}>
           <div className={styles.authLogo}>
-            <Image src="/ghostpost_logo.png" alt="Ghost Post" width={48} height={48} className={styles.logoImage} />
+            <Image src="/ghostpost_logo.png" alt="GhostSEO" width={48} height={48} className={styles.logoImage} />
             <span className={styles.logoText}>{translations.brandName}</span>
           </div>
           <h1 className={styles.authTitle}>{translations.createAccount}</h1>

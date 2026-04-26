@@ -81,14 +81,14 @@ export default function PluginRequiredModal({ open, onClose }) {
     : t('siteAudit.aiFix.pluginRequired');
   const description = isShopify
     ? t('siteAudit.aiFix.shopifyDescription') ||
-      'Install the Ghost Post Shopify app on your store to let AI Fix apply changes on your behalf.'
+      'Install the GhostSEO Shopify app on your store to let AI Fix apply changes on your behalf.'
     : t('siteAudit.aiFix.pluginDescription');
 
   const steps = isShopify
     ? [
         t('siteAudit.aiFix.shopifyStep1') || 'Click "Connect Shopify" and approve the OAuth install.',
         t('siteAudit.aiFix.shopifyStep2') || 'Shopify redirects you back here once the app is authorized.',
-        t('siteAudit.aiFix.shopifyStep3') || 'Ghost Post can now read + edit products, pages, redirects, SEO.',
+        t('siteAudit.aiFix.shopifyStep3') || 'GhostSEO can now read + edit products, pages, redirects, SEO.',
       ]
     : [
         t('siteAudit.aiFix.step1'),

@@ -34,9 +34,9 @@ export default function WebsiteSettingsPage() {
     defaultOgImage: '/og/default.png',
     defaultRobots: 'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1',
     siteName: {
-      en: 'Ghost Post',
-      he: 'גוסט פוסט',
-      fr: 'Ghost Post'
+      en: 'GhostSEO',
+      he: 'GhostSEO',
+      fr: 'GhostSEO'
     }
   });
 

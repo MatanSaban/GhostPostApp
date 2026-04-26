@@ -2358,31 +2358,44 @@ enum AgentRunStatus {
 // ==========================================
 
 model ReportArchive {
-  id          String       @id @default(auto()) @map("_id") @db.ObjectId
-  siteId      String       @db.ObjectId
-  accountId   String       @db.ObjectId
-  generatedAt DateTime     @default(now())
-  pdfUrl      String // Cloudinary secure URL
-  recipients  String[] // Email addresses the report was sent to
-  status      ReportStatus @default(DRAFT)
-  month       String // e.g., "October 2026"
-  metadata    Json? // Additional data: { score, delta, actionsCount, etc. }
-  sentAt      DateTime? // When the report was actually sent
-  error       String? // Error message if status is ERROR
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
+  id             String       @id @default(auto()) @map("_id") @db.ObjectId
+  siteId         String       @db.ObjectId
+  accountId      String       @db.ObjectId
+  // Groups together copies of the same report rendered in different
+  // languages. Same site + same comparison + same sections → same
+  // group. Null on legacy rows; treat those as singleton groups.
+  reportGroupId  String?      @db.ObjectId
+  generatedAt    DateTime     @default(now())
+  pdfUrl         String? // Cloudinary secure URL — null while status is PENDING
+  recipients     String[] // Email addresses the report was sent to
+  status         ReportStatus @default(DRAFT)
+  month          String // e.g., "October 2026"
+  metadata       Json? // Additional data: { score, delta, actionsCount, etc. }
+  // Persisted so the in-platform preview + manual edits don't have to
+  // re-derive these from the (mutable) site state. The PDF can be
+  // regenerated from the same snapshot after the user edits aiSummary.
+  aiSummary      String? // Editable AI-generated executive summary
+  sectionsConfig Json? // [{ id, enabled }] in render order
+  sectionData    Json? // Per-section data snapshot used to render the report
+  locale         String? // Language the report was rendered in ("en" | "he")
+  sentAt         DateTime? // When the report was actually sent
+  error          String? // Error message if status is ERROR
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
 
   account Account @relation(fields: [accountId], references: [id], onDelete: Cascade)
 
   @@index([siteId, generatedAt(sort: Desc)])
   @@index([accountId, generatedAt(sort: Desc)])
+  @@index([siteId, reportGroupId])
   @@map("report_archives")
 }
 
 enum ReportStatus {
+  PENDING // Queued / generating
   DRAFT // Generated but not sent (for review)
   SENT // Successfully sent to recipients
-  ERROR // Failed to send
+  ERROR // Failed to generate or send
 }
 
 // ==========================================
@@ -2395,7 +2408,7 @@ model WebsiteSeo {
   websiteId String @default("gp-ws")
 
   // Site-wide defaults
-  siteName       Json // { en: "Ghost Post", he: "גוסט פוסט", fr: "Ghost Post" }
+  siteName       Json // { en: "GhostSEO", he: "GhostSEO", fr: "GhostSEO" }
   siteUrl        String  @default("https://ghostpost.co.il")
   defaultOgImage String?
   twitterHandle  String?

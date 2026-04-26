@@ -65,8 +65,8 @@ export function AuthModal() {
             </h2>
             <p className={styles.subtitle}>
               {mode === 'login' 
-                ? 'Connect to your Ghost Post workspace' 
-                : 'Join Ghost Post and automate your SEO'}
+                ? 'Connect to your GhostSEO workspace' 
+                : 'Join GhostSEO and automate your SEO'}
             </p>
           </div>
 

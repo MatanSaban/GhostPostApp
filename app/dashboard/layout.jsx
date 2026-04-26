@@ -282,11 +282,15 @@ export default function DashboardLayout({ children }) {
         {/* Logo */}
         <div className={styles.sidebarLogo}>
           <img
-            src="/ghostpost_logo.png"
+            src="/logo-light.svg"
             alt={t('brand.name')}
-            className={styles.logoIcon}
+            className={`${styles.sidebarLogoImage} ${styles.sidebarLogoLight}`}
           />
-          <span className={styles.logoText}>{t('brand.name')}</span>
+          <img
+            src="/logo-dark.svg"
+            alt={t('brand.name')}
+            className={`${styles.sidebarLogoImage} ${styles.sidebarLogoDark}`}
+          />
         </div>
 
         {/* Site Selector */}

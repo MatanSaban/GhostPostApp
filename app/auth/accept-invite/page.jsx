@@ -72,10 +72,10 @@ export default async function AcceptInvitePage({ searchParams }) {
         <div className={`${styles.authLogo} ${styles.fixedLogo}`}>
           <img 
             src="/ghostpost_logo.png" 
-            alt="Ghost Post" 
+            alt="GhostSEO" 
             className={styles.logoImage}
           />
-          <span className={styles.logoText}>Ghost Post</span>
+          <span className={styles.logoText}>GhostSEO</span>
         </div>
         
         <HeaderActions />

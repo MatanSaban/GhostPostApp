@@ -169,7 +169,7 @@ export async function POST(request) {
     if (pluginEndpointMissing && results.every(r => !r.pushed)) {
       return NextResponse.json({
         error: 'pluginUpdateRequired',
-        message: 'The WordPress plugin needs to be updated to support per-page noindex fixes. Please update the Ghost Post plugin on the WordPress site.',
+        message: 'The WordPress plugin needs to be updated to support per-page noindex fixes. Please update the GhostSEO plugin on the WordPress site.',
         results,
         siteWideFixed,
       }, { status: 422 });

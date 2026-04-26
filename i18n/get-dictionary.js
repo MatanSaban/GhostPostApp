@@ -1,4 +1,4 @@
-// Dictionary loader for Ghost Post Platform
+// Dictionary loader for GhostSEO Platform
 
 const dictionaries = {
   en: () => import('./dictionaries/en.json').then((module) => module.default),

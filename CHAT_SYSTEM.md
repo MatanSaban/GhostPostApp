@@ -1,6 +1,6 @@
-# Ghost Post - Chat System
+# GhostSEO - Chat System
 
-The Ghost Post chat system is an AI-powered SEO assistant that can analyze WordPress sites, provide recommendations, and **execute changes directly on WordPress** - with user approval. It uses Google Gemini models via Vertex AI, the Vercel AI SDK v6 for streaming, and an approval-gated action system that snapshots before writes and supports full rollback.
+The GhostSEO chat system is an AI-powered SEO assistant that can analyze WordPress sites, provide recommendations, and **execute changes directly on WordPress** - with user approval. It uses Google Gemini models via Vertex AI, the Vercel AI SDK v6 for streaming, and an approval-gated action system that snapshots before writes and supports full rollback.
 
 ---
 
@@ -102,7 +102,7 @@ The system prompt is **dynamically built per-request** using site context from W
 
 ### Base Identity
 
-The `BASE_SYSTEM_PROMPT` constant establishes the AI as a **Ghost Post AI Assistant - expert SEO advisor** with these behavioral rules:
+The `BASE_SYSTEM_PROMPT` constant establishes the AI as a **GhostSEO AI Assistant - expert SEO advisor** with these behavioral rules:
 
 - **Male identity** (for grammatically gendered languages like Hebrew)
 - Must be concise, actionable, data-driven

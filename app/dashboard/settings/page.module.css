@@ -910,38 +910,174 @@
 }
 
 /* Subscription Card */
+/*
+ * Plan hero card — redesigned. Card background stays flat (inherits the
+ * settings card look) while the "crown" icon gets a pill-shaped gradient
+ * chip so the plan name has visual anchoring without the whole card
+ * pulling focus. A thin left-edge accent stripe ties it to the rest of
+ * the settings design system.
+ */
 .subscriptionCard {
-  padding: 1.5rem;
-  background: linear-gradient(135deg, rgba(147, 51, 234, 0.1) 0%, rgba(59, 130, 246, 0.1) 100%);
-  border: 1px solid rgba(147, 51, 234, 0.3);
+  position: relative;
+  padding: 1.5rem 1.75rem;
+  background: var(--card);
+  border: 1px solid var(--border);
   border-radius: var(--radius-xl);
+  overflow: hidden;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
 
-  .dark & {
-    background: linear-gradient(135deg, rgba(123, 44, 191, 0.2) 0%, rgba(67, 97, 238, 0.1) 100%);
-    border-color: rgba(123, 44, 191, 0.3);
-  }
+.subscriptionCard::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  inset-inline-start: 0;
+  width: 4px;
+  height: 100%;
+  background: var(--gradient-primary);
+}
+
+.subscriptionCard::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  inset-inline-end: -15%;
+  width: 260px;
+  height: 260px;
+  background: radial-gradient(circle, rgba(123, 44, 191, 0.14) 0%, transparent 70%);
+  pointer-events: none;
+  opacity: 0.8;
+}
+
+.dark .subscriptionCard {
+  background: rgba(0, 0, 0, 0.35);
+  border-color: rgba(123, 44, 191, 0.25);
+}
+
+.dark .subscriptionCard::after {
+  background: radial-gradient(circle, rgba(123, 44, 191, 0.22) 0%, transparent 70%);
 }
 
 .subscriptionHeader {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 1.5rem;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+  z-index: 1;
 }
 
 .planInfo {
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
+  gap: 0.55rem;
+  min-width: 0;
+  flex: 1;
+}
+
+.planNameRow {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
 }
 
 .planName {
-  font-size: 1.4375rem;
-  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.65rem;
+  font-size: 1.625rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--foreground);
+  line-height: 1.1;
+}
+
+/*
+ * Gradient chip around the crown — anchors the plan name visually and
+ * gives the card one strong brand-colored element without tinting the
+ * whole background.
+ */
+.planCrown {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  padding: 0;
   background: var(--gradient-primary);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: #fff;
+  border-radius: 10px;
+  flex-shrink: 0;
+  box-shadow: 0 4px 12px rgba(123, 44, 191, 0.25);
+}
+
+/*
+ * Small inline "change plan" pill next to the plan name. Clicking it opens
+ * the same Upgrade modal that the old Billing Actions button used.
+ */
+.planChangeChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 4px 10px;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: var(--primary);
+  background: rgba(123, 44, 191, 0.1);
+  border: 1px solid rgba(123, 44, 191, 0.3);
+  border-radius: 999px;
+  cursor: pointer;
+  transition: background var(--transition-fast), border-color var(--transition-fast), transform var(--transition-fast);
+  white-space: nowrap;
+}
+
+.planChangeChip:hover {
+  background: rgba(123, 44, 191, 0.2);
+  border-color: rgba(123, 44, 191, 0.5);
+  transform: translateY(-1px);
+}
+
+.planChangeChip:active {
+  transform: translateY(0);
+}
+
+.dark .planChangeChip {
+  color: #c084fc;
+  background: rgba(123, 44, 191, 0.22);
+  border-color: rgba(123, 44, 191, 0.45);
+}
+
+.dark .planChangeChip:hover {
+  background: rgba(123, 44, 191, 0.32);
+  border-color: rgba(123, 44, 191, 0.6);
+}
+
+/*
+ * "Next billing: …" line at the bottom of the hero card. Thin separator
+ * above it so it reads as a footnote.
+ */
+.nextBillingLine {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  margin-top: 1.25rem;
+  padding-top: 0.85rem;
+  font-size: 0.8125rem;
+  color: var(--muted-foreground);
+  border-top: 1px solid rgba(147, 51, 234, 0.15);
+  z-index: 1;
+}
+
+.dark .nextBillingLine {
+  border-top-color: rgba(123, 44, 191, 0.22);
+}
+
+.nextBillingLine svg {
+  color: var(--primary);
+  opacity: 0.75;
 }
 
 .oneTimeBadge {
@@ -1116,27 +1252,64 @@
 .planStatus {
   display: inline-flex;
   align-items: center;
-  gap: 0.25rem;
-  font-size: 0.75rem;
+  gap: 0.35rem;
+  padding: 3px 10px;
+  font-size: 0.6875rem;
+  font-weight: 600;
   color: #10b981;
+  background: rgba(16, 185, 129, 0.1);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  border-radius: 999px;
+  width: fit-content;
+}
 
-  .dark & {
-    color: #00FF9D;
-  }
+.planStatus.statusWarning {
+  color: #f59e0b;
+  background: rgba(245, 158, 11, 0.1);
+  border-color: rgba(245, 158, 11, 0.3);
+}
+
+.dark .planStatus {
+  color: #34d399;
+  background: rgba(16, 185, 129, 0.15);
+  border-color: rgba(16, 185, 129, 0.35);
+}
+
+.dark .planStatus.statusWarning {
+  color: #fbbf24;
+  background: rgba(245, 158, 11, 0.18);
+  border-color: rgba(245, 158, 11, 0.4);
 }
 
 .planPrice {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.15rem;
   text-align: right;
+  flex-shrink: 0;
+}
+
+[dir="rtl"] .planPrice {
+  align-items: flex-start;
+  text-align: left;
 }
 
 .priceAmount {
-  font-size: 1.9375rem;
-  font-weight: 600;
+  font-size: 2.125rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
   color: var(--foreground);
+  line-height: 1;
+  /* Prices are always LTR (USD currency + digits) regardless of page
+     direction, otherwise "$49" ends up rendering as "49$" in RTL. */
+  direction: ltr;
+  unicode-bidi: isolate;
 }
 
 .pricePeriod {
   font-size: 0.75rem;
+  font-weight: 500;
   color: var(--muted-foreground);
 }
 
@@ -1187,37 +1360,104 @@
   }
 }
 
-/* Limitations List */
+/*
+ * Usage limitations grid. 4 cards per row on wide screens, collapses to
+ * 3 / 2 / 1 on narrower viewports so numbers never get crammed.
+ *
+ * Each card is a compact tile: label on top, the "used / total" value
+ * on its own row below (the value block wraps to a new line now, which
+ * makes more room for long translations and the temp badge), then a
+ * thin progress bar at the bottom of the card.
+ */
 .limitationsList {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 0.75rem;
 }
 
-.limitationCard {
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  padding: 1rem 1.25rem;
-  
-  .dark & {
-    background: rgba(0, 0, 0, 0.3);
-    border-color: rgba(123, 44, 191, 0.2);
+@media (max-width: 1200px) {
+  .limitationsList {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
 
+@media (max-width: 900px) {
+  .limitationsList {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 560px) {
+  .limitationsList {
+    grid-template-columns: 1fr;
+  }
+}
+
+.limitationCard {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  padding: 0.9rem 1rem;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast), transform var(--transition-fast);
+}
+
+.limitationCard::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  inset-inline-start: 0;
+  width: 3px;
+  height: 100%;
+  background: var(--gradient-primary);
+  opacity: 0.55;
+}
+
+.limitationCard:hover {
+  border-color: rgba(123, 44, 191, 0.35);
+  box-shadow: 0 4px 14px rgba(123, 44, 191, 0.08);
+  transform: translateY(-1px);
+}
+
+.dark .limitationCard {
+  background: rgba(0, 0, 0, 0.3);
+  border-color: rgba(123, 44, 191, 0.2);
+}
+
+.dark .limitationCard:hover {
+  border-color: rgba(123, 44, 191, 0.45);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+}
+
+/*
+ * Header stacks vertically inside each tile: label on top, value below.
+ * Previously this was a horizontal row — that worked in the list layout
+ * but tiles are too narrow to keep label and value side-by-side.
+ */
 .limitationHeader {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 0.75rem;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.25rem;
 }
 
 .addonBonusBadge {
-  font-size: 0.8125rem;
+  font-size: 0.6875rem;
   font-weight: 600;
   color: #10b981;
   margin-inline-start: 0.35rem;
+  white-space: nowrap;
+  /*
+   * No forced direction — let bidi order the numbers naturally. In LTR
+   * the text reads "used/total", in RTL the digit runs are placed
+   * right-to-left giving visual "total/used", which an RTL reader
+   * scans as usage-first (on the right) then limit — matching the
+   * main plan value just above.
+   */
 }
 
 .addonBonusOneTime {
@@ -1225,17 +1465,30 @@
 }
 
 .limitationLabel {
-  font-size: 0.75rem;
+  font-size: 0.6875rem;
   font-weight: 500;
-  color: var(--foreground);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muted-foreground);
 }
 
 .limitationValue {
-  font-size: 0.8125rem;
-  font-weight: 600;
-  color: var(--primary);
-  direction: ltr;
-  unicode-bidi: embed;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.35rem;
+  font-size: 1.0625rem;
+  font-weight: 700;
+  color: var(--foreground);
+  /*
+   * Let the value block inherit the page direction so the flex items land
+   * on their natural sides:
+   *   - LTR:  "1,000 / 1,000" on the left, addon/temp badges on the right
+   *   - RTL:  addon/temp badges on the left, "1,000 / 1,000" on the right
+   * Same pattern as the header credits pair — the numbers inside each
+   * span follow the page's bidi rules, and the group/badge ordering
+   * follows the page direction too.
+   */
 }
 
 /* Features Grid */
@@ -4179,11 +4432,492 @@
 .generateButton {
   background: linear-gradient(135deg, var(--primary), var(--secondary));
   margin-bottom: 1rem;
-  
+
   &:hover:not(:disabled) {
     transform: translateY(-1px);
     box-shadow: 0 4px 12px rgba(123, 44, 191, 0.3);
   }
+}
+
+/* Report period picker — two month dropdowns shown above Generate button */
+.reportPeriodPicker {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+@media (max-width: 600px) {
+  .reportPeriodPicker {
+    grid-template-columns: 1fr;
+  }
+}
+
+.reportPeriodHint {
+  font-size: 0.8125rem;
+  color: var(--text-muted, #6b7280);
+  margin-bottom: 1rem;
+}
+
+/* Reports list view: header with title + Generate button */
+.reportsHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+}
+
+/*
+ * Filters bar — search box on the start edge, then status / year /
+ * language selects, and (when more than a page exists) compact
+ * pagination on the end edge. Designed to read the same in light
+ * and dark themes by relying on platform tokens (`--muted`,
+ * `--border`, `--card`, `--primary`, etc.) rather than hard-coded
+ * colors.
+ */
+.reportsFilters {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+  padding: 0.5rem;
+  background: var(--muted);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+}
+
+.reportsSearchWrapper {
+  position: relative;
+  flex: 1 1 220px;
+  min-width: 180px;
+}
+
+.reportsSearchIcon {
+  position: absolute;
+  inset-inline-start: 0.6875rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--muted-foreground);
+  pointer-events: none;
+}
+
+.reportsSearchInput {
+  width: 100%;
+  padding: 0.5rem 0.75rem 0.5rem 2.25rem;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  color: var(--foreground);
+  font-size: 0.8125rem;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+:global([dir='rtl']) .reportsSearchInput {
+  padding: 0.5rem 2.25rem 0.5rem 0.75rem;
+}
+
+.reportsSearchInput::placeholder {
+  color: var(--muted-foreground);
+  opacity: 0.7;
+}
+
+.reportsSearchInput:hover {
+  border-color: color-mix(in srgb, var(--primary) 35%, var(--border));
+}
+
+.reportsSearchInput:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 18%, transparent);
+}
+
+.reportsFilterSelect {
+  padding: 0.5rem 0.75rem;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  color: var(--foreground);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  min-width: 120px;
+  cursor: pointer;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.reportsFilterSelect:hover {
+  border-color: color-mix(in srgb, var(--primary) 35%, var(--border));
+}
+
+.reportsFilterSelect:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 18%, transparent);
+}
+
+.reportsFilterSelect option {
+  background: var(--card);
+  color: var(--foreground);
+}
+
+/* Inline pagination tucked into the filter bar's end edge. Auto-margin
+   the start so the pagination always sits flush to the inline-end of
+   the filter row regardless of how many filter inputs are above it. */
+.reportsFilterPagination {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  margin-inline-start: auto;
+  padding-inline: 0.25rem;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  height: 2.125rem;
+}
+
+.reportsFilterPageBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  border: 0;
+  background: transparent;
+  color: var(--foreground);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: background var(--transition-fast), color var(--transition-fast);
+}
+
+.reportsFilterPageBtn:hover:not(:disabled) {
+  background: var(--muted);
+}
+
+.reportsFilterPageBtn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.reportsFilterPageInfo {
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+  padding-inline: 0.25rem;
+  white-space: nowrap;
+}
+
+:global([dir='rtl']) .reportsFilterPageBtn svg {
+  transform: scaleX(-1);
+}
+
+/* Pagination */
+.reportsPagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.reportsPageBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.4375rem 0.75rem;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  color: var(--foreground);
+  font-size: 0.8125rem;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.reportsPageBtn:hover:not(:disabled) {
+  background: var(--muted);
+}
+
+.reportsPageBtn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.reportsPageInfo {
+  font-size: 0.8125rem;
+  color: var(--muted-foreground);
+}
+
+:global([dir='rtl']) .reportsPageBtn svg {
+  transform: scaleX(-1);
+}
+
+/* Report status pill — interactive (select) variant + PENDING spinner */
+.reportStatus.pending {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  background: color-mix(in srgb, var(--primary) 15%, transparent);
+  color: var(--primary);
+  padding: 0.1875rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+/*
+ * Status pill wraps an invisible <select> with a sibling chevron icon.
+ * Avoids the dual-gradient/native-arrow collision the previous CSS-only
+ * approach had on some browsers.
+ */
+.reportStatusWrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--card);
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1;
+  color: var(--foreground);
+}
+
+.reportStatusWrap.draft {
+  color: #6b7280;
+}
+
+.reportStatusWrap.sent {
+  color: #16a34a;
+}
+
+.reportStatusWrap.error {
+  color: #dc2626;
+}
+
+.reportStatusSelect {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  /* Balance the start-padding against the chevron's reserved space so the
+     text and the caret look equidistant from their respective edges. */
+  padding: 0.3125rem 0.5rem;
+  padding-inline-end: 1.375rem;
+  border-radius: 999px;
+}
+
+.reportStatusSelect::-ms-expand {
+  display: none;
+}
+
+.reportStatusSelect:focus {
+  outline: 2px solid color-mix(in srgb, var(--primary) 35%, transparent);
+  outline-offset: 1px;
+}
+
+.reportStatusCaret {
+  /*
+   * Vertical centering done via flex on the wrap (parent has
+   * `align-items: center`), not via `transform: translateY(-50%)` —
+   * the global RTL chevron auto-flip in globals.css applies
+   * `transform: scaleX(-1)` to all chevron icons and would clobber
+   * a translate Y, pushing the caret down by half its height.
+   * Using `top: 50%` + flex-aligned height keeps it centered no
+   * matter what the global chevron rule does.
+   */
+  position: absolute;
+  inset-inline-end: 0.4375rem;
+  top: calc(50% - 6px);
+  pointer-events: none;
+  opacity: 0.7;
+}
+
+.reportRecipients {
+  font-size: 0.8125rem;
+  color: var(--foreground);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 220px;
+  display: inline-block;
+}
+
+.reportRecipientsEmpty {
+  color: var(--muted-foreground);
+  font-size: 0.8125rem;
+  font-style: italic;
+}
+
+/* The whole recipients cell is a button so users can click anywhere on
+   it to edit. Underline-on-hover is the affordance — at rest it looks
+   like plain text so the table doesn't read as a row of buttons. */
+.reportRecipientsBtn {
+  background: transparent;
+  border: 0;
+  padding: 0.125rem 0.25rem;
+  margin: -0.125rem -0.25rem;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  text-align: inherit;
+  font: inherit;
+  color: inherit;
+  max-width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: background var(--transition-fast);
+}
+
+.reportRecipientsBtn:hover:not(:disabled) {
+  background: var(--muted);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.reportRecipientsBtn:disabled {
+  cursor: not-allowed;
+  text-decoration: none;
+}
+
+/* Sections column — small text with truncation, mirrors recipients style. */
+.reportSectionsCell {
+  font-size: 0.8125rem;
+  color: var(--foreground);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 220px;
+  display: inline-block;
+}
+
+.reportMonthCell {
+  font-size: 0.8125rem;
+  color: var(--foreground);
+}
+
+/* Created column — date on top, time muted underneath. The time is
+   always rendered LTR so HH:MM stays readable next to a Hebrew date. */
+.reportGeneratedCell {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  font-size: 0.8125rem;
+  color: var(--foreground);
+}
+
+.reportGeneratedTime {
+  font-size: 0.6875rem;
+  color: var(--muted-foreground);
+  direction: ltr;
+}
+
+/* Comparison cell — two month labels with a compare icon between
+   them. inline-flex so the icon stays vertically centered with the
+   labels and the gap is consistent. */
+.reportMonthCompare {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-size: 0.8125rem;
+  color: var(--foreground);
+  white-space: nowrap;
+}
+
+.reportMonthCompareIcon {
+  color: var(--muted-foreground);
+  flex-shrink: 0;
+}
+
+/* Languages cell — small uppercase locale chips (EN, HE) clustered
+   together so the user immediately sees what languages exist. */
+.reportLanguagesCell {
+  display: inline-flex !important;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  align-items: center;
+  white-space: normal !important;
+}
+
+.reportLanguageChip {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.125rem 0.4375rem;
+  background: color-mix(in srgb, var(--primary) 15%, transparent);
+  color: var(--primary);
+  border-radius: 999px;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+/* Delete button — ghost style by default, tints red on hover so the
+   destructive action is signaled without dominating the row at rest. */
+.reportActionDanger:hover:not(:disabled),
+.reportActionDanger:focus-visible:not(:disabled) {
+  color: #dc2626 !important;
+  background: color-mix(in srgb, #dc2626 12%, transparent) !important;
+}
+
+/*
+ * Reports table override.
+ *
+ * The shared `.tableRow` rule in dashboard/components/shared.module.css
+ * sets `border: 1px solid border-light` plus a `border-color: primary`
+ * on hover. With the table container's overflow:hidden + border-radius,
+ * those borders get clipped at the rounded corners and the row reads
+ * as a broken pill on hover — both for thead and tbody rows.
+ *
+ * Because `tableRow` lives in a different CSS module its class name is
+ * hashed (e.g. `shared-module_tableRow__abc123`) by the time it hits
+ * the DOM, so `:global(.tableRow)` doesn't match. We use an attribute
+ * substring match (`[class*="tableRow"]`) which lands on the hashed
+ * class regardless of the build hash.
+ *
+ * After zeroing the borders we add back a bottom-divider for non-last
+ * body rows so the table still reads as a list.
+ */
+.reportsTable [class*="tableRow"],
+.reportsTable [class*="tableRow"]:hover {
+  border: 0 !important;
+}
+
+.reportsTable [class*="tableBody"] [class*="tableRow"]:not(:last-child) {
+  border-bottom: 1px solid var(--border) !important;
+}
+
+/*
+ * Force fixed layout so the per-column `width: 20%` props on the
+ * column definitions are honored. With the default auto layout the
+ * browser sizes columns to their content, which produced the uneven
+ * distribution the user pointed out.
+ */
+.reportsTable table {
+  table-layout: fixed;
+  width: 100%;
+}
+
+/* Actions column aligns to start in both LTR and RTL — the header
+   sits on the same side as every other header (right in RTL), and
+   the action toolbar matches by pinning to flex-start. */
+.reportActions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  justify-content: flex-start;
+}
+
+.spinningIcon {
+  animation: spin 0.9s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }
 
 /* Recent Reports - Dark Mode */
@@ -4284,12 +5018,6 @@
       color: #f87171;
     }
   }
-}
-
-.reportActions {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
 }
 
 .reportLink,
@@ -4502,5 +5230,85 @@
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
+}
+
+/*
+ * Report-section chooser — one row per section with a checkbox, a label
+ * and a pair of ↑/↓ controls on the side. Disabled rows get a muted
+ * look so the user can still see them and re-enable, but it's obvious
+ * which ones won't be in the next export.
+ */
+.reportSectionsList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.reportSectionRow {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem 0.65rem;
+  background: var(--background);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  transition: border-color var(--transition-fast), background var(--transition-fast);
+}
+
+.reportSectionRow:hover {
+  border-color: var(--primary);
+  background: rgba(123, 44, 191, 0.04);
+}
+
+.reportSectionRowDisabled {
+  opacity: 0.55;
+}
+
+.reportSectionControls {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  flex-shrink: 0;
+}
+
+.reportSectionBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-sm);
+  background: var(--muted);
+  color: var(--muted-foreground);
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: background var(--transition-fast), color var(--transition-fast), border-color var(--transition-fast);
+}
+
+.reportSectionBtn:hover:not(:disabled) {
+  background: rgba(123, 44, 191, 0.1);
+  color: var(--primary);
+  border-color: rgba(123, 44, 191, 0.3);
+}
+
+.reportSectionBtn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+:global(html.dark) .reportSectionRow {
+  background: rgba(255, 255, 255, 0.03);
+  border-color: rgba(123, 44, 191, 0.2);
+}
+
+:global(html.dark) .reportSectionRow:hover {
+  background: rgba(123, 44, 191, 0.12);
+}
+
+:global(html.dark) .reportSectionBtn {
+  background: rgba(255, 255, 255, 0.05);
 }
 

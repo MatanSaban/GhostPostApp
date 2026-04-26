@@ -1,6 +1,6 @@
-# Ghost Post Platform - Complete System Documentation
+# GhostSEO Platform - Complete System Documentation
 
-> **Single-document reference** for the entire Ghost Post platform: architecture, data models, permissions, subscriptions, AI infrastructure, every page & feature, plugin system, background jobs, API routes, and workflows.
+> **Single-document reference** for the entire GhostSEO platform: architecture, data models, permissions, subscriptions, AI infrastructure, every page & feature, plugin system, background jobs, API routes, and workflows.
 
 ---
 
@@ -53,7 +53,7 @@
 
 ## 1. Platform Overview & Vision
 
-**Ghost Post** is an AI-powered SEO automation platform for managing websites and content. It allows businesses to manage multiple sites, generate content intelligently, track keywords, analyze competitors, and perform SEO audits - all driven by artificial intelligence.
+**GhostSEO** is an AI-powered SEO automation platform for managing websites and content. It allows businesses to manage multiple sites, generate content intelligently, track keywords, analyze competitors, and perform SEO audits - all driven by artificial intelligence.
 
 ### Product Vision
 
@@ -1331,7 +1331,7 @@ A **7-step progressive registration** process with a visual stepper UI:
 Sidebar + header layout:
 
 #### Top Header Bar
-- **Logo & Branding** - Ghost Post logo/icon
+- **Logo & Branding** - GhostSEO logo/icon
 - **Site Selector Dropdown** - Switch between connected websites (multi-site support)
 - **Breadcrumb Navigation** - Shows current section path
 - **Global Search Bar** - Quick search across the platform
@@ -2452,7 +2452,7 @@ model BacklinkPurchase {
 ```
 
 #### Publisher Types
-- **PLATFORM**: Listings created by Ghost Post admins (curated marketplace)
+- **PLATFORM**: Listings created by GhostSEO admins (curated marketplace)
 - **USER**: Listings created by users from their own connected sites (peer-to-peer marketplace)
 
 #### Payment Methods
@@ -2618,7 +2618,7 @@ Split into **Website Settings** (per-site) and **Account Settings** (per-account
 
 ## 24. WordPress Plugin System
 
-The Ghost Post platform integrates with WordPress via a **custom plugin that is dynamically generated per-site**. Each downloaded plugin ZIP is unique - it contains site-specific credentials (Site ID, Site Key, Site Secret) baked directly into the code. The plugin enables bidirectional communication: the platform pushes content to WordPress, and WordPress pushes real-time entity/redirect changes back to the platform.
+The GhostSEO platform integrates with WordPress via a **custom plugin that is dynamically generated per-site**. Each downloaded plugin ZIP is unique - it contains site-specific credentials (Site ID, Site Key, Site Secret) baked directly into the code. The plugin enables bidirectional communication: the platform pushes content to WordPress, and WordPress pushes real-time entity/redirect changes back to the platform.
 
 ### 24a. Plugin Architecture Overview
 
@@ -2636,7 +2636,7 @@ The Ghost Post platform integrates with WordPress via a **custom plugin that is 
 | `GP_ACF_Manager` | `class-gp-acf-manager.php` | Advanced Custom Fields read/write - detects ACF, reads field groups and values |
 | `GP_Entity_Sync` | `class-gp-entity-sync.php` | Real-time webhook push on post create/update/trash/delete to platform |
 | `GP_Redirections_Manager` | `class-gp-redirections-manager.php` | Native redirect management + 3rd-party plugin detection and import |
-| `GP_Updater` | `class-gp-updater.php` | WordPress-native auto-update checking against the Ghost Post platform |
+| `GP_Updater` | `class-gp-updater.php` | WordPress-native auto-update checking against the GhostSEO platform |
 | `GP_I18n` | `class-gp-i18n.php` | Internationalization - English + Hebrew (RTL) without .po/.mo files |
 
 ### 24b. Dynamic Plugin Generation (Per-Site)
@@ -2750,7 +2750,7 @@ ghost-post-connector/
 // ghost-post-connector.php (main entry point)
 
 // Plugin Header
-Plugin Name: Ghost Post Connector
+Plugin Name: GhostSEO Connector
 Plugin URI: https://ghostpost.co.il
 Version: 2.4.9
 Requires at least: 5.6
@@ -3604,7 +3604,7 @@ Status: READY_TO_PUBLISH → PUBLISHED
 
 ## Summary
 
-**Ghost Post Platform** is a comprehensive AI-powered SEO and content management system combining:
+**GhostSEO Platform** is a comprehensive AI-powered SEO and content management system combining:
 
 1. **Modern Architecture** - Next.js 15, React 19, MongoDB, Prisma
 2. **Advanced AI** - Gemini 2.0 with function calling and structured output

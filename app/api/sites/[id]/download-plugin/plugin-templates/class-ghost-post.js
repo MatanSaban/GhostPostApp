@@ -4,7 +4,7 @@
 export function getClassGhostPost() {
   return `<?php
 /**
- * Main Ghost Post class
+ * Main GhostSEO class
  */
 
 if (!defined('ABSPATH')) {
@@ -123,7 +123,7 @@ class Ghost_Post {
         
         // Top-level menu
         add_menu_page(
-            __('Ghost Post Connector', 'ghost-post-connector'),
+            __('GhostSEO Connector', 'ghost-post-connector'),
             'GhostPost',
             'manage_options',
             'ghost-post-connector',
@@ -259,7 +259,7 @@ class Ghost_Post {
                 'disconnected'        => __('Disconnected successfully.', 'ghost-post-connector'),
                 'disconnect_failed'   => __('Disconnect failed:', 'ghost-post-connector'),
                 'disconnect_error'    => __('Disconnect failed. Please try again.', 'ghost-post-connector'),
-                'confirm_disconnect'  => __('Are you sure you want to disconnect from Ghost Post? You can reconnect later by downloading a new plugin.', 'ghost-post-connector'),
+                'confirm_disconnect'  => __('Are you sure you want to disconnect from GhostSEO? You can reconnect later by downloading a new plugin.', 'ghost-post-connector'),
                 'checking'            => __('Checking...', 'ghost-post-connector'),
                 'check_updates'       => __('Check for Updates', 'ghost-post-connector'),
                 'update_available'    => __('Update available! Version', 'ghost-post-connector'),
@@ -723,7 +723,7 @@ class Ghost_Post {
     }
     
     /**
-     * Verify connection with Ghost Post platform
+     * Verify connection with GhostSEO platform
      */
     public function verify_connection() {
         $timestamp = time();
@@ -774,7 +774,7 @@ class Ghost_Post {
     }
     
     /**
-     * Notify Ghost Post about disconnection
+     * Notify GhostSEO about disconnection
      */
     public function notify_disconnection() {
         $timestamp = time();
@@ -798,7 +798,7 @@ class Ghost_Post {
     }
     
     /**
-     * Send ping to Ghost Post
+     * Send ping to GhostSEO
      */
     public function send_ping() {
         $timestamp = time();

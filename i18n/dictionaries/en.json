@@ -1,23 +1,23 @@
 {
   "brand": {
-    "name": "Ghost Post",
+    "name": "GhostSEO",
     "initial": "G"
   },
   "meta": {
     "default": {
-      "title": "Ghost Post — AI-Powered SEO Automation",
-      "description": "Automate your SEO strategy with Ghost Post. AI-powered content creation, optimization, and site management."
+      "title": "GhostSEO — AI-Powered SEO Automation",
+      "description": "Automate your SEO strategy with GhostSEO. AI-powered content creation, optimization, and site management."
     },
     "home": {
-      "title": "Ghost Post — AI-Powered SEO Automation",
+      "title": "GhostSEO — AI-Powered SEO Automation",
       "description": "Let intelligent agents handle your content strategy while you focus on growth."
     },
     "auth": {
-      "index": { "title": "Authentication", "description": "Sign in or create an account for Ghost Post." },
-      "login": { "title": "Sign In", "description": "Sign in to your Ghost Post account." },
-      "register": { "title": "Create Account", "description": "Create your Ghost Post account and start automating SEO." },
-      "thankYou": { "title": "Thanks for Signing Up", "description": "Your Ghost Post account is being prepared." },
-      "acceptInvite": { "title": "Accept Invitation", "description": "Accept your invitation to join an account on Ghost Post." }
+      "index": { "title": "Authentication", "description": "Sign in or create an account for GhostSEO." },
+      "login": { "title": "Sign In", "description": "Sign in to your GhostSEO account." },
+      "register": { "title": "Create Account", "description": "Create your GhostSEO account and start automating SEO." },
+      "thankYou": { "title": "Thanks for Signing Up", "description": "Your GhostSEO account is being prepared." },
+      "acceptInvite": { "title": "Accept Invitation", "description": "Accept your invitation to join an account on GhostSEO." }
     },
     "dashboard": {
       "home": { "title": "Dashboard", "description": "Overview of your sites, content pipeline, and SEO performance." },
@@ -50,7 +50,7 @@
       "seoBackend": { "title": "Backend SEO", "description": "Optimize backend SEO settings and integrations." },
       "backlinks": { "title": "Backlinks Marketplace", "description": "Discover and acquire high-quality backlinks." },
       "linkBuilding": { "title": "Link Building", "description": "Plan and track link-building campaigns." },
-      "myWebsites": { "title": "My Websites", "description": "Manage every site connected to your Ghost Post account." },
+      "myWebsites": { "title": "My Websites", "description": "Manage every site connected to your GhostSEO account." },
       "notifications": { "title": "Notifications", "description": "Review notifications and platform alerts." },
       "settings": { "title": "Settings", "description": "Account, team, billing, and platform settings." },
       "support": {
@@ -60,7 +60,7 @@
         "detail": { "title": "Support Ticket", "description": "View and reply to a support ticket." }
       },
       "visualEditor": { "title": "Visual Editor", "description": "Edit pages visually on your connected site." },
-      "restoreAccount": { "title": "Restore Account", "description": "Restore an archived Ghost Post account." }
+      "restoreAccount": { "title": "Restore Account", "description": "Restore an archived GhostSEO account." }
     },
     "admin": {
       "home": { "title": "Admin Overview", "description": "Platform-wide admin overview and metrics." },
@@ -98,7 +98,7 @@
   "homepage": {
     "taglineHighlight": "AI-Powered SEO Automation",
     "taglineText": "for modern businesses. Let our intelligent agents handle your content strategy while you focus on growth.",
-    "copyright": "© 2026 Ghost Post."
+    "copyright": "© 2026 GhostSEO."
   },
   "theme": {
     "switchToLight": "Switch to light mode",
@@ -122,6 +122,10 @@
     "back": "Back",
     "next": "Next",
     "previous": "Previous",
+    "pageOf": "Page {current} of {total}",
+    "moveUp": "Move up",
+    "moveDown": "Move down",
+    "download": "Download",
     "submit": "Submit",
     "confirm": "Confirm",
     "close": "Close",
@@ -408,9 +412,9 @@
     "signUpNow": "Sign up now",
     "loginNow": "Log in now",
     "systemAccess": "System Access",
-    "connectWorkspace": "Connect to your Ghost Post workspace",
+    "connectWorkspace": "Connect to your GhostSEO workspace",
     "createAccount": "Create Account",
-    "joinGhostPost": "Join Ghost Post and automate your SEO",
+    "joinGhostPost": "Join GhostSEO and automate your SEO",
     "fullName": "Full Name",
     "connect": "Connect",
     "orContinueWith": "Or continue with",
@@ -418,7 +422,7 @@
     "termsOfService": "Terms of Service",
     "privacyPolicy": "Privacy Policy",
     "createOne": "Create one",
-    "welcomeGhostPost": "Welcome to Ghost Post!",
+    "welcomeGhostPost": "Welcome to GhostSEO!",
     "accountCreatedSuccess": "Your account has been created successfully. You're now ready to start automating your SEO and content strategy with our AI-powered platform.",
     "emailPlaceholder": "Enter your email",
     "passwordPlaceholder": "Enter your password",
@@ -509,7 +513,7 @@
   },
   "websiteAdmin": {
     "title": "Website Content",
-    "subtitle": "Manage Ghost Post marketing website content and SEO",
+    "subtitle": "Manage GhostSEO marketing website content and SEO",
     "visitWebsite": "Visit Website",
     "sections": {
       "pages": {
@@ -1168,8 +1172,8 @@
       "labelWithCredits": "AI Fix · {credits} credits",
       "title": "Fix this issue with AI",
       "pluginRequired": "WordPress Plugin Required",
-      "pluginDescription": "To automatically fix issues on your website, you need to connect the Ghost Post plugin to your WordPress site. The plugin allows Ghost Post to safely apply changes directly to your pages.",
-      "step1": "Download the Ghost Post plugin below",
+      "pluginDescription": "To automatically fix issues on your website, you need to connect the GhostSEO plugin to your WordPress site. The plugin allows GhostSEO to safely apply changes directly to your pages.",
+      "step1": "Download the GhostSEO plugin below",
       "step2": "In WordPress, go to Plugins → Add New → Upload Plugin",
       "step3": "Upload the ZIP file and click \"Install Now\"",
       "step4": "Activate the plugin - it will connect automatically",
@@ -1301,7 +1305,7 @@
     },
     "syncRequired": {
       "title": "Content Sync Required",
-      "description": "To apply AI fixes, Ghost Post needs your site’s content structure. Please populate your entities (pages, posts) first.",
+      "description": "To apply AI fixes, GhostSEO needs your site’s content structure. Please populate your entities (pages, posts) first.",
       "step1": "Go to the Entities page",
       "step2": "Discover your content types and click “Save & Populate”",
       "step3": "Come back here and apply the AI fixes",
@@ -1337,7 +1341,7 @@
       "fixAll": "Enable All Security Headers",
       "fixing": "Enabling headers...",
       "successTitle": "Security headers enabled!",
-      "successHint": "Re-run the audit to verify. Headers are sent on every page load via the Ghost Post plugin.",
+      "successHint": "Re-run the audit to verify. Headers are sent on every page load via the GhostSEO plugin.",
       "hsts": "Strict-Transport-Security (HSTS)",
       "hstsDesc": "Forces browsers to only access your site over HTTPS, preventing downgrade attacks and cookie hijacking.",
       "xframe": "X-Frame-Options",
@@ -1354,7 +1358,7 @@
       "learnMoreTitle": "What are security headers?",
       "fixOne": "Enable",
       "fixed": "Enabled",
-      "pluginUpdateRequired": "Plugin update required - please re-download and install the Ghost Post plugin to enable this feature.",
+      "pluginUpdateRequired": "Plugin update required - please re-download and install the GhostSEO plugin to enable this feature.",
       "pluginNotConnected": "The WordPress plugin is not connected. Please check your site connection.",
       "fixFailed": "Failed to enable security headers. Please try again."
     }
@@ -1496,7 +1500,7 @@
     "untitled": "Untitled",
     "wpConnection": {
       "title": "WordPress Plugin Not Connected",
-      "description": "The content planner requires a connected WordPress site with the Ghost Post plugin installed. Once connected, your posts will appear on the calendar and in the list view.",
+      "description": "The content planner requires a connected WordPress site with the GhostSEO plugin installed. Once connected, your posts will appear on the calendar and in the list view.",
       "hint": "Go to Settings to download the plugin and connect your WordPress site.",
       "dismiss": "Dismiss",
       "goToSettings": "Go to Settings"
@@ -1736,6 +1740,20 @@
       "hard": "Hard"
     },
     "generatePost": "Generate AI Post",
+    "linkExisting": "Link existing page",
+    "unlinkExisting": "Unlink",
+    "linkModal": {
+      "title": "Link an existing entity",
+      "subtitle": "Choose an existing page, post, or other entity from your site to link this keyword to.",
+      "search": "Search entities by title or URL…",
+      "empty": "No entities match your search.",
+      "emptySite": "No entities have been populated for this site yet.",
+      "allTypes": "All types",
+      "loading": "Loading entities…",
+      "link": "Link",
+      "cancel": "Cancel",
+      "keyword": "Keyword"
+    },
     "tooltips": {
       "keyword": "The keyword you are tracking",
       "position": "Average position in Google results for the selected period",
@@ -1865,7 +1883,7 @@
     },
     "pluginStep": {
       "title": "Connect WordPress Plugin",
-      "description": "Install the Ghost Post plugin on your WordPress site to publish content directly from here. It takes just a minute!",
+      "description": "Install the GhostSEO plugin on your WordPress site to publish content directly from here. It takes just a minute!",
       "benefit1": "Publish articles directly to your WordPress site",
       "benefit2": "Automatic SEO meta tags and featured images",
       "benefit3": "Sync and manage all content from one place",
@@ -2435,7 +2453,7 @@
       "a11yLandmarkOneMain": "Add a single <main> element to wrap your page's primary content. If you have multiple <main> elements, consolidate them into one. Use <section> or <div> for other content areas."
     },
     "errors": {
-      "pluginUpdateRequired": "The WordPress plugin needs to be updated to support per-page noindex fixes. Please update the Ghost Post plugin on your WordPress site."
+      "pluginUpdateRequired": "The WordPress plugin needs to be updated to support per-page noindex fixes. Please update the GhostSEO plugin on your WordPress site."
     }
   },
   "entities": {
@@ -2627,7 +2645,7 @@
     "onboarding": {
       "connect": {
         "title": "Connect Your Website",
-        "description": "To import content from your WordPress site, install the Ghost Post plugin. It takes just a minute!",
+        "description": "To import content from your WordPress site, install the GhostSEO plugin. It takes just a minute!",
         "downloadPlugin": "Download Plugin",
         "viewInstructions": "View Instructions",
         "step1": "Download the plugin zip file",
@@ -2640,7 +2658,7 @@
         "scanWebsite": "Scan Website",
         "step1": "Click the scan button to analyze your website",
         "step2": "We'll detect available content types",
-        "step3": "Choose what to import to Ghost Post"
+        "step3": "Choose what to import to GhostSEO"
       },
       "sync": {
         "title": "Ready to Import!",
@@ -2732,7 +2750,7 @@
     },
     "plugin": {
       "title": "WordPress Plugin",
-      "description": "Install the Ghost Post Connect plugin to sync content from your WordPress site.",
+      "description": "Install the GhostSEO Connect plugin to sync content from your WordPress site.",
       "connectedDesc": "Plugin is active and syncing content",
       "notConnectedDesc": "Install the plugin for automatic content sync",
       "download": "Download Plugin",
@@ -2847,7 +2865,7 @@
     "importing": "Importing...",
     "importRedirects": "Import Redirects",
     "externalPluginDetected": "External Redirect Plugin Detected",
-    "externalPluginDescription": "{plugins} found on your WordPress site. Import existing redirects into Ghost Post and deactivate the external plugin.",
+    "externalPluginDescription": "{plugins} found on your WordPress site. Import existing redirects into GhostSEO and deactivate the external plugin.",
     "enable": "Enable",
     "disable": "Disable",
     "status": "Status",
@@ -3031,7 +3049,7 @@
     },
     "empty": {
       "title": "No websites yet",
-      "description": "Add your first website to get started with Ghost Post"
+      "description": "Add your first website to get started with GhostSEO"
     },
     "toast": {
       "renamed": "Website renamed successfully",
@@ -3205,9 +3223,9 @@
       "publishMode": "Publish Mode",
       "publishAuto": "Automatic",
       "publishManual": "Manual",
-      "publishAutoHint": "Backlink posts will be published automatically on your WordPress site via the Ghost Post plugin.",
+      "publishAutoHint": "Backlink posts will be published automatically on your WordPress site via the GhostSEO plugin.",
       "publishManualHint": "You can switch to automatic publishing since your site supports it.",
-      "publishManualOnly": "Manual only - connect the Ghost Post WordPress plugin to enable automatic publishing.",
+      "publishManualOnly": "Manual only - connect the GhostSEO WordPress plugin to enable automatic publishing.",
       "aiGenerating": "AI is generating..."
     },
     "bulk": {
@@ -3239,7 +3257,7 @@
   },
   "settings": {
     "title": "Settings",
-    "subtitle": "Configure your Ghost Post preferences and integrations",
+    "subtitle": "Configure your GhostSEO preferences and integrations",
     "mainTabs": {
       "website": "Current Website",
       "account": "Account"
@@ -3271,7 +3289,7 @@
     "systemTheme": "System Theme",
     "saveChanges": "Save Changes",
     "whiteLabelReporting": "White-Label Reporting",
-    "clientReporting": "Client Reporting",
+    "clientReporting": "Reports",
     "descriptions": {
       "general": "Configure basic website settings and preferences",
       "aiConfiguration": "Customize AI models and content generation settings",
@@ -3540,7 +3558,7 @@
       "gscSiteSaved": "Search Console site saved.",
       "active": "Active",
       "viaPlugin": "Via Plugin",
-      "wpManaged": "Managed through the Ghost Post WordPress plugin. Configure in the Connection tab.",
+      "wpManaged": "Managed through the GhostSEO WordPress plugin. Configure in the Connection tab.",
       "owner": "Owner",
       "fullAccess": "Full Access",
       "restricted": "Restricted",
@@ -3619,7 +3637,11 @@
         "accentColor": "Accent Color",
         "replyToEmail": "Reply-To Email",
         "replyToEmailPlaceholder": "reports@youragency.com",
-        "replyToEmailHint": "Clients will reply to this email when they receive reports"
+        "replyToEmailHint": "Clients will reply to this email when they receive reports",
+        "website": "Agency Website",
+        "websiteHint": "Shown under the agency name in report headers.",
+        "phone": "Phone",
+        "phoneHint": "Shown under the agency name in report headers."
       }
     },
     "clientReportingSection": {
@@ -3644,7 +3666,10 @@
         "recipientsPlaceholder": "client@example.com, partner@example.com",
         "recipientsHint": "Comma-separated list of email addresses",
         "deliveryMode": "Delivery Mode",
-        "includeInReport": "Include in Report"
+        "includeInReport": "Include in Report",
+        "sectionsHint": "Toggle sections on or off, and reorder them with the arrows to set how they appear in the PDF.",
+        "reportLanguage": "Report Language",
+        "reportLanguageHint": "Each exported report is rendered in this language, regardless of your dashboard language."
       },
       "deliveryModes": {
         "manual": "Manual Only",
@@ -3652,27 +3677,194 @@
         "weekly": "Weekly (Every Monday)"
       },
       "options": {
+        "overview": "Overview",
         "aiSummary": "AI Executive Summary",
         "healthScore": "Site Health Score & Progress",
+        "aiActions": "AI Actions Performed",
+        "keywords": "Keywords Performance",
+        "competitors": "Competitors",
+        "seo": "SEO Insights",
+        "geo": "Geographic Performance",
+        "siteAudits": "Site Audits",
         "actions": "AI Actions Performed"
+      },
+      "optionDescriptions": {
+        "overview": "Top-level summary cards showing tracked keywords, competitors, content pieces, and AI actions in the period.",
+        "aiSummary": "AI-generated executive summary written for the client, covering progress and outcomes during the period.",
+        "healthScore": "Current site health score with the delta versus the previous period and a category-by-category breakdown.",
+        "aiActions": "Table of automated actions executed by the AI agent during the period — date, type, and description.",
+        "keywords": "Top tracked keywords with their current rankings and search volumes.",
+        "competitors": "Active competitors being tracked for this site.",
+        "seo": "SEO insights including the audit score, category breakdown, writing style, and strategy preview.",
+        "geo": "Target locations and the content language configured for this site.",
+        "siteAudits": "History of recent site audits — date, score, and status — across the report period."
+      },
+      "sectionsModal": {
+        "title": "Report sections",
+        "empty": "This report has no sections recorded."
       },
       "generate": {
         "title": "Generate Report",
         "description": "Generate a PDF report for the current reporting period.",
         "button": "Generate Report Now",
-        "generating": "Generating..."
+        "generating": "Generating...",
+        "currentMonth": "Current month",
+        "previousMonth": "Compare to",
+        "noComparison": "No comparison",
+        "noDataHint": "This site has no audit or action history yet — a report will still generate using current data."
       },
       "recentReports": "Recent Reports",
-      "noReportsYet": "No reports generated yet. Generate your first report above.",
+      "reportsTitle": "Reports",
+      "reportsDescription": "Browse, download, and send the reports you've generated for this site.",
+      "noReportsYet": "No reports generated yet. Click \"Generate Report\" to create your first one.",
+      "noReportsMatch": "No reports match your filters.",
       "sendReport": "Send to recipients",
       "deleteReport": "Delete report",
-      "confirmDelete": "Are you sure you want to delete this report?",
+      "confirmDeleteTitle": "Delete report?",
+      "confirmDelete": "Are you sure you want to delete this report? This action cannot be undone.",
       "reportDeleted": "Report deleted successfully",
       "deleteError": "Failed to delete report",
+      "filters": {
+        "searchPlaceholder": "Search by month or recipient",
+        "allStatuses": "All statuses",
+        "allYears": "All years",
+        "allLanguages": "All languages"
+      },
+      "actionTypes": {
+        "update_meta": "Meta Optimization",
+        "add_internal_link": "Internal Linking",
+        "fix_broken_link": "Link Repair",
+        "optimize_image": "Image Optimization",
+        "fix_heading_structure": "Heading Structure",
+        "add_schema_markup": "Schema Markup",
+        "improve_content": "Content Enhancement",
+        "fix_accessibility": "Accessibility Fix",
+        "default": "SEO Improvement"
+      },
+      "wizard": {
+        "title": "Generate Report",
+        "step1Title": "Sections & language",
+        "step2Title": "Comparison period",
+        "step3Title": "Recipients",
+        "language": "Report language",
+        "sections": "Included sections",
+        "atLeastOneSection": "Select at least one section.",
+        "periodHelp": "Pick which months to compare. Only months with audit or action data are shown.",
+        "noPeriodsHint": "No historical data yet — the report will use current data only.",
+        "currentMonth": "Current month",
+        "previousMonth": "Compare to",
+        "noComparison": "No comparison",
+        "recipientsHelp": "Optional. Add comma-separated emails to enable sending the PDF after generation.",
+        "recipients": "Recipient emails",
+        "recipientsHint": "We'll save these as defaults for next time.",
+        "recipientsPlaceholder": "client@example.com, team@example.com",
+        "generate": "Generate report",
+        "generating": "Generating...",
+        "generateError": "Failed to generate report",
+        "taskTitle": "Generating report",
+        "taskRunning": "Generating report PDF...",
+        "taskComplete": "Report is ready.",
+        "taskError": "Report generation failed."
+      },
+      "reportStarted": "Report is being generated. We'll notify you when it's ready.",
+      "previewReport": "Preview",
+      "changeStatus": "Change status",
+      "noRecipientsLabel": "No recipients",
+      "columns": {
+        "month": "Month",
+        "recipients": "Recipients",
+        "generated": "Generated",
+        "sections": "Sections",
+        "languages": "Languages"
+      },
+      "languagesModal": {
+        "title": "Report languages",
+        "description": "Pick the languages this report should be generated in. Already-generated languages are checked.",
+        "alreadyGenerated": "Already generated",
+        "generate": "Generate selected",
+        "queued": "Generation started for the selected languages."
+      },
+      "languagePicker": {
+        "titlePreview": "Pick language to preview",
+        "titleDownload": "Pick language to download",
+        "description": "This report exists in multiple languages. Pick which one to open:",
+        "noPdf": "No PDF yet"
+      },
+      "recipientsModal": {
+        "titleEdit": "Recipients",
+        "titleSend": "Send report",
+        "descriptionEdit": "Add, edit, or remove recipient emails for this report.",
+        "descriptionSend": "Add recipients and pick the language to send the report in. The recipients will be saved to this report.",
+        "recipients": "Recipients",
+        "placeholder": "name@example.com",
+        "hint": "Press Enter, comma, or paste a list to add multiple at once.",
+        "emailLanguage": "Language",
+        "emailLanguageHint": "The PDF and the email body will be sent in the selected language.",
+        "save": "Save",
+        "saveAndSend": "Save & send",
+        "invalidEmail": "Please enter a valid email address.",
+        "duplicate": "That email is already in the list.",
+        "noRecipientsError": "Add at least one recipient."
+      },
+      "preview": {
+        "title": "Report Preview",
+        "reportHeaderTitle": "SEO Performance Report",
+        "regenerating": "Regenerating PDF — preview will refresh when ready.",
+        "noSnapshotTitle": "Limited preview available",
+        "noSnapshotBody": "This report was generated before in-platform previews were supported, or its data snapshot is missing. Regenerate it to see the full preview here.",
+        "editSections": "Edit sections",
+        "addSection": "Add section",
+        "saveAndRegenerate": "Save & regenerate",
+        "unsavedChanges": "You have unsaved changes",
+        "noChanges": "No changes yet",
+        "auditStatuses": {
+          "pending": "Pending",
+          "running": "Running",
+          "completed": "Completed",
+          "failed": "Failed"
+        },
+        "noAiSummary": "No AI summary yet.",
+        "editSummary": "Edit summary",
+        "regeneratePdf": "Regenerate PDF",
+        "regenerateSummary": "Regenerate summary",
+        "overviewKeywords": "Tracked Keywords",
+        "overviewCompetitors": "Tracked Competitors",
+        "overviewContent": "Content Pieces",
+        "overviewActions": "AI Actions in Period",
+        "healthScore": "Health Score",
+        "pointsVs": "points vs previous",
+        "previousScore": "Previous score:",
+        "firstAudit": "First audit for this period",
+        "actionDescription": "Description",
+        "noActions": "No automated actions in this period.",
+        "noKeywords": "No keywords tracked.",
+        "noCompetitors": "No competitors tracked.",
+        "noAudits": "No audits in this period.",
+        "noTargetLocations": "No target locations configured.",
+        "keyword": "Keyword",
+        "position": "Position",
+        "volume": "Volume",
+        "competitor": "Competitor",
+        "score": "Score",
+        "writingStyle": "Writing style",
+        "seoStrategy": "Strategy",
+        "seoEmpty": "No SEO insights recorded yet.",
+        "businessCategory": "Category",
+        "businessAbout": "About",
+        "contentLanguage": "Content language",
+        "targetLocations": "Target locations",
+        "categories": {
+          "technical": "Technical",
+          "performance": "Performance",
+          "visual": "Visual",
+          "accessibility": "Accessibility"
+        }
+      },
       "statuses": {
         "draft": "Draft",
         "sent": "Sent",
-        "error": "Error"
+        "error": "Error",
+        "pending": "Generating"
       }
     },
     "usersSection": {
@@ -3753,6 +3945,7 @@
       "perMonth": "per month",
       "perYear": "per year",
       "cancelsAtPeriodEnd": "Cancels at period end",
+      "changePlan": "Change plan",
       "usageLimits": "Usage & Limits",
       "planFeatures": "Plan Features",
       "unlimited": "Unlimited",
@@ -3893,7 +4086,7 @@
     },
     "addonsSection": {
       "title": "Available Add-ons",
-      "description": "Enhance your Ghost Post experience with additional features and capabilities.",
+      "description": "Enhance your GhostSEO experience with additional features and capabilities.",
       "installed": "Installed",
       "install": "Install",
       "purchased": "Purchased",
@@ -3906,6 +4099,8 @@
       "alreadyPurchased": "You have already purchased this add-on",
       "alreadyPurchasedCount": "You have purchased this add-on {count} times",
       "addonFallback": "Add-on",
+      "planCapUsage": "{used} / {max} via add-ons on your plan",
+      "planCapReached": "You've reached the plan's add-on limit for this type",
       "errors": {
         "noSubscription": "No active subscription",
         "maxSeatsReached": "Your plan allows a maximum of {max} additional seats via add-ons. You have {current}.",
@@ -4193,6 +4388,14 @@
       "title": "Site Audit Failed",
       "message": "Audit for {siteName} encountered an error"
     },
+    "reportComplete": {
+      "title": "Report ready",
+      "message": "{siteName} — {month} report is ready"
+    },
+    "reportFailed": {
+      "title": "Report generation failed",
+      "message": "Couldn't finish the report for {siteName}"
+    },
     "entitySync": {
       "title": "Entity Sync Complete",
       "message": "{siteName}: {created} new, {updated} updated items synced"
@@ -4250,7 +4453,7 @@
       "connectWordPress": "Connect WordPress",
       "close": "Close",
       "commonErrors": {
-        "rest_no_route": "The Ghost Post plugin endpoint was not found. Please make sure the Ghost Post WordPress plugin is installed and activated.",
+        "rest_no_route": "The GhostSEO plugin endpoint was not found. Please make sure the GhostSEO WordPress plugin is installed and activated.",
         "connection_refused": "Could not connect to your WordPress site. Please check that your site is accessible.",
         "timeout": "The request timed out. Your server may be slow or overloaded.",
         "unauthorized": "Authentication failed. Please reconnect your WordPress site."
@@ -4463,7 +4666,7 @@
       "create": "Add Website",
       "creating": "Adding...",
       "aiSuggest": "Suggest with AI",
-      "nonWordPressWarning": "Ghost Post currently supports WordPress websites only. You can still add this site, but content syncing features won't be available.",
+      "nonWordPressWarning": "GhostSEO currently supports WordPress websites only. You can still add this site, but content syncing features won't be available.",
       "languagePickerLabel": "Detected {count} language versions of this site",
       "languagePickerHint": "Each language will be set up as a separate site. Pick the one to add now.",
       "languageDefaultBadge": "Default",
@@ -4695,7 +4898,7 @@
         "wp_reply_comment": "Replying to a comment",
         "wp_delete_comment": "Removing a comment",
         "wp_update_options": "Updating site settings",
-        "wp_self_update_plugin": "Updating the Ghost Post plugin",
+        "wp_self_update_plugin": "Updating the GhostSEO plugin",
         "wp_rest_api": "Calling the WordPress REST API",
         "wp_upload_media": "Uploading media",
         "wp_update_media": "Updating media metadata",
@@ -4741,7 +4944,7 @@
       "error": {
         "title": "Couldn't load the site preview",
         "cannotConnect": "The browser couldn't reach {url}.",
-        "bridgeMissing": "The site loaded, but the Ghost Post Connector bridge didn't respond. Make sure the plugin is installed and updated to the latest version, then reload.",
+        "bridgeMissing": "The site loaded, but the GhostSEO Connector bridge didn't respond. Make sure the plugin is installed and updated to the latest version, then reload.",
         "retry": "Try again",
         "openDirectly": "Open site directly"
       },
@@ -4797,9 +5000,9 @@
     "generateContent": "Create Campaign",
     "wpRequired": {
       "title": "WordPress Connection Required",
-      "description": "Connect your WordPress site with the Ghost Post plugin to use the AI Content Wizard.",
-      "notWordpress": "The AI Content Wizard requires a WordPress website with the Ghost Post plugin installed.",
-      "notConnected": "Your WordPress site needs to be connected via the Ghost Post plugin."
+      "description": "Connect your WordPress site with the GhostSEO plugin to use the AI Content Wizard.",
+      "notWordpress": "The AI Content Wizard requires a WordPress website with the GhostSEO plugin installed.",
+      "notConnected": "Your WordPress site needs to be connected via the GhostSEO plugin."
     },
     "steps": {
       "campaign": "Campaign",
@@ -5159,11 +5362,11 @@
       "skipText": "Skip \u2014 I'll set this up later in Settings"
     },
     "wordpressPlugin": {
-      "title": "Install Ghost Post WordPress Plugin",
+      "title": "Install GhostSEO WordPress Plugin",
       "description": "Install our WordPress plugin to enable automatic article publishing directly to your website.",
       "benefit1": "Automatic article publishing to WordPress",
       "benefit2": "Built-in SEO optimization",
-      "benefit3": "Manage content directly from Ghost Post",
+      "benefit3": "Manage content directly from GhostSEO",
       "downloadButton": "Download Plugin",
       "connected": "WordPress plugin connected successfully!",
       "waitingForConnection": "Waiting for plugin connection... Install and activate the plugin in WordPress.",
@@ -5471,7 +5674,7 @@
     },
     "accountSetup": {
       "title": "Set Up Your Organization",
-      "description": "Create your organization to get started with Ghost Post.",
+      "description": "Create your organization to get started with GhostSEO.",
       "nameLabel": "Organization Name",
       "namePlaceholder": "Enter your organization name",
       "slugLabel": "Organization URL",
@@ -5769,7 +5972,7 @@
     },
     "success": {
       "successTitle": "Payment Successful!",
-      "successMessage": "Welcome to Ghost Post! Your account is now active and ready to use.",
+      "successMessage": "Welcome to GhostSEO! Your account is now active and ready to use.",
       "yourPlan": "Your Plan",
       "goToDashboard": "Go to Dashboard"
     },
@@ -7807,7 +8010,8 @@
     "manageSubscription": "Manage Subscription",
     "noPlans": "No plans available",
     "upgradedTo": "Upgraded to",
-    "downgradedTo": "Downgraded to"
+    "downgradedTo": "Downgraded to",
+    "unlimited": "Unlimited"
   },
   "downgrade": {
     "title": "Downgrade Plan",
@@ -8473,7 +8677,7 @@
     },
     "access": {
       "title": "Support access codes",
-      "subtitle": "Generate a one-time code that lets a Ghost Post support engineer view your account.",
+      "subtitle": "Generate a one-time code that lets a GhostSEO support engineer view your account.",
       "backToSupport": "Back to support",
       "howItWorks": "How support access works",
       "howItWorksDesc": "Generate a code, share it with our support team, and they can sign in as you for a limited time. Only you can issue codes - admins cannot create them. You can revoke any active code at any moment.",

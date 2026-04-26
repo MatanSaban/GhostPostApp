@@ -73,7 +73,7 @@ export async function GET() {
       // Return default if not exists
       return NextResponse.json({
         websiteId: 'gp-ws',
-        siteName: { en: 'Ghost Post', he: 'גוסט פוסט', fr: 'Ghost Post' },
+        siteName: { en: 'GhostSEO', he: 'GhostSEO', fr: 'GhostSEO' },
         siteUrl: 'https://ghostpost.co.il',
         defaultOgImage: '/og/default.png',
         twitterHandle: '@ghostpost',
@@ -109,7 +109,7 @@ export async function PUT(request) {
       where: { websiteId: 'gp-ws' },
       create: {
         websiteId: 'gp-ws',
-        siteName: siteName || { en: 'Ghost Post', he: 'גוסט פוסט', fr: 'Ghost Post' },
+        siteName: siteName || { en: 'GhostSEO', he: 'GhostSEO', fr: 'GhostSEO' },
         siteUrl: siteUrl || 'https://ghostpost.co.il',
         defaultOgImage,
         twitterHandle,

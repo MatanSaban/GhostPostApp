@@ -156,7 +156,7 @@ export async function POST(request) {
       return NextResponse.json(
         {
           error: isShopifySite
-            ? 'Site is not connected. Please install the Ghost Post Shopify app.'
+            ? 'Site is not connected. Please install the GhostSEO Shopify app.'
             : 'Site is not connected. Please install and activate the WordPress plugin.',
         },
         { status: 400 }

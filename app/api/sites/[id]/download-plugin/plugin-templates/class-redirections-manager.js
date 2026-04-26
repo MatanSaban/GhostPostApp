@@ -4,11 +4,11 @@
 export function getClassRedirectionsManager() {
   return `<?php
 /**
- * Ghost Post Redirections Manager
+ * GhostSEO Redirections Manager
  * 
  * Handles detection of popular redirection plugins,
  * reading/creating/updating/deleting redirects,
- * and syncing with the Ghost Post platform.
+ * and syncing with the GhostSEO platform.
  */
 
 if (!defined('ABSPATH')) {
@@ -158,7 +158,7 @@ class GP_Redirections_Manager {
     }
 
     /**
-     * Get all redirects from the primary detected plugin, or from Ghost Post storage.
+     * Get all redirects from the primary detected plugin, or from GhostSEO storage.
      */
     public function get_all_redirects() {
         $primary = $this->get_primary_plugin();
@@ -182,7 +182,7 @@ class GP_Redirections_Manager {
     }
 
     /**
-     * Get internal Ghost Post redirects stored in wp_options.
+     * Get internal GhostSEO redirects stored in wp_options.
      */
     public function get_gp_redirects() {
         $redirects = get_option('gp_connector_redirects', array());
@@ -203,7 +203,7 @@ class GP_Redirections_Manager {
     }
 
     /**
-     * Create a redirect in Ghost Post storage.
+     * Create a redirect in GhostSEO storage.
      */
     public function create_redirect($data) {
         $source = self::sanitize_redirect_url($data['source'] ?? '');
@@ -258,7 +258,7 @@ class GP_Redirections_Manager {
     }
 
     /**
-     * Update a redirect in Ghost Post storage.
+     * Update a redirect in GhostSEO storage.
      */
     public function update_redirect($id, $data) {
         $redirects = get_option('gp_connector_redirects', array());
@@ -294,7 +294,7 @@ class GP_Redirections_Manager {
     }
 
     /**
-     * Delete a redirect from Ghost Post storage.
+     * Delete a redirect from GhostSEO storage.
      */
     public function delete_redirect($id) {
         $redirects = get_option('gp_connector_redirects', array());
@@ -579,7 +579,7 @@ class GP_Redirections_Manager {
     }
 
     /**
-     * Push a redirect change to the Ghost Post platform via webhook.
+     * Push a redirect change to the GhostSEO platform via webhook.
      * Skipped when the change originated from the platform (prevents loops).
      *
      * @param string $action   "created" | "updated" | "deleted"
@@ -627,7 +627,7 @@ class GP_Redirections_Manager {
     }
 
     /**
-     * Execute Ghost Post redirects on frontend requests.
+     * Execute GhostSEO redirects on frontend requests.
      */
     public function maybe_redirect() {
         if (is_admin()) {

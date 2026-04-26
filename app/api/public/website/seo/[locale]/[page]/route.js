@@ -57,10 +57,10 @@ export async function GET(request, { params }) {
     if (!seoData || !seoData[page]) {
       return NextResponse.json(
         {
-          title: 'Ghost Post',
+          title: 'GhostSEO',
           description: 'AI-Powered SEO Automation',
           canonical: `/${page}`,
-          ogTitle: 'Ghost Post',
+          ogTitle: 'GhostSEO',
           ogDescription: 'AI-Powered SEO Automation',
           ogImage: '/og/default.png',
           ogType: 'website',

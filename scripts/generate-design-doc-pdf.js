@@ -19,14 +19,14 @@ doc.moveDown(1.5);
 // Company Name
 doc.fillColor('#000000').font('Helvetica-Bold').fontSize(12)
   .text('Company Name: ', { continued: true })
-  .font('Helvetica').text('Ghost Post');
+  .font('Helvetica').text('GhostSEO');
 
 doc.moveDown(1);
 
 // Business Model
 doc.font('Helvetica-Bold').text('Business Model: ', { continued: true })
   .font('Helvetica').text(
-    'Ghost Post is a SaaS platform for SEO content management. We help businesses manage their website content, track keyword rankings, and optimize for search engines. We do not run Google Ads campaigns or manage ads for anyone. We only use the Google Ads API to retrieve keyword search volume data for our users\' SEO keyword research.'
+    'GhostSEO is a SaaS platform for SEO content management. We help businesses manage their website content, track keyword rankings, and optimize for search engines. We do not run Google Ads campaigns or manage ads for anyone. We only use the Google Ads API to retrieve keyword search volume data for our users\' SEO keyword research.'
   );
 
 doc.moveDown(1);

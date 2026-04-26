@@ -1,6 +1,6 @@
-# Ghost Post - WordPress Plugin System
+# GhostSEO - WordPress Plugin System
 
-The Ghost Post platform integrates with WordPress via a **custom plugin that is dynamically generated per-site**. Each downloaded plugin ZIP is unique - it contains site-specific credentials (Site ID, Site Key, Site Secret) baked directly into the code. The plugin enables bidirectional communication: the platform pushes content to WordPress, and WordPress pushes real-time entity/redirect changes back to the platform.
+The GhostSEO platform integrates with WordPress via a **custom plugin that is dynamically generated per-site**. Each downloaded plugin ZIP is unique - it contains site-specific credentials (Site ID, Site Key, Site Secret) baked directly into the code. The plugin enables bidirectional communication: the platform pushes content to WordPress, and WordPress pushes real-time entity/redirect changes back to the platform.
 
 **Current Plugin Version:** `3.0.1`
 
@@ -22,7 +22,7 @@ The Ghost Post platform integrates with WordPress via a **custom plugin that is 
 | `GP_ACF_Manager` | `class-gp-acf-manager.php` | Advanced Custom Fields read/write - detects ACF, reads field groups and values |
 | `GP_Entity_Sync` | `class-gp-entity-sync.php` | Real-time webhook push on post create/update/trash/delete to platform |
 | `GP_Redirections_Manager` | `class-gp-redirections-manager.php` | Native redirect management + 3rd-party plugin detection and import |
-| `GP_Updater` | `class-gp-updater.php` | WordPress-native auto-update checking against the Ghost Post platform |
+| `GP_Updater` | `class-gp-updater.php` | WordPress-native auto-update checking against the GhostSEO platform |
 | `GP_I18n` | `class-gp-i18n.php` | Internationalization - English + Hebrew (RTL) without .po/.mo files, ~200+ strings |
 
 ---
@@ -160,7 +160,7 @@ ghost-post-connector/
 
 ```php
 // Plugin Header
-Plugin Name: Ghost Post Connector
+Plugin Name: GhostSEO Connector
 Plugin URI: https://ghostpost.co.il
 Version: 3.0.1
 Requires at least: 5.6
@@ -376,7 +376,7 @@ Returns comprehensive WordPress environment data used by the platform chat bot a
   "activePlugins": [
     { "name": "Elementor", "version": "3.25.0" },
     { "name": "Yoast SEO", "version": "27.4" },
-    { "name": "Ghost Post Connector", "version": "3.0.1" }
+    { "name": "GhostSEO Connector", "version": "3.0.1" }
   ],
   "postTypes": [
     {
@@ -991,7 +991,7 @@ enum SitePermission {
 
 = 2.9.1 =
 * FIX: Plugin logo on WordPress updates/plugins page is now contained
-* CHANGE: Ghost Post logo displayed in admin topbar
+* CHANGE: GhostSEO logo displayed in admin topbar
 * CHANGE: Connection tab is now the first tab
 
 = 2.9.0 =

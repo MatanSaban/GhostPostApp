@@ -1,11 +1,11 @@
 ﻿/**
- * Generate GP_I18n class - Internationalization support for Ghost Post Connector
+ * Generate GP_I18n class - Internationalization support for GhostSEO Connector
  * Supports English and Hebrew with RTL
  */
 export function getClassI18n() {
   return `<?php
 /**
- * Ghost Post Connector - Internationalization
+ * GhostSEO Connector - Internationalization
  *
  * Hooks into WordPress gettext filter to provide Hebrew translations
  * without requiring .mo/.po files. Supports RTL layout detection.
@@ -95,7 +95,7 @@ class GP_I18n {
     private static function load_hebrew() {
         self::$translations = array(
             // ---- Menu & Page Titles ----
-            'Ghost Post Connector' => 'Ghost Post Connector',
+            'GhostSEO Connector' => 'GhostSEO Connector',
             'Dashboard' => 'לוח בקרה',
             'Redirections' => 'הפניות',
             'Settings' => 'הגדרות',
@@ -106,8 +106,8 @@ class GP_I18n {
             'Connection Status' => 'סטטוס חיבור',
             'Connected' => 'מחובר',
             'Disconnected' => 'מנותק',
-            'Your site is connected to Ghost Post' => 'האתר שלך מחובר ל-Ghost Post',
-            'Ghost Post is managing this site. All systems are operational.' => 'Ghost Post מנהל את האתר הזה. כל המערכות פעילות.',
+            'Your site is connected to GhostSEO' => 'האתר שלך מחובר ל-GhostSEO',
+            'GhostSEO is managing this site. All systems are operational.' => 'GhostSEO מנהל את האתר הזה. כל המערכות פעילות.',
             'Last Check' => 'בדיקה אחרונה',
             'Site URL' => 'כתובת האתר',
             'Error' => 'שגיאה',
@@ -128,7 +128,7 @@ class GP_I18n {
             'Disconnected successfully.' => 'ההתנתקות הצליחה.',
             'Disconnect failed:' => 'ההתנתקות נכשלה:',
             'Disconnect failed. Please try again.' => 'ההתנתקות נכשלה. אנא נסה שוב.',
-            'Are you sure you want to disconnect from Ghost Post? You can reconnect later by downloading a new plugin.' => 'האם אתה בטוח שברצונך להתנתק מ-Ghost Post? ניתן להתחבר מחדש על ידי הורדת תוסף חדש.',
+            'Are you sure you want to disconnect from GhostSEO? You can reconnect later by downloading a new plugin.' => 'האם אתה בטוח שברצונך להתנתק מ-GhostSEO? ניתן להתחבר מחדש על ידי הורדת תוסף חדש.',
             'Connection' => 'חיבור',
 
             // ---- Site Information ----
@@ -171,13 +171,13 @@ class GP_I18n {
             'Widget updated!' => 'הווידג׳ט עודכן!',
             'Sync failed' => 'הסנכרון נכשל',
             'AI Insights waiting' => 'תובנות AI ממתינות',
-            'Ghost Post' => 'Ghost Post',
+            'GhostSEO' => 'GhostSEO',
             'Rank Math' => 'Rank Math',
 
             // ---- Permissions ----
             'Permissions' => 'הרשאות',
-            'Ghost Post has the following permissions on this site:' => 'ל-Ghost Post יש את ההרשאות הבאות באתר זה:',
-            'To modify permissions, go to your Ghost Post dashboard.' => 'לשינוי הרשאות, עבור ללוח הבקרה של Ghost Post.',
+            'GhostSEO has the following permissions on this site:' => 'ל-GhostSEO יש את ההרשאות הבאות באתר זה:',
+            'To modify permissions, go to your GhostSEO dashboard.' => 'לשינוי הרשאות, עבור ללוח הבקרה של GhostSEO.',
             'Read content' => 'קריאת תוכן',
             'Create content' => 'יצירת תוכן',
             'Update content' => 'עדכון תוכן',
@@ -206,14 +206,14 @@ class GP_I18n {
             'No redirection plugins detected.' => 'לא זוהו תוספי הפניות.',
             'Manage Redirections' => 'ניהול הפניות',
             'Active Integrations' => 'אינטגרציות פעילות',
-            'Active plugins that Ghost Post integrates with on your site.' => 'תוספים פעילים ש-Ghost Post משתלב איתם באתר שלך.',
+            'Active plugins that GhostSEO integrates with on your site.' => 'תוספים פעילים ש-GhostSEO משתלב איתם באתר שלך.',
             'No supported integrations detected on this site.' => 'לא זוהו אינטגרציות נתמכות באתר זה.',
             'SEO Plugins' => 'תוספי SEO',
             'Content Plugins' => 'תוספי תוכן',
 
             // ---- Redirections Page ----
             'Redirection Plugin Detected' => 'זוהה תוסף הפניות',
-            'We detected %s on your site. We recommend importing your existing redirects into Ghost Post and then deactivating the external plugin to avoid conflicts and improve performance.' => 'זיהינו %s באתר שלך. מומלץ לייבא את ההפניות הקיימות ל-Ghost Post ולאחר מכן לכבות את התוסף החיצוני למניעת קונפליקטים ולשיפור הביצועים.',
+            'We detected %s on your site. We recommend importing your existing redirects into GhostSEO and then deactivating the external plugin to avoid conflicts and improve performance.' => 'זיהינו %s באתר שלך. מומלץ לייבא את ההפניות הקיימות ל-GhostSEO ולאחר מכן לכבות את התוסף החיצוני למניעת קונפליקטים ולשיפור הביצועים.',
             'Import existing redirects' => 'ייבוא הפניות קיימות',
             'Verify redirects are working' => 'אמת שההפניות עובדות',
             'Deactivate the external plugin' => 'כבה את התוסף החיצוני',
@@ -255,7 +255,7 @@ class GP_I18n {
             'Dark' => 'כהה',
             'Light' => 'בהיר',
             'Toggle between dark and light theme.' => 'מעבר בין ערכת נושא כהה ובהירה.',
-            'Choose the display theme for the Ghost Post admin panel.' => 'בחר את ערכת הנושא לתצוגה בלוח הניהול של Ghost Post.',
+            'Choose the display theme for the GhostSEO admin panel.' => 'בחר את ערכת הנושא לתצוגה בלוח הניהול של GhostSEO.',
             'Language' => 'שפה',
             'Plugin Display Language' => 'שפת תצוגת התוסף',
             'Auto (match WordPress)' => 'אוטומטי (לפי WordPress)',
@@ -272,12 +272,12 @@ class GP_I18n {
 
             // ---- Activity Tab ----
             'Recent Activity' => 'פעילות אחרונה',
-            'Actions performed by Ghost Post on your site.' => 'פעולות שבוצעו על ידי Ghost Post באתר שלך.',
+            'Actions performed by GhostSEO on your site.' => 'פעולות שבוצעו על ידי GhostSEO באתר שלך.',
             'Action' => 'פעולה',
             'Details' => 'פרטים',
             'Time' => 'זמן',
-            'No activity recorded yet. Actions will appear here once Ghost Post starts managing your content.' => 'טרם נרשמה פעילות. פעולות יופיעו כאן ברגע ש-Ghost Post יתחיל לנהל את התוכן שלך.',
-            'No activity recorded yet. Actions performed by Ghost Post will appear here.' => 'טרם נרשמה פעילות. פעולות שבוצעו על ידי Ghost Post יופיעו כאן.',
+            'No activity recorded yet. Actions will appear here once GhostSEO starts managing your content.' => 'טרם נרשמה פעילות. פעולות יופיעו כאן ברגע ש-GhostSEO יתחיל לנהל את התוכן שלך.',
+            'No activity recorded yet. Actions performed by GhostSEO will appear here.' => 'טרם נרשמה פעילות. פעולות שבוצעו על ידי GhostSEO יופיעו כאן.',
             'connection_verified' => 'חיבור אומת',
             'disconnected' => 'מנותק',
             'content_created' => 'תוכן נוצר',
@@ -319,7 +319,7 @@ class GP_I18n {
 
             // ---- SEO Insights ----
             'SEO Insights' => 'תובנות SEO',
-            'Overview of your website SEO performance from Ghost Post platform.' => 'סקירה כללית של ביצועי ה-SEO של האתר שלך מפלטפורמת Ghost Post.',
+            'Overview of your website SEO performance from GhostSEO platform.' => 'סקירה כללית של ביצועי ה-SEO של האתר שלך מפלטפורמת GhostSEO.',
             'Refresh Data' => 'רענן נתונים',
             'Loading SEO data...' => 'טוען נתוני SEO...',
             'Could not load SEO data.' => 'לא ניתן לטעון נתוני SEO.',
@@ -368,7 +368,7 @@ class GP_I18n {
             'Delete Permanently' => 'מחק לצמיתות',
             'Edit' => 'ערוך',
             'Move to Trash' => 'העבר לפח',
-            'No code snippets yet. Add your first snippet or let Ghost Post manage custom code for your site.' => 'אין קטעי קוד עדיין. הוסף את קטע הקוד הראשון שלך או תן ל-Ghost Post לנהל קוד מותאם אישית לאתר שלך.',
+            'No code snippets yet. Add your first snippet or let GhostSEO manage custom code for your site.' => 'אין קטעי קוד עדיין. הוסף את קטע הקוד הראשון שלך או תן ל-GhostSEO לנהל קוד מותאם אישית לאתר שלך.',
             'Snippet saved successfully!' => 'קטע הקוד נשמר בהצלחה!',
             'Snippet moved to trash.' => 'קטע הקוד הועבר לפח.',
             'Snippet restored.' => 'קטע הקוד שוחזר.',
@@ -378,7 +378,7 @@ class GP_I18n {
             'e.g. Google Analytics Script' => 'לדוגמה: סקריפט Google Analytics',
             'Brief description of what this snippet does' => 'תיאור קצר של מה שקטע הקוד עושה',
             'Paste your code here...' => 'הדבק את הקוד שלך כאן...',
-            'Choose the display theme for the Ghost Post plugin.' => 'בחר את ערכת הנושא לתצוגה בתוסף Ghost Post.',
+            'Choose the display theme for the GhostSEO plugin.' => 'בחר את ערכת הנושא לתצוגה בתוסף GhostSEO.',
         );
     }
 }

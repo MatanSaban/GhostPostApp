@@ -78,9 +78,13 @@ export default function UpgradePlanModal({ isOpen, onClose }) {
 
   const formatPrice = (plan) => {
     if (plan.monthlyPrice !== undefined) {
+      // Always format in USD — the modal is a consumer-facing upgrade
+      // surface and the canonical plan price is USD, regardless of what
+      // currency the plan record was seeded with. Using 'en-US' locale so
+      // the "$" prefix and Latin digits render the same in both EN and HE.
       const price = new Intl.NumberFormat('en-US', {
         style: 'currency',
-        currency: plan.currency || 'USD',
+        currency: 'USD',
         minimumFractionDigits: 0,
       }).format(plan.monthlyPrice);
       return price;
@@ -432,19 +436,82 @@ export default function UpgradePlanModal({ isOpen, onClose }) {
               <div className={styles.plansGrid}>
                 {plans.map((plan) => {
                   const isCurrent = plan.slug === currentPlanSlug;
-                  const features = Array.isArray(plan.features) 
-                    ? plan.features.map(f => typeof f === 'string' ? f : (f.label || f.key || '')).filter(Boolean)
+
+                  // Number formatter: small numbers render with thousands
+                  // separators (1,000), big ones abbreviate (10K, 1M) so
+                  // the bullet rows don't grow wide.
+                  const fmtNum = (n) => {
+                    if (n == null || n === '' || Number.isNaN(Number(n))) return '';
+                    const num = Number(n);
+                    if (num >= 1_000_000) return `${(num / 1_000_000).toFixed(1)}M`;
+                    if (num >= 10_000) return `${(num / 1_000).toFixed(1)}K`;
+                    return num.toLocaleString(locale === 'he' ? 'he-IL' : 'en-US');
+                  };
+
+                  /*
+                   * Render a limitation as "N Label" (or "Unlimited Label"
+                   * / "— Label" for the unlimited / falsy cases). The
+                   * stored label is the noun ("Keywords", "מילות מפתח"),
+                   * `.value` is the numeric cap. If the label is already a
+                   * full sentence (contains digits or common count words
+                   * inline), we trust it and use it as-is.
+                   */
+                  const unlimitedWord = t('upgradePlanModal.unlimited') || 'Unlimited';
+                  const formatLimitation = (lim) => {
+                    if (!lim) return '';
+                    if (typeof lim === 'string') return lim;
+                    const label = lim.label || lim.key || '';
+                    if (!label) return '';
+                    // If the translator already wrote the full sentence,
+                    // don't double-prefix a number in front of it.
+                    if (/\d/.test(label)) return label;
+                    const value = lim.value;
+                    if (lim.type === 'unlimited' || value === -1) {
+                      return `${unlimitedWord} ${label}`;
+                    }
+                    if (value == null || value === '' || value === 0) return label;
+                    const isRtl = locale === 'he';
+                    const formatted = fmtNum(value);
+                    if (!formatted) return label;
+                    // In Hebrew the noun conventionally comes before the
+                    // number ("מילות מפתח: 100"), in English the number
+                    // comes first ("100 Keywords"). Colon separator keeps
+                    // it clean in both.
+                    return isRtl ? `${label}: ${formatted}` : `${formatted} ${label}`;
+                  };
+
+                  const toLabel = (x) =>
+                    typeof x === 'string' ? x : (x?.label || x?.key || '');
+                  const limitations = Array.isArray(plan.limitations)
+                    ? plan.limitations.map(formatLimitation).filter(Boolean)
+                    : [];
+                  const features = Array.isArray(plan.features)
+                    ? plan.features.map(toLabel).filter(Boolean)
                     : [];
 
                   return (
                     <div
                       key={plan.id || plan.slug}
                       className={`${styles.planCard} ${plan.popular ? styles.popular : ''} ${isCurrent ? styles.current : ''}`}
+                      aria-current={isCurrent ? 'true' : undefined}
                     >
-                      {plan.popular && (
+                      {plan.popular && !isCurrent && (
                         <div className={styles.popularBadge}>
                           <Sparkles size={10} />
                           {t('upgradePlanModal.popular') || 'Popular'}
+                        </div>
+                      )}
+                      {/*
+                       * Visual "current plan" indicator — top-anchored pill
+                       * with a check so the selected state is obvious at a
+                       * glance, not only via the disabled button at the
+                       * bottom of the card.
+                       */}
+                      {isCurrent && (
+                        <div className={styles.currentBadge}>
+                          <Check size={10} />
+                          {' '}
+                          {t('upgradePlanModal.currentPlan') || 'Current Plan'}
                         </div>
                       )}
                       <h3 className={styles.planName}>{plan.name}</h3>
@@ -456,23 +523,28 @@ export default function UpgradePlanModal({ isOpen, onClose }) {
                         <span className={styles.priceAmount}>{formatPrice(plan)}</span>
                         <span className={styles.pricePeriod}>{plan.period || '/month'}</span>
                       </div>
-                      {plan.ilsMonthlyPrice && (
-                        <p className={styles.ilsNote}>≈ ₪{plan.ilsMonthlyPrice}/{t('common.month') || 'mo'} <span className={styles.ilsVatNote}>{t('payment.inclVat') || 'incl. VAT'}</span></p>
-                      )}
 
-                      {features.length > 0 && (
+                      {/*
+                       * Limitations first, then features — same order and
+                       * checkmark styling gp-ws uses on the public pricing
+                       * page. We render the full list (not a sliced preview)
+                       * so the modal shows the same information the user
+                       * saw before signing up.
+                       */}
+                      {(limitations.length > 0 || features.length > 0) && (
                         <ul className={styles.featuresList}>
-                          {features.slice(0, 5).map((feature, i) => (
-                            <li key={i} className={styles.featureItem}>
+                          {limitations.map((limitation, i) => (
+                            <li key={`limit-${i}`} className={styles.featureItem}>
+                              <Check size={14} className={styles.featureCheck} />
+                              <span>{limitation}</span>
+                            </li>
+                          ))}
+                          {features.map((feature, i) => (
+                            <li key={`feat-${i}`} className={styles.featureItem}>
                               <Check size={14} className={styles.featureCheck} />
                               <span>{feature}</span>
                             </li>
                           ))}
-                          {features.length > 5 && (
-                            <li className={styles.featureMore}>
-                              +{features.length - 5} {t('upgradePlanModal.moreFeatures') || 'more'}
-                            </li>
-                          )}
                         </ul>
                       )}
 
@@ -480,9 +552,13 @@ export default function UpgradePlanModal({ isOpen, onClose }) {
                         className={`${styles.selectBtn} ${isCurrent ? styles.selectBtnCurrent : ''}`}
                         onClick={() => !isCurrent && handleSelectPlan(plan)}
                         disabled={isCurrent}
+                        aria-disabled={isCurrent ? 'true' : undefined}
                       >
                         {isCurrent ? (
-                          t('upgradePlanModal.currentPlan') || 'Current Plan'
+                          <>
+                            <Check size={14} />
+                            {t('upgradePlanModal.currentPlan') || 'Current Plan'}
+                          </>
                         ) : (
                           <>
                             {t('upgradePlanModal.selectPlan') || 'Select Plan'}

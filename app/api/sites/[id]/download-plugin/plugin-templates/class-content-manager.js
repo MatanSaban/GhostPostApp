@@ -4,7 +4,7 @@
 export function getClassContentManager() {
   return `<?php
 /**
- * Ghost Post Content Manager
+ * GhostSEO Content Manager
  * 
  * Handles CRUD operations for posts and pages
  */

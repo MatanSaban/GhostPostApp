@@ -81,7 +81,7 @@ export default async function SettingsPage() {
     },
     seo: {
       siteName: 'My Website',
-      metaDescription: 'A professional website powered by Ghost Post AI',
+      metaDescription: 'A professional website powered by GhostSEO AI',
       defaultOgImage: '',
       enableSitemap: true,
       enableRobots: true,

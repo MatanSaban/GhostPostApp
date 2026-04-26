@@ -6,6 +6,7 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import prisma from '@/lib/prisma';
+import { getAccountUsage, getSiteCompetitorCapacity } from '@/lib/account-limits';
 
 const SESSION_COOKIE = 'user_session';
 
@@ -310,7 +311,7 @@ export async function PATCH(request, { params }) {
       const accountIds = user.accountMemberships.map(m => m.accountId);
       site = await prisma.site.findFirst({
         where: user.isSuperAdmin ? { id: siteId } : { id: siteId, accountId: { in: accountIds } },
-        select: { id: true },
+        select: { id: true, accountId: true },
       });
     }
 
@@ -371,7 +372,7 @@ export async function PATCH(request, { params }) {
         }
 
         // Add new keywords that don't exist
-        const newKeywords = value
+        let newKeywords = value
           .filter(kw => typeof kw === 'string' && kw.trim() && !existingSet.has(kw.toLowerCase().trim()))
           .map(kw => ({
             siteId,
@@ -379,6 +380,19 @@ export async function PATCH(request, { params }) {
             status: 'TRACKING',
             tags: ['interview'],
           }));
+
+        // Respect plan's maxKeywords — drop overflow silently rather than
+        // failing the profile save (admin-triggered bulk operation).
+        if (newKeywords.length > 0 && site?.accountId) {
+          try {
+            const usage = await getAccountUsage(site.accountId, 'maxKeywords');
+            if (usage.remaining !== null && newKeywords.length > usage.remaining) {
+              newKeywords = newKeywords.slice(0, Math.max(0, usage.remaining));
+            }
+          } catch (capErr) {
+            console.warn('[InterviewProfile] keyword capacity check failed:', capErr.message);
+          }
+        }
 
         if (newKeywords.length > 0) {
           await prisma.keyword.createMany({ data: newKeywords });
@@ -391,6 +405,16 @@ export async function PATCH(request, { params }) {
     // Sync competitors to Competitor model when competitors field is updated
     if (field === 'competitors' && Array.isArray(value)) {
       try {
+        // Track remaining per-site competitor headroom for the plan.
+        let remainingCap = Infinity;
+        if (value.length > 0 && site?.accountId) {
+          try {
+            const cap = await getSiteCompetitorCapacity(site.accountId, siteId);
+            remainingCap = cap.remaining;
+          } catch (capErr) {
+            console.warn('[InterviewProfile] competitor capacity check failed:', capErr.message);
+          }
+        }
         for (const url of value) {
           try {
             const parsedUrl = new URL(url.startsWith('http') ? url : `https://${url}`);
@@ -408,6 +432,9 @@ export async function PATCH(request, { params }) {
             });
 
             if (!existing) {
+              if (remainingCap <= 0) {
+                continue;
+              }
               await prisma.competitor.create({
                 data: {
                   siteId,
@@ -419,6 +446,7 @@ export async function PATCH(request, { params }) {
                   scanStatus: 'PENDING',
                 },
               });
+              if (Number.isFinite(remainingCap)) remainingCap -= 1;
             } else if (!existing.isActive) {
               // Reactivate if was deactivated
               await prisma.competitor.update({

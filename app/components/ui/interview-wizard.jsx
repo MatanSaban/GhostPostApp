@@ -3116,7 +3116,7 @@ export const InterviewWizard = forwardRef(function InterviewWizard({ onClose, on
               </div>
               <div className={styles.integrationInfo}>
                 <h4 className={styles.integrationTitle}>
-                  {t('interviewWizard.wordpressPlugin.title') || 'Install Ghost Post WordPress Plugin'}
+                  {t('interviewWizard.wordpressPlugin.title') || 'Install GhostSEO WordPress Plugin'}
                 </h4>
                 <p className={styles.integrationDesc}>
                   {t('interviewWizard.wordpressPlugin.description') || 'Install our WordPress plugin to enable automatic article publishing directly to your website.'}
@@ -3124,7 +3124,7 @@ export const InterviewWizard = forwardRef(function InterviewWizard({ onClose, on
                 <ul className={styles.integrationBenefits}>
                   <li>{t('interviewWizard.wordpressPlugin.benefit1') || 'Automatic article publishing to WordPress'}</li>
                   <li>{t('interviewWizard.wordpressPlugin.benefit2') || 'SEO optimization built-in'}</li>
-                  <li>{t('interviewWizard.wordpressPlugin.benefit3') || 'Manage content directly from Ghost Post'}</li>
+                  <li>{t('interviewWizard.wordpressPlugin.benefit3') || 'Manage content directly from GhostSEO'}</li>
                 </ul>
               </div>
             </div>

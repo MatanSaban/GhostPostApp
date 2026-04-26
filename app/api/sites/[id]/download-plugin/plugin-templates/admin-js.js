@@ -1,9 +1,9 @@
 ﻿/**
- * Generate admin JavaScript file for Ghost Post Connector
+ * Generate admin JavaScript file for GhostSEO Connector
  */
 export function getAdminJs() {
   return `/**
- * Ghost Post Admin JavaScript
+ * GhostSEO Admin JavaScript
  */
 
 (function($) {

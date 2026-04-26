@@ -1,8 +1,8 @@
-# Ghost Post Platform - תהליך הרישום המלא והמפורט
+# GhostSEO Platform - תהליך הרישום המלא והמפורט
 
 ## תיאור כללי
 
-תהליך הרישום ב-Ghost Post מורכב מ-**6 שלבים עיקריים** שמובילים את המשתמש החדש מרישום ראשוני ועד לכניסה מלאה לפלטפורמה עם חשבון מוכן לעבודה.
+תהליך הרישום ב-GhostSEO מורכב מ-**6 שלבים עיקריים** שמובילים את המשתמש החדש מרישום ראשוני ועד לכניסה מלאה לפלטפורמה עם חשבון מוכן לעבודה.
 
 **משך זמן משוער**: 10-15 דקות  
 **שלבים**: 6  
@@ -274,7 +274,7 @@ export async function POST(request) {
   <body>
     <div class="container">
       <div class="header">
-        <h1>Welcome to Ghost Post! 👋</h1>
+        <h1>Welcome to GhostSEO! 👋</h1>
       </div>
       <div style="padding: 30px;">
         <p>Hi John,</p>
@@ -2720,7 +2720,7 @@ export async function POST(request) {
 
 ## סיכום כללי
 
-תהליך הרישום ב-Ghost Post הוא מערכת מתוחכמת בת 6 שלבים:
+תהליך הרישום ב-GhostSEO הוא מערכת מתוחכמת בת 6 שלבים:
 
 1. **Register** - טופס רישום בסיסי
 2. **Verify** - אימות OTP

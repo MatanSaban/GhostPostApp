@@ -22,7 +22,7 @@ function notConnectedResponse(caps) {
   return NextResponse.json(
     {
       error: caps.platform === 'shopify'
-        ? 'Site is not connected. Install the Ghost Post Shopify app.'
+        ? 'Site is not connected. Install the GhostSEO Shopify app.'
         : 'Site is not connected. Please install and activate the plugin.',
     },
     { status: 400 },
@@ -30,7 +30,7 @@ function notConnectedResponse(caps) {
 }
 
 /**
- * Normalize a Ghost Post plugin media item to the WordPress REST API shape
+ * Normalize a GhostSEO plugin media item to the WordPress REST API shape
  * the client expects (source_url, alt_text, title.rendered, media_details, etc.).
  */
 function normalizePluginMediaItem(item) {

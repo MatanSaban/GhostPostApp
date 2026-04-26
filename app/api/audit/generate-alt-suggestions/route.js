@@ -188,7 +188,7 @@ export async function POST(request) {
 ${langHint}
 
 First, determine the TYPE of this visual element:
-1. **Logo** - a brand/company logo or wordmark → describe it as "[Brand name] logo" (e.g. "Ghost Post logo", "לוגו גוסט פוסט")
+1. **Logo** - a brand/company logo or wordmark → describe it as "[Brand name] logo" (e.g. "GhostSEO logo", "לוגו GhostSEO")
 2. **Icon** - a small UI icon, symbol, or pictogram → describe its meaning/action briefly (e.g. "Search icon", "אייקון חיפוש")
 3. **Image** - a photo, illustration, graphic, or banner → describe the actual content in detail
 

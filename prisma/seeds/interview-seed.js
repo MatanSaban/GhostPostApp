@@ -324,7 +324,7 @@ async function main() {
       questionType: 'GREETING',
       order: 15,
       inputConfig: {
-        confirmLabel: 'Start Using Ghost Post',
+        confirmLabel: 'Start Using GhostSEO',
       },
       validation: {},
       isActive: true,

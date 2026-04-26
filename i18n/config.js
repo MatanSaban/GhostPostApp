@@ -1,4 +1,4 @@
-// Internationalization configuration for Ghost Post Platform
+// Internationalization configuration for GhostSEO Platform
 
 export const locales = ['en', 'he'];
 export const defaultLocale = 'en';

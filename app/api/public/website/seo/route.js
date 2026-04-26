@@ -19,7 +19,7 @@ export async function GET() {
     if (!seo) {
       return NextResponse.json(
         {
-          siteName: { en: 'Ghost Post', he: 'גוסט פוסט', fr: 'Ghost Post' },
+          siteName: { en: 'GhostSEO', he: 'GhostSEO', fr: 'GhostSEO' },
           siteUrl: 'https://ghostpost.co.il',
           defaultOgImage: '/og/default.png',
           twitterHandle: '@ghostpost',

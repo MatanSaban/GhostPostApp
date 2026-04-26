@@ -1,6 +1,6 @@
 {
   "metadata": {
-    "title": "Ghost Post - Automatisation SEO par IA",
+    "title": "GhostSEO - Automatisation SEO par IA",
     "description": "Le premier agent IA autonome qui optimise, rédige et gère le SEO de votre site pendant que vous dormez."
   },
   "nav": {
@@ -28,7 +28,7 @@
   "features": {
     "badge": "Fonctionnalités puissantes",
     "titlePrefix": "Pourquoi choisir",
-    "titleHighlight": "Ghost Post",
+    "titleHighlight": "GhostSEO",
     "subtitle": "Des fonctionnalités puissantes qui travaillent ensemble pour dominer les classements",
     "items": [
       {
@@ -68,15 +68,15 @@
         "color": "green"
       }
     ],
-    "metaTitle": "Fonctionnalités - Ghost Post",
+    "metaTitle": "Fonctionnalités - GhostSEO",
     "metaDescription": "Découvrez plus de 100 fonctionnalités SEO automatisées propulsées par l'IA",
     "badge": "Plus de 100 fonctionnalités automatisées",
-    "title": "Ghost Post",
+    "title": "GhostSEO",
     "titleHighlight": "Complet",
     "subtitle": "Tout ce dont vous avez besoin pour dominer les classements de recherche, propulsé par une IA autonome qui travaille 24/7.",
     "pageBadge": "Plus de 100 fonctionnalités automatisées",
     "pageTitle": "Toutes les fonctionnalités de",
-    "pageTitleHighlight": "Ghost Post",
+    "pageTitleHighlight": "GhostSEO",
     "pageSubtitle": "Tout ce dont vous avez besoin pour dominer les classements de recherche, propulsé par une IA autonome qui travaille 24/7.",
     "aiContent": "Génération de contenu par IA",
     "aiContentDesc": "Ghost analyse votre niche, vos concurrents et le contenu le mieux classé pour générer automatiquement des articles, descriptions de produits et pages de destination optimisés pour le SEO.",
@@ -250,7 +250,7 @@
           "answer": "Nous vous enverrons une notification et vous pourrez soit passer à un forfait supérieur, soit continuer avec de petits frais."
         },
         {
-          "question": "Ghost Post est-il sûr pour mon site web ?",
+          "question": "GhostSEO est-il sûr pour mon site web ?",
           "answer": "Absolument. Ghost suit toutes les directives Google et utilise uniquement des techniques SEO white-hat."
         },
         {
@@ -262,13 +262,13 @@
   },
   "cta": {
     "title": "Prêt à automatiser votre SEO ?",
-    "description": "Rejoignez des centaines d'entreprises qui développent leur trafic organique avec Ghost Post",
+    "description": "Rejoignez des centaines d'entreprises qui développent leur trafic organique avec GhostSEO",
     "button": "Essai gratuit"
   },
   "about": {
     "badge": "Notre histoire",
     "title": "À propos de",
-    "titleHighlight": "Ghost Post",
+    "titleHighlight": "GhostSEO",
     "subtitle": "Nous avons pour mission de démocratiser le SEO et de le rendre accessible aux entreprises de toutes tailles.",
     "mission": {
       "title": "Notre mission",
@@ -277,8 +277,8 @@
     "story": {
       "title": "Notre histoire",
       "paragraphs": [
-        "Ghost Post a été fondé en 2024 par une équipe d'experts SEO et d'ingénieurs IA frustrés par la complexité et le coût du SEO.",
-        "Nous croyions que l'IA pouvait gérer le travail lourd du SEO tout en offrant de meilleurs résultats que les agences traditionnelles. Après deux ans de développement, Ghost Post est né.",
+        "GhostSEO a été fondé en 2024 par une équipe d'experts SEO et d'ingénieurs IA frustrés par la complexité et le coût du SEO.",
+        "Nous croyions que l'IA pouvait gérer le travail lourd du SEO tout en offrant de meilleurs résultats que les agences traditionnelles. Après deux ans de développement, GhostSEO est né.",
         "Aujourd'hui, nous aidons plus de 500 entreprises à automatiser leur SEO et à développer leur trafic organique. Notre IA a généré plus de 50 000 contenus et amélioré les classements pour des millions de mots-clés."
       ]
     },
@@ -364,7 +364,7 @@
   "blog": {
     "badge": "Dernières actualités",
     "title": "Le blog",
-    "titleHighlight": "Ghost Post",
+    "titleHighlight": "GhostSEO",
     "titleBefore": true,
     "subtitle": "Conseils, astuces et stratégies pour dominer les classements de recherche",
     "readMore": "Lire la suite",
@@ -386,7 +386,7 @@
     "post4Title": "Meilleures pratiques en marketing de contenu",
     "post4Excerpt": "Apprenez à créer du contenu qui se classe, engage et convertit votre audience cible.",
     "post5Title": "Étude de cas : Augmentation du trafic de 300% en 6 mois",
-    "post5Excerpt": "Découvrez comment une entreprise e-commerce a triplé son trafic organique grâce à l'automatisation IA de Ghost Post.",
+    "post5Excerpt": "Découvrez comment une entreprise e-commerce a triplé son trafic organique grâce à l'automatisation IA de GhostSEO.",
     "post6Title": "Comprendre les Core Web Vitals",
     "post6Excerpt": "Tout ce que vous devez savoir sur les Core Web Vitals de Google et comment les optimiser.",
     "post7Title": "La recherche de mots-clés à l'ère de l'IA",
@@ -464,12 +464,12 @@
       "placeholder": "Entrez votre email",
       "button": "S'abonner"
     },
-    "copyright": "© {year} Ghost Post. Tous droits réservés."
+    "copyright": "© {year} GhostSEO. Tous droits réservés."
   },
   "auth": {
     "login": {
       "title": "Bon retour",
-      "subtitle": "Connectez-vous à votre compte Ghost Post",
+      "subtitle": "Connectez-vous à votre compte GhostSEO",
       "email": "Email",
       "password": "Mot de passe",
       "forgotPassword": "Mot de passe oublié ?",

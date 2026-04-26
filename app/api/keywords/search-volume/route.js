@@ -45,14 +45,14 @@ export async function POST(request) {
       where: user.isSuperAdmin
         ? { id: siteId }
         : { id: siteId, account: { members: { some: { userId: user.id } } } },
-      select: { id: true, defaultLanguage: true },
+      select: { id: true, contentLanguage: true },
     });
 
     if (!site) {
       return NextResponse.json({ error: 'Site not found or no access' }, { status: 404 });
     }
 
-    const langId = language || getLanguageId(site.defaultLanguage?.toLowerCase()) || '1000';
+    const langId = language || getLanguageId(site.contentLanguage?.toLowerCase()) || '1000';
     const normalizedKeywords = keywords.map(k => k.toLowerCase().trim()).filter(Boolean);
     const uniqueKeywords = [...new Set(normalizedKeywords)];
 

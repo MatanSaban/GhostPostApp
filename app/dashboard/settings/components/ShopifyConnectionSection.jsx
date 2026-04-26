@@ -32,14 +32,14 @@ const SHOP_DOMAIN_PATTERN = /^[a-z0-9][a-z0-9-]*\.myshopify\.com$/i;
 const COPY = {
   title: 'Shopify Connection',
   description:
-    'Connect your Shopify store so Ghost Post can manage products, pages, articles, SEO metadata, and redirects on your behalf.',
+    'Connect your Shopify store so GhostSEO can manage products, pages, articles, SEO metadata, and redirects on your behalf.',
   connected: 'Connected',
-  connectedDesc: 'Ghost Post is synced with your Shopify store.',
+  connectedDesc: 'GhostSEO is synced with your Shopify store.',
   notConnected: 'Not connected',
-  notConnectedDesc: 'Install the Ghost Post app on your Shopify store to begin.',
+  notConnectedDesc: 'Install the GhostSEO app on your Shopify store to begin.',
   disconnected: 'Disconnected',
   disconnectedDesc:
-    'The connection to your Shopify store has been removed from Ghost Post.',
+    'The connection to your Shopify store has been removed from GhostSEO.',
   error: 'Error',
   errorDesc: 'Something went wrong with the connection.',
   shopDomainLabel: 'Shop domain',
@@ -57,7 +57,7 @@ const COPY = {
   disconnect: 'Disconnect',
   disconnecting: 'Disconnecting…',
   disconnectConfirm:
-    'Are you sure? Ghost Post will stop managing this Shopify store. To fully revoke access, you must also uninstall the app from Shopify admin → Settings → Apps.',
+    'Are you sure? GhostSEO will stop managing this Shopify store. To fully revoke access, you must also uninstall the app from Shopify admin → Settings → Apps.',
   disconnectFailed: 'Failed to disconnect — please try again.',
 };
 

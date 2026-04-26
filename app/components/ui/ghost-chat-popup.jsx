@@ -2057,7 +2057,7 @@ export const GhostChatPopup = forwardRef(function GhostChatPopup({ isOpen, onClo
                     className={styles.previewStatusWarn}
                     title={
                       t('chat.preview.error.bridgeMissing') ||
-                      "Preview loaded, but the Ghost Post Connector bridge didn't respond. Make sure the plugin is installed and updated to the latest version."
+                      "Preview loaded, but the GhostSEO Connector bridge didn't respond. Make sure the plugin is installed and updated to the latest version."
                     }
                   >
                     <AlertTriangle size={12} />

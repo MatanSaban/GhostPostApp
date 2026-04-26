@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import prisma from '@/lib/prisma';
 import { analyzeKeywordIntentsBatch } from '@/lib/ai/keyword-intent.js';
-import { enforceCredits, enforceResourceLimit } from '@/lib/account-limits';
+import { enforceCredits, enforceResourceCapacity } from '@/lib/account-limits';
 import { AI_OPERATIONS } from '@/lib/ai/credits';
 import { getCachedKeywords } from '@/lib/cache/keywords.js';
 import { invalidateKeywords } from '@/lib/cache/invalidate.js';
@@ -49,50 +49,51 @@ export async function GET(request) {
 
     const keywords = await getCachedKeywords(siteId, site.accountId);
 
-    // Find related SiteEntity posts by matching keyword.url
+    // Find related SiteEntity by matching keyword.url — across ALL enabled
+    // entity types the user has populated (posts, pages, categories, custom
+    // types). Previously we only looked up posts; extended so a keyword can
+    // be linked to any entity the user owns.
     const keywordsWithUrls = keywords.filter(k => k.url);
     const urlList = keywordsWithUrls.map(k => k.url);
-    
+
     let siteEntitiesMap = new Map();
     if (urlList.length > 0) {
-      // Get posts entity type - skip if disabled so keyword data doesn't link
-      // to entities the user has toggled off.
-      const postsType = await prisma.siteEntityType.findFirst({
-        where: { siteId, slug: 'posts', isEnabled: true },
-        select: { id: true },
+      const siteEntities = await prisma.siteEntity.findMany({
+        where: {
+          siteId,
+          url: { in: urlList },
+          entityType: { isEnabled: true },
+        },
+        select: {
+          id: true,
+          title: true,
+          url: true,
+          slug: true,
+          entityType: { select: { slug: true, name: true, labels: true } },
+        },
       });
 
-      if (postsType) {
-        const siteEntities = await prisma.siteEntity.findMany({
-          where: {
-            siteId,
-            entityTypeId: postsType.id,
-            url: { in: urlList },
-          },
-          select: {
-            id: true,
-            title: true,
-            url: true,
-            slug: true,
-          },
-        });
-        
-        for (const entity of siteEntities) {
-          siteEntitiesMap.set(entity.url, entity);
-        }
+      for (const entity of siteEntities) {
+        siteEntitiesMap.set(entity.url, entity);
       }
     }
 
-    // Enrich keywords with related post info
+    // Enrich keywords with related entity info. The client still reads the
+    // old `relatedPost` key for back-compat (the column name in the UI is
+    // "Related Post" regardless of the underlying entity type) — we just
+    // ship back the entity type alongside so the UI can render an icon.
     const enrichedKeywords = keywords.map(kw => {
       const relatedEntity = kw.url ? siteEntitiesMap.get(kw.url) : null;
-      
+
       return {
         ...kw,
         relatedPost: relatedEntity ? {
           id: relatedEntity.id,
           title: relatedEntity.title,
           url: relatedEntity.url,
+          entityTypeSlug: relatedEntity.entityType?.slug || 'posts',
+          entityTypeName: relatedEntity.entityType?.name || null,
+          entityTypeLabels: relatedEntity.entityType?.labels || null,
         } : null,
       };
     });
@@ -131,12 +132,6 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Site not found or no access' }, { status: 404 });
     }
 
-    // Enforce keyword limit from plan
-    const limitCheck = await enforceResourceLimit(site.accountId, 'maxKeywords');
-    if (!limitCheck.allowed) {
-      return NextResponse.json(limitCheck, { status: 403 });
-    }
-
     // Normalize input: accept string or array
     const keywordsList = Array.isArray(keywordsInput)
       ? keywordsInput.map(k => k.trim()).filter(Boolean)
@@ -157,6 +152,18 @@ export async function POST(request) {
 
     if (uniqueKeywords.length === 0) {
       return NextResponse.json({ error: 'All keywords already exist', duplicates: true }, { status: 409 });
+    }
+
+    // Enforce keyword limit from plan — capacity-aware so a batch add
+    // can't overshoot the limit (previously we only checked isLimitReached
+    // once, which let a 5-keyword batch push a 98/100 account to 103).
+    const limitCheck = await enforceResourceCapacity(
+      site.accountId,
+      'maxKeywords',
+      uniqueKeywords.length,
+    );
+    if (!limitCheck.allowed) {
+      return NextResponse.json(limitCheck, { status: 403 });
     }
 
     // Enforce AI credit limit before analysis
@@ -220,7 +227,7 @@ export async function PATCH(request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { keywordId, status, intents, analyzeIntent } = await request.json();
+    const { keywordId, status, intents, analyzeIntent, url } = await request.json();
 
     if (!keywordId) {
       return NextResponse.json({ error: 'keywordId is required' }, { status: 400 });
@@ -281,6 +288,19 @@ export async function PATCH(request) {
       // Filter to only valid intents
       const validatedIntents = intents.filter(i => validIntents.includes(i));
       updateData.intents = validatedIntents;
+    }
+
+    // Link/unlink to an existing entity by URL. `null` or empty string clears
+    // the link; a non-empty string stores the URL so the GET enricher can
+    // match it back to a SiteEntity (post, page, category, any custom type).
+    if (url !== undefined) {
+      if (url === null || (typeof url === 'string' && url.trim() === '')) {
+        updateData.url = null;
+      } else if (typeof url === 'string') {
+        updateData.url = url.trim();
+      } else {
+        return NextResponse.json({ error: 'url must be a string or null' }, { status: 400 });
+      }
     }
 
     if (Object.keys(updateData).length === 0) {

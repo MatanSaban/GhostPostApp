@@ -128,7 +128,7 @@ export async function POST(request) {
 
       // Send invitation email
       const emailContent = emailTemplates.invitation({
-        accountName: reactivatedMember.account.name || 'Ghost Post',
+        accountName: reactivatedMember.account.name || 'GhostSEO',
         inviterName,
         inviteUrl,
         roleName: reactivatedMember.role.name,
@@ -209,7 +209,7 @@ export async function POST(request) {
 
     // Send invitation email
     const emailContent = emailTemplates.invitation({
-      accountName: newMember.account.name || 'Ghost Post',
+      accountName: newMember.account.name || 'GhostSEO',
       inviterName,
       inviteUrl,
       roleName: newMember.role.name,

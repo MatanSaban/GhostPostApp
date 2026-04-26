@@ -118,11 +118,19 @@ export function DataTable({
         </Thead>
         <Tbody>
           {data.length === 0 ? (
-            <Tr>
-              <Td className={styles.emptyCell} align="center">
-                <span style={{ gridColumn: `span ${columns.length}` }}>{emptyMessage}</span>
-              </Td>
-            </Tr>
+            // Empty-state row spans the full table width via colSpan
+            // (HTML's actual mechanism). The previous implementation
+            // used `gridColumn: span N` which only works for CSS-grid
+            // tables — our table is normal HTML table-row layout, so
+            // the message ended up confined to the first column.
+            <tr className={styles.tableRow}>
+              <td
+                colSpan={columns.length}
+                className={`${styles.tableCell} ${styles.emptyCell} ${styles.alignCenter}`}
+              >
+                {emptyMessage}
+              </td>
+            </tr>
           ) : (
             data.map((row) => (
               <Tr 

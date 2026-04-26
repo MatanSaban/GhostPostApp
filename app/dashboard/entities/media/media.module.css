@@ -39,70 +39,55 @@
   gap: 12px;
 }
 
+/*
+ * Search + upload use the platform's theme variables (see globals.css)
+ * instead of the legacy --color-* aliases that were scoped to this page,
+ * so they pick up dark mode automatically and match the look of the
+ * entities table search / primary buttons used elsewhere.
+ */
+
 .searchWrapper {
   position: relative;
+  display: flex;
+  align-items: center;
+  background: var(--background);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  transition: border-color var(--transition-fast);
+}
+
+.searchWrapper:focus-within {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px rgba(123, 44, 191, 0.12);
 }
 
 .searchIcon {
-  position: absolute;
-  top: 50%;
-  left: 12px;
-  transform: translateY(-50%);
-  width: 18px;
-  height: 18px;
-  color: var(--color-text-secondary);
-  
-  [dir="rtl"] & {
-    left: auto;
-    right: 12px;
-  }
+  width: 1rem;
+  height: 1rem;
+  margin-inline-start: 0.75rem;
+  color: var(--muted-foreground);
+  flex-shrink: 0;
 }
 
 .searchInput {
-  padding: 8px 12px 8px 40px;
-  border: 1px solid var(--color-border);
-  border-radius: 8px;
-  font-size: 0.75rem;
+  flex: 1;
+  min-width: 0;
   width: 240px;
-  background: var(--color-bg);
-  color: var(--color-text);
-  
-  [dir="rtl"] & {
-    padding: 8px 40px 8px 12px;
-  }
-  
-  &:focus {
-    outline: none;
-    border-color: var(--color-primary);
-  }
+  padding: 0.5rem 0.75rem;
+  background: transparent;
+  border: none;
+  outline: none;
+  font-size: 0.75rem;
+  font-family: inherit;
+  color: var(--foreground);
+}
+
+.searchInput::placeholder {
+  color: var(--muted-foreground);
 }
 
 .hiddenInput {
   display: none;
-}
-
-.uploadButton {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 16px;
-  background: var(--color-primary);
-  color: white;
-  border: none;
-  border-radius: 8px;
-  font-size: 0.75rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: background 0.2s;
-  
-  &:hover {
-    background: var(--color-primary-hover);
-  }
-  
-  &:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-  }
 }
 
 .buttonIcon {
@@ -677,15 +662,14 @@
     width: 100%;
   }
   
+  .searchWrapper {
+    width: 100%;
+  }
+
   .searchInput {
     width: 100%;
   }
-  
-  .uploadButton {
-    width: 100%;
-    justify-content: center;
-  }
-  
+
   .content {
     flex-direction: column;
   }

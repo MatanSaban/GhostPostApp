@@ -4,7 +4,7 @@
 export function getSettingsPage() {
   return `<?php
 /**
- * Ghost Post Admin - unified tabbed settings page
+ * GhostSEO Admin - unified tabbed settings page
  */
 
 if (!defined('ABSPATH')) {
@@ -101,7 +101,7 @@ $theme_class = ($gp_theme === 'light') ? 'gp-theme-light' : 'gp-theme-dark';
                     <?php esc_html_e('Check for Updates', 'ghost-post-connector'); ?>
                 </button>
             <?php endif; ?>
-            <img src="<?php echo esc_url($platform_url . '/logo.png'); ?>" alt="Ghost Post" class="gp-topbar-logo">
+            <img src="<?php echo esc_url($platform_url . '/logo.png'); ?>" alt="GhostSEO" class="gp-topbar-logo">
             <span class="gp-topbar-title">GhostPost</span>
         </div>
     </div>
@@ -115,9 +115,9 @@ $theme_class = ($gp_theme === 'light') ? 'gp-theme-light' : 'gp-theme-dark';
             <div class="gp-connect-card">
 
                 <?php if ($connection_verified): ?>
-                    <h2><?php esc_html_e('Your site is connected to Ghost Post', 'ghost-post-connector'); ?></h2>
+                    <h2><?php esc_html_e('Your site is connected to GhostSEO', 'ghost-post-connector'); ?></h2>
                     <p class="gp-connect-desc">
-                        <?php esc_html_e('Ghost Post is managing this site. All systems are operational.', 'ghost-post-connector'); ?>
+                        <?php esc_html_e('GhostSEO is managing this site. All systems are operational.', 'ghost-post-connector'); ?>
                     </p>
 
                     <div class="gp-connection-details">
@@ -147,7 +147,7 @@ $theme_class = ($gp_theme === 'light') ? 'gp-theme-light' : 'gp-theme-dark';
                     </div>
 
                 <?php elseif ($is_configured): ?>
-                    <h2><?php esc_html_e('Connect your site to Ghost Post', 'ghost-post-connector'); ?></h2>
+                    <h2><?php esc_html_e('Connect your site to GhostSEO', 'ghost-post-connector'); ?></h2>
                     <p class="gp-connect-desc">
                         <?php esc_html_e('Copy your Access Key and paste it at', 'ghost-post-connector'); ?>
                         <a href="<?php echo esc_url($platform_url); ?>" target="_blank" rel="noopener noreferrer">ghostpost.co.il</a>
@@ -164,14 +164,14 @@ $theme_class = ($gp_theme === 'light') ? 'gp-theme-light' : 'gp-theme-dark';
                     </div>
 
                     <a href="<?php echo esc_url($platform_url . '/dashboard/settings?siteKey=' . urlencode($site_key_display)); ?>" target="_blank" rel="noopener noreferrer" class="gp-btn gp-btn-connect">
-                        &rarr; <?php esc_html_e('Connect to Ghost Post', 'ghost-post-connector'); ?>
+                        &rarr; <?php esc_html_e('Connect to GhostSEO', 'ghost-post-connector'); ?>
                     </a>
-                    <p class="gp-connect-hint"><?php esc_html_e('Opens Ghost Post with your key pre-filled.', 'ghost-post-connector'); ?></p>
+                    <p class="gp-connect-hint"><?php esc_html_e('Opens GhostSEO with your key pre-filled.', 'ghost-post-connector'); ?></p>
 
                 <?php else: ?>
-                    <h2><?php esc_html_e('Connect your site to Ghost Post', 'ghost-post-connector'); ?></h2>
+                    <h2><?php esc_html_e('Connect your site to GhostSEO', 'ghost-post-connector'); ?></h2>
                     <div class="gp-notice gp-notice-warning">
-                        <p><?php esc_html_e('Plugin is not configured. Please download a fresh plugin from your Ghost Post dashboard.', 'ghost-post-connector'); ?></p>
+                        <p><?php esc_html_e('Plugin is not configured. Please download a fresh plugin from your GhostSEO dashboard.', 'ghost-post-connector'); ?></p>
                     </div>
                 <?php endif; ?>
 
@@ -207,7 +207,7 @@ $theme_class = ($gp_theme === 'light') ? 'gp-theme-light' : 'gp-theme-dark';
         <div class="gp-tab-panel">
             <div class="gp-panel-card">
                 <h3><?php esc_html_e('Appearance', 'ghost-post-connector'); ?></h3>
-                <p class="gp-desc"><?php esc_html_e('Choose the display theme for the Ghost Post plugin.', 'ghost-post-connector'); ?></p>
+                <p class="gp-desc"><?php esc_html_e('Choose the display theme for the GhostSEO plugin.', 'ghost-post-connector'); ?></p>
 
                 <div class="gp-theme-switcher">
                     <label class="gp-theme-option">
@@ -284,7 +284,7 @@ $theme_class = ($gp_theme === 'light') ? 'gp-theme-light' : 'gp-theme-dark';
         <div class="gp-tab-panel">
             <div class="gp-panel-card">
                 <h3><?php esc_html_e('Recent Activity', 'ghost-post-connector'); ?></h3>
-                <p class="gp-desc"><?php esc_html_e('Actions performed by Ghost Post on your site.', 'ghost-post-connector'); ?></p>
+                <p class="gp-desc"><?php esc_html_e('Actions performed by GhostSEO on your site.', 'ghost-post-connector'); ?></p>
 
                 <?php
                 $activity_log = get_option('gp_activity_log', array());
@@ -296,7 +296,7 @@ $theme_class = ($gp_theme === 'light') ? 'gp-theme-light' : 'gp-theme-dark';
                         <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.3">
                             <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
                         </svg>
-                        <p><?php esc_html_e('No activity recorded yet. Actions will appear here once Ghost Post starts managing your content.', 'ghost-post-connector'); ?></p>
+                        <p><?php esc_html_e('No activity recorded yet. Actions will appear here once GhostSEO starts managing your content.', 'ghost-post-connector'); ?></p>
                     </div>
                 <?php else: ?>
                     <table class="gp-activity-table">
@@ -333,7 +333,7 @@ $theme_class = ($gp_theme === 'light') ? 'gp-theme-light' : 'gp-theme-dark';
                         <?php
                         $plugin_names = array_map(function($p) { return '<strong>' . esc_html($p['name']) . '</strong>' . ($p['version'] ? ' v' . esc_html($p['version']) : ''); }, $detected_redirect_plugins);
                         printf(
-                            esc_html__('We detected %s on your site. We recommend importing your existing redirects into Ghost Post and then deactivating the external plugin to avoid conflicts.', 'ghost-post-connector'),
+                            esc_html__('We detected %s on your site. We recommend importing your existing redirects into GhostSEO and then deactivating the external plugin to avoid conflicts.', 'ghost-post-connector'),
                             implode(', ', $plugin_names)
                         );
                         ?>
@@ -476,7 +476,7 @@ $theme_class = ($gp_theme === 'light') ? 'gp-theme-light' : 'gp-theme-dark';
                 <div class="gp-seo-header">
                     <div>
                         <h3><?php esc_html_e('SEO Insights', 'ghost-post-connector'); ?></h3>
-                        <p class="gp-desc"><?php esc_html_e('Overview of your website SEO performance from Ghost Post platform.', 'ghost-post-connector'); ?></p>
+                        <p class="gp-desc"><?php esc_html_e('Overview of your website SEO performance from GhostSEO platform.', 'ghost-post-connector'); ?></p>
                     </div>
                     <button type="button" id="gp-refresh-seo" class="gp-btn gp-btn-outline">
                         <?php esc_html_e('Refresh Data', 'ghost-post-connector'); ?>
@@ -662,7 +662,7 @@ $theme_class = ($gp_theme === 'light') ? 'gp-theme-light' : 'gp-theme-dark';
                         <?php if ($snippet_view === 'trash'): ?>
                             <p><?php esc_html_e('Trash is empty.', 'ghost-post-connector'); ?></p>
                         <?php else: ?>
-                            <p><?php esc_html_e('No code snippets yet. Add your first snippet or let Ghost Post manage custom code for your site.', 'ghost-post-connector'); ?></p>
+                            <p><?php esc_html_e('No code snippets yet. Add your first snippet or let GhostSEO manage custom code for your site.', 'ghost-post-connector'); ?></p>
                         <?php endif; ?>
                     </div>
                 <?php else: ?>
@@ -726,7 +726,7 @@ $theme_class = ($gp_theme === 'light') ? 'gp-theme-light' : 'gp-theme-dark';
         <div class="gp-tab-panel">
             <div class="gp-panel-card">
                 <h3><?php esc_html_e('Active Integrations', 'ghost-post-connector'); ?></h3>
-                <p class="gp-desc"><?php esc_html_e('Active plugins that Ghost Post integrates with on your site.', 'ghost-post-connector'); ?></p>
+                <p class="gp-desc"><?php esc_html_e('Active plugins that GhostSEO integrates with on your site.', 'ghost-post-connector'); ?></p>
 
                 <div class="gp-addons-grid">
                     <?php

@@ -3,6 +3,7 @@ import { cookies } from 'next/headers';
 import prisma from '@/lib/prisma';
 import { getCachedCompetitors } from '@/lib/cache/competitors.js';
 import { invalidateCompetitors } from '@/lib/cache/invalidate.js';
+import { enforceResourceCapacity } from '@/lib/account-limits';
 
 const SESSION_COOKIE = 'user_session';
 
@@ -48,21 +49,6 @@ async function getAuthenticatedUser() {
     console.error('Auth error:', error);
     return null;
   }
-}
-
-// Helper to get competitor limit from plan
-// Returns Infinity for unlimited competitors
-function getCompetitorLimit(user, accountId) {
-  const membership = user.accountMemberships.find(m => m.accountId === accountId);
-  const limitations = membership?.account?.subscription?.plan?.limitations;
-  
-  if (!limitations || !Array.isArray(limitations)) {
-    return Infinity; // No limit by default
-  }
-  
-  const competitorLimit = limitations.find(l => l.key === 'maxCompetitors');
-  // If no limit set, return Infinity for unlimited
-  return competitorLimit?.value || Infinity;
 }
 
 // GET - List competitors for a site
@@ -168,23 +154,12 @@ export async function POST(request) {
       );
     }
 
-    // Check competitor limit (only if limit is set in plan)
-    const limit = getCompetitorLimit(user, site.accountId);
-    if (limit !== Infinity) {
-      const currentCount = await prisma.competitor.count({
-        where: { siteId, isActive: true },
-      });
-
-      if (currentCount >= limit) {
-        return NextResponse.json(
-          { 
-            error: 'Competitor limit reached',
-            limit,
-            count: currentCount,
-          },
-          { status: 403 }
-        );
-      }
+    // Competitor limit is account-wide (same as every other plan limit).
+    // Uses the shared capacity helper so reactivations, chat-triggered
+    // adds, and interview auto-adds all go through the same logic.
+    const limitCheck = await enforceResourceCapacity(site.accountId, 'maxCompetitors', 1);
+    if (!limitCheck.allowed) {
+      return NextResponse.json(limitCheck, { status: 403 });
     }
 
     // Extract domain

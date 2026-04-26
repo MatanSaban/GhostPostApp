@@ -5,7 +5,7 @@
 export function getClassCacheManager() {
   return `<?php
 /**
- * Ghost Post Cache Manager
+ * GhostSEO Cache Manager
  *
  * Clears WordPress core cache, page caches, and Elementor CSS
  * so that fresh edits are visible immediately on the live site.

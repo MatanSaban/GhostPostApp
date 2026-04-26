@@ -35,7 +35,7 @@ export async function POST(request, { params }) {
       return NextResponse.json(
         {
           error: caps.platform === 'shopify'
-            ? 'Site is not connected. Install the Ghost Post Shopify app.'
+            ? 'Site is not connected. Install the GhostSEO Shopify app.'
             : 'Site is not connected to WordPress plugin',
         },
         { status: 400 },

@@ -21,7 +21,7 @@ export const PLUGIN_CHANGELOG = `
 * NEW: Taxonomy management endpoints (GET/POST /terms/{taxonomy}, PUT/DELETE /terms/{taxonomy}/{term_id}). The AI can now create, rename, re-slug, and delete categories, tags, and any custom taxonomy (including WooCommerce product_cat / product_tag) end-to-end.
 * NEW: Comment moderation endpoints (GET /comments, PUT /comments/{id}, POST /comments, DELETE /comments/{id}). AI can list pending/spam/approved comments, approve/hold/spam/trash, reply as admin, edit comment bodies, and force-delete.
 * NEW: WP options endpoints (GET /options, PUT /options) with a whitelist covering site title, tagline, admin email, timezone, date/time format, permalink structure, homepage config (static page vs posts), posts-per-page, comment defaults, search-engine visibility, registration settings, default role, and image sizes. Permalink-structure changes auto-flush rewrite rules.
-* NEW: /self-update endpoint - the AI can trigger the Ghost Post plugin to upgrade itself to the latest published version. Calls wp_update_plugins() to refresh the update transient, then runs Plugin_Upgrader on our own slug. Returns updateNeeded:false when already on latest.
+* NEW: /self-update endpoint - the AI can trigger the GhostSEO plugin to upgrade itself to the latest published version. Calls wp_update_plugins() to refresh the update transient, then runs Plugin_Upgrader on our own slug. Returns updateNeeded:false when already on latest.
 * NEW: /wp-passthrough endpoint - generic REST API escape hatch. The AI can invoke ANY WordPress or third-party-plugin REST route (WooCommerce /wc/v3/*, Yoast /yoast/v1/*, RankMath /rankmath/v1/*, Contact Form 7 /contact-form-7/v1/*, WPForms /wpforms/v1/*, Elementor /elementor/v1/*, etc.) by passing method + path + params. The plugin temporarily authenticates as the first administrator account so capability-gated routes work, then restores the previous user. This is what unlocks full-plugin control for every WP plugin we don't have a dedicated tool for.
 
 = 3.3.0 =
@@ -146,7 +146,7 @@ export const PLUGIN_CHANGELOG = `
 
 = 2.9.1 =
 * FIX: Plugin logo on WordPress updates/plugins page is now contained (not stretched)
-* CHANGE: Ghost Post logo displayed in admin topbar instead of text
+* CHANGE: GhostSEO logo displayed in admin topbar instead of text
 * CHANGE: Connection tab is now the first tab
 
 = 2.9.0 =
@@ -235,7 +235,7 @@ export const PLUGIN_CHANGELOG = `
 * FIX: Redirections page uses platform-style header and buttons
 
 = 2.5.0 =
-* NEW: Dark theme by default matching the Ghost Post platform design
+* NEW: Dark theme by default matching the GhostSEO platform design
 * NEW: Light theme option with toggle in Settings page
 * NEW: Purple color scheme (#9B4DE0/#7B2CBF) consistent with platform branding
 * NEW: Purple sidebar icon in WordPress admin menu
@@ -249,11 +249,11 @@ export const PLUGIN_CHANGELOG = `
 * FIX: Both date and date_gmt sent when scheduling to ensure proper GMT handling
 
 = 2.4.8 =
-* NEW: AI image optimization now processes directly on platform (eliminates Ghost Post config dependency)
+* NEW: AI image optimization now processes directly on platform (eliminates GhostSEO config dependency)
 * NEW: apply-ai-optimization REST endpoint for applying AI-suggested filenames and alt text
 * NEW: AI optimization uses background task progress bar (like WebP converter)
 * NEW: Load more button in AI optimization modal (50 images per page)
-* FIX: "Ghost Post configuration incomplete" error eliminated (no more two-hop architecture)
+* FIX: "GhostSEO configuration incomplete" error eliminated (no more two-hop architecture)
 
 = 2.4.7 =
 * FIX: Stats total now only counts webp + convertible images (excludes svg/ico/bmp) so total = webp + nonWebp
@@ -332,7 +332,7 @@ export const PLUGIN_CHANGELOG = `
 * FIX: Hit counts now update in platform dashboard automatically when redirects are triggered in WordPress
 
 = 2.2.0 =
-* NEW: Automatic bidirectional redirect sync between WordPress and Ghost Post platform
+* NEW: Automatic bidirectional redirect sync between WordPress and GhostSEO platform
 * NEW: WP admin redirect changes (create/update/delete) auto-push to platform via webhook
 * NEW: Platform redirect changes (update/delete) auto-push to WordPress via bulk sync
 * NEW: Conflict prevention using origin flags to avoid infinite sync loops
@@ -350,7 +350,7 @@ export const PLUGIN_CHANGELOG = `
 * FIX: Stat cards display in a proper row layout
 * FIX: URL inputs now use full width in redirect form
 * FIX: Edit redirect now correctly populates form fields
-* FIX: Plugin renamed to "Ghost Post Connector" throughout admin UI
+* FIX: Plugin renamed to "GhostSEO Connector" throughout admin UI
 * CHANGE: Dashboard page simplified - Connection Status and Permissions moved to Settings
 * CHANGE: Admin menu restructured: Dashboard, Redirections, Settings
 
@@ -363,12 +363,12 @@ export const PLUGIN_CHANGELOG = `
 = 2.0.0 =
 * NEW: Full redirections management system with CRUD operations
 * NEW: Detect popular redirection plugins (Redirection, Yoast Premium, Rank Math, Safe Redirect Manager, Simple 301 Redirects, 301 Redirects)
-* NEW: Import redirects from detected third-party plugins into Ghost Post
+* NEW: Import redirects from detected third-party plugins into GhostSEO
 * NEW: WordPress admin Redirections page with add/edit/delete/toggle functionality
 * NEW: Plugin menu moved from Settings submenu to top-level WordPress menu item
 * NEW: Redirections child page in WordPress admin with full management UI
 * NEW: Frontend redirect execution via template_redirect hook with hit tracking
-* NEW: Bulk sync redirects from/to Ghost Post platform
+* NEW: Bulk sync redirects from/to GhostSEO platform
 * NEW: REST API endpoints for redirect CRUD, import, bulk-sync, and plugin detection
 * NEW: Recommendation banner to import existing redirects and deactivate external plugins
 
@@ -404,16 +404,16 @@ export const PLUGIN_CHANGELOG = `
 
 = 1.8.6 =
 * FIXED: Critical PHP parse error in entity sync class (escaped dollar signs in generated PHP)
-* Real-time entity sync - WordPress content changes are pushed instantly to Ghost Post
+* Real-time entity sync - WordPress content changes are pushed instantly to GhostSEO
 * Automatic webhook on post create, update, trash, delete, and restore
-* Conflict prevention: changes from Ghost Post are not echoed back
+* Conflict prevention: changes from GhostSEO are not echoed back
 * Supports all post types including custom post types
 * Non-blocking webhook calls for zero performance impact
 
 = 1.8.4 =
-* NEW: Real-time entity sync - WordPress content changes are pushed instantly to Ghost Post
+* NEW: Real-time entity sync - WordPress content changes are pushed instantly to GhostSEO
 * Automatic webhook on post create, update, trash, delete, and restore
-* Conflict prevention: changes from Ghost Post are not echoed back
+* Conflict prevention: changes from GhostSEO are not echoed back
 * Supports all post types including custom post types
 * Non-blocking webhook calls for zero performance impact
 

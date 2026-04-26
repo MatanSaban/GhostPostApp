@@ -5,9 +5,9 @@
 export function getClassUpdater() {
   return `<?php
 /**
- * Ghost Post Plugin Updater
+ * GhostSEO Plugin Updater
  * 
- * Handles automatic updates from the Ghost Post platform.
+ * Handles automatic updates from the GhostSEO platform.
  * This hooks into WordPress's native update system.
  */
 
@@ -237,13 +237,13 @@ class GP_Updater {
         ));
 
         if (is_wp_error($response)) {
-            error_log('Ghost Post Updater: Failed to check for updates - ' . $response->get_error_message());
+            error_log('GhostSEO Updater: Failed to check for updates - ' . $response->get_error_message());
             return false;
         }
 
         $response_code = wp_remote_retrieve_response_code($response);
         if ($response_code !== 200) {
-            error_log('Ghost Post Updater: Update check returned status ' . $response_code);
+            error_log('GhostSEO Updater: Update check returned status ' . $response_code);
             return false;
         }
 

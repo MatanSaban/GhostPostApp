@@ -70,7 +70,7 @@ export async function POST(request) {
       success: true,
       shop: site.shopifyDomain,
       note:
-        'Connection wiped on Ghost Post. To fully revoke, uninstall the app from your Shopify admin → Settings → Apps.',
+        'Connection wiped on GhostSEO. To fully revoke, uninstall the app from your Shopify admin → Settings → Apps.',
     });
   } catch (error) {
     console.error('[shopify/disconnect] error:', error);

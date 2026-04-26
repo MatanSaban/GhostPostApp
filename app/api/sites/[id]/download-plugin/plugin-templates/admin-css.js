@@ -3,7 +3,7 @@
  */
 export function getAdminCss() {
   return `/**
- * Ghost Post Admin - Tabbed UI + Dashboard Widget
+ * GhostSEO Admin - Tabbed UI + Dashboard Widget
  */
 
 /* ==========================================

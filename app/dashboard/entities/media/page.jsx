@@ -611,10 +611,10 @@ export default function MediaPage() {
                   }
                 }}
               />
-              <button
+              <Button
+                variant="primary"
                 onClick={() => fileInputRef.current?.click()}
                 disabled={isUploading}
-                className={styles.uploadButton}
               >
                 {isUploading ? (
                   <Loader2 className={styles.spinIcon} />
@@ -622,7 +622,7 @@ export default function MediaPage() {
                   <Upload className={styles.buttonIcon} />
                 )}
                 {t('media.upload')}
-              </button>
+              </Button>
             </>
           )}
         </div>

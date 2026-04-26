@@ -1,4 +1,4 @@
-# Ghost Post Platform
+# GhostSEO Platform
 
 AI-Powered SEO Automation Platform
 
@@ -279,7 +279,7 @@ Plans ו-Limitations מוגדרים ב-JSON - אפשר לשנות הכל ללא 
 
 ## 📝 License
 
-Private - Ghost Post © 2026
+Private - GhostSEO © 2026
 
 ---
 
@@ -452,4 +452,4 @@ All components use CSS Modules with fully nested syntax (like SCSS):
 
 ## License
 
-Private - Ghost Post © 2026
+Private - GhostSEO © 2026

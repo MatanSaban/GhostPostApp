@@ -5,7 +5,7 @@ import { PLUGIN_VERSION, PLUGIN_CHANGELOG } from '@/app/api/plugin/version';
  * @param {string} version - Optional version override (defaults to PLUGIN_VERSION)
  */
 export function getPluginReadme(version = PLUGIN_VERSION) {
-  return `=== Ghost Post Connector ===
+  return `=== GhostSEO Connector ===
 Contributors: ghostpost
 Tags: ai, content, automation, seo, content-management
 Requires at least: 5.6
@@ -15,11 +15,11 @@ Requires PHP: 7.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-Connects your WordPress site to Ghost Post platform for AI-powered content management.
+Connects your WordPress site to GhostSEO platform for AI-powered content management.
 
 == Description ==
 
-Ghost Post Connector allows the Ghost Post platform to securely manage your WordPress content:
+GhostSEO Connector allows the GhostSEO platform to securely manage your WordPress content:
 
 * Create, update, and publish posts and pages
 * Manage custom post types
@@ -27,7 +27,7 @@ Ghost Post Connector allows the Ghost Post platform to securely manage your Word
 * Update SEO meta (Yoast, RankMath, and custom meta)
 * Manage ACF fields
 * Handle redirects
-* Automatic updates from Ghost Post platform
+* Automatic updates from GhostSEO platform
 * And more...
 
 All communications are secured with HMAC-SHA256 signatures.
@@ -36,25 +36,25 @@ All communications are secured with HMAC-SHA256 signatures.
 
 1. Upload the plugin files to the \`/wp-content/plugins/ghost-post-connector\` directory
 2. Activate the plugin through the 'Plugins' screen in WordPress
-3. The plugin will automatically connect to your Ghost Post account
+3. The plugin will automatically connect to your GhostSEO account
 
 == Frequently Asked Questions ==
 
 = Is this plugin secure? =
 
-Yes. All requests from Ghost Post are verified using HMAC-SHA256 signatures with a unique secret key. Only authorized requests are processed.
+Yes. All requests from GhostSEO are verified using HMAC-SHA256 signatures with a unique secret key. Only authorized requests are processed.
 
 = What data does this plugin share? =
 
-The plugin only processes requests from Ghost Post. It does not collect or send any data unless explicitly requested through the Ghost Post platform.
+The plugin only processes requests from GhostSEO. It does not collect or send any data unless explicitly requested through the GhostSEO platform.
 
 = Can I revoke access? =
 
-Yes. Deactivating the plugin immediately disconnects your site from Ghost Post. You can also regenerate your site key from the Ghost Post dashboard.
+Yes. Deactivating the plugin immediately disconnects your site from GhostSEO. You can also regenerate your site key from the GhostSEO dashboard.
 
 = How do updates work? =
 
-The plugin automatically checks for updates from the Ghost Post platform. When a new version is available, you'll see an update notification in WordPress just like any other plugin.
+The plugin automatically checks for updates from the GhostSEO platform. When a new version is available, you'll see an update notification in WordPress just like any other plugin.
 
 == Changelog ==
 

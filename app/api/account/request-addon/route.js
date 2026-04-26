@@ -108,7 +108,7 @@ export async function POST(request) {
               Manage Billing
             </a>
             <p style="color: #9ca3af; font-size: 12px; margin-top: 24px;">
-              Ghost Post • ${account?.name || ''}
+              GhostSEO • ${account?.name || ''}
             </p>
           </div>
         `,

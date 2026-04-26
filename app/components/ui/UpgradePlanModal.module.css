@@ -18,7 +18,7 @@
 .modal {
   position: relative;
   width: 100%;
-  max-width: 820px;
+  max-width: 1020px;
   max-height: 90vh;
   margin: 1rem;
   background: var(--card, #fff);
@@ -141,9 +141,25 @@
   box-shadow: 0 0 0 1px var(--primary, #7b2cbf);
 }
 
+/*
+ * Current plan card — non-interactive, visually "selected": stronger purple
+ * outline + a faint purple wash. Hover and popular decorations don't apply
+ * here, so the card reads as "this is you" instead of a pick-me target.
+ */
 .planCard.current {
   border-color: var(--primary, #7b2cbf);
-  background: rgba(123, 44, 191, 0.04);
+  background: rgba(123, 44, 191, 0.06);
+  box-shadow: 0 0 0 2px rgba(123, 44, 191, 0.25);
+  cursor: default;
+}
+
+.planCard.current:hover {
+  border-color: var(--primary, #7b2cbf);
+}
+
+:global(html.dark) .planCard.current {
+  background: rgba(123, 44, 191, 0.15);
+  box-shadow: 0 0 0 2px rgba(123, 44, 191, 0.4);
 }
 
 /* ── Badges ──────────────────────────────────────────────────── */
@@ -171,13 +187,18 @@
   position: absolute;
   top: -0.625rem;
   right: 0.75rem;
-  padding: 0.125rem 0.5rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+  padding: 0.2rem 0.625rem;
   font-size: 0.6875rem;
-  font-weight: 600;
-  color: var(--primary);
-  background: rgba(123, 44, 191, 0.1);
-  border: 1px solid rgba(123, 44, 191, 0.2);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: white;
+  background: var(--gradient-primary, linear-gradient(135deg, #7b2cbf, #9d4edd));
   border-radius: 999px;
+  box-shadow: 0 2px 6px rgba(123, 44, 191, 0.25);
 }
 
 [dir="rtl"] .currentBadge {

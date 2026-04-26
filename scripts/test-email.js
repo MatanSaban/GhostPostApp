@@ -22,20 +22,20 @@ async function testEmail() {
 
   try {
     const info = await transporter.sendMail({
-      from: `"Ghost Post" <${process.env.GMAIL_USER}>`,
+      from: `"GhostSEO" <${process.env.GMAIL_USER}>`,
       to: process.env.GMAIL_USER,
-      subject: '✅ Test Email from Ghost Post',
+      subject: '✅ Test Email from GhostSEO',
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
           <h1 style="color: #4CAF50;">Email is working! 🎉</h1>
           <p>Your nodemailer configuration is correct.</p>
-          <p>Ghost Post can now send:</p>
+          <p>GhostSEO can now send:</p>
           <ul>
             <li>User invitation emails</li>
             <li>OTP verification codes</li>
           </ul>
           <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;">
-          <p style="color: #666; font-size: 12px;">This is a test email from Ghost Post platform.</p>
+          <p style="color: #666; font-size: 12px;">This is a test email from GhostSEO platform.</p>
         </div>
       `,
     });

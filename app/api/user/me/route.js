@@ -128,6 +128,8 @@ export async function GET() {
       sitesCount: 0,
       membersCount: 0,
       siteAuditsCount: 0,
+      keywordsCount: 0,
+      competitorsCount: 0,
     };
 
     if (currentAccount) {
@@ -138,7 +140,7 @@ export async function GET() {
 
       // Count active members for this account
       const membersCount = await prisma.accountMember.count({
-        where: { 
+        where: {
           accountId: currentAccount.id,
           status: 'ACTIVE',
         },
@@ -149,12 +151,27 @@ export async function GET() {
       const startOfMonth = new Date();
       startOfMonth.setDate(1);
       startOfMonth.setHours(0, 0, 0, 0);
-      
+
       const siteAuditsCount = await prisma.siteAudit.count({
-        where: { 
+        where: {
           site: { accountId: currentAccount.id },
           createdAt: { gte: startOfMonth },
           deviceType: { not: 'mobile' },
+        },
+      });
+
+      // Keywords span the whole account (maxKeywords is account-scoped).
+      const keywordsCount = await prisma.keyword.count({
+        where: { site: { accountId: currentAccount.id } },
+      });
+
+      // Competitors are per-site, but surface the total-across-sites here so
+      // the Subscription tab can show a rollup. Per-site enforcement lives
+      // in /api/competitors and the capacity helpers.
+      const competitorsCount = await prisma.competitor.count({
+        where: {
+          site: { accountId: currentAccount.id },
+          isActive: true,
         },
       });
 
@@ -162,6 +179,8 @@ export async function GET() {
         sitesCount,
         membersCount,
         siteAuditsCount,
+        keywordsCount,
+        competitorsCount,
       };
     }
 

@@ -4,7 +4,7 @@
 export function getPluginUninstall() {
   return `<?php
 /**
- * Uninstall Ghost Post Connector
+ * Uninstall GhostSEO Connector
  * 
  * This file is called when the plugin is deleted from WordPress.
  */

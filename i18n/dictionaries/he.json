@@ -1,23 +1,23 @@
 {
   "brand": {
-    "name": "Ghost Post",
+    "name": "GhostSEO",
     "initial": "G"
   },
   "meta": {
     "default": {
-      "title": "Ghost Post — אוטומציית SEO מבוססת AI",
-      "description": "הפכו את אסטרטגיית ה-SEO לאוטומטית עם Ghost Post. יצירת תוכן, אופטימיזציה וניהול אתר באמצעות בינה מלאכותית."
+      "title": "GhostSEO — אוטומציית SEO מבוססת AI",
+      "description": "הפכו את אסטרטגיית ה-SEO לאוטומטית עם GhostSEO. יצירת תוכן, אופטימיזציה וניהול אתר באמצעות בינה מלאכותית."
     },
     "home": {
-      "title": "Ghost Post — אוטומציית SEO מבוססת AI",
+      "title": "GhostSEO — אוטומציית SEO מבוססת AI",
       "description": "תנו לסוכנים החכמים שלנו לנהל את אסטרטגיית התוכן בזמן שאתם מתמקדים בצמיחה."
     },
     "auth": {
-      "index": { "title": "אימות", "description": "התחברו או צרו חשבון ב-Ghost Post." },
-      "login": { "title": "התחברות", "description": "התחברו לחשבון Ghost Post שלכם." },
-      "register": { "title": "יצירת חשבון", "description": "צרו חשבון Ghost Post והתחילו לאוטומט את ה-SEO." },
-      "thankYou": { "title": "תודה על ההרשמה", "description": "החשבון שלכם ב-Ghost Post בהכנה." },
-      "acceptInvite": { "title": "קבלת הזמנה", "description": "אשרו את ההזמנה שלכם להצטרף לחשבון ב-Ghost Post." }
+      "index": { "title": "אימות", "description": "התחברו או צרו חשבון ב-GhostSEO." },
+      "login": { "title": "התחברות", "description": "התחברו לחשבון GhostSEO שלכם." },
+      "register": { "title": "יצירת חשבון", "description": "צרו חשבון GhostSEO והתחילו לאוטומט את ה-SEO." },
+      "thankYou": { "title": "תודה על ההרשמה", "description": "החשבון שלכם ב-GhostSEO בהכנה." },
+      "acceptInvite": { "title": "קבלת הזמנה", "description": "אשרו את ההזמנה שלכם להצטרף לחשבון ב-GhostSEO." }
     },
     "dashboard": {
       "home": { "title": "דשבורד", "description": "סקירה של האתרים, צינור התוכן וביצועי ה-SEO שלכם." },
@@ -50,7 +50,7 @@
       "seoBackend": { "title": "SEO צד-שרת", "description": "אופטימיזציה של הגדרות SEO והאינטגרציות." },
       "backlinks": { "title": "שוק קישורים", "description": "גלו ורכשו קישורים נכנסים איכותיים." },
       "linkBuilding": { "title": "בניית קישורים", "description": "תכנון ומעקב אחר קמפייני בניית קישורים." },
-      "myWebsites": { "title": "האתרים שלי", "description": "ניהול כל האתרים המחוברים לחשבון Ghost Post." },
+      "myWebsites": { "title": "האתרים שלי", "description": "ניהול כל האתרים המחוברים לחשבון GhostSEO." },
       "notifications": { "title": "התראות", "description": "צפייה בהתראות והודעות הפלטפורמה." },
       "settings": { "title": "הגדרות", "description": "הגדרות חשבון, צוות, חיוב ופלטפורמה." },
       "support": {
@@ -60,7 +60,7 @@
         "detail": { "title": "פניית תמיכה", "description": "צפייה ומענה לפניית תמיכה." }
       },
       "visualEditor": { "title": "עורך ויזואלי", "description": "עריכת עמודים ויזואלית באתר המחובר." },
-      "restoreAccount": { "title": "שחזור חשבון", "description": "שחזור חשבון Ghost Post שאוחסן." }
+      "restoreAccount": { "title": "שחזור חשבון", "description": "שחזור חשבון GhostSEO שאוחסן." }
     },
     "admin": {
       "home": { "title": "סקירת מנהל", "description": "סקירה ומדדים של הפלטפורמה כולה." },
@@ -98,7 +98,7 @@
   "homepage": {
     "taglineHighlight": "אוטומציית SEO מבוססת AI",
     "taglineText": "לעסקים מודרניים. תנו לסוכנים החכמים שלנו לטפל באסטרטגיית התוכן בזמן שאתם מתמקדים בצמיחה.",
-    "copyright": "© 2026 Ghost Post."
+    "copyright": "© 2026 GhostSEO."
   },
   "theme": {
     "switchToLight": "עבור למצב בהיר",
@@ -121,6 +121,10 @@
     "back": "חזור",
     "next": "הבא",
     "previous": "הקודם",
+    "pageOf": "עמוד {current} מתוך {total}",
+    "moveUp": "העבר למעלה",
+    "moveDown": "העבר למטה",
+    "download": "הורד",
     "submit": "שלח",
     "confirm": "אישור",
     "close": "סגור",
@@ -408,9 +412,9 @@
     "signUpNow": "הירשם עכשיו",
     "loginNow": "התחבר עכשיו",
     "systemAccess": "גישה למערכת",
-    "connectWorkspace": "התחבר לסביבת העבודה שלך ב-Ghost Post",
+    "connectWorkspace": "התחבר לסביבת העבודה שלך ב-GhostSEO",
     "createAccount": "יצירת חשבון",
-    "joinGhostPost": "הצטרף ל-Ghost Post ואוטמט את ה-SEO שלך",
+    "joinGhostPost": "הצטרף ל-GhostSEO ואוטמט את ה-SEO שלך",
     "fullName": "שם מלא",
     "connect": "התחבר",
     "orContinueWith": "או המשך עם",
@@ -418,7 +422,7 @@
     "termsOfService": "תנאי השימוש",
     "privacyPolicy": "מדיניות הפרטיות",
     "createOne": "צור חשבון",
-    "welcomeGhostPost": "ברוכים הבאים ל-Ghost Post!",
+    "welcomeGhostPost": "ברוכים הבאים ל-GhostSEO!",
     "accountCreatedSuccess": "החשבון שלך נוצר בהצלחה. אתה מוכן להתחיל לאוטמט את אסטרטגיית ה-SEO והתוכן שלך עם הפלטפורמה מונעת ה-AI שלנו.",
     "emailPlaceholder": "הזן את האימייל שלך",
     "passwordPlaceholder": "הזן את הסיסמה שלך",
@@ -509,7 +513,7 @@
   },
   "websiteAdmin": {
     "title": "תוכן אתר",
-    "subtitle": "ניהול תוכן ו-SEO של אתר השיווק Ghost Post",
+    "subtitle": "ניהול תוכן ו-SEO של אתר השיווק GhostSEO",
     "visitWebsite": "בקר באתר",
     "sections": {
       "pages": {
@@ -1168,8 +1172,8 @@
       "labelWithCredits": "תיקון AI · {credits} קרדיטים",
       "title": "תקן בעיה זו בעזרת AI",
       "pluginRequired": "נדרש תוסף WordPress",
-      "pluginDescription": "כדי לתקן בעיות באתר שלך באופן אוטומטי, עליך לחבר את תוסף Ghost Post לאתר ה-WordPress שלך. התוסף מאפשר ל-Ghost Post לבצע שינויים באופן בטוח ישירות בדפים שלך.",
-      "step1": "הורד את תוסף Ghost Post למטה",
+      "pluginDescription": "כדי לתקן בעיות באתר שלך באופן אוטומטי, עליך לחבר את תוסף GhostSEO לאתר ה-WordPress שלך. התוסף מאפשר ל-GhostSEO לבצע שינויים באופן בטוח ישירות בדפים שלך.",
+      "step1": "הורד את תוסף GhostSEO למטה",
       "step2": "ב-WordPress, עבור לתוספים ← הוסף חדש ← העלאת תוסף",
       "step3": "העלה את קובץ ה-ZIP ולחץ על \"התקן עכשיו\"",
       "step4": "הפעל את התוסף - הוא יתחבר אוטומטית",
@@ -1301,7 +1305,7 @@
     },
     "syncRequired": {
       "title": "נדרש אכלוס תוכן",
-      "description": "כדי להחיל תיקוני AI, Ghost Post צריך להכיר את מבנה התוכן של האתר. אנא אכלס את הישויות (דפים, פוסטים) תחילה.",
+      "description": "כדי להחיל תיקוני AI, GhostSEO צריך להכיר את מבנה התוכן של האתר. אנא אכלס את הישויות (דפים, פוסטים) תחילה.",
       "step1": "עבור לעמוד הישויות",
       "step2": "גלה את סוגי התוכן ולחץ על “שמירה ואכלוס”",
       "step3": "חזור לכאן והחל את תיקוני ה-AI",
@@ -1337,7 +1341,7 @@
       "fixAll": "הפעל את כל כותרות האבטחה",
       "fixing": "מפעיל כותרות...",
       "successTitle": "כותרות האבטחה הופעלו!",
-      "successHint": "הרץ בדיקה מחדש לאימות. הכותרות נשלחות בכל טעינת דף דרך תוסף Ghost Post.",
+      "successHint": "הרץ בדיקה מחדש לאימות. הכותרות נשלחות בכל טעינת דף דרך תוסף GhostSEO.",
       "hsts": "Strict-Transport-Security (HSTS)",
       "hstsDesc": "מכריח דפדפנים לגשת לאתר רק דרך HTTPS, ומונע מתקפות הורדת דירוג וגניבת עוגיות.",
       "xframe": "X-Frame-Options",
@@ -1354,7 +1358,7 @@
       "learnMoreTitle": "מהן כותרות אבטחה?",
       "fixOne": "הפעל",
       "fixed": "מופעל",
-      "pluginUpdateRequired": "נדרש עדכון לתוסף - אנא הורד והתקן מחדש את תוסף Ghost Post כדי להפעיל תכונה זו.",
+      "pluginUpdateRequired": "נדרש עדכון לתוסף - אנא הורד והתקן מחדש את תוסף GhostSEO כדי להפעיל תכונה זו.",
       "pluginNotConnected": "תוסף ה-WordPress אינו מחובר. אנא בדוק את החיבור לאתר.",
       "fixFailed": "הפעלת כותרות אבטחה נכשלה. אנא נסה שוב."
     }
@@ -1496,7 +1500,7 @@
     "untitled": "ללא כותרת",
     "wpConnection": {
       "title": "תוסף וורדפרס לא מחובר",
-      "description": "מתכנן התוכן דורש אתר וורדפרס מחובר עם תוסף Ghost Post. לאחר החיבור, הפוסטים שלך יופיעו בלוח השנה ובתצוגת הרשימה.",
+      "description": "מתכנן התוכן דורש אתר וורדפרס מחובר עם תוסף GhostSEO. לאחר החיבור, הפוסטים שלך יופיעו בלוח השנה ובתצוגת הרשימה.",
       "hint": "עבור להגדרות כדי להוריד את התוסף ולחבר את אתר הוורדפרס שלך.",
       "dismiss": "סגור",
       "goToSettings": "להגדרות"
@@ -1736,6 +1740,20 @@
       "hard": "קשה"
     },
     "generatePost": "צור פוסט AI",
+    "linkExisting": "קשר עמוד קיים",
+    "unlinkExisting": "נתק",
+    "linkModal": {
+      "title": "קישור לעמוד קיים",
+      "subtitle": "בחר עמוד, פוסט או ישות אחרת שקיימים באתר שלך כדי לקשר אליהם את מילת המפתח.",
+      "search": "חיפוש לפי כותרת או כתובת…",
+      "empty": "לא נמצאו ישויות התואמות לחיפוש.",
+      "emptySite": "עדיין לא אוכלסו ישויות באתר הזה.",
+      "allTypes": "כל הסוגים",
+      "loading": "טוען ישויות…",
+      "link": "קשר",
+      "cancel": "ביטול",
+      "keyword": "מילת מפתח"
+    },
     "tooltips": {
       "keyword": "מילת המפתח שאתה עוקב אחריה",
       "position": "מיקום ממוצע בתוצאות גוגל בתקופה הנבחרת",
@@ -1865,7 +1883,7 @@
     },
     "pluginStep": {
       "title": "חבר את התוסף לוורדפרס",
-      "description": "התקן את התוסף של Ghost Post באתר הוורדפרס שלך כדי לפרסם תוכן ישירות מכאן. זה לוקח רק דקה!",
+      "description": "התקן את התוסף של GhostSEO באתר הוורדפרס שלך כדי לפרסם תוכן ישירות מכאן. זה לוקח רק דקה!",
       "benefit1": "פרסם מאמרים ישירות לאתר הוורדפרס שלך",
       "benefit2": "תגיות מטא SEO ותמונות ראשיות אוטומטיות",
       "benefit3": "סנכרן ונהל את כל התוכן ממקום אחד",
@@ -2435,7 +2453,7 @@
       "brokenInternalLink": "מצא את הקישור השבור בתוכן הדף ותקן את ה-URL ליעד הנכון, או מחק את הקישור אם העמוד הוסר. לחלופין, צור הפניה 301 מהכתובת השבורה לעמוד חלופי מתאים."
     },
     "errors": {
-      "pluginUpdateRequired": "תוסף הוורדפרס צריך עדכון כדי לתמוך בתיקון noindex לכל עמוד. אנא עדכן את תוסף Ghost Post באתר הוורדפרס."
+      "pluginUpdateRequired": "תוסף הוורדפרס צריך עדכון כדי לתמוך בתיקון noindex לכל עמוד. אנא עדכן את תוסף GhostSEO באתר הוורדפרס."
     }
   },
   "entities": {
@@ -2627,7 +2645,7 @@
     "onboarding": {
       "connect": {
         "title": "חבר את האתר שלך",
-        "description": "כדי לייבא תוכן מאתר ה-WordPress שלך, התקן את תוסף Ghost Post. זה לוקח רק דקה!",
+        "description": "כדי לייבא תוכן מאתר ה-WordPress שלך, התקן את תוסף GhostSEO. זה לוקח רק דקה!",
         "downloadPlugin": "הורד תוסף",
         "viewInstructions": "צפה בהוראות",
         "step1": "הורד את קובץ ה-zip של התוסף",
@@ -2640,7 +2658,7 @@
         "scanWebsite": "סרוק אתר",
         "step1": "לחץ על כפתור הסריקה כדי לנתח את האתר",
         "step2": "נזהה את סוגי התוכן הזמינים",
-        "step3": "בחר מה לייבא ל-Ghost Post"
+        "step3": "בחר מה לייבא ל-GhostSEO"
       },
       "sync": {
         "title": "מוכן לייבוא!",
@@ -2732,7 +2750,7 @@
     },
     "plugin": {
       "title": "תוסף WordPress",
-      "description": "כדי לסנכרן תוכן אוטומטית מאתר ה-WordPress שלך, התקן את התוסף Ghost Post Connect.",
+      "description": "כדי לסנכרן תוכן אוטומטית מאתר ה-WordPress שלך, התקן את התוסף GhostSEO Connect.",
       "connectedDesc": "התוסף פעיל ומסנכרן תוכן",
       "notConnectedDesc": "התקן את התוסף לסנכרון תוכן אוטומטי",
       "download": "הורד תוסף",
@@ -2847,7 +2865,7 @@
     "importing": "מייבא...",
     "importRedirects": "ייבא הפניות",
     "externalPluginDetected": "זוהה תוסף הפניות חיצוני",
-    "externalPluginDescription": "{plugins} זוהה באתר הוורדפרס שלך. ייבא הפניות קיימות ל-Ghost Post וכבה את התוסף החיצוני.",
+    "externalPluginDescription": "{plugins} זוהה באתר הוורדפרס שלך. ייבא הפניות קיימות ל-GhostSEO וכבה את התוסף החיצוני.",
     "enable": "הפעל",
     "disable": "השבת",
     "status": "סטטוס",
@@ -3031,7 +3049,7 @@
     },
     "empty": {
       "title": "עדיין אין אתרים",
-      "description": "הוסף את האתר הראשון שלך כדי להתחיל עם Ghost Post"
+      "description": "הוסף את האתר הראשון שלך כדי להתחיל עם GhostSEO"
     },
     "toast": {
       "renamed": "שם האתר שונה בהצלחה",
@@ -3205,9 +3223,9 @@
       "publishMode": "מצב פרסום",
       "publishAuto": "אוטומטי",
       "publishManual": "ידני",
-      "publishAutoHint": "פוסטים של קישורים נכנסים יפורסמו אוטומטית באתר הוורדפרס שלך דרך תוסף Ghost Post.",
+      "publishAutoHint": "פוסטים של קישורים נכנסים יפורסמו אוטומטית באתר הוורדפרס שלך דרך תוסף GhostSEO.",
       "publishManualHint": "ניתן לעבור לפרסום אוטומטי כיוון שהאתר שלך תומך בכך.",
-      "publishManualOnly": "ידני בלבד - חבר את תוסף Ghost Post לוורדפרס כדי לאפשר פרסום אוטומטי.",
+      "publishManualOnly": "ידני בלבד - חבר את תוסף GhostSEO לוורדפרס כדי לאפשר פרסום אוטומטי.",
       "aiGenerating": "AI מייצר..."
     },
     "bulk": {
@@ -3239,7 +3257,7 @@
   },
   "settings": {
     "title": "הגדרות",
-    "subtitle": "הגדר את העדפות Ghost Post והאינטגרציות שלך",
+    "subtitle": "הגדר את העדפות GhostSEO והאינטגרציות שלך",
     "mainTabs": {
       "website": "האתר הנוכחי",
       "account": "חשבון"
@@ -3271,7 +3289,7 @@
     "systemTheme": "ערכת מערכת",
     "saveChanges": "שמור שינויים",
     "whiteLabelReporting": "מיתוג",
-    "clientReporting": "דוחות ללקוחות",
+    "clientReporting": "דו\"חות",
     "descriptions": {
       "general": "הגדר הגדרות אתר בסיסיות והעדפות",
       "aiConfiguration": "התאם אישית מודלי AI והגדרות יצירת תוכן",
@@ -3545,7 +3563,7 @@
       "gscSiteSaved": "אתר Search Console נשמר.",
       "active": "פעיל",
       "viaPlugin": "דרך תוסף",
-      "wpManaged": "מנוהל דרך תוסף Ghost Post ל-WordPress. הגדר בלשונית חיבור.",
+      "wpManaged": "מנוהל דרך תוסף GhostSEO ל-WordPress. הגדר בלשונית חיבור.",
       "owner": "בעלים",
       "fullAccess": "גישה מלאה",
       "restricted": "מוגבל",
@@ -3624,7 +3642,11 @@
         "accentColor": "צבע הדגשה",
         "replyToEmail": "אימייל למענה",
         "replyToEmailPlaceholder": "reports@youragency.com",
-        "replyToEmailHint": "לקוחות יענו לאימייל זה כשיקבלו דוחות"
+        "replyToEmailHint": "לקוחות יענו לאימייל זה כשיקבלו דוחות",
+        "website": "אתר הסוכנות",
+        "websiteHint": "מוצג מתחת לשם הסוכנות בכותרת הדוחות.",
+        "phone": "טלפון",
+        "phoneHint": "מוצג מתחת לשם הסוכנות בכותרת הדוחות."
       }
     },
     "clientReportingSection": {
@@ -3649,7 +3671,10 @@
         "recipientsPlaceholder": "client@example.com, partner@example.com",
         "recipientsHint": "רשימה של כתובות אימייל מופרדות בפסיקים",
         "deliveryMode": "אופן משלוח",
-        "includeInReport": "כלול בדוח"
+        "includeInReport": "כלול בדוח",
+        "sectionsHint": "הפעל/בטל סעיפים וסדר אותם עם החצים כדי לקבוע כיצד יופיעו ב-PDF.",
+        "reportLanguage": "שפת הדוח",
+        "reportLanguageHint": "כל דוח ייוצא בשפה הזו, ללא קשר לשפת הממשק שלך."
       },
       "deliveryModes": {
         "manual": "ידני בלבד",
@@ -3657,27 +3682,194 @@
         "weekly": "שבועי (כל יום שני)"
       },
       "options": {
+        "overview": "סקירה כללית",
         "aiSummary": "סיכום מנהלים AI",
         "healthScore": "ציון בריאות אתר והתקדמות",
+        "aiActions": "פעולות AI שבוצעו",
+        "keywords": "ביצועי מילות מפתח",
+        "competitors": "מתחרים",
+        "seo": "תובנות SEO",
+        "geo": "ביצועים גיאוגרפיים",
+        "siteAudits": "בדיקות אתר",
         "actions": "פעולות AI שבוצעו"
+      },
+      "optionDescriptions": {
+        "overview": "כרטיסי סיכום עליונים המציגים מילות מפתח במעקב, מתחרים, פריטי תוכן ופעולות AI בתקופה.",
+        "aiSummary": "סיכום מנהלים שנוצר על ידי AI עבור הלקוח, המסכם התקדמות ותוצאות במהלך התקופה.",
+        "healthScore": "ציון בריאות האתר הנוכחי עם השינוי לעומת התקופה הקודמת ופירוט לפי קטגוריות.",
+        "aiActions": "טבלת פעולות אוטומטיות שבוצעו על ידי סוכן ה-AI במהלך תקופת הדוח — תאריך, סוג ותיאור.",
+        "keywords": "מילות המפתח המובילות במעקב עם דירוגיהן הנוכחיים ונפחי החיפוש.",
+        "competitors": "מתחרים פעילים שנמצאים במעקב עבור אתר זה.",
+        "seo": "תובנות SEO כולל ציון הבדיקה, פירוט קטגוריות, סגנון כתיבה ותצוגה מקדימה של אסטרטגיה.",
+        "geo": "מיקומים ממוקדים ושפת תוכן שהוגדרו עבור אתר זה.",
+        "siteAudits": "היסטוריית בדיקות אתר אחרונות — תאריך, ציון וסטטוס — לאורך תקופת הדוח."
+      },
+      "sectionsModal": {
+        "title": "סעיפי הדוח",
+        "empty": "לדוח זה אין סעיפים שמורים."
       },
       "generate": {
         "title": "יצירת דוח",
         "description": "צור דוח PDF עבור תקופת הדיווח הנוכחית.",
         "button": "צור דוח עכשיו",
-        "generating": "מייצר..."
+        "generating": "מייצר...",
+        "currentMonth": "חודש נוכחי",
+        "previousMonth": "השוואה ל",
+        "noComparison": "ללא השוואה",
+        "noDataHint": "לאתר זה עדיין אין היסטוריית בדיקות או פעולות — הדוח ייווצר על סמך הנתונים הנוכחיים."
       },
       "recentReports": "דוחות אחרונים",
-      "noReportsYet": "אין דוחות שנוצרו עדיין. צור את הדוח הראשון שלך למעלה.",
+      "reportsTitle": "דוחות",
+      "reportsDescription": "עיין, הורד ושלח את הדוחות שיצרת עבור אתר זה.",
+      "noReportsYet": "אין דוחות שנוצרו עדיין. לחץ על \"צור דוח\" כדי ליצור את הדוח הראשון.",
+      "noReportsMatch": "אין דוחות התואמים לסינון.",
       "sendReport": "שלח לנמענים",
       "deleteReport": "מחק דוח",
-      "confirmDelete": "האם אתה בטוח שברצונך למחוק דוח זה?",
+      "confirmDeleteTitle": "למחוק את הדוח?",
+      "confirmDelete": "האם אתה בטוח שברצונך למחוק דוח זה? לא ניתן לשחזר את הפעולה.",
       "reportDeleted": "הדוח נמחק בהצלחה",
       "deleteError": "מחיקת הדוח נכשלה",
+      "filters": {
+        "searchPlaceholder": "חפש לפי חודש או נמען",
+        "allStatuses": "כל הסטטוסים",
+        "allYears": "כל השנים",
+        "allLanguages": "כל השפות"
+      },
+      "actionTypes": {
+        "update_meta": "אופטימיזציית מטא",
+        "add_internal_link": "קישור פנימי",
+        "fix_broken_link": "תיקון קישור",
+        "optimize_image": "אופטימיזציית תמונה",
+        "fix_heading_structure": "מבנה כותרות",
+        "add_schema_markup": "סכמה מובנית",
+        "improve_content": "שיפור תוכן",
+        "fix_accessibility": "תיקון נגישות",
+        "default": "שיפור SEO"
+      },
+      "wizard": {
+        "title": "יצירת דוח",
+        "step1Title": "סעיפים ושפה",
+        "step2Title": "תקופת השוואה",
+        "step3Title": "נמענים",
+        "language": "שפת הדוח",
+        "sections": "סעיפים בדוח",
+        "atLeastOneSection": "יש לבחור לפחות סעיף אחד.",
+        "periodHelp": "בחר אילו חודשים להשוות. מוצגים רק חודשים עם נתוני בדיקה או פעולות.",
+        "noPeriodsHint": "אין עדיין היסטוריה — הדוח ייווצר על סמך הנתונים הנוכחיים.",
+        "currentMonth": "חודש נוכחי",
+        "previousMonth": "השוואה ל",
+        "noComparison": "ללא השוואה",
+        "recipientsHelp": "אופציונלי. הוסף אימיילים מופרדים בפסיק כדי לאפשר שליחת ה-PDF לאחר היצירה.",
+        "recipients": "אימיילים של נמענים",
+        "recipientsHint": "נשמור אותם כברירת מחדל לפעם הבאה.",
+        "recipientsPlaceholder": "כתובות אימייל מופרדות בפסיק",
+        "generate": "צור דוח",
+        "generating": "מייצר...",
+        "generateError": "יצירת הדוח נכשלה",
+        "taskTitle": "מייצר דוח",
+        "taskRunning": "מייצר את קובץ ה-PDF של הדוח...",
+        "taskComplete": "הדוח מוכן.",
+        "taskError": "יצירת הדוח נכשלה."
+      },
+      "reportStarted": "הדוח נוצר ברקע. נודיע לך כשהוא יהיה מוכן.",
+      "previewReport": "תצוגה מקדימה",
+      "changeStatus": "שנה סטטוס",
+      "noRecipientsLabel": "אין נמענים",
+      "columns": {
+        "month": "חודש",
+        "recipients": "נמענים",
+        "generated": "נוצר",
+        "sections": "סעיפים",
+        "languages": "שפות"
+      },
+      "languagesModal": {
+        "title": "שפות הדוח",
+        "description": "בחר את השפות שבהן יש להפיק את הדוח. שפות שכבר הופקו מסומנות.",
+        "alreadyGenerated": "כבר נוצר",
+        "generate": "הפק נבחרים",
+        "queued": "החלה הפקה בשפות שנבחרו."
+      },
+      "languagePicker": {
+        "titlePreview": "בחר שפה לתצוגה",
+        "titleDownload": "בחר שפה להורדה",
+        "description": "הדוח קיים במספר שפות. בחר באיזו לפתוח:",
+        "noPdf": "אין עדיין PDF"
+      },
+      "recipientsModal": {
+        "titleEdit": "נמענים",
+        "titleSend": "שלח דוח",
+        "descriptionEdit": "הוסף, ערוך או הסר אימיילים של נמענים עבור דוח זה.",
+        "descriptionSend": "הוסף נמענים ובחר את השפה לשליחת הדוח. הנמענים יישמרו על הדוח.",
+        "recipients": "נמענים",
+        "placeholder": "name@example.com",
+        "hint": "לחץ Enter, פסיק, או הדבק רשימה כדי להוסיף כמה בבת אחת.",
+        "emailLanguage": "שפה",
+        "emailLanguageHint": "ה-PDF וגוף ההודעה יישלחו בשפה שנבחרה.",
+        "save": "שמור",
+        "saveAndSend": "שמור ושלח",
+        "invalidEmail": "יש להזין כתובת אימייל תקינה.",
+        "duplicate": "כתובת זו כבר ברשימה.",
+        "noRecipientsError": "הוסף לפחות נמען אחד."
+      },
+      "preview": {
+        "title": "תצוגה מקדימה של הדוח",
+        "reportHeaderTitle": "דוח ביצועי SEO",
+        "regenerating": "מייצר מחדש את ה-PDF — התצוגה תתעדכן כשיהיה מוכן.",
+        "noSnapshotTitle": "תצוגה מוגבלת זמינה",
+        "noSnapshotBody": "הדוח נוצר לפני תמיכה בתצוגה מקדימה בפלטפורמה, או שתמונת הנתונים שלו חסרה. צור אותו מחדש כדי לראות את התצוגה המלאה כאן.",
+        "editSections": "ערוך סעיפים",
+        "addSection": "הוסף סעיף",
+        "saveAndRegenerate": "שמור וצור מחדש",
+        "unsavedChanges": "יש לך שינויים שלא נשמרו",
+        "noChanges": "אין שינויים עדיין",
+        "auditStatuses": {
+          "pending": "ממתין",
+          "running": "בריצה",
+          "completed": "הושלם",
+          "failed": "נכשל"
+        },
+        "noAiSummary": "אין עדיין סיכום AI.",
+        "editSummary": "ערוך סיכום",
+        "regeneratePdf": "צור PDF מחדש",
+        "regenerateSummary": "צור סיכום מחדש",
+        "overviewKeywords": "מילות מפתח במעקב",
+        "overviewCompetitors": "מתחרים במעקב",
+        "overviewContent": "פריטי תוכן",
+        "overviewActions": "פעולות AI בתקופה",
+        "healthScore": "ציון בריאות",
+        "pointsVs": "נקודות לעומת התקופה הקודמת",
+        "previousScore": "ציון קודם:",
+        "firstAudit": "בדיקה ראשונה לתקופה זו",
+        "actionDescription": "תיאור",
+        "noActions": "לא בוצעו פעולות אוטומטיות בתקופה זו.",
+        "noKeywords": "אין מילות מפתח במעקב.",
+        "noCompetitors": "אין מתחרים במעקב.",
+        "noAudits": "אין בדיקות בתקופה זו.",
+        "noTargetLocations": "לא הוגדרו מיקומים ממוקדים.",
+        "keyword": "מילת מפתח",
+        "position": "דירוג",
+        "volume": "נפח חיפוש",
+        "competitor": "מתחרה",
+        "score": "ציון",
+        "writingStyle": "סגנון כתיבה",
+        "seoStrategy": "אסטרטגיה",
+        "seoEmpty": "אין עדיין תובנות SEO.",
+        "businessCategory": "קטגוריה",
+        "businessAbout": "אודות",
+        "contentLanguage": "שפת תוכן",
+        "targetLocations": "מיקומים ממוקדים",
+        "categories": {
+          "technical": "טכני",
+          "performance": "ביצועים",
+          "visual": "ויזואלי",
+          "accessibility": "נגישות"
+        }
+      },
       "statuses": {
         "draft": "טיוטה",
         "sent": "נשלח",
-        "error": "שגיאה"
+        "error": "שגיאה",
+        "pending": "מייצר"
       }
     },
     "usersSection": {
@@ -3758,6 +3950,7 @@
       "perMonth": "לחודש",
       "perYear": "לשנה",
       "cancelsAtPeriodEnd": "מתבטל בסוף התקופה",
+      "changePlan": "שנה תוכנית",
       "usageLimits": "שימוש ומגבלות",
       "planFeatures": "תכונות התוכנית",
       "unlimited": "ללא הגבלה",
@@ -3898,7 +4091,7 @@
     },
     "addonsSection": {
       "title": "תוספות זמינות",
-      "description": "שפר את חווית Ghost Post שלך עם תכונות ויכולות נוספות.",
+      "description": "שפר את חווית GhostSEO שלך עם תכונות ויכולות נוספות.",
       "installed": "מותקן",
       "install": "התקן",
       "purchased": "נרכש",
@@ -3911,6 +4104,8 @@
       "alreadyPurchased": "כבר רכשת תוספת זו",
       "alreadyPurchasedCount": "רכשת תוספת זו {count} פעמים",
       "addonFallback": "תוספת",
+      "planCapUsage": "{used} / {max} תוספות במסגרת המנוי שלך",
+      "planCapReached": "הגעת למגבלת התוספות של המנוי לסוג זה",
       "errors": {
         "noSubscription": "אין מנוי פעיל",
         "maxSeatsReached": "המנוי שלך מאפשר מקסימום {max} מושבים נוספים באמצעות תוספות. יש לך {current}.",
@@ -4198,6 +4393,14 @@
       "title": "בדיקת אתר נכשלה",
       "message": "בדיקה של {siteName} נתקלה בשגיאה"
     },
+    "reportComplete": {
+      "title": "הדוח מוכן",
+      "message": "{siteName} — הדוח של {month} מוכן"
+    },
+    "reportFailed": {
+      "title": "יצירת הדוח נכשלה",
+      "message": "לא הצלחנו לסיים את הדוח עבור {siteName}"
+    },
     "entitySync": {
       "title": "סנכרון ישויות הושלם",
       "message": "{siteName}: {created} חדשים, {updated} עודכנו"
@@ -4255,7 +4458,7 @@
       "connectWordPress": "חבר וורדפרס",
       "close": "סגור",
       "commonErrors": {
-        "rest_no_route": "נקודת הקצה של תוסף Ghost Post לא נמצאה. ודא שתוסף Ghost Post מותקן ומופעל בוורדפרס.",
+        "rest_no_route": "נקודת הקצה של תוסף GhostSEO לא נמצאה. ודא שתוסף GhostSEO מותקן ומופעל בוורדפרס.",
         "connection_refused": "לא ניתן להתחבר לאתר הוורדפרס שלך. ודא שהאתר נגיש.",
         "timeout": "הבקשה חרגה מהזמן. ייתכן שהשרת שלך איטי או עמוס.",
         "unauthorized": "האימות נכשל. אנא חבר מחדש את אתר הוורדפרס שלך."
@@ -4468,7 +4671,7 @@
       "create": "הוסף אתר",
       "creating": "מוסיף...",
       "aiSuggest": "הצעת AI",
-      "nonWordPressWarning": "Ghost Post תומך כרגע באתרי WordPress בלבד. ניתן עדיין להוסיף אתר זה, אך תכונות סנכרון התוכן לא יהיו זמינות.",
+      "nonWordPressWarning": "GhostSEO תומך כרגע באתרי WordPress בלבד. ניתן עדיין להוסיף אתר זה, אך תכונות סנכרון התוכן לא יהיו זמינות.",
       "languagePickerLabel": "זוהו {count} גרסאות שפה לאתר זה",
       "languagePickerHint": "כל שפה תוגדר כאתר נפרד. בחר את השפה שברצונך להוסיף כעת.",
       "languageDefaultBadge": "ברירת מחדל",
@@ -4700,7 +4903,7 @@
         "wp_reply_comment": "משיב לתגובה",
         "wp_delete_comment": "מסיר תגובה",
         "wp_update_options": "מעדכן הגדרות אתר",
-        "wp_self_update_plugin": "מעדכן את התוסף Ghost Post",
+        "wp_self_update_plugin": "מעדכן את התוסף GhostSEO",
         "wp_rest_api": "פונה ל-REST API של וורדפרס",
         "wp_upload_media": "מעלה מדיה",
         "wp_update_media": "מעדכן פרטי מדיה",
@@ -4746,7 +4949,7 @@
       "error": {
         "title": "לא הצלחנו לטעון את תצוגת האתר",
         "cannotConnect": "הדפדפן לא הצליח להתחבר אל {url}.",
-        "bridgeMissing": "האתר נטען אך גשר ה-Ghost Post Connector לא הגיב. ודא שהתוסף מותקן ומעודכן לגרסה האחרונה, ואז רענן.",
+        "bridgeMissing": "האתר נטען אך גשר ה-GhostSEO Connector לא הגיב. ודא שהתוסף מותקן ומעודכן לגרסה האחרונה, ואז רענן.",
         "retry": "נסה שוב",
         "openDirectly": "פתח את האתר ישירות"
       },
@@ -4802,9 +5005,9 @@
     "generateContent": "צור קמפיין",
     "wpRequired": {
       "title": "נדרש חיבור ל-WordPress",
-      "description": "חבר את אתר ה-WordPress שלך עם תוסף Ghost Post כדי להשתמש באשף תוכן AI.",
-      "notWordpress": "אשף תוכן AI דורש אתר WordPress עם תוסף Ghost Post מותקן.",
-      "notConnected": "אתר ה-WordPress שלך צריך להיות מחובר דרך תוסף Ghost Post."
+      "description": "חבר את אתר ה-WordPress שלך עם תוסף GhostSEO כדי להשתמש באשף תוכן AI.",
+      "notWordpress": "אשף תוכן AI דורש אתר WordPress עם תוסף GhostSEO מותקן.",
+      "notConnected": "אתר ה-WordPress שלך צריך להיות מחובר דרך תוסף GhostSEO."
     },
     "steps": {
       "campaign": "קמפיין",
@@ -5228,11 +5431,11 @@
       "skipText": "דלג - אגדיר זאת מאוחר יותר בהגדרות"
     },
     "wordpressPlugin": {
-      "title": "התקנת תוסף Ghost Post לוורדפרס",
+      "title": "התקנת תוסף GhostSEO לוורדפרס",
       "description": "התקן את התוסף שלנו לוורדפרס כדי לאפשר פרסום אוטומטי של מאמרים ישירות לאתר שלך.",
       "benefit1": "פרסום אוטומטי של מאמרים לוורדפרס",
       "benefit2": "אופטימיזציית SEO מובנית",
-      "benefit3": "ניהול תוכן ישירות מ-Ghost Post",
+      "benefit3": "ניהול תוכן ישירות מ-GhostSEO",
       "downloadButton": "הורד תוסף",
       "connected": "תוסף וורדפרס חובר בהצלחה!",
       "waitingForConnection": "ממתין לחיבור התוסף... התקן והפעל את התוסף בוורדפרס.",
@@ -5473,7 +5676,7 @@
     },
     "accountSetup": {
       "title": "הגדר את הארגון שלך",
-      "description": "צור את הארגון שלך כדי להתחיל עם Ghost Post.",
+      "description": "צור את הארגון שלך כדי להתחיל עם GhostSEO.",
       "nameLabel": "שם הארגון",
       "namePlaceholder": "הזן את שם הארגון",
       "slugLabel": "כתובת URL של הארגון",
@@ -5771,7 +5974,7 @@
     },
     "success": {
       "successTitle": "התשלום הצליח!",
-      "successMessage": "ברוכים הבאים ל-Ghost Post! החשבון שלך פעיל ומוכן לשימוש.",
+      "successMessage": "ברוכים הבאים ל-GhostSEO! החשבון שלך פעיל ומוכן לשימוש.",
       "yourPlan": "התוכנית שלך",
       "goToDashboard": "עבור לדשבורד"
     },
@@ -7808,7 +8011,8 @@
     "manageSubscription": "ניהול מנוי",
     "noPlans": "אין תוכניות זמינות",
     "upgradedTo": "שודרג ל",
-    "downgradedTo": "שונמך ל"
+    "downgradedTo": "שונמך ל",
+    "unlimited": "ללא הגבלה"
   },
   "downgrade": {
     "title": "שנמוך תוכנית",
@@ -8474,7 +8678,7 @@
     },
     "access": {
       "title": "קודי גישת תמיכה",
-      "subtitle": "צרו קוד חד-פעמי שמאפשר למהנדס תמיכה של Ghost Post להיכנס לחשבון שלכם.",
+      "subtitle": "צרו קוד חד-פעמי שמאפשר למהנדס תמיכה של GhostSEO להיכנס לחשבון שלכם.",
       "backToSupport": "חזרה לתמיכה",
       "howItWorks": "איך זה עובד",
       "howItWorksDesc": "צרו קוד, שתפו אותו עם צוות התמיכה שלנו, והם יוכלו להיכנס בשמכם לזמן מוגבל. רק אתם יכולים להפיק קודים - מנהלים לא יכולים. ניתן לבטל קוד פעיל בכל רגע.",

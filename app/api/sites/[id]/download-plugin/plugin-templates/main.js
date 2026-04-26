@@ -7,11 +7,11 @@ import { PLUGIN_VERSION } from '@/app/api/plugin/version';
 export function getPluginMainFile(version = PLUGIN_VERSION) {
   return `<?php
 /**
- * Plugin Name: Ghost Post Connector
+ * Plugin Name: GhostSEO Connector
  * Plugin URI: https://ghostpost.co.il
- * Description: Connects your WordPress site to Ghost Post platform for AI-powered content management.
+ * Description: Connects your WordPress site to GhostSEO platform for AI-powered content management.
  * Version: ${version}
- * Author: Ghost Post
+ * Author: GhostSEO
  * Author URI: https://ghostpost.co.il
  * License: GPL v2 or later
  * License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -67,7 +67,7 @@ function gp_connector_init() {
 add_action('plugins_loaded', 'gp_connector_init');
 
 /**
- * Send security headers if enabled via Ghost Post platform
+ * Send security headers if enabled via GhostSEO platform
  */
 function gp_send_security_headers() {
     if (headers_sent()) return;
@@ -82,7 +82,7 @@ function gp_send_security_headers() {
 add_action('send_headers', 'gp_send_security_headers');
 
 /**
- * Detect a request coming from the Ghost Post platform in editor mode.
+ * Detect a request coming from the GhostSEO platform in editor mode.
  *
  * Two modes are accepted:
  *  1. Signed (gp_editor=1) - carries gp_origin, gp_exp, gp_sig; verified via
@@ -196,7 +196,7 @@ add_action('wp_enqueue_scripts', 'gp_editor_enqueue_bridge');
  * Activation hook
  */
 function gp_connector_activate() {
-    // Verify connection with Ghost Post platform
+    // Verify connection with GhostSEO platform
     $ghost_post = new Ghost_Post();
     $ghost_post->verify_connection();
     
@@ -209,7 +209,7 @@ register_activation_hook(__FILE__, 'gp_connector_activate');
  * Deactivation hook
  */
 function gp_connector_deactivate() {
-    // Notify Ghost Post platform about disconnection
+    // Notify GhostSEO platform about disconnection
     $ghost_post = new Ghost_Post();
     $ghost_post->notify_disconnection();
     

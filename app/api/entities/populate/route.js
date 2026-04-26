@@ -83,7 +83,7 @@ export async function POST(request) {
       const isShopify = site.platform === 'shopify';
       return NextResponse.json({
         error: isShopify
-          ? 'Site is not connected. Please install the Ghost Post Shopify app first.'
+          ? 'Site is not connected. Please install the GhostSEO Shopify app first.'
           : 'Site is not connected. Please install and activate the WordPress plugin first.',
         errorCode: 'NOT_CONNECTED',
       }, { status: 400 });
@@ -93,7 +93,7 @@ export async function POST(request) {
     if (isShopify) {
       if (!site.shopifyAccessToken || !site.shopifyDomain) {
         return NextResponse.json({
-          error: 'Shopify connection is missing — please reinstall the Ghost Post Shopify app.',
+          error: 'Shopify connection is missing — please reinstall the GhostSEO Shopify app.',
           errorCode: 'MISSING_KEYS',
         }, { status: 400 });
       }

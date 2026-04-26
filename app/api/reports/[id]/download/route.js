@@ -137,10 +137,41 @@ export async function GET(request, { params }) {
 
     const pdfBuffer = await pdfResponse.arrayBuffer();
 
-    // Generate filename - use ASCII-safe version for header, with UTF-8 encoded version as fallback
-    const dateStr = new Date(report.createdAt).toISOString().slice(0, 7); // YYYY-MM format
-    const asciiFilename = `report-${dateStr}.pdf`;
-    const utf8Filename = `report-${report.month.replace(/\s/g, '-')}.pdf`;
+    // Filename pattern: gp-report-{prev}-{curr}-{site}.pdf
+    //   - {prev} comes from metadata.previousMonth (e.g. "2026-03")
+    //   - {curr} comes from metadata.currentMonth or createdAt fallback
+    //   - {site} is the URL host or name, sanitized to ASCII-safe slug
+    // We keep an ASCII-safe `filename` for legacy clients and an
+    // RFC5987-encoded UTF-8 `filename*` for modern browsers.
+    const md = report.metadata || {};
+    const prevKey = md.previousMonth || null;
+    const currKey = md.currentMonth || new Date(report.createdAt).toISOString().slice(0, 7);
+    const site = await prisma.site.findUnique({
+      where: { id: report.siteId },
+      select: { url: true, name: true },
+    });
+    const slugSource = (() => {
+      try {
+        if (site?.url) {
+          const u = new URL(site.url.startsWith('http') ? site.url : `https://${site.url}`);
+          return u.hostname.replace(/^www\./, '');
+        }
+      } catch {}
+      return site?.name || 'site';
+    })();
+    const slug = slugSource
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '')
+      .slice(0, 40) || 'site';
+
+    const filenameParts = ['gp-report'];
+    if (prevKey) filenameParts.push(prevKey);
+    filenameParts.push(currKey);
+    filenameParts.push(slug);
+    const baseName = filenameParts.join('-');
+    const asciiFilename = `${baseName}.pdf`;
+    const utf8Filename = `${baseName}.pdf`;
     const encodedFilename = encodeURIComponent(utf8Filename);
 
     // ─── Return PDF ───────────────────────────────────────────────────────────

@@ -15,7 +15,7 @@ function parseErrorMessage(errorMessage, commonErrors) {
   
   // Check for known error patterns
   if (errorMessage.includes('rest_no_route')) {
-    return commonErrors?.rest_no_route || 'The Ghost Post plugin endpoint was not found.';
+    return commonErrors?.rest_no_route || 'The GhostSEO plugin endpoint was not found.';
   }
   if (errorMessage.includes('connection_refused') || errorMessage.includes('ECONNREFUSED')) {
     return commonErrors?.connection_refused || 'Could not connect to your WordPress site.';

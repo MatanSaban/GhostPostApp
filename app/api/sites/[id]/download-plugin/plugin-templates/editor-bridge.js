@@ -1,11 +1,11 @@
 /**
  * Generate the editor-bridge.js asset served when gp_editor=true.
- * Enables the Ghost Post platform chat to inspect and mutate elements in the live site.
+ * Enables the GhostSEO platform chat to inspect and mutate elements in the live site.
  */
 export function getEditorBridgeJs() {
-  return `/* Ghost Post Editor Bridge
+  return `/* GhostSEO Editor Bridge
  * Activates only when URL has ?gp_editor=true AND the page is iframed.
- * Communicates with the Ghost Post platform via window.postMessage.
+ * Communicates with the GhostSEO platform via window.postMessage.
  */
 (function () {
   'use strict';

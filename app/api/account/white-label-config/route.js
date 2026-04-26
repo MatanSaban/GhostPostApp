@@ -116,20 +116,53 @@ export async function PUT(request) {
     }
 
     const body = await request.json();
-    const { agencyName, agencyLogo, accentColor, replyToEmail } = body;
 
-    // Update white-label config
+    // Merge with existing config instead of replacing it. Previously we
+    // rebuilt whiteLabelConfig from the request body alone, so a PUT that
+    // sent only `{agencyLogo: url}` wiped agencyName / accentColor /
+    // replyToEmail back to defaults — and vice-versa, the "Save" button
+    // on the White-Label section (which sends only accentColor +
+    // replyToEmail) silently erased the uploaded logo.
+    const existing =
+      account.whiteLabelConfig && typeof account.whiteLabelConfig === 'object'
+        ? account.whiteLabelConfig
+        : {};
+
+    const nextConfig = {
+      agencyName: existing.agencyName || '',
+      agencyLogo: existing.agencyLogo || null,
+      accentColor: existing.accentColor || '#6366f1',
+      replyToEmail: existing.replyToEmail || '',
+      ...existing,
+    };
+
+    if (Object.prototype.hasOwnProperty.call(body, 'agencyName')) {
+      nextConfig.agencyName = body.agencyName || '';
+    }
+    if (Object.prototype.hasOwnProperty.call(body, 'agencyLogo')) {
+      nextConfig.agencyLogo = body.agencyLogo || null;
+    }
+    if (Object.prototype.hasOwnProperty.call(body, 'accentColor')) {
+      nextConfig.accentColor = body.accentColor || '#6366f1';
+    }
+    if (Object.prototype.hasOwnProperty.call(body, 'replyToEmail')) {
+      nextConfig.replyToEmail = body.replyToEmail || '';
+    }
+    // Contact info shown under the agency logo in PDF reports + the
+    // in-platform preview. Empty strings are acceptable (the renderer
+    // skips the line when the field is empty).
+    if (Object.prototype.hasOwnProperty.call(body, 'website')) {
+      nextConfig.website = body.website || '';
+    }
+    if (Object.prototype.hasOwnProperty.call(body, 'phone')) {
+      nextConfig.phone = body.phone || '';
+    }
+
+    nextConfig.updatedAt = new Date().toISOString();
+
     const updatedAccount = await prisma.account.update({
       where: { id: account.id },
-      data: {
-        whiteLabelConfig: {
-          agencyName: agencyName || '',
-          agencyLogo: agencyLogo || null,
-          accentColor: accentColor || '#6366f1',
-          replyToEmail: replyToEmail || '',
-          updatedAt: new Date().toISOString(),
-        },
-      },
+      data: { whiteLabelConfig: nextConfig },
     });
 
     return NextResponse.json({

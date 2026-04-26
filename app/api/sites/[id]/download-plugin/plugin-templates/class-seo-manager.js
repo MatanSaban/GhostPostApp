@@ -4,7 +4,7 @@
 export function getClassSeoManager() {
   return `<?php
 /**
- * Ghost Post SEO Manager
+ * GhostSEO SEO Manager
  * 
  * Handles SEO meta for Yoast, RankMath, and custom meta
  */

@@ -4,7 +4,7 @@
 export function getClassMediaManager() {
   return `<?php
 /**
- * Ghost Post Media Manager
+ * GhostSEO Media Manager
  * 
  * Handles media upload and management
  */
@@ -1286,7 +1286,7 @@ class GP_Media_Manager {
             update_option(self::CONVERSION_HISTORY_OPTION, array_values($history));
             
             // Log cleanup
-            error_log(sprintf('Ghost Post: Cleaned up %d old WebP backups', $cleaned));
+            error_log(sprintf('GhostSEO: Cleaned up %d old WebP backups', $cleaned));
         }
     }
     
@@ -1436,7 +1436,7 @@ class GP_Media_Manager {
         $image_url = wp_get_attachment_url($image_id);
         $current_filename = basename(get_attached_file($image_id));
         
-        // Call Ghost Post AI API
+        // Call GhostSEO AI API
         $ai_result = \$this->call_ghost_post_ai($image_url, $current_filename, $page_context, $language);
         
         if (is_wp_error($ai_result)) {
@@ -1582,7 +1582,7 @@ class GP_Media_Manager {
     }
     
     /**
-     * Call Ghost Post AI API for image optimization
+     * Call GhostSEO AI API for image optimization
      * 
      * @param string $image_url
      * @param string $current_filename
@@ -1597,7 +1597,7 @@ class GP_Media_Manager {
         $secret = isset($config['secret']) ? $config['secret'] : '';
         
         if (empty($platform_url) || empty($site_id) || empty($secret)) {
-            return new WP_Error('config_error', 'Ghost Post configuration incomplete');
+            return new WP_Error('config_error', 'GhostSEO configuration incomplete');
         }
         
         $endpoint = $platform_url . '/api/sites/' . $site_id . '/tools/ai-image-optimize';
@@ -1806,10 +1806,10 @@ class GP_Media_Manager {
         $content = file_get_contents($htaccess_file);
         
         // Remove existing GP redirects block
-        $content = preg_replace('/# BEGIN Ghost Post Image Redirects.*?# END Ghost Post Image Redirects\\s*/s', '', $content);
+        $content = preg_replace('/# BEGIN GhostSEO Image Redirects.*?# END GhostSEO Image Redirects\\s*/s', '', $content);
         
         // Build new redirect rules
-        $redirect_rules = "# BEGIN Ghost Post Image Redirects\\n";
+        $redirect_rules = "# BEGIN GhostSEO Image Redirects\\n";
         $redirect_rules .= "<IfModule mod_rewrite.c>\\n";
         $redirect_rules .= "RewriteEngine On\\n";
         
@@ -1818,7 +1818,7 @@ class GP_Media_Manager {
         }
         
         $redirect_rules .= "</IfModule>\\n";
-        $redirect_rules .= "# END Ghost Post Image Redirects\\n\\n";
+        $redirect_rules .= "# END GhostSEO Image Redirects\\n\\n";
         
         // Insert before WordPress rules
         if (strpos($content, '# BEGIN WordPress') !== false) {
