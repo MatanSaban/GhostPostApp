@@ -574,7 +574,7 @@ export default function DashboardLayout({ children }) {
           <X size={24} className={styles.chatButtonClose} />
         ) : (
           <img
-            src="/ghostpost_logo.png"
+            src="/favicon-white.svg"
             alt={t('chat.openChat')}
             className={styles.chatButtonLogo}
           />

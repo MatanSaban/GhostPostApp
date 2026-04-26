@@ -1299,9 +1299,9 @@ export const GhostChatPopup = forwardRef(function GhostChatPopup({ isOpen, onClo
           <div className={styles.chatHeader}>
             <div className={styles.chatHeaderLeft}>
               <div className={styles.agentAvatar}>
-                <img 
-                  src="/ghostpost_logo.png" 
-                  alt="Ghost" 
+                <img
+                  src="/favicon-white.svg"
+                  alt="Ghost"
                   className={styles.agentAvatarImg}
                 />
                 <span className={styles.onlineIndicator}></span>
