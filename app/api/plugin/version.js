@@ -10,10 +10,13 @@
  */
 
 // Current plugin version - increment this when making updates
-export const PLUGIN_VERSION = "3.4.4";
+export const PLUGIN_VERSION = "3.4.5";
 
 // Changelog for the current version
 export const PLUGIN_CHANGELOG = `
+= 3.4.5 =
+* CRITICAL FIX: Auto-update path /api/plugin/download was shipping a zip missing three files that the main plugin loader require_once's on every page load — class-gp-cache-manager.php, class-gp-element-manipulator.php, and the assets/editor-bridge.js script. WordPress would fatal "Failed opening required '…/class-gp-cache-manager.php'" the moment the upgraded plugin ran, taking the whole admin (and any frontend that boots WP fully) down for any site that pressed "Update plugin" from /wp-admin/plugins.php. The platform-side per-site download (/api/sites/[id]/download-plugin) was never affected because it always shipped the full file list. Both download endpoints now produce identical zips. Sites stuck on the broken upgrade can recover by uploading the 3.4.5 zip manually from /wp-admin/plugins.php → Add New → Upload Plugin (or by deleting the partial plugin folder over SFTP and re-downloading from the GhostSEO dashboard).
+
 = 3.4.4 =
 * BRANDING: Plugin admin screens (dashboard header, redirections page, settings topbar, dashboard widget, sidebar menu icon) and the WordPress plugin-listing icon now use the new GhostSEO ghost mark with the platform's purple→blue gradient (#8231F1 → #4847F8). The shipped assets/icon.svg in the plugin ZIP is the gradient version; the WP plugins.php update screen now serves an SVG icon (with PNG-fallback URLs pointing at /favicon.svg) so the listing thumbnail no longer falls back to the WordPress placeholder while the new raster export is being prepared.
 
