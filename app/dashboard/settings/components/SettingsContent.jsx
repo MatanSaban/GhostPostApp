@@ -4,63 +4,7 @@ import { useState, useRef, useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Image from 'next/image';
-import { 
-  Settings, 
-  Sparkles, 
-  Calendar, 
-  Bell, 
-  Search, 
-  Link, 
-  Users, 
-  CreditCard, 
-  User,
-  UserPlus,
-  Globe,
-  Puzzle,
-  Clock,
-  Timer,
-  Workflow,
-  AlertTriangle,
-  Play,
-  Download,
-  Plus,
-  Edit2,
-  Trash2,
-  Check,
-  Zap,
-  Crown,
-  Shield,
-  Lock,
-  Loader2,
-  Key,
-  X,
-  Send,
-  RefreshCw,
-  Ban,
-  Building2,
-  Coins,
-  Package,
-  Mail,
-  Phone,
-  Camera,
-  AlertCircle,
-  Eye,
-  EyeOff,
-  Unlink,
-  Minus,
-  ShoppingCart,
-  ExternalLink,
-  Bot,
-  FileText,
-  TrendingUp,
-  Wrench,
-  LogOut,
-  ChevronUp,
-  ChevronDown,
-  ChevronLeft,
-  ChevronRight,
-  GitCompareArrows,
-} from 'lucide-react';
+import { Settings, Sparkles, Calendar, Bell, Search, Link, Users, CreditCard, User, UserPlus, Globe, Puzzle, Clock, Timer, Workflow, AlertTriangle, Play, Download, Plus, Edit2, Trash2, Check, Zap, Crown, Shield, Lock, Loader2, Key, X, Send, RefreshCw, Ban, Building2, Package, Mail, Phone, Camera, AlertCircle, Eye, EyeOff, Unlink, Minus, ShoppingCart, ExternalLink, Bot, FileText, TrendingUp, Wrench, LogOut, ChevronUp, ChevronDown, ChevronLeft, ChevronRight, GitCompareArrows } from 'lucide-react';
 import { useSite } from '@/app/context/site-context';
 import { useLocale } from '@/app/context/locale-context';
 import { useUser } from '@/app/context/user-context';
@@ -81,6 +25,7 @@ import { LanguagesModal } from '@/app/components/ui/LanguagesModal';
 import { LanguagePickerModal } from '@/app/components/ui/LanguagePickerModal';
 import { AdminModal } from '@/app/admin/components/AdminModal';
 import styles from '../page.module.css';
+import GCoinIcon from '@/app/components/ui/GCoinIcon';
 
 const iconMap = {
   Settings,
@@ -249,14 +194,14 @@ export default function SettingsContent({ translations, websiteTabs, accountTabs
     );
     const planLabel = planTranslation?.name || plan.name || t('user.plans.free');
     
-    // Get AI credits limit - prefer addon-aware value from balance polling
+    // Get Ai-GCoins limit - prefer addon-aware value from balance polling
     const limitations = plan.limitations || [];
     const aiCreditsLimitation = limitations.find?.(l => l.key === 'aiCredits');
     const aiCreditsLimit = user?.aiCreditsLimit != null
       ? user.aiCreditsLimit
       : (aiCreditsLimitation?.value || 0);
     
-    // Get current AI credits used from user context
+    // Get current Ai-GCoins used from user context
     const aiCreditsUsed = user?.aiCreditsUsed || 0;
     
     // Get usage stats from user context
@@ -281,7 +226,7 @@ export default function SettingsContent({ translations, websiteTabs, accountTabs
       currentPeriodEnd: userSub.currentPeriodEnd,
       nextBillingDate: userSub.currentPeriodEnd, // Next billing is when current period ends
       cancelAtPeriodEnd: userSub.cancelAtPeriodEnd || false,
-      // AI Credits - real data from account (used/limit)
+      // Ai-GCoins - real data from account (used/limit)
       aiCreditsUsed: aiCreditsUsed,
       aiCreditsLimit: aiCreditsLimit,
       // Usage stats for limitations
@@ -3010,7 +2955,7 @@ function SubscriptionSettings({ subscription, translations, canEdit = true, isLo
       case 'competitors':
         return usageStats.competitorsCount || 0;
       case 'aiCredits':
-        // AI credits usage is tracked directly as used amount
+        // Ai-GCoins usage is tracked directly as used amount
         return subscription.aiCreditsUsed || 0;
       default:
         return 0;
@@ -3175,7 +3120,7 @@ function SubscriptionSettings({ subscription, translations, canEdit = true, isLo
               const isUnlimited = planLimit === -1 || limitation.type === 'unlimited';
               const translatedLabel = getLimitationLabel(limitation);
 
-              // For AI credits, `subscription.aiCreditsLimit` already comes
+              // For Ai-GCoins, `subscription.aiCreditsLimit` already comes
               // from /api/credits/balance which is addon-aware — prefer it
               // so we don't double-count bonuses. For everything else we
               // show the plan's raw value plus any addon bonuses.
@@ -3186,7 +3131,7 @@ function SubscriptionSettings({ subscription, translations, canEdit = true, isLo
                 ? (subscription.aiCreditsLimit || 0)
                 : (planLimit > 0 ? planLimit + totalBonus : planLimit);
 
-              // For AI credits, split total usage into plan vs. temp buckets
+              // For Ai-GCoins, split total usage into plan vs. temp buckets
               // so the user sees both parts independently:
               //   - plan_used   = min(total used, plan limit)
               //   - temp_used   = max(0, total used - plan limit)
@@ -3200,7 +3145,7 @@ function SubscriptionSettings({ subscription, translations, canEdit = true, isLo
 
               // Per-purchase breakdown for the badges. Every AddOnPurchase is
               // rendered as its own badge; multiple separate purchases of the
-              // same add-on type show up as separate pills. For AI credits
+              // same add-on type show up as separate pills. For Ai-GCoins
               // we FIFO-allocate the total temp consumption across packs by
               // purchase date so the per-pack used/total numbers actually
               // add up to `aiTempUsed` (the stored `creditsRemaining` field
@@ -3229,7 +3174,7 @@ function SubscriptionSettings({ subscription, translations, canEdit = true, isLo
                       {isUnlimited ? (
                         translate('settings.subscriptionSection.unlimited') || 'Unlimited'
                       ) : isAiCredits ? (
-                        // AI credits show the plan portion here and the
+                        // Ai-GCoins show the plan portion here and the
                         // temp (one-time addon) portion in the badge below.
                         `${formatNumber(aiPlanUsed)} / ${formatNumber(aiPlanTotal)}`
                       ) : shouldShowProgressBar(limitation) ? (
@@ -3595,7 +3540,7 @@ function CreditsSettings({ subscription, translations, canEdit = true, isLoading
     }
   };
 
-  // Format AI credits number with K/M suffix
+  // Format Ai-GCoins number with K/M suffix
   const formatCredits = (credits) => {
     if (credits >= 1000000) {
       return `${(credits / 1000000).toFixed(1)}M`;
@@ -3828,8 +3773,8 @@ function CreditsSettings({ subscription, translations, canEdit = true, isLoading
         <div className={styles.subscriptionHeader}>
           <div className={styles.planInfo}>
             <div className={styles.planName}>
-              <Coins size={20} style={{ display: 'inline', marginInlineEnd: '0.5rem' }} />
-              {translate('settings.creditsSection.title') || 'AI Credits'}
+              <GCoinIcon size={20} style={{ display: 'inline', marginInlineEnd: '0.5rem' }} />
+              {translate('settings.creditsSection.title') || 'Ai-GCoins'}
             </div>
             <div className={styles.planStatus}>
               <Check size={14} />
@@ -3860,19 +3805,19 @@ function CreditsSettings({ subscription, translations, canEdit = true, isLoading
         )}
 
         <p style={{ fontSize: '0.8125rem', color: 'var(--muted-foreground)', marginTop: '1rem' }}>
-          {translate('settings.creditsSection.description') || 'AI credits are used for generating content, analyzing data, and other AI-powered features. Credits reset at the beginning of each billing period.'}
+          {translate('settings.creditsSection.description') || 'Ai-GCoins are used for generating content, analyzing data, and other AI-powered features. Credits reset at the beginning of each billing period.'}
         </p>
       </div>
 
       <div className={styles.subsection}>
         <h3 className={styles.subsectionTitle}>
-          <Coins className={styles.subsectionIcon} />
+          <GCoinIcon className={styles.subsectionIcon} />
           {translate('settings.creditsSection.actions') || 'Actions'}
         </h3>
         <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
           <button className={styles.editButton} onClick={() => setShowCreditsModal(true)}>
             <Plus size={14} style={{ marginInlineEnd: '0.25rem' }} />
-            {translate('user.addCredits') || 'Add Credits'}
+            {translate('user.addCredits') || 'Add Ai-GCoins'}
           </button>
           <button className={styles.editButton} onClick={() => setShowUpgradeModal(true)}>
             <Crown size={14} style={{ marginInlineEnd: '0.25rem' }} />
@@ -3881,12 +3826,12 @@ function CreditsSettings({ subscription, translations, canEdit = true, isLoading
         </div>
       </div>
 
-      {/* Purchased AI Credits Add-ons */}
+      {/* Purchased Ai-GCoins Add-ons */}
       <PurchasedAddonsList 
         translate={translate} 
         locale={locale} 
         filterType="AI_CREDITS"
-        title={translate('settings.creditsSection.purchasedPacks') || 'Purchased Credit Packs'}
+        title={translate('settings.creditsSection.purchasedPacks') || 'Purchased Ai-GCoin Packs'}
         icon={ShoppingCart}
       />
 
@@ -4208,7 +4153,7 @@ function AddonsSettings({ translations, canEdit = true }) {
   const getAddonDescription = (addon) => {
     let desc = addon.description || '';
     if (addon.quantity && addon.type === 'AI_CREDITS') {
-      desc = `${addon.quantity.toLocaleString()} ${translate('settings.addonsSection.credits') || 'AI Credits'}${desc ? ' - ' + desc : ''}`;
+      desc = `${addon.quantity.toLocaleString()} ${translate('settings.addonsSection.credits') || 'Ai-GCoins'}${desc ? ' - ' + desc : ''}`;
     }
     return desc;
   };

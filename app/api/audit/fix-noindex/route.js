@@ -31,7 +31,7 @@ async function getAuthenticatedUser() {
  *
  * Body: { siteId, auditId?, fixes: [{ url, removeNoindex?: boolean, removeNofollow?: boolean }] }
  *
- * Free operation (no AI credits).
+ * Free operation (no Ai-GCoins).
  * Pushes the SEO change to the WP plugin if connected.
  * If auditId is provided, updates the audit issues in-place.
  */

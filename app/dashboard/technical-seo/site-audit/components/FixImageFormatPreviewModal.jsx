@@ -2,23 +2,13 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
-import {
-  X,
-  Wand2,
-  Loader2,
-  CheckCircle2,
-  XCircle,
-  Coins,
-  RefreshCw,
-  ExternalLink,
-  ImageIcon,
-  ArrowRight,
-} from 'lucide-react';
+import { X, Wand2, Loader2, CheckCircle2, XCircle, RefreshCw, ExternalLink, ImageIcon, ArrowRight } from 'lucide-react';
 import { useLocale } from '@/app/context/locale-context';
 import { emitCreditsUpdated } from '@/app/context/user-context';
 import { handleLimitError } from '@/app/context/limit-guard-context';
 import { useModalResize, ModalResizeButton } from '@/app/components/ui/ModalResizeButton';
 import styles from './FixTitlePreviewModal.module.css';
+import GCoinIcon from '@/app/components/ui/GCoinIcon';
 
 const FORMAT_LABELS = {
   webp: 'WebP',
@@ -246,7 +236,7 @@ export default function FixImageFormatPreviewModal({ open, onClose, auditId, sit
           <p className={styles.subtitle}>
             {t('siteAudit.imageFormatFix.subtitle')}
             <span className={styles.creditBadge}>
-              <Coins size={12} />
+              <GCoinIcon size={12} />
               {t('siteAudit.imageFormatFix.creditCost')}
             </span>
           </p>
@@ -464,7 +454,7 @@ export default function FixImageFormatPreviewModal({ open, onClose, auditId, sit
                 </div>
               ) : (
                 <span className={styles.footerInfo}>
-                  <Coins size={14} />
+                  <GCoinIcon size={14} />
                   {allDone
                     ? t('siteAudit.imageFormatFix.allFixed', { count: doneCount })
                     : t('siteAudit.imageFormatFix.totalCost', { count: pendingCount })}

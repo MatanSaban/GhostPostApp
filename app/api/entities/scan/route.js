@@ -5,6 +5,7 @@ import { generateStructuredResponse } from '@/lib/ai/gemini';
 import { trackAIUsage } from '@/lib/ai/credits-service';
 import { enforceCredits } from '@/lib/account-limits';
 import { getSiteInfo as getPluginSiteInfo } from '@/lib/wp-api-client';
+import { BOT_FETCH_HEADERS } from '@/lib/bot-identity';
 import { refreshAccessToken, listGSCSitemaps } from '@/lib/google-integration';
 import { z } from 'zod';
 
@@ -179,7 +180,7 @@ async function fetchMainSitemap(siteUrl, customSitemapUrl = null, gscSitemapUrls
   try {
     console.log('[Scan] Checking robots.txt for sitemaps...');
     const robotsResponse = await fetch(`${siteUrl}/robots.txt`, {
-      headers: { 'User-Agent': 'GhostSEO-Platform/1.0' },
+      headers: BOT_FETCH_HEADERS,
       signal: AbortSignal.timeout(5000),
       cache: 'no-store',
     });
@@ -352,7 +353,7 @@ async function fetchMainSitemap(siteUrl, customSitemapUrl = null, gscSitemapUrls
 async function tryFetchSitemap(url) {
   try {
     const response = await fetch(url, {
-      headers: { 'User-Agent': 'GhostSEO-Platform/1.0' },
+      headers: BOT_FETCH_HEADERS,
       signal: AbortSignal.timeout(15000),
       cache: 'no-store',
     });
@@ -631,7 +632,7 @@ async function fetchWordPressTypes(siteUrl) {
   
   try {
     const response = await fetch(`${siteUrl}/wp-json/wp/v2/types?context=view`, {
-      headers: { 'User-Agent': 'GhostSEO-Platform/1.0' },
+      headers: BOT_FETCH_HEADERS,
       signal: AbortSignal.timeout(10000),
       cache: 'no-store',
     });
@@ -765,7 +766,7 @@ async function countUrlsFromSitemapIndex(sitemapContent, sitemapType) {
   const fetchResults = await Promise.allSettled(
     sitemapsToFetch.map(async ({ url, detectedType }) => {
       const response = await fetch(url, {
-        headers: { 'User-Agent': 'GhostSEO-Platform/1.0' },
+        headers: BOT_FETCH_HEADERS,
         signal: AbortSignal.timeout(CHILD_SITEMAP_TIMEOUT),
         cache: 'no-store',
       });
@@ -1060,10 +1061,7 @@ async function crawlWebsiteLinks(siteUrl, maxPages = 100) {
       console.log(`[Crawl] Fetching ${visited.size}/${maxPages}: ${normalizedUrl}`);
       
       const response = await fetch(normalizedUrl, {
-        headers: { 
-          'User-Agent': 'GhostSEO-Platform/1.0 (Content Discovery Bot)',
-          'Accept': 'text/html,application/xhtml+xml',
-        },
+        headers: BOT_FETCH_HEADERS,
         signal: AbortSignal.timeout(10000),
         redirect: 'follow',
         cache: 'no-store',
@@ -1305,7 +1303,7 @@ async function saveDiscoveredSitemaps(site, mainSitemap, sitemapCounts, userId =
               let childUrlCount = Math.round(data.count / data.sitemaps.length);
               try {
                 const childResp = await fetch(childUrl, {
-                  headers: { 'User-Agent': 'GhostSEO-Platform/1.0' },
+                  headers: BOT_FETCH_HEADERS,
                   signal: AbortSignal.timeout(20000),
                   cache: 'no-store',
                 });
@@ -1671,7 +1669,7 @@ async function fetchSitemapUrls(sitemapUrl) {
   try {
     // Use generous timeout - dynamic sitemaps (e.g. 3000+ entries) can take 30-60s to generate
     const response = await fetch(sitemapUrl, {
-      headers: { 'User-Agent': 'GhostSEO-Platform/1.0' },
+      headers: BOT_FETCH_HEADERS,
       signal: AbortSignal.timeout(60000),
       cache: 'no-store',
     });
@@ -1770,7 +1768,7 @@ async function fetchWpRestPosts(siteUrl, restEndpoint, page = 1, perPage = 100) 
   
   try {
     const response = await fetch(url, {
-      headers: { 'User-Agent': 'GhostSEO-Platform/1.0' },
+      headers: BOT_FETCH_HEADERS,
       signal: AbortSignal.timeout(20000),
       cache: 'no-store',
     });
@@ -2113,10 +2111,7 @@ function extractMainContent(html) {
 async function extractPageMetadata(url) {
   try {
     const response = await fetch(url, {
-      headers: { 
-        'User-Agent': 'GhostSEO-Platform/1.0',
-        'Accept': 'text/html',
-      },
+      headers: BOT_FETCH_HEADERS,
       signal: AbortSignal.timeout(15000),
       cache: 'no-store',
     });
@@ -3176,7 +3171,7 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Site not found' }, { status: 404 });
     }
 
-    // ── Enforce AI credit limit ──────────────────────────────
+    // ── Enforce Ai-GCoin limit ──────────────────────────────
     const creditCheck = await enforceCredits(site.accountId, 1); // GENERIC = 1 credit minimum
     if (!creditCheck.allowed) {
       return NextResponse.json(creditCheck, { status: 402 });

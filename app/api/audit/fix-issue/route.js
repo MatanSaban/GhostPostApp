@@ -61,7 +61,7 @@ async function getAuthenticatedUser() {
  *
  * Body: { auditId, siteId, issueType, pageUrl }
  *
- * Cost: 2 AI Credits
+ * Cost: 2 Ai-GCoins
  * Uses Gemini to generate the fix, then pushes via WP plugin if connected.
  */
 export async function POST(request) {
@@ -102,7 +102,7 @@ export async function POST(request) {
     const creditCheck = await enforceCredits(site.accountId, FIX_CREDIT_COST);
     if (!creditCheck.allowed) {
       return NextResponse.json(
-        { error: creditCheck.error || 'Insufficient AI credits', code: 'INSUFFICIENT_CREDITS', resourceKey: 'aiCredits' },
+        { error: creditCheck.error || 'Insufficient Ai-GCoins', code: 'INSUFFICIENT_CREDITS', resourceKey: 'aiCredits' },
         { status: 402 }
       );
     }
@@ -144,7 +144,7 @@ export async function POST(request) {
     });
 
     if (!deduction.success) {
-      console.error('[QuickFix] Credit deduction failed after AI:', deduction.error);
+      console.error('[QuickFix] Ai-GCoin deduction failed after AI:', deduction.error);
     }
 
     // Attempt to push the fix via WordPress plugin

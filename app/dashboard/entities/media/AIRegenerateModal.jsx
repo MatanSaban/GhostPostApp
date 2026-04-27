@@ -2,12 +2,13 @@
 
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { X, Sparkles, Loader2, ImageIcon, RotateCcw, Trash2, AlertCircle, Coins } from 'lucide-react';
+import { X, Sparkles, Loader2, ImageIcon, RotateCcw, Trash2, AlertCircle } from 'lucide-react';
 import { useLocale } from '@/app/context/locale-context';
 import { useUser, CREDITS_UPDATED_EVENT } from '@/app/context/user-context';
 import { Button } from '@/app/dashboard/components';
 import AddCreditsModal from '@/app/components/ui/AddCreditsModal';
 import styles from './AIRegenerateModal.module.css';
+import GCoinIcon from '@/app/components/ui/GCoinIcon';
 
 const REGENERATE_COST = 5;
 
@@ -479,7 +480,7 @@ export function AIRegenerateModal({
                   onClick={() => setShowAddCreditsModal(true)}
                   className={styles.purchaseCreditsButton}
                 >
-                  <Coins />
+                  <GCoinIcon />
                   {t('user.addCredits')}
                 </Button>
               </div>

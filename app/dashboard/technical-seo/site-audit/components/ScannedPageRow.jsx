@@ -1,21 +1,13 @@
 'use client';
 
-import {
-  ExternalLink,
-  Edit3,
-  RefreshCw,
-  FileText,
-  Loader2,
-  Coins,
-  Sparkles,
-  Wand2,
-} from 'lucide-react';
+import { ExternalLink, Edit3, RefreshCw, FileText, Loader2, Sparkles, Wand2 } from 'lucide-react';
 import { useState } from 'react';
 import { useLocale } from '@/app/context/locale-context';
 import { emitCreditsUpdated } from '@/app/context/user-context';
 import { handleLimitError } from '@/app/context/limit-guard-context';
 import { useAiPricing } from '@/app/hooks/useAiPricing';
 import styles from './ScannedPageRow.module.css';
+import GCoinIcon from '@/app/components/ui/GCoinIcon';
 
 // Issue types eligible for AI Quick Fix
 const FIXABLE_ISSUES = new Set([
@@ -220,7 +212,7 @@ export default function ScannedPageRow({
         ) : (
           <>
             <RefreshCw size={13} />
-            <Coins size={10} className={styles.creditIcon} />
+            <GCoinIcon size={10} className={styles.creditIcon} />
           </>
         )}
       </button>
@@ -236,7 +228,7 @@ export default function ScannedPageRow({
           ) : (
             <>
               <Wand2 size={13} />
-              <Coins size={10} className={styles.creditIcon} />
+              <GCoinIcon size={10} className={styles.creditIcon} />
             </>
           )}
         </button>

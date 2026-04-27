@@ -64,7 +64,7 @@ export async function POST(req, { params }) {
       return NextResponse.json({ error: 'Could not determine image URL' }, { status: 400 });
     }
 
-    // ── Enforce AI credit limit ──────────────────────────────
+    // ── Enforce Ai-GCoin limit ──────────────────────────────
     const creditCheck = await enforceCredits(site.accountId, 1);
     if (!creditCheck.allowed) {
       return NextResponse.json(creditCheck, { status: 402 });

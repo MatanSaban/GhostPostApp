@@ -2,25 +2,14 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
-import {
-  X,
-  Wand2,
-  Loader2,
-  CheckCircle2,
-  XCircle,
-  Coins,
-  RefreshCw,
-  ArrowRight,
-  Database,
-  ExternalLink,
-  Link2Off,
-} from 'lucide-react';
+import { X, Wand2, Loader2, CheckCircle2, XCircle, RefreshCw, ArrowRight, Database, ExternalLink, Link2Off } from 'lucide-react';
 import { useLocale } from '@/app/context/locale-context';
 import { emitCreditsUpdated } from '@/app/context/user-context';
 import { handleLimitError } from '@/app/context/limit-guard-context';
 import SyncRequiredModal from './SyncRequiredModal';
 import { useModalResize, ModalResizeButton } from '@/app/components/ui/ModalResizeButton';
 import styles from './FixBrokenLinkModal.module.css';
+import GCoinIcon from '@/app/components/ui/GCoinIcon';
 
 /**
  * FixBrokenLinkModal - AI finds the best redirect target for each broken internal link
@@ -262,7 +251,7 @@ export default function FixBrokenLinkModal({ open, onClose, auditId, siteId, onA
               <p className={styles.subtitle}>
                 {t('siteAudit.brokenLinkFix.subtitle')}
                 <span className={styles.creditBadge}>
-                  <Coins size={12} />
+                  <GCoinIcon size={12} />
                   {t('siteAudit.brokenLinkFix.creditCost')}
                 </span>
               </p>
@@ -448,7 +437,7 @@ export default function FixBrokenLinkModal({ open, onClose, auditId, siteId, onA
                     </div>
                   ) : (
                     <span className={styles.footerInfo}>
-                      <Coins size={14} />
+                      <GCoinIcon size={14} />
                       {allDone
                         ? t('siteAudit.brokenLinkFix.allFixed', { count: doneCount })
                         : `${pendingCount} × 2 = ${pendingCount * 2} credits`}

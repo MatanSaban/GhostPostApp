@@ -34,7 +34,7 @@ async function getAuthenticatedUser() {
  *
  * Body: { siteId, auditId?, fixes: [{ imageUrl, altText, pageUrl }] }
  *
- * Cost: 1 AI Credit per image
+ * Cost: 1 Ai-GCoin per image
  * Resolves image URLs to WP attachment IDs, then updates alt text via plugin.
  */
 
@@ -259,7 +259,7 @@ export async function POST(request) {
 
     if (!deduction.success) {
       console.warn(
-        '[ApplyAltFix] Credit deduction failed:',
+        '[ApplyAltFix] Ai-GCoin deduction failed:',
         deduction.error,
         '| accountId:',
         site.accountId,
@@ -269,7 +269,7 @@ export async function POST(request) {
       const isInsufficient = deduction.error?.includes('Insufficient');
       return NextResponse.json(
         {
-          error: deduction.error || 'Credit deduction failed',
+          error: deduction.error || 'Ai-GCoin deduction failed',
           code: isInsufficient ? 'INSUFFICIENT_CREDITS' : 'CREDIT_ERROR',
           resourceKey: isInsufficient ? 'aiCredits' : undefined,
         },

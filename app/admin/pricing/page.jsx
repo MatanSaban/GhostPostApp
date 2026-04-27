@@ -4,9 +4,10 @@ import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useUser } from '@/app/context/user-context';
 import { useLocale } from '@/app/context/locale-context';
-import { Coins, Save, RotateCcw, AlertTriangle } from 'lucide-react';
+import { Save, RotateCcw, AlertTriangle } from 'lucide-react';
 import { getAiPricingList, bulkUpdateAiFeaturePrices } from '@/lib/actions/ai-pricing';
 import styles from '../admin.module.css';
+import GCoinIcon from '@/app/components/ui/GCoinIcon';
 
 export default function AiPricingPage() {
   const router = useRouter();
@@ -110,7 +111,7 @@ export default function AiPricingPage() {
     <div className={styles.adminPage}>
       <div className={styles.adminHeader}>
         <h1 className={styles.adminTitle}>
-          <Coins size={24} style={{ display: 'inline', verticalAlign: 'middle', marginInlineEnd: '0.5rem' }} />
+          <GCoinIcon size={24} style={{ display: 'inline', verticalAlign: 'middle', marginInlineEnd: '0.5rem' }} />
           {t('admin.pricing.title')}
         </h1>
         <p className={styles.adminSubtitle}>

@@ -136,8 +136,8 @@ export default function DifferentiationModal({ open, onClose, job, onExecute, is
                 <div className={styles.confirmDetail}>
                   <div className={styles.confirmDetailIcon}><Zap size={18} /></div>
                   <div className={styles.confirmDetailText}>
-                    <strong>{tc.creditsCost || 'Credits Cost'}</strong>
-                    <span>{tpl(tc.creditsExplanation || 'This process costs {creditsPerPage} AI credits per supporting page. For {pageCount} competing pages, the analysis will cost {analysisCost} credits. Execution costs will be shown before approval.', {
+                    <strong>{tc.creditsCost || 'Ai-GCoins Cost'}</strong>
+                    <span>{tpl(tc.creditsExplanation || 'This process costs {creditsPerPage} Ai-GCoins per supporting page. For {pageCount} competing pages, the analysis will cost {analysisCost} credits. Execution costs will be shown before approval.', {
                       creditsPerPage: CREDITS_PER_PAGE,
                       pageCount: confirmPageCount,
                       analysisCost: analysisCost,

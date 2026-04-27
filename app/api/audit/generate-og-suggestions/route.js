@@ -163,7 +163,7 @@ Generate og:title and og:description for each page.`;
     if (!deduction.success) {
       const isInsufficient = deduction.error?.includes('Insufficient');
       return NextResponse.json(
-        { error: deduction.error || 'Credit deduction failed', code: isInsufficient ? 'INSUFFICIENT_CREDITS' : 'CREDIT_ERROR', resourceKey: isInsufficient ? 'aiCredits' : undefined },
+        { error: deduction.error || 'Ai-GCoin deduction failed', code: isInsufficient ? 'INSUFFICIENT_CREDITS' : 'CREDIT_ERROR', resourceKey: isInsufficient ? 'aiCredits' : undefined },
         { status: 402 }
       );
     }

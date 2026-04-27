@@ -4,6 +4,7 @@ import prisma from '@/lib/prisma';
 import { generateTextResponse } from '@/lib/ai/gemini';
 import { trackAIUsage } from '@/lib/ai/credits-service';
 import { enforceCredits } from '@/lib/account-limits';
+import { BOT_FETCH_HEADERS } from '@/lib/bot-identity';
 
 // Force dynamic - never cache
 export const dynamic = 'force-dynamic';
@@ -88,10 +89,7 @@ function slugToTitle(slug) {
 async function extractPageMetadata(url) {
   try {
     const response = await fetch(url, {
-      headers: { 
-        'User-Agent': 'GhostSEO-Platform/1.0',
-        'Accept': 'text/html',
-      },
+      headers: BOT_FETCH_HEADERS,
       signal: AbortSignal.timeout(15000),
       cache: 'no-store',
     });
@@ -371,7 +369,7 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Site not found' }, { status: 404 });
     }
 
-    // ── Enforce AI credit limit ──────────────────────────────
+    // ── Enforce Ai-GCoin limit ──────────────────────────────
     const creditCheck = await enforceCredits(site.accountId, 1); // ENTITY_REFRESH = 1 credit
     if (!creditCheck.allowed) {
       return NextResponse.json(creditCheck, { status: 402 });
@@ -419,7 +417,7 @@ export async function POST(request) {
       focusKeyword = await extractFocusKeyword(metadata, { accountId: site.accountId, siteId: site.id });
       console.log(`[Refresh] AI extracted focus keyword: ${focusKeyword}`);
       
-      // Track AI credits usage for focus keyword extraction
+      // Track Ai-GCoins usage for focus keyword extraction
       if (site.accountId && focusKeyword) {
         const trackResult = await trackAIUsage({
           accountId: site.accountId,

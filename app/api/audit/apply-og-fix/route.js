@@ -34,7 +34,7 @@ async function getAuthenticatedUser() {
  *
  * Body: { siteId, auditId?, fixes: [{ url, ogTitle, ogDescription }] }
  *
- * Cost: 1 AI Credit per page
+ * Cost: 1 Ai-GCoin per page
  * Pushes og_title, og_description (and og_image if available) to the WP plugin.
  * The plugin routes to Yoast/RankMath/custom meta automatically.
  */
@@ -96,11 +96,11 @@ export async function POST(request) {
     });
 
     if (!deduction.success) {
-      console.warn('[ApplyOGFix] Credit deduction failed:', deduction.error, '| accountId:', site.accountId, '| cost:', totalCost);
+      console.warn('[ApplyOGFix] Ai-GCoin deduction failed:', deduction.error, '| accountId:', site.accountId, '| cost:', totalCost);
       const isInsufficient = deduction.error?.includes('Insufficient');
       return NextResponse.json(
         {
-          error: deduction.error || 'Credit deduction failed',
+          error: deduction.error || 'Ai-GCoin deduction failed',
           code: isInsufficient ? 'INSUFFICIENT_CREDITS' : 'CREDIT_ERROR',
           resourceKey: isInsufficient ? 'aiCredits' : undefined,
         },

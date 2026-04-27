@@ -4,6 +4,7 @@ import prisma from '@/lib/prisma';
 import { generateTextResponse } from '@/lib/ai/gemini';
 import { trackAIUsage } from '@/lib/ai/credits-service';
 import { enforceCredits } from '@/lib/account-limits';
+import { BOT_FETCH_HEADERS } from '@/lib/bot-identity';
 
 const SESSION_COOKIE = 'user_session';
 
@@ -209,7 +210,7 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Site URL is not configured' }, { status: 400 });
     }
 
-    // ── Enforce AI credit limit ──────────────────────────────
+    // ── Enforce Ai-GCoin limit ──────────────────────────────
     const creditCheck = await enforceCredits(site.accountId, 2); // DETECT_PLATFORM = 2 credits
     if (!creditCheck.allowed) {
       return NextResponse.json(creditCheck, { status: 402 });
@@ -225,7 +226,7 @@ export async function POST(request) {
     try {
       const wpResponse = await fetch(`${siteUrl}/wp-json/wp/v2`, {
         method: 'HEAD',
-        headers: { 'User-Agent': 'GhostSEO-Platform/1.0' },
+        headers: BOT_FETCH_HEADERS,
         signal: AbortSignal.timeout(5000),
       });
 
@@ -242,7 +243,7 @@ export async function POST(request) {
     if (!platform) {
       try {
         const htmlResponse = await fetch(siteUrl, {
-          headers: { 'User-Agent': 'GhostSEO-Platform/1.0' },
+          headers: BOT_FETCH_HEADERS,
           signal: AbortSignal.timeout(10000),
         });
 

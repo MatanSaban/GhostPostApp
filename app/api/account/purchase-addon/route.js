@@ -5,7 +5,7 @@
  *
  * Handles both:
  *  - RECURRING add-ons (e.g. Extra Seats, Extra Sites) → creates AddOnPurchase
- *  - ONE_TIME add-ons (e.g. AI Credits pack)           → creates AddOnPurchase + credits
+ *  - ONE_TIME add-ons (e.g. Ai-GCoins pack)           → creates AddOnPurchase + credits
  *
  * Body: { addOnId: string, accountId: string }
  */
@@ -72,7 +72,7 @@ export async function POST(request) {
     // ── Process purchase based on billing type ────────────────
 
     if (addOn.billingType === 'ONE_TIME') {
-      // ── One-Time (e.g. AI Credits pack) ─────────────────────
+      // ── One-Time (e.g. Ai-GCoins pack) ─────────────────────
       const purchase = await prisma.addOnPurchase.create({
         data: {
           subscriptionId: subscription.id,

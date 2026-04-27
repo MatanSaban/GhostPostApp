@@ -2,25 +2,7 @@
 
 import { useState } from 'react';
 import { createPortal } from 'react-dom';
-import {
-  AlertTriangle,
-  XCircle,
-  Info,
-  ExternalLink,
-  ChevronDown,
-  ChevronUp,
-  Image as ImageIcon,
-  Palette,
-  Code2,
-  Wand2,
-  Loader2,
-  Coins,
-  CheckCircle2,
-  Copy,
-  Check,
-  HelpCircle,
-  Lightbulb,
-} from 'lucide-react';
+import { AlertTriangle, XCircle, Info, ExternalLink, ChevronDown, ChevronUp, Image as ImageIcon, Palette, Code2, Wand2, Loader2, CheckCircle2, Copy, Check, HelpCircle, Lightbulb } from 'lucide-react';
 import { useLocale } from '@/app/context/locale-context';
 import { emitCreditsUpdated } from '@/app/context/user-context';
 import { handleLimitError } from '@/app/context/limit-guard-context';
@@ -28,6 +10,7 @@ import { useAiPricing } from '@/app/hooks/useAiPricing';
 import { toImgSrc } from '../lib/img-src';
 import IssueInfoPopup from './IssueInfoPopup';
 import styles from './AccessibilityIssueCard.module.css';
+import GCoinIcon from '@/app/components/ui/GCoinIcon';
 
 /**
  * AccessibilityIssueCard - Expandable rule-level card with per-element evidence
@@ -357,7 +340,7 @@ export default function AccessibilityIssueCard({
                       )}
                       <span>{t('siteAudit.a11y.generateAlt')}</span>
                       <span className={styles.creditCost}>
-                        <Coins size={12} /> {getCreditCost('AI_QUICK_FIX', 2)}
+                        <GCoinIcon size={12} /> {getCreditCost('AI_QUICK_FIX', 2)}
                       </span>
                     </button>
                   )}

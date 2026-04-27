@@ -42,6 +42,7 @@ import {
   getTimeAgo,
 } from '../components/insight/insight-utils';
 import { useAiPricing } from '@/app/hooks/useAiPricing';
+import GCoinIcon from '@/app/components/ui/GCoinIcon';
 import styles from './agent.module.css';
 
 function EntityLinkCell({ url, siteId, translations }) {
@@ -187,8 +188,8 @@ function AiSuggestButton({ page, siteId, translations }) {
 
 /**
  * Compact per-row Fix button. Picks the right label automatically:
- *   AI fix:   "Fix with AI · N AI Credits"
- *   Free fix: "Fix · 0 AI Credits"
+ *   AI fix:   "Fix with AI · N Ai-GCoins"
+ *   Free fix: "Fix · 0 Ai-GCoins"
  * Falls back to the generic "Fix with AI" label when translations are missing.
  */
 function FixItemButton({ insight, onClick, translations, size = 12 }) {
@@ -196,12 +197,18 @@ function FixItemButton({ insight, onClick, translations, size = 12 }) {
   const isFree = isFreeFixableInsight(insight.titleKey);
   const credits = getInsightFixCredits(insight.titleKey);
   const baseLabel = isFree ? (t.fixFree || 'Fix') : (t.fixWithAi || 'Fix with AI');
-  const costSuffix = isFree
-    ? (t.fixCostFree || '0 AI Credits')
-    : (credits > 0 ? `${credits} ${(t.creditsLabel || 'AI Credits')}` : null);
+  const showCost = isFree || credits > 0;
+  const costAmount = isFree ? 0 : credits;
   return (
     <button className={styles.itemFixBtn} onClick={onClick}>
-      <Sparkles size={size} /> {costSuffix ? `${baseLabel} · ${costSuffix}` : baseLabel}
+      <Sparkles size={size} />
+      <span>{baseLabel}</span>
+      {showCost && (
+        <span className={styles.itemFixCost} dir="ltr">
+          <GCoinIcon size={Math.max(10, size)} />
+          {costAmount}
+        </span>
+      )}
     </button>
   );
 }
@@ -1612,13 +1619,18 @@ function InsightRow({ insight, translations, onAction, onOpenFix, onOpenSitemapS
                 const baseLabel = isFree
                   ? (translations?.agent?.fixFree || 'Fix')
                   : (translations?.agent?.fixWithAi || 'Fix with AI');
-                const costSuffix = isFree
-                  ? (translations?.agent?.fixCostFree || '0 AI Credits')
-                  : (credits > 0 ? `${credits} ${(translations?.agent?.creditsLabel || 'AI Credits')}` : null);
+                const showCost = isFree || credits > 0;
+                const costAmount = isFree ? 0 : credits;
                 return (
                   <button className={`${styles.actionBtn} ${styles.fixBtn}`} onClick={() => onOpenFix(insight, null)} disabled={actionLoading}>
                     <Sparkles size={14} />
-                    {costSuffix ? `${baseLabel} · ${costSuffix}` : baseLabel}
+                    <span>{baseLabel}</span>
+                    {showCost && (
+                      <span className={styles.itemFixCost} dir="ltr">
+                        <GCoinIcon size={12} />
+                        {costAmount}
+                      </span>
+                    )}
                   </button>
                 );
               })()}

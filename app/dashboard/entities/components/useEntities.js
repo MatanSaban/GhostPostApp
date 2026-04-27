@@ -443,9 +443,9 @@ export function useEntities() {
       const crawlData = await crawlResponse.json();
 
       if (!crawlResponse.ok && handleLimitError(crawlData)) {
-        updateTask(taskId, { status: 'error', message: crawlData.error || 'Credit limit reached' });
+        updateTask(taskId, { status: 'error', message: crawlData.error || 'Ai-GCoin limit reached' });
         setSyncStatus('ERROR');
-        setSyncError(crawlData.error || 'Credit limit reached');
+        setSyncError(crawlData.error || 'Ai-GCoin limit reached');
         return;
       }
 
@@ -553,9 +553,9 @@ export function useEntities() {
       const populateData = await populateResponse.json();
 
       if (!populateResponse.ok && handleLimitError(populateData)) {
-        updateTask(taskId, { status: 'error', message: populateData.error || 'Credit limit reached' });
+        updateTask(taskId, { status: 'error', message: populateData.error || 'Ai-GCoin limit reached' });
         setSyncStatus('ERROR');
-        setSyncError(populateData.error || 'Credit limit reached');
+        setSyncError(populateData.error || 'Ai-GCoin limit reached');
         return;
       }
 

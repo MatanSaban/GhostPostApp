@@ -34,7 +34,7 @@ async function getAuthenticatedUser() {
  *
  * Body: { siteId, auditId?, fixes: [{ url, newTitle }] }
  *
- * Cost: 1 AI Credit per page
+ * Cost: 1 Ai-GCoin per page
  * Pushes the new title to the WP plugin if connected.
  * If auditId is provided, updates the audit issues + pageResults in-place.
  */
@@ -96,11 +96,11 @@ export async function POST(request) {
     });
 
     if (!deduction.success) {
-      console.warn('[ApplyTitleFix] Credit deduction failed:', deduction.error, '| accountId:', site.accountId, '| cost:', totalCost);
+      console.warn('[ApplyTitleFix] Ai-GCoin deduction failed:', deduction.error, '| accountId:', site.accountId, '| cost:', totalCost);
       const isInsufficient = deduction.error?.includes('Insufficient');
       return NextResponse.json(
         {
-          error: deduction.error || 'Credit deduction failed',
+          error: deduction.error || 'Ai-GCoin deduction failed',
           code: isInsufficient ? 'INSUFFICIENT_CREDITS' : 'CREDIT_ERROR',
           resourceKey: isInsufficient ? 'aiCredits' : undefined,
         },

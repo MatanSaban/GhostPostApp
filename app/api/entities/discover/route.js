@@ -4,6 +4,7 @@ import prisma from '@/lib/prisma';
 import { generateStructuredResponse } from '@/lib/ai/gemini';
 import { trackAIUsage } from '@/lib/ai/credits-service';
 import { enforceCredits } from '@/lib/account-limits';
+import { BOT_FETCH_HEADERS } from '@/lib/bot-identity';
 import { z } from 'zod';
 
 const SESSION_COOKIE = 'user_session';
@@ -18,7 +19,7 @@ async function fetchWordPressSitemap(siteUrl) {
   // Check robots.txt first for ALL sitemap directives
   try {
     const robotsResponse = await fetch(`${siteUrl}/robots.txt`, {
-      headers: { 'User-Agent': 'GhostSEO-Platform/1.0' },
+      headers: BOT_FETCH_HEADERS,
       signal: AbortSignal.timeout(5000),
     });
     if (robotsResponse.ok) {
@@ -52,7 +53,7 @@ async function fetchWordPressSitemap(siteUrl) {
   for (const url of discoveredUrls) {
     try {
       const response = await fetch(url, {
-        headers: { 'User-Agent': 'GhostSEO-Platform/1.0' },
+        headers: BOT_FETCH_HEADERS,
         signal: AbortSignal.timeout(10000),
       });
 
@@ -82,7 +83,7 @@ async function fetchWordPressPostTypes(siteUrl) {
     // Get post types from the REST API with context=edit for full labels
     // If that fails, try without context
     let response = await fetch(`${siteUrl}/wp-json/wp/v2/types?context=view`, {
-      headers: { 'User-Agent': 'GhostSEO-Platform/1.0' },
+      headers: BOT_FETCH_HEADERS,
       signal: AbortSignal.timeout(10000),
     });
 
@@ -144,7 +145,7 @@ function parseSitemapForPostTypes(sitemapContent) {
 async function fetchSubSitemap(sitemapUrl) {
   try {
     const response = await fetch(sitemapUrl, {
-      headers: { 'User-Agent': 'GhostSEO-Platform/1.0' },
+      headers: BOT_FETCH_HEADERS,
       signal: AbortSignal.timeout(15000),
     });
 
@@ -556,7 +557,7 @@ export async function POST(request) {
     // Track whether AI was used (for credit tracking)
     let usedAI = false;
 
-    // ── Enforce AI credit limit ──────────────────────────────
+    // ── Enforce Ai-GCoin limit ──────────────────────────────
     const creditCheck = await enforceCredits(site.accountId, 1); // GENERIC = 1 credit
     if (!creditCheck.allowed) {
       return NextResponse.json(creditCheck, { status: 402 });

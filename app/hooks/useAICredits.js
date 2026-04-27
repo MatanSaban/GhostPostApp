@@ -6,7 +6,7 @@ import { emitCreditsUpdated } from '@/app/context/user-context';
 import { handleLimitError } from '@/app/context/limit-guard-context';
 
 /**
- * Hook for making API calls that may consume AI credits
+ * Hook for making API calls that may consume Ai-GCoins
  * Automatically updates the credits UI when credits are consumed
  * 
  * @example

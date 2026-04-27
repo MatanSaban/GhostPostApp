@@ -166,7 +166,7 @@ export async function POST(request) {
       return NextResponse.json(limitCheck, { status: 403 });
     }
 
-    // Enforce AI credit limit before analysis
+    // Enforce Ai-GCoin limit before analysis
     const creditCost = uniqueKeywords.length * AI_OPERATIONS.KEYWORD_INTENT_ANALYSIS.credits;
     const creditCheck = await enforceCredits(site.accountId, creditCost);
     if (!creditCheck.allowed) {

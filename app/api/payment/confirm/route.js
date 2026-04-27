@@ -166,7 +166,7 @@ async function handleAddonPurchase(payment, action, user) {
     include: { addOn: true },
   });
 
-  // Add AI credits if applicable
+  // Add Ai-GCoins if applicable
   if (addOn.type === 'AI_CREDITS') {
     const creditsToAdd = (addOn.quantity || 0) * quantity;
     await addAiCredits(payment.accountId, creditsToAdd, {

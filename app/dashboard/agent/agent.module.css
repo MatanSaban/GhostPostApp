@@ -877,6 +877,21 @@
   }
 }
 
+/* Ai-GCoin cost pill rendered next to the fix label.
+   `dir="ltr"` on the element keeps icon→number ordering stable inside RTL
+   button text (Hebrew) — without it the bidi algorithm reorders pieces. */
+.itemFixCost {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 1px 6px;
+  margin-inline-start: 2px;
+  border-radius: 999px;
+  background: rgba(139, 92, 246, 0.12);
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+
 .itemFixedBadge {
   display: inline-flex;
   align-items: center;

@@ -4,6 +4,7 @@ import prisma from '@/lib/prisma';
 import { generateStructuredResponse } from '@/lib/ai/gemini';
 import { trackAIUsage } from '@/lib/ai/credits-service';
 import { enforceCredits } from '@/lib/account-limits';
+import { BOT_FETCH_HEADERS, WAF_BLOCK_STATUSES } from '@/lib/bot-identity';
 import { z } from 'zod';
 
 const SESSION_COOKIE = 'user_session';
@@ -69,7 +70,7 @@ export async function POST(request) {
       return NextResponse.json({ error: 'URL is required' }, { status: 400 });
     }
 
-    // ── Enforce AI credit limit (real accounts only) ─────────
+    // ── Enforce Ai-GCoin limit (real accounts only) ─────────
     if (accountId && !isDraftAccount) {
       const creditCheck = await enforceCredits(accountId, 5); // CRAWL_WEBSITE = 5 credits
       if (!creditCheck.allowed) {
@@ -103,11 +104,13 @@ export async function POST(request) {
     }
 
     // If the site was unreachable, surface an error code the client can translate.
+    // WAF_BLOCKED is distinct from SITE_UNREACHABLE so the UI can show
+    // allowlist instructions instead of "site unreachable, check the URL".
     if (analysis && analysis.isReachable === false) {
       return NextResponse.json(
         {
           success: false,
-          errorCode: 'SITE_UNREACHABLE',
+          errorCode: analysis.wafBlocked ? 'WAF_BLOCKED' : 'SITE_UNREACHABLE',
           error: analysis.error || 'Site unreachable',
           analysis,
         },
@@ -198,9 +201,12 @@ async function analyzeWebsite(url) {
 
   // Step 1: Health check & fetch homepage
   const homepageData = await fetchAndParsePage(url);
-  
+
   if (!homepageData.success) {
     results.error = homepageData.error;
+    if (homepageData.wafBlocked) {
+      results.wafBlocked = true;
+    }
     return results;
   }
   
@@ -376,78 +382,36 @@ function detectSeoIssues(results, html) {
   return issues;
 }
 
-// Browser-like headers for outbound site fetches. Many WordPress WAFs
-// (Wordfence, Sucuri, LiteSpeed/NitroPack defaults) reject requests that
-// look like a barebones bot - missing sec-ch-ua / sec-fetch-* / accept-encoding
-// is a strong "not a real browser" signal even with a Chrome UA. These are
-// the headers Chrome 120 sends on a top-level navigation, in the same order.
-const CHROME_NAV_HEADERS = {
-  'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-  'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
-  'Accept-Language': 'en-US,en;q=0.9,he;q=0.8',
-  'Accept-Encoding': 'gzip, deflate, br',
-  'sec-ch-ua': '"Chromium";v="120", "Not_A Brand";v="24", "Google Chrome";v="120"',
-  'sec-ch-ua-mobile': '?0',
-  'sec-ch-ua-platform': '"Windows"',
-  'Sec-Fetch-Dest': 'document',
-  'Sec-Fetch-Mode': 'navigate',
-  'Sec-Fetch-Site': 'none',
-  'Sec-Fetch-User': '?1',
-  'Upgrade-Insecure-Requests': '1',
-};
-
-// Fallback UA for the retry pass - some WAFs bucket repeat hits from the
-// same UA together, so a different fingerprint can succeed where the first
-// failed. Safari on macOS gets fewer "automated tooling" false-positives
-// than the Chrome-on-Windows fingerprint above.
-const SAFARI_NAV_HEADERS = {
-  'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.2 Safari/605.1.15',
-  'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-  'Accept-Language': 'en-US,en;q=0.9',
-  'Accept-Encoding': 'gzip, deflate, br',
-  'Upgrade-Insecure-Requests': '1',
-};
-
 /**
- * Fetch and parse a webpage. Retries once with a different browser
- * fingerprint on a hard block (403/429) before giving up.
+ * Fetch and parse a webpage. Sends the GhostSEOBot identity in the User-Agent
+ * so site owners can recognize and allowlist us in their WAF instead of us
+ * having to spoof a browser. Surfaces WAF-shaped status codes (401/403/406/429/503)
+ * as `wafBlocked` so the caller can show allowlist instructions rather than
+ * a generic "site unreachable" error.
  */
 async function fetchAndParsePage(url) {
-  const attempt = async (headers, label) => {
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 15000);
-    try {
-      const response = await fetch(url, {
-        headers,
-        signal: controller.signal,
-        redirect: 'follow',
-      });
-      clearTimeout(timeout);
-      if (!response.ok) {
-        console.log(`[Analyze] Fetch (${label}) failed for ${url}: HTTP ${response.status}`);
-        return { success: false, status: response.status, error: `HTTP ${response.status}` };
-      }
-      const html = await response.text();
-      const responseHeaders = Object.fromEntries(response.headers.entries());
-      console.log(`[Analyze] Fetched ${url} via ${label}: ${html.length} chars`);
-      return { success: true, html, headers: responseHeaders };
-    } catch (error) {
-      clearTimeout(timeout);
-      return { success: false, error: error.message };
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 15000);
+  try {
+    const response = await fetch(url, {
+      headers: BOT_FETCH_HEADERS,
+      signal: controller.signal,
+      redirect: 'follow',
+    });
+    clearTimeout(timeout);
+    if (!response.ok) {
+      const wafBlocked = WAF_BLOCK_STATUSES.has(response.status);
+      console.log(`[Analyze] Fetch failed for ${url}: HTTP ${response.status}${wafBlocked ? ' (WAF block)' : ''}`);
+      return { success: false, status: response.status, wafBlocked, error: `HTTP ${response.status}` };
     }
-  };
-
-  const first = await attempt(CHROME_NAV_HEADERS, 'chrome');
-  if (first.success) return first;
-  // Only retry on WAF-style hard blocks. 404/410/etc. won't change with a
-  // different UA, so don't waste a request.
-  if (first.status === 403 || first.status === 429 || first.status === 503) {
-    console.log(`[Analyze] Retrying ${url} with Safari fingerprint after HTTP ${first.status}`);
-    const second = await attempt(SAFARI_NAV_HEADERS, 'safari');
-    if (second.success) return second;
-    return second;
+    const html = await response.text();
+    const responseHeaders = Object.fromEntries(response.headers.entries());
+    console.log(`[Analyze] Fetched ${url}: ${html.length} chars`);
+    return { success: true, html, headers: responseHeaders };
+  } catch (error) {
+    clearTimeout(timeout);
+    return { success: false, error: error.message };
   }
-  return first;
 }
 
 /**
@@ -1062,7 +1026,7 @@ async function checkForBlog(url, platform) {
     try {
       const response = await fetch(`${url}${path}`, {
         method: 'HEAD',
-        headers: CHROME_NAV_HEADERS,
+        headers: BOT_FETCH_HEADERS,
         redirect: 'follow',
       });
 
@@ -1087,7 +1051,7 @@ async function checkSitemap(url) {
     try {
       const response = await fetch(`${url}${path}`, {
         method: 'HEAD',
-        headers: CHROME_NAV_HEADERS,
+        headers: BOT_FETCH_HEADERS,
         redirect: 'follow',
       });
 

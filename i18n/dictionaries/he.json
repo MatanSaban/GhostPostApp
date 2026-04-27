@@ -13,86 +13,284 @@
       "description": "תנו לסוכנים החכמים שלנו לנהל את אסטרטגיית התוכן בזמן שאתם מתמקדים בצמיחה."
     },
     "auth": {
-      "index": { "title": "אימות", "description": "התחברו או צרו חשבון ב-GhostSEO." },
-      "login": { "title": "התחברות", "description": "התחברו לחשבון GhostSEO שלכם." },
-      "register": { "title": "יצירת חשבון", "description": "צרו חשבון GhostSEO והתחילו לאוטומט את ה-SEO." },
-      "thankYou": { "title": "תודה על ההרשמה", "description": "החשבון שלכם ב-GhostSEO בהכנה." },
-      "acceptInvite": { "title": "קבלת הזמנה", "description": "אשרו את ההזמנה שלכם להצטרף לחשבון ב-GhostSEO." }
+      "index": {
+        "title": "אימות",
+        "description": "התחברו או צרו חשבון ב-GhostSEO."
+      },
+      "login": {
+        "title": "התחברות",
+        "description": "התחברו לחשבון GhostSEO שלכם."
+      },
+      "register": {
+        "title": "יצירת חשבון",
+        "description": "צרו חשבון GhostSEO והתחילו לאוטומט את ה-SEO."
+      },
+      "thankYou": {
+        "title": "תודה על ההרשמה",
+        "description": "החשבון שלכם ב-GhostSEO בהכנה."
+      },
+      "acceptInvite": {
+        "title": "קבלת הזמנה",
+        "description": "אשרו את ההזמנה שלכם להצטרף לחשבון ב-GhostSEO."
+      }
     },
     "dashboard": {
-      "home": { "title": "דשבורד", "description": "סקירה של האתרים, צינור התוכן וביצועי ה-SEO שלכם." },
-      "agent": { "title": "סוכן", "description": "שוחחו עם סוכן ה-SEO החכם וצפו בפעולות אוטומטיות." },
-      "automations": { "title": "אוטומציות", "description": "ניהול אוטומציות SEO מתוזמנות לכל האתרים." },
+      "home": {
+        "title": "דשבורד",
+        "description": "סקירה של האתרים, צינור התוכן וביצועי ה-SEO שלכם."
+      },
+      "agent": {
+        "title": "סוכן",
+        "description": "שוחחו עם סוכן ה-SEO החכם וצפו בפעולות אוטומטיות."
+      },
+      "automations": {
+        "title": "אוטומציות",
+        "description": "ניהול אוטומציות SEO מתוזמנות לכל האתרים."
+      },
       "strategy": {
-        "index": { "title": "אסטרטגיה", "description": "תכננו את אסטרטגיית ה-SEO עם תובנות מבוססות AI." },
-        "siteProfile": { "title": "פרופיל אתר", "description": "הגדירו את פרופיל האתר וקול המותג שלכם." },
-        "keywords": { "title": "מילות מפתח", "description": "מחקר ותעדוף מילות מפתח עבור האתר." },
-        "competitors": { "title": "ניתוח מתחרים", "description": "עקבו אחרי תוכן, מילות מפתח וקישורים של מתחרים." },
-        "contentPlanner": { "title": "מתכנן תוכן", "description": "תכננו, תזמנו ועקבו אחר צינור התוכן." },
-        "aiWizard": { "title": "אשף תוכן AI", "description": "צרו תקצירי תוכן וטיוטות באמצעות AI." }
+        "index": {
+          "title": "אסטרטגיה",
+          "description": "תכננו את אסטרטגיית ה-SEO עם תובנות מבוססות AI."
+        },
+        "siteProfile": {
+          "title": "פרופיל אתר",
+          "description": "הגדירו את פרופיל האתר וקול המותג שלכם."
+        },
+        "keywords": {
+          "title": "מילות מפתח",
+          "description": "מחקר ותעדוף מילות מפתח עבור האתר."
+        },
+        "competitors": {
+          "title": "ניתוח מתחרים",
+          "description": "עקבו אחרי תוכן, מילות מפתח וקישורים של מתחרים."
+        },
+        "contentPlanner": {
+          "title": "מתכנן תוכן",
+          "description": "תכננו, תזמנו ועקבו אחר צינור התוכן."
+        },
+        "aiWizard": {
+          "title": "אשף תוכן AI",
+          "description": "צרו תקצירי תוכן וטיוטות באמצעות AI."
+        }
       },
       "entities": {
-        "index": { "title": "ישויות", "description": "עיינו בכל סוגי הישויות שסונכרנו מהאתר שלכם." },
-        "type": { "title": "ישויות", "description": "ניהול ישויות מסוג זה." },
-        "detail": { "title": "ישות", "description": "עריכת ישות יחידה." },
-        "media": { "title": "ספריית מדיה", "description": "עיינו בנכסי מדיה שסונכרנו מהאתר." },
-        "sitemaps": { "title": "מפות אתר", "description": "בדיקה וניהול של מפות אתר עבור האתרים שלכם." },
-        "sitemapDetail": { "title": "מפת אתר", "description": "צפייה בכתובות וסטטוסים של מפת אתר בודדת." }
+        "index": {
+          "title": "ישויות",
+          "description": "עיינו בכל סוגי הישויות שסונכרנו מהאתר שלכם."
+        },
+        "type": {
+          "title": "ישויות",
+          "description": "ניהול ישויות מסוג זה."
+        },
+        "detail": {
+          "title": "ישות",
+          "description": "עריכת ישות יחידה."
+        },
+        "media": {
+          "title": "ספריית מדיה",
+          "description": "עיינו בנכסי מדיה שסונכרנו מהאתר."
+        },
+        "sitemaps": {
+          "title": "מפות אתר",
+          "description": "בדיקה וניהול של מפות אתר עבור האתרים שלכם."
+        },
+        "sitemapDetail": {
+          "title": "מפת אתר",
+          "description": "צפייה בכתובות וסטטוסים של מפת אתר בודדת."
+        }
       },
       "technicalSeo": {
-        "index": { "title": "SEO טכני", "description": "כלים לבריאות הטכנית של האתר." },
-        "redirections": { "title": "הפניות", "description": "יצירה וניהול של הפניות URL." },
-        "webp": { "title": "ממיר WebP", "description": "המירו תמונות ל-WebP לטעינה מהירה יותר." },
-        "audit": { "title": "ביקורת אתר", "description": "סריקה של האתר לאיתור בעיות SEO טכניות." }
+        "index": {
+          "title": "SEO טכני",
+          "description": "כלים לבריאות הטכנית של האתר."
+        },
+        "redirections": {
+          "title": "הפניות",
+          "description": "יצירה וניהול של הפניות URL."
+        },
+        "webp": {
+          "title": "ממיר WebP",
+          "description": "המירו תמונות ל-WebP לטעינה מהירה יותר."
+        },
+        "audit": {
+          "title": "ביקורת אתר",
+          "description": "סריקה של האתר לאיתור בעיות SEO טכניות."
+        }
       },
-      "siteAudit": { "title": "ביקורת אתר", "description": "סריקה של האתר לאיתור בעיות SEO טכניות." },
-      "seoFrontend": { "title": "SEO צד-לקוח", "description": "אופטימיזציה של אותות SEO ברמת העמוד." },
-      "seoBackend": { "title": "SEO צד-שרת", "description": "אופטימיזציה של הגדרות SEO והאינטגרציות." },
-      "backlinks": { "title": "שוק קישורים", "description": "גלו ורכשו קישורים נכנסים איכותיים." },
-      "linkBuilding": { "title": "בניית קישורים", "description": "תכנון ומעקב אחר קמפייני בניית קישורים." },
-      "myWebsites": { "title": "האתרים שלי", "description": "ניהול כל האתרים המחוברים לחשבון GhostSEO." },
-      "notifications": { "title": "התראות", "description": "צפייה בהתראות והודעות הפלטפורמה." },
-      "settings": { "title": "הגדרות", "description": "הגדרות חשבון, צוות, חיוב ופלטפורמה." },
+      "siteAudit": {
+        "title": "ביקורת אתר",
+        "description": "סריקה של האתר לאיתור בעיות SEO טכניות."
+      },
+      "seoFrontend": {
+        "title": "SEO צד-לקוח",
+        "description": "אופטימיזציה של אותות SEO ברמת העמוד."
+      },
+      "seoBackend": {
+        "title": "SEO צד-שרת",
+        "description": "אופטימיזציה של הגדרות SEO והאינטגרציות."
+      },
+      "backlinks": {
+        "title": "שוק קישורים",
+        "description": "גלו ורכשו קישורים נכנסים איכותיים."
+      },
+      "linkBuilding": {
+        "title": "בניית קישורים",
+        "description": "תכנון ומעקב אחר קמפייני בניית קישורים."
+      },
+      "myWebsites": {
+        "title": "האתרים שלי",
+        "description": "ניהול כל האתרים המחוברים לחשבון GhostSEO."
+      },
+      "notifications": {
+        "title": "התראות",
+        "description": "צפייה בהתראות והודעות הפלטפורמה."
+      },
+      "settings": {
+        "title": "הגדרות",
+        "description": "הגדרות חשבון, צוות, חיוב ופלטפורמה."
+      },
       "support": {
-        "index": { "title": "תמיכה", "description": "פתיחה ומעקב אחר פניות תמיכה." },
-        "new": { "title": "פנייה חדשה לתמיכה", "description": "פתיחת פנייה חדשה לתמיכה." },
-        "access": { "title": "גישת תמיכה", "description": "ניהול גישת תמיכה לחשבון." },
-        "detail": { "title": "פניית תמיכה", "description": "צפייה ומענה לפניית תמיכה." }
+        "index": {
+          "title": "תמיכה",
+          "description": "פתיחה ומעקב אחר פניות תמיכה."
+        },
+        "new": {
+          "title": "פנייה חדשה לתמיכה",
+          "description": "פתיחת פנייה חדשה לתמיכה."
+        },
+        "access": {
+          "title": "גישת תמיכה",
+          "description": "ניהול גישת תמיכה לחשבון."
+        },
+        "detail": {
+          "title": "פניית תמיכה",
+          "description": "צפייה ומענה לפניית תמיכה."
+        }
       },
-      "visualEditor": { "title": "עורך ויזואלי", "description": "עריכת עמודים ויזואלית באתר המחובר." },
-      "restoreAccount": { "title": "שחזור חשבון", "description": "שחזור חשבון GhostSEO שאוחסן." }
+      "visualEditor": {
+        "title": "עורך ויזואלי",
+        "description": "עריכת עמודים ויזואלית באתר המחובר."
+      },
+      "restoreAccount": {
+        "title": "שחזור חשבון",
+        "description": "שחזור חשבון GhostSEO שאוחסן."
+      }
     },
     "admin": {
-      "home": { "title": "סקירת מנהל", "description": "סקירה ומדדים של הפלטפורמה כולה." },
-      "accounts": { "title": "חשבונות", "description": "ניהול חשבונות לקוחות." },
-      "accountDetail": { "title": "חשבון", "description": "צפייה וניהול של חשבון בודד." },
-      "users": { "title": "משתמשים", "description": "ניהול משתמשי הפלטפורמה." },
-      "userDetail": { "title": "משתמש", "description": "צפייה וניהול של משתמש בודד." },
-      "subscriptions": { "title": "מנויים", "description": "ניהול מנויים פעילים וחיוב." },
-      "plans": { "title": "תוכניות", "description": "הגדרת תוכניות ושכבות תמחור." },
-      "addons": { "title": "תוספות", "description": "הגדרת תוספות פלטפורמה." },
-      "coupons": { "title": "קופונים", "description": "יצירה וניהול של קופונים." },
-      "pricing": { "title": "תמחור", "description": "סקירה ועדכון של התמחור." },
-      "interviewFlow": { "title": "תהליך ראיון", "description": "הגדרת תהליך ראיון הקליטה ללקוחות." },
-      "interviewQuestions": { "title": "שאלות ראיון", "description": "ניהול שאלות והנחיות לראיון." },
-      "pushQuestions": { "title": "שאלות יזומות", "description": "הגדרת שאלות יזומות עבור הסוכן." },
-      "botActions": { "title": "פעולות בוט", "description": "הגדרת פעולות בוט אוטומטיות." },
-      "translations": { "title": "תרגומים", "description": "ניהול תרגומי הפלטפורמה." },
-      "backlinks": { "title": "ניהול קישורים", "description": "ניהול מלאי שוק הקישורים." },
-      "website": {
-        "index": { "title": "אתר שיווק", "description": "ניהול תוכן אתר השיווק." },
-        "settings": { "title": "הגדרות אתר שיווק", "description": "הגדרת אתר השיווק." },
-        "blog": { "title": "בלוג", "description": "ניהול פוסטים בבלוג השיווקי." },
-        "blogNew": { "title": "פוסט חדש", "description": "יצירת פוסט חדש בבלוג השיווקי." },
-        "blogEdit": { "title": "עריכת פוסט", "description": "עריכת פוסט קיים בבלוג השיווקי." },
-        "pages": { "title": "עמודים", "description": "ניהול עמודי אתר השיווק." },
-        "pageEdit": { "title": "עריכת עמוד", "description": "עריכת עמוד באתר השיווק." }
+      "home": {
+        "title": "סקירת מנהל",
+        "description": "סקירה ומדדים של הפלטפורמה כולה."
       },
-      "faq": { "title": "שאלות נפוצות", "description": "ניהול תוכן השאלות הנפוצות." },
-      "support": { "title": "תיבת תמיכה", "description": "ניהול פניות תמיכה נכנסות." },
-      "supportDetail": { "title": "פניית תמיכה", "description": "מענה לפניית תמיכה." },
-      "impersonation": { "title": "התחזות", "description": "התחזות לחשבונות לצורך תמיכה ודיבוג." },
-      "impersonationSession": { "title": "סשן התחזות", "description": "צפייה בסשן התחזות." }
+      "accounts": {
+        "title": "חשבונות",
+        "description": "ניהול חשבונות לקוחות."
+      },
+      "accountDetail": {
+        "title": "חשבון",
+        "description": "צפייה וניהול של חשבון בודד."
+      },
+      "users": {
+        "title": "משתמשים",
+        "description": "ניהול משתמשי הפלטפורמה."
+      },
+      "userDetail": {
+        "title": "משתמש",
+        "description": "צפייה וניהול של משתמש בודד."
+      },
+      "subscriptions": {
+        "title": "מנויים",
+        "description": "ניהול מנויים פעילים וחיוב."
+      },
+      "plans": {
+        "title": "תוכניות",
+        "description": "הגדרת תוכניות ושכבות תמחור."
+      },
+      "addons": {
+        "title": "תוספות",
+        "description": "הגדרת תוספות פלטפורמה."
+      },
+      "coupons": {
+        "title": "קופונים",
+        "description": "יצירה וניהול של קופונים."
+      },
+      "pricing": {
+        "title": "תמחור",
+        "description": "סקירה ועדכון של התמחור."
+      },
+      "interviewFlow": {
+        "title": "תהליך ראיון",
+        "description": "הגדרת תהליך ראיון הקליטה ללקוחות."
+      },
+      "interviewQuestions": {
+        "title": "שאלות ראיון",
+        "description": "ניהול שאלות והנחיות לראיון."
+      },
+      "pushQuestions": {
+        "title": "שאלות יזומות",
+        "description": "הגדרת שאלות יזומות עבור הסוכן."
+      },
+      "botActions": {
+        "title": "פעולות בוט",
+        "description": "הגדרת פעולות בוט אוטומטיות."
+      },
+      "translations": {
+        "title": "תרגומים",
+        "description": "ניהול תרגומי הפלטפורמה."
+      },
+      "backlinks": {
+        "title": "ניהול קישורים",
+        "description": "ניהול מלאי שוק הקישורים."
+      },
+      "website": {
+        "index": {
+          "title": "אתר שיווק",
+          "description": "ניהול תוכן אתר השיווק."
+        },
+        "settings": {
+          "title": "הגדרות אתר שיווק",
+          "description": "הגדרת אתר השיווק."
+        },
+        "blog": {
+          "title": "בלוג",
+          "description": "ניהול פוסטים בבלוג השיווקי."
+        },
+        "blogNew": {
+          "title": "פוסט חדש",
+          "description": "יצירת פוסט חדש בבלוג השיווקי."
+        },
+        "blogEdit": {
+          "title": "עריכת פוסט",
+          "description": "עריכת פוסט קיים בבלוג השיווקי."
+        },
+        "pages": {
+          "title": "עמודים",
+          "description": "ניהול עמודי אתר השיווק."
+        },
+        "pageEdit": {
+          "title": "עריכת עמוד",
+          "description": "עריכת עמוד באתר השיווק."
+        }
+      },
+      "faq": {
+        "title": "שאלות נפוצות",
+        "description": "ניהול תוכן השאלות הנפוצות."
+      },
+      "support": {
+        "title": "תיבת תמיכה",
+        "description": "ניהול פניות תמיכה נכנסות."
+      },
+      "supportDetail": {
+        "title": "פניית תמיכה",
+        "description": "מענה לפניית תמיכה."
+      },
+      "impersonation": {
+        "title": "התחזות",
+        "description": "התחזות לחשבונות לצורך תמיכה ודיבוג."
+      },
+      "impersonationSession": {
+        "title": "סשן התחזות",
+        "description": "צפייה בסשן התחזות."
+      }
     }
   },
   "homepage": {
@@ -233,6 +431,14 @@
       "completed": "הסריקה העמוקה הושלמה!",
       "completedWithCount": "הושלם! נסרקו {crawled} דפים, הועשרו {enriched}",
       "failed": "סריקה עמוקה נכשלה"
+    },
+    "competitorDiscovery": {
+      "title": "מגלה מתחרים",
+      "running": "מנתח מילות מפתח ותוצאות חיפוש...",
+      "completed": "החיפוש הושלם!",
+      "completedWithCount": "נמצאו {count} מתחרים",
+      "noResults": "לא נמצאו מתחרים",
+      "failed": "חיפוש המתחרים נכשל"
     }
   },
   "media": {
@@ -256,8 +462,8 @@
       "titleRegenerate": "יצירה מחדש של התמונה באמצעות AI",
       "generateButton": "צור תמונה",
       "regenerateButton": "צור מחדש",
-      "cost": "עולה {credits} קרדיטי AI",
-      "costShort": "{credits} קרדיטים",
+      "cost": "עולה {credits} Ai-GCoins",
+      "costShort": "{credits} Ai-GCoins",
       "contextLabel": "ההקשר שישמש ליצירה",
       "noMetadataHint": "אין עדיין טקסט חלופי, כותרת, כיתוב או תיאור — הוסיפו הנחיות למטה כדי להדריך את ה‑AI.",
       "instructionsLabel": "הנחיות נוספות (לא חובה)",
@@ -277,7 +483,7 @@
       "discardNew": "השלך תמונה חדשה",
       "generateFailed": "יצירת התמונה נכשלה. נסו שוב.",
       "uploadFailed": "העלאת התמונה שנוצרה נכשלה.",
-      "insufficientCredits": "נדרשים {required} קרדיטי AI כדי ליצור את התמונה הזו.",
+      "insufficientCredits": "נדרשים {required} Ai-GCoins כדי ליצור את התמונה הזו.",
       "languageNeededTitle": "בחרו שפה לתמונה",
       "languageNeededBody": "לא הצלחנו לזהות את שפת התוכן של האתר. בחרו באיזו שפה יופיע טקסט כלשהו בתמונה החדשה.",
       "metadataLanguage": "המטא‑דאטה נוצרה בשפת {language}",
@@ -311,7 +517,7 @@
     },
     "fieldAi": {
       "regenerate": "שכתב עם AI",
-      "cost": "{credits} קרדיט",
+      "cost": "{credits} Ai-GCoin",
       "generating": "כותב…",
       "generationFailed": "לא הצלחנו לשכתב את השדה. נסה שוב."
     },
@@ -990,7 +1196,7 @@
     "retryAudit": "נסה שוב",
     "noSitemapTitle": "לא נמצאה מפת אתר XML",
     "noSitemapDescription": "לאתר שלך אין מפת אתר XML. מפת אתר חיונית כדי שמנועי חיפוש יוכלו לגלות ולאנדקס את הדפים שלך. התקן תוסף SEO (כמו Yoast SEO או RankMath) כדי ליצור מפת אתר, ואז נסה שוב את הבדיקה.",
-    "noSitemapNotCharged": "לא חויבת בקרדיטים עבור פעולה זו.",
+    "noSitemapNotCharged": "לא חויבת ב-Ai-GCoins עבור פעולה זו.",
     "noIssuesInCategory": "לא נמצאו בעיות בקטגוריה זו.",
     "pagesScanned": "דפים נסרקו",
     "pagesScannedTitle": "דפים שנסרקו",
@@ -1010,9 +1216,9 @@
       "quickFix": "תיקון מהיר AI",
       "quickFixFailed": "התיקון המהיר נכשל"
     },
-    "credit": "קרדיט",
-    "credits": "קרדיטים",
-    "insufficientCredits": "אין מספיק קרדיטי AI. אנא רכוש קרדיטים נוספים כדי להשתמש בתכונה זו.",
+    "credit": "Ai-GCoin",
+    "credits": "Ai-GCoins",
+    "insufficientCredits": "אין מספיק Ai-GCoins. אנא רכוש Ai-GCoins נוספים כדי להשתמש בתכונה זו.",
     "filmstrip": "ציר זמן טעינה",
     "screenshots": "צילומי מסך של האתר",
     "desktop": "מחשב",
@@ -1169,7 +1375,7 @@
     },
     "aiFix": {
       "label": "תיקון AI",
-      "labelWithCredits": "תיקון AI · {credits} קרדיטים",
+      "labelWithCredits": "תיקון AI · {credits} Ai-GCoins",
       "title": "תקן בעיה זו בעזרת AI",
       "pluginRequired": "נדרש תוסף WordPress",
       "pluginDescription": "כדי לתקן בעיות באתר שלך באופן אוטומטי, עליך לחבר את תוסף GhostSEO לאתר ה-WordPress שלך. התוסף מאפשר ל-GhostSEO לבצע שינויים באופן בטוח ישירות בדפים שלך.",
@@ -1183,7 +1389,7 @@
     "titleFix": {
       "title": "מייעל כותרות AI",
       "subtitle": "הצעות כותרת שנוצרו ב-AI לדפים שלך",
-      "creditCost": "1 קרדיט / דף",
+      "creditCost": "1 Ai-GCoin / דף",
       "generating": "מייצר הצעות כותרת...",
       "stepAudit": "קורא נתוני ביקורת...",
       "stepAnalyzing": "מנתח דפים מושפעים...",
@@ -1192,20 +1398,20 @@
       "noIssues": "לא נמצאו דפים עם כותרות קצרות",
       "oldLabel": "ישן",
       "newLabel": "חדש",
-      "fixOne": "תקן (1 קרדיט)",
+      "fixOne": "תקן (1 Ai-GCoin)",
       "fixing": "מתקן...",
       "fixed": "תוקן",
       "failed": "נכשל",
       "fixAll": "תקן הכל ({count})",
       "fixingProgress": "מתקן כותרות: {done}/{total}",
-      "totalCost": "{count} דפים · {count} קרדיטים",
+      "totalCost": "{count} דפים · {count} Ai-GCoins",
       "allFixed": "כל {count} הכותרות תוקנו!",
       "editTitle": "ערוך כותרת"
     },
     "descFix": {
       "title": "מייעל תיאורי מטא AI",
       "subtitle": "הצעות תיאור מטא שנוצרו ב-AI לדפים שלך",
-      "creditCost": "1 קרדיט / דף",
+      "creditCost": "1 Ai-GCoin / דף",
       "stepAudit": "קורא נתוני ביקורת...",
       "stepAnalyzing": "מנתח דפים מושפעים...",
       "stepGenerating": "מייצר תיאורי מטא מותאמים עם AI...",
@@ -1213,32 +1419,32 @@
       "noIssues": "לא נמצאו דפים עם תיאורי מטא חסרים או קצרים",
       "oldLabel": "ישן",
       "newLabel": "חדש",
-      "fixOne": "תקן (1 קרדיט)",
+      "fixOne": "תקן (1 Ai-GCoin)",
       "fixing": "מתקן...",
       "fixed": "תוקן",
       "failed": "נכשל",
       "fixAll": "תקן הכל ({count})",
       "fixingProgress": "מתקן תיאורים: {done}/{total}",
-      "totalCost": "{count} דפים · {count} קרדיטים",
+      "totalCost": "{count} דפים · {count} Ai-GCoins",
       "allFixed": "כל {count} התיאורים תוקנו!",
       "editDesc": "ערוך תיאור"
     },
     "ogFix": {
       "title": "מייעל תגיות Open Graph עם AI",
       "subtitle": "הצעות תגיות OG שנוצרו ב-AI לשיתוף ברשתות חברתיות",
-      "creditCost": "1 קרדיט / דף",
+      "creditCost": "1 Ai-GCoin / דף",
       "stepAudit": "קורא נתוני ביקורת...",
       "stepAnalyzing": "מנתח דפים עם תגיות OG חסרות...",
       "stepGenerating": "מייצר תגיות OG מותאמות עם AI...",
       "retry": "נסה שוב",
       "noIssues": "לא נמצאו דפים עם תגיות Open Graph חסרות",
-      "fixOne": "תקן (1 קרדיט)",
+      "fixOne": "תקן (1 Ai-GCoin)",
       "fixing": "מתקן...",
       "fixed": "תוקן",
       "failed": "נכשל",
       "fixAll": "תקן הכל ({count})",
       "fixingProgress": "מתקן תגיות OG: {done}/{total}",
-      "totalCost": "{count} דפים · {count} קרדיטים",
+      "totalCost": "{count} דפים · {count} Ai-GCoins",
       "allFixed": "כל {count} הדפים תוקנו!",
       "edit": "ערוך",
       "imageNote": "מטופל אוטומטית ע״י תוסף ה-SEO (תמונה ראשית)"
@@ -1246,45 +1452,45 @@
     "altFix": {
       "title": "מחולל טקסט חלופי לתמונות עם AI",
       "subtitle": "AI מנתח את התמונות ומייצר טקסט חלופי (alt) לנגישות ו-SEO",
-      "creditCost": "1 קרדיט / תמונה",
+      "creditCost": "1 Ai-GCoin / תמונה",
       "stepAudit": "קורא נתוני ביקורת...",
       "stepAnalyzing": "מאחזר תמונות לניתוח AI...",
       "stepGenerating": "מייצר טקסט חלופי עם ראיית AI...",
       "retry": "נסה שוב",
       "noIssues": "לא נמצאו תמונות חסרות טקסט חלופי",
-      "fixOne": "תקן (1 קרדיט)",
+      "fixOne": "תקן (1 Ai-GCoin)",
       "fixing": "מתקן...",
       "fixed": "תוקן",
       "failed": "נכשל",
       "fixAll": "תקן הכל ({count})",
       "fixingProgress": "מעדכן טקסט חלופי: {done}/{total}",
-      "totalCost": "{count} תמונות · {count} קרדיטים",
+      "totalCost": "{count} תמונות · {count} Ai-GCoins",
       "allFixed": "כל {count} התמונות תוקנו!",
       "edit": "ערוך"
     },
     "imageFormatFix": {
       "title": "מייעל פורמט תמונות עם AI",
       "subtitle": "AI מנתח את התמונות וממליץ על הפורמט האופטימלי (WebP/AVIF) לכל תמונה",
-      "creditCost": "1 קרדיט / תמונה",
+      "creditCost": "1 Ai-GCoin / תמונה",
       "stepAudit": "קורא נתוני ביקורת...",
       "stepAnalyzing": "מנתח פורמטים וגדלי תמונות...",
       "stepGenerating": "AI ממליץ על פורמטים אופטימליים...",
       "retry": "נסה שוב",
       "noIssues": "כל התמונות כבר בפורמט אופטימלי",
-      "fixOne": "המר (1 קרדיט)",
+      "fixOne": "המר (1 Ai-GCoin)",
       "fixing": "ממיר...",
       "fixed": "הומר",
       "failed": "נכשל",
       "fixAll": "המר הכל ({count})",
       "fixingProgress": "ממיר תמונות: {done}/{total}",
-      "totalCost": "{count} תמונות · {count} קרדיטים",
+      "totalCost": "{count} תמונות · {count} Ai-GCoins",
       "allFixed": "כל {count} התמונות הומרו!",
       "keptInfo": "{count} תמונות נשארו בפורמט המקורי (כבר אופטימלי)"
     },
     "brokenLinkFix": {
       "title": "הצלת קישורים שבורים",
       "subtitle": "AI מוצא את יעד ההפניה הטוב ביותר לכל קישור שבור",
-      "creditCost": "2 קרדיטים / הפניה",
+      "creditCost": "2 Ai-GCoins / הפניה",
       "stepAudit": "קורא נתוני ביקורת...",
       "stepAnalyzing": "מנתח קישורים שבורים...",
       "stepGenerating": "מוצא יעדי הפניה מתאימים עם AI...",
@@ -1294,7 +1500,7 @@
       "redirectLabel": "הפנה אל",
       "anchorTextLabel": "טקסט הקישור",
       "foundOnLabel": "נמצא בדף",
-      "fixOne": "צור הפניה (2 קרדיטים)",
+      "fixOne": "צור הפניה (2 Ai-GCoins)",
       "fixing": "יוצר הפניה...",
       "fixed": "הפניה נוצרה",
       "failed": "נכשל",
@@ -1675,7 +1881,17 @@
     "trend": "מגמה",
     "difficulty": "קושי",
     "status": "סטטוס",
-    "intent": "כוונה",
+    "intent": {
+      "label": "כוונה",
+      "informational": "מידעי",
+      "navigational": "ניווטי",
+      "transactional": "עסקי",
+      "commercial": "מסחרי",
+      "informationalDesc": "המשתמש רוצה ללמוד או להבין משהו",
+      "navigationalDesc": "המשתמש רוצה למצוא אתר או דף ספציפי",
+      "transactionalDesc": "המשתמש רוצה לבצע פעולה (רכישה, הרשמה, הורדה)",
+      "commercialDesc": "המשתמש חוקר לפני קבלת החלטת רכישה"
+    },
     "easy": "קל",
     "medium": "בינוני",
     "hard": "קשה",
@@ -1703,17 +1919,6 @@
       "targeting": "מיקוד",
       "ranking": "מדורג",
       "archived": "בארכיון"
-    },
-    "intent": {
-      "label": "כוונה",
-      "informational": "מידעי",
-      "navigational": "ניווטי",
-      "transactional": "עסקי",
-      "commercial": "מסחרי",
-      "informationalDesc": "המשתמש רוצה ללמוד או להבין משהו",
-      "navigationalDesc": "המשתמש רוצה למצוא אתר או דף ספציפי",
-      "transactionalDesc": "המשתמש רוצה לבצע פעולה (רכישה, הרשמה, הורדה)",
-      "commercialDesc": "המשתמש חוקר לפני קבלת החלטת רכישה"
     },
     "setIntent": "הגדר כוונה",
     "reanalyze": "נתח מחדש עם AI",
@@ -1952,8 +2157,8 @@
     "skyscraperDescription": "צור מתווה משופר בהתבסס על מבנה המתחרה",
     "generateOutline": "צור מתווה",
     "generatingOutline": "מייצר...",
-    "scanCost": "עלות סריקה: {credits} קרדיטים",
-    "analysisCost": "עלות ניתוח: {credits} קרדיטים",
+    "scanCost": "עלות סריקה: {credits} Ai-GCoins",
+    "analysisCost": "עלות ניתוח: {credits} Ai-GCoins",
     "winner": "טוב יותר",
     "loser": "דורש עבודה",
     "tie": "שווה",
@@ -1969,6 +2174,8 @@
     "findWithAI": "מצא עם AI",
     "findWithAIDescription": "מנתח את תוכן האתר שלך כדי לגלות מתחרים...",
     "discoveringCompetitors": "מגלה מתחרים...",
+    "discoveringBackgroundHint": "אפשר לסגור את החלון ולהמשיך לעבוד — נפתח אותו מחדש כשהתוצאות מוכנות.",
+    "viewProgress": "הצג התקדמות חיפוש",
     "discoverCompetitors": "גלה מתחרים",
     "noKeywordsForDiscovery": "לא נמצאו מילות מפתח לחיפוש מתחרים",
     "discoveredCompetitors": "מתחרים שנמצאו",
@@ -1984,7 +2191,7 @@
     "competitor": "מתחרה",
     "status": "סטטוס",
     "discoverConfirmDescription": "הבינה המלאכותית שלנו תנתח את תוכן האתר שלך, תזהה את הנושא העיקרי ותחפש בגוגל כדי למצוא את המתחרים המובילים שלך.",
-    "creditsUsed": "קרדיטים בשימוש",
+    "creditsUsed": "Ai-GCoins בשימוש",
     "estimatedTime": "זמן משוער",
     "whatYouGet": "מה תקבל",
     "whatYouGetDescription": "10 המתחרים המובילים מדורגים לפי רלוונטיות",
@@ -2003,7 +2210,13 @@
     "used": "בשימוש",
     "month": "חודש",
     "loadingAddons": "טוען אפשרויות תוספים...",
-    "purchaseAddon": "רכוש {name} ({quantity}) - {price}",
+    "noAddonsAvailable": "אין כרגע תוספות זמינות לרכישה.",
+    "permanentAddonsLabel": "תוספות קבועות (חיוב מתחדש)",
+    "oneTimeAddonsLabel": "רכישות חד-פעמיות",
+    "permanentBadge": "קבוע",
+    "oneTimeBadge": "חד-פעמי",
+    "purchase": "רכוש",
+    "purchaseAddon": "רכישת {name} - {price}",
     "purchasing": "מעבד רכישה...",
     "purchaseSuccess": "התוסף נרכש בהצלחה! המגבלות שלך עודכנו.",
     "manageBilling": "ניהול תוספים וחיוב",
@@ -2016,7 +2229,7 @@
       "audits": "ביקורות",
       "sites": "אתרים",
       "members": "חברי צוות",
-      "aiCredits": "קרדיטים של AI",
+      "aiCredits": "Ai-GCoins",
       "keywords": "מילות מפתח",
       "content": "פריטי תוכן",
       "generic": "משאבים"
@@ -2090,7 +2303,7 @@
       "metaRobotsNofollow": "הדף מסומן כ-nofollow - מנועי חיפוש לא יעקבו אחרי קישורים בדף זה",
       "metaRobotsGood": "לא נמצאו הנחיות robots חוסמות",
       "robotsTxtBlocksAll": "קובץ robots.txt חוסם את כל סורקי מנועי החיפוש (Disallow: /)",
-      "wpSearchEngineDiscouraged": "הגדרת 'הרתעת מנועי חיפוש מאינדוקס אתר זה' מופעלת ב-WordPress \u2014 זה מונע מכל הדפים להופיע בתוצאות חיפוש",
+      "wpSearchEngineDiscouraged": "הגדרת 'הרתעת מנועי חיפוש מאינדוקס אתר זה' מופעלת ב-WordPress — זה מונע מכל הדפים להופיע בתוצאות חיפוש",
       "wpSearchEngineVisible": "הגדרת נראות מנועי חיפוש ב-WordPress מאפשרת אינדוקס",
       "robotsTxtFound": "קובץ robots.txt נמצא",
       "noRobotsTxt": "לא נמצא קובץ robots.txt",
@@ -3088,7 +3301,7 @@
       "category": "קטגוריה",
       "language": "שפה",
       "price": "מחיר",
-      "aiCreditsPrice": "קרדיטי AI",
+      "aiCreditsPrice": "Ai-GCoins",
       "linkType": "סוג קישור",
       "dofollow": "Dofollow",
       "nofollow": "Nofollow",
@@ -3097,7 +3310,7 @@
       "user": "משתמש",
       "purchase": "רכישה",
       "useAllocation": "שימוש בהקצאת תוכנית",
-      "buyWithCredits": "רכישה בקרדיטי AI",
+      "buyWithCredits": "רכישה ב-Ai-GCoins",
       "buyDirect": "רכישה ישירה",
       "viewDetails": "הצג פרטים",
       "outOfStock": "אזל",
@@ -3137,9 +3350,9 @@
       "planAllocationFull": "ההקצאה החודשית נוצלה במלואה",
       "directPurchase": "רכישה ישירה",
       "directPurchaseDesc": "שלם {price} {currency}",
-      "aiCredits": "קרדיטי AI",
-      "aiCreditsDesc": "שלם {credits} קרדיטי AI (יתרה: {balance})",
-      "aiCreditsInsufficient": "אין מספיק קרדיטי AI",
+      "aiCredits": "Ai-GCoins",
+      "aiCreditsDesc": "שלם {credits} Ai-GCoins (יתרה: {balance})",
+      "aiCreditsInsufficient": "אין מספיק Ai-GCoins",
       "confirm": "אשר רכישה",
       "cancel": "ביטול",
       "processing": "מעבד...",
@@ -3202,13 +3415,13 @@
       "turnaround": "זמן ביצוע (ימים)",
       "price": "מחיר",
       "currency": "מטבע",
-      "aiCredits": "קרדיטי AI",
+      "aiCredits": "Ai-GCoins",
       "maxSlots": "מכסה מקסימלית",
       "unlimited": "ללא הגבלה",
       "submit": "צור רישום",
       "pricingMethod": "שיטת תמחור",
       "sellForMoney": "למכור בכסף",
-      "sellForCredits": "למכור בקרדיטים של AI",
+      "sellForCredits": "למכור ב-Ai-GCoins",
       "monthlyTraffic": "תנועה חודשית",
       "monthlyVisitors": "מבקרים חודשיים",
       "metricsSource": "נתונים מ",
@@ -3274,8 +3487,8 @@
     "users": "משתמשים",
     "subscription": "מנוי",
     "credits": {
-      "title": "קרדיטים",
-      "credits": "קרדיטים"
+      "title": "Ai-GCoins",
+      "credits": "Ai-GCoins"
     },
     "addons": "תוספות",
     "profile": "פרופיל",
@@ -3302,7 +3515,7 @@
       "team": "נהל חברי צוות והרשאות",
       "users": "הזמן ונהל משתמשים בחשבון שלך",
       "subscription": "צפה ונהל את תוכנית המנוי שלך",
-      "credits": "נהל את קרדיטי ה-AI והשימוש שלך",
+      "credits": "נהל את Ai-GCoins ה-AI והשימוש שלך",
       "addons": "עיין ונהל תכונות נוספות",
       "profile": "עדכן את הפרופיל האישי וההעדפות שלך",
       "account": "נהל את הגדרות חשבון החברה",
@@ -3941,7 +4154,7 @@
     "subscriptionSection": {
       "plan": "תוכנית",
       "tokenUsage": "שימוש בטוקנים",
-      "aiCreditsUsage": "שימוש בקרדיטים AI",
+      "aiCreditsUsage": "שימוש ב-Ai-GCoins",
       "nextBillingDate": "תאריך חיוב הבא:",
       "billingActions": "פעולות חיוב",
       "upgradePlan": "שדרג תוכנית",
@@ -3959,7 +4172,7 @@
         "websites": "אתרים",
         "maxMembers": "חברי צוות",
         "users": "משתמשים",
-        "aiCredits": "קרדיטים AI",
+        "aiCredits": "Ai-GCoins",
         "maxPages": "עמודים",
         "maxPosts": "פוסטים בבלוג",
         "maxKeywords": "מילות מפתח",
@@ -3999,12 +4212,12 @@
       "cancelsAtRenewal": "מתבטל בחידוש"
     },
     "creditsSection": {
-      "title": "קרדיטים AI",
+      "title": "Ai-GCoins",
       "available": "זמין",
       "used": "בשימוש",
       "usage": "שימוש",
       "actions": "פעולות",
-      "description": "קרדיטים AI משמשים ליצירת תוכן, ניתוח נתונים ותכונות מונעות AI נוספות. הקרדיטים מתאפסים בתחילת כל תקופת חיוב.",
+      "description": "Ai-GCoins משמשים ליצירת תוכן, ניתוח נתונים ותכונות מונעות AI נוספות. ה-Ai-GCoins מתאפסים בתחילת כל תקופת חיוב.",
       "usageLog": "היסטוריית שימוש",
       "noLogs": "אין היסטוריית שימוש עדיין",
       "errorLoadingLogs": "שגיאה בטעינת היסטוריית השימוש",
@@ -4014,7 +4227,7 @@
         "action": "פעולה",
         "website": "אתר",
         "user": "משתמש",
-        "credits": "קרדיטים",
+        "credits": "Ai-GCoins",
         "balance": "יתרה"
       },
       "operations": {
@@ -4064,7 +4277,7 @@
         "websiteAnalysis": "ניתוח {url}",
         "discoveredEntityTypes": "גילוי סוגי תוכן עבור {url}",
         "addonPurchase": "נרכשה {description}",
-        "planRenewal": "קרדיטים חודשו",
+        "planRenewal": "Ai-GCoins חודשו",
         "rewriteParagraph": "שכתוב תוכן עבור {url}",
         "competitorAnalysis": "ניתוח מתחרה עבור {url}",
         "cannibalizationFix": "תיקון קניבליזציה עבור {url}",
@@ -4076,8 +4289,8 @@
         "suggestedSiteName": "הצעת שם אתר עבור {url}",
         "backlinkPurchase": "רכישת בקלינק: {url}",
         "backlinkSale": "מכירת בקלינק: {url}",
-        "planActivation": "קרדיטים ראשוניים מתוכנית",
-        "manualAdjustment": "התאמת קרדיטים ידנית",
+        "planActivation": "Ai-GCoins ראשוניים מתוכנית",
+        "manualAdjustment": "התאמת Ai-GCoins ידנית",
         "genericOperation": "פעולת AI עבור {url}",
         "auditRescan": "סריקה מחדש של עמוד: {url}",
         "auditQuickFix": "תיקון מהיר ב {url}",
@@ -4086,7 +4299,7 @@
         "translatePostTypes": "תרגום סוגי תוכן",
         "contentGeneration": "יצירת תוכן עבור {url}"
       },
-      "purchasedPacks": "חבילות קרדיטים שנרכשו",
+      "purchasedPacks": "חבילות Ai-GCoins שנרכשו",
       "remaining": "נותרו"
     },
     "addonsSection": {
@@ -4099,7 +4312,7 @@
       "subscribe": "הירשם",
       "oneTime": "חד פעמי",
       "oneTimeBadge": "חד-פעמי",
-      "credits": "קרדיטים AI",
+      "credits": "Ai-GCoins",
       "noAddons": "אין תוספות זמינות כרגע.",
       "alreadyPurchased": "כבר רכשת תוספת זו",
       "alreadyPurchasedCount": "רכשת תוספת זו {count} פעמים",
@@ -4439,6 +4652,15 @@
       "titleNoNew": "ניתוח סוכן הושלם",
       "messageNoNew": "אין תובנות חדשות לאתר {siteName} - הכל נשאר כמו קודם"
     },
+    "competitorDiscoveryComplete": {
+      "title": "חיפוש מתחרים הסתיים",
+      "message": "נמצאו {count} מתחרים עבור {siteName}",
+      "messageEmpty": "החיפוש עבור {siteName} הסתיים, לא נמצאו מתחרים חדשים"
+    },
+    "competitorDiscoveryFailed": {
+      "title": "חיפוש מתחרים נכשל",
+      "message": "החיפוש עבור {siteName} לא הצליח להסתיים"
+    },
     "failedPublishModal": {
       "title": "הפרסום נכשל",
       "subtitle": "התוכן הבא לא הצליח להתפרסם באתר שלך",
@@ -4471,8 +4693,8 @@
   "user": {
     "profile": "פרופיל",
     "myProfile": "הפרופיל שלי",
-    "credits": "קרדיטים",
-    "aiCredits": "קרדיטים AI",
+    "credits": "Ai-GCoins",
+    "aiCredits": "Ai-GCoins",
     "currentPlan": "תוכנית נוכחית",
     "plan": "תוכנית",
     "upgrade": "שדרג",
@@ -4481,8 +4703,8 @@
     "subscription": "דרגת מנוי",
     "myAccount": "החשבון שלי",
     "subscriptions": "מנויים",
-    "myCredits": "הקרדיטים שלי",
-    "addCredits": "הוסף קרדיטים",
+    "myCredits": "ה-Ai-GCoins שלי",
+    "addCredits": "הוסף Ai-GCoins",
     "upgradePlan": "שדרג תוכנית",
     "plans": {
       "free": "חינם",
@@ -5100,7 +5322,20 @@
         "fri": "שישי",
         "sat": "שבת"
       },
-      "months": ["ינואר", "פברואר", "מרץ", "אפריל", "מאי", "יוני", "יולי", "אוגוסט", "ספטמבר", "אוקטובר", "נובמבר", "דצמבר"],
+      "months": [
+        "ינואר",
+        "פברואר",
+        "מרץ",
+        "אפריל",
+        "מאי",
+        "יוני",
+        "יולי",
+        "אוגוסט",
+        "ספטמבר",
+        "אוקטובר",
+        "נובמבר",
+        "דצמבר"
+      ],
       "publishTime": "שעת פרסום",
       "randomTime": "שעה אקראית",
       "fixedTime": "שעה קבועה",
@@ -5116,16 +5351,56 @@
       "title": "סוגי מאמרים",
       "description": "בחר סוגי מאמרים לקמפיין",
       "types": {
-        "seo": { "label": "מאמר SEO", "description": "ממוטב לדירוג בחיפוש", "example": "הטובים ביותר ב[נושא] 2025" },
-        "blogPost": { "label": "פוסט בלוג", "description": "מאמר מעניין ואינפורמטיבי", "example": "למה [נושא] חשוב" },
-        "guide": { "label": "מדריך מקיף", "description": "מדריך מעמיק ומקיף", "example": "המדריך המלא ל[נושא]" },
-        "howTo": { "label": "מדריך ביצוע", "description": "הדרכה צעד אחר צעד", "example": "איך ל[השיג מטרה]" },
-        "listicle": { "label": "רשימה", "description": "מאמר מבוסס רשימה", "example": "10 טיפים ל[נושא]" },
-        "comparison": { "label": "השוואה", "description": "השוואת מוצרים או אפשרויות", "example": "[א] מול [ב]: מה עדיף?" },
-        "review": { "label": "סקירה", "description": "סקירת מוצר או שירות מפורטת", "example": "סקירת [מוצר]: יתרונות וחסרונות" },
-        "news": { "label": "חדשות", "description": "חדשות או עדכון בתחום", "example": "בזק: עדכון [נושא]" },
-        "tutorial": { "label": "הדרכה", "description": "הדרכה טכנית עם דוגמאות", "example": "הדרכת [נושא] למתחילים" },
-        "caseStudy": { "label": "מקרה בוחן", "description": "מקרה מהעולם האמיתי עם תוצאות", "example": "איך [חברה] השיגה [תוצאה]" }
+        "seo": {
+          "label": "מאמר SEO",
+          "description": "ממוטב לדירוג בחיפוש",
+          "example": "הטובים ביותר ב[נושא] 2025"
+        },
+        "blogPost": {
+          "label": "פוסט בלוג",
+          "description": "מאמר מעניין ואינפורמטיבי",
+          "example": "למה [נושא] חשוב"
+        },
+        "guide": {
+          "label": "מדריך מקיף",
+          "description": "מדריך מעמיק ומקיף",
+          "example": "המדריך המלא ל[נושא]"
+        },
+        "howTo": {
+          "label": "מדריך ביצוע",
+          "description": "הדרכה צעד אחר צעד",
+          "example": "איך ל[השיג מטרה]"
+        },
+        "listicle": {
+          "label": "רשימה",
+          "description": "מאמר מבוסס רשימה",
+          "example": "10 טיפים ל[נושא]"
+        },
+        "comparison": {
+          "label": "השוואה",
+          "description": "השוואת מוצרים או אפשרויות",
+          "example": "[א] מול [ב]: מה עדיף?"
+        },
+        "review": {
+          "label": "סקירה",
+          "description": "סקירת מוצר או שירות מפורטת",
+          "example": "סקירת [מוצר]: יתרונות וחסרונות"
+        },
+        "news": {
+          "label": "חדשות",
+          "description": "חדשות או עדכון בתחום",
+          "example": "בזק: עדכון [נושא]"
+        },
+        "tutorial": {
+          "label": "הדרכה",
+          "description": "הדרכה טכנית עם דוגמאות",
+          "example": "הדרכת [נושא] למתחילים"
+        },
+        "caseStudy": {
+          "label": "מקרה בוחן",
+          "description": "מקרה מהעולם האמיתי עם תוצאות",
+          "example": "איך [חברה] השיגה [תוצאה]"
+        }
       },
       "wordRange": "{min} - {max} מילים",
       "postsOfType": "פוסטים",
@@ -5281,7 +5556,7 @@
       "description": "נשאל אותך מספר שאלות כדי להבין טוב יותר את האתר והעסק שלך. זה יעזור לנו לספק המלצות מותאמות אישית.",
       "duration": "5-10 דקות",
       "questions": "{count} שאלות",
-      "estimatedCredits": "~42 קרדיטים AI",
+      "estimatedCredits": "~42 Ai-GCoins",
       "creditsNote": "💡 שים לב: הכמות עשויה להיות גבוהה יותר אם תשתמש ב\"נסה שוב\" בפעולות AI כמו יצירת מילות מפתח או חיפוש מתחרים.",
       "startButton": "התחל ראיון"
     },
@@ -5411,9 +5686,9 @@
       "websiteUnreachableDesc": "לא הצלחנו לגשת לאתר שהזנת. אנא בדוק את הכתובת ונסה שוב.",
       "changeUrl": "שנה כתובת",
       "autoActionFailed": "משהו השתבש. אנא נסה שוב.",
-      "insufficientCredits": "אין מספיק קרדיטים",
-      "insufficientCreditsDesc": "נגמרו לך קרדיטים של AI. אנא שדרג את התוכנית שלך כדי להמשיך להשתמש בתכונות AI.",
-      "cannotStartInterview": "אין לך מספיק קרדיטים של AI כדי להתחיל את הראיון. אנא שדרג את התוכנית שלך.",
+      "insufficientCredits": "אין מספיק Ai-GCoins",
+      "insufficientCreditsDesc": "נגמרו לך Ai-GCoins. אנא שדרג את התוכנית שלך כדי להמשיך להשתמש בתכונות AI.",
+      "cannotStartInterview": "אין לך מספיק Ai-GCoins כדי להתחיל את הראיון. אנא שדרג את התוכנית שלך.",
       "upgradePlan": "שדרג תוכנית"
     },
     "googleIntegration": {
@@ -5425,7 +5700,7 @@
       "connectButton": "חבר חשבון Google",
       "connecting": "מתחבר... השלם את ההתחברות בחלון הקופץ.",
       "connected": "חשבון Google חובר בהצלחה!",
-      "connectedMessage": "\u2713 חשבון Google חובר",
+      "connectedMessage": "✓ חשבון Google חובר",
       "error": "החיבור נכשל. ניתן לנסות שוב או לדלג על שלב זה.",
       "popupBlocked": "החלון הקופץ נחסם על ידי הדפדפן. אנא אפשר חלונות קופצים לאתר זה ונסה שוב.",
       "skipText": "דלג - אגדיר זאת מאוחר יותר בהגדרות"
@@ -5455,9 +5730,37 @@
       "analysisError": "לא הצלחתי לגשת לאתר: {error}. אנא בדוק את הכתובת ונסה שוב.",
       "errors": {
         "siteUnreachable": "לא הצלחתי לגשת לאתר. אנא בדוק את הכתובת ונסה שוב.",
+        "wafBlocked": "חומת האש של האתר חסמה את הסורק שלנו. אפשר להוסיף את GhostSEOBot לרשימת ההיתר או להמשיך ללא ניתוח אוטומטי.",
         "invalidUrl": "כתובת האתר אינה תקינה. אנא ודא שהכתובת נכונה ונסה שוב.",
-        "insufficientCredits": "לא נותרו לך קרדיטים לניתוח האתר. אנא שדרג את החבילה.",
+        "insufficientCredits": "לא נותרו לך Ai-GCoins לניתוח האתר. אנא שדרג את החבילה.",
         "analysisFailed": "ניתוח האתר נכשל. אנא נסה שוב מאוחר יותר."
+      },
+      "wafBlocked": {
+        "title": "חומת האש של האתר חוסמת אותנו",
+        "body": "תוסף האבטחה של האתר (Wordfence, Cloudflare, Sucuri וכד') חסם את GhostSEOBot. הוסף את ה-User-Agent הבא לרשימת ההיתר בחומת האש כדי להפעיל ניתוח אוטומטי.",
+        "keepRuleNotice": "השאר את הכלל פעיל גם אחרי ההרשמה — הפלטפורמה משתמשת ב-GhostSEOBot גם לבדיקות אבטחה (Audits), סנכרון Sitemap ובדיקות רינדור אחרי עריכות. הסרת הכלל תשבית את התכונות האלה בשקט.",
+        "scopeNotice": "לאבטחה מיטבית, הגבל את הכלל בצמצום: דלג רק על Rate Limiting ועל זיהוי בוטים. אל תכבה כללי SQLi/XSS, הגנה על התחברות, או חוקי תעבורה זדונית.",
+        "allowlistLabel": "הוסף את ה-User-Agent הבא לרשימת ההיתר:",
+        "copy": "העתק",
+        "copied": "הועתק!",
+        "instructionsLabel": "הוראות מהירות לתוספי אבטחה נפוצים:",
+        "plugins": {
+          "wordfence": {
+            "title": "Wordfence",
+            "steps": "Wordfence ← All Options ← Whitelisted URLs / User Agents ← הוסף את הערך \"GhostSEOBot\". סמן רק bypass rate limiting ו-live traffic logging — השאר Brute Force ו-Malicious File Scan פעילים. שמור."
+          },
+          "cloudflare": {
+            "title": "Cloudflare",
+            "steps": "Security ← WAF ← Custom rules ← Create rule. תנאי: \"User Agent contains GhostSEOBot\". פעולה: \"Skip\" ← סמן רק \"Rate Limiting Rules\" ו-\"Bot Fight Mode\". אל תסמן Managed Rules. פרסם."
+          },
+          "sucuri": {
+            "title": "Sucuri / תוספים אחרים",
+            "steps": "Sucuri Settings ← Whitelist ← הוסף כלל User-Agent עם הערך \"GhostSEOBot\". בתוספים אחרים, חפש מקטע Allowlist / Whitelist / Bypass שמקבל User-Agent, והגבל את הדילוג ל-rate limiting וזיהוי בוטים בלבד."
+          }
+        },
+        "moreInfoPrefix": "פרטים נוספים ואופן אימות הבוט:",
+        "retry": "הוספתי את הכלל, נסה שוב",
+        "skip": "המשך ללא ניתוח אוטומטי"
       },
       "selectingLanguage": "בחירת שפה",
       "languagesFound": "זיהיתי שהאתר שלך זמין ב-{count} שפות. בחר את השפה שאיתה נתחיל - באתרים רב-לשוניים, כל שפה נשמרת כאתר נפרד בפלטפורמה.",
@@ -5911,6 +6214,7 @@
       "cardholderNamePlaceholder": "ישראל ישראלי",
       "citizenId": "תעודת זהות",
       "citizenIdPlaceholder": "הכנס מספר ת.ז.",
+      "citizenIdInvalid": "מספר תעודת זהות לא תקין",
       "billingEmail": "אימייל לחיוב",
       "billingEmailPlaceholder": "אימייל לקבלת חשבונית",
       "phone": "טלפון",
@@ -5960,7 +6264,7 @@
       "limitations": {
         "maxSites": "אתרים",
         "maxMembers": "חברי צוות",
-        "aiCredits": "קרדיטי AI",
+        "aiCredits": "Ai-GCoins",
         "maxPages": "עמודים",
         "maxPosts": "פוסטים",
         "siteAudits": "ביקורת אתר"
@@ -6491,6 +6795,8 @@
         "plan": "תוכנית",
         "status": "סטטוס",
         "createdAt": "נוצר",
+        "lastConnection": "חיבור אחרון",
+        "lastAction": "פעולה אחרונה",
         "actions": "פעולות"
       },
       "statuses": {
@@ -6521,7 +6827,9 @@
         "billingEmail": "אימייל לחיוב",
         "generalEmail": "אימייל כללי",
         "plan": "תוכנית מנוי",
-        "billingInterval": "מחזור חיוב"
+        "billingInterval": "מחזור חיוב",
+        "lastConnection": "חיבור אחרון",
+        "updatedAt": "עודכן לאחרונה"
       },
       "deleteConfirm": {
         "title": "מחיקת חשבון",
@@ -6542,7 +6850,9 @@
         "accounts": "חשבונות",
         "role": "תפקיד",
         "status": "סטטוס",
+        "online": "מחובר",
         "lastLogin": "התחברות אחרונה",
+        "lastAction": "פעולה אחרונה",
         "actions": "פעולות"
       },
       "roles": {
@@ -6555,7 +6865,9 @@
       "statuses": {
         "active": "פעיל",
         "inactive": "לא פעיל",
-        "suspended": "מושעה"
+        "suspended": "מושעה",
+        "online": "מחובר",
+        "offline": "מנותק"
       },
       "actions": {
         "view": "צפה בפרופיל",
@@ -6583,6 +6895,7 @@
         "consentGiven": "הסכמה ניתנה",
         "isActive": "פעיל",
         "createdAt": "נוצר בתאריך",
+        "updatedAt": "פעולה אחרונה",
         "linkToAccount": "שייך לחשבון",
         "noAccount": "ללא חשבון (משתמש עצמאי)"
       },
@@ -6591,7 +6904,8 @@
         "message": "האם אתה בטוח שברצונך למחוק את {name}? פעולה זו לא ניתנת לביטול."
       },
       "noUsers": "לא נמצאו משתמשים",
-      "totalUsers": "סה״כ משתמשים"
+      "totalUsers": "סה״כ משתמשים",
+      "onlineNow": "מחוברים כעת"
     },
     "subscriptions": {
       "title": "מנויים",
@@ -6698,7 +7012,7 @@
         "limitations": "מגבלות",
         "maxMembers": "חברי צוות",
         "maxSites": "אתרים",
-        "aiCredits": "קרדיטים AI",
+        "aiCredits": "Ai-GCoins",
         "maxKeywords": "מילות מפתח",
         "maxContent": "תכנים",
         "siteAudits": "ביקורות אתר",
@@ -6761,7 +7075,7 @@
       "types": {
         "seats": "חברי צוות",
         "sites": "אתרים נוספים",
-        "ai_credits": "חבילת קרדיטים AI",
+        "ai_credits": "חבילת Ai-GCoins",
         "storage": "אחסון",
         "keywords": "מעקב מילות מפתח",
         "content": "פריטי תוכן",
@@ -6793,10 +7107,10 @@
       "noAddOns": "לא נמצאו תוספות",
       "quantityHint": "השאר ריק עבור תוספות שמספקות +1 של משאב (כמו מושבים או אתרים נוספים)",
       "placeholders": {
-        "name": "לדוגמה: חבילת קרדיטים AI - 10K",
+        "name": "לדוגמה: חבילת Ai-GCoins - 10K",
         "key": "לדוגמה: ai-credits-10k",
         "description": "תאר מה התוסף הזה מספק...",
-        "quantity": "לדוגמה: 10000 עבור חבילת קרדיטים AI"
+        "quantity": "לדוגמה: 10000 עבור חבילת Ai-GCoins"
       },
       "stats": {
         "total": "סה\"כ תוספות",
@@ -7458,7 +7772,7 @@
         "dr": "DR",
         "traffic": "תנועה",
         "price": "מחיר",
-        "credits": "קרדיטים",
+        "credits": "Ai-GCoins",
         "slots": "מקומות",
         "status": "סטטוס",
         "actions": "פעולות",
@@ -7486,7 +7800,7 @@
         "domainRating": "דירוג דומיין (DR)",
         "monthlyTraffic": "תנועה חודשית",
         "price": "מחיר (USD)",
-        "aiCreditsPrice": "מחיר קרדיטי AI",
+        "aiCreditsPrice": "מחיר Ai-GCoins",
         "maxSlots": "מקומות מקסימום",
         "maxSlotsHelp": "השאר ריק ללא הגבלה",
         "turnaroundDays": "זמן מסירה (ימים)",
@@ -7539,7 +7853,7 @@
         "netProfit": "רווח נקי (30 ימים)",
         "margin": "שוליים",
         "avgRevPerAccount": "הכנסה ממוצעת לחשבון",
-        "creditsConsumed": "קרדיטים שנצרכו",
+        "creditsConsumed": "Ai-GCoins שנצרכו",
         "totalTokens": "סך טוקנים (קלט + פלט)",
         "inOut": "קלט: {input} | פלט: {output}",
         "totalAccounts": "סך חשבונות",
@@ -7572,7 +7886,7 @@
           "plan": "תוכנית",
           "monthlyRevenue": "הכנסה חודשית",
           "aiCost30d": "עלות AI (30 ימים)",
-          "creditsUsed": "קרדיטים בשימוש",
+          "creditsUsed": "Ai-GCoins בשימוש",
           "status": "סטטוס"
         },
         "costOverRevenue": "עלות > הכנסה",
@@ -7620,7 +7934,7 @@
       "exportCsv": "ייצוא CSV",
       "retry": "נסה שוב",
       "header": {
-        "details": "{plan} · {status} · יתרת קרדיטים: {balance} · סה\"כ בשימוש: {total}"
+        "details": "{plan} · {status} · יתרת Ai-GCoins: {balance} · סה\"כ בשימוש: {total}"
       },
       "profitability": {
         "planRevenue": "הכנסות מתוכנית",
@@ -7634,7 +7948,7 @@
         "dateRange": "טווח תאריכים",
         "cost": "עלות ($)",
         "tokens": "טוקנים",
-        "credits": "קרדיטים",
+        "credits": "Ai-GCoins",
         "min": "מינימום",
         "max": "מקסימום",
         "to": "עד",
@@ -7654,7 +7968,7 @@
           "model": "מודל",
           "inputTokens": "טוקני קלט",
           "outputTokens": "טוקני פלט",
-          "credits": "קרדיטים",
+          "credits": "Ai-GCoins",
           "costUsd": "עלות (USD)"
         }
       }
@@ -7827,8 +8141,8 @@
       }
     },
     "pricing": {
-      "title": "ניהול תמחור קרדיטים ל-AI",
-      "subtitle": "נהל עלויות קרדיטים לכל תכונות ה-AI. שינויים נכנסים לתוקף מיידית.",
+      "title": "ניהול תמחור Ai-GCoins ל-AI",
+      "subtitle": "נהל עלויות Ai-GCoins לכל תכונות ה-AI. שינויים נכנסים לתוקף מיידית.",
       "featuresConfigured": "{count} תכונות מוגדרות",
       "reset": "איפוס",
       "save": "שמור שינויים",
@@ -7838,7 +8152,7 @@
       "columns": {
         "featureKey": "מפתח תכונה",
         "displayName": "שם תצוגה",
-        "creditCost": "עלות בקרדיטים",
+        "creditCost": "עלות ב-Ai-GCoins",
         "lastUpdated": "עודכן לאחרונה"
       }
     },
@@ -7853,7 +8167,7 @@
         "dateRange": "טווח תאריכים",
         "cost": "עלות ($)",
         "tokens": "טוקנים",
-        "credits": "קרדיטים",
+        "credits": "Ai-GCoins",
         "min": "מינימום",
         "max": "מקסימום",
         "to": "עד",
@@ -7873,7 +8187,7 @@
           "model": "מודל",
           "inputTokens": "טוקני קלט",
           "outputTokens": "טוקני פלט",
-          "credits": "קרדיטים",
+          "credits": "Ai-GCoins",
           "costUsd": "עלות (USD)"
         }
       }
@@ -8022,17 +8336,17 @@
     "confirm": "אשר שנמוך"
   },
   "addCreditsModal": {
-    "title": "הוספת קרדיטים",
-    "subtitle": "רכוש קרדיטי AI נוספים לחשבונך",
+    "title": "הוספת Ai-GCoins",
+    "subtitle": "רכוש Ai-GCoins נוספים לחשבונך",
     "currentBalance": "יתרה נוכחית",
-    "credits": "קרדיטים",
+    "credits": "Ai-GCoins",
     "oneTime": "חד פעמי",
     "recurring": "מתחדש",
     "buy": "רכוש",
-    "purchaseSuccess": "הקרדיטים נוספו בהצלחה!",
+    "purchaseSuccess": "ה-Ai-GCoins נוספו בהצלחה!",
     "purchaseFailed": "הרכישה נכשלה",
-    "manageCredits": "ניהול קרדיטים",
-    "noAddons": "אין חבילות קרדיטים זמינות",
+    "manageCredits": "ניהול Ai-GCoins",
+    "noAddons": "אין חבילות Ai-GCoins זמינות",
     "upgradePlan": "שדרג תוכנית"
   },
   "agent": {
@@ -8109,11 +8423,11 @@
     "resolvedIssuesLabel": "בעיות שנפתרו",
     "execute": "בצע",
     "fixWithAi": "תקן עם AI",
-    "fixWithAiCost": "תקן עם AI (1 קרדיט)",
+    "fixWithAiCost": "תקן עם AI (1 Ai-GCoin)",
     "fixFree": "תקן",
-    "fixCostFree": "0 קרדיטים",
-    "creditsLabel": "קרדיטים",
-    "aiCredit": "קרדיט",
+    "fixCostFree": "0 Ai-GCoins",
+    "creditsLabel": "Ai-GCoins",
+    "aiCredit": "Ai-GCoin",
     "vs": "לעומת",
     "fixing": "מתקן...",
     "fixSuccess": "תוקן בהצלחה: {summary}",
@@ -8439,8 +8753,8 @@
       "featuredImagePrompt": "הנחיות לתמונה ראשית (אופציונלי)",
       "generateContent": "יצירת תוכן",
       "generating": "מייצר...",
-      "credit": "קרדיט",
-      "credits": "קרדיטים",
+      "credit": "Ai-GCoin",
+      "credits": "Ai-GCoins",
       "contentGenerated": "התוכן נוצר בהצלחה",
       "backToSettings": "חזרה להגדרות",
       "featuredImage": "תמונה ראשית",
@@ -8479,8 +8793,8 @@
     "cannibalizationIssue": "בעיית קניבליזציה",
     "generateFeaturedImages": "צור תמונת ראשית ייחודית",
     "generateContentImages": "צור תמונות תוכן (עד 3 לעמוד)",
-    "creditPerImage": "קרדיט/תמונה",
-    "creditsPerImage": "קרדיטים/תמונה",
+    "creditPerImage": "Ai-GCoin/תמונה",
+    "creditsPerImage": "Ai-GCoins/תמונה",
     "contentImages": "תמונות תוכן",
     "maxImages": "מקסימום",
     "generateArticle": "יצירת מאמר",
@@ -8552,8 +8866,8 @@
         "step2": "כל דף תומך מקבל כוונת חיפוש חדשה וייחודית ותוכן מבודל",
         "step3": "תגיות H1 ופסקאות מפתח נכתבות מחדש כדי למקד זוויות שונות של הנושא",
         "step4": "קישורים פנימיים מתווספים מדפים תומכים לדף האלפא",
-        "creditsCost": "עלות קרדיטים",
-        "creditsExplanation": "תהליך זה עולה {creditsPerPage} קרדיטים לכל דף תומך. עבור {pageCount} דפים מתחרים, הניתוח יעלה {analysisCost} קרדיטים. עלויות הביצוע יוצגו לפני האישור.",
+        "creditsCost": "עלות Ai-GCoins",
+        "creditsExplanation": "תהליך זה עולה {creditsPerPage} Ai-GCoins לכל דף תומך. עבור {pageCount} דפים מתחרים, הניתוח יעלה {analysisCost} Ai-GCoins. עלויות הביצוע יוצגו לפני האישור.",
         "estimatedTime": "זמן משוער",
         "timeExplanation": "הניתוח בד״כ לוקח 1-3 דקות בהתאם לאורך התוכן. אפשר לנווט למקום אחר - התהליך רץ ברקע ותקבלו התראה כשהוא מוכן.",
         "whileRunning": "בזמן הריצה",
@@ -8582,8 +8896,8 @@
         "internalLink": "קישור פנימי לדף האלפא",
         "closeButton": "סגור",
         "executingButton": "מבצע...",
-        "executeButton": "אשר ובצע תיקונים ({credits} קרדיטים)",
-        "executedBanner": "תיקונים בוצעו ב-{date} - {credits} קרדיטים נוצלו",
+        "executeButton": "אשר ובצע תיקונים ({credits} Ai-GCoins)",
+        "executedBanner": "תיקונים בוצעו ב-{date} - {credits} Ai-GCoins נוצלו",
         "failedMessage": "אירעה שגיאה בלתי צפויה",
         "diffOld": "ישן",
         "diffNew": "חדש"

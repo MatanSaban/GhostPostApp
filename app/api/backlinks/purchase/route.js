@@ -127,7 +127,7 @@ export async function POST(request) {
 
     } else if (paymentMethod === 'AI_CREDITS') {
       if (!listing.aiCreditsPrice) {
-        return NextResponse.json({ error: 'AI credits purchase not available for this listing' }, { status: 400 });
+        return NextResponse.json({ error: 'Ai-GCoins purchase not available for this listing' }, { status: 400 });
       }
 
       // Check buyer has enough credits
@@ -137,7 +137,7 @@ export async function POST(request) {
       });
 
       if (!buyerAccount || buyerAccount.aiCreditsBalance < listing.aiCreditsPrice) {
-        return NextResponse.json({ error: 'Insufficient AI credits' }, { status: 400 });
+        return NextResponse.json({ error: 'Insufficient Ai-GCoins' }, { status: 400 });
       }
 
       creditsPaid = listing.aiCreditsPrice;

@@ -66,7 +66,7 @@ export async function POST(request) {
       siteAudits: 'Site Audits',
       maxSites: 'Websites',
       maxMembers: 'Team Members',
-      aiCredits: 'AI Credits',
+      aiCredits: 'Ai-GCoins',
       maxKeywords: 'Keywords',
       maxContent: 'Content Items',
     };

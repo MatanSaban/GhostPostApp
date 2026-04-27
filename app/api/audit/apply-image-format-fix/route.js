@@ -145,7 +145,7 @@ async function resolveMediaBySearch(site, imageUrls) {
  *
  * Body: { siteId, auditId?, fixes: [{ imageUrl, recommendedFormat, pageUrl }] }
  *
- * Cost: 1 AI Credit per image
+ * Cost: 1 Ai-GCoin per image
  */
 export async function POST(request) {
   try {
@@ -201,7 +201,7 @@ export async function POST(request) {
       const isInsufficient = deduction.error?.includes('Insufficient');
       return NextResponse.json(
         {
-          error: deduction.error || 'Credit deduction failed',
+          error: deduction.error || 'Ai-GCoin deduction failed',
           code: isInsufficient ? 'INSUFFICIENT_CREDITS' : 'CREDIT_ERROR',
           resourceKey: isInsufficient ? 'aiCredits' : undefined,
         },

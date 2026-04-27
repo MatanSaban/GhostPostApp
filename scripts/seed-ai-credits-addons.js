@@ -1,7 +1,11 @@
 /**
- * Seed AI Credits Add-on Packs
- * 
+ * Seed Ai-GCoins Add-on Packs
+ *
  * Run with: node scripts/seed-ai-credits-addons.js
+ *
+ * NOTE: slugs and the AddOn `type` enum (AI_CREDITS) are code identifiers
+ * referenced by the API/DB and remain unchanged. Only user-visible
+ * `name`/`description` strings carry the new "Ai-GCoins" terminology.
  */
 
 import { PrismaClient } from '@prisma/client';
@@ -10,9 +14,9 @@ const prisma = new PrismaClient();
 
 const AI_CREDITS_PACKS = [
   {
-    name: '10K AI Credits',
+    name: '10K Ai-GCoins',
     slug: 'ai-credits-10k',
-    description: 'Pack of 10,000 AI Credits',
+    description: 'Pack of 10,000 Ai-GCoins',
     type: 'AI_CREDITS',
     price: 9.99,
     currency: 'USD',
@@ -21,9 +25,9 @@ const AI_CREDITS_PACKS = [
     sortOrder: 1,
   },
   {
-    name: '20K AI Credits',
+    name: '20K Ai-GCoins',
     slug: 'ai-credits-20k',
-    description: 'Pack of 20,000 AI Credits',
+    description: 'Pack of 20,000 Ai-GCoins',
     type: 'AI_CREDITS',
     price: 17.99,
     currency: 'USD',
@@ -32,9 +36,9 @@ const AI_CREDITS_PACKS = [
     sortOrder: 2,
   },
   {
-    name: '50K AI Credits',
+    name: '50K Ai-GCoins',
     slug: 'ai-credits-50k',
-    description: 'Pack of 50,000 AI Credits',
+    description: 'Pack of 50,000 Ai-GCoins',
     type: 'AI_CREDITS',
     price: 39.99,
     currency: 'USD',
@@ -43,9 +47,9 @@ const AI_CREDITS_PACKS = [
     sortOrder: 3,
   },
   {
-    name: '100K AI Credits',
+    name: '100K Ai-GCoins',
     slug: 'ai-credits-100k',
-    description: 'Pack of 100,000 AI Credits',
+    description: 'Pack of 100,000 Ai-GCoins',
     type: 'AI_CREDITS',
     price: 69.99,
     currency: 'USD',
@@ -109,10 +113,10 @@ async function seedAddOns() {
   for (const addOn of addOns) {
     // Hebrew translations
     const heTranslations = {
-      'ai-credits-10k': { name: '10K קרדיטים של AI', description: 'חבילה של 10,000 קרדיטים של AI' },
-      'ai-credits-20k': { name: '20K קרדיטים של AI', description: 'חבילה של 20,000 קרדיטים של AI' },
-      'ai-credits-50k': { name: '50K קרדיטים של AI', description: 'חבילה של 50,000 קרדיטים של AI' },
-      'ai-credits-100k': { name: '100K קרדיטים של AI', description: 'חבילה של 100,000 קרדיטים של AI' },
+      'ai-credits-10k': { name: '10K Ai-GCoins', description: 'חבילה של 10,000 Ai-GCoins' },
+      'ai-credits-20k': { name: '20K Ai-GCoins', description: 'חבילה של 20,000 Ai-GCoins' },
+      'ai-credits-50k': { name: '50K Ai-GCoins', description: 'חבילה של 50,000 Ai-GCoins' },
+      'ai-credits-100k': { name: '100K Ai-GCoins', description: 'חבילה של 100,000 Ai-GCoins' },
       'additional-seat': { name: 'מושב נוסף', description: 'הוספת חבר צוות נוסף למנוי שלך' },
       'additional-website': { name: 'אתר נוסף', description: 'הוספת אתר נוסף למנוי שלך' },
     };

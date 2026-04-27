@@ -73,7 +73,7 @@ export async function GET(request) {
       });
     }
 
-    // Use the unified AI credits calculation (handles one-time vs period correctly)
+    // Use the unified Ai-GCoins calculation (handles one-time vs period correctly)
     const aiCreditsUsage = await getAccountUsage(accountId, 'aiCredits');
 
     return NextResponse.json({
@@ -90,7 +90,7 @@ export async function GET(request) {
           : resources.limits.maxSites - resources.usage.sites,
         aiCredits: aiCreditsUsage.remaining,
       },
-      // AI credits breakdown
+      // Ai-GCoins breakdown
       aiCredits: {
         used: aiCreditsUsage.used,
         limit: aiCreditsUsage.limit,
@@ -112,7 +112,7 @@ export async function GET(request) {
             resources.usage.siteAddOnsCount < resources.limits.maxAddOnSites,
         },
         aiCredits: {
-          canPurchaseMore: true, // AI credits are always unlimited
+          canPurchaseMore: true, // Ai-GCoins are always unlimited
         },
       },
     });

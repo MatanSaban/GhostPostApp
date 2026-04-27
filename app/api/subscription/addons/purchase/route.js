@@ -130,7 +130,7 @@ export async function POST(request) {
         addOnId: addOn.id,
         quantity,
         status: 'ACTIVE',
-        // For one-time AI credits, track remaining credits
+        // For one-time Ai-GCoins, track remaining credits
         creditsRemaining: addOn.type === 'AI_CREDITS' && addOn.billingType === 'ONE_TIME'
           ? (addOn.quantity || 0) * quantity
           : null,
@@ -144,7 +144,7 @@ export async function POST(request) {
       },
     });
 
-    // If AI credits add-on, add credits to account balance
+    // If Ai-GCoins add-on, add credits to account balance
     if (addOn.type === 'AI_CREDITS') {
       const creditsToAdd = (addOn.quantity || 0) * quantity;
       await addAiCredits(membership.account.id, creditsToAdd, {

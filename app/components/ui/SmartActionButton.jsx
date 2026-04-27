@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { Loader2 } from 'lucide-react';
 import { useLocale } from '@/app/context/locale-context';
 import LimitReachedModal from './LimitReachedModal';
+import GCoinIcon from './GCoinIcon';
 import styles from './SmartActionButton.module.css';
 
 /**
@@ -18,8 +19,10 @@ import styles from './SmartActionButton.module.css';
  *  - resourceKey    : string   – e.g. 'siteAudits', 'maxSites', 'aiCredits'
  *  - accountId      : string   – current account id
  *  - label          : string   – visible button text (translated by caller)
- *  - icon           : Element  – lucide icon component (optional)
+ *  - icon           : Element  – lucide icon component; defaults to GCoinIcon
+ *                                when costCredits is provided and no icon set
  *  - iconSize       : number   – icon width/height (default 18)
+ *  - costCredits    : number   – Ai-GCoin cost displayed inline as "<icon> N"
  *  - onAction       : () => void | Promise – executed when limit is NOT reached
  *  - disabled       : boolean  – additional disable flag from parent
  *  - busy           : boolean  – shows spinner (e.g. while action runs)
@@ -35,6 +38,7 @@ export default function SmartActionButton({
   label,
   icon: Icon,
   iconSize = 18,
+  costCredits,
   onAction,
   disabled = false,
   busy = false,
@@ -125,17 +129,28 @@ export default function SmartActionButton({
             : undefined
         }
       >
-        {/* Icon or spinner */}
+        {/* Icon or spinner. Defaults to the Ai-GCoin mark when a cost is shown
+            and the caller didn't pick an icon explicitly. */}
         {busy ? (
           <Loader2 className={`${styles.icon} ${styles.spinning}`} size={iconSize} />
         ) : Icon ? (
           <Icon className={styles.icon} size={iconSize} />
+        ) : costCredits != null ? (
+          <GCoinIcon className={styles.icon} size={iconSize} />
         ) : null}
 
         {/* Label */}
         <span className={styles.label}>
           {busy && busyLabel ? busyLabel : (children || label)}
         </span>
+
+        {/* Cost badge — Ai-GCoin price for this action */}
+        {costCredits != null && !busy && (
+          <span className={styles.usageBadge} aria-label={`${costCredits} Ai-GCoins`}>
+            <GCoinIcon size={Math.max(10, iconSize - 4)} />
+            {costCredits}
+          </span>
+        )}
 
         {/* Usage badge */}
         {showUsage && hasUsageData && !busy && (

@@ -1,5 +1,5 @@
 /**
- * AI Credits Usage Logs API
+ * Ai-GCoins Usage Logs API
  * 
  * GET /api/credits/logs - Get usage logs for the current account
  * 

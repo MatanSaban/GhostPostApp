@@ -72,7 +72,7 @@ export default function FixPreviewModal({ open, onClose, insight, translations, 
   const [applyingSingleIdx, setApplyingSingleIdx] = useState(null);
   const [editingField, setEditingField] = useState(null); // { idx, field, path? } - path for nested fields like 'mergedPageChanges.newTitle'
   const [editValue, setEditValue] = useState('');
-  const [generateFeaturedImages, setGenerateFeaturedImages] = useState(true); // 1 AI credit per image
+  const [generateFeaturedImages, setGenerateFeaturedImages] = useState(true); // 1 Ai-GCoin per image
   const [contentImageCounts, setContentImageCounts] = useState({}); // { [proposalIdx]: count }
   const [featuredImagePrompts, setFeaturedImagePrompts] = useState({}); // { [proposalIdx]: string }
   const [contentImagesPrompts, setContentImagesPrompts] = useState({}); // { [proposalIdx]: string }

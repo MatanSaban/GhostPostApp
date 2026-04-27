@@ -90,7 +90,7 @@ export async function POST(req, { params }) {
       );
     }
 
-    // ── Enforce AI credit limit ──────────────────────────────
+    // ── Enforce Ai-GCoin limit ──────────────────────────────
     const creditCheck = await enforceCredits(site.accountId, 1); // IMAGE_ALT_OPTIMIZATION = 1 credit
     if (!creditCheck.allowed) {
       return NextResponse.json(creditCheck, { status: 402 });
@@ -211,7 +211,7 @@ export async function PUT(req, { params }) {
       );
     }
 
-    // ── Enforce AI credit limit (1 credit per image) ─────────
+    // ── Enforce Ai-GCoin limit (1 credit per image) ─────────
     const creditCheck = await enforceCredits(site.accountId, images.length); // 1 credit × N images
     if (!creditCheck.allowed) {
       return NextResponse.json(creditCheck, { status: 402 });

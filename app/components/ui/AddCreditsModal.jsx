@@ -2,18 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import {
-  X,
-  Loader2,
-  Coins,
-  ShoppingCart,
-  Check,
-  AlertCircle,
-  Plus,
-  Minus,
-  ArrowRight,
-  RefreshCw,
-} from 'lucide-react';
+import { X, Loader2, ShoppingCart, Check, AlertCircle, Plus, Minus, ArrowRight, RefreshCw } from 'lucide-react';
 import { useLocale } from '@/app/context/locale-context';
 import { useUser } from '@/app/context/user-context';
 import { useRouter } from 'next/navigation';
@@ -21,11 +10,12 @@ import CardComPaymentForm from './CardComPaymentForm';
 import UpgradePlanModal from './UpgradePlanModal';
 import { useModalResize, ModalResizeButton } from '@/app/components/ui/ModalResizeButton';
 import styles from './AddCreditsModal.module.css';
+import GCoinIcon from '@/app/components/ui/GCoinIcon';
 
 /**
  * AddCreditsModal
  * 
- * Shows available AI Credits add-on packs for purchase.
+ * Shows available Ai-GCoins add-on packs for purchase.
  * Step 1: Select addon + quantity
  * Step 2: Payment via CardCom Open Fields
  */
@@ -133,7 +123,7 @@ export default function AddCreditsModal({ isOpen, onClose }) {
                 <Check size={36} />
               </div>
               <h2 className={styles.title}>
-                {t('addCreditsModal.purchaseSuccess') || 'Credits added successfully!'}
+                {t('addCreditsModal.purchaseSuccess') || 'Ai-GCoins added successfully!'}
               </h2>
               <p className={styles.subtitle}>
                 {selectedAddon.name} × {selectedQty}
@@ -180,13 +170,13 @@ export default function AddCreditsModal({ isOpen, onClose }) {
             {/* Header */}
             <div className={styles.header}>
               <div className={styles.iconWrapper}>
-                <Coins size={28} />
+                <GCoinIcon size={28} />
               </div>
               <h2 className={styles.title}>
-                {t('addCreditsModal.title') || 'Add AI Credits'}
+                {t('addCreditsModal.title') || 'Add Ai-GCoins'}
               </h2>
               <p className={styles.subtitle}>
-                {t('addCreditsModal.subtitle') || 'Purchase additional AI credits for your account'}
+                {t('addCreditsModal.subtitle') || 'Purchase additional Ai-GCoins for your account'}
               </p>
 
               {/* Current balance */}
@@ -209,7 +199,7 @@ export default function AddCreditsModal({ isOpen, onClose }) {
               </div>
             ) : addons.length === 0 ? (
               <p className={styles.empty}>
-                {t('addCreditsModal.noAddons') || 'No credit packs available'}
+                {t('addCreditsModal.noAddons') || 'No Ai-GCoin packs available'}
               </p>
             ) : (
               <div className={styles.addonsList}>
@@ -220,7 +210,7 @@ export default function AddCreditsModal({ isOpen, onClose }) {
                     <div key={addon.id} className={styles.addonCard}>
                       <div className={styles.addonInfo}>
                         <div className={styles.addonName}>
-                          <span className={styles.addonEmoji}>✨</span>
+                          <GCoinIcon size={16} className={styles.addonEmoji} />
                           {addon.name}
                         </div>
                         {addon.description && (
@@ -228,7 +218,7 @@ export default function AddCreditsModal({ isOpen, onClose }) {
                         )}
                         {addon.quantity && (
                           <span className={styles.addonQty}>
-                            +{addon.quantity.toLocaleString()} {t('addCreditsModal.credits') || 'credits'}
+                            +{addon.quantity.toLocaleString()} {t('addCreditsModal.credits') || 'Ai-GCoins'}
                           </span>
                         )}
                       </div>
@@ -296,7 +286,7 @@ export default function AddCreditsModal({ isOpen, onClose }) {
                   router.push('/dashboard/settings?tab=credits');
                 }}
               >
-                {t('addCreditsModal.manageCredits') || 'Manage Credits'}
+                {t('addCreditsModal.manageCredits') || 'Manage Ai-GCoins'}
                 <ArrowRight size={14} />
               </button>
             </div>

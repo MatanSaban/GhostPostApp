@@ -2,25 +2,14 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
-import {
-  X,
-  Wand2,
-  Loader2,
-  CheckCircle2,
-  XCircle,
-  Coins,
-  RefreshCw,
-  ArrowRight,
-  Database,
-  ExternalLink,
-  Pencil,
-} from 'lucide-react';
+import { X, Wand2, Loader2, CheckCircle2, XCircle, RefreshCw, ArrowRight, Database, ExternalLink, Pencil } from 'lucide-react';
 import { useLocale } from '@/app/context/locale-context';
 import { emitCreditsUpdated } from '@/app/context/user-context';
 import { handleLimitError } from '@/app/context/limit-guard-context';
 import SyncRequiredModal from './SyncRequiredModal';
 import { useModalResize, ModalResizeButton } from '@/app/components/ui/ModalResizeButton';
 import styles from './FixTitlePreviewModal.module.css';
+import GCoinIcon from '@/app/components/ui/GCoinIcon';
 
 /**
  * FixDescriptionPreviewModal - Shows AI-generated meta description suggestions
@@ -247,7 +236,7 @@ export default function FixDescriptionPreviewModal({ open, onClose, auditId, sit
           <p className={styles.subtitle}>
             {t('siteAudit.descFix.subtitle')}
             <span className={styles.creditBadge}>
-              <Coins size={12} />
+              <GCoinIcon size={12} />
               {t('siteAudit.descFix.creditCost')}
             </span>
           </p>
@@ -492,7 +481,7 @@ export default function FixDescriptionPreviewModal({ open, onClose, auditId, sit
                 </div>
               ) : (
                 <span className={styles.footerInfo}>
-                  <Coins size={14} />
+                  <GCoinIcon size={14} />
                   {allDone
                     ? t('siteAudit.descFix.allFixed', { count: doneCount })
                     : t('siteAudit.descFix.totalCost', { count: pendingCount })}

@@ -53,7 +53,7 @@ const suggestionsSchema = z.object({
  * Body – Apply mode:   { siteId, auditId, action: 'apply', fixes: [{ brokenUrl, targetUrl }] }
  *
  * Suggest: FREE (preview only)
- * Apply:   2 AI credits per redirect
+ * Apply:   2 Ai-GCoins per redirect
  */
 export async function POST(request) {
   try {
@@ -263,7 +263,7 @@ async function handleApply(site, { auditId, siteId, fixes }, user) {
     const isInsufficient = deduction.error?.includes('Insufficient');
     return NextResponse.json(
       {
-        error: deduction.error || 'Credit deduction failed',
+        error: deduction.error || 'Ai-GCoin deduction failed',
         code: isInsufficient ? 'INSUFFICIENT_CREDITS' : 'CREDIT_ERROR',
         resourceKey: isInsufficient ? 'aiCredits' : undefined,
       },

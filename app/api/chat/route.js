@@ -3,8 +3,9 @@ import prisma from '@/lib/prisma';
 import { getCurrentAccountMember } from '@/lib/auth-permissions';
 import { getTextModel, MODELS } from '@/lib/ai/gemini';
 import { streamText, tool, jsonSchema, stepCountIs, hasToolCall } from 'ai';
-import { logAIUsage, AI_OPERATIONS } from '@/lib/ai/credits';
+import { logAIUsage, AI_OPERATIONS, getOperationCreditCost } from '@/lib/ai/credits';
 import { trackAIUsage } from '@/lib/ai/credits-service';
+import { enforceCredits } from '@/lib/account-limits';
 import { getChatTools, toolRequiresApproval, getToolCategory } from '@/lib/chat/chat-tools';
 import { executeReadOnlyTool } from '@/lib/chat/action-executor';
 import { createActionProposal, checkPendingActions } from '@/lib/chat/approval-manager';
@@ -368,6 +369,17 @@ export async function POST(request) {
 
   if (!isSuperAdmin && conversation.accountId !== member.accountId) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+  }
+
+  // Pre-flight Ai-GCoins check — refuse before saving the user message or
+  // invoking the model. The frontend's `handleLimitError` recognizes the
+  // standard payload and pops LimitReachedModal.
+  if (member.accountId) {
+    const chatCost = await getOperationCreditCost('CHAT_MESSAGE');
+    const creditCheck = await enforceCredits(member.accountId, chatCost);
+    if (!creditCheck.allowed) {
+      return NextResponse.json(creditCheck, { status: 402 });
+    }
   }
 
   const site = conversation.site;

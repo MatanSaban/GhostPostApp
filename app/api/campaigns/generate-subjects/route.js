@@ -2,8 +2,9 @@
 import { cookies } from 'next/headers';
 import prisma from '@/lib/prisma';
 import { MODELS } from '@/lib/ai/gemini';
-import { logAIUsage } from '@/lib/ai/credits.js';
+import { logAIUsage, getOperationCreditCost } from '@/lib/ai/credits.js';
 import { trackAIUsage } from '@/lib/ai/credits-service.js';
+import { enforceCredits } from '@/lib/account-limits';
 import { google } from '@/lib/ai/vertex-provider.js';
 import { streamText, Output, jsonSchema } from 'ai';
 import { z } from 'zod';
@@ -60,6 +61,15 @@ export async function POST(request) {
     const site = await verifySiteAccess(siteId, user);
     if (!site) {
       return NextResponse.json({ error: 'Site not found or access denied' }, { status: 403 });
+    }
+
+    // Pre-flight Ai-GCoins check — refuse before doing any AI work.
+    if (site.accountId) {
+      const cost = await getOperationCreditCost('GENERATE_SUBJECTS');
+      const creditCheck = await enforceCredits(site.accountId, cost);
+      if (!creditCheck.allowed) {
+        return NextResponse.json(creditCheck, { status: 402 });
+      }
     }
 
     // ── LAYER 1: Data Fetching (Anti-Cannibalization Context) ────────────

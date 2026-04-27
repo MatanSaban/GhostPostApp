@@ -78,7 +78,7 @@ export async function POST(request) {
       );
     }
 
-    // ── Enforce AI credit limit ──────────────────────────────
+    // ── Enforce Ai-GCoin limit ──────────────────────────────
     const requiredCredits = generateOutline ? 50 : 25; // GAP_ANALYSIS(25) + optional SKYSCRAPER_OUTLINE(25)
     const creditCheck = await enforceCredits(site.accountId, requiredCredits);
     if (!creditCheck.allowed) {

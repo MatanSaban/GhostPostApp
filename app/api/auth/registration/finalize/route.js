@@ -172,7 +172,7 @@ export async function POST() {
         }
       }
 
-      // 5. Allocate plan AI credits.
+      // 5. Allocate plan Ai-GCoins.
       const { getLimitFromPlan } = await import('@/lib/account-utils');
       const planAiCredits = getLimitFromPlan(plan.limitations, 'aiCredits', 0) || 0;
 
@@ -189,7 +189,7 @@ export async function POST() {
             amount: planAiCredits,
             balance: planAiCredits,
             source: 'plan_activation',
-            description: `Initial AI credits from ${plan.name} plan`,
+            description: `Initial Ai-GCoins from ${plan.name} plan`,
           },
         });
       }

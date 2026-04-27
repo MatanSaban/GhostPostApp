@@ -64,7 +64,7 @@ export const InterviewWizard = forwardRef(function InterviewWizard({ onClose, on
   const autoActionInProgress = useRef(false); // Use ref to avoid stale closure issues
   // Auto action error state (e.g., website unreachable)
   const [autoActionError, setAutoActionError] = useState(null);
-  // AI credits error state
+  // Ai-GCoins error state
   const [creditsError, setCreditsError] = useState(null);
   // Edit modal state for EDITABLE_DATA
   const [showEditModal, setShowEditModal] = useState(false);
@@ -205,7 +205,7 @@ export const InterviewWizard = forwardRef(function InterviewWizard({ onClose, on
     setHasStarted(true);
   };
 
-  // Check AI credit balance on mount
+  // Check Ai-GCoin balance on mount
   useEffect(() => {
     const checkCredits = async () => {
       try {
@@ -215,7 +215,7 @@ export const InterviewWizard = forwardRef(function InterviewWizard({ onClose, on
           // -1 means unlimited
           if (data.limit !== -1 && data.used >= data.limit) {
             setCreditsError({
-              message: t('interviewWizard.errors.insufficientCredits') || 'Insufficient AI Credits',
+              message: t('interviewWizard.errors.insufficientCredits') || 'Insufficient Ai-GCoins',
               currentUsage: data.used,
               limit: data.limit,
             });
@@ -992,7 +992,7 @@ export const InterviewWizard = forwardRef(function InterviewWizard({ onClose, on
         if (res.status === 402) {
           const data = await res.json().catch(() => ({}));
           const creditsErr = {
-            message: data.error || t('interviewWizard.errors.insufficientCredits') || 'Insufficient AI credits',
+            message: data.error || t('interviewWizard.errors.insufficientCredits') || 'Insufficient Ai-GCoins',
             currentUsage: data.currentUsage,
             limit: data.limit,
           };
@@ -1889,8 +1889,8 @@ export const InterviewWizard = forwardRef(function InterviewWizard({ onClose, on
                   <line x1="12" y1="17" x2="12.01" y2="17"/>
                 </svg>
                 <div className={styles.autoActionErrorText}>
-                  <strong style={{ color: '#ffa500' }}>{t('interviewWizard.errors.insufficientCredits') || 'Insufficient AI Credits'}</strong>
-                  <p>{t('interviewWizard.errors.insufficientCreditsDesc') || 'You have run out of AI credits. Please upgrade your plan to continue using AI features.'}</p>
+                  <strong style={{ color: '#ffa500' }}>{t('interviewWizard.errors.insufficientCredits') || 'Insufficient Ai-GCoins'}</strong>
+                  <p>{t('interviewWizard.errors.insufficientCreditsDesc') || 'You have run out of Ai-GCoins. Please upgrade your plan to continue using AI features.'}</p>
                 </div>
               </div>
               <div className={styles.autoActionErrorActions}>

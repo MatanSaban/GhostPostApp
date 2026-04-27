@@ -353,7 +353,7 @@ export async function POST(request, { params }) {
       const check = await enforceCredits(site.accountId, floor);
       if (!check.allowed) {
         return NextResponse.json({
-          error: check.error || 'Insufficient AI credits',
+          error: check.error || 'Insufficient Ai-GCoins',
           code: 'INSUFFICIENT_CREDITS',
           resourceKey: 'aiCredits',
           required: floor,

@@ -2,25 +2,14 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
-import {
-  X,
-  Wand2,
-  Loader2,
-  CheckCircle2,
-  XCircle,
-  Coins,
-  RefreshCw,
-  ArrowRight,
-  Database,
-  ExternalLink,
-  Pencil,
-} from 'lucide-react';
+import { X, Wand2, Loader2, CheckCircle2, XCircle, RefreshCw, ArrowRight, Database, ExternalLink, Pencil } from 'lucide-react';
 import { useLocale } from '@/app/context/locale-context';
 import { emitCreditsUpdated } from '@/app/context/user-context';
 import { handleLimitError } from '@/app/context/limit-guard-context';
 import SyncRequiredModal from './SyncRequiredModal';
 import { useModalResize, ModalResizeButton } from '@/app/components/ui/ModalResizeButton';
 import styles from './FixTitlePreviewModal.module.css';
+import GCoinIcon from '@/app/components/ui/GCoinIcon';
 
 /**
  * FixTitlePreviewModal - Shows AI-generated title suggestions with Preview → Confirm → Execute flow
@@ -264,7 +253,7 @@ export default function FixTitlePreviewModal({ open, onClose, auditId, siteId, o
           <p className={styles.subtitle}>
             {t('siteAudit.titleFix.subtitle')}
             <span className={styles.creditBadge}>
-              <Coins size={12} />
+              <GCoinIcon size={12} />
               {t('siteAudit.titleFix.creditCost')}
             </span>
           </p>
@@ -507,7 +496,7 @@ export default function FixTitlePreviewModal({ open, onClose, auditId, siteId, o
                 </div>
               ) : (
                 <span className={styles.footerInfo}>
-                  <Coins size={14} />
+                  <GCoinIcon size={14} />
                   {allDone
                     ? t('siteAudit.titleFix.allFixed', { count: doneCount })
                     : t('siteAudit.titleFix.totalCost', { count: pendingCount })}

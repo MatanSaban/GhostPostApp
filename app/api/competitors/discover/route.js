@@ -5,6 +5,7 @@ import { generateStructuredResponse } from '@/lib/ai/gemini';
 import { findCompetitors } from '@/lib/bot-actions/handlers/find-competitors';
 import { trackAIUsage } from '@/lib/ai/credits-service';
 import { enforceCredits } from '@/lib/account-limits';
+import { notifyAccountMembers } from '@/lib/notifications';
 import { z } from 'zod';
 
 const SESSION_COOKIE = 'user_session';
@@ -212,7 +213,7 @@ export async function POST(request) {
       );
     }
 
-    // ── Enforce AI credit limit ──────────────────────────────
+    // ── Enforce Ai-GCoin limit ──────────────────────────────
     const creditCheck = await enforceCredits(site.accountId, 1); // GENERIC = 1 credit
     if (!creditCheck.allowed) {
       return NextResponse.json(creditCheck, { status: 402 });
@@ -377,17 +378,43 @@ export async function POST(request) {
     }, context);
 
     if (!result.success) {
+      // Notify account members of the failure so they see it in the bell.
+      notifyAccountMembers(site.accountId, {
+        type: 'competitor_discovery_failed',
+        title: 'notifications.competitorDiscoveryFailed.title',
+        message: 'notifications.competitorDiscoveryFailed.message',
+        link: '/dashboard/strategy/competitors',
+        data: { siteId: site.id, siteName: site.name },
+      }).catch(() => { /* notify failures shouldn't break the response */ });
+
       return NextResponse.json(
         { error: result.error || 'Failed to find competitors' },
         { status: 500 }
       );
     }
 
-    // Get account's current AI credits usage
+    // Get account's current Ai-GCoins usage
     const account = await prisma.account.findUnique({
       where: { id: site.accountId },
       select: { aiCreditsUsedTotal: true },
     });
+
+    // Notify account members that discovery completed. Pre-translation lives
+    // in the dictionary keys; the front-end interpolates {siteName}/{count}.
+    const competitorCount = result.competitors?.length || 0;
+    notifyAccountMembers(site.accountId, {
+      type: 'competitor_discovery_complete',
+      title: 'notifications.competitorDiscoveryComplete.title',
+      message: competitorCount > 0
+        ? 'notifications.competitorDiscoveryComplete.message'
+        : 'notifications.competitorDiscoveryComplete.messageEmpty',
+      link: '/dashboard/strategy/competitors',
+      data: {
+        siteId: site.id,
+        siteName: site.name,
+        count: competitorCount,
+      },
+    }).catch(() => { /* notify failures shouldn't break the response */ });
 
     return NextResponse.json({
       success: true,

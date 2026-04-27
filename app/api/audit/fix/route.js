@@ -189,7 +189,7 @@ async function handlePreview(ctx, auditId) {
   if (fixer.kind === 'ai') {
     const check = await enforceCredits(accountId, fixer.credits);
     if (!check.allowed) {
-      return err(402, 'INSUFFICIENT_CREDITS', check.error || 'Insufficient AI credits', {
+      return err(402, 'INSUFFICIENT_CREDITS', check.error || 'Insufficient Ai-GCoins', {
         resourceKey: 'aiCredits',
         required: fixer.credits,
       });
@@ -244,7 +244,7 @@ async function handlePreview(ctx, auditId) {
       },
     });
     if (!dedu.success) {
-      return err(402, 'CHARGE_FAILED', dedu.error || 'Failed to charge credits');
+      return err(402, 'CHARGE_FAILED', dedu.error || 'Failed to charge Ai-GCoins');
     }
     creditsCharged = fixer.credits;
     balance = dedu.balance;
@@ -301,7 +301,7 @@ async function handleApply(ctx, auditId, handler) {
     } else {
       const check = await enforceCredits(accountId, fixer.credits);
       if (!check.allowed) {
-        return err(402, 'INSUFFICIENT_CREDITS', check.error || 'Insufficient AI credits', {
+        return err(402, 'INSUFFICIENT_CREDITS', check.error || 'Insufficient Ai-GCoins', {
           resourceKey: 'aiCredits',
           required: fixer.credits,
         });

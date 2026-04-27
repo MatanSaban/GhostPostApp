@@ -36,7 +36,7 @@ async function getAuthenticatedUser() {
  *
  * Body: { auditId, siteId, pageUrl, selector, elementScreenshot (base64), imageSrc }
  *
- * Cost: 2 AI Credits
+ * Cost: 2 Ai-GCoins
  * Uses Gemini Vision to analyze the element screenshot and produce a descriptive alt text.
  */
 export async function POST(request) {
@@ -70,7 +70,7 @@ export async function POST(request) {
     const creditCheck = await enforceCredits(site.accountId, FIX_CREDIT_COST);
     if (!creditCheck.allowed) {
       return NextResponse.json(
-        { error: creditCheck.error || 'Insufficient AI credits', code: 'INSUFFICIENT_CREDITS', resourceKey: 'aiCredits' },
+        { error: creditCheck.error || 'Insufficient Ai-GCoins', code: 'INSUFFICIENT_CREDITS', resourceKey: 'aiCredits' },
         { status: 402 }
       );
     }
@@ -148,7 +148,7 @@ Respond with ONLY the alt text, nothing else.`,
     });
 
     if (!deduction.success) {
-      console.error('[A11yFix] Credit deduction failed after AI:', deduction.error);
+      console.error('[A11yFix] Ai-GCoin deduction failed after AI:', deduction.error);
     }
 
     // Try to push the fix via WordPress plugin if connected

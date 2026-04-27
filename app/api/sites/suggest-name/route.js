@@ -54,7 +54,7 @@ export async function POST(request) {
       );
     }
 
-    // ── Enforce AI credit limit ──────────────────────────────
+    // ── Enforce Ai-GCoin limit ──────────────────────────────
     const accountId = user.lastSelectedAccountId || user.accountMemberships?.[0]?.accountId;
     if (accountId) {
       const creditCheck = await enforceCredits(accountId, 1); // GENERIC = 1 credit
@@ -100,7 +100,7 @@ Respond with ONLY the suggested name, nothing else.`;
     // Clean up the response
     const cleanName = suggestedName.trim().replace(/^["']|["']$/g, '');
 
-    // Track AI credits usage
+    // Track Ai-GCoins usage
     if (accountId) {
       await trackAIUsage({
         accountId,

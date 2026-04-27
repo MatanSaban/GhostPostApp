@@ -71,7 +71,7 @@ export function isAiFixableInsight(titleKey) {
 }
 
 /**
- * True if the fix is free (no credits, "Fix · 0 AI Credits" label).
+ * True if the fix is free (no credits, "Fix · 0 Ai-GCoins" label).
  */
 export function isFreeFixableInsight(titleKey) {
   return _isFreeFixable(titleKey);

@@ -72,7 +72,7 @@ export async function POST(request) {
       );
     }
 
-    // ── Enforce AI credit limit (only if AI analysis requested) ───
+    // ── Enforce Ai-GCoin limit (only if AI analysis requested) ───
     if (includeAI) {
       const creditCheck = await enforceCredits(site.accountId, 5); // COMPETITOR_SCAN = 5 credits
       if (!creditCheck.allowed) {

@@ -4,27 +4,7 @@ import { useState, useRef, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
-import {
-  Bell,
-  LogOut,
-  X,
-  CheckCheck,
-  FileText,
-  AlertCircle,
-  Sparkles,
-  TrendingUp,
-  CreditCard,
-  Coins,
-  Plus,
-  Crown,
-  UserCircle,
-  Activity,
-  Mail,
-  MailOpen,
-  Shield,
-  LayoutDashboard,
-  MessageSquare,
-} from 'lucide-react';
+import { Bell, LogOut, X, CheckCheck, FileText, AlertCircle, Sparkles, TrendingUp, CreditCard, Plus, Crown, UserCircle, Activity, Mail, MailOpen, Shield, LayoutDashboard, MessageSquare } from 'lucide-react';
 import { ThemeToggle } from '@/app/components/ui/theme-toggle';
 import { LanguageSwitcher } from '@/app/components/ui/language-switcher';
 import { HelpButton } from '@/app/dashboard/onboarding/HelpButton';
@@ -37,6 +17,7 @@ import { useSite } from '@/app/context/site-context';
 import { useNotifications } from '@/app/context/notifications-context';
 import { usePermissions } from '@/app/hooks/usePermissions';
 import styles from './DashboardHeader.module.css';
+import GCoinIcon from '@/app/components/ui/GCoinIcon';
 
 /**
  * Get user initials from name or email
@@ -77,6 +58,8 @@ const NOTIFICATION_ICONS = {
   success: TrendingUp,
   content_publish_failed: AlertCircle,
   support_reply: MessageSquare,
+  competitor_discovery_complete: Sparkles,
+  competitor_discovery_failed: AlertCircle,
 };
 
 // Relative time helper
@@ -197,7 +180,7 @@ export function DashboardHeader({ variant = 'user' }) {
     // Only use DB translation if it exists for current locale, otherwise let i18n handle it
     const planName = planTranslation?.name || null;
     
-    // Get AI credits limit - prefer addon-aware value from balance polling
+    // Get Ai-GCoins limit - prefer addon-aware value from balance polling
     const limitations = plan?.limitations || [];
     const aiCreditsLimitation = limitations.find?.(l => l.key === 'aiCredits');
     const aiCreditsLimit = contextUser.aiCreditsLimit != null
@@ -589,7 +572,7 @@ export function DashboardHeader({ variant = 'user' }) {
                       style={{ width: `${Math.min((user.aiCreditsUsed / user.aiCreditsLimit) * 100, 100)}%` }}
                     />
                     <div className={styles.creditsProgressText}>
-                      <span className={styles.creditsLabel}>{t('user.aiCredits') || 'AI Credits'}</span>
+                      <span className={styles.creditsLabel}>{t('user.aiCredits') || 'Ai-GCoins'}</span>
                       <span className={styles.creditsValue}>
                         {user.aiCreditsUsed.toLocaleString()} / {user.aiCreditsLimit.toLocaleString()}
                       </span>
@@ -635,7 +618,7 @@ export function DashboardHeader({ variant = 'user' }) {
                     className={styles.userMenuItem}
                     onClick={() => setIsUserMenuOpen(false)}
                   >
-                    <Coins size={18} />
+                    <GCoinIcon size={18} />
                     <span>{t('user.credits')}</span>
                   </Link>
                 </div>

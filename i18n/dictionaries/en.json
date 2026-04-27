@@ -13,86 +13,284 @@
       "description": "Let intelligent agents handle your content strategy while you focus on growth."
     },
     "auth": {
-      "index": { "title": "Authentication", "description": "Sign in or create an account for GhostSEO." },
-      "login": { "title": "Sign In", "description": "Sign in to your GhostSEO account." },
-      "register": { "title": "Create Account", "description": "Create your GhostSEO account and start automating SEO." },
-      "thankYou": { "title": "Thanks for Signing Up", "description": "Your GhostSEO account is being prepared." },
-      "acceptInvite": { "title": "Accept Invitation", "description": "Accept your invitation to join an account on GhostSEO." }
+      "index": {
+        "title": "Authentication",
+        "description": "Sign in or create an account for GhostSEO."
+      },
+      "login": {
+        "title": "Sign In",
+        "description": "Sign in to your GhostSEO account."
+      },
+      "register": {
+        "title": "Create Account",
+        "description": "Create your GhostSEO account and start automating SEO."
+      },
+      "thankYou": {
+        "title": "Thanks for Signing Up",
+        "description": "Your GhostSEO account is being prepared."
+      },
+      "acceptInvite": {
+        "title": "Accept Invitation",
+        "description": "Accept your invitation to join an account on GhostSEO."
+      }
     },
     "dashboard": {
-      "home": { "title": "Dashboard", "description": "Overview of your sites, content pipeline, and SEO performance." },
-      "agent": { "title": "Agent", "description": "Chat with your AI SEO agent and review automated actions." },
-      "automations": { "title": "Automations", "description": "Manage scheduled SEO automations across your sites." },
+      "home": {
+        "title": "Dashboard",
+        "description": "Overview of your sites, content pipeline, and SEO performance."
+      },
+      "agent": {
+        "title": "Agent",
+        "description": "Chat with your AI SEO agent and review automated actions."
+      },
+      "automations": {
+        "title": "Automations",
+        "description": "Manage scheduled SEO automations across your sites."
+      },
       "strategy": {
-        "index": { "title": "Strategy", "description": "Plan your SEO strategy with AI-driven insights." },
-        "siteProfile": { "title": "Site Profile", "description": "Configure your site profile and brand voice." },
-        "keywords": { "title": "Keywords", "description": "Research and prioritize target keywords for your site." },
-        "competitors": { "title": "Competitor Analysis", "description": "Track competitor content, keywords, and backlinks." },
-        "contentPlanner": { "title": "Content Planner", "description": "Plan, schedule, and track the content pipeline." },
-        "aiWizard": { "title": "AI Content Wizard", "description": "Generate content briefs and drafts with AI." }
+        "index": {
+          "title": "Strategy",
+          "description": "Plan your SEO strategy with AI-driven insights."
+        },
+        "siteProfile": {
+          "title": "Site Profile",
+          "description": "Configure your site profile and brand voice."
+        },
+        "keywords": {
+          "title": "Keywords",
+          "description": "Research and prioritize target keywords for your site."
+        },
+        "competitors": {
+          "title": "Competitor Analysis",
+          "description": "Track competitor content, keywords, and backlinks."
+        },
+        "contentPlanner": {
+          "title": "Content Planner",
+          "description": "Plan, schedule, and track the content pipeline."
+        },
+        "aiWizard": {
+          "title": "AI Content Wizard",
+          "description": "Generate content briefs and drafts with AI."
+        }
       },
       "entities": {
-        "index": { "title": "Entities", "description": "Browse all entity types synced from your site." },
-        "type": { "title": "Entities", "description": "Manage entities of this type." },
-        "detail": { "title": "Entity", "description": "Edit an individual entity." },
-        "media": { "title": "Media Library", "description": "Browse media assets synced from your site." },
-        "sitemaps": { "title": "Sitemaps", "description": "Inspect and manage sitemaps for your sites." },
-        "sitemapDetail": { "title": "Sitemap", "description": "View URLs and status for an individual sitemap." }
+        "index": {
+          "title": "Entities",
+          "description": "Browse all entity types synced from your site."
+        },
+        "type": {
+          "title": "Entities",
+          "description": "Manage entities of this type."
+        },
+        "detail": {
+          "title": "Entity",
+          "description": "Edit an individual entity."
+        },
+        "media": {
+          "title": "Media Library",
+          "description": "Browse media assets synced from your site."
+        },
+        "sitemaps": {
+          "title": "Sitemaps",
+          "description": "Inspect and manage sitemaps for your sites."
+        },
+        "sitemapDetail": {
+          "title": "Sitemap",
+          "description": "View URLs and status for an individual sitemap."
+        }
       },
       "technicalSeo": {
-        "index": { "title": "Technical SEO", "description": "Tools for the technical health of your site." },
-        "redirections": { "title": "Redirections", "description": "Create and manage URL redirects." },
-        "webp": { "title": "WebP Converter", "description": "Convert images to WebP for faster page loads." },
-        "audit": { "title": "Site Audit", "description": "Crawl your site to surface technical SEO issues." }
+        "index": {
+          "title": "Technical SEO",
+          "description": "Tools for the technical health of your site."
+        },
+        "redirections": {
+          "title": "Redirections",
+          "description": "Create and manage URL redirects."
+        },
+        "webp": {
+          "title": "WebP Converter",
+          "description": "Convert images to WebP for faster page loads."
+        },
+        "audit": {
+          "title": "Site Audit",
+          "description": "Crawl your site to surface technical SEO issues."
+        }
       },
-      "siteAudit": { "title": "Site Audit", "description": "Crawl your site to surface technical SEO issues." },
-      "seoFrontend": { "title": "Frontend SEO", "description": "Optimize page-level frontend SEO signals." },
-      "seoBackend": { "title": "Backend SEO", "description": "Optimize backend SEO settings and integrations." },
-      "backlinks": { "title": "Backlinks Marketplace", "description": "Discover and acquire high-quality backlinks." },
-      "linkBuilding": { "title": "Link Building", "description": "Plan and track link-building campaigns." },
-      "myWebsites": { "title": "My Websites", "description": "Manage every site connected to your GhostSEO account." },
-      "notifications": { "title": "Notifications", "description": "Review notifications and platform alerts." },
-      "settings": { "title": "Settings", "description": "Account, team, billing, and platform settings." },
+      "siteAudit": {
+        "title": "Site Audit",
+        "description": "Crawl your site to surface technical SEO issues."
+      },
+      "seoFrontend": {
+        "title": "Frontend SEO",
+        "description": "Optimize page-level frontend SEO signals."
+      },
+      "seoBackend": {
+        "title": "Backend SEO",
+        "description": "Optimize backend SEO settings and integrations."
+      },
+      "backlinks": {
+        "title": "Backlinks Marketplace",
+        "description": "Discover and acquire high-quality backlinks."
+      },
+      "linkBuilding": {
+        "title": "Link Building",
+        "description": "Plan and track link-building campaigns."
+      },
+      "myWebsites": {
+        "title": "My Websites",
+        "description": "Manage every site connected to your GhostSEO account."
+      },
+      "notifications": {
+        "title": "Notifications",
+        "description": "Review notifications and platform alerts."
+      },
+      "settings": {
+        "title": "Settings",
+        "description": "Account, team, billing, and platform settings."
+      },
       "support": {
-        "index": { "title": "Support", "description": "Open and track support tickets." },
-        "new": { "title": "New Support Ticket", "description": "Open a new support ticket." },
-        "access": { "title": "Support Access", "description": "Manage support access for your account." },
-        "detail": { "title": "Support Ticket", "description": "View and reply to a support ticket." }
+        "index": {
+          "title": "Support",
+          "description": "Open and track support tickets."
+        },
+        "new": {
+          "title": "New Support Ticket",
+          "description": "Open a new support ticket."
+        },
+        "access": {
+          "title": "Support Access",
+          "description": "Manage support access for your account."
+        },
+        "detail": {
+          "title": "Support Ticket",
+          "description": "View and reply to a support ticket."
+        }
       },
-      "visualEditor": { "title": "Visual Editor", "description": "Edit pages visually on your connected site." },
-      "restoreAccount": { "title": "Restore Account", "description": "Restore an archived GhostSEO account." }
+      "visualEditor": {
+        "title": "Visual Editor",
+        "description": "Edit pages visually on your connected site."
+      },
+      "restoreAccount": {
+        "title": "Restore Account",
+        "description": "Restore an archived GhostSEO account."
+      }
     },
     "admin": {
-      "home": { "title": "Admin Overview", "description": "Platform-wide admin overview and metrics." },
-      "accounts": { "title": "Accounts", "description": "Manage customer accounts." },
-      "accountDetail": { "title": "Account", "description": "View and manage an individual account." },
-      "users": { "title": "Users", "description": "Manage platform users." },
-      "userDetail": { "title": "User", "description": "View and manage an individual user." },
-      "subscriptions": { "title": "Subscriptions", "description": "Manage active subscriptions and billing." },
-      "plans": { "title": "Plans", "description": "Configure platform plans and pricing tiers." },
-      "addons": { "title": "Add-ons", "description": "Configure platform add-ons." },
-      "coupons": { "title": "Coupons", "description": "Create and manage promotional coupons." },
-      "pricing": { "title": "Pricing", "description": "Review and update pricing." },
-      "interviewFlow": { "title": "Interview Flow", "description": "Configure the customer onboarding interview flow." },
-      "interviewQuestions": { "title": "Interview Questions", "description": "Manage interview questions and prompts." },
-      "pushQuestions": { "title": "Push Questions", "description": "Configure push questions for the agent." },
-      "botActions": { "title": "Bot Actions", "description": "Configure automated bot actions." },
-      "translations": { "title": "Translations", "description": "Manage platform translations and copy." },
-      "backlinks": { "title": "Backlinks Admin", "description": "Manage the backlinks marketplace inventory." },
-      "website": {
-        "index": { "title": "Marketing Site", "description": "Manage the marketing website content." },
-        "settings": { "title": "Marketing Site Settings", "description": "Configure marketing site settings." },
-        "blog": { "title": "Blog", "description": "Manage marketing blog posts." },
-        "blogNew": { "title": "New Blog Post", "description": "Create a new marketing blog post." },
-        "blogEdit": { "title": "Edit Blog Post", "description": "Edit an existing marketing blog post." },
-        "pages": { "title": "Pages", "description": "Manage marketing site pages." },
-        "pageEdit": { "title": "Edit Page", "description": "Edit a marketing site page." }
+      "home": {
+        "title": "Admin Overview",
+        "description": "Platform-wide admin overview and metrics."
       },
-      "faq": { "title": "FAQ", "description": "Manage the FAQ content." },
-      "support": { "title": "Support Inbox", "description": "Manage incoming support tickets." },
-      "supportDetail": { "title": "Support Ticket", "description": "Reply to a support ticket." },
-      "impersonation": { "title": "Impersonation", "description": "Impersonate accounts for support and debugging." },
-      "impersonationSession": { "title": "Impersonation Session", "description": "View an impersonation session." }
+      "accounts": {
+        "title": "Accounts",
+        "description": "Manage customer accounts."
+      },
+      "accountDetail": {
+        "title": "Account",
+        "description": "View and manage an individual account."
+      },
+      "users": {
+        "title": "Users",
+        "description": "Manage platform users."
+      },
+      "userDetail": {
+        "title": "User",
+        "description": "View and manage an individual user."
+      },
+      "subscriptions": {
+        "title": "Subscriptions",
+        "description": "Manage active subscriptions and billing."
+      },
+      "plans": {
+        "title": "Plans",
+        "description": "Configure platform plans and pricing tiers."
+      },
+      "addons": {
+        "title": "Add-ons",
+        "description": "Configure platform add-ons."
+      },
+      "coupons": {
+        "title": "Coupons",
+        "description": "Create and manage promotional coupons."
+      },
+      "pricing": {
+        "title": "Pricing",
+        "description": "Review and update pricing."
+      },
+      "interviewFlow": {
+        "title": "Interview Flow",
+        "description": "Configure the customer onboarding interview flow."
+      },
+      "interviewQuestions": {
+        "title": "Interview Questions",
+        "description": "Manage interview questions and prompts."
+      },
+      "pushQuestions": {
+        "title": "Push Questions",
+        "description": "Configure push questions for the agent."
+      },
+      "botActions": {
+        "title": "Bot Actions",
+        "description": "Configure automated bot actions."
+      },
+      "translations": {
+        "title": "Translations",
+        "description": "Manage platform translations and copy."
+      },
+      "backlinks": {
+        "title": "Backlinks Admin",
+        "description": "Manage the backlinks marketplace inventory."
+      },
+      "website": {
+        "index": {
+          "title": "Marketing Site",
+          "description": "Manage the marketing website content."
+        },
+        "settings": {
+          "title": "Marketing Site Settings",
+          "description": "Configure marketing site settings."
+        },
+        "blog": {
+          "title": "Blog",
+          "description": "Manage marketing blog posts."
+        },
+        "blogNew": {
+          "title": "New Blog Post",
+          "description": "Create a new marketing blog post."
+        },
+        "blogEdit": {
+          "title": "Edit Blog Post",
+          "description": "Edit an existing marketing blog post."
+        },
+        "pages": {
+          "title": "Pages",
+          "description": "Manage marketing site pages."
+        },
+        "pageEdit": {
+          "title": "Edit Page",
+          "description": "Edit a marketing site page."
+        }
+      },
+      "faq": {
+        "title": "FAQ",
+        "description": "Manage the FAQ content."
+      },
+      "support": {
+        "title": "Support Inbox",
+        "description": "Manage incoming support tickets."
+      },
+      "supportDetail": {
+        "title": "Support Ticket",
+        "description": "Reply to a support ticket."
+      },
+      "impersonation": {
+        "title": "Impersonation",
+        "description": "Impersonate accounts for support and debugging."
+      },
+      "impersonationSession": {
+        "title": "Impersonation Session",
+        "description": "View an impersonation session."
+      }
     }
   },
   "homepage": {
@@ -233,6 +431,14 @@
       "completed": "Deep crawl complete!",
       "completedWithCount": "Complete! Crawled {crawled} pages, enriched {enriched}",
       "failed": "Deep crawl failed"
+    },
+    "competitorDiscovery": {
+      "title": "Discovering Competitors",
+      "running": "Analyzing keywords and search results...",
+      "completed": "Discovery complete!",
+      "completedWithCount": "Found {count} competitors",
+      "noResults": "No competitors found",
+      "failed": "Competitor discovery failed"
     }
   },
   "media": {
@@ -256,8 +462,8 @@
       "titleRegenerate": "Regenerate image with AI",
       "generateButton": "Generate",
       "regenerateButton": "Regenerate",
-      "cost": "Costs {credits} AI credits",
-      "costShort": "{credits} credits",
+      "cost": "Costs {credits} Ai-GCoins",
+      "costShort": "{credits} Ai-GCoins",
       "contextLabel": "Using this context",
       "noMetadataHint": "No alt text, title, caption, or description yet — add instructions below to guide the AI.",
       "instructionsLabel": "Additional instructions (optional)",
@@ -277,7 +483,7 @@
       "discardNew": "Discard new image",
       "generateFailed": "Failed to generate image. Please try again.",
       "uploadFailed": "Failed to upload the generated image.",
-      "insufficientCredits": "You need {required} AI credits to generate this image.",
+      "insufficientCredits": "You need {required} Ai-GCoins to generate this image.",
       "languageNeededTitle": "Pick a language for the image",
       "languageNeededBody": "We couldn't detect this site's content language. Choose the language any text in the new image should appear in.",
       "metadataLanguage": "Metadata generated in {language}",
@@ -311,7 +517,7 @@
     },
     "fieldAi": {
       "regenerate": "Rewrite with AI",
-      "cost": "{credits} credit",
+      "cost": "{credits} Ai-GCoin",
       "generating": "Writing…",
       "generationFailed": "Couldn't rewrite this field. Please try again."
     },
@@ -869,7 +1075,7 @@
       "inferredDiscovery": "Broad Discovery",
       "inferredLoading": "Analyzing AI traffic patterns...",
       "inferredNoData": "No inferred queries available.",
-      "inferredPending": "Generating\u2026",
+      "inferredPending": "Generating…",
       "inferredDisclaimer": "These queries are AI-inferred estimates, not actual user prompts."
     },
     "noDataForRange": "No data available for this date range.",
@@ -990,7 +1196,7 @@
     "retryAudit": "Retry Audit",
     "noSitemapTitle": "No XML Sitemap Found",
     "noSitemapDescription": "Your website doesn't have an XML sitemap. A sitemap is essential for search engines to discover and index your pages. Please install an SEO plugin (like Yoast SEO or RankMath) to generate a sitemap, then try the audit again.",
-    "noSitemapNotCharged": "You were not charged any credits for this action.",
+    "noSitemapNotCharged": "You were not charged any Ai-GCoins for this action.",
     "noIssuesInCategory": "No issues found in this category.",
     "pagesScanned": "pages scanned",
     "pagesScannedTitle": "Pages Scanned",
@@ -1010,9 +1216,9 @@
       "quickFix": "AI Quick Fix",
       "quickFixFailed": "Quick fix failed"
     },
-    "credit": "Credit",
-    "credits": "Credits",
-    "insufficientCredits": "Insufficient AI Credits. Please purchase more credits to use this feature.",
+    "credit": "Ai-GCoin",
+    "credits": "Ai-GCoins",
+    "insufficientCredits": "Insufficient Ai-GCoins. Please purchase more Ai-GCoins to use this feature.",
     "filmstrip": "Loading Timeline",
     "screenshots": "Website Screenshots",
     "desktop": "Desktop",
@@ -1169,7 +1375,7 @@
     },
     "aiFix": {
       "label": "AI Fix",
-      "labelWithCredits": "AI Fix · {credits} credits",
+      "labelWithCredits": "AI Fix · {credits} Ai-GCoins",
       "title": "Fix this issue with AI",
       "pluginRequired": "WordPress Plugin Required",
       "pluginDescription": "To automatically fix issues on your website, you need to connect the GhostSEO plugin to your WordPress site. The plugin allows GhostSEO to safely apply changes directly to your pages.",
@@ -1183,7 +1389,7 @@
     "titleFix": {
       "title": "AI Title Optimizer",
       "subtitle": "AI-generated title suggestions for your pages",
-      "creditCost": "1 credit / page",
+      "creditCost": "1 Ai-GCoin / page",
       "generating": "Generating title suggestions...",
       "stepAudit": "Reading audit data...",
       "stepAnalyzing": "Analyzing affected pages...",
@@ -1192,20 +1398,20 @@
       "noIssues": "No pages with short titles found",
       "oldLabel": "Old",
       "newLabel": "New",
-      "fixOne": "Fix (1 credit)",
+      "fixOne": "Fix (1 Ai-GCoin)",
       "fixing": "Fixing...",
       "fixed": "Fixed",
       "failed": "Failed",
       "fixAll": "Fix All ({count})",
       "fixingProgress": "Fixing titles: {done}/{total}",
-      "totalCost": "{count} page(s) · {count} credit(s)",
+      "totalCost": "{count} page(s) · {count} Ai-GCoin(s)",
       "allFixed": "All {count} title(s) fixed!",
       "editTitle": "Edit title"
     },
     "descFix": {
       "title": "AI Description Optimizer",
       "subtitle": "AI-generated meta description suggestions for your pages",
-      "creditCost": "1 credit / page",
+      "creditCost": "1 Ai-GCoin / page",
       "stepAudit": "Reading audit data...",
       "stepAnalyzing": "Analyzing affected pages...",
       "stepGenerating": "Generating optimized descriptions with AI...",
@@ -1213,32 +1419,32 @@
       "noIssues": "No pages with missing or short meta descriptions found",
       "oldLabel": "Old",
       "newLabel": "New",
-      "fixOne": "Fix (1 credit)",
+      "fixOne": "Fix (1 Ai-GCoin)",
       "fixing": "Fixing...",
       "fixed": "Fixed",
       "failed": "Failed",
       "fixAll": "Fix All ({count})",
       "fixingProgress": "Fixing descriptions: {done}/{total}",
-      "totalCost": "{count} page(s) · {count} credit(s)",
+      "totalCost": "{count} page(s) · {count} Ai-GCoin(s)",
       "allFixed": "All {count} description(s) fixed!",
       "editDesc": "Edit description"
     },
     "ogFix": {
       "title": "AI Open Graph Optimizer",
       "subtitle": "AI-generated Open Graph tag suggestions for social media sharing",
-      "creditCost": "1 credit / page",
+      "creditCost": "1 Ai-GCoin / page",
       "stepAudit": "Reading audit data...",
       "stepAnalyzing": "Analyzing pages with missing OG tags...",
       "stepGenerating": "Generating optimized OG tags with AI...",
       "retry": "Retry",
       "noIssues": "No pages with missing Open Graph tags found",
-      "fixOne": "Fix (1 credit)",
+      "fixOne": "Fix (1 Ai-GCoin)",
       "fixing": "Fixing...",
       "fixed": "Fixed",
       "failed": "Failed",
       "fixAll": "Fix All ({count})",
       "fixingProgress": "Fixing OG tags: {done}/{total}",
-      "totalCost": "{count} page(s) · {count} credit(s)",
+      "totalCost": "{count} page(s) · {count} Ai-GCoin(s)",
       "allFixed": "All {count} page(s) fixed!",
       "edit": "Edit",
       "imageNote": "Handled automatically by your SEO plugin (featured image)"
@@ -1246,45 +1452,45 @@
     "altFix": {
       "title": "AI Image Alt Text Generator",
       "subtitle": "AI analyzes your images and generates descriptive alt text for accessibility & SEO",
-      "creditCost": "1 credit / image",
+      "creditCost": "1 Ai-GCoin / image",
       "stepAudit": "Reading audit data...",
       "stepAnalyzing": "Fetching images for AI analysis...",
       "stepGenerating": "Generating alt text with AI vision...",
       "retry": "Retry",
       "noIssues": "No images missing alt text found",
-      "fixOne": "Fix (1 credit)",
+      "fixOne": "Fix (1 Ai-GCoin)",
       "fixing": "Fixing...",
       "fixed": "Fixed",
       "failed": "Failed",
       "fixAll": "Fix All ({count})",
       "fixingProgress": "Updating alt text: {done}/{total}",
-      "totalCost": "{count} image(s) · {count} credit(s)",
+      "totalCost": "{count} image(s) · {count} Ai-GCoin(s)",
       "allFixed": "All {count} image(s) fixed!",
       "edit": "Edit"
     },
     "imageFormatFix": {
       "title": "AI Image Format Optimizer",
       "subtitle": "AI analyzes your images and recommends the optimal format (WebP/AVIF) for each one",
-      "creditCost": "1 credit / image",
+      "creditCost": "1 Ai-GCoin / image",
       "stepAudit": "Reading audit data...",
       "stepAnalyzing": "Analyzing image formats and sizes...",
       "stepGenerating": "AI recommending optimal formats...",
       "retry": "Retry",
       "noIssues": "All images are already using optimal formats",
-      "fixOne": "Convert (1 credit)",
+      "fixOne": "Convert (1 Ai-GCoin)",
       "fixing": "Converting...",
       "fixed": "Converted",
       "failed": "Failed",
       "fixAll": "Convert All ({count})",
       "fixingProgress": "Converting images: {done}/{total}",
-      "totalCost": "{count} image(s) · {count} credit(s)",
+      "totalCost": "{count} image(s) · {count} Ai-GCoin(s)",
       "allFixed": "All {count} image(s) converted!",
       "keptInfo": "{count} image(s) kept in original format (already optimal)"
     },
     "brokenLinkFix": {
       "title": "Broken Link Rescue",
       "subtitle": "AI finds the best redirect target for each broken link",
-      "creditCost": "2 credits / redirect",
+      "creditCost": "2 Ai-GCoins / redirect",
       "stepAudit": "Reading audit data...",
       "stepAnalyzing": "Analyzing broken links...",
       "stepGenerating": "Finding best redirect targets with AI...",
@@ -1294,7 +1500,7 @@
       "redirectLabel": "Redirect to",
       "anchorTextLabel": "Link text",
       "foundOnLabel": "Found on",
-      "fixOne": "Create Redirect (2 credits)",
+      "fixOne": "Create Redirect (2 Ai-GCoins)",
       "fixing": "Creating redirect...",
       "fixed": "Redirect created",
       "failed": "Failed",
@@ -1675,7 +1881,17 @@
     "trend": "Trend",
     "difficulty": "Difficulty",
     "status": "Status",
-    "intent": "Intent",
+    "intent": {
+      "label": "Intent",
+      "informational": "Informational",
+      "navigational": "Navigational",
+      "transactional": "Transactional",
+      "commercial": "Commercial",
+      "informationalDesc": "User wants to learn or understand something",
+      "navigationalDesc": "User wants to find a specific website or page",
+      "transactionalDesc": "User wants to complete an action (buy, sign up, download)",
+      "commercialDesc": "User is researching before making a purchase decision"
+    },
     "easy": "Easy",
     "medium": "Medium",
     "hard": "Hard",
@@ -1703,17 +1919,6 @@
       "targeting": "Targeting",
       "ranking": "Ranking",
       "archived": "Archived"
-    },
-    "intent": {
-      "label": "Intent",
-      "informational": "Informational",
-      "navigational": "Navigational",
-      "transactional": "Transactional",
-      "commercial": "Commercial",
-      "informationalDesc": "User wants to learn or understand something",
-      "navigationalDesc": "User wants to find a specific website or page",
-      "transactionalDesc": "User wants to complete an action (buy, sign up, download)",
-      "commercialDesc": "User is researching before making a purchase decision"
     },
     "setIntent": "Set intent",
     "reanalyze": "Re-analyze with AI",
@@ -1952,8 +2157,8 @@
     "skyscraperDescription": "Generate an improved outline based on this competitor's structure",
     "generateOutline": "Generate Outline",
     "generatingOutline": "Generating...",
-    "scanCost": "Scan Cost: {credits} credits",
-    "analysisCost": "Analysis Cost: {credits} credits",
+    "scanCost": "Scan Cost: {credits} Ai-GCoins",
+    "analysisCost": "Analysis Cost: {credits} Ai-GCoins",
     "winner": "Better",
     "loser": "Needs Work",
     "tie": "Tied",
@@ -1969,6 +2174,8 @@
     "findWithAI": "Find with AI",
     "findWithAIDescription": "Analyzing your website content to discover competitors...",
     "discoveringCompetitors": "Discovering competitors...",
+    "discoveringBackgroundHint": "You can close this window and keep working — we'll reopen it when results are ready.",
+    "viewProgress": "View discovery progress",
     "discoverCompetitors": "Discover Competitors",
     "noKeywordsForDiscovery": "Could not find any keywords to search for competitors",
     "discoveredCompetitors": "Discovered Competitors",
@@ -1984,7 +2191,7 @@
     "competitor": "Competitor",
     "status": "Status",
     "discoverConfirmDescription": "Our AI will analyze your website content, identify your main topic, and search Google to find your top competitors.",
-    "creditsUsed": "Credits Used",
+    "creditsUsed": "Ai-GCoins Used",
     "estimatedTime": "Estimated Time",
     "whatYouGet": "What You'll Get",
     "whatYouGetDescription": "Top 10 competitors ranked by relevance",
@@ -2003,7 +2210,13 @@
     "used": "used",
     "month": "mo",
     "loadingAddons": "Loading add-on options...",
-    "purchaseAddon": "Purchase {name} ({quantity}) - {price}",
+    "noAddonsAvailable": "No add-ons available for purchase right now.",
+    "permanentAddonsLabel": "Permanent add-ons (recurring billing)",
+    "oneTimeAddonsLabel": "One-time purchases",
+    "permanentBadge": "Permanent",
+    "oneTimeBadge": "One-time",
+    "purchase": "Purchase",
+    "purchaseAddon": "Purchase {name} - {price}",
     "purchasing": "Processing purchase...",
     "purchaseSuccess": "Add-on purchased successfully! Your limits have been updated.",
     "manageBilling": "Manage Add-ons & Billing",
@@ -2016,7 +2229,7 @@
       "audits": "audits",
       "sites": "websites",
       "members": "team members",
-      "aiCredits": "AI credits",
+      "aiCredits": "Ai-GCoins",
       "keywords": "keywords",
       "content": "content items",
       "generic": "resources"
@@ -3088,7 +3301,7 @@
       "category": "Category",
       "language": "Language",
       "price": "Price",
-      "aiCreditsPrice": "AI Credits",
+      "aiCreditsPrice": "Ai-GCoins",
       "linkType": "Link Type",
       "dofollow": "Dofollow",
       "nofollow": "Nofollow",
@@ -3097,7 +3310,7 @@
       "user": "User",
       "purchase": "Purchase",
       "useAllocation": "Use Plan Allocation",
-      "buyWithCredits": "Buy with AI Credits",
+      "buyWithCredits": "Buy with Ai-GCoins",
       "buyDirect": "Buy Direct",
       "viewDetails": "View Details",
       "outOfStock": "Out of Stock",
@@ -3137,9 +3350,9 @@
       "planAllocationFull": "Monthly allocation fully used",
       "directPurchase": "Direct Purchase",
       "directPurchaseDesc": "Pay {price} {currency}",
-      "aiCredits": "AI Credits",
-      "aiCreditsDesc": "Pay {credits} AI credits (Balance: {balance})",
-      "aiCreditsInsufficient": "Insufficient AI credits",
+      "aiCredits": "Ai-GCoins",
+      "aiCreditsDesc": "Pay {credits} Ai-GCoins (Balance: {balance})",
+      "aiCreditsInsufficient": "Insufficient Ai-GCoins",
       "confirm": "Confirm Purchase",
       "cancel": "Cancel",
       "processing": "Processing...",
@@ -3202,13 +3415,13 @@
       "turnaround": "Turnaround (days)",
       "price": "Price",
       "currency": "Currency",
-      "aiCredits": "AI Credits",
+      "aiCredits": "Ai-GCoins",
       "maxSlots": "Max Slots",
       "unlimited": "Unlimited",
       "submit": "Create Listing",
       "pricingMethod": "Pricing Method",
       "sellForMoney": "Sell for Money",
-      "sellForCredits": "Sell for AI Credits",
+      "sellForCredits": "Sell for Ai-GCoins",
       "monthlyTraffic": "Monthly Traffic",
       "monthlyVisitors": "Monthly visitors",
       "metricsSource": "Data from",
@@ -3274,8 +3487,8 @@
     "users": "Users",
     "subscription": "Subscription",
     "credits": {
-      "title": "Credits",
-      "credits": "credits"
+      "title": "Ai-GCoins",
+      "credits": "Ai-GCoins"
     },
     "addons": "Add-ons",
     "profile": "Profile",
@@ -3302,7 +3515,7 @@
       "clientReporting": "Set up automated client reports for this website",
       "users": "Invite and manage users in your account",
       "subscription": "View and manage your subscription plan",
-      "credits": "Manage your AI credits and usage",
+      "credits": "Manage your Ai-GCoins and usage",
       "addons": "Browse and manage additional features",
       "profile": "Update your personal profile and preferences",
       "account": "Manage your company account settings",
@@ -3936,7 +4149,7 @@
     "subscriptionSection": {
       "plan": "Plan",
       "tokenUsage": "Token Usage",
-      "aiCreditsUsage": "AI Credits Usage",
+      "aiCreditsUsage": "Ai-GCoins Usage",
       "nextBillingDate": "Next billing date:",
       "billingActions": "Billing Actions",
       "upgradePlan": "Upgrade Plan",
@@ -3954,7 +4167,7 @@
         "websites": "Websites",
         "maxMembers": "Team Members",
         "users": "Users",
-        "aiCredits": "AI Credits",
+        "aiCredits": "Ai-GCoins",
         "maxPages": "Pages",
         "maxPosts": "Blog Posts",
         "maxKeywords": "Keywords",
@@ -3994,12 +4207,12 @@
       "cancelsAtRenewal": "Cancels at renewal"
     },
     "creditsSection": {
-      "title": "AI Credits",
+      "title": "Ai-GCoins",
       "available": "Available",
       "used": "Used",
       "usage": "Usage",
       "actions": "Actions",
-      "description": "AI credits are used for generating content, analyzing data, and other AI-powered features. Credits reset at the beginning of each billing period.",
+      "description": "Ai-GCoins are used for generating content, analyzing data, and other AI-powered features. Ai-GCoins reset at the beginning of each billing period.",
       "usageLog": "Usage Log",
       "noLogs": "No usage history yet",
       "errorLoadingLogs": "Failed to load usage logs",
@@ -4009,7 +4222,7 @@
         "action": "Action",
         "website": "Website",
         "user": "User",
-        "credits": "Credits",
+        "credits": "Ai-GCoins",
         "balance": "Balance"
       },
       "operations": {
@@ -4059,7 +4272,7 @@
         "websiteAnalysis": "Analyzed {url}",
         "discoveredEntityTypes": "Discovered content types for {url}",
         "addonPurchase": "Purchased {description}",
-        "planRenewal": "Plan credits renewed",
+        "planRenewal": "Plan Ai-GCoins renewed",
         "rewriteParagraph": "Rewrote content for {url}",
         "competitorAnalysis": "Competitor analysis for {url}",
         "cannibalizationFix": "Fixed cannibalization for {url}",
@@ -4071,8 +4284,8 @@
         "suggestedSiteName": "Suggested site name for {url}",
         "backlinkPurchase": "Purchased backlink: {url}",
         "backlinkSale": "Backlink sale: {url}",
-        "planActivation": "Initial credits from plan",
-        "manualAdjustment": "Manual credit adjustment",
+        "planActivation": "Initial Ai-GCoins from plan",
+        "manualAdjustment": "Manual Ai-GCoin adjustment",
         "genericOperation": "AI operation for {url}",
         "auditRescan": "Rescanned page: {url}",
         "auditQuickFix": "AI Quick Fix on {url}",
@@ -4081,7 +4294,7 @@
         "translatePostTypes": "Translated content types",
         "contentGeneration": "Generated content for {url}"
       },
-      "purchasedPacks": "Purchased Credit Packs",
+      "purchasedPacks": "Purchased Ai-GCoin Packs",
       "remaining": "remaining"
     },
     "addonsSection": {
@@ -4094,7 +4307,7 @@
       "subscribe": "Subscribe",
       "oneTime": "one-time",
       "oneTimeBadge": "ONE-TIME",
-      "credits": "AI Credits",
+      "credits": "Ai-GCoins",
       "noAddons": "No add-ons available at the moment.",
       "alreadyPurchased": "You have already purchased this add-on",
       "alreadyPurchasedCount": "You have purchased this add-on {count} times",
@@ -4434,6 +4647,15 @@
       "titleNoNew": "Agent Analysis Complete",
       "messageNoNew": "No new insights for {siteName} - everything looks the same as before"
     },
+    "competitorDiscoveryComplete": {
+      "title": "Competitor Discovery Complete",
+      "message": "Found {count} competitors for {siteName}",
+      "messageEmpty": "Discovery for {siteName} finished with no new competitors"
+    },
+    "competitorDiscoveryFailed": {
+      "title": "Competitor Discovery Failed",
+      "message": "Discovery for {siteName} couldn't be completed"
+    },
     "failedPublishModal": {
       "title": "Publishing Failed",
       "subtitle": "The following content could not be published to your website",
@@ -4466,8 +4688,8 @@
   "user": {
     "profile": "Profile",
     "myProfile": "My Profile",
-    "credits": "Credits",
-    "aiCredits": "AI Credits",
+    "credits": "Ai-GCoins",
+    "aiCredits": "Ai-GCoins",
     "currentPlan": "Current Plan",
     "plan": "Plan",
     "upgrade": "Upgrade",
@@ -4476,8 +4698,8 @@
     "subscription": "Subscription",
     "myAccount": "My Account",
     "subscriptions": "Subscriptions",
-    "myCredits": "My Credits",
-    "addCredits": "Add Credits",
+    "myCredits": "My Ai-GCoins",
+    "addCredits": "Add Ai-GCoins",
     "upgradePlan": "Upgrade Plan",
     "plans": {
       "free": "Free",
@@ -5095,7 +5317,20 @@
         "fri": "Friday",
         "sat": "Saturday"
       },
-      "months": ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"],
+      "months": [
+        "January",
+        "February",
+        "March",
+        "April",
+        "May",
+        "June",
+        "July",
+        "August",
+        "September",
+        "October",
+        "November",
+        "December"
+      ],
       "publishTime": "Publishing Time",
       "randomTime": "Random Time",
       "fixedTime": "Fixed Time",
@@ -5111,16 +5346,56 @@
       "title": "Article Types",
       "description": "Choose article types for your campaign",
       "types": {
-        "seo": { "label": "SEO Article", "description": "Optimized for search rankings", "example": "Best [topic] in 2025" },
-        "blogPost": { "label": "Blog Post", "description": "Engaging and informative article", "example": "Why [topic] Matters" },
-        "guide": { "label": "Complete Guide", "description": "In-depth comprehensive guide", "example": "The Complete Guide to [topic]" },
-        "howTo": { "label": "How-To", "description": "Step-by-step tutorial", "example": "How to [achieve goal]" },
-        "listicle": { "label": "Listicle", "description": "List-based article", "example": "10 Best [topic] Tips" },
-        "comparison": { "label": "Comparison", "description": "Compare products or options", "example": "[A] vs [B]: Which is Better?" },
-        "review": { "label": "Review", "description": "Detailed product or service review", "example": "[Product] Review: Pros and Cons" },
-        "news": { "label": "News", "description": "News or industry update", "example": "Breaking: [topic] Update" },
-        "tutorial": { "label": "Tutorial", "description": "Technical tutorial with examples", "example": "[Topic] Tutorial for Beginners" },
-        "caseStudy": { "label": "Case Study", "description": "Real-world case with results", "example": "How [company] Achieved [result]" }
+        "seo": {
+          "label": "SEO Article",
+          "description": "Optimized for search rankings",
+          "example": "Best [topic] in 2025"
+        },
+        "blogPost": {
+          "label": "Blog Post",
+          "description": "Engaging and informative article",
+          "example": "Why [topic] Matters"
+        },
+        "guide": {
+          "label": "Complete Guide",
+          "description": "In-depth comprehensive guide",
+          "example": "The Complete Guide to [topic]"
+        },
+        "howTo": {
+          "label": "How-To",
+          "description": "Step-by-step tutorial",
+          "example": "How to [achieve goal]"
+        },
+        "listicle": {
+          "label": "Listicle",
+          "description": "List-based article",
+          "example": "10 Best [topic] Tips"
+        },
+        "comparison": {
+          "label": "Comparison",
+          "description": "Compare products or options",
+          "example": "[A] vs [B]: Which is Better?"
+        },
+        "review": {
+          "label": "Review",
+          "description": "Detailed product or service review",
+          "example": "[Product] Review: Pros and Cons"
+        },
+        "news": {
+          "label": "News",
+          "description": "News or industry update",
+          "example": "Breaking: [topic] Update"
+        },
+        "tutorial": {
+          "label": "Tutorial",
+          "description": "Technical tutorial with examples",
+          "example": "[Topic] Tutorial for Beginners"
+        },
+        "caseStudy": {
+          "label": "Case Study",
+          "description": "Real-world case with results",
+          "example": "How [company] Achieved [result]"
+        }
       },
       "wordRange": "{min} - {max} words",
       "postsOfType": "posts",
@@ -5276,7 +5551,7 @@
       "description": "We'll ask you a few questions to better understand your website and business. This will help us provide personalized recommendations.",
       "duration": "5-10 minutes",
       "questions": "{count} questions",
-      "estimatedCredits": "~42 AI credits",
+      "estimatedCredits": "~42 Ai-GCoins",
       "creditsNote": "💡 Note: The amount may be higher if you use \"Retry\" on AI actions like keyword generation or competitor search.",
       "startButton": "Start Interview"
     },
@@ -5342,9 +5617,9 @@
       "websiteUnreachableDesc": "We could not access the website you provided. Please check the URL and try again.",
       "changeUrl": "Change URL",
       "autoActionFailed": "Something went wrong. Please try again.",
-      "insufficientCredits": "Insufficient AI Credits",
-      "insufficientCreditsDesc": "You have run out of AI credits. Please upgrade your plan to continue using AI features.",
-      "cannotStartInterview": "You don't have enough AI credits to start the interview. Please upgrade your plan.",
+      "insufficientCredits": "Insufficient Ai-GCoins",
+      "insufficientCreditsDesc": "You have run out of Ai-GCoins. Please upgrade your plan to continue using AI features.",
+      "cannotStartInterview": "You don't have enough Ai-GCoins to start the interview. Please upgrade your plan.",
       "upgradePlan": "Upgrade Plan"
     },
     "googleIntegration": {
@@ -5356,10 +5631,10 @@
       "connectButton": "Connect Google Account",
       "connecting": "Connecting... Complete the sign-in in the popup window.",
       "connected": "Google account connected successfully!",
-      "connectedMessage": "\u2713 Google account connected",
+      "connectedMessage": "✓ Google account connected",
       "error": "Connection failed. You can try again or skip this step.",
       "popupBlocked": "The sign-in popup was blocked by your browser. Please allow popups for this site and try again.",
-      "skipText": "Skip \u2014 I'll set this up later in Settings"
+      "skipText": "Skip — I'll set this up later in Settings"
     },
     "wordpressPlugin": {
       "title": "Install GhostSEO WordPress Plugin",
@@ -5373,7 +5648,7 @@
       "checkConnection": "I installed & activated it - Check Connection",
       "connectionTimeout": "We couldn't detect the plugin connection. You can try again or skip and set it up later in Settings.",
       "noSiteKey": "Plugin will be available after setup is complete.",
-      "skipText": "Skip \u2014 I'll install it later"
+      "skipText": "Skip — I'll install it later"
     },
     "questions": {
       "welcome": "👋 Hi! I'm your Ghost AI Agent. I'll help you create a comprehensive SEO profile for your website.",
@@ -5454,9 +5729,37 @@
       "analysisError": "I couldn't access your website: {error}. Please check the URL and try again.",
       "errors": {
         "siteUnreachable": "I couldn't reach your website. Please check the URL and try again.",
+        "wafBlocked": "Your site's firewall blocked our analyzer. Allowlist the GhostSEOBot user-agent below or continue without auto-analysis.",
         "invalidUrl": "That URL doesn't look valid. Please double-check it and try again.",
-        "insufficientCredits": "You're out of AI credits for website analysis. Please upgrade your plan.",
+        "insufficientCredits": "You're out of Ai-GCoins for website analysis. Please upgrade your plan.",
         "analysisFailed": "Website analysis failed. Please try again in a moment."
+      },
+      "wafBlocked": {
+        "title": "Your site's firewall is blocking us",
+        "body": "Your security plugin (Wordfence, Cloudflare, Sucuri, etc.) rejected GhostSEOBot. Allowlist the User-Agent below to enable auto-analysis.",
+        "keepRuleNotice": "Keep this rule in place after registration — the platform uses GhostSEOBot for ongoing audits, sitemap syncs, and post-edit render checks. Removing it will silently break those features.",
+        "scopeNotice": "For best security, scope the rule narrowly: skip rate limiting and bot detection only. Do NOT disable SQLi/XSS rules, login protection, or malicious-traffic rules.",
+        "allowlistLabel": "Allowlist this User-Agent:",
+        "copy": "Copy",
+        "copied": "Copied!",
+        "instructionsLabel": "Quick instructions for popular firewalls:",
+        "plugins": {
+          "wordfence": {
+            "title": "Wordfence",
+            "steps": "Wordfence → All Options → Whitelisted URLs / User Agents → add \"GhostSEOBot\". Bypass rate limiting and live-traffic logging only — leave brute-force and malicious-file scans active. Save."
+          },
+          "cloudflare": {
+            "title": "Cloudflare",
+            "steps": "Security → WAF → Custom rules → Create rule. When: \"User Agent contains GhostSEOBot\". Then: action \"Skip\" → tick \"Rate Limiting Rules\" and \"Bot Fight Mode\" only. Do not tick Managed Rules. Deploy."
+          },
+          "sucuri": {
+            "title": "Sucuri / other plugins",
+            "steps": "Sucuri Settings → Whitelist → add a User-Agent allowlist for \"GhostSEOBot\". For other plugins, find the Allowlist / Whitelist / Bypass section that accepts a User-Agent value, and scope the bypass to rate-limiting and bot-detection only."
+          }
+        },
+        "moreInfoPrefix": "Full bot details and verification info:",
+        "retry": "I've added the rule, retry",
+        "skip": "Continue without auto-analysis"
       },
       "selectingLanguage": "Pick a language",
       "languagesFound": "I detected your website in {count} languages. Pick the one to start with - on multilingual sites, each language is saved as a separate site on the platform.",
@@ -5909,6 +6212,7 @@
       "cardholderNamePlaceholder": "John Doe",
       "citizenId": "ID Number",
       "citizenIdPlaceholder": "Enter ID number",
+      "citizenIdInvalid": "Invalid ID number",
       "billingEmail": "Billing Email",
       "billingEmailPlaceholder": "Email for invoices",
       "phone": "Phone",
@@ -5958,7 +6262,7 @@
       "limitations": {
         "maxSites": "Websites",
         "maxMembers": "Team Members",
-        "aiCredits": "AI Credits",
+        "aiCredits": "Ai-GCoins",
         "maxPages": "Pages",
         "maxPosts": "Blog Posts",
         "siteAudits": "Site Audits"
@@ -6489,6 +6793,8 @@
         "plan": "Plan",
         "status": "Status",
         "createdAt": "Created",
+        "lastConnection": "Last Connection",
+        "lastAction": "Last Action",
         "actions": "Actions"
       },
       "statuses": {
@@ -6519,7 +6825,9 @@
         "billingEmail": "Billing Email",
         "generalEmail": "General Email",
         "plan": "Subscription Plan",
-        "billingInterval": "Billing Interval"
+        "billingInterval": "Billing Interval",
+        "lastConnection": "Last Connection",
+        "updatedAt": "Last Updated"
       },
       "deleteConfirm": {
         "title": "Delete Account",
@@ -6540,7 +6848,9 @@
         "accounts": "Accounts",
         "role": "Role",
         "status": "Status",
+        "online": "Online",
         "lastLogin": "Last Login",
+        "lastAction": "Last Action",
         "actions": "Actions"
       },
       "roles": {
@@ -6553,7 +6863,9 @@
       "statuses": {
         "active": "Active",
         "inactive": "Inactive",
-        "suspended": "Suspended"
+        "suspended": "Suspended",
+        "online": "Online",
+        "offline": "Offline"
       },
       "actions": {
         "view": "View Profile",
@@ -6581,6 +6893,7 @@
         "consentGiven": "Consent Given",
         "isActive": "Active",
         "createdAt": "Created At",
+        "updatedAt": "Last Action",
         "linkToAccount": "Link to Account",
         "noAccount": "No account (standalone user)"
       },
@@ -6589,7 +6902,8 @@
         "message": "Are you sure you want to delete {name}? This action cannot be undone."
       },
       "noUsers": "No users found",
-      "totalUsers": "Total Users"
+      "totalUsers": "Total Users",
+      "onlineNow": "Online Now"
     },
     "subscriptions": {
       "title": "Subscriptions",
@@ -6696,7 +7010,7 @@
         "limitations": "Limitations",
         "maxMembers": "Team Members",
         "maxSites": "Websites",
-        "aiCredits": "AI Credits",
+        "aiCredits": "Ai-GCoins",
         "maxKeywords": "Keywords",
         "maxContent": "Content Items",
         "siteAudits": "Site Audits",
@@ -6759,7 +7073,7 @@
       "types": {
         "seats": "Team Members",
         "sites": "Additional Websites",
-        "ai_credits": "AI Credits Pack",
+        "ai_credits": "Ai-GCoins Pack",
         "storage": "Storage",
         "keywords": "Keywords Tracking",
         "content": "Content Items",
@@ -6791,10 +7105,10 @@
       "noAddOns": "No add-ons configured",
       "quantityHint": "Leave empty for add-ons that provide +1 of a resource (like additional seats or sites)",
       "placeholders": {
-        "name": "e.g., AI Credits Pack - 10K",
+        "name": "e.g., Ai-GCoins Pack - 10K",
         "key": "e.g., ai-credits-10k",
         "description": "Describe what this add-on provides...",
-        "quantity": "e.g., 10000 for AI credits pack"
+        "quantity": "e.g., 10000 for Ai-GCoins pack"
       },
       "stats": {
         "total": "Total Add-Ons",
@@ -7457,7 +7771,7 @@
         "dr": "DR",
         "traffic": "Traffic",
         "price": "Price",
-        "credits": "Credits",
+        "credits": "Ai-GCoins",
         "slots": "Slots",
         "status": "Status",
         "actions": "Actions",
@@ -7485,7 +7799,7 @@
         "domainRating": "Domain Rating (DR)",
         "monthlyTraffic": "Monthly Traffic",
         "price": "Price (USD)",
-        "aiCreditsPrice": "AI Credits Price",
+        "aiCreditsPrice": "Ai-GCoins Price",
         "maxSlots": "Max Slots",
         "maxSlotsHelp": "Leave empty for unlimited",
         "turnaroundDays": "Turnaround (days)",
@@ -7538,7 +7852,7 @@
         "netProfit": "Net Profit (30d)",
         "margin": "margin",
         "avgRevPerAccount": "Avg Revenue / Account",
-        "creditsConsumed": "AI Credits Consumed",
+        "creditsConsumed": "Ai-GCoins Consumed",
         "totalTokens": "Total Tokens (Input + Output)",
         "inOut": "In: {input} | Out: {output}",
         "totalAccounts": "Total Accounts",
@@ -7571,7 +7885,7 @@
           "plan": "Plan",
           "monthlyRevenue": "Monthly Revenue",
           "aiCost30d": "AI Cost (30d)",
-          "creditsUsed": "Credits Used",
+          "creditsUsed": "Ai-GCoins Used",
           "status": "Status"
         },
         "costOverRevenue": "Cost > Revenue",
@@ -7619,7 +7933,7 @@
       "exportCsv": "Export CSV",
       "retry": "Retry",
       "header": {
-        "details": "{plan} · {status} · Credits Balance: {balance} · Total Used: {total}"
+        "details": "{plan} · {status} · Ai-GCoins Balance: {balance} · Total Used: {total}"
       },
       "profitability": {
         "planRevenue": "Plan Revenue",
@@ -7633,7 +7947,7 @@
         "dateRange": "Date Range",
         "cost": "Cost ($)",
         "tokens": "Tokens",
-        "credits": "Credits",
+        "credits": "Ai-GCoins",
         "min": "Min",
         "max": "Max",
         "to": "to",
@@ -7653,7 +7967,7 @@
           "model": "Model",
           "inputTokens": "Input Tokens",
           "outputTokens": "Output Tokens",
-          "credits": "Credits",
+          "credits": "Ai-GCoins",
           "costUsd": "Cost (USD)"
         }
       }
@@ -7826,8 +8140,8 @@
       }
     },
     "pricing": {
-      "title": "AI Credit Pricing Management",
-      "subtitle": "Manage credit costs for all AI features. Changes take effect immediately.",
+      "title": "Ai-GCoin Pricing Management",
+      "subtitle": "Manage Ai-GCoin costs for all AI features. Changes take effect immediately.",
       "featuresConfigured": "{count} features configured",
       "reset": "Reset",
       "save": "Save Changes",
@@ -7837,7 +8151,7 @@
       "columns": {
         "featureKey": "Feature Key",
         "displayName": "Display Name",
-        "creditCost": "Credit Cost",
+        "creditCost": "Ai-GCoin Cost",
         "lastUpdated": "Last Updated"
       }
     },
@@ -7852,7 +8166,7 @@
         "dateRange": "Date Range",
         "cost": "Cost ($)",
         "tokens": "Tokens",
-        "credits": "Credits",
+        "credits": "Ai-GCoins",
         "min": "Min",
         "max": "Max",
         "to": "to",
@@ -7872,7 +8186,7 @@
           "model": "Model",
           "inputTokens": "Input Tokens",
           "outputTokens": "Output Tokens",
-          "credits": "Credits",
+          "credits": "Ai-GCoins",
           "costUsd": "Cost (USD)"
         }
       }
@@ -8021,17 +8335,17 @@
     "confirm": "Confirm Downgrade"
   },
   "addCreditsModal": {
-    "title": "Add AI Credits",
-    "subtitle": "Purchase additional AI credits for your account",
+    "title": "Add Ai-GCoins",
+    "subtitle": "Purchase additional Ai-GCoins for your account",
     "currentBalance": "Current Balance",
-    "credits": "credits",
+    "credits": "Ai-GCoins",
     "oneTime": "One-time",
     "recurring": "Recurring",
     "buy": "Buy",
-    "purchaseSuccess": "Credits added successfully!",
+    "purchaseSuccess": "Ai-GCoins added successfully!",
     "purchaseFailed": "Purchase failed",
-    "manageCredits": "Manage Credits",
-    "noAddons": "No credit packs available",
+    "manageCredits": "Manage Ai-GCoins",
+    "noAddons": "No Ai-GCoin packs available",
     "upgradePlan": "Upgrade Plan"
   },
   "agent": {
@@ -8108,11 +8422,11 @@
     "resolvedIssuesLabel": "Issues Resolved",
     "execute": "Execute",
     "fixWithAi": "Fix with AI",
-    "fixWithAiCost": "Fix with AI (1 Credit)",
+    "fixWithAiCost": "Fix with AI (1 Ai-GCoin)",
     "fixFree": "Fix",
-    "fixCostFree": "0 AI Credits",
-    "creditsLabel": "AI Credits",
-    "aiCredit": "Credit",
+    "fixCostFree": "0 Ai-GCoins",
+    "creditsLabel": "Ai-GCoins",
+    "aiCredit": "Ai-GCoin",
     "vs": "vs",
     "fixing": "Fixing...",
     "fixSuccess": "Fix applied successfully: {summary}",
@@ -8215,7 +8529,7 @@
       },
       "metaTitleTooShort": {
         "title": "Meta Titles Too Short",
-        "description": "{count} pages have meta titles shorter than {minLength} characters. Aim for {minLength}\u2013{maxLength} characters to maximize search visibility."
+        "description": "{count} pages have meta titles shorter than {minLength} characters. Aim for {minLength}–{maxLength} characters to maximize search visibility."
       },
       "metaTitleTooLong": {
         "title": "Meta Titles Too Long",
@@ -8384,7 +8698,7 @@
       "weekendAvg": "Weekend Avg",
       "dominantPeriod": "Peak Period",
       "avgDaily": "Daily Average",
-      "multiplier": "\u00d7 Average",
+      "multiplier": "× Average",
       "source": "Likely Source",
       "topPage": "Top Landing Page",
       "gapPercent": "Gap",
@@ -8438,8 +8752,8 @@
       "featuredImagePrompt": "Featured Image Instructions (optional)",
       "generateContent": "Generate Content",
       "generating": "Generating...",
-      "credit": "credit",
-      "credits": "credits",
+      "credit": "Ai-GCoin",
+      "credits": "Ai-GCoins",
       "contentGenerated": "Content Generated Successfully",
       "backToSettings": "Back to Settings",
       "featuredImage": "Featured Image",
@@ -8478,8 +8792,8 @@
     "cannibalizationIssue": "Cannibalization Issue",
     "generateFeaturedImages": "Generate unique featured images",
     "generateContentImages": "Generate content images (max 3 per page)",
-    "creditPerImage": "credit/image",
-    "creditsPerImage": "credits/image",
+    "creditPerImage": "Ai-GCoin/image",
+    "creditsPerImage": "Ai-GCoins/image",
     "contentImages": "Content Images",
     "maxImages": "max",
     "generateArticle": "Generate Article",
@@ -8551,8 +8865,8 @@
         "step2": "Each supporting page gets a new, unique search intent and differentiated content",
         "step3": "H1 tags and key paragraphs are rewritten to target different angles of the topic",
         "step4": "Internal links are added from supporting pages to the Alpha Page",
-        "creditsCost": "Credits Cost",
-        "creditsExplanation": "This process costs {creditsPerPage} AI credits per supporting page. For {pageCount} competing pages, the analysis will cost {analysisCost} credits. Execution costs will be shown before approval.",
+        "creditsCost": "Ai-GCoins Cost",
+        "creditsExplanation": "This process costs {creditsPerPage} Ai-GCoins per supporting page. For {pageCount} competing pages, the analysis will cost {analysisCost} Ai-GCoins. Execution costs will be shown before approval.",
         "estimatedTime": "Estimated Time",
         "timeExplanation": "The AI analysis typically takes 1-3 minutes depending on content length. You can navigate away - the process runs in the background and you'll be notified when it's ready.",
         "whileRunning": "While Running",
@@ -8581,8 +8895,8 @@
         "internalLink": "Internal Link to Alpha Page",
         "closeButton": "Close",
         "executingButton": "Executing...",
-        "executeButton": "Approve & Execute Fixes ({credits} Credits)",
-        "executedBanner": "Fixes executed on {date} - {credits} credits used",
+        "executeButton": "Approve & Execute Fixes ({credits} Ai-GCoins)",
+        "executedBanner": "Fixes executed on {date} - {credits} Ai-GCoins used",
         "failedMessage": "An unexpected error occurred",
         "diffOld": "Old",
         "diffNew": "New"

@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import prisma from '@/lib/prisma';
 import { generateTextResponse } from '@/lib/ai/gemini';
+import { BOT_FETCH_HEADERS } from '@/lib/bot-identity';
 
 const SESSION_COOKIE = 'user_session';
 
@@ -305,7 +306,7 @@ export async function POST(request) {
       return NextResponse.json({ valid: false, error: 'URL is required' }, { status: 400 });
     }
 
-    // Optional auth lookup for AI credit tracking
+    // Optional auth lookup for Ai-GCoin tracking
     let trackingCtx = {};
     try {
       const cookieStore = await cookies();
@@ -343,9 +344,7 @@ export async function POST(request) {
     try {
       response = await fetch(normalizedUrl, {
         method: 'HEAD',
-        headers: {
-          'User-Agent': 'GhostSEO-Platform/1.0',
-        },
+        headers: BOT_FETCH_HEADERS,
         signal: AbortSignal.timeout(10000), // 10 second timeout
       });
     } catch (fetchError) {
@@ -353,9 +352,7 @@ export async function POST(request) {
       try {
         response = await fetch(normalizedUrl, {
           method: 'GET',
-          headers: {
-            'User-Agent': 'GhostSEO-Platform/1.0',
-          },
+          headers: BOT_FETCH_HEADERS,
           signal: AbortSignal.timeout(10000),
         });
       } catch (e) {
@@ -381,7 +378,7 @@ export async function POST(request) {
     let html = '';
     try {
       const htmlResponse = await fetch(normalizedUrl, {
-        headers: { 'User-Agent': 'GhostSEO-Platform/1.0' },
+        headers: BOT_FETCH_HEADERS,
         signal: AbortSignal.timeout(10000),
       });
       
@@ -396,7 +393,7 @@ export async function POST(request) {
     try {
       const wpCheck = await fetch(`${normalizedUrl}/wp-json/wp/v2`, {
         method: 'HEAD',
-        headers: { 'User-Agent': 'GhostSEO-Platform/1.0' },
+        headers: BOT_FETCH_HEADERS,
         signal: AbortSignal.timeout(5000),
       });
       

@@ -2,38 +2,19 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import {
-  Search,
-  Filter,
-  RefreshCw,
-  Plus,
-  Edit2,
-  Trash2,
-  Archive,
-  Package,
-  Check,
-  X,
-  Users,
-  Globe,
-  Languages,
-  RotateCcw,
-  Sparkles,
-  Coins,
-  HardDrive,
-  Key,
-  FileText,
-} from 'lucide-react';
+import { Search, Filter, RefreshCw, Plus, Edit2, Trash2, Archive, Package, Check, X, Users, Globe, Languages, RotateCcw, Sparkles, HardDrive, Key, FileText } from 'lucide-react';
 import { useLocale } from '@/app/context/locale-context';
 import { useUser } from '@/app/context/user-context';
 import { AdminModal, ConfirmDialog, FormInput, FormTextarea, FormCheckbox, FormSelect, FormActions, PrimaryButton, SecondaryButton } from '../components/AdminModal';
 import { AdminPageSkeleton, TableSkeleton, Button } from '@/app/dashboard/components';
 import styles from '../admin.module.css';
+import GCoinIcon from '@/app/components/ui/GCoinIcon';
 
 // Add-on type icons
 const typeIcons = {
   SEATS: Users,
   SITES: Globe,
-  AI_CREDITS: Sparkles,
+  AI_CREDITS: GCoinIcon,
   STORAGE: HardDrive,
   KEYWORDS: Key,
   CONTENT: FileText,
@@ -575,7 +556,7 @@ export default function AddOnsSettingsPage() {
                   <td>
                     {addOn.quantity ? (
                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                        <Coins size={14} style={{ color: 'var(--muted-foreground)' }} />
+                        <GCoinIcon size={14} style={{ color: 'var(--muted-foreground)' }} />
                         {addOn.quantity.toLocaleString()}
                       </div>
                     ) : (

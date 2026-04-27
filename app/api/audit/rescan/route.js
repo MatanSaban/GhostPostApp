@@ -6,6 +6,7 @@ import { analyzeHtml } from '@/lib/audit/html-analyzer';
 import { deductAiCredits } from '@/lib/account-utils';
 import { recalculateAuditAfterFix } from '@/lib/audit/recalculate-after-fix';
 import { invalidateAudit } from '@/lib/cache/invalidate.js';
+import { BOT_FETCH_HEADERS } from '@/lib/bot-identity';
 import { GEMINI_MODEL } from '@/lib/ai/models.js';
 
 export const maxDuration = 300;
@@ -73,7 +74,7 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Site not found' }, { status: 404 });
     }
 
-    // Deduct 1 AI credit for rescan
+    // Deduct 1 Ai-GCoin for rescan
     let creditDeduction = null;
     const accountIds = user.accountMemberships.map(m => m.accountId);
     const siteRecord = await prisma.site.findFirst({
@@ -91,9 +92,9 @@ export async function POST(request) {
       });
 
       if (!deduction.success) {
-        console.warn('[Rescan] Credit deduction failed:', deduction.error);
+        console.warn('[Rescan] Ai-GCoin deduction failed:', deduction.error);
         return NextResponse.json(
-          { error: deduction.error || 'Credit deduction failed', code: 'INSUFFICIENT_CREDITS', resourceKey: 'aiCredits' },
+          { error: deduction.error || 'Ai-GCoin deduction failed', code: 'INSUFFICIENT_CREDITS', resourceKey: 'aiCredits' },
           { status: 402 }
         );
       }
@@ -128,7 +129,7 @@ export async function POST(request) {
 
       const response = await fetch(url, {
         signal: controller.signal,
-        headers: { 'User-Agent': 'GhostSEO-SiteAuditor/2.0' },
+        headers: BOT_FETCH_HEADERS,
         redirect: 'follow',
       });
       clearTimeout(timeoutId);

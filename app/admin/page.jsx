@@ -3,28 +3,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import {
-  DollarSign,
-  TrendingUp,
-  TrendingDown,
-  Cpu,
-  Coins,
-  AlertTriangle,
-  BarChart3,
-  Eye,
-  Shield,
-  Users,
-  Building2,
-  Globe,
-  FileText,
-  CreditCard,
-  LifeBuoy,
-  Activity,
-  UserPlus,
-  XCircle,
-  RefreshCw,
-  ArrowUpRight,
-} from 'lucide-react';
+import { DollarSign, TrendingUp, TrendingDown, Cpu, AlertTriangle, BarChart3, Eye, Shield, Users, Building2, Globe, FileText, CreditCard, LifeBuoy, Activity, UserPlus, XCircle, RefreshCw, ArrowUpRight } from 'lucide-react';
 import {
   LineChart,
   Line,
@@ -39,6 +18,7 @@ import {
 } from 'recharts';
 import { useLocale } from '@/app/context/locale-context';
 import styles from './admin-dashboard.module.css';
+import GCoinIcon from '@/app/components/ui/GCoinIcon';
 
 function formatNumber(n) {
   return (n ?? 0).toLocaleString();
@@ -135,7 +115,7 @@ export default function SuperAdminDashboardPage() {
           meta={`${financials.profitMargin}% ${t('admin.dashboard.widgets.margin')}`}
         />
         <Widget icon={<BarChart3 size={24} />} color="#3b82f6" label={t('admin.dashboard.widgets.avgRevPerAccount')} value={formatUSD(financials.avgRevenuePerAccount)} />
-        <Widget icon={<Coins size={24} />} color="#7b2cbf" label={t('admin.dashboard.widgets.creditsConsumed')} value={formatNumber(usage.totalCredits)} />
+        <Widget icon={<GCoinIcon size={24} />} color="#7b2cbf" label={t('admin.dashboard.widgets.creditsConsumed')} value={formatNumber(usage.totalCredits)} />
         <Widget icon={<BarChart3 size={24} />} color="#0ea5e9" label={t('admin.dashboard.widgets.totalTokens')} value={formatNumber(usage.totalTokens)} meta={t('admin.dashboard.widgets.inOut', { input: formatNumber(usage.totalInputTokens), output: formatNumber(usage.totalOutputTokens) })} />
       </div>
 

@@ -588,7 +588,7 @@ function PurchaseModal({ listing, sites, stats, t, onClose, onPurchase }) {
             </div>
           )}
 
-          {/* AI Credits */}
+          {/* Ai-GCoins */}
           {hasCreditsPrice && (
             <div
               className={`${styles.paymentOption} ${paymentMethod === 'AI_CREDITS' ? styles.paymentOptionSelected : ''}`}
