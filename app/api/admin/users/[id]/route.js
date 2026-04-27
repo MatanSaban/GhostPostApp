@@ -231,20 +231,23 @@ export async function DELETE(request, { params }) {
 
     // Delete all related records in a transaction
     await prisma.$transaction(async (tx) => {
-      // For each owned account, delete the account and all its related data
+      // For each owned account, delete the account and all its related data.
+      // Order matters: AccountMember.roleId is a required relation with no
+      // onDelete cascade, so every member row must be gone before we drop
+      // the roles those rows reference. Sites carry SiteMember rows that
+      // FK back into AccountMember, so sites have to go before members too.
       for (const membership of ownedAccounts) {
         const accountId = membership.accountId;
-        
-        // Delete account-related data
+
         await tx.aiCreditsLog.deleteMany({ where: { accountId } });
         await tx.addOnPurchase.deleteMany({ where: { subscription: { accountId } } });
         await tx.subscription.deleteMany({ where: { accountId } });
-        await tx.role.deleteMany({ where: { accountId } });
         await tx.site.deleteMany({ where: { accountId } });
         await tx.accountMember.deleteMany({ where: { accountId } });
+        await tx.role.deleteMany({ where: { accountId } });
         await tx.account.delete({ where: { id: accountId } });
       }
-      
+
       // Delete user-related records
       await tx.accountMember.deleteMany({ where: { userId: id } });
       await tx.authProvider.deleteMany({ where: { userId: id } });
