@@ -56,6 +56,7 @@ export const GhostChatPopup = forwardRef(function GhostChatPopup({ isOpen, onClo
   const [isLoadingConversations, setIsLoadingConversations] = useState(false);
   const [isLoadingMessages, setIsLoadingMessages] = useState(false);
   const [isCreatingConversation, setIsCreatingConversation] = useState(false);
+  const [deletingConversationIds, setDeletingConversationIds] = useState(() => new Set());
   const [editingConversationId, setEditingConversationId] = useState(null);
   const [editTitle, setEditTitle] = useState('');
   const [toast, setToast] = useState(null);
@@ -619,6 +620,27 @@ export const GhostChatPopup = forwardRef(function GhostChatPopup({ isOpen, onClo
 
   const createConversation = useCallback(async () => {
     if (!selectedSite?.id || isCreatingConversation) return;
+
+    // Reuse an existing empty conversation owned by the current user instead of
+    // creating yet another one. An "empty" conversation has no title and no
+    // messages persisted. If it's the active conversation, also confirm there
+    // are no in-flight messages from useChat - those haven't bumped _count yet.
+    const existingEmpty = conversations.find(c => {
+      if (user?.id && c.createdByUserId !== user.id) return false;
+      if (c.title) return false;
+      if ((c._count?.messages ?? 0) > 0) return false;
+      if (c.id === activeConversationId && (aiMessages.length > 0 || conversationMessages.length > 0)) return false;
+      return true;
+    });
+    if (existingEmpty) {
+      if (existingEmpty.id !== activeConversationId) {
+        setActiveConversationId(existingEmpty.id);
+        setConversationMessages([]);
+        setAiMessages([]);
+      }
+      return;
+    }
+
     setIsCreatingConversation(true);
     try {
       const res = await fetch('/api/chat/conversations', {
@@ -638,9 +660,15 @@ export const GhostChatPopup = forwardRef(function GhostChatPopup({ isOpen, onClo
     } finally {
       setIsCreatingConversation(false);
     }
-  }, [selectedSite?.id, isCreatingConversation, setAiMessages]);
+  }, [selectedSite?.id, isCreatingConversation, conversations, user?.id, activeConversationId, aiMessages, conversationMessages, setAiMessages]);
 
   const deleteConversation = useCallback(async (convId) => {
+    setDeletingConversationIds(prev => {
+      if (prev.has(convId)) return prev;
+      const next = new Set(prev);
+      next.add(convId);
+      return next;
+    });
     try {
       const res = await fetch(`/api/chat/conversations/${convId}`, { method: 'DELETE' });
       if (res.ok) {
@@ -656,6 +684,13 @@ export const GhostChatPopup = forwardRef(function GhostChatPopup({ isOpen, onClo
       }
     } catch (err) {
       console.error('[Chat] deleteConversation error:', err);
+    } finally {
+      setDeletingConversationIds(prev => {
+        if (!prev.has(convId)) return prev;
+        const next = new Set(prev);
+        next.delete(convId);
+        return next;
+      });
     }
   }, [activeConversationId, setAiMessages]);
 
@@ -1211,8 +1246,11 @@ export const GhostChatPopup = forwardRef(function GhostChatPopup({ isOpen, onClo
                               e.stopPropagation();
                               deleteConversation(conv.id);
                             }}
+                            disabled={deletingConversationIds.has(conv.id)}
                           >
-                            <Trash2 size={12} />
+                            {deletingConversationIds.has(conv.id)
+                              ? <Loader2 size={12} className={styles.spinning} />
+                              : <Trash2 size={12} />}
                           </button>
                         )}
                       </div>
@@ -1270,8 +1308,11 @@ export const GhostChatPopup = forwardRef(function GhostChatPopup({ isOpen, onClo
                             e.stopPropagation();
                             deleteConversation(conv.id);
                           }}
+                          disabled={deletingConversationIds.has(conv.id)}
                         >
-                          <Trash2 size={12} />
+                          {deletingConversationIds.has(conv.id)
+                            ? <Loader2 size={12} className={styles.spinning} />
+                            : <Trash2 size={12} />}
                         </button>
                       )}
                     </div>

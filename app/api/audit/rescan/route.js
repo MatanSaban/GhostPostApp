@@ -128,7 +128,7 @@ export async function POST(request) {
 
       const response = await fetch(url, {
         signal: controller.signal,
-        headers: { 'User-Agent': 'GhostPost-SiteAuditor/2.0' },
+        headers: { 'User-Agent': 'GhostSEO-SiteAuditor/2.0' },
         redirect: 'follow',
       });
       clearTimeout(timeoutId);

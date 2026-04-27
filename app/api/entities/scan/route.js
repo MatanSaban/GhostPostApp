@@ -179,7 +179,7 @@ async function fetchMainSitemap(siteUrl, customSitemapUrl = null, gscSitemapUrls
   try {
     console.log('[Scan] Checking robots.txt for sitemaps...');
     const robotsResponse = await fetch(`${siteUrl}/robots.txt`, {
-      headers: { 'User-Agent': 'GhostPost-Platform/1.0' },
+      headers: { 'User-Agent': 'GhostSEO-Platform/1.0' },
       signal: AbortSignal.timeout(5000),
       cache: 'no-store',
     });
@@ -352,7 +352,7 @@ async function fetchMainSitemap(siteUrl, customSitemapUrl = null, gscSitemapUrls
 async function tryFetchSitemap(url) {
   try {
     const response = await fetch(url, {
-      headers: { 'User-Agent': 'GhostPost-Platform/1.0' },
+      headers: { 'User-Agent': 'GhostSEO-Platform/1.0' },
       signal: AbortSignal.timeout(15000),
       cache: 'no-store',
     });
@@ -631,7 +631,7 @@ async function fetchWordPressTypes(siteUrl) {
   
   try {
     const response = await fetch(`${siteUrl}/wp-json/wp/v2/types?context=view`, {
-      headers: { 'User-Agent': 'GhostPost-Platform/1.0' },
+      headers: { 'User-Agent': 'GhostSEO-Platform/1.0' },
       signal: AbortSignal.timeout(10000),
       cache: 'no-store',
     });
@@ -765,7 +765,7 @@ async function countUrlsFromSitemapIndex(sitemapContent, sitemapType) {
   const fetchResults = await Promise.allSettled(
     sitemapsToFetch.map(async ({ url, detectedType }) => {
       const response = await fetch(url, {
-        headers: { 'User-Agent': 'GhostPost-Platform/1.0' },
+        headers: { 'User-Agent': 'GhostSEO-Platform/1.0' },
         signal: AbortSignal.timeout(CHILD_SITEMAP_TIMEOUT),
         cache: 'no-store',
       });
@@ -1061,7 +1061,7 @@ async function crawlWebsiteLinks(siteUrl, maxPages = 100) {
       
       const response = await fetch(normalizedUrl, {
         headers: { 
-          'User-Agent': 'GhostPost-Platform/1.0 (Content Discovery Bot)',
+          'User-Agent': 'GhostSEO-Platform/1.0 (Content Discovery Bot)',
           'Accept': 'text/html,application/xhtml+xml',
         },
         signal: AbortSignal.timeout(10000),
@@ -1305,7 +1305,7 @@ async function saveDiscoveredSitemaps(site, mainSitemap, sitemapCounts, userId =
               let childUrlCount = Math.round(data.count / data.sitemaps.length);
               try {
                 const childResp = await fetch(childUrl, {
-                  headers: { 'User-Agent': 'GhostPost-Platform/1.0' },
+                  headers: { 'User-Agent': 'GhostSEO-Platform/1.0' },
                   signal: AbortSignal.timeout(20000),
                   cache: 'no-store',
                 });
@@ -1671,7 +1671,7 @@ async function fetchSitemapUrls(sitemapUrl) {
   try {
     // Use generous timeout - dynamic sitemaps (e.g. 3000+ entries) can take 30-60s to generate
     const response = await fetch(sitemapUrl, {
-      headers: { 'User-Agent': 'GhostPost-Platform/1.0' },
+      headers: { 'User-Agent': 'GhostSEO-Platform/1.0' },
       signal: AbortSignal.timeout(60000),
       cache: 'no-store',
     });
@@ -1770,7 +1770,7 @@ async function fetchWpRestPosts(siteUrl, restEndpoint, page = 1, perPage = 100) 
   
   try {
     const response = await fetch(url, {
-      headers: { 'User-Agent': 'GhostPost-Platform/1.0' },
+      headers: { 'User-Agent': 'GhostSEO-Platform/1.0' },
       signal: AbortSignal.timeout(20000),
       cache: 'no-store',
     });
@@ -2114,7 +2114,7 @@ async function extractPageMetadata(url) {
   try {
     const response = await fetch(url, {
       headers: { 
-        'User-Agent': 'GhostPost-Platform/1.0',
+        'User-Agent': 'GhostSEO-Platform/1.0',
         'Accept': 'text/html',
       },
       signal: AbortSignal.timeout(15000),

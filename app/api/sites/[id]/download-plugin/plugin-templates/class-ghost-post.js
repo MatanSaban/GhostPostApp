@@ -1,7 +1,7 @@
 ﻿/**
  * Generate main Ghost_Post class
  */
-export function getClassGhostPost() {
+export function getClassGhostSEO() {
   return `<?php
 /**
  * Main GhostSEO class
@@ -124,7 +124,7 @@ class Ghost_Post {
         // Top-level menu
         add_menu_page(
             __('GhostSEO Connector', 'ghost-post-connector'),
-            'GhostPost',
+            'GhostSEO',
             'manage_options',
             'ghost-post-connector',
             array($this, 'render_admin_page'),
@@ -368,7 +368,7 @@ class Ghost_Post {
     public function register_dashboard_widget() {
         wp_add_dashboard_widget(
             'gp_dashboard_widget',
-            'GhostPost AI',
+            'GhostSEO AI',
             array($this, 'render_dashboard_widget')
         );
         
@@ -424,7 +424,7 @@ class Ghost_Post {
             
             <div class="gp-widget-header">
                 <svg class="gp-widget-icon" width="22" height="22" viewBox="0 0 335 288" xmlns="http://www.w3.org/2000/svg"><path fill="#9B4DE0" d="M313.736 127.747C313.681 123.229 311.924 112.362 311.064 107.716C310.204 103.051 314.797 91.8007 316.819 83.2673C319.527 71.8339 320.341 61.5991 317.176 56.0377C314.477 51.2909 291.961 52.5258 282.775 53.6596C279.985 54.0075 268.283 35.1105 244.669 21.3816C223.682 9.1892 191.825 2 170.691 2C109.758 2 57.627 39.0527 36.3828 91.4716C36.2181 91.8834 30.8934 90.4471 22.6775 91.7827C14.2422 93.1547 2.89737 97.3531 2.11054 101.35C1.27798 105.557 5.23035 120.045 11.2047 130.555C17.6822 141.943 25.3491 149.745 25.3948 150.842C27.8376 204.916 61.9816 250.649 109.2 272.491C122.796 278.784 144.195 286.732 170.691 285.946C245.804 283.723 302.995 213.469 325.144 145.903C330.085 130.829 333.15 116.926 332.994 108.777C332.985 108.118 332.299 107.689 331.695 107.972C327.697 109.847 316.087 116.067 313.525 118.683Z"/></svg>
-                <span class="gp-widget-title">GhostPost</span>
+                <span class="gp-widget-title">GhostSEO</span>
                 <?php if ($status === 'connected'): ?>
                     <span class="gp-badge gp-badge-success"><?php esc_html_e('Connected', 'ghost-post-connector'); ?></span>
                 <?php else: ?>
@@ -470,7 +470,7 @@ class Ghost_Post {
             
             <div class="gp-widget-footer">
                 <a href="<?php echo esc_url($dashboard_url); ?>" class="gp-btn gp-btn-primary gp-btn-sm" target="_blank" rel="noopener">
-                    <?php esc_html_e('Open GhostPost Dashboard', 'ghost-post-connector'); ?>
+                    <?php esc_html_e('Open GhostSEO Dashboard', 'ghost-post-connector'); ?>
                 </a>
                 <p class="gp-widget-last-sync" id="gp-widget-last-sync"></p>
             </div>
@@ -764,7 +764,7 @@ class Ghost_Post {
             update_option('gp_connector_last_ping', time());
             update_option('gp_connector_last_connection_check', time());
             delete_option('gp_connector_last_error');
-            self::log_activity('connection_verified', 'Connection verified with GhostPost platform');
+            self::log_activity('connection_verified', 'Connection verified with GhostSEO platform');
             return true;
         }
         
@@ -794,7 +794,7 @@ class Ghost_Post {
         
         wp_clear_scheduled_hook('gp_connector_ping');
         update_option('gp_connector_connection_status', 'disconnected');
-        self::log_activity('disconnected', 'Disconnected from GhostPost platform');
+        self::log_activity('disconnected', 'Disconnected from GhostSEO platform');
     }
     
     /**

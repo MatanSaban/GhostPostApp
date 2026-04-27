@@ -2653,7 +2653,7 @@ Each template is a JavaScript function that returns PHP source code, with site-s
 |----------------|----------------|---------------------------|
 | `main.js` | `getPluginMainFile()` | `ghost-post-connector.php` |
 | `config.js` | `getPluginConfigFile()` | `includes/config.php` |
-| `class-ghost-post.js` | `getClassGhostPost()` | `includes/class-ghost-post.php` |
+| `class-ghost-post.js` | `getClassGhostSEO()` | `includes/class-ghost-post.php` |
 | `class-api-handler.js` | `getClassApiHandler()` | `includes/class-gp-api-handler.php` |
 | `class-request-validator.js` | `getClassRequestValidator()` | `includes/class-gp-request-validator.php` |
 | `class-content-manager.js` | `getClassContentManager()` | `includes/class-gp-content-manager.php` |

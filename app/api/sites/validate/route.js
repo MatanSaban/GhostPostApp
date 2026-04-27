@@ -344,7 +344,7 @@ export async function POST(request) {
       response = await fetch(normalizedUrl, {
         method: 'HEAD',
         headers: {
-          'User-Agent': 'GhostPost-Platform/1.0',
+          'User-Agent': 'GhostSEO-Platform/1.0',
         },
         signal: AbortSignal.timeout(10000), // 10 second timeout
       });
@@ -354,7 +354,7 @@ export async function POST(request) {
         response = await fetch(normalizedUrl, {
           method: 'GET',
           headers: {
-            'User-Agent': 'GhostPost-Platform/1.0',
+            'User-Agent': 'GhostSEO-Platform/1.0',
           },
           signal: AbortSignal.timeout(10000),
         });
@@ -381,7 +381,7 @@ export async function POST(request) {
     let html = '';
     try {
       const htmlResponse = await fetch(normalizedUrl, {
-        headers: { 'User-Agent': 'GhostPost-Platform/1.0' },
+        headers: { 'User-Agent': 'GhostSEO-Platform/1.0' },
         signal: AbortSignal.timeout(10000),
       });
       
@@ -396,7 +396,7 @@ export async function POST(request) {
     try {
       const wpCheck = await fetch(`${normalizedUrl}/wp-json/wp/v2`, {
         method: 'HEAD',
-        headers: { 'User-Agent': 'GhostPost-Platform/1.0' },
+        headers: { 'User-Agent': 'GhostSEO-Platform/1.0' },
         signal: AbortSignal.timeout(5000),
       });
       

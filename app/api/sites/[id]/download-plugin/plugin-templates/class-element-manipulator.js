@@ -1088,7 +1088,7 @@ class GP_Element_Manipulator {
             'headers'     => array(
                 'Cache-Control' => 'no-cache',
                 'Pragma'        => 'no-cache',
-                'User-Agent'    => 'GhostPost-VerifyRender/1.0',
+                'User-Agent'    => 'GhostSEO-VerifyRender/1.0',
             ),
         ));
         if (is_wp_error($resp)) {
@@ -1103,10 +1103,16 @@ class GP_Element_Manipulator {
             return array('ok' => false, 'url' => $url, 'hint' => 'render fetch returned empty body');
         }
 
+        // Strip HTML tags so text fragments split across nested elements
+        // (e.g. <h1>DGBLOG <span>-</span> בלוג</h1>) become a contiguous
+        // string. Then normalize on both sides so wptexturize-converted
+        // dashes / smart quotes / NBSP runs / bidi marks / HTML entities
+        // don't cause false negatives when the text *is* on the page.
+        $body_text = self::normalize_for_match(wp_strip_all_tags($body));
+
         if (($op === 'insert' || $op === 'update') && $needle_positive !== '') {
-            $n = mb_strtolower(trim($needle_positive));
-            $h = mb_strtolower($body);
-            if (mb_strpos($h, $n) === false) {
+            $needle_norm = self::normalize_for_match($needle_positive);
+            if ($needle_norm !== '' && mb_strpos($body_text, $needle_norm) === false) {
                 return array(
                     'ok'   => false,
                     'url'  => $url,
@@ -1118,7 +1124,8 @@ class GP_Element_Manipulator {
             // If only the text matches, we could be matching a pre-existing
             // duplicate element (e.g. several H1s on the page) and the user
             // would see no visible change. Requiring data-id eliminates that
-            // false positive.
+            // false positive. data-id check runs on raw body since attributes
+            // are stripped by wp_strip_all_tags.
             if ($op === 'insert' && $widget_id && preg_match('/^[a-zA-Z0-9]{6,10}$/', $widget_id)) {
                 if (stripos($body, 'data-id="' . $widget_id . '"') === false
                     && stripos($body, "data-id='" . $widget_id . "'") === false) {
@@ -1131,9 +1138,8 @@ class GP_Element_Manipulator {
             }
         }
         if ($op === 'delete' && $needle_negative !== '') {
-            $n = mb_strtolower(trim($needle_negative));
-            $h = mb_strtolower($body);
-            if (mb_strpos($h, $n) !== false) {
+            $needle_norm = self::normalize_for_match($needle_negative);
+            if ($needle_norm !== '' && mb_strpos($body_text, $needle_norm) !== false) {
                 return array(
                     'ok'   => false,
                     'url'  => $url,
@@ -1142,6 +1148,53 @@ class GP_Element_Manipulator {
             }
         }
         return array('ok' => true, 'url' => $url, 'hint' => '');
+    }
+
+    /**
+     * Normalize text for render-verification matching. Lowercases and
+     * collapses differences that WP / page builders / themes routinely
+     * introduce on render but the AI didn't write into the DB:
+     *
+     * - HTML entities decoded (&amp; -> &, &#8211; -> en dash etc.)
+     * - All dash variants (en/em/figure/non-breaking) -> '-' so wptexturize
+     *   converting " - " to " - " does not break the match
+     * - Smart quotes -> straight quotes
+     * - NBSP and narrow NBSP -> regular space; zero-width and bidi marks
+     *   (LRM, RLM, ZWJ, ZWNJ) dropped entirely
+     * - Whitespace runs collapsed to one space, then trim + lowercase
+     */
+    private static function normalize_for_match($text) {
+        if (!is_string($text) || $text === '') {
+            return '';
+        }
+        $text = html_entity_decode($text, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+        $replacements = array(
+            "\\xe2\\x80\\x90" => '-',
+            "\\xe2\\x80\\x91" => '-',
+            "\\xe2\\x80\\x92" => '-',
+            "\\xe2\\x80\\x93" => '-',
+            "\\xe2\\x80\\x94" => '-',
+            "\\xe2\\x80\\x95" => '-',
+            "\\xe2\\x88\\x92" => '-',
+            "\\xe2\\x80\\x98" => "'",
+            "\\xe2\\x80\\x99" => "'",
+            "\\xe2\\x80\\x9c" => '"',
+            "\\xe2\\x80\\x9d" => '"',
+            "\\xc2\\xa0"      => ' ',
+            "\\xe2\\x80\\xaf" => ' ',
+            "\\xe2\\x80\\x8b" => '',
+            "\\xe2\\x80\\x8c" => '',
+            "\\xe2\\x80\\x8d" => '',
+            "\\xe2\\x80\\x8e" => '',
+            "\\xe2\\x80\\x8f" => '',
+            "\\xe2\\x81\\xa6" => '',
+            "\\xe2\\x81\\xa7" => '',
+            "\\xe2\\x81\\xa8" => '',
+            "\\xe2\\x81\\xa9" => '',
+        );
+        $text = strtr($text, $replacements);
+        $text = preg_replace('/\\s+/u', ' ', $text);
+        return trim(mb_strtolower($text));
     }
 
     /**

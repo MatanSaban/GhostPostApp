@@ -43,7 +43,7 @@ Each template is a JavaScript function that returns PHP source code as a templat
 |----------------|----------------|---------------------------|
 | `main.js` | `getPluginMainFile(version)` | `ghost-post-connector.php` |
 | `config.js` | `getPluginConfigFile({...})` | `includes/config.php` |
-| `class-ghost-post.js` | `getClassGhostPost()` | `includes/class-ghost-post.php` |
+| `class-ghost-post.js` | `getClassGhostSEO()` | `includes/class-ghost-post.php` |
 | `class-api-handler.js` | `getClassApiHandler()` | `includes/class-gp-api-handler.php` |
 | `class-request-validator.js` | `getClassRequestValidator()` | `includes/class-gp-request-validator.php` |
 | `class-content-manager.js` | `getClassContentManager()` | `includes/class-gp-content-manager.php` |
@@ -985,7 +985,7 @@ enum SitePermission {
 * NEW: Language selector in Settings tab (Auto/English/Hebrew)
 * NEW: Activity tab now records real actions
 * NEW: Sidebar submenu items for each plugin tab
-* NEW: GhostPost text label next to logo in admin topbar
+* NEW: GhostSEO text label next to logo in admin topbar
 * FIX: Last Ping and Last Connection Check now display real data
 * FIX: Widget button overflow
 

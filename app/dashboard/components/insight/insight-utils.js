@@ -1,20 +1,25 @@
 /**
  * Shared utilities for insight cards used across dashboard and agent page.
+ *
+ * Fixability is owned by `lib/agent-fix/registry.js`. Re-exported here so
+ * client components can consume it without crossing the server-only `lib/`
+ * boundary.
  */
 
 import { FileText, TrendingUp, Search, Users, Wrench } from 'lucide-react';
+import {
+  AGENT_FIXERS,
+  FIXABLE_INSIGHT_TYPES as _FIXABLE_INSIGHT_TYPES,
+  getInsightType as _getInsightType,
+  getFixerConfig,
+  isAiFixable as _isAiFixable,
+  isFreeFixable as _isFreeFixable,
+  getFixCredits as _getFixCredits,
+} from '@/lib/agent-fix/registry';
 
-// Insight types that can be fixed with AI
-export const FIXABLE_INSIGHT_TYPES = new Set([
-  'missingSeo',
-  'keywordStrikeZone',
-  'lowCtrForPosition',
-  'cannibalization',
-  'missingFeaturedImage',
-  'insufficientContentImages',
-  'aiPageMissingSchema',
-  'aiAnswerableButNotConcise',
-]);
+// Insight types that can be fixed (any kind: AI or free).
+// Sourced from the registry so the platform/agent UI never drift.
+export const FIXABLE_INSIGHT_TYPES = _FIXABLE_INSIGHT_TYPES;
 
 // Category icons mapping
 export const CATEGORY_ICONS = {
@@ -46,23 +51,51 @@ export const POSITIVE_INSIGHT_TYPES = new Set(['trafficGrowth', 'aiTrafficGrowth
 export const NEGATIVE_INSIGHT_TYPES = new Set(['trafficDrop', 'visitorsDrop', 'decliningPages', 'aiTrafficDrop']);
 
 /**
- * Check if an insight type can be fixed with AI
+ * Check if an insight type can be fixed (AI or free) on the given platform.
+ * `capabilities` comes from `capabilitiesFor(site.platform)` — pass it in to
+ * hide platform-incompatible fixes (e.g. WP-only visual editor on Shopify).
+ * If `capabilities` is omitted, returns true for any registered fixable type.
  */
-export function isFixableInsight(titleKey) {
-  const match = titleKey?.match(/agent\.insights\.([\w.]+)\.title/);
-  if (!match) return false;
-  const baseType = match[1].split('.')[0];
-  return FIXABLE_INSIGHT_TYPES.has(baseType);
+export function isFixableInsight(titleKey, capabilities = null) {
+  const cfg = getFixerConfig(titleKey);
+  if (!cfg || cfg.external) return false;
+  if (cfg.capability && capabilities && !capabilities[cfg.capability]) return false;
+  return true;
+}
+
+/**
+ * True if the fix uses AI (cost credits). False for 'free' fixes and unfixable.
+ */
+export function isAiFixableInsight(titleKey) {
+  return _isAiFixable(titleKey);
+}
+
+/**
+ * True if the fix is free (no credits, "Fix · 0 AI Credits" label).
+ */
+export function isFreeFixableInsight(titleKey) {
+  return _isFreeFixable(titleKey);
+}
+
+/**
+ * Static credits cost for an AI fix. Returns 0 for free fixes / unfixable.
+ */
+export function getInsightFixCredits(titleKey) {
+  return _getFixCredits(titleKey);
+}
+
+/**
+ * Full fixer config (kind / handler / credits / etc.) — useful when the UI
+ * needs to branch on `kind` to render different button labels.
+ */
+export function getInsightFixerConfig(titleKey) {
+  return getFixerConfig(titleKey);
 }
 
 /**
  * Extract the insight type from a title key
  */
-export function getInsightType(titleKey) {
-  const match = titleKey?.match(/agent\.insights\.([\w.]+)\.title/);
-  if (!match) return null;
-  return match[1].split('.')[0];
-}
+export const getInsightType = _getInsightType;
 
 /**
  * Determine the display sentiment color for an insight.

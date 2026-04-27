@@ -192,7 +192,7 @@ export async function POST(request, { params }) {
           {
             headers: {
               'Accept': 'application/json',
-              'User-Agent': 'Mozilla/5.0 (compatible; GhostPostBot/1.0)',
+              'User-Agent': 'Mozilla/5.0 (compatible; GhostSEOBot/1.0)',
             },
             signal: AbortSignal.timeout(10000),
           }

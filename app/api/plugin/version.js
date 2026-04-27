@@ -10,10 +10,19 @@
  */
 
 // Current plugin version - increment this when making updates
-export const PLUGIN_VERSION = "3.4.1";
+export const PLUGIN_VERSION = "3.4.3";
 
 // Changelog for the current version
 export const PLUGIN_CHANGELOG = `
+= 3.4.3 =
+* FIX: manipulate_element no longer false-fails with reason=render_mismatch when WordPress wptexturize, the theme, or a page builder reformats punctuation or whitespace on render. The verifier used to do a byte-exact mb_strpos against the raw response body, so saving "DGBLOG - בלוג שיווק..." would render as "DGBLOG – בלוג שיווק..." (en dash, U+2013) and the byte compare failed even though the change was visible. The verifier now strips HTML tags so text split across nested elements becomes contiguous, decodes HTML entities, normalizes every dash variant (en/em/figure/non-breaking/minus) to '-', smart quotes to straight, NBSP / narrow-NBSP to regular space, and drops bidi/zero-width marks (LRM/RLM/ZWJ/ZWNJ) on both haystack and needle before comparing. Real failures (text genuinely absent, edge cache serving stale, builder-mode meta missing) still trip the same render_mismatch with the same hint.
+
+= 3.4.2 =
+* FIX: H1 replacement no longer fails when old_h1 only differs from the page H1 by whitespace - the comparison now normalizes NBSP, narrow NBSP, zero-width space, and runs of any Unicode whitespace before matching, so "חדשות אחרונות" matches "חדשות  אחרונות" or "חדשות\\xa0אחרונות".
+* NEW: Single-H1 fallback - if the page has exactly one H1 and old_h1 doesn't normalize-match it (e.g. the AI guessed wrong text), the plugin replaces that single H1 with new_h1 anyway. The user's intent ("set the H1 to new_h1") is unambiguous when there's only one H1 on the page.
+* NEW: post_title fallback for H1 replace - when the matched H1 candidate comes from the WP post_title (Elementor theme-post-title widget, or themes that render post_title as the page H1) and no builder/HTML widget contains it, the plugin updates post_title instead of silently no-op'ing.
+* NEW: H1 replace response now includes found_h1s (every H1 detected on the page), matched_via ("normalized_match" / "single_h1_fallback" / null), and effective_old_h1 (the actual stored text that was replaced). The platform surfaces found_h1s in error messages so the chat agent can retry with the correct text on miss instead of failing blind.
+
 = 3.4.1 =
 * FIX: Fatal "Cannot redeclare GP_API_Handler::create_term()" on activation. The 3.4.0 build added a new term-CRUD method group that shadowed the existing create_term() method used by the older /taxonomies/{taxonomy}/terms route. New term methods are now prefixed with gp_ (gp_list_terms / gp_create_term / gp_update_term / gp_delete_term) so they coexist with the legacy endpoint and sites can upgrade to 3.4.x without white-screening.
 
@@ -134,12 +143,12 @@ export const PLUGIN_CHANGELOG = `
 * NEW: Language selector in Settings tab (Auto/English/Hebrew) with instant apply
 * NEW: Activity tab now records real actions (content create/update/delete, media, SEO, connections)
 * NEW: Sidebar submenu items for each plugin tab (Settings, Activity, Redirections, Add-ons)
-* NEW: GhostPost text label next to logo in admin topbar
+* NEW: GhostSEO text label next to logo in admin topbar
 * FIX: Last Ping and Last Connection Check now display real data (fixed option name mismatch)
 * FIX: Widget button overflow - text now truncates properly
 * CHANGE: Platform URL is now a clickable link in Site Information
 * CHANGE: Add-ons tab shows only active integrations
-* CHANGE: Plugin colors updated to match GhostPost platform (purple/gradient branding)
+* CHANGE: Plugin colors updated to match GhostSEO platform (purple/gradient branding)
 * CHANGE: Full permissions always enabled - gp_has_permission() always returns true
 * REMOVE: Connection steps row and connect icon from Connection tab
 * REMOVE: REST API row from Site Information
@@ -168,7 +177,7 @@ export const PLUGIN_CHANGELOG = `
 * FIX: Plural strings (e.g. AI Insights widget text) now translate to Hebrew correctly - added ngettext filter
 
 = 2.8.1 =
-* NEW: GhostPost logo now appears on WordPress Updates page and plugin details popup
+* NEW: GhostSEO logo now appears on WordPress Updates page and plugin details popup
 * FIX: Dashboard widget fully respects theme - dark mode colors postbox background, header, and title
 * FIX: Widget border-radius now resolves correctly (was using undefined CSS variable)
 
@@ -185,11 +194,11 @@ export const PLUGIN_CHANGELOG = `
 * CHANGE: Dashboard widget now appears first (top of dashboard) by default
 
 = 2.7.0 =
-* NEW: WordPress Dashboard Widget - shows site health score, pending AI insights, and quick link to GhostPost dashboard
+* NEW: WordPress Dashboard Widget - shows site health score, pending AI insights, and quick link to GhostSEO dashboard
 * Zero-latency: widget data piggybacks on existing hourly ping (no extra API calls)
 
 = 2.6.3 =
-* CHANGE: Sidebar menu name changed to "GhostPost"
+* CHANGE: Sidebar menu name changed to "GhostSEO"
 
 = 2.6.2 =
 * FIX: Sidebar icon bypasses WP mask system entirely - uses direct background-image with purple SVG

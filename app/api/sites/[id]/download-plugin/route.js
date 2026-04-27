@@ -11,7 +11,7 @@ import { getPluginMainFile } from './plugin-templates/main';
 import { getPluginConfigFile } from './plugin-templates/config';
 import { getPluginReadme } from './plugin-templates/readme';
 import { getPluginUninstall } from './plugin-templates/uninstall';
-import { getClassGhostPost } from './plugin-templates/class-ghost-post';
+import { getClassGhostSEO } from './plugin-templates/class-ghost-post';
 import { getClassApiHandler } from './plugin-templates/class-api-handler';
 import { getClassRequestValidator } from './plugin-templates/class-request-validator';
 import { getClassContentManager } from './plugin-templates/class-content-manager';
@@ -132,7 +132,7 @@ export async function GET(request, { params }) {
     pluginFolder.file('uninstall.php', getPluginUninstall());
     
     // Includes folder
-    pluginFolder.file('includes/class-ghost-post.php', getClassGhostPost());
+    pluginFolder.file('includes/class-ghost-post.php', getClassGhostSEO());
     pluginFolder.file('includes/class-gp-api-handler.php', getClassApiHandler());
     pluginFolder.file('includes/class-gp-request-validator.php', getClassRequestValidator());
     pluginFolder.file('includes/class-gp-content-manager.php', getClassContentManager());

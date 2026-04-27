@@ -280,23 +280,62 @@ class GP_Content_Manager {
     
     /**
      * Update H1 heading in page builder data and raw HTML content.
-     * Handles Elementor, Beaver Builder, shortcodes, and raw <h1> tags.
+     * Handles Elementor, Beaver Builder, shortcodes, raw <h1> tags, and the
+     * theme-post-title case where the rendered H1 is the WP post_title.
+     *
+     * Matching is whitespace-tolerant (NBSP / multi-space / Unicode whitespace
+     * are normalized before comparison). When old_h1 doesn't normalize-match
+     * any H1 on the page but the page has exactly one H1, that H1 is replaced
+     * regardless - the user's intent ("set the H1 to new_h1") is unambiguous.
      */
     private function update_h1_in_builders($post_id, $old_h1, $new_h1) {
         $old_h1 = sanitize_text_field($old_h1);
         $new_h1 = sanitize_text_field($new_h1);
         $updated = array();
-        
+
+        $candidates = $this->collect_h1_candidates($post_id);
+        $old_h1_norm = $this->normalize_h1_text($old_h1);
+
+        $effective_old = null;
+        $matched_via = null;
+        foreach ($candidates as $c) {
+            if ($this->normalize_h1_text($c['text']) === $old_h1_norm) {
+                $effective_old = $c['text'];
+                $matched_via = 'normalized_match';
+                break;
+            }
+        }
+        if ($effective_old === null && count($candidates) === 1) {
+            $effective_old = $candidates[0]['text'];
+            $matched_via = 'single_h1_fallback';
+        }
+
+        $found_texts = array();
+        foreach ($candidates as $c) {
+            $found_texts[] = $c['text'];
+        }
+        $found_texts = array_values(array_unique($found_texts));
+
+        if ($effective_old === null) {
+            return array(
+                'updated' => $updated,
+                'old_h1' => $old_h1,
+                'new_h1' => $new_h1,
+                'found_h1s' => $found_texts,
+                'matched_via' => null,
+            );
+        }
+
         // 1. Elementor: _elementor_data (JSON in post meta)
         $elementor_data = get_post_meta($post_id, '_elementor_data', true);
         if (!empty($elementor_data)) {
             $is_json = is_string($elementor_data);
             $elements = $is_json ? json_decode($elementor_data, true) : $elementor_data;
-            
+
             if (is_array($elements)) {
                 $elementor_changed = false;
-                $elements = $this->replace_h1_in_elementor($elements, $old_h1, $new_h1, $elementor_changed);
-                
+                $elements = $this->replace_h1_in_elementor($elements, $effective_old, $new_h1, $elementor_changed);
+
                 if ($elementor_changed) {
                     $new_json = wp_json_encode($elements, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
                     update_post_meta($post_id, '_elementor_data', wp_slash($new_json));
@@ -305,17 +344,16 @@ class GP_Content_Manager {
                 }
             }
         }
-        
+
         // 2. Raw HTML <h1> tags in post_content
         $post = get_post($post_id);
         if ($post && !empty($post->post_content)) {
             $content = $post->post_content;
-            $new_content = $content;
-            
-            $pattern = '/(<h1[^>]*>)\\s*' . preg_quote($old_h1, '/') . '\\s*(<\\/h1>)/i';
+
+            $pattern = '/(<h1[^>]*>)\\s*' . preg_quote($effective_old, '/') . '\\s*(<\\/h1>)/i';
             $replacement = '\${1}' . str_replace('$', '\\\\$', $new_h1) . '\${2}';
-            $new_content = preg_replace($pattern, $replacement, $new_content);
-            
+            $new_content = preg_replace($pattern, $replacement, $content);
+
             if ($new_content !== $content) {
                 GP_Entity_Sync::mark_gp_origin();
                 wp_update_post(array(
@@ -325,13 +363,13 @@ class GP_Content_Manager {
                 $updated[] = 'html_h1';
             }
         }
-        
+
         // 3. Beaver Builder: fl_builder_data (serialized in post meta)
         $bb_data = get_post_meta($post_id, '_fl_builder_data', true);
         if (!empty($bb_data) && is_array($bb_data)) {
             $bb_serialized = serialize($bb_data);
-            $new_bb_serialized = str_replace($old_h1, $new_h1, $bb_serialized);
-            
+            $new_bb_serialized = str_replace($effective_old, $new_h1, $bb_serialized);
+
             if ($new_bb_serialized !== $bb_serialized) {
                 $new_bb_data = unserialize($new_bb_serialized);
                 if ($new_bb_data !== false) {
@@ -340,18 +378,115 @@ class GP_Content_Manager {
                 }
             }
         }
-        
+
+        // 4. post_title - covers Elementor theme-post-title widget and any
+        // theme that renders the WP post title as the page H1. Only triggers
+        // when nothing else matched, to avoid renaming the post when the H1
+        // already lives in a builder widget.
+        if (empty($updated)) {
+            $post = $post ?: get_post($post_id);
+            if ($post && trim($post->post_title) === $effective_old) {
+                GP_Entity_Sync::mark_gp_origin();
+                wp_update_post(array(
+                    'ID' => $post_id,
+                    'post_title' => $new_h1,
+                ));
+                $updated[] = 'post_title';
+            }
+        }
+
         return array(
             'updated' => $updated,
             'old_h1' => $old_h1,
             'new_h1' => $new_h1,
+            'effective_old_h1' => $effective_old,
+            'matched_via' => $matched_via,
+            'found_h1s' => $found_texts,
         );
     }
-    
+
+    /**
+     * Normalize H1 text for whitespace-tolerant comparison.
+     * Handles NBSP, narrow NBSP, and runs of any Unicode whitespace.
+     */
+    private function normalize_h1_text($text) {
+        if (!is_string($text)) {
+            return '';
+        }
+        $text = str_replace(array("\\xc2\\xa0", "\\xe2\\x80\\xaf", "\\xe2\\x80\\x8b"), ' ', $text);
+        $text = preg_replace('/\\s+/u', ' ', $text);
+        return trim((string) $text);
+    }
+
+    /**
+     * Collect every H1 text that appears on the page (Elementor heading
+     * widgets with header_size=h1, theme-post-title widgets, raw <h1> tags
+     * in post_content). Returns a list of [text, source] entries.
+     */
+    private function collect_h1_candidates($post_id) {
+        $candidates = array();
+
+        $elementor_data = get_post_meta($post_id, '_elementor_data', true);
+        if (!empty($elementor_data)) {
+            $elements = is_string($elementor_data) ? json_decode($elementor_data, true) : $elementor_data;
+            if (is_array($elements)) {
+                $this->collect_h1_from_elementor($elements, $post_id, $candidates);
+            }
+        }
+
+        $post = get_post($post_id);
+        if ($post && !empty($post->post_content)) {
+            if (preg_match_all('/<h1\\b[^>]*>(.*?)<\\/h1>/is', $post->post_content, $m)) {
+                foreach ($m[1] as $inner) {
+                    $text = trim(wp_strip_all_tags($inner));
+                    if ($text !== '') {
+                        $candidates[] = array('text' => $text, 'source' => 'html_h1');
+                    }
+                }
+            }
+        }
+
+        return $candidates;
+    }
+
+    private function collect_h1_from_elementor($elements, $post_id, &$candidates) {
+        foreach ($elements as $element) {
+            if (
+                isset($element['widgetType']) &&
+                $element['widgetType'] === 'heading' &&
+                isset($element['settings']['header_size']) &&
+                $element['settings']['header_size'] === 'h1' &&
+                isset($element['settings']['title'])
+            ) {
+                $title = trim((string) $element['settings']['title']);
+                if ($title !== '') {
+                    $candidates[] = array('text' => $title, 'source' => 'elementor');
+                }
+            }
+
+            if (
+                isset($element['widgetType']) &&
+                $element['widgetType'] === 'theme-post-title'
+            ) {
+                $post = get_post($post_id);
+                if ($post && !empty($post->post_title)) {
+                    $candidates[] = array('text' => trim($post->post_title), 'source' => 'post_title');
+                }
+            }
+
+            if (!empty($element['elements']) && is_array($element['elements'])) {
+                $this->collect_h1_from_elementor($element['elements'], $post_id, $candidates);
+            }
+        }
+    }
+
     /**
      * Recursively traverse Elementor elements and replace H1 heading text.
+     * Comparison is whitespace-normalized so trailing spaces / NBSP variants
+     * still match.
      */
     private function replace_h1_in_elementor($elements, $old_h1, $new_h1, &$changed) {
+        $old_norm = $this->normalize_h1_text($old_h1);
         foreach ($elements as &$element) {
             if (
                 isset($element['widgetType']) &&
@@ -360,22 +495,22 @@ class GP_Content_Manager {
                 isset($element['settings']['header_size']) &&
                 $element['settings']['header_size'] === 'h1'
             ) {
-                if (trim($element['settings']['title']) === trim($old_h1)) {
+                if ($this->normalize_h1_text($element['settings']['title']) === $old_norm) {
                     $element['settings']['title'] = $new_h1;
                     $changed = true;
                 }
             }
-            
+
             if (
                 isset($element['widgetType']) &&
                 $element['widgetType'] === 'theme-post-title' &&
                 isset($element['settings']['title']) &&
-                trim($element['settings']['title']) === trim($old_h1)
+                $this->normalize_h1_text($element['settings']['title']) === $old_norm
             ) {
                 $element['settings']['title'] = $new_h1;
                 $changed = true;
             }
-            
+
             if (!empty($element['elements']) && is_array($element['elements'])) {
                 $element['elements'] = $this->replace_h1_in_elementor(
                     $element['elements'], $old_h1, $new_h1, $changed
@@ -383,7 +518,7 @@ class GP_Content_Manager {
             }
         }
         unset($element);
-        
+
         return $elements;
     }
     

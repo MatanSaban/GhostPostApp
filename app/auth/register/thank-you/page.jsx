@@ -24,7 +24,7 @@ export default async function ThankYouPage() {
           <CheckCircle size={40} />
         </div>
         
-        <h1 className={styles.thankYouTitle}>{t('auth.welcomeGhostPost')}</h1>
+        <h1 className={styles.thankYouTitle}>{t('auth.welcomeGhostSEO')}</h1>
         
         <p className={styles.thankYouText}>
           {t('auth.accountCreatedSuccess')}

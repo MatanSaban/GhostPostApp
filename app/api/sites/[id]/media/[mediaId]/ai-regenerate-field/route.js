@@ -86,7 +86,7 @@ async function resolveSiteLanguage(site, override) {
   if (site.url) {
     try {
       const res = await fetch(site.url, {
-        headers: { 'User-Agent': 'Mozilla/5.0 (compatible; GhostPostBot/1.0)' },
+        headers: { 'User-Agent': 'Mozilla/5.0 (compatible; GhostSEOBot/1.0)' },
         signal: AbortSignal.timeout(6000),
       });
       if (res.ok) {

@@ -226,7 +226,7 @@ function extractLogoCandidates(html, baseUrl) {
 async function downloadImage(url) {
   try {
     const response = await fetch(url, {
-      headers: { 'User-Agent': 'Mozilla/5.0 (compatible; GhostPostBot/1.0)' },
+      headers: { 'User-Agent': 'Mozilla/5.0 (compatible; GhostSEOBot/1.0)' },
       signal: AbortSignal.timeout(8000),
     });
     if (!response.ok) {

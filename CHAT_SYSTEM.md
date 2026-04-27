@@ -522,7 +522,7 @@ Orchestrates the full execution of an approved action:
 ### HTML Page Analysis (`fetchAndAnalyzePage`)
 
 For non-WordPress sites or as fallback:
-- 15-second timeout, `GhostPostBot/1.0` user agent
+- 15-second timeout, `GhostSEOBot/1.0` user agent
 - `analyzeHtml(html, url)` extracts: title, metaDescription, canonical, robots, OG tags, headings (H1/H2/H3), images with alt status, internal/external links, word count, JSON-LD structured data, hreflang tags, viewport meta
 
 ---

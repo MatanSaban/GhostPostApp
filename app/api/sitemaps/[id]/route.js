@@ -72,7 +72,7 @@ export async function GET(request, { params }) {
       // Content not stored - fetch live from the sitemap URL
       try {
         const response = await fetch(sitemap.url, {
-          headers: { 'User-Agent': 'GhostPost-Platform/1.0' },
+          headers: { 'User-Agent': 'GhostSEO-Platform/1.0' },
           signal: AbortSignal.timeout(20000),
           cache: 'no-store',
         });

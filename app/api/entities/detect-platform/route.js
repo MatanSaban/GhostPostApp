@@ -225,7 +225,7 @@ export async function POST(request) {
     try {
       const wpResponse = await fetch(`${siteUrl}/wp-json/wp/v2`, {
         method: 'HEAD',
-        headers: { 'User-Agent': 'GhostPost-Platform/1.0' },
+        headers: { 'User-Agent': 'GhostSEO-Platform/1.0' },
         signal: AbortSignal.timeout(5000),
       });
 
@@ -242,7 +242,7 @@ export async function POST(request) {
     if (!platform) {
       try {
         const htmlResponse = await fetch(siteUrl, {
-          headers: { 'User-Agent': 'GhostPost-Platform/1.0' },
+          headers: { 'User-Agent': 'GhostSEO-Platform/1.0' },
           signal: AbortSignal.timeout(10000),
         });
 

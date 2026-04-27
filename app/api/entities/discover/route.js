@@ -18,7 +18,7 @@ async function fetchWordPressSitemap(siteUrl) {
   // Check robots.txt first for ALL sitemap directives
   try {
     const robotsResponse = await fetch(`${siteUrl}/robots.txt`, {
-      headers: { 'User-Agent': 'GhostPost-Platform/1.0' },
+      headers: { 'User-Agent': 'GhostSEO-Platform/1.0' },
       signal: AbortSignal.timeout(5000),
     });
     if (robotsResponse.ok) {
@@ -52,7 +52,7 @@ async function fetchWordPressSitemap(siteUrl) {
   for (const url of discoveredUrls) {
     try {
       const response = await fetch(url, {
-        headers: { 'User-Agent': 'GhostPost-Platform/1.0' },
+        headers: { 'User-Agent': 'GhostSEO-Platform/1.0' },
         signal: AbortSignal.timeout(10000),
       });
 
@@ -82,7 +82,7 @@ async function fetchWordPressPostTypes(siteUrl) {
     // Get post types from the REST API with context=edit for full labels
     // If that fails, try without context
     let response = await fetch(`${siteUrl}/wp-json/wp/v2/types?context=view`, {
-      headers: { 'User-Agent': 'GhostPost-Platform/1.0' },
+      headers: { 'User-Agent': 'GhostSEO-Platform/1.0' },
       signal: AbortSignal.timeout(10000),
     });
 
@@ -144,7 +144,7 @@ function parseSitemapForPostTypes(sitemapContent) {
 async function fetchSubSitemap(sitemapUrl) {
   try {
     const response = await fetch(sitemapUrl, {
-      headers: { 'User-Agent': 'GhostPost-Platform/1.0' },
+      headers: { 'User-Agent': 'GhostSEO-Platform/1.0' },
       signal: AbortSignal.timeout(15000),
     });
 

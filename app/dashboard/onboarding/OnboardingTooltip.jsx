@@ -5,7 +5,7 @@ import { useLocale } from '@/app/context/locale-context';
 import styles from './OnboardingTooltip.module.css';
 
 /**
- * Custom Joyride tooltip that matches the GhostPost visual language.
+ * Custom Joyride tooltip that matches the GhostSEO visual language.
  * Joyride passes us everything we need as props.
  *
  * Extra fields supported on `step`:

@@ -231,7 +231,7 @@ export default async function RegisterPage({ searchParams }) {
     brandInitial: t('brand.initial'),
     brandName: t('brand.name'),
     createAccount: t('auth.createAccount'),
-    joinGhostPost: t('auth.joinGhostPost'),
+    joinGhostSEO: t('auth.joinGhostSEO'),
     login: t('auth.login'),
     register: t('auth.register'),
     hasAccount: t('auth.hasAccount'),
@@ -249,11 +249,11 @@ export default async function RegisterPage({ searchParams }) {
         
         <div className={styles.authHeader}>
           <div className={styles.authLogo}>
-            <Image src="/ghostpost_logo.png" alt="GhostSEO" width={48} height={48} className={styles.logoImage} />
+            <Image src="/favicon.svg" alt="GhostSEO" width={48} height={48} className={styles.logoImage} />
             <span className={styles.logoText}>{translations.brandName}</span>
           </div>
           <h1 className={styles.authTitle}>{translations.createAccount}</h1>
-          <p className={styles.authSubtitle}>{translations.joinGhostPost}</p>
+          <p className={styles.authSubtitle}>{translations.joinGhostSEO}</p>
         </div>
 
         <RegistrationFlow translations={translations} initialStep={initialStep} initialFormData={initialFormData} initialPlan={initialPlan} />

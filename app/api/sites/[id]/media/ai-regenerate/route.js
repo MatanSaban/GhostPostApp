@@ -64,7 +64,7 @@ async function resolveSiteLanguage(site, override) {
   if (site.url) {
     try {
       const res = await fetch(site.url, {
-        headers: { 'User-Agent': 'Mozilla/5.0 (compatible; GhostPostBot/1.0)' },
+        headers: { 'User-Agent': 'Mozilla/5.0 (compatible; GhostSEOBot/1.0)' },
         signal: AbortSignal.timeout(8000),
       });
       if (res.ok) {
@@ -105,7 +105,7 @@ function languageName(code) {
 async function fetchImageAsBase64(url) {
   try {
     const res = await fetch(url, {
-      headers: { 'User-Agent': 'Mozilla/5.0 (compatible; GhostPostBot/1.0)' },
+      headers: { 'User-Agent': 'Mozilla/5.0 (compatible; GhostSEOBot/1.0)' },
       signal: AbortSignal.timeout(12000),
     });
     if (!res.ok) return null;

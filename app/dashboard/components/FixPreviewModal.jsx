@@ -366,6 +366,111 @@ export default function FixPreviewModal({ open, onClose, insight, translations, 
       }).filter(Boolean);
     }
 
+    // Meta-length variants reuse the missingSeo skeleton — same data shape.
+    if (
+      type === 'metaTitleTooShort' || type === 'metaTitleTooLong'
+      || type === 'metaDescTooShort' || type === 'metaDescTooLong'
+    ) {
+      const pages = insight.data?.pages || [];
+      const indices = itemIndices || pages.map((_, i) => i);
+      return indices.map(i => {
+        const page = pages[i];
+        if (!page) return null;
+        return {
+          page: page.title || page.slug || '',
+          url: page.url,
+          realIndex: i,
+          status: 'loading',
+          current: { title: '', description: '' },
+          proposed: null,
+          metaIssue: { field: type.includes('Title') ? 'title' : 'description', length: page.length },
+        };
+      }).filter(Boolean);
+    }
+
+    // H1 fixes (missingH1Tag, multipleH1Tags)
+    if (type === 'missingH1Tag' || type === 'multipleH1Tags') {
+      const pages = insight.data?.pages || [];
+      const indices = itemIndices || pages.map((_, i) => i);
+      return indices.map(i => {
+        const page = pages[i];
+        if (!page) return null;
+        return {
+          pageId: page.id,
+          page: page.title || page.slug || '',
+          url: page.url,
+          realIndex: i,
+          status: 'loading',
+          isH1Fix: true,
+          h1FixMode: type === 'multipleH1Tags' ? 'demoteOthers' : 'addNew',
+          current: { h1Count: page.h1Count },
+          proposed: null,
+        };
+      }).filter(Boolean);
+    }
+
+    // Content refresh (staleContent / decliningPages / contentWithoutTraffic)
+    if (type === 'staleContent' || type === 'decliningPages' || type === 'contentWithoutTraffic') {
+      const pages = insight.data?.pages || insight.data?.oldestPages || [];
+      const indices = itemIndices || pages.map((_, i) => i);
+      return indices.map(i => {
+        const page = pages[i];
+        if (!page) return null;
+        return {
+          page: page.title || page.slug || page.page || '',
+          url: page.url || page.page,
+          realIndex: i,
+          status: 'loading',
+          isContentRefresh: true,
+          current: { title: page.title, lastUpdated: page.updatedAt || page.publishedAt },
+          proposed: null,
+        };
+      }).filter(Boolean);
+    }
+
+    // New article (contentGaps / newKeywordOpportunities)
+    if (type === 'contentGaps' || type === 'newKeywordOpportunities') {
+      const items = type === 'contentGaps'
+        ? (insight.data?.topGaps || [])
+        : (insight.data?.queries || []);
+      const indices = itemIndices || items.map((_, i) => i);
+      return indices.map(i => {
+        const item = items[i];
+        if (!item) return null;
+        return {
+          seedTopic: item.topic || item.keyword || item.query || item.title,
+          realIndex: i,
+          status: 'loading',
+          isNewArticle: true,
+          impressions: item.impressions,
+          position: item.position,
+          proposed: null,
+        };
+      }).filter(Boolean);
+    }
+
+    // Internal links (unlinkedKeywords) — single batch proposal, not per-item
+    if (type === 'unlinkedKeywords') {
+      return [{
+        keywords: insight.data?.keywords || [],
+        status: 'loading',
+        isInternalLinks: true,
+        proposed: null,
+      }];
+    }
+
+    // AI engine gap — single page, two-part fix
+    if (type === 'aiEngineGap') {
+      return [{
+        url: insight.data?.url || insight.data?.page,
+        status: 'loading',
+        isAiEngineGap: true,
+        primaryEngine: insight.data?.primaryEngine,
+        missingEngines: insight.data?.missingEngines,
+        proposed: null,
+      }];
+    }
+
     return [];
   }, [insight, itemIndices]);
 
@@ -427,6 +532,11 @@ export default function FixPreviewModal({ open, onClose, insight, translations, 
               const merged = { ...data.proposal };
               if (p.isImageFix) { merged.isImageFix = true; merged.imageFixType = p.imageFixType; }
               if (p.isCannibalization) merged.isCannibalization = true;
+              if (p.isH1Fix) { merged.isH1Fix = true; merged.h1FixMode = p.h1FixMode; }
+              if (p.isContentRefresh) merged.isContentRefresh = true;
+              if (p.isNewArticle) { merged.isNewArticle = true; merged.seedTopic = p.seedTopic; }
+              if (p.isInternalLinks) merged.isInternalLinks = true;
+              if (p.isAiEngineGap) merged.isAiEngineGap = true;
               return merged;
             }));
             // Populate merge instructions immediately alongside proposals update
@@ -563,6 +673,11 @@ export default function FixPreviewModal({ open, onClose, insight, translations, 
           const merged = { ...data.proposal };
           if (p.isImageFix) { merged.isImageFix = true; merged.imageFixType = p.imageFixType; }
           if (p.isCannibalization) merged.isCannibalization = true;
+          if (p.isH1Fix) { merged.isH1Fix = true; merged.h1FixMode = p.h1FixMode; }
+          if (p.isContentRefresh) merged.isContentRefresh = true;
+          if (p.isNewArticle) { merged.isNewArticle = true; merged.seedTopic = p.seedTopic; }
+          if (p.isInternalLinks) merged.isInternalLinks = true;
+          if (p.isAiEngineGap) merged.isAiEngineGap = true;
           return merged;
         }));
         // Update merge instructions on regeneration
@@ -582,7 +697,13 @@ export default function FixPreviewModal({ open, onClose, insight, translations, 
   // ─── Apply single item ──────────────────────────────────────
 
   // Helper to get unique key for tracking applied items
-  const getProposalKey = (p) => p.isCannibalization ? `cann-${p.issueIndex}` : (p.postId || p.pageId);
+  const getProposalKey = (p) => {
+    if (p.isCannibalization) return `cann-${p.issueIndex}`;
+    if (p.isInternalLinks) return `link-${p.keyword || p.realIndex || 0}`;
+    if (p.isNewArticle) return `new-${p.realIndex ?? p.seedTopic}`;
+    if (p.isAiEngineGap) return `gap-${p.url || 0}`;
+    return p.postId || p.pageId || `idx-${p.realIndex ?? 0}`;
+  };
 
   const handleApplySingle = async (idx) => {
     const proposal = proposals[idx];
@@ -1549,6 +1670,149 @@ export default function FixPreviewModal({ open, onClose, insight, translations, 
                               : appliedResult.status === 'manual_required'
                                 ? <><AlertTriangle size={13} /> {dl.manualRequired || 'Manual action required'}</>
                                 : <><XCircle size={13} /> {appliedResult.reason || (t.fixItemFailed || 'Failed')}</>}
+                          </div>
+                        )}
+                      </div>
+                    ) : p.isH1Fix ? (
+                      <div className={styles.skeletonFields}>
+                        {p.h1FixMode === 'demoteOthers' ? (
+                          <>
+                            <div className={styles.seoField}>
+                              <div className={styles.seoFieldLabel}>{t.fixFieldH1Keep || 'Keep as H1'}</div>
+                              <div className={styles.seoRow}>
+                                <span className={styles.seoText}>{p.proposed?.keepText}</span>
+                              </div>
+                            </div>
+                            {p.proposed?.reasoning && (
+                              <div className={styles.seoField}>
+                                <div className={styles.seoFieldLabel}>{t.fixFieldReasoning || 'Reasoning'}</div>
+                                <div className={styles.seoText}>{p.proposed.reasoning}</div>
+                              </div>
+                            )}
+                            <div className={styles.seoFieldLabel} style={{ marginTop: '6px', opacity: 0.7 }}>
+                              {(t.fixH1OthersDemoted || 'Other H1s on the page will be demoted to H2').replace('{n}', String((p.h1List?.length || 1) - 1))}
+                            </div>
+                          </>
+                        ) : (
+                          <div className={styles.seoField}>
+                            <div className={styles.seoFieldLabel}>{t.fixFieldH1New || 'New H1'}</div>
+                            <div className={styles.seoRow}>
+                              <span className={`${styles.seoLabel} ${styles.labelNew}`}>{t.fixNew || 'New'}</span>
+                              <span className={styles.seoText}>{p.proposed?.h1}</span>
+                            </div>
+                          </div>
+                        )}
+                        {appliedResult && (
+                          <div className={`${styles.applyStatus} ${appliedResult.status === 'fixed' ? styles.applyStatusFixed : styles.applyStatusError}`}>
+                            {appliedResult.status === 'fixed'
+                              ? <><CheckCircle2 size={13} /> {t.fixItemApplied || 'Applied'}</>
+                              : <><XCircle size={13} /> {appliedResult.reason || (t.fixItemFailed || 'Failed')}</>}
+                          </div>
+                        )}
+                      </div>
+                    ) : p.isContentRefresh ? (
+                      <div className={styles.skeletonFields}>
+                        <div className={styles.seoField}>
+                          <div className={styles.seoFieldLabel}>{t.fixFieldRefreshedTitle || 'Refreshed Title'}</div>
+                          <div className={styles.seoText}>{p.proposed?.refreshedTitle}</div>
+                        </div>
+                        {p.proposed?.changeSummary && (
+                          <div className={styles.seoField}>
+                            <div className={styles.seoFieldLabel}>{t.fixFieldChangeSummary || 'Summary'}</div>
+                            <div className={styles.seoText}>{p.proposed.changeSummary}</div>
+                          </div>
+                        )}
+                        {p.proposed?.refreshedSeo && (
+                          <div className={styles.seoField}>
+                            <div className={styles.seoFieldLabel}>{t.fixFieldDesc || 'Meta Description'}</div>
+                            <div className={styles.seoText}>{p.proposed.refreshedSeo.description}</div>
+                          </div>
+                        )}
+                        {appliedResult && (
+                          <div className={`${styles.applyStatus} ${appliedResult.status === 'fixed' ? styles.applyStatusFixed : styles.applyStatusError}`}>
+                            {appliedResult.status === 'fixed'
+                              ? <><CheckCircle2 size={13} /> {t.fixItemApplied || 'Applied'}</>
+                              : <><XCircle size={13} /> {appliedResult.reason || (t.fixItemFailed || 'Failed')}</>}
+                          </div>
+                        )}
+                      </div>
+                    ) : p.isNewArticle ? (
+                      <div className={styles.skeletonFields}>
+                        <div className={styles.seoField}>
+                          <div className={styles.seoFieldLabel}>{t.fixFieldSeed || 'Seed Topic'}</div>
+                          <div className={styles.seoText}>{p.seedTopic}</div>
+                        </div>
+                        <div className={styles.seoField}>
+                          <div className={styles.seoFieldLabel}>{t.fixFieldArticleTitle || 'Article Title'}</div>
+                          <div className={styles.seoText}>{p.proposed?.title}</div>
+                        </div>
+                        {p.proposed?.excerpt && (
+                          <div className={styles.seoField}>
+                            <div className={styles.seoFieldLabel}>{t.fixFieldExcerpt || 'Excerpt'}</div>
+                            <div className={styles.seoText}>{p.proposed.excerpt}</div>
+                          </div>
+                        )}
+                        <div className={styles.seoFieldLabel} style={{ marginTop: '6px', opacity: 0.7 }}>
+                          {t.fixNewArticleDraftNote || 'Will be created as a draft — review before publishing.'}
+                        </div>
+                        {appliedResult && (
+                          <div className={`${styles.applyStatus} ${appliedResult.status === 'fixed' ? styles.applyStatusFixed : styles.applyStatusError}`}>
+                            {appliedResult.status === 'fixed'
+                              ? <><CheckCircle2 size={13} /> {t.fixItemApplied || 'Draft created'}</>
+                              : <><XCircle size={13} /> {appliedResult.reason || (t.fixItemFailed || 'Failed')}</>}
+                          </div>
+                        )}
+                      </div>
+                    ) : p.isInternalLinks ? (
+                      <div className={styles.skeletonFields}>
+                        <div className={styles.seoField}>
+                          <div className={styles.seoFieldLabel}>{t.fixFieldInternalLink || 'Internal Link'}</div>
+                          <div className={styles.seoRow}>
+                            <span className={styles.seoText}>
+                              <strong>{p.keyword}</strong>: <em>{p.anchor}</em> → <code>{p.targetUrl}</code>
+                            </span>
+                          </div>
+                        </div>
+                        {p.reason && (
+                          <div className={styles.seoField}>
+                            <div className={styles.seoFieldLabel}>{t.fixFieldReasoning || 'Why'}</div>
+                            <div className={styles.seoText}>{p.reason}</div>
+                          </div>
+                        )}
+                        {appliedResult && (
+                          <div className={`${styles.applyStatus} ${appliedResult.status === 'fixed' ? styles.applyStatusFixed : styles.applyStatusError}`}>
+                            {appliedResult.status === 'fixed'
+                              ? <><CheckCircle2 size={13} /> {t.fixItemApplied || 'Applied'}</>
+                              : <><XCircle size={13} /> {appliedResult.reason || (t.fixItemFailed || 'Failed')}</>}
+                          </div>
+                        )}
+                      </div>
+                    ) : p.isAiEngineGap ? (
+                      <div className={styles.skeletonFields}>
+                        <div className={styles.seoFieldLabel} style={{ opacity: 0.7 }}>
+                          {(t.fixAiEngineGapNote || 'Will add JSON-LD schema + a concise TL;DR intro to improve AI citability.')}
+                        </div>
+                        {p.proposed?.schemaProposal?.jsonLd && (
+                          <div className={styles.seoField}>
+                            <div className={styles.seoFieldLabel}>{t.fixFieldSchema || 'Schema (JSON-LD)'}</div>
+                            <div className={styles.seoText} style={{ fontFamily: 'monospace', fontSize: '11px', opacity: 0.85 }}>
+                              {String(p.proposed.schemaProposal.jsonLd).slice(0, 200)}…
+                            </div>
+                          </div>
+                        )}
+                        {p.proposed?.answerableProposal?.tldrSentences?.length > 0 && (
+                          <div className={styles.seoField}>
+                            <div className={styles.seoFieldLabel}>{t.fixFieldTldr || 'TL;DR'}</div>
+                            <ul className={styles.seoText}>
+                              {p.proposed.answerableProposal.tldrSentences.slice(0, 3).map((s, i) => <li key={i}>{s}</li>)}
+                            </ul>
+                          </div>
+                        )}
+                        {appliedResult && (
+                          <div className={`${styles.applyStatus} ${appliedResult.status === 'fixed' ? styles.applyStatusFixed : styles.applyStatusError}`}>
+                            {appliedResult.status === 'fixed'
+                              ? <><CheckCircle2 size={13} /> {t.fixItemApplied || 'Applied'}</>
+                              : <><XCircle size={13} /> {appliedResult.reason || (t.fixItemFailed || 'Failed')}</>}
                           </div>
                         )}
                       </div>

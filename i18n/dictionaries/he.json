@@ -414,7 +414,7 @@
     "systemAccess": "גישה למערכת",
     "connectWorkspace": "התחבר לסביבת העבודה שלך ב-GhostSEO",
     "createAccount": "יצירת חשבון",
-    "joinGhostPost": "הצטרף ל-GhostSEO ואוטמט את ה-SEO שלך",
+    "joinGhostSEO": "הצטרף ל-GhostSEO ואוטמט את ה-SEO שלך",
     "fullName": "שם מלא",
     "connect": "התחבר",
     "orContinueWith": "או המשך עם",
@@ -422,7 +422,7 @@
     "termsOfService": "תנאי השימוש",
     "privacyPolicy": "מדיניות הפרטיות",
     "createOne": "צור חשבון",
-    "welcomeGhostPost": "ברוכים הבאים ל-GhostSEO!",
+    "welcomeGhostSEO": "ברוכים הבאים ל-GhostSEO!",
     "accountCreatedSuccess": "החשבון שלך נוצר בהצלחה. אתה מוכן להתחיל לאוטמט את אסטרטגיית ה-SEO והתוכן שלך עם הפלטפורמה מונעת ה-AI שלנו.",
     "emailPlaceholder": "הזן את האימייל שלך",
     "passwordPlaceholder": "הזן את הסיסמה שלך",
@@ -5699,10 +5699,10 @@
     "interview": {
       "title": "ספר לנו על העסק שלך",
       "subtitle": "עזור לנו להתאים אישית את אסטרטגיית ה-SEO שלך",
-      "greeting": "ברוכים הבאים ל-GhostPost! אני העוזר ה-AI שלך ואעזור לך להקים את החשבון. בואו נלמד על העסק שלך כדי ליצור את אסטרטגיית ה-SEO המושלמת.",
+      "greeting": "ברוכים הבאים ל-GhostSEO! אני העוזר ה-AI שלך ואעזור לך להקים את החשבון. בואו נלמד על העסק שלך כדי ליצור את אסטרטגיית ה-SEO המושלמת.",
       "startButton": "התחל הגדרה",
       "questions": {
-        "websiteUrl": "מה האתר הראשון שתרצה להוסיף לGhostPost?",
+        "websiteUrl": "מה האתר הראשון שתרצה להוסיף לGhostSEO?",
         "contentLanguage": "באיזו שפה התוכן שלך צריך להיכתב?",
         "businessConfirmation": "האם המידע הזה נראה נכון?",
         "keywords": "בחר מילות מפתח רלוונטיות לעסק שלך",
@@ -6057,7 +6057,7 @@
       },
       "install-plugin": {
         "title": "התקנת פלאגין WordPress",
-        "description": "התקן את הפלאגין של GhostPost באתר ה־WordPress שלך כדי שהפלטפורמה תוכל לקרוא תוכן, ליישם תיקוני SEO ולהריץ ביקורות ישירות."
+        "description": "התקן את הפלאגין של GhostSEO באתר ה־WordPress שלך כדי שהפלטפורמה תוכל לקרוא תוכן, ליישם תיקוני SEO ולהריץ ביקורות ישירות."
       },
       "detect-entities": {
         "title": "זיהוי ישויות",
@@ -6109,15 +6109,15 @@
       },
       "site-profile": {
         "title": "פרופיל אתר (ראיון AI)",
-        "description": "ענה על ראיון קצר בהנחיית AI כדי ש־GhostPost יבין את העסק, הקהל והמטרות שלך. כל פיצ׳ר אחר הופך לחכם יותר אחרי זה."
+        "description": "ענה על ראיון קצר בהנחיית AI כדי ש־GhostSEO יבין את העסק, הקהל והמטרות שלך. כל פיצ׳ר אחר הופך לחכם יותר אחרי זה."
       },
       "entities-manager": {
         "title": "מנהל ישויות",
-        "description": "עיין, סנן וערוך כל פריט תוכן ש־GhostPost עוקב אחריו - עמודים, פוסטים, קטגוריות, מדיה ועוד."
+        "description": "עיין, סנן וערוך כל פריט תוכן ש־GhostSEO עוקב אחריו - עמודים, פוסטים, קטגוריות, מדיה ועוד."
       },
       "sitemaps": {
         "title": "מפות אתר",
-        "description": "ייבא מפות אתר XML, סנכרן לפי דרישה וראה בדיוק אילו כתובות GhostPost מנטר."
+        "description": "ייבא מפות אתר XML, סנכרן לפי דרישה וראה בדיוק אילו כתובות GhostSEO מנטר."
       },
       "media-library": {
         "title": "ספריית מדיה",
@@ -6153,7 +6153,7 @@
       },
       "link-building": {
         "title": "בניית קישורים",
-        "description": "הפעל קמפייני outreach - מצא מועמדים, שלח מיילים מתבנית ועקוב אחרי תשובות ישירות מתוך GhostPost."
+        "description": "הפעל קמפייני outreach - מצא מועמדים, שלח מיילים מתבנית ועקוב אחרי תשובות ישירות מתוך GhostSEO."
       },
       "automations": {
         "title": "אוטומציות",
@@ -6161,8 +6161,8 @@
       }
     },
     "greeting": {
-      "title": "ברוכים הבאים ל-GhostPost",
-      "titleWithName": "ברוכים הבאים ל-GhostPost, {name}",
+      "title": "ברוכים הבאים ל-GhostSEO",
+      "titleWithName": "ברוכים הבאים ל-GhostSEO, {name}",
       "subtitle": "נכין את סביבת העבודה שלך בכמה שלבים מודרכים.",
       "videoPlaceholder": "סרטון היכרות יתווסף בקרוב",
       "highlight1": "חבר את האנליטיקה ואמת את האתר שלך בפחות מדקה.",
@@ -6193,7 +6193,7 @@
       },
       "INSTALL_PLUGIN": {
         "title": "התקנת התוסף לוורדפרס",
-        "subtitle": "התקן והפעל את תוסף GhostPost באתר שלך."
+        "subtitle": "התקן והפעל את תוסף GhostSEO באתר שלך."
       },
       "KEYWORDS": {
         "title": "מחקר מילות מפתח",
@@ -6235,11 +6235,11 @@
       },
       "step3": {
         "title": "חיבור ל-Google",
-        "content": "לחץ כאן כדי לאשר ל-GhostPost לקרוא את נתוני Search Console ו-Analytics שלך."
+        "content": "לחץ כאן כדי לאשר ל-GhostSEO לקרוא את נתוני Search Console ו-Analytics שלך."
       },
       "stepGa": {
         "title": "הפעלת Google Analytics",
-        "content": "אשר הרשאות Analytics ובחר את מאפיין ה-GA4 עבור האתר הזה. GhostPost משתמש בנתונים האלה כדי להציג תנועה, מעורבות ואותות המרה."
+        "content": "אשר הרשאות Analytics ובחר את מאפיין ה-GA4 עבור האתר הזה. GhostSEO משתמש בנתונים האלה כדי להציג תנועה, מעורבות ואותות המרה."
       },
       "stepGsc": {
         "title": "הפעלת Search Console",
@@ -6262,12 +6262,12 @@
       },
       "stepScan": {
         "title": "סריקת האתר",
-        "content": "לחץ על סריקה כדי לסרוק את מפת האתר (או לבצע סריקה מלאה כגיבוי). כך חושפים את כל סוגי הישויות ש-GhostPost יכול לעקוב אחריהם.",
+        "content": "לחץ על סריקה כדי לסרוק את מפת האתר (או לבצע סריקה מלאה כגיבוי). כך חושפים את כל סוגי הישויות ש-GhostSEO יכול לעקוב אחריהם.",
         "actionHint": "סורק - נמשיך אוטומטית כשהישויות יתגלו…"
       },
       "step4": {
         "title": "בחירת סוגי הישויות",
-        "content": "סקור את מה שמצאנו והפעל את סוגי התוכן שתרצה ש-GhostPost יעקוב אחריהם - דפים, פוסטים, מוצרים וכל דבר אחר שקיים באתר שלך."
+        "content": "סקור את מה שמצאנו והפעל את סוגי התוכן שתרצה ש-GhostSEO יעקוב אחריהם - דפים, פוסטים, מוצרים וכל דבר אחר שקיים באתר שלך."
       },
       "step5": {
         "title": "אכלוס הישויות",
@@ -6277,8 +6277,8 @@
     },
     "installPlugin": {
       "step1": {
-        "title": "התקנת התוסף של GhostPost",
-        "content": "באתרי WordPress, התוסף הוא הדרך שבה GhostPost מתחבר לאתר שלך כדי לקרוא ולפרסם תוכן."
+        "title": "התקנת התוסף של GhostSEO",
+        "content": "באתרי WordPress, התוסף הוא הדרך שבה GhostSEO מתחבר לאתר שלך כדי לקרוא ולפרסם תוכן."
       },
       "step2": {
         "title": "הורדת התוסף",
@@ -6296,7 +6296,7 @@
       },
       "stepAiInterview": {
         "title": "התחלה עם ראיון ה-AI",
-        "content": "הדרך המהירה ביותר להקים את רשימת מילות המפתח שלך: ענה על כמה שאלות על העסק ו-GhostPost יבנה לך סט מילות מפתח מותאם אישית.",
+        "content": "הדרך המהירה ביותר להקים את רשימת מילות המפתח שלך: ענה על כמה שאלות על העסק ו-GhostSEO יבנה לך סט מילות מפתח מותאם אישית.",
         "actionHint": "ממתינים שתתחיל את הראיון…"
       },
       "stepAdd": {
@@ -6315,7 +6315,7 @@
       },
       "stepAiDiscover": {
         "title": "תן ל-AI למצוא את המתחרים שלך",
-        "content": "לחץ כאן ו-GhostPost ינתח את מילות המפתח שלך כדי לזהות את המתחרים שבאמת חשובים. בחר את אלה שאתה רוצה לעקוב אחריהם.",
+        "content": "לחץ כאן ו-GhostSEO ינתח את מילות המפתח שלך כדי לזהות את המתחרים שבאמת חשובים. בחר את אלה שאתה רוצה לעקוב אחריהם.",
         "actionHint": "ממתינים שתבחר מתחרים ותשמור…"
       },
       "stepAdd": {
@@ -6372,7 +6372,7 @@
       },
       "step2": {
         "title": "סביבת האשף",
-        "content": "בחר מילת מפתח, תן ל-GhostPost לנסח, סקור את התוצאה ופרסם - הכול מכאן."
+        "content": "בחר מילת מפתח, תן ל-GhostSEO לנסח, סקור את התוצאה ופרסם - הכול מכאן."
       }
     },
     "dashboardHome": {
@@ -6398,7 +6398,7 @@
       },
       "step6": {
         "title": "תנועה מ-AI",
-        "content": "GhostPost מנטר תנועה שמגיעה ממנועי AI בנפרד - ChatGPT, Perplexity, Gemini ועוד - כדי שתראה איך AI מגלה את התוכן שלך."
+        "content": "GhostSEO מנטר תנועה שמגיעה ממנועי AI בנפרד - ChatGPT, Perplexity, Gemini ועוד - כדי שתראה איך AI מגלה את התוכן שלך."
       }
     },
     "myWebsites": {
@@ -6470,11 +6470,11 @@
     "finished": {
       "title": "הכול מוכן",
       "titleWithName": "הכול מוכן, {name}",
-      "subtitle": "סביבת העבודה שלך ב-GhostPost מוכנה. עכשיו נגדיל את התנועה האורגנית שלך.",
+      "subtitle": "סביבת העבודה שלך ב-GhostSEO מוכנה. עכשיו נגדיל את התנועה האורגנית שלך.",
       "highlight1": "אפשר לפתוח את המדריך מחדש בכל עת מהסמל ? בכותרת.",
       "highlight2": "סוכן ה-AI ימשיך לנטר את האתר שלך ברקע.",
       "highlight3": "מדריכים נוספים יופיעו במרכז המדריכים.",
-      "closeButton": "התחל להשתמש ב-GhostPost"
+      "closeButton": "התחל להשתמש ב-GhostSEO"
     }
   },
   "admin": {
@@ -8110,6 +8110,9 @@
     "execute": "בצע",
     "fixWithAi": "תקן עם AI",
     "fixWithAiCost": "תקן עם AI (1 קרדיט)",
+    "fixFree": "תקן",
+    "fixCostFree": "0 קרדיטים",
+    "creditsLabel": "קרדיטים",
     "aiCredit": "קרדיט",
     "vs": "לעומת",
     "fixing": "מתקן...",
@@ -8122,6 +8125,20 @@
     "fixRegenerate": "צור מחדש",
     "fixFieldTitle": "כותרת SEO",
     "fixFieldDesc": "תיאור Meta",
+    "fixFieldH1New": "H1 חדש",
+    "fixFieldH1Keep": "השאר כ-H1",
+    "fixFieldReasoning": "נימוק",
+    "fixH1OthersDemoted": "כותרות H1 אחרות בעמוד יורדו ל-H2",
+    "fixFieldRefreshedTitle": "כותרת מעודכנת",
+    "fixFieldChangeSummary": "סיכום",
+    "fixFieldSeed": "נושא בסיס",
+    "fixFieldArticleTitle": "כותרת המאמר",
+    "fixFieldExcerpt": "תקציר",
+    "fixNewArticleDraftNote": "ייווצר כטיוטה — בדוק לפני פרסום.",
+    "fixFieldInternalLink": "קישור פנימי",
+    "fixFieldSchema": "Schema (JSON-LD)",
+    "fixFieldTldr": "TL;DR",
+    "fixAiEngineGapNote": "יוסיף סכמת JSON-LD ופסקת TL;DR קצרה כדי לשפר את הציטוט במנועי AI.",
     "fixCurrent": "כעת",
     "fixNew": "חדש",
     "fixEmpty": "(ריק)",
@@ -8377,6 +8394,13 @@
       "gscSiteUrl": "נכס GSC",
       "platform": "פלטפורמה",
       "engine": "מנוע AI",
+      "titleLength": "אורך כותרת",
+      "descLength": "אורך תיאור",
+      "bounds": "אורך מומלץ",
+      "pagesAffected": "עמודים מושפעים",
+      "h1Count": "כמות H1",
+      "primaryEngine": "מנוע ראשי",
+      "missingFrom": "חסר ב",
       "confidence": "וודאות",
       "recommended": "מומלץ",
       "competingPages": "עמודים מתחרים",

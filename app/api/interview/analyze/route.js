@@ -1024,7 +1024,7 @@ async function checkForBlog(url, platform) {
     try {
       const response = await fetch(`${url}${path}`, {
         method: 'HEAD',
-        headers: { 'User-Agent': 'GhostPost-Analyzer/1.0' },
+        headers: { 'User-Agent': 'GhostSEO-Analyzer/1.0' },
       });
       
       if (response.ok) {
@@ -1048,7 +1048,7 @@ async function checkSitemap(url) {
     try {
       const response = await fetch(`${url}${path}`, {
         method: 'HEAD',
-        headers: { 'User-Agent': 'GhostPost-Analyzer/1.0' },
+        headers: { 'User-Agent': 'GhostSEO-Analyzer/1.0' },
       });
       
       if (response.ok) {

@@ -1,32 +1,23 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import prisma from '@/lib/prisma';
-import { generateInsightPreview, applyInsightFix, regenerateItem, isFixableType, generateMergedContent, applyMergedContent } from '@/lib/agent-fix';
+import { generateInsightPreview, applyInsightFix, regenerateItem, isFixableType, isFreeFixable, applyFreeFix, generateMergedContent, applyMergedContent } from '@/lib/agent-fix';
+import { getFixerConfig, getInsightType } from '@/lib/agent-fix/registry.js';
 import { invalidateAgentInsights } from '@/lib/cache/invalidate.js';
 import { enforceCredits } from '@/lib/account-limits';
 import { notifyThirdPartyAiFailure } from '@/lib/admin-alerts';
 
 const SESSION_COOKIE = 'user_session';
 
-// Lower-bound credit floors per insight type. Real charging is dynamic
-// (token-based, inside generateStructuredResponse / generateImage), but the
-// preflight uses these to refuse near-empty accounts BEFORE we kick off an
-// expensive call that's guaranteed to fail at deduction time.
-const PREFLIGHT_CREDIT_FLOOR = {
-  missingSeo: 3,
-  keywordStrikeZone: 3,
-  lowCtrForPosition: 3,
-  cannibalization: 30,
-  missingFeaturedImage: 8,
-  insufficientContentImages: 8,
-  aiPageMissingSchema: 4,
-  aiAnswerableButNotConcise: 4,
-};
-
-function getInsightType(titleKey) {
-  if (!titleKey) return null;
-  if (titleKey.includes('cannibalization')) return 'cannibalization';
-  return titleKey.match(/agent\.insights\.(\w+)\.title/)?.[1] || null;
+// Lower-bound credit floor for AI fixes. Real charging is dynamic (token-based,
+// inside generateStructuredResponse / generateImage); the preflight uses the
+// per-type credits from the registry to refuse near-empty accounts BEFORE we
+// kick off a call that's guaranteed to fail at deduction time. Free fixes
+// (registry kind === 'free') bypass this entirely.
+function getPreflightFloor(titleKey) {
+  const cfg = getFixerConfig(titleKey);
+  if (!cfg || cfg.kind !== 'ai') return 0;
+  return cfg.credits || 3;
 }
 
 // Mirror of the audit dispatcher's classifier — Vertex/Gemini upstream
@@ -288,30 +279,77 @@ export async function POST(request, { params }) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
-    if (site.connectionStatus !== 'CONNECTED') {
-      return NextResponse.json({ error: 'Plugin is not connected' }, { status: 400 });
-    }
-
     if (!isFixableType(insight.titleKey)) {
       return NextResponse.json({ error: 'This insight type cannot be auto-fixed' }, { status: 400 });
+    }
+
+    // Some free fixes (e.g. rescanCompetitors) operate on platform DB only and
+    // don't need a connected CMS. Everything else requires a live connection.
+    const fixerCfg = getFixerConfig(insight.titleKey);
+    const requiresConnection = fixerCfg?.requiresConnection !== false;
+    if (requiresConnection && site.connectionStatus !== 'CONNECTED') {
+      return NextResponse.json({ error: 'Plugin is not connected' }, { status: 400 });
     }
 
     if (!['PENDING', 'APPROVED', 'FAILED', 'EXECUTED'].includes(insight.status)) {
       return NextResponse.json({ error: 'Insight cannot be fixed in this status' }, { status: 400 });
     }
 
-    // ─── Credit preflight ────────────────────────────────────
+    const insightType = getInsightType(insight.titleKey);
+    const isCannibalization = insightType === 'cannibalization';
+    const isFree = isFreeFixable(insight.titleKey);
+
+    // ─── Free fixes: short-circuit, skip credit gating + preview flow ──
+    if (isFree) {
+      if (mode !== 'apply' && mode !== 'preview') {
+        return NextResponse.json({ error: 'Free fixes only support mode "apply"' }, { status: 400 });
+      }
+      // Free fixes don't have a preview phase — UI calls apply directly.
+      // We still allow `mode: 'preview'` to return the no-op success so the
+      // shared modal-open path doesn't have to special-case free fixers.
+      if (mode === 'preview') {
+        return NextResponse.json({ success: true, free: true, proposals: [] });
+      }
+      try {
+        const result = await applyFreeFix(insight, site, body.itemIndices || null);
+        // Merge with previously fixed items
+        const prevResults = insight.executionResult?.results || [];
+        const allResults = [...prevResults];
+        for (const r of (result.results || [])) {
+          const existingIdx = allResults.findIndex(p => p.url === r.url || p.postId === r.postId);
+          if (existingIdx >= 0) allResults[existingIdx] = r;
+          else allResults.push(r);
+        }
+        await prisma.agentInsight.update({
+          where: { id },
+          data: {
+            executionResult: { ...result, results: allResults },
+            ...(result.success ? { status: 'EXECUTED', executedAt: new Date() } : {}),
+          },
+        });
+        invalidateAgentInsights(insight.siteId);
+        return NextResponse.json({
+          success: result.success,
+          summary: result.summary,
+          results: result.results,
+          free: true,
+        });
+      } catch (e) {
+        console.error(`[Agent Fix] Free fix error for ${insightType}:`, e);
+        return NextResponse.json({ error: e.message || 'Internal server error' }, { status: 500 });
+      }
+    }
+
+    // ─── Credit preflight (AI fixes only) ────────────────────
     // Refuse near-empty accounts BEFORE we kick off an AI call that's
     // guaranteed to fail at deduction time. The floor is a lower bound;
     // real charging is dynamic and happens inside the AI helpers.
     // 'apply' on cannibalization re-runs an AI generate so it's gated too.
-    const insightType = getInsightType(insight.titleKey);
-    const isCannibalization = insightType === 'cannibalization';
     const billableModes = new Set(['preview', 'regenerate', 'generate']);
     if (isCannibalization && mode === 'apply') billableModes.add('apply');
 
     if (billableModes.has(mode)) {
-      const floor = PREFLIGHT_CREDIT_FLOOR[insightType] ?? 3;
+      const floor = getPreflightFloor(insight.titleKey);
       const check = await enforceCredits(site.accountId, floor);
       if (!check.allowed) {
         return NextResponse.json({

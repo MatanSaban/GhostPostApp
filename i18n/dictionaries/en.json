@@ -414,7 +414,7 @@
     "systemAccess": "System Access",
     "connectWorkspace": "Connect to your GhostSEO workspace",
     "createAccount": "Create Account",
-    "joinGhostPost": "Join GhostSEO and automate your SEO",
+    "joinGhostSEO": "Join GhostSEO and automate your SEO",
     "fullName": "Full Name",
     "connect": "Connect",
     "orContinueWith": "Or continue with",
@@ -422,7 +422,7 @@
     "termsOfService": "Terms of Service",
     "privacyPolicy": "Privacy Policy",
     "createOne": "Create one",
-    "welcomeGhostPost": "Welcome to GhostSEO!",
+    "welcomeGhostSEO": "Welcome to GhostSEO!",
     "accountCreatedSuccess": "Your account has been created successfully. You're now ready to start automating your SEO and content strategy with our AI-powered platform.",
     "emailPlaceholder": "Enter your email",
     "passwordPlaceholder": "Enter your password",
@@ -5697,10 +5697,10 @@
     "interview": {
       "title": "Tell Us About Your Business",
       "subtitle": "Help us personalize your SEO strategy",
-      "greeting": "Welcome to GhostPost! I'm your AI assistant and I'll help you set up your account. Let's learn about your business to create the perfect SEO strategy.",
+      "greeting": "Welcome to GhostSEO! I'm your AI assistant and I'll help you set up your account. Let's learn about your business to create the perfect SEO strategy.",
       "startButton": "Start Setup",
       "questions": {
-        "websiteUrl": "Which site would you like to add to GhostPost first?",
+        "websiteUrl": "Which site would you like to add to GhostSEO first?",
         "contentLanguage": "What language should your content be written in?",
         "businessConfirmation": "Does this information look correct?",
         "keywords": "Select keywords relevant to your business",
@@ -6055,7 +6055,7 @@
       },
       "install-plugin": {
         "title": "Install WordPress Plugin",
-        "description": "Install the GhostPost plugin on your WordPress site so the platform can read content, push SEO fixes, and run audits directly."
+        "description": "Install the GhostSEO plugin on your WordPress site so the platform can read content, push SEO fixes, and run audits directly."
       },
       "detect-entities": {
         "title": "Detect Entities",
@@ -6107,15 +6107,15 @@
       },
       "site-profile": {
         "title": "Site Profile (AI Interview)",
-        "description": "Answer a short AI-guided interview so GhostPost understands your business, audience, and goals. Every other feature gets smarter after this."
+        "description": "Answer a short AI-guided interview so GhostSEO understands your business, audience, and goals. Every other feature gets smarter after this."
       },
       "entities-manager": {
         "title": "Entities Manager",
-        "description": "Browse, filter, and edit every piece of content GhostPost tracks - pages, posts, categories, media, and more."
+        "description": "Browse, filter, and edit every piece of content GhostSEO tracks - pages, posts, categories, media, and more."
       },
       "sitemaps": {
         "title": "Sitemaps",
-        "description": "Import XML sitemaps, re-sync on demand, and see exactly which URLs GhostPost is monitoring."
+        "description": "Import XML sitemaps, re-sync on demand, and see exactly which URLs GhostSEO is monitoring."
       },
       "media-library": {
         "title": "Media Library",
@@ -6151,7 +6151,7 @@
       },
       "link-building": {
         "title": "Link Building",
-        "description": "Run outreach campaigns - find prospects, send templated emails, and track replies directly inside GhostPost."
+        "description": "Run outreach campaigns - find prospects, send templated emails, and track replies directly inside GhostSEO."
       },
       "automations": {
         "title": "Automations",
@@ -6159,8 +6159,8 @@
       }
     },
     "greeting": {
-      "title": "Welcome to GhostPost",
-      "titleWithName": "Welcome to GhostPost, {name}",
+      "title": "Welcome to GhostSEO",
+      "titleWithName": "Welcome to GhostSEO, {name}",
       "subtitle": "Let's get your workspace set up in a few guided steps.",
       "videoPlaceholder": "Intro video coming soon",
       "highlight1": "Connect your analytics and verify your site in under a minute.",
@@ -6191,7 +6191,7 @@
       },
       "INSTALL_PLUGIN": {
         "title": "Install the WordPress plugin",
-        "subtitle": "Install and activate the GhostPost plugin on your site."
+        "subtitle": "Install and activate the GhostSEO plugin on your site."
       },
       "KEYWORDS": {
         "title": "Research keywords",
@@ -6233,11 +6233,11 @@
       },
       "step3": {
         "title": "Connect with Google",
-        "content": "Click here to authorize GhostPost to read your Search Console and Analytics data."
+        "content": "Click here to authorize GhostSEO to read your Search Console and Analytics data."
       },
       "stepGa": {
         "title": "Enable Google Analytics",
-        "content": "Grant Analytics permissions and pick the GA4 property for this site. GhostPost uses it to surface traffic, engagement, and conversion signals."
+        "content": "Grant Analytics permissions and pick the GA4 property for this site. GhostSEO uses it to surface traffic, engagement, and conversion signals."
       },
       "stepGsc": {
         "title": "Enable Search Console",
@@ -6260,12 +6260,12 @@
       },
       "stepScan": {
         "title": "Scan your site",
-        "content": "Click Scan to crawl your sitemap (or fall back to a full site crawl). This is what uncovers every entity type GhostPost can track.",
+        "content": "Click Scan to crawl your sitemap (or fall back to a full site crawl). This is what uncovers every entity type GhostSEO can track.",
         "actionHint": "Scanning - auto-continues when entities appear…"
       },
       "step4": {
         "title": "Pick your entity types",
-        "content": "Review what we found and toggle the content types you want GhostPost to track - pages, posts, products, and anything else that lives on your site."
+        "content": "Review what we found and toggle the content types you want GhostSEO to track - pages, posts, products, and anything else that lives on your site."
       },
       "step5": {
         "title": "Populate your entities",
@@ -6275,8 +6275,8 @@
     },
     "installPlugin": {
       "step1": {
-        "title": "Install the GhostPost plugin",
-        "content": "For WordPress sites, the plugin is how GhostPost talks to your site to read and publish content."
+        "title": "Install the GhostSEO plugin",
+        "content": "For WordPress sites, the plugin is how GhostSEO talks to your site to read and publish content."
       },
       "step2": {
         "title": "Download the plugin",
@@ -6294,7 +6294,7 @@
       },
       "stepAiInterview": {
         "title": "Start with the AI Interview",
-        "content": "The fastest way to seed your keyword list: answer a few questions about your business and GhostPost will build a tailored keyword set for you.",
+        "content": "The fastest way to seed your keyword list: answer a few questions about your business and GhostSEO will build a tailored keyword set for you.",
         "actionHint": "Waiting for you to start the interview…"
       },
       "stepAdd": {
@@ -6313,7 +6313,7 @@
       },
       "stepAiDiscover": {
         "title": "Let AI find your competitors",
-        "content": "Click here and GhostPost will analyze your keywords to surface the competitors that actually matter. Pick the ones you want to track.",
+        "content": "Click here and GhostSEO will analyze your keywords to surface the competitors that actually matter. Pick the ones you want to track.",
         "actionHint": "Waiting for you to pick competitors and save…"
       },
       "stepAdd": {
@@ -6370,7 +6370,7 @@
       },
       "step2": {
         "title": "Your wizard workspace",
-        "content": "Pick a keyword, let GhostPost draft, review the output, and publish - all from here."
+        "content": "Pick a keyword, let GhostSEO draft, review the output, and publish - all from here."
       }
     },
     "dashboardHome": {
@@ -6396,7 +6396,7 @@
       },
       "step6": {
         "title": "AI traffic insights",
-        "content": "GhostPost tracks AI-referred traffic separately - ChatGPT, Perplexity, Gemini, and more - so you can see how AI engines are discovering your content."
+        "content": "GhostSEO tracks AI-referred traffic separately - ChatGPT, Perplexity, Gemini, and more - so you can see how AI engines are discovering your content."
       }
     },
     "myWebsites": {
@@ -6468,11 +6468,11 @@
     "finished": {
       "title": "You're all set",
       "titleWithName": "You're all set, {name}",
-      "subtitle": "Your GhostPost workspace is ready. Now let's grow your organic traffic.",
+      "subtitle": "Your GhostSEO workspace is ready. Now let's grow your organic traffic.",
       "highlight1": "Re-open this tour anytime from the ? icon in the header.",
       "highlight2": "The AI Agent will keep monitoring your site in the background.",
       "highlight3": "New guides and walkthroughs will show up in the Guides Center.",
-      "closeButton": "Start using GhostPost"
+      "closeButton": "Start using GhostSEO"
     }
   },
   "admin": {
@@ -8109,6 +8109,9 @@
     "execute": "Execute",
     "fixWithAi": "Fix with AI",
     "fixWithAiCost": "Fix with AI (1 Credit)",
+    "fixFree": "Fix",
+    "fixCostFree": "0 AI Credits",
+    "creditsLabel": "AI Credits",
     "aiCredit": "Credit",
     "vs": "vs",
     "fixing": "Fixing...",
@@ -8121,6 +8124,20 @@
     "fixRegenerate": "Regenerate",
     "fixFieldTitle": "SEO Title",
     "fixFieldDesc": "Meta Description",
+    "fixFieldH1New": "New H1",
+    "fixFieldH1Keep": "Keep as H1",
+    "fixFieldReasoning": "Reasoning",
+    "fixH1OthersDemoted": "Other H1s on the page will be demoted to H2",
+    "fixFieldRefreshedTitle": "Refreshed Title",
+    "fixFieldChangeSummary": "Summary",
+    "fixFieldSeed": "Seed Topic",
+    "fixFieldArticleTitle": "Article Title",
+    "fixFieldExcerpt": "Excerpt",
+    "fixNewArticleDraftNote": "Will be created as a draft — review before publishing.",
+    "fixFieldInternalLink": "Internal Link",
+    "fixFieldSchema": "Schema (JSON-LD)",
+    "fixFieldTldr": "TL;DR",
+    "fixAiEngineGapNote": "Will add JSON-LD schema + a concise TL;DR intro to improve AI citability.",
     "fixCurrent": "Now",
     "fixNew": "New",
     "fixEmpty": "(empty)",
@@ -8376,6 +8393,13 @@
       "gscSiteUrl": "GSC Property",
       "platform": "Platform",
       "engine": "AI Engine",
+      "titleLength": "Title length",
+      "descLength": "Description length",
+      "bounds": "Recommended length",
+      "pagesAffected": "Pages affected",
+      "h1Count": "H1 Count",
+      "primaryEngine": "Primary Engine",
+      "missingFrom": "Missing from",
       "confidence": "confidence",
       "recommended": "Recommended",
       "competingPages": "Competing Pages",

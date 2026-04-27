@@ -71,7 +71,7 @@ export default async function AcceptInvitePage({ searchParams }) {
         
         <div className={`${styles.authLogo} ${styles.fixedLogo}`}>
           <img 
-            src="/ghostpost_logo.png" 
+            src="/favicon.svg" 
             alt="GhostSEO" 
             className={styles.logoImage}
           />

@@ -71,7 +71,7 @@ export async function POST(request, { params }) {
     try {
       // Fetch fresh sitemap content
       const response = await fetch(sitemap.url, {
-        headers: { 'User-Agent': 'GhostPost-Platform/1.0' },
+        headers: { 'User-Agent': 'GhostSEO-Platform/1.0' },
         signal: AbortSignal.timeout(30000),
       });
 

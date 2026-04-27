@@ -165,7 +165,7 @@ class GP_I18n {
             '%d AI Insight is waiting for your approval!' => 'תובנת AI אחת ממתינה לאישורך!',
             '%d AI Insights are waiting for your approval!' => '%d תובנות AI ממתינות לאישורך!',
             'No data yet. Stats will appear after the next sync.' => 'אין נתונים עדיין. הסטטיסטיקות יופיעו לאחר הסנכרון הבא.',
-            'Open GhostPost Dashboard' => 'פתח את לוח הבקרה של GhostPost',
+            'Open GhostSEO Dashboard' => 'פתח את לוח הבקרה של GhostSEO',
             'Sync' => 'סנכרון',
             'Syncing...' => 'מסנכרן...',
             'Widget updated!' => 'הווידג׳ט עודכן!',
@@ -292,8 +292,8 @@ class GP_I18n {
             'settings_changed' => 'הגדרות שונו',
 
             // ---- Activity Detail strings ----
-            'Connection verified with GhostPost platform' => 'החיבור אומת עם פלטפורמת GhostPost',
-            'Disconnected from GhostPost platform' => 'התנתק מפלטפורמת GhostPost',
+            'Connection verified with GhostSEO platform' => 'החיבור אומת עם פלטפורמת GhostSEO',
+            'Disconnected from GhostSEO platform' => 'התנתק מפלטפורמת GhostSEO',
 
             // ---- Admin JS strings ----
             'Testing connection...' => 'בודק חיבור...',

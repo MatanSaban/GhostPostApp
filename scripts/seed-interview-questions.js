@@ -1,7 +1,7 @@
 /**
  * Seed Interview Questions
  * 
- * This script creates the initial interview questions for the GhostPost platform.
+ * This script creates the initial interview questions for the GhostSEO platform.
  * Run with: node scripts/seed-interview-questions.js
  * 
  * NEW FLOW (12 questions):

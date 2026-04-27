@@ -29,6 +29,9 @@ import {
   STATUSES,
   PRIORITY_ORDER,
   isFixableInsight,
+  isAiFixableInsight,
+  isFreeFixableInsight,
+  getInsightFixCredits,
   getInsightType,
   getInsightSentiment,
   getInsightDirection,
@@ -182,6 +185,27 @@ function AiSuggestButton({ page, siteId, translations }) {
   );
 }
 
+/**
+ * Compact per-row Fix button. Picks the right label automatically:
+ *   AI fix:   "Fix with AI · N AI Credits"
+ *   Free fix: "Fix · 0 AI Credits"
+ * Falls back to the generic "Fix with AI" label when translations are missing.
+ */
+function FixItemButton({ insight, onClick, translations, size = 12 }) {
+  const t = translations?.agent || {};
+  const isFree = isFreeFixableInsight(insight.titleKey);
+  const credits = getInsightFixCredits(insight.titleKey);
+  const baseLabel = isFree ? (t.fixFree || 'Fix') : (t.fixWithAi || 'Fix with AI');
+  const costSuffix = isFree
+    ? (t.fixCostFree || '0 AI Credits')
+    : (credits > 0 ? `${credits} ${(t.creditsLabel || 'AI Credits')}` : null);
+  return (
+    <button className={styles.itemFixBtn} onClick={onClick}>
+      <Sparkles size={size} /> {costSuffix ? `${baseLabel} · ${costSuffix}` : baseLabel}
+    </button>
+  );
+}
+
 function InsightDetails({ insight, translations, siteId, pluginConnected, onItemFixed, onOpenFixSingle, onOpenSitemapSubmission, trackedKeywords, addingKeyword, onAddKeyword }) {
   const { locale } = useLocale();
   const d = insight.data;
@@ -194,6 +218,10 @@ function InsightDetails({ insight, translations, siteId, pluginConnected, onItem
   // Show per-item fix buttons for fixable types regardless of plugin connection.
   // The FixPreviewModal handles connection errors at action time.
   const canFix = FIXABLE_INSIGHT_TYPES.has(type) && ['PENDING', 'APPROVED', 'FAILED', 'EXECUTED', 'EXPIRED'].includes(insight.status);
+  // Header label for the Fix column — matches FixItemButton's wording.
+  const fixColLabel = isFreeFixableInsight(insight.titleKey)
+    ? (t.fixFree || 'Fix')
+    : (t.fixWithAi || 'Fix with AI');
 
   // Track which items have already been fixed from executionResult
   const fixedPostIds = new Set(
@@ -238,8 +266,11 @@ function InsightDetails({ insight, translations, siteId, pluginConnected, onItem
     );
   }
 
-  // Unlinked Keywords - list of keywords with search volume
+  // Unlinked Keywords - list of keywords with search volume.
+  // Fix is batched (AI proposes anchors across all keywords at once), so the
+  // per-row column shows status only and there's one shared Fix button below.
   if (type === 'unlinkedKeywords' && d.keywords?.length > 0) {
+    const anyFixed = (insight.executionResult?.results || []).some(r => r.status === 'fixed');
     return (
       <div className={styles.detailSection}>
         <table className={styles.detailTable}>
@@ -258,12 +289,20 @@ function InsightDetails({ insight, translations, siteId, pluginConnected, onItem
             ))}
           </tbody>
         </table>
+        {canFix && (
+          <div className={styles.detailUrlRow}>
+            {anyFixed
+              ? <span className={styles.itemFixedBadge}><CheckCircle size={12} /> {t.fixItemApplied || 'Applied'}</span>
+              : <FixItemButton insight={insight} onClick={() => onOpenFixSingle?.(insight, null)} translations={translations} />}
+          </div>
+        )}
       </div>
     );
   }
 
   // Stale Content - list of pages with last update date
   if (type === 'staleContent' && d.oldestPages?.length > 0) {
+    const fixedUrls = new Set((insight.executionResult?.results || []).filter(r => r.status === 'fixed').map(r => r.url));
     return (
       <div className={styles.detailSection}>
         <table className={styles.detailTable}>
@@ -271,21 +310,32 @@ function InsightDetails({ insight, translations, siteId, pluginConnected, onItem
             <tr>
               <th>{labels.page || 'Page'}</th>
               <th>{labels.lastUpdated || 'Last Updated'}</th>
+              {canFix && <th>{fixColLabel}</th>}
             </tr>
           </thead>
           <tbody>
-            {d.oldestPages.map((p, i) => (
-              <tr key={i}>
-                <td className={styles.detailPageTitle}>
-                  {p.url ? (
-                    <a href={p.url} target="_blank" rel="noopener noreferrer" className={styles.detailLink}>
-                      {p.title || p.slug} <ExternalLink size={12} />
-                    </a>
-                  ) : (p.title || p.slug)}
-                </td>
-                <td>{p.updatedAt ? new Date(p.updatedAt).toLocaleDateString(locale === 'he' ? 'he-IL' : 'en-US') : '-'}</td>
-              </tr>
-            ))}
+            {d.oldestPages.map((p, i) => {
+              const itemFixed = fixedUrls.has(p.url);
+              return (
+                <tr key={i}>
+                  <td className={styles.detailPageTitle}>
+                    {p.url ? (
+                      <a href={p.url} target="_blank" rel="noopener noreferrer" className={styles.detailLink}>
+                        {p.title || p.slug} <ExternalLink size={12} />
+                      </a>
+                    ) : (p.title || p.slug)}
+                  </td>
+                  <td>{p.updatedAt ? new Date(p.updatedAt).toLocaleDateString(locale === 'he' ? 'he-IL' : 'en-US') : '-'}</td>
+                  {canFix && (
+                    <td>
+                      {itemFixed
+                        ? <span className={styles.itemFixedBadge}><CheckCircle size={12} /> {t.fixItemApplied || 'Applied'}</span>
+                        : <FixItemButton insight={insight} onClick={() => onOpenFixSingle?.(insight, [i])} translations={translations} />}
+                    </td>
+                  )}
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>
@@ -310,7 +360,7 @@ function InsightDetails({ insight, translations, siteId, pluginConnected, onItem
               <th>{labels.page || 'Page'}</th>
               <th>{labels.seoPriority || 'Priority'}</th>
               <th>{entityLabel}</th>
-              {canFix && <th>{t.fixWithAi || 'Fix with AI'}</th>}
+              {canFix && <th>{fixColLabel}</th>}
             </tr>
           </thead>
           <tbody>
@@ -362,6 +412,7 @@ function InsightDetails({ insight, translations, siteId, pluginConnected, onItem
 
   // Noindex Detected - list of pages marked noindex
   if (type === 'noindexDetected' && d.pages?.length > 0) {
+    const fixedUrls = new Set((insight.executionResult?.results || []).filter(r => r.status === 'fixed').map(r => r.url));
     return (
       <div className={styles.detailSection}>
         <table className={styles.detailTable}>
@@ -369,21 +420,32 @@ function InsightDetails({ insight, translations, siteId, pluginConnected, onItem
             <tr>
               <th>{labels.page || 'Page'}</th>
               <th>{entityLabel}</th>
+              {canFix && <th>{fixColLabel}</th>}
             </tr>
           </thead>
           <tbody>
-            {d.pages.map((p, i) => (
-              <tr key={i}>
-                <td className={styles.detailPageTitle}>
-                  {p.url ? (
-                    <a href={p.url} target="_blank" rel="noopener noreferrer" className={styles.detailLink}>
-                      {p.title || <bdi dir="ltr">{formatPageUrl(p.url)}</bdi>} <ExternalLink size={12} />
-                    </a>
-                  ) : (p.title || '-')}
-                </td>
-                <td><EntityLinkCell url={p.url} siteId={siteId} translations={translations} /></td>
-              </tr>
-            ))}
+            {d.pages.map((p, i) => {
+              const itemFixed = fixedUrls.has(p.url);
+              return (
+                <tr key={i}>
+                  <td className={styles.detailPageTitle}>
+                    {p.url ? (
+                      <a href={p.url} target="_blank" rel="noopener noreferrer" className={styles.detailLink}>
+                        {p.title || <bdi dir="ltr">{formatPageUrl(p.url)}</bdi>} <ExternalLink size={12} />
+                      </a>
+                    ) : (p.title || '-')}
+                  </td>
+                  <td><EntityLinkCell url={p.url} siteId={siteId} translations={translations} /></td>
+                  {canFix && (
+                    <td>
+                      {itemFixed
+                        ? <span className={styles.itemFixedBadge}><CheckCircle size={12} /> {t.fixItemApplied || 'Applied'}</span>
+                        : <FixItemButton insight={insight} onClick={() => onOpenFixSingle?.(insight, [i])} translations={translations} />}
+                    </td>
+                  )}
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>
@@ -477,6 +539,7 @@ function InsightDetails({ insight, translations, siteId, pluginConnected, onItem
 
   // Declining Pages - table of pages with change
   if (type === 'decliningPages' && d.pages?.length > 0) {
+    const fixedUrls = new Set((insight.executionResult?.results || []).filter(r => r.status === 'fixed').map(r => r.url));
     return (
       <div className={styles.detailSection}>
         <table className={styles.detailTable}>
@@ -486,6 +549,7 @@ function InsightDetails({ insight, translations, siteId, pluginConnected, onItem
               <th>{labels.clicks || 'Clicks'}</th>
               <th>{labels.change || 'Change'}</th>
               <th>{entityLabel}</th>
+              {canFix && <th>{fixColLabel}</th>}
             </tr>
           </thead>
           <tbody>
@@ -498,6 +562,7 @@ function InsightDetails({ insight, translations, siteId, pluginConnected, onItem
               if (displayTitle) {
                 try { displayTitle = decodeURIComponent(displayTitle); } catch { /* keep original */ }
               }
+              const itemFixed = fixedUrls.has(p.page);
               return (
                 <tr key={i}>
                   <td>
@@ -509,6 +574,13 @@ function InsightDetails({ insight, translations, siteId, pluginConnected, onItem
                   <td>{p.clicks?.toLocaleString()}</td>
                   <td className={styles.detailNegative}>{p.clicksChange}%</td>
                   <td><EntityLinkCell url={p.page} siteId={siteId} translations={translations} /></td>
+                  {canFix && (
+                    <td>
+                      {itemFixed
+                        ? <span className={styles.itemFixedBadge}><CheckCircle size={12} /> {t.fixItemApplied || 'Applied'}</span>
+                        : <FixItemButton insight={insight} onClick={() => onOpenFixSingle?.(insight, [i])} translations={translations} />}
+                    </td>
+                  )}
                 </tr>
               );
             })}
@@ -568,7 +640,8 @@ function InsightDetails({ insight, translations, siteId, pluginConnected, onItem
     );
   }
 
-  // Content Gaps - list of gaps
+  // Content Gaps - list of gaps. Per-row Fix drafts a new article on the
+  // proposed gap topic.
   if (type === 'contentGaps' && d.topGaps?.length > 0) {
     return (
       <div className={styles.detailSection}>
@@ -577,6 +650,7 @@ function InsightDetails({ insight, translations, siteId, pluginConnected, onItem
             <tr>
               <th>{labels.contentGap || 'Content Gap'}</th>
               <th>{labels.competitor || 'Competitor'}</th>
+              {canFix && <th>{fixColLabel}</th>}
             </tr>
           </thead>
           <tbody>
@@ -584,6 +658,11 @@ function InsightDetails({ insight, translations, siteId, pluginConnected, onItem
               <tr key={i}>
                 <td>{g.gap}</td>
                 <td>{g.competitor}</td>
+                {canFix && (
+                  <td>
+                    <FixItemButton insight={insight} onClick={() => onOpenFixSingle?.(insight, [i])} translations={translations} />
+                  </td>
+                )}
               </tr>
             ))}
           </tbody>
@@ -592,8 +671,10 @@ function InsightDetails({ insight, translations, siteId, pluginConnected, onItem
     );
   }
 
-  // Stale Competitor Scans - list of competitors
+  // Stale Competitor Scans - list of competitors. Single shared rescan
+  // button — no per-row action since the fix is "rescan all stale ones".
   if (type === 'staleCompetitorScans' && d.competitors?.length > 0) {
+    const anyFixed = (insight.executionResult?.results || []).some(r => r.status === 'fixed');
     return (
       <div className={styles.detailSection}>
         <table className={styles.detailTable}>
@@ -612,6 +693,13 @@ function InsightDetails({ insight, translations, siteId, pluginConnected, onItem
             ))}
           </tbody>
         </table>
+        {canFix && (
+          <div className={styles.detailUrlRow}>
+            {anyFixed
+              ? <span className={styles.itemFixedBadge}><CheckCircle size={12} /> {t.fixItemApplied || 'Queued for rescan'}</span>
+              : <FixItemButton insight={insight} onClick={() => onOpenFixSingle?.(insight, null)} translations={translations} />}
+          </div>
+        )}
       </div>
     );
   }
@@ -773,6 +861,7 @@ function InsightDetails({ insight, translations, siteId, pluginConnected, onItem
               <th>{labels.impressions || 'Impressions'}</th>
               <th>{labels.ctr || 'CTR'}</th>
               <th>{labels.position || 'Position'}</th>
+              {canFix && <th>{fixColLabel}</th>}
             </tr>
           </thead>
           <tbody>
@@ -806,6 +895,11 @@ function InsightDetails({ insight, translations, siteId, pluginConnected, onItem
                   <td>{q.impressions?.toLocaleString()}</td>
                   <td>{q.ctr}%</td>
                   <td>{q.position ? Math.round(parseFloat(q.position)) : '-'}</td>
+                  {canFix && (
+                    <td>
+                      <FixItemButton insight={insight} onClick={() => onOpenFixSingle?.(insight, [i])} translations={translations} />
+                    </td>
+                  )}
                 </tr>
               );
             })}
@@ -828,7 +922,7 @@ function InsightDetails({ insight, translations, siteId, pluginConnected, onItem
               <th>{labels.expectedCtr || 'Expected CTR'}</th>
               <th>{labels.impressions || 'Impressions'}</th>
               <th>{entityLabel}</th>
-              {canFix && <th>{t.fixWithAi || 'Fix with AI'}</th>}
+              {canFix && <th>{fixColLabel}</th>}
             </tr>
           </thead>
           <tbody>
@@ -868,6 +962,7 @@ function InsightDetails({ insight, translations, siteId, pluginConnected, onItem
 
   // Content Without Organic Traffic - published pages with no GSC visibility
   if (type === 'contentWithoutTraffic' && d.pages?.length > 0) {
+    const fixedUrls = new Set((insight.executionResult?.results || []).filter(r => r.status === 'fixed').map(r => r.url));
     return (
       <div className={styles.detailSection}>
         <table className={styles.detailTable}>
@@ -877,25 +972,36 @@ function InsightDetails({ insight, translations, siteId, pluginConnected, onItem
               <th>{labels.publishedAt || 'Published'}</th>
               <th>{entityLabel}</th>
               <th>{labels.aiSuggestion || 'AI Suggestion'}</th>
+              {canFix && <th>{fixColLabel}</th>}
             </tr>
           </thead>
           <tbody>
-            {d.pages.map((p, i) => (
-              <tr key={i}>
-                <td className={styles.detailPageTitle}>
-                  {p.url ? (
-                    <a href={p.url} target="_blank" rel="noopener noreferrer" className={styles.detailLink}>
-                      {p.title || <bdi dir="ltr">{formatPageUrl(p.url)}</bdi>} <ExternalLink size={12} />
-                    </a>
-                  ) : (p.title || '-')}
-                </td>
-                <td>{p.publishedAt ? new Date(p.publishedAt).toLocaleDateString(locale === 'he' ? 'he-IL' : 'en-US') : '-'}</td>
-                <td><EntityLinkCell url={p.url} siteId={siteId} translations={translations} /></td>
-                <td>
-                  <AiSuggestButton page={p} siteId={siteId} translations={translations} />
-                </td>
-              </tr>
-            ))}
+            {d.pages.map((p, i) => {
+              const itemFixed = fixedUrls.has(p.url);
+              return (
+                <tr key={i}>
+                  <td className={styles.detailPageTitle}>
+                    {p.url ? (
+                      <a href={p.url} target="_blank" rel="noopener noreferrer" className={styles.detailLink}>
+                        {p.title || <bdi dir="ltr">{formatPageUrl(p.url)}</bdi>} <ExternalLink size={12} />
+                      </a>
+                    ) : (p.title || '-')}
+                  </td>
+                  <td>{p.publishedAt ? new Date(p.publishedAt).toLocaleDateString(locale === 'he' ? 'he-IL' : 'en-US') : '-'}</td>
+                  <td><EntityLinkCell url={p.url} siteId={siteId} translations={translations} /></td>
+                  <td>
+                    <AiSuggestButton page={p} siteId={siteId} translations={translations} />
+                  </td>
+                  {canFix && (
+                    <td>
+                      {itemFixed
+                        ? <span className={styles.itemFixedBadge}><CheckCircle size={12} /> {t.fixItemApplied || 'Applied'}</span>
+                        : <FixItemButton insight={insight} onClick={() => onOpenFixSingle?.(insight, [i])} translations={translations} />}
+                    </td>
+                  )}
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>
@@ -1085,7 +1191,7 @@ function InsightDetails({ insight, translations, siteId, pluginConnected, onItem
               <th></th>
               <th>{labels.page || 'Page'}</th>
               <th>{entityLabel}</th>
-              {canFix && <th>{t.fixWithAi || 'Fix with AI'}</th>}
+              {canFix && <th>{fixColLabel}</th>}
             </tr>
           </thead>
           <tbody>
@@ -1134,7 +1240,7 @@ function InsightDetails({ insight, translations, siteId, pluginConnected, onItem
               <th>{t.wordCount || 'Words'}</th>
               <th>{t.currentImages || 'Images'}</th>
               <th>{t.recommendedImages || 'Recommended'}</th>
-              {canFix && <th>{t.fixWithAi || 'Fix with AI'}</th>}
+              {canFix && <th>{fixColLabel}</th>}
             </tr>
           </thead>
           <tbody>
@@ -1169,6 +1275,139 @@ function InsightDetails({ insight, translations, siteId, pluginConnected, onItem
             })}
           </tbody>
         </table>
+      </div>
+    );
+  }
+
+  // Meta-length variants (metaTitleTooShort/Long, metaDescTooShort/Long)
+  // share a single render — they all surface `data.pages[]` with `length`.
+  if (
+    (type === 'metaTitleTooShort' || type === 'metaTitleTooLong'
+      || type === 'metaDescTooShort' || type === 'metaDescTooLong')
+    && d.pages?.length > 0
+  ) {
+    const fixedUrls = new Set((insight.executionResult?.results || []).filter(r => r.status === 'fixed').map(r => r.url));
+    const isTitleField = type === 'metaTitleTooShort' || type === 'metaTitleTooLong';
+    const lenLabel = isTitleField ? (labels.titleLength || 'Title length') : (labels.descLength || 'Description length');
+    return (
+      <div className={styles.detailSection}>
+        <div className={styles.detailStats}>
+          <div className={styles.detailStat}>
+            <span className={styles.detailStatLabel}>{labels.bounds || 'Recommended length'}</span>
+            <span className={styles.detailStatValue}>{d.minLength}–{d.maxLength}</span>
+          </div>
+          <div className={styles.detailStat}>
+            <span className={styles.detailStatLabel}>{labels.pagesAffected || 'Pages affected'}</span>
+            <span className={styles.detailStatValue}>{d.count || d.pages.length}</span>
+          </div>
+        </div>
+        <table className={styles.detailTable}>
+          <thead>
+            <tr>
+              <th>{labels.page || 'Page'}</th>
+              <th>{lenLabel}</th>
+              {canFix && <th>{fixColLabel}</th>}
+            </tr>
+          </thead>
+          <tbody>
+            {d.pages.map((p, i) => {
+              const itemFixed = fixedUrls.has(p.url);
+              return (
+                <tr key={i}>
+                  <td className={styles.detailPageTitle}>
+                    {p.url ? (
+                      <a href={p.url} target="_blank" rel="noopener noreferrer" className={styles.detailLink}>
+                        {p.title || <bdi dir="ltr">{formatPageUrl(p.url)}</bdi>} <ExternalLink size={12} />
+                      </a>
+                    ) : (p.title || p.slug || '-')}
+                  </td>
+                  <td>{p.length}</td>
+                  {canFix && (
+                    <td>
+                      {itemFixed
+                        ? <span className={styles.itemFixedBadge}><CheckCircle size={12} /> {t.fixItemApplied || 'Applied'}</span>
+                        : <FixItemButton insight={insight} onClick={() => onOpenFixSingle?.(insight, [i])} translations={translations} />}
+                    </td>
+                  )}
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+    );
+  }
+
+  // H1 fixes (missingH1Tag, multipleH1Tags)
+  if ((type === 'missingH1Tag' || type === 'multipleH1Tags') && d.pages?.length > 0) {
+    const fixedIds = new Set((insight.executionResult?.results || []).filter(r => r.status === 'fixed').map(r => r.postId));
+    return (
+      <div className={styles.detailSection}>
+        <table className={styles.detailTable}>
+          <thead>
+            <tr>
+              <th>{labels.page || 'Page'}</th>
+              <th>{labels.h1Count || 'H1 Count'}</th>
+              {canFix && <th>{fixColLabel}</th>}
+            </tr>
+          </thead>
+          <tbody>
+            {d.pages.map((p, i) => {
+              const itemFixed = fixedIds.has(p.externalId);
+              return (
+                <tr key={i}>
+                  <td className={styles.detailPageTitle}>
+                    {p.url ? (
+                      <a href={p.url} target="_blank" rel="noopener noreferrer" className={styles.detailLink}>
+                        {p.title || <bdi dir="ltr">{formatPageUrl(p.url)}</bdi>} <ExternalLink size={12} />
+                      </a>
+                    ) : (p.title || p.slug || '-')}
+                  </td>
+                  <td>{p.h1Count}</td>
+                  {canFix && (
+                    <td>
+                      {itemFixed
+                        ? <span className={styles.itemFixedBadge}><CheckCircle size={12} /> {t.fixItemApplied || 'Applied'}</span>
+                        : <FixItemButton insight={insight} onClick={() => onOpenFixSingle?.(insight, [i])} translations={translations} />}
+                    </td>
+                  )}
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+    );
+  }
+
+  // AI Engine Gap — single page, two-part fix wrapped in the detail section
+  if (type === 'aiEngineGap' && d.page) {
+    const isExecuted = insight.status === 'EXECUTED' || (insight.executionResult?.results || []).some(r => r.status === 'fixed');
+    return (
+      <div className={styles.detailSection}>
+        <div className={styles.detailStats}>
+          <div className={styles.detailStat}>
+            <span className={styles.detailStatLabel}>{labels.page || 'Page'}</span>
+            <span className={styles.detailStatValue}><bdi dir="ltr">{d.page}</bdi></span>
+          </div>
+          <div className={styles.detailStat}>
+            <span className={styles.detailStatLabel}>{labels.primaryEngine || 'Primary Engine'}</span>
+            <span className={styles.detailStatValue}>{d.primaryEngine}</span>
+          </div>
+          {d.missingEngines?.length > 0 && (
+            <div className={styles.detailStat}>
+              <span className={styles.detailStatLabel}>{labels.missingFrom || 'Missing from'}</span>
+              <span className={styles.detailStatValue}>{d.missingEngines.join(', ')}</span>
+            </div>
+          )}
+        </div>
+        {canFix && (
+          <div className={styles.detailUrlRow}>
+            {isExecuted
+              ? <span className={styles.itemFixedBadge}><CheckCircle size={12} /> {t.fixItemApplied || 'Applied'}</span>
+              : <FixItemButton insight={insight} onClick={() => onOpenFixSingle?.(insight, null)} translations={translations} />}
+          </div>
+        )}
       </div>
     );
   }
@@ -1366,10 +1605,23 @@ function InsightRow({ insight, translations, onAction, onOpenFix, onOpenSitemapS
 
           {canFix && !['cannibalization'].includes(getInsightType(insight.titleKey)) && (
             <div className={styles.insightActions}>
-              <button className={`${styles.actionBtn} ${styles.fixBtn}`} onClick={() => onOpenFix(insight, null)} disabled={actionLoading}>
-                <Sparkles size={14} />
-                {translations?.agent?.fixWithAi || 'Fix with AI'}
-              </button>
+              {(() => {
+                const isAi = isAiFixableInsight(insight.titleKey);
+                const isFree = isFreeFixableInsight(insight.titleKey);
+                const credits = getInsightFixCredits(insight.titleKey);
+                const baseLabel = isFree
+                  ? (translations?.agent?.fixFree || 'Fix')
+                  : (translations?.agent?.fixWithAi || 'Fix with AI');
+                const costSuffix = isFree
+                  ? (translations?.agent?.fixCostFree || '0 AI Credits')
+                  : (credits > 0 ? `${credits} ${(translations?.agent?.creditsLabel || 'AI Credits')}` : null);
+                return (
+                  <button className={`${styles.actionBtn} ${styles.fixBtn}`} onClick={() => onOpenFix(insight, null)} disabled={actionLoading}>
+                    <Sparkles size={14} />
+                    {costSuffix ? `${baseLabel} · ${costSuffix}` : baseLabel}
+                  </button>
+                );
+              })()}
             </div>
           )}
 

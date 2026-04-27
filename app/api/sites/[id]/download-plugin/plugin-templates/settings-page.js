@@ -102,7 +102,7 @@ $theme_class = ($gp_theme === 'light') ? 'gp-theme-light' : 'gp-theme-dark';
                 </button>
             <?php endif; ?>
             <img src="<?php echo esc_url($platform_url . '/logo.png'); ?>" alt="GhostSEO" class="gp-topbar-logo">
-            <span class="gp-topbar-title">GhostPost</span>
+            <span class="gp-topbar-title">GhostSEO</span>
         </div>
     </div>
 

@@ -89,7 +89,7 @@ async function extractPageMetadata(url) {
   try {
     const response = await fetch(url, {
       headers: { 
-        'User-Agent': 'GhostPost-Platform/1.0',
+        'User-Agent': 'GhostSEO-Platform/1.0',
         'Accept': 'text/html',
       },
       signal: AbortSignal.timeout(15000),

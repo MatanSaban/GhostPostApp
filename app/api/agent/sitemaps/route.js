@@ -147,7 +147,7 @@ export async function GET(request) {
       remainingProbes.map(async (url) => {
         try {
           const resp = await fetch(url, {
-            headers: { 'User-Agent': 'GhostPost-Platform/1.0' },
+            headers: { 'User-Agent': 'GhostSEO-Platform/1.0' },
             signal: AbortSignal.timeout(8000),
             redirect: 'follow',
             cache: 'no-store',

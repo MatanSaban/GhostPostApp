@@ -8,7 +8,7 @@ import { getPluginMainFile } from '@/app/api/sites/[id]/download-plugin/plugin-t
 import { getPluginConfigFile } from '@/app/api/sites/[id]/download-plugin/plugin-templates/config';
 import { getPluginReadme } from '@/app/api/sites/[id]/download-plugin/plugin-templates/readme';
 import { getPluginUninstall } from '@/app/api/sites/[id]/download-plugin/plugin-templates/uninstall';
-import { getClassGhostPost } from '@/app/api/sites/[id]/download-plugin/plugin-templates/class-ghost-post';
+import { getClassGhostSEO } from '@/app/api/sites/[id]/download-plugin/plugin-templates/class-ghost-post';
 import { getClassApiHandler } from '@/app/api/sites/[id]/download-plugin/plugin-templates/class-api-handler';
 import { getClassRequestValidator } from '@/app/api/sites/[id]/download-plugin/plugin-templates/class-request-validator';
 import { getClassContentManager } from '@/app/api/sites/[id]/download-plugin/plugin-templates/class-content-manager';
@@ -83,7 +83,7 @@ export async function GET(request) {
     pluginFolder.file('uninstall.php', getPluginUninstall());
     
     // Includes folder
-    pluginFolder.file('includes/class-ghost-post.php', getClassGhostPost());
+    pluginFolder.file('includes/class-ghost-post.php', getClassGhostSEO());
     pluginFolder.file('includes/class-gp-api-handler.php', getClassApiHandler());
     pluginFolder.file('includes/class-gp-request-validator.php', getClassRequestValidator());
     pluginFolder.file('includes/class-gp-content-manager.php', getClassContentManager());
