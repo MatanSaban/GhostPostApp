@@ -168,12 +168,12 @@ export async function GET(request, { params }) {
     });
 
     // Return as downloadable file
-    // Build filename: Ghost-Post-Connector-{siteName}_{version}.zip
+    // Build filename: GhostSEO-Connector-{siteName}_{version}.zip
     const safeName = (site.name || 'site')
       .replace(/[^a-zA-Z0-9\u0590-\u05FF\s-]/g, '')
       .trim()
       .replace(/\s+/g, '-');
-    const fileName = `Ghost-Post-Connector-${safeName}_${PLUGIN_VERSION}.zip`;
+    const fileName = `GhostSEO-Connector-${safeName}_${PLUGIN_VERSION}.zip`;
     return new NextResponse(zipBuffer, {
       status: 200,
       headers: {

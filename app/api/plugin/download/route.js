@@ -118,7 +118,7 @@ export async function GET(request) {
       status: 200,
       headers: {
         'Content-Type': 'application/zip',
-        'Content-Disposition': `attachment; filename="ghost-post-connector-${PLUGIN_VERSION}.zip"`,
+        'Content-Disposition': `attachment; filename="GhostSEO-Connector-${PLUGIN_VERSION}.zip"`,
         'Content-Length': zipBuffer.length.toString(),
       },
     });
