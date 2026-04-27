@@ -62,8 +62,9 @@ export async function GET(request) {
         changelog: PLUGIN_CHANGELOG,
       },
       icons: {
-        '1x': `${apiUrl}/logo.png`,
-        '2x': `${apiUrl}/logo.png`,
+        svg: `${apiUrl}/favicon.svg`,
+        '1x': `${apiUrl}/favicon.svg`,
+        '2x': `${apiUrl}/favicon.svg`,
       },
     });
   } catch (error) {

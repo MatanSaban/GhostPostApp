@@ -81,6 +81,7 @@ class GP_Updater {
         }
         echo '<style>
             img[src*="ghost"][src*="logo.png"],
+            img[src*="ghost"][src*="favicon.svg"],
             tr[data-slug="ghost-post-connector"] .plugin-icon img,
             .plugin-card-ghost-post-connector .plugin-icon img {
                 object-fit: contain !important;
@@ -125,8 +126,9 @@ class GP_Updater {
                 'requires'    => $update_info['requires_wp'],
                 'requires_php' => $update_info['requires_php'],
                 'icons'       => array(
-                    '1x'  => GP_API_URL . '/logo.png',
-                    '2x'  => GP_API_URL . '/logo.png',
+                    'svg' => GP_API_URL . '/favicon.svg',
+                    '1x'  => GP_API_URL . '/favicon.svg',
+                    '2x'  => GP_API_URL . '/favicon.svg',
                 ),
             );
         } else {
@@ -134,7 +136,7 @@ class GP_Updater {
             if (isset($transient->response[$this->plugin_basename])) {
                 unset($transient->response[$this->plugin_basename]);
             }
-            
+
             // Add to no_update to show it's been checked
             $transient->no_update[$this->plugin_basename] = (object) array(
                 'slug'        => $this->plugin_slug,
@@ -142,8 +144,9 @@ class GP_Updater {
                 'new_version' => $this->current_version,
                 'url'         => 'https://ghostpost.co.il',
                 'icons'       => array(
-                    '1x'  => GP_API_URL . '/logo.png',
-                    '2x'  => GP_API_URL . '/logo.png',
+                    'svg' => GP_API_URL . '/favicon.svg',
+                    '1x'  => GP_API_URL . '/favicon.svg',
+                    '2x'  => GP_API_URL . '/favicon.svg',
                 ),
             );
         }
@@ -210,8 +213,9 @@ class GP_Updater {
 
         // Icons for plugin listing
         $plugin_info->icons = array(
-            '1x'  => GP_API_URL . '/logo.png',
-            '2x'  => GP_API_URL . '/logo.png',
+            'svg' => GP_API_URL . '/favicon.svg',
+            '1x'  => GP_API_URL . '/favicon.svg',
+            '2x'  => GP_API_URL . '/favicon.svg',
         );
 
         return $plugin_info;

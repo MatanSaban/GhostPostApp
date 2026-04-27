@@ -101,7 +101,7 @@ $theme_class = ($gp_theme === 'light') ? 'gp-theme-light' : 'gp-theme-dark';
                     <?php esc_html_e('Check for Updates', 'ghost-post-connector'); ?>
                 </button>
             <?php endif; ?>
-            <img src="<?php echo esc_url($platform_url . '/logo.png'); ?>" alt="GhostSEO" class="gp-topbar-logo">
+            <img src="<?php echo esc_url($platform_url . '/favicon.svg'); ?>" alt="GhostSEO" class="gp-topbar-logo">
             <span class="gp-topbar-title">GhostSEO</span>
         </div>
     </div>

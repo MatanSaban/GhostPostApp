@@ -10,10 +10,13 @@
  */
 
 // Current plugin version - increment this when making updates
-export const PLUGIN_VERSION = "3.4.3";
+export const PLUGIN_VERSION = "3.4.4";
 
 // Changelog for the current version
 export const PLUGIN_CHANGELOG = `
+= 3.4.4 =
+* BRANDING: Plugin admin screens (dashboard header, redirections page, settings topbar, dashboard widget, sidebar menu icon) and the WordPress plugin-listing icon now use the new GhostSEO ghost mark with the platform's purple→blue gradient (#8231F1 → #4847F8). The shipped assets/icon.svg in the plugin ZIP is the gradient version; the WP plugins.php update screen now serves an SVG icon (with PNG-fallback URLs pointing at /favicon.svg) so the listing thumbnail no longer falls back to the WordPress placeholder while the new raster export is being prepared.
+
 = 3.4.3 =
 * FIX: manipulate_element no longer false-fails with reason=render_mismatch when WordPress wptexturize, the theme, or a page builder reformats punctuation or whitespace on render. The verifier used to do a byte-exact mb_strpos against the raw response body, so saving "DGBLOG - בלוג שיווק..." would render as "DGBLOG – בלוג שיווק..." (en dash, U+2013) and the byte compare failed even though the change was visible. The verifier now strips HTML tags so text split across nested elements becomes contiguous, decodes HTML entities, normalizes every dash variant (en/em/figure/non-breaking/minus) to '-', smart quotes to straight, NBSP / narrow-NBSP to regular space, and drops bidi/zero-width marks (LRM/RLM/ZWJ/ZWNJ) on both haystack and needle before comparing. Real failures (text genuinely absent, edge cache serving stale, builder-mode meta missing) still trip the same render_mismatch with the same hint.
 
