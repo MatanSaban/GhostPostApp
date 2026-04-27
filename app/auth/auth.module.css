@@ -120,6 +120,29 @@
   filter: drop-shadow(0 2px 8px rgba(123, 44, 191, 0.3));
 }
 
+.authLogoMark {
+  height: 48px;
+  width: auto;
+  object-fit: contain;
+  filter: drop-shadow(0 2px 8px rgba(123, 44, 191, 0.3));
+}
+
+.authLogoLight {
+  display: block;
+}
+
+.authLogoDark {
+  display: none;
+}
+
+:global(.dark) .authLogoLight {
+  display: none;
+}
+
+:global(.dark) .authLogoDark {
+  display: block;
+}
+
 .logoText {
   font-size: 1.4375rem;
   font-weight: 600;

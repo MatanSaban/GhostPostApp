@@ -546,7 +546,7 @@ export function InterviewStep({ translations, onComplete, initialData = {}, onAn
               <div className={`${styles.interviewMessageWrapper} ${message.type === 'user' ? styles.userWrapper : styles.agentWrapper}`}>
                 <div className={`${styles.interviewAvatar} ${message.type === 'agent' ? styles.agentAvatar : styles.userAvatar}`}>
                   {message.type === 'agent' ? (
-                    <Image src="/favicon.svg" alt="Ghost" width={20} height={20} />
+                    <Image src="/favicon-white.svg" alt="Ghost" width={20} height={20} />
                   ) : (
                     <div className={styles.userDot}></div>
                   )}
@@ -682,7 +682,7 @@ export function InterviewStep({ translations, onComplete, initialData = {}, onAn
             <div className={`${styles.interviewMessageRow} ${styles.agentRow}`}>
               <div className={`${styles.interviewMessageWrapper} ${styles.agentWrapper}`}>
                 <div className={`${styles.interviewAvatar} ${styles.agentAvatar}`}>
-                  <Image src="/favicon.svg" alt="Ghost" width={20} height={20} />
+                  <Image src="/favicon-white.svg" alt="Ghost" width={20} height={20} />
                 </div>
                 <div className={`${styles.interviewBubble} ${styles.agentBubble}`}>
                   <div className={styles.typingIndicator}>

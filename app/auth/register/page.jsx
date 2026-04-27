@@ -1,5 +1,4 @@
 import Link from 'next/link';
-import Image from 'next/image';
 import { HeaderActions } from '@/app/components/ui/header-actions';
 import { RegistrationFlow } from '../components';
 import { getTranslations } from '@/i18n/server';
@@ -249,8 +248,8 @@ export default async function RegisterPage({ searchParams }) {
         
         <div className={styles.authHeader}>
           <div className={styles.authLogo}>
-            <Image src="/favicon.svg" alt="GhostSEO" width={48} height={48} className={styles.logoImage} />
-            <span className={styles.logoText}>{translations.brandName}</span>
+            <img src="/logo-light.svg" alt={translations.brandName} className={`${styles.authLogoMark} ${styles.authLogoLight}`} />
+            <img src="/logo-dark.svg" alt={translations.brandName} className={`${styles.authLogoMark} ${styles.authLogoDark}`} />
           </div>
           <h1 className={styles.authTitle}>{translations.createAccount}</h1>
           <p className={styles.authSubtitle}>{translations.joinGhostSEO}</p>

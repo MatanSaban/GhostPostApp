@@ -70,12 +70,8 @@ export default async function AcceptInvitePage({ searchParams }) {
         <div className={styles.authGlow} />
         
         <div className={`${styles.authLogo} ${styles.fixedLogo}`}>
-          <img 
-            src="/favicon.svg" 
-            alt="GhostSEO" 
-            className={styles.logoImage}
-          />
-          <span className={styles.logoText}>GhostSEO</span>
+          <img src="/logo-light.svg" alt="GhostSEO" className={`${styles.authLogoMark} ${styles.authLogoLight}`} />
+          <img src="/logo-dark.svg" alt="GhostSEO" className={`${styles.authLogoMark} ${styles.authLogoDark}`} />
         </div>
         
         <HeaderActions />

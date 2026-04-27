@@ -376,40 +376,78 @@ function detectSeoIssues(results, html) {
   return issues;
 }
 
+// Browser-like headers for outbound site fetches. Many WordPress WAFs
+// (Wordfence, Sucuri, LiteSpeed/NitroPack defaults) reject requests that
+// look like a barebones bot - missing sec-ch-ua / sec-fetch-* / accept-encoding
+// is a strong "not a real browser" signal even with a Chrome UA. These are
+// the headers Chrome 120 sends on a top-level navigation, in the same order.
+const CHROME_NAV_HEADERS = {
+  'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+  'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
+  'Accept-Language': 'en-US,en;q=0.9,he;q=0.8',
+  'Accept-Encoding': 'gzip, deflate, br',
+  'sec-ch-ua': '"Chromium";v="120", "Not_A Brand";v="24", "Google Chrome";v="120"',
+  'sec-ch-ua-mobile': '?0',
+  'sec-ch-ua-platform': '"Windows"',
+  'Sec-Fetch-Dest': 'document',
+  'Sec-Fetch-Mode': 'navigate',
+  'Sec-Fetch-Site': 'none',
+  'Sec-Fetch-User': '?1',
+  'Upgrade-Insecure-Requests': '1',
+};
+
+// Fallback UA for the retry pass - some WAFs bucket repeat hits from the
+// same UA together, so a different fingerprint can succeed where the first
+// failed. Safari on macOS gets fewer "automated tooling" false-positives
+// than the Chrome-on-Windows fingerprint above.
+const SAFARI_NAV_HEADERS = {
+  'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.2 Safari/605.1.15',
+  'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+  'Accept-Language': 'en-US,en;q=0.9',
+  'Accept-Encoding': 'gzip, deflate, br',
+  'Upgrade-Insecure-Requests': '1',
+};
+
 /**
- * Fetch and parse a webpage
+ * Fetch and parse a webpage. Retries once with a different browser
+ * fingerprint on a hard block (403/429) before giving up.
  */
 async function fetchAndParsePage(url) {
-  try {
+  const attempt = async (headers, label) => {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 15000);
-    
-    const response = await fetch(url, {
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-        'Accept-Language': 'he,en;q=0.9,en-US;q=0.8',
-      },
-      signal: controller.signal,
-      redirect: 'follow',
-    });
-    
-    clearTimeout(timeout);
-    
-    if (!response.ok) {
-      console.log(`[Analyze] Fetch failed for ${url}: HTTP ${response.status}`);
-      return { success: false, error: `HTTP ${response.status}` };
+    try {
+      const response = await fetch(url, {
+        headers,
+        signal: controller.signal,
+        redirect: 'follow',
+      });
+      clearTimeout(timeout);
+      if (!response.ok) {
+        console.log(`[Analyze] Fetch (${label}) failed for ${url}: HTTP ${response.status}`);
+        return { success: false, status: response.status, error: `HTTP ${response.status}` };
+      }
+      const html = await response.text();
+      const responseHeaders = Object.fromEntries(response.headers.entries());
+      console.log(`[Analyze] Fetched ${url} via ${label}: ${html.length} chars`);
+      return { success: true, html, headers: responseHeaders };
+    } catch (error) {
+      clearTimeout(timeout);
+      return { success: false, error: error.message };
     }
-    
-    const html = await response.text();
-    const headers = Object.fromEntries(response.headers.entries());
-    
-    console.log(`[Analyze] Fetched ${url}: ${html.length} chars, final URL: ${response.url}`);
-    
-    return { success: true, html, headers };
-  } catch (error) {
-    return { success: false, error: error.message };
+  };
+
+  const first = await attempt(CHROME_NAV_HEADERS, 'chrome');
+  if (first.success) return first;
+  // Only retry on WAF-style hard blocks. 404/410/etc. won't change with a
+  // different UA, so don't waste a request.
+  if (first.status === 403 || first.status === 429 || first.status === 503) {
+    console.log(`[Analyze] Retrying ${url} with Safari fingerprint after HTTP ${first.status}`);
+    const second = await attempt(SAFARI_NAV_HEADERS, 'safari');
+    if (second.success) return second;
+    return second;
   }
+  return first;
 }
 
 /**
@@ -1019,14 +1057,15 @@ function extractPathPrefixLocales(html, baseUrl) {
  */
 async function checkForBlog(url, platform) {
   const blogPaths = ['/blog', '/articles', '/news', '/posts', '/בלוג', '/מאמרים'];
-  
+
   for (const path of blogPaths) {
     try {
       const response = await fetch(`${url}${path}`, {
         method: 'HEAD',
-        headers: { 'User-Agent': 'GhostSEO-Analyzer/1.0' },
+        headers: CHROME_NAV_HEADERS,
+        redirect: 'follow',
       });
-      
+
       if (response.ok) {
         return true;
       }
@@ -1034,7 +1073,7 @@ async function checkForBlog(url, platform) {
       // Continue checking
     }
   }
-  
+
   return false;
 }
 
@@ -1043,14 +1082,15 @@ async function checkForBlog(url, platform) {
  */
 async function checkSitemap(url) {
   const sitemapPaths = ['/sitemap.xml', '/sitemap_index.xml', '/wp-sitemap.xml'];
-  
+
   for (const path of sitemapPaths) {
     try {
       const response = await fetch(`${url}${path}`, {
         method: 'HEAD',
-        headers: { 'User-Agent': 'GhostSEO-Analyzer/1.0' },
+        headers: CHROME_NAV_HEADERS,
+        redirect: 'follow',
       });
-      
+
       if (response.ok) {
         return true;
       }
@@ -1058,7 +1098,7 @@ async function checkSitemap(url) {
       // Continue checking
     }
   }
-  
+
   return false;
 }
 
