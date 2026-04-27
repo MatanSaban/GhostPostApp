@@ -10,7 +10,7 @@ export function getAdminCss() {
    WordPress Sidebar - Purple Branding
    ========================================== */
 
-#adminmenu .toplevel_page_ghost-post-connector .wp-menu-image img {
+#adminmenu .toplevel_page_ghostseo .wp-menu-image img {
     filter: none !important;
     opacity: 1 !important;
     width: 20px !important;
@@ -18,29 +18,29 @@ export function getAdminCss() {
     padding: 7px 0 !important;
 }
 
-#adminmenu .toplevel_page_ghost-post-connector:hover .wp-menu-image img,
-#adminmenu .toplevel_page_ghost-post-connector.current .wp-menu-image img,
-#adminmenu .toplevel_page_ghost-post-connector.wp-has-current-submenu .wp-menu-image img {
+#adminmenu .toplevel_page_ghostseo:hover .wp-menu-image img,
+#adminmenu .toplevel_page_ghostseo.current .wp-menu-image img,
+#adminmenu .toplevel_page_ghostseo.wp-has-current-submenu .wp-menu-image img {
     filter: brightness(1.15) !important;
     opacity: 1 !important;
 }
 
-#adminmenu .toplevel_page_ghost-post-connector.current,
-#adminmenu .toplevel_page_ghost-post-connector.wp-has-current-submenu {
+#adminmenu .toplevel_page_ghostseo.current,
+#adminmenu .toplevel_page_ghostseo.wp-has-current-submenu {
     background: rgba(155, 77, 224, 0.15) !important;
 }
 
-#adminmenu .toplevel_page_ghost-post-connector.current > a,
-#adminmenu .toplevel_page_ghost-post-connector.wp-has-current-submenu > a {
+#adminmenu .toplevel_page_ghostseo.current > a,
+#adminmenu .toplevel_page_ghostseo.wp-has-current-submenu > a {
     color: #B06AE8 !important;
 }
 
-#adminmenu .toplevel_page_ghost-post-connector .wp-submenu a:hover,
-#adminmenu .toplevel_page_ghost-post-connector .wp-submenu a.current {
+#adminmenu .toplevel_page_ghostseo .wp-submenu a:hover,
+#adminmenu .toplevel_page_ghostseo .wp-submenu a.current {
     color: #B06AE8 !important;
 }
 
-#adminmenu .toplevel_page_ghost-post-connector > a .wp-menu-name {
+#adminmenu .toplevel_page_ghostseo > a .wp-menu-name {
     font-weight: 700 !important;
 }
 

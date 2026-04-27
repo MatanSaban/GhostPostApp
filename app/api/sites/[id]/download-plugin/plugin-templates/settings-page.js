@@ -68,25 +68,25 @@ $theme_class = ($gp_theme === 'light') ? 'gp-theme-light' : 'gp-theme-dark';
     <!-- Top Bar -->
     <div class="gp-topbar">
         <nav class="gp-tabs">
-            <a href="?page=ghost-post-connector&tab=connection" class="gp-tab <?php echo $active_tab === 'connection' ? 'gp-tab-active' : ''; ?>">
+            <a href="?page=ghostseo&tab=connection" class="gp-tab <?php echo $active_tab === 'connection' ? 'gp-tab-active' : ''; ?>">
                 <?php esc_html_e('Connection', 'ghost-post-connector'); ?>
             </a>
-            <a href="?page=ghost-post-connector&tab=settings" class="gp-tab <?php echo $active_tab === 'settings' ? 'gp-tab-active' : ''; ?>">
+            <a href="?page=ghostseo&tab=settings" class="gp-tab <?php echo $active_tab === 'settings' ? 'gp-tab-active' : ''; ?>">
                 <?php esc_html_e('Settings', 'ghost-post-connector'); ?>
             </a>
-            <a href="?page=ghost-post-connector&tab=activity" class="gp-tab <?php echo $active_tab === 'activity' ? 'gp-tab-active' : ''; ?>">
+            <a href="?page=ghostseo&tab=activity" class="gp-tab <?php echo $active_tab === 'activity' ? 'gp-tab-active' : ''; ?>">
                 <?php esc_html_e('Activity', 'ghost-post-connector'); ?>
             </a>
-            <a href="?page=ghost-post-connector&tab=redirections" class="gp-tab <?php echo $active_tab === 'redirections' ? 'gp-tab-active' : ''; ?>">
+            <a href="?page=ghostseo&tab=redirections" class="gp-tab <?php echo $active_tab === 'redirections' ? 'gp-tab-active' : ''; ?>">
                 <?php esc_html_e('Redirections', 'ghost-post-connector'); ?>
             </a>
-            <a href="?page=ghost-post-connector&tab=seo-insights" class="gp-tab <?php echo $active_tab === 'seo-insights' ? 'gp-tab-active' : ''; ?>">
+            <a href="?page=ghostseo&tab=seo-insights" class="gp-tab <?php echo $active_tab === 'seo-insights' ? 'gp-tab-active' : ''; ?>">
                 <?php esc_html_e('SEO Insights', 'ghost-post-connector'); ?>
             </a>
-            <a href="?page=ghost-post-connector&tab=snippets" class="gp-tab <?php echo $active_tab === 'snippets' ? 'gp-tab-active' : ''; ?>">
+            <a href="?page=ghostseo&tab=snippets" class="gp-tab <?php echo $active_tab === 'snippets' ? 'gp-tab-active' : ''; ?>">
                 <?php esc_html_e('Code Snippets', 'ghost-post-connector'); ?>
             </a>
-            <a href="?page=ghost-post-connector&tab=addons" class="gp-tab <?php echo $active_tab === 'addons' ? 'gp-tab-active' : ''; ?>">
+            <a href="?page=ghostseo&tab=addons" class="gp-tab <?php echo $active_tab === 'addons' ? 'gp-tab-active' : ''; ?>">
                 <?php esc_html_e('Add-ons', 'ghost-post-connector'); ?>
             </a>
         </nav>
@@ -576,10 +576,10 @@ $theme_class = ($gp_theme === 'light') ? 'gp-theme-light' : 'gp-theme-dark';
             <!-- Snippet View Toggle -->
             <div class="gp-snippets-header">
                 <div class="gp-snippets-views">
-                    <a href="?page=ghost-post-connector&tab=snippets&snippet_view=active" class="gp-btn <?php echo $snippet_view !== 'trash' ? 'gp-btn-primary' : 'gp-btn-outline'; ?>">
+                    <a href="?page=ghostseo&tab=snippets&snippet_view=active" class="gp-btn <?php echo $snippet_view !== 'trash' ? 'gp-btn-primary' : 'gp-btn-outline'; ?>">
                         <?php esc_html_e('Active Snippets', 'ghost-post-connector'); ?>
                     </a>
-                    <a href="?page=ghost-post-connector&tab=snippets&snippet_view=trash" class="gp-btn <?php echo $snippet_view === 'trash' ? 'gp-btn-primary' : 'gp-btn-outline'; ?>">
+                    <a href="?page=ghostseo&tab=snippets&snippet_view=trash" class="gp-btn <?php echo $snippet_view === 'trash' ? 'gp-btn-primary' : 'gp-btn-outline'; ?>">
                         <?php esc_html_e('Trash', 'ghost-post-connector'); ?>
                     </a>
                 </div>

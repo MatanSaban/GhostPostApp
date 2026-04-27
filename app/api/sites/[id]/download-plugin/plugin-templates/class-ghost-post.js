@@ -120,95 +120,100 @@ class Ghost_Post {
     public function add_admin_menu() {
         // Use 'none' to prevent WP mask-image system. We inject the icon via CSS background-image.
         $icon = 'none';
-        
+
+        // The menu slug (URL ?page=ghostseo) is intentionally divorced from the
+        // plugin folder/text-domain (still 'ghost-post-connector' so existing
+        // installs auto-update without re-registering as a new plugin).
+        $menu_slug = 'ghostseo';
+
         // Top-level menu
         add_menu_page(
             __('GhostSEO Connector', 'ghost-post-connector'),
             'GhostSEO',
             'manage_options',
-            'ghost-post-connector',
+            $menu_slug,
             array($this, 'render_admin_page'),
             $icon,
             30
         );
-        
+
         // Submenu: Dashboard (replaces auto-generated first item)
         add_submenu_page(
-            'ghost-post-connector',
+            $menu_slug,
             __('Dashboard', 'ghost-post-connector'),
             __('Dashboard', 'ghost-post-connector'),
             'manage_options',
-            'ghost-post-connector',
+            $menu_slug,
             array($this, 'render_admin_page')
         );
-        
+
         // Submenu: Settings
         add_submenu_page(
-            'ghost-post-connector',
+            $menu_slug,
             __('Settings', 'ghost-post-connector'),
             __('Settings', 'ghost-post-connector'),
             'manage_options',
-            'ghost-post-connector&tab=settings',
+            $menu_slug . '&tab=settings',
             array($this, 'render_admin_page')
         );
-        
+
         // Submenu: Activity
         add_submenu_page(
-            'ghost-post-connector',
+            $menu_slug,
             __('Activity', 'ghost-post-connector'),
             __('Activity', 'ghost-post-connector'),
             'manage_options',
-            'ghost-post-connector&tab=activity',
+            $menu_slug . '&tab=activity',
             array($this, 'render_admin_page')
         );
-        
+
         // Submenu: Redirections
         add_submenu_page(
-            'ghost-post-connector',
+            $menu_slug,
             __('Redirections', 'ghost-post-connector'),
             __('Redirections', 'ghost-post-connector'),
             'manage_options',
-            'ghost-post-connector&tab=redirections',
+            $menu_slug . '&tab=redirections',
             array($this, 'render_admin_page')
         );
-        
+
         // Submenu: SEO Insights
         add_submenu_page(
-            'ghost-post-connector',
+            $menu_slug,
             __('SEO Insights', 'ghost-post-connector'),
             __('SEO Insights', 'ghost-post-connector'),
             'manage_options',
-            'ghost-post-connector&tab=seo-insights',
+            $menu_slug . '&tab=seo-insights',
             array($this, 'render_admin_page')
         );
-        
+
         // Submenu: Code Snippets
         add_submenu_page(
-            'ghost-post-connector',
+            $menu_slug,
             __('Code Snippets', 'ghost-post-connector'),
             __('Code Snippets', 'ghost-post-connector'),
             'manage_options',
-            'ghost-post-connector&tab=snippets',
+            $menu_slug . '&tab=snippets',
             array($this, 'render_admin_page')
         );
-        
+
         // Submenu: Add-ons
         add_submenu_page(
-            'ghost-post-connector',
+            $menu_slug,
             __('Add-ons', 'ghost-post-connector'),
             __('Add-ons', 'ghost-post-connector'),
             'manage_options',
-            'ghost-post-connector&tab=addons',
+            $menu_slug . '&tab=addons',
             array($this, 'render_admin_page')
         );
     }
-    
+
     /**
      * Enqueue admin styles and scripts
      */
     public function enqueue_admin_styles($hook) {
         // Load on our plugin pages and WP Dashboard (for widget)
-        $is_plugin_page = (strpos($hook, 'ghost-post-connector') !== false) || ($hook === 'toplevel_page_ghost-post-connector');
+        $is_plugin_page = (strpos($hook, 'ghostseo') !== false) || ($hook === 'toplevel_page_ghostseo');
         $is_dashboard = ($hook === 'index.php');
         
         if (!$is_plugin_page && !$is_dashboard) {
@@ -326,33 +331,33 @@ class Ghost_Post {
         $svg_uri = 'data:image/svg+xml,' . rawurlencode('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 150 150"><path fill="#8231F1" fill-rule="evenodd" clip-rule="evenodd" d="M75.5461 3.00018C108.904 3.08102 135.88 30.1882 135.799 63.5461C135.782 70.4471 134.608 77.0746 132.462 83.2463C128.767 94.9403 114.793 138.722 116.926 125.109C119.38 109.444 115.241 108.796 115.241 108.796C115.241 108.796 108.932 134.279 99.1515 142.226C97.432 143.945 92.4613 124.597 91.5666 121.612C75.2533 142.837 60.6398 146.505 60.6398 146.505C57.975 145.585 68.0358 128.033 53.4728 119.945C53.3927 120.061 32.9192 149.64 37.174 135.183C41.4231 120.744 34.0604 107.477 34.0129 107.392C34.0129 107.392 28.4578 110.169 23.3517 121.612C23.2612 121.814 23.1625 121.884 23.0558 121.834C25.0063 112.559 20.6972 92.9492 18.05 82.4025C16.0562 76.3826 14.984 69.9435 15.0002 63.2531C15.0811 29.8953 42.1883 2.91935 75.5461 3.00018ZM98.7795 39.343C93.1724 38.8818 88.0574 45.4345 87.3547 53.9787C86.6521 62.5227 90.6275 69.8232 96.2346 70.2844C101.842 70.7455 106.956 64.1927 107.659 55.6486C108.362 47.1044 104.387 39.8041 98.7795 39.343ZM64.6467 53.8635C63.8471 45.3278 58.6574 38.8329 53.0558 39.3576C47.4546 39.8825 43.5621 47.2275 44.3615 55.7629C45.1611 64.2984 50.3499 70.7932 55.9514 70.2687C61.5528 69.744 65.4461 62.399 64.6467 53.8635Z"/></svg>');
         echo '<style>
             /* Bypass WP mask system - render SVG directly as background-image */
-            #adminmenu .toplevel_page_ghost-post-connector .wp-menu-image {
+            #adminmenu .toplevel_page_ghostseo .wp-menu-image {
                 background-image: url("' . $svg_uri . '") !important;
                 background-size: 20px 20px !important;
                 background-repeat: no-repeat !important;
                 background-position: center !important;
             }
-            #adminmenu .toplevel_page_ghost-post-connector .wp-menu-image::before,
-            #adminmenu .toplevel_page_ghost-post-connector .wp-menu-image::after {
+            #adminmenu .toplevel_page_ghostseo .wp-menu-image::before,
+            #adminmenu .toplevel_page_ghostseo .wp-menu-image::after {
                 display: none !important;
                 content: none !important;
             }
-            #adminmenu .toplevel_page_ghost-post-connector .wp-menu-image img {
+            #adminmenu .toplevel_page_ghostseo .wp-menu-image img {
                 display: none !important;
             }
-            #adminmenu .toplevel_page_ghost-post-connector.wp-has-current-submenu,
-            #adminmenu .toplevel_page_ghost-post-connector.current {
+            #adminmenu .toplevel_page_ghostseo.wp-has-current-submenu,
+            #adminmenu .toplevel_page_ghostseo.current {
                 background: rgba(155, 77, 224, 0.15) !important;
             }
-            #adminmenu .toplevel_page_ghost-post-connector.wp-has-current-submenu > a,
-            #adminmenu .toplevel_page_ghost-post-connector.current > a {
+            #adminmenu .toplevel_page_ghostseo.wp-has-current-submenu > a,
+            #adminmenu .toplevel_page_ghostseo.current > a {
                 color: #B06AE8 !important;
             }
-            #adminmenu .toplevel_page_ghost-post-connector .wp-submenu a:hover,
-            #adminmenu .toplevel_page_ghost-post-connector .wp-submenu a.current {
+            #adminmenu .toplevel_page_ghostseo .wp-submenu a:hover,
+            #adminmenu .toplevel_page_ghostseo .wp-submenu a.current {
                 color: #B06AE8 !important;
             }
-            #adminmenu .toplevel_page_ghost-post-connector > a .wp-menu-name {
+            #adminmenu .toplevel_page_ghostseo > a .wp-menu-name {
                 font-weight: 700 !important;
             }
             tr[data-slug="ghost-post-connector"] .plugin-icon img,

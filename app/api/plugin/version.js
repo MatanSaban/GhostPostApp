@@ -10,10 +10,13 @@
  */
 
 // Current plugin version - increment this when making updates
-export const PLUGIN_VERSION = "3.4.5";
+export const PLUGIN_VERSION = "3.4.6";
 
 // Changelog for the current version
 export const PLUGIN_CHANGELOG = `
+= 3.4.6 =
+* BRANDING: WordPress admin URL no longer says "ghost-post-connector". The plugin's menu slug was renamed to 'ghostseo' so the address bar now reads /wp-admin/admin.php?page=ghostseo (and ?page=ghostseo&tab=settings, &tab=activity, etc.) — matching the visible "GhostSEO" branding everywhere else. Plugin folder, text domain, basename, REST namespace, and PHP class are intentionally unchanged so existing installs keep auto-updating cleanly without WordPress treating us as a freshly-installed plugin. The CSS hook (#adminmenu .toplevel_page_ghostseo) and the $hook string the plugin checks (toplevel_page_ghostseo) were updated to match.
+
 = 3.4.5 =
 * CRITICAL FIX: Auto-update path /api/plugin/download was shipping a zip missing three files that the main plugin loader require_once's on every page load — class-gp-cache-manager.php, class-gp-element-manipulator.php, and the assets/editor-bridge.js script. WordPress would fatal "Failed opening required '…/class-gp-cache-manager.php'" the moment the upgraded plugin ran, taking the whole admin (and any frontend that boots WP fully) down for any site that pressed "Update plugin" from /wp-admin/plugins.php. The platform-side per-site download (/api/sites/[id]/download-plugin) was never affected because it always shipped the full file list. Both download endpoints now produce identical zips. Sites stuck on the broken upgrade can recover by uploading the 3.4.5 zip manually from /wp-admin/plugins.php → Add New → Upload Plugin (or by deleting the partial plugin folder over SFTP and re-downloading from the GhostSEO dashboard).
 
