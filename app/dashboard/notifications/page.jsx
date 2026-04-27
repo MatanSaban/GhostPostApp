@@ -33,6 +33,8 @@ const NOTIFICATION_ICONS = {
   alert: AlertCircle,
   success: TrendingUp,
   support_reply: MessageSquare,
+  competitor_discovery_complete: Sparkles,
+  competitor_discovery_failed: AlertCircle,
 };
 
 // Available filter types

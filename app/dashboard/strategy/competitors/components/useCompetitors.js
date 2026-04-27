@@ -3,10 +3,17 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useSite } from '@/app/context/site-context';
 import { useAICredits } from '@/app/hooks/useAICredits';
+import { useBackgroundTasks } from '@/app/context/background-tasks-context';
+import { useLocale } from '@/app/context/locale-context';
+import { useNotifications } from '@/app/context/notifications-context';
 
 export function useCompetitors() {
   const { selectedSite, isLoading: isSiteLoading } = useSite();
   const { fetchWithCredits } = useAICredits();
+  const { addTask, updateTask } = useBackgroundTasks();
+  const { t } = useLocale();
+  const { refresh: refreshNotifications } = useNotifications();
+  const discoveryTaskIdRef = useRef(null);
 
   // Core state
   const [competitors, setCompetitors] = useState([]);
@@ -208,13 +215,42 @@ export function useCompetitors() {
     }
   };
 
-  // Discover competitors with AI
+  // Discover competitors with AI. Runs in the background — the user can
+  // dismiss the discovery modal and keep using the page; progress is shown
+  // in the global background-tasks notification (same widget as site audit),
+  // and the modal will automatically reopen once results (or an error) are
+  // ready.
   const handleDiscoverCompetitors = async () => {
     if (!selectedSite) return;
     setDiscovering(true);
     setDiscoveredCompetitors([]);
     setSelectedDiscovered(new Set());
     setDiscoveryInfo(null);
+
+    const taskId = `competitor-discovery-${selectedSite.id}-${Date.now()}`;
+    discoveryTaskIdRef.current = taskId;
+    const taskTitle = t('backgroundTasks.competitorDiscovery.title') || 'Discovering Competitors';
+    addTask({
+      id: taskId,
+      type: 'competitor-discovery',
+      title: selectedSite.name ? `${taskTitle} - ${selectedSite.name}` : taskTitle,
+      labelKey: 'backgroundTasks.competitorDiscovery.running',
+      status: 'running',
+      progress: 5,
+      cancelable: false,
+      metadata: { siteId: selectedSite.id, siteName: selectedSite.name || '' },
+    });
+
+    // Simulated progress so the bar grows while we wait for the single
+    // long-running fetch (the discover endpoint doesn't stream progress).
+    // Caps at 90% — the final 10% jumps to 100% when the fetch resolves.
+    let simulated = 5;
+    const simulator = setInterval(() => {
+      const id = discoveryTaskIdRef.current;
+      if (!id) return;
+      simulated = Math.min(90, simulated + Math.random() * 8 + 2);
+      updateTask(id, { progress: simulated });
+    }, 1500);
 
     try {
       const result = await fetchWithCredits('/api/competitors/discover', {
@@ -233,14 +269,50 @@ export function useCompetitors() {
           result.data.competitors.filter(c => c.autoSelected).map(c => c.domain)
         );
         setSelectedDiscovered(autoSelected);
+        updateTask(taskId, {
+          status: 'completed',
+          progress: 100,
+          labelKey: 'backgroundTasks.competitorDiscovery.completedWithCount',
+          labelParams: { count: result.data.competitors.length },
+        });
       } else if (!result.ok) {
         setError(result.data.error || 'Failed to discover competitors');
+        updateTask(taskId, {
+          status: 'error',
+          progress: 100,
+          labelKey: 'backgroundTasks.competitorDiscovery.failed',
+          labelParams: null,
+          message: result.data.error || '',
+        });
+      } else {
+        // No competitors found
+        updateTask(taskId, {
+          status: 'completed',
+          progress: 100,
+          labelKey: 'backgroundTasks.competitorDiscovery.noResults',
+          labelParams: null,
+        });
       }
     } catch (err) {
       console.error('Failed to discover competitors:', err);
       setError('Failed to discover competitors');
+      updateTask(taskId, {
+        status: 'error',
+        progress: 100,
+        labelKey: 'backgroundTasks.competitorDiscovery.failed',
+        labelParams: null,
+        message: err?.message || '',
+      });
     } finally {
+      clearInterval(simulator);
+      discoveryTaskIdRef.current = null;
       setDiscovering(false);
+      // Auto-reopen the modal so the user sees results/errors even if they
+      // dismissed it while the discovery was running in the background.
+      setShowDiscoveryModal(true);
+      // Refresh the bell immediately instead of waiting for the 30s poll —
+      // the API just persisted a notification for this account.
+      refreshNotifications().catch(() => {});
     }
   };
 

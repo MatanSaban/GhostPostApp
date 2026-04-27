@@ -134,8 +134,17 @@ export function CompetitorsPageContent({ translations }) {
             <span data-onboarding="competitors-ai-discover">
               <AIDiscoverButton
                 isDiscovering={discovering}
-                onClick={() => setShowDiscoveryConfirm(true)}
+                onClick={() => {
+                  if (discovering) {
+                    // Background discovery in progress — reopen the modal so
+                    // the user can check status without restarting.
+                    setShowDiscoveryModal(true);
+                  } else {
+                    setShowDiscoveryConfirm(true);
+                  }
+                }}
                 label={t.findWithAI}
+                title={discovering ? t.viewProgress : undefined}
               />
             </span>
             <span data-onboarding="competitors-add-cta">

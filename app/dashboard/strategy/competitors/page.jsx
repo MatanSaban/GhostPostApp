@@ -16,6 +16,7 @@ export default async function CompetitorAnalysisPage() {
     
     // Actions
     findWithAI: t('competitorAnalysis.findWithAI'),
+    viewProgress: t('competitorAnalysis.viewProgress'),
     addCompetitor: t('competitorAnalysis.addCompetitor'),
     addFirstCompetitor: t('competitorAnalysis.addFirstCompetitor'),
     

@@ -9,6 +9,7 @@ import {
 } from '@/lib/google-integration';
 import { discoverSitemapUrls } from '@/lib/sitemap-delta-sync';
 import { invalidateAgentInsights } from '@/lib/cache/invalidate.js';
+import { BOT_FETCH_HEADERS } from '@/lib/bot-identity';
 
 const SESSION_COOKIE = 'user_session';
 
@@ -147,7 +148,7 @@ export async function GET(request) {
       remainingProbes.map(async (url) => {
         try {
           const resp = await fetch(url, {
-            headers: { 'User-Agent': 'GhostSEO-Platform/1.0' },
+            headers: BOT_FETCH_HEADERS,
             signal: AbortSignal.timeout(8000),
             redirect: 'follow',
             cache: 'no-store',

@@ -3,7 +3,7 @@ import { cookies } from 'next/headers';
 import prisma from '@/lib/prisma';
 import { getCachedCompetitors } from '@/lib/cache/competitors.js';
 import { invalidateCompetitors } from '@/lib/cache/invalidate.js';
-import { enforceResourceCapacity } from '@/lib/account-limits';
+import { enforceResourceCapacity, getSiteCompetitorCapacity } from '@/lib/account-limits';
 
 const SESSION_COOKIE = 'user_session';
 
@@ -89,15 +89,16 @@ export async function GET(request) {
     // Get competitors (cached by siteId; tag-invalidated on mutations)
     const competitors = await getCachedCompetitors(siteId, site.accountId);
 
-    // Get limit info
-    const limit = getCompetitorLimit(user, site.accountId);
+    // Get limit info (account-wide; null limit = unlimited plan)
+    const capacity = await getSiteCompetitorCapacity(site.accountId);
     const count = competitors.length;
+    const remainingRaw = capacity.remaining;
 
     return NextResponse.json({
       competitors,
-      limit,
+      limit: capacity.limit,
       count,
-      remaining: Math.max(0, limit - count),
+      remaining: Number.isFinite(remainingRaw) ? remainingRaw : null,
     });
   } catch (error) {
     console.error('Error fetching competitors:', error);

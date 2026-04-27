@@ -1,11 +1,12 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { Send, Loader2, CheckCircle2, Check, X, Edit2, Globe } from 'lucide-react';
+import { Send, Loader2, CheckCircle2, Check, X, Edit2, Globe, ShieldAlert, Copy, RefreshCw, SkipForward } from 'lucide-react';
 import Image from 'next/image';
 import { useLocale } from '@/app/context/locale-context';
 import { AnalysisProgress } from './AnalysisProgress';
 import { CompetitorSelector } from './CompetitorSelector';
+import { GHOSTSEO_BOT_UA, GHOSTSEO_BOT_INFO_URL } from '@/lib/bot-identity';
 import styles from '../auth.module.css';
 
 function getLanguageLabel(code, locale) {
@@ -33,6 +34,7 @@ export function InterviewStep({ translations, onComplete, initialData = {}, onAn
     DETECTING_LANGUAGES: 'detecting-languages',
     LANGUAGE_SELECT: 'language-select',
     ANALYZING: 'analyzing',
+    WAF_BLOCKED: 'waf-blocked',
     CONFIRMATION: 'confirmation',
     COMPLETE: 'complete',
   };
@@ -56,7 +58,8 @@ export function InterviewStep({ translations, onComplete, initialData = {}, onAn
   const [initialized, setInitialized] = useState(false);
   const [languageOptions, setLanguageOptions] = useState([]);
   const [analyzeAttempt, setAnalyzeAttempt] = useState(0);
-  
+  const [wafUaCopied, setWafUaCopied] = useState(false);
+
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
 
@@ -274,16 +277,65 @@ export function InterviewStep({ translations, onComplete, initialData = {}, onAn
         return;
       }
 
+      // WAF block on the probe is the same problem the analyzer would hit -
+      // surface the allowlist UI now instead of letting the heavier analyze
+      // call run, fail, and burn time.
+      if (data?.errorCode === 'WAF_BLOCKED') {
+        setPhase(PHASES.WAF_BLOCKED);
+        return;
+      }
+
       // No multi-language variants - go straight into full analysis.
       // If the probe resolved to a canonical URL, use it.
       if (data?.url && data.url !== url) setWebsiteUrl(data.url);
       setPhase(PHASES.ANALYZING);
     } catch (err) {
       console.error('Language detection failed, proceeding to analysis:', err);
-      // If the probe fails, fall through to the full analysis which will
-      // surface its own error to the user if the site is truly unreachable.
+      // If the probe fails for non-WAF reasons (network blip, parse error),
+      // fall through to the full analysis which will surface its own error.
       setPhase(PHASES.ANALYZING);
     }
+  };
+
+  // User clicked "I've allowlisted you, retry" on the WAF block panel.
+  // Bump analyzeAttempt so AnalysisProgress remounts with a fresh fetch.
+  const handleWafRetry = () => {
+    setAnalyzeAttempt((n) => n + 1);
+    setPhase(PHASES.ANALYZING);
+  };
+
+  const handleCopyBotUa = async () => {
+    try {
+      await navigator.clipboard.writeText(GHOSTSEO_BOT_UA);
+      setWafUaCopied(true);
+      setTimeout(() => setWafUaCopied(false), 2000);
+    } catch {
+      // clipboard can be denied (permissions, http context) - the UA is
+      // visible in the page anyway, the user can still select it manually
+    }
+  };
+
+  // User clicked "Continue without auto-analysis". Bypass the analyzer and
+  // hand the confirmation flow a stub so they can fill in the business
+  // fields manually instead of being stuck at URL_INPUT forever.
+  const handleSkipAnalysis = () => {
+    const stubAnalysis = {
+      url: websiteUrl,
+      isReachable: false,
+      platform: null,
+      businessInfo: { name: null, niche: null, description: null },
+      services: [],
+      keywords: { fromMeta: [], fromHeadings: [], suggested: [] },
+      seoData: { title: null, description: null, hasH1: false, hasSitemap: false },
+      contentStyle: { hasBlog: false, tone: null, language: interviewData.selectedLanguage || null },
+      languages: interviewData.availableLanguages || [],
+      competitors: [],
+      inferredGoals: [],
+      inferredAudience: null,
+      seoIssues: [],
+      skippedDueToWaf: true,
+    };
+    handleAnalysisComplete(stubAnalysis);
   };
 
   // Handle analysis complete - save the analysis and kick off confirmation.
@@ -566,6 +618,11 @@ export function InterviewStep({ translations, onComplete, initialData = {}, onAn
                 url={websiteUrl}
                 onComplete={handleAnalysisComplete}
                 onError={(err) => {
+                  const errorCode = typeof err === 'object' && err ? err.errorCode : null;
+                  if (errorCode === 'WAF_BLOCKED') {
+                    setPhase(PHASES.WAF_BLOCKED);
+                    return;
+                  }
                   const localized = typeof err === 'string' ? err : err?.message;
                   setMessages(prev => [...prev, {
                     id: prev.length,
@@ -575,6 +632,95 @@ export function InterviewStep({ translations, onComplete, initialData = {}, onAn
                   setPhase(PHASES.URL_INPUT);
                 }}
               />
+            </div>
+          )}
+
+          {/* WAF block panel - the user's site is rejecting our analyzer.
+              Show the bot UA + per-plugin allowlist instructions, with
+              Retry / Skip options so registration isn't dead-ended. */}
+          {phase === PHASES.WAF_BLOCKED && (
+            <div className={styles.wafBlockedPanel}>
+              <div className={styles.wafBlockedHeader}>
+                <ShieldAlert size={20} className={styles.wafBlockedIcon} />
+                <div>
+                  <h3 className={styles.wafBlockedTitle}>
+                    {t('interviewWizard.proactive.wafBlocked.title')}
+                  </h3>
+                  <p className={styles.wafBlockedBody}>
+                    {t('interviewWizard.proactive.wafBlocked.body')}
+                  </p>
+                  <p className={styles.wafBlockedNotice}>
+                    {t('interviewWizard.proactive.wafBlocked.keepRuleNotice')}
+                  </p>
+                  <p className={styles.wafBlockedNotice}>
+                    {t('interviewWizard.proactive.wafBlocked.scopeNotice')}
+                  </p>
+                </div>
+              </div>
+
+              <div className={styles.wafBlockedUaWrapper}>
+                <span className={styles.wafBlockedUaLabel}>
+                  {t('interviewWizard.proactive.wafBlocked.allowlistLabel')}
+                </span>
+                <div className={styles.wafBlockedUaRow}>
+                  <code className={styles.wafBlockedUa}>{GHOSTSEO_BOT_UA}</code>
+                  <button
+                    type="button"
+                    className={styles.wafBlockedCopyBtn}
+                    onClick={handleCopyBotUa}
+                    aria-label={t('interviewWizard.proactive.wafBlocked.copy')}
+                  >
+                    {wafUaCopied ? <Check size={14} /> : <Copy size={14} />}
+                    <span>{wafUaCopied
+                      ? t('interviewWizard.proactive.wafBlocked.copied')
+                      : t('interviewWizard.proactive.wafBlocked.copy')}</span>
+                  </button>
+                </div>
+              </div>
+
+              <div className={styles.wafBlockedInstructions}>
+                <p className={styles.wafBlockedInstructionsLabel}>
+                  {t('interviewWizard.proactive.wafBlocked.instructionsLabel')}
+                </p>
+                <details className={styles.wafBlockedPlugin}>
+                  <summary>{t('interviewWizard.proactive.wafBlocked.plugins.wordfence.title')}</summary>
+                  <p>{t('interviewWizard.proactive.wafBlocked.plugins.wordfence.steps')}</p>
+                </details>
+                <details className={styles.wafBlockedPlugin}>
+                  <summary>{t('interviewWizard.proactive.wafBlocked.plugins.cloudflare.title')}</summary>
+                  <p>{t('interviewWizard.proactive.wafBlocked.plugins.cloudflare.steps')}</p>
+                </details>
+                <details className={styles.wafBlockedPlugin}>
+                  <summary>{t('interviewWizard.proactive.wafBlocked.plugins.sucuri.title')}</summary>
+                  <p>{t('interviewWizard.proactive.wafBlocked.plugins.sucuri.steps')}</p>
+                </details>
+              </div>
+
+              <p className={styles.wafBlockedMoreInfo}>
+                {t('interviewWizard.proactive.wafBlocked.moreInfoPrefix')}{' '}
+                <a href={GHOSTSEO_BOT_INFO_URL} target="_blank" rel="noopener noreferrer">
+                  {GHOSTSEO_BOT_INFO_URL.replace(/^https?:\/\//, '')}
+                </a>
+              </p>
+
+              <div className={styles.wafBlockedActions}>
+                <button
+                  type="button"
+                  className={styles.wafBlockedRetryBtn}
+                  onClick={handleWafRetry}
+                >
+                  <RefreshCw size={14} />
+                  <span>{t('interviewWizard.proactive.wafBlocked.retry')}</span>
+                </button>
+                <button
+                  type="button"
+                  className={styles.wafBlockedSkipBtn}
+                  onClick={handleSkipAnalysis}
+                >
+                  <SkipForward size={14} />
+                  <span>{t('interviewWizard.proactive.wafBlocked.skip')}</span>
+                </button>
+              </div>
             </div>
           )}
 
@@ -748,7 +894,8 @@ export function InterviewStep({ translations, onComplete, initialData = {}, onAn
         {phase !== PHASES.COMPLETE &&
          phase !== PHASES.ANALYZING &&
          phase !== PHASES.LANGUAGE_SELECT &&
-         phase !== PHASES.DETECTING_LANGUAGES && (
+         phase !== PHASES.DETECTING_LANGUAGES &&
+         phase !== PHASES.WAF_BLOCKED && (
           <div className={styles.interviewInputArea}>
             {/* URL Input */}
             {phase === PHASES.URL_INPUT && (

@@ -1,13 +1,14 @@
 /**
  * GET /api/account/addon-for-resource?resourceKey=siteAudits
  *
- * Returns the relevant AddOn product for a given resource key.
+ * Returns all active AddOn products for a given resource key (RECURRING first,
+ * then ONE_TIME). Also exposes the first one as `addOn` for backward compat.
  * Used by LimitReachedModal to display pricing.
  */
 
 import { NextResponse } from 'next/server';
 import { getCurrentAccountMember } from '@/lib/auth-permissions';
-import { getAddOnForResource } from '@/lib/account-limits';
+import { getAddOnsForResource } from '@/lib/account-limits';
 
 export async function GET(request) {
   try {
@@ -30,9 +31,9 @@ export async function GET(request) {
     const rawLocale = searchParams.get('locale') || 'en';
     const locale = rawLocale.toUpperCase();
 
-    const addOn = await getAddOnForResource(resourceKey, locale);
+    const addOns = await getAddOnsForResource(resourceKey, locale);
 
-    return NextResponse.json({ addOn });
+    return NextResponse.json({ addOns, addOn: addOns[0] || null });
   } catch (error) {
     console.error('[API/account/addon-for-resource] Error:', error);
     return NextResponse.json(

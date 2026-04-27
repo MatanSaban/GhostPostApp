@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { useLocale } from '@/app/context/locale-context';
 import { usePermissions } from '@/app/hooks/usePermissions';
+import { emitCreditsUpdated } from '@/app/context/user-context';
 import { useRouter } from 'next/navigation';
 import styles from './LimitReachedModal.module.css';
 
@@ -36,7 +37,8 @@ const RESOURCE_LABEL_KEY = {
  *  1. Which resource hit the limit
  *  2. Whether the user has BILLING_MANAGE / Owner permission
  *
- * State A (has permission): "Purchase add-on" CTA
+ * State A (has permission): list every active add-on for the resource —
+ *                           RECURRING (permanent) options first, then ONE_TIME.
  * State B (no permission):  "Request upgrade from owner" CTA
  */
 export default function LimitReachedModal({
@@ -50,33 +52,45 @@ export default function LimitReachedModal({
   const { isOwner, hasRawPermission, isLoading: permLoading } = usePermissions();
   const router = useRouter();
 
-  const [addOn, setAddOn] = useState(null);
-  const [isLoadingAddOn, setIsLoadingAddOn] = useState(true);
-  const [isPurchasing, setIsPurchasing] = useState(false);
+  const [addOns, setAddOns] = useState([]);
+  const [isLoadingAddOns, setIsLoadingAddOns] = useState(true);
+  const [purchasingId, setPurchasingId] = useState(null);
   const [isRequesting, setIsRequesting] = useState(false);
   const [purchaseResult, setPurchaseResult] = useState(null); // { success, message }
   const [requestResult, setRequestResult] = useState(null);
+  const [currentUsage, setCurrentUsage] = useState(usage);
+
+  // Reset local usage whenever the prop changes (e.g. modal re-opened for a new resource)
+  useEffect(() => {
+    setCurrentUsage(usage);
+  }, [usage]);
 
   const canManageBilling = isOwner || hasRawPermission('ACCOUNT_BILLING_MANAGE');
 
-  // ── Fetch relevant add-on for this resource ────────────────
+  // Fetch all add-on options for this resource
   useEffect(() => {
     if (!isOpen || !resourceKey) return;
     let cancelled = false;
 
     (async () => {
       try {
-        setIsLoadingAddOn(true);
+        setIsLoadingAddOns(true);
         const res = await fetch(
           `/api/account/addon-for-resource?resourceKey=${resourceKey}&locale=${locale}`
         );
         if (!res.ok) throw new Error();
         const data = await res.json();
-        if (!cancelled) setAddOn(data.addOn || null);
+        if (!cancelled) {
+          setAddOns(
+            Array.isArray(data.addOns)
+              ? data.addOns
+              : (data.addOn ? [data.addOn] : [])
+          );
+        }
       } catch {
-        if (!cancelled) setAddOn(null);
+        if (!cancelled) setAddOns([]);
       } finally {
-        if (!cancelled) setIsLoadingAddOn(false);
+        if (!cancelled) setIsLoadingAddOns(false);
       }
     })();
 
@@ -87,10 +101,9 @@ export default function LimitReachedModal({
 
   const resourceLabel = t(RESOURCE_LABEL_KEY[resourceKey] || 'limits.resources.generic');
 
-  // ── Purchase add-on ────────────────────────────────────────
-  const handlePurchase = async () => {
+  const handlePurchase = async (addOn) => {
     if (!addOn) return;
-    setIsPurchasing(true);
+    setPurchasingId(addOn.id);
     setPurchaseResult(null);
     try {
       const res = await fetch('/api/account/purchase-addon', {
@@ -101,14 +114,29 @@ export default function LimitReachedModal({
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Purchase failed');
       setPurchaseResult({ success: true, message: t('limits.purchaseSuccess') });
+
+      // Refresh usage shown inside the modal
+      try {
+        const usageRes = await fetch(`/api/account/usage?resourceKey=${resourceKey}`);
+        if (usageRes.ok) {
+          const fresh = await usageRes.json();
+          if (fresh && typeof fresh.used !== 'undefined') {
+            setCurrentUsage(fresh);
+          }
+        }
+      } catch {
+        // Non-critical — user-context polling will catch up
+      }
+
+      // Notify the rest of the app (DashboardHeader credits bar, etc.)
+      emitCreditsUpdated();
     } catch (err) {
       setPurchaseResult({ success: false, message: err.message });
     } finally {
-      setIsPurchasing(false);
+      setPurchasingId(null);
     }
   };
 
-  // ── Request upgrade from owner ─────────────────────────────
   const handleRequestUpgrade = async () => {
     setIsRequesting(true);
     setRequestResult(null);
@@ -128,17 +156,77 @@ export default function LimitReachedModal({
     }
   };
 
-  // ── Format price display ──────────────────────────────────
-  const formatPrice = () => {
+  const formatPrice = (addOn) => {
     if (!addOn) return '';
     const sym = addOn.currency === 'ILS' ? '₪' : addOn.currency === 'EUR' ? '€' : '$';
     const period = addOn.billingType === 'RECURRING' ? `/${t('limits.month')}` : '';
     return `${sym}${addOn.price}${period}`;
   };
 
-  const formatQuantity = () => {
+  const formatQuantity = (addOn) => {
     if (!addOn?.quantity) return '';
     return `+${addOn.quantity.toLocaleString()}`;
+  };
+
+  const recurringAddOns = addOns.filter((a) => a.billingType === 'RECURRING');
+  const oneTimeAddOns = addOns.filter((a) => a.billingType === 'ONE_TIME');
+
+  const renderAddOnCard = (addOn) => {
+    const isThisPurchasing = purchasingId === addOn.id;
+    const disabled = purchasingId !== null;
+    return (
+      <div key={addOn.id} className={styles.addonCard}>
+        <div className={styles.addonInfo}>
+          <div className={styles.addonHeader}>
+            <span className={styles.addonName}>
+              <bdi>{addOn.name}</bdi>
+            </span>
+            <span
+              className={`${styles.addonBadge} ${
+                addOn.billingType === 'RECURRING'
+                  ? styles.badgeRecurring
+                  : styles.badgeOneTime
+              }`}
+            >
+              {addOn.billingType === 'RECURRING'
+                ? t('limits.permanentBadge')
+                : t('limits.oneTimeBadge')}
+            </span>
+          </div>
+          {addOn.description && (
+            <span className={styles.addonDesc}>{addOn.description}</span>
+          )}
+        </div>
+        <button
+          className={styles.addonBuyBtn}
+          onClick={() => handlePurchase(addOn)}
+          disabled={disabled}
+        >
+          {isThisPurchasing ? (
+            <Loader2 size={16} className={styles.spinning} />
+          ) : (
+            <ShoppingCart size={16} />
+          )}
+          <span>
+            {isThisPurchasing
+              ? t('limits.purchasing')
+              : (() => {
+                  const template = t('limits.purchaseAddon', {
+                    name: 'NAME',
+                    price: 'PRICE',
+                  });
+                  return template
+                    .split(/(NAME|PRICE)/)
+                    .map((part, i) => {
+                      if (part === 'NAME') return <bdi key={i}>{addOn.name}</bdi>;
+                      if (part === 'PRICE') return <bdi key={i}>{formatPrice(addOn)}</bdi>;
+                      return part;
+                    });
+                })()}
+          </span>
+        </button>
+      </div>
+    );
   };
 
   return createPortal(
@@ -170,31 +258,30 @@ export default function LimitReachedModal({
           {canManageBilling
             ? t('limits.limitReachedBody', {
                 resource: resourceLabel,
-                used: usage?.used ?? '-',
-                limit: usage?.limit ?? '-',
+                used: currentUsage?.used ?? '-',
+                limit: currentUsage?.limit ?? '-',
               })
             : t('limits.limitReachedNoPermBody', { resource: resourceLabel })}
         </p>
 
         {/* Usage bar */}
-        {usage && usage.limit !== null && (
+        {currentUsage && currentUsage.limit !== null && (
           <div className={styles.usageBar}>
             <div className={styles.usageBarTrack}>
               <div
                 className={styles.usageBarFill}
-                style={{ width: `${Math.min(100, usage.percentUsed)}%` }}
+                style={{ width: `${Math.min(100, currentUsage.percentUsed)}%` }}
               />
             </div>
             <span className={styles.usageLabel}>
-              {usage.used} / {usage.limit} {t('limits.used')}
+              {currentUsage.used} / {currentUsage.limit} {t('limits.used')}
             </span>
           </div>
         )}
 
-        {/* ── State A: Has billing permission ──────────────── */}
+        {/* State A: Has billing permission */}
         {canManageBilling && !permLoading && (
           <div className={styles.actions}>
-            {/* Purchase result */}
             {purchaseResult && (
               <div className={`${styles.resultBanner} ${purchaseResult.success ? styles.resultSuccess : styles.resultError}`}>
                 {purchaseResult.success ? <CheckCircle2 size={16} /> : <ShieldAlert size={16} />}
@@ -202,67 +289,55 @@ export default function LimitReachedModal({
               </div>
             )}
 
-            {/* Add-on card */}
-            {isLoadingAddOn ? (
+            {isLoadingAddOns ? (
               <div className={styles.loadingRow}>
                 <Loader2 size={18} className={styles.spinning} />
                 <span>{t('limits.loadingAddons')}</span>
               </div>
-            ) : addOn ? (
-              <div className={styles.addonCard}>
-                <div className={styles.addonInfo}>
-                  <span className={styles.addonName}>{addOn.name}</span>
-                  {addOn.description && (
-                    <span className={styles.addonDesc}>{addOn.description}</span>
-                  )}
-                </div>
-                <div className={styles.addonPricing}>
-                  <span className={styles.addonQty}>{formatQuantity()} {resourceLabel}</span>
-                  <span className={styles.addonPrice}>{formatPrice()}</span>
-                </div>
-              </div>
-            ) : null}
-
-            {/* Primary CTA */}
-            {addOn && !purchaseResult?.success && (
-              <button
-                className={styles.primaryBtn}
-                onClick={handlePurchase}
-                disabled={isPurchasing}
-              >
-                {isPurchasing ? (
-                  <Loader2 size={18} className={styles.spinning} />
-                ) : (
-                  <ShoppingCart size={18} />
+            ) : addOns.length === 0 ? (
+              <p className={styles.emptyAddons}>{t('limits.noAddonsAvailable')}</p>
+            ) : (
+              <div className={styles.addonGroups}>
+                {recurringAddOns.length > 0 && (
+                  <div className={styles.addonGroup}>
+                    <span className={styles.addonGroupLabel}>
+                      {t('limits.permanentAddonsLabel')}
+                    </span>
+                    <div className={styles.addonList}>
+                      {recurringAddOns.map(renderAddOnCard)}
+                    </div>
+                  </div>
                 )}
-                {isPurchasing
-                  ? t('limits.purchasing')
-                  : t('limits.purchaseAddon', {
-                      name: addOn.name,
-                      quantity: formatQuantity(),
-                      price: formatPrice(),
-                    })}
-              </button>
+                {oneTimeAddOns.length > 0 && (
+                  <div className={styles.addonGroup}>
+                    <span className={styles.addonGroupLabel}>
+                      {t('limits.oneTimeAddonsLabel')}
+                    </span>
+                    <div className={styles.addonList}>
+                      {oneTimeAddOns.map(renderAddOnCard)}
+                    </div>
+                  </div>
+                )}
+              </div>
             )}
 
-            {/* Secondary link */}
             <button
               className={styles.secondaryBtn}
               onClick={() => {
                 onClose();
-                router.push(addOn
+                router.push(addOns.length > 0
                   ? '/dashboard/settings?tab=addons'
                   : '/dashboard/settings?tab=subscription'
                 );
               }}
             >
               <ArrowUpRight size={16} />
-              {addOn ? t('limits.manageAddons') : t('limits.upgradeSubscription')}
+              {addOns.length > 0 ? t('limits.manageAddons') : t('limits.upgradeSubscription')}
             </button>
           </div>
         )}
 
-        {/* ── State B: No billing permission ───────────────── */}
+        {/* State B: No billing permission */}
         {!canManageBilling && !permLoading && (
           <div className={styles.actions}>
             {requestResult && (

@@ -9,6 +9,8 @@ function errorCodeToTranslationKey(code) {
   switch (code) {
     case 'SITE_UNREACHABLE':
       return 'interviewWizard.proactive.errors.siteUnreachable';
+    case 'WAF_BLOCKED':
+      return 'interviewWizard.proactive.errors.wafBlocked';
     case 'INVALID_URL':
       return 'interviewWizard.proactive.errors.invalidUrl';
     case 'INSUFFICIENT_CREDITS':

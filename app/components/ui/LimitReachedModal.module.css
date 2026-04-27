@@ -18,7 +18,7 @@
 .modal {
   position: relative;
   width: 100%;
-  max-width: 460px;
+  max-width: 600px;
   margin: 1rem;
   background: var(--card, #fff);
   border: 1px solid var(--border, #e5e7eb);
@@ -138,12 +138,53 @@
   margin-top: 0.5rem;
 }
 
+/* ── Add-on groups ────────────────────────────────────────────── */
+
+.addonGroups {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  width: 100%;
+}
+
+.addonGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  width: 100%;
+}
+
+.addonGroupLabel {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--muted-foreground, #6b7280);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  text-align: start;
+}
+
+.addonList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  width: 100%;
+}
+
+.emptyAddons {
+  font-size: 0.8125rem;
+  color: var(--muted-foreground, #6b7280);
+  text-align: center;
+  margin: 0;
+  padding: 0.5rem 0;
+}
+
 /* ── Add-on card ──────────────────────────────────────────────── */
 
 .addonCard {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 0.75rem;
   padding: 0.8125rem 1rem;
   background: var(--muted, rgba(123, 44, 191, 0.04));
   border: 1px solid var(--border, #e5e7eb);
@@ -154,7 +195,16 @@
 .addonInfo {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 4px;
+  flex: 1;
+  min-width: 0;
+}
+
+.addonHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
 }
 
 .addonName {
@@ -168,15 +218,12 @@
   color: var(--muted-foreground, #9ca3af);
 }
 
-.addonPricing {
+.addonMeta {
   display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 2px;
-}
-
-[dir="rtl"] .addonPricing {
-  align-items: flex-start;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin-top: 2px;
 }
 
 .addonQty {
@@ -189,6 +236,54 @@
   font-size: 0.8125rem;
   font-weight: 700;
   color: var(--foreground, #111);
+}
+
+.addonBadge {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 999px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+}
+
+.badgeRecurring {
+  background: rgba(123, 44, 191, 0.12);
+  color: #7b2cbf;
+}
+
+.badgeOneTime {
+  background: rgba(245, 158, 11, 0.12);
+  color: #b45309;
+}
+
+.addonBuyBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 14px;
+  background: var(--gradient-primary, linear-gradient(135deg, #7b2cbf, #9d4edd));
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-md, 8px);
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: opacity 0.2s, box-shadow 0.2s;
+  flex-shrink: 0;
+
+  &:hover:not(:disabled) {
+    opacity: 0.9;
+    box-shadow: 0 4px 14px rgba(123, 44, 191, 0.3);
+  }
+
+  &:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
 }
 
 /* ── Buttons ──────────────────────────────────────────────────── */

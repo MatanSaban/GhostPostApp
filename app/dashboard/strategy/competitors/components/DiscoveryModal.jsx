@@ -21,7 +21,7 @@ export function DiscoveryModal({
   const { isMaximized, toggleMaximize } = useModalResize();
 
   return createPortal(
-    <div className={styles.modalOverlay} onClick={() => !discovering && onClose()}>
+    <div className={styles.modalOverlay} onClick={onClose}>
       <div className={`${styles.modal} ${isMaximized ? 'modal-maximized' : ''}`} onClick={(e) => e.stopPropagation()}>
         <div className={styles.modalHeader}>
           <div className={styles.modalTitle}>
@@ -34,7 +34,6 @@ export function DiscoveryModal({
               variant="ghost"
               iconOnly
               onClick={onClose}
-              disabled={discovering}
             >
               <X size={20} />
             </Button>
@@ -48,6 +47,9 @@ export function DiscoveryModal({
               <p>{t('competitorAnalysis.discoveringCompetitors')}</p>
               <span className={styles.discoveringHint}>
                 {t('competitorAnalysis.findWithAIDescription')}
+              </span>
+              <span className={styles.discoveringHint}>
+                {t('competitorAnalysis.discoveringBackgroundHint')}
               </span>
             </div>
           ) : discoveredCompetitors.length > 0 ? (

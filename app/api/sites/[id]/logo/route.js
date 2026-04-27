@@ -5,6 +5,7 @@ import { google } from '@/lib/ai/vertex-provider.js';
 import { generateText } from 'ai';
 import prisma from '@/lib/prisma';
 import { logAIUsage } from '@/lib/ai/credits.js';
+import { BOT_FETCH_HEADERS } from '@/lib/bot-identity';
 
 const SESSION_COOKIE = 'user_session';
 const LOGO_REFRESH_DAYS = 7;
@@ -226,7 +227,7 @@ function extractLogoCandidates(html, baseUrl) {
 async function downloadImage(url) {
   try {
     const response = await fetch(url, {
-      headers: { 'User-Agent': 'Mozilla/5.0 (compatible; GhostSEOBot/1.0)' },
+      headers: BOT_FETCH_HEADERS,
       signal: AbortSignal.timeout(8000),
     });
     if (!response.ok) {

@@ -45,7 +45,6 @@ export async function GET(request) {
     const accounts = await prisma.account.findMany({
       include: {
         members: {
-          where: { isOwner: true },
           include: {
             user: {
               select: {
@@ -53,10 +52,10 @@ export async function GET(request) {
                 firstName: true,
                 lastName: true,
                 email: true,
+                lastLoginAt: true,
               },
             },
           },
-          take: 1,
         },
         subscription: {
           include: {
@@ -69,11 +68,6 @@ export async function GET(request) {
             },
           },
         },
-        _count: {
-          select: {
-            members: true,
-          },
-        },
       },
       orderBy: {
         createdAt: 'desc',
@@ -82,8 +76,15 @@ export async function GET(request) {
 
     // Format the response
     const formattedAccounts = accounts.map((account) => {
-      const owner = account.members[0]?.user;
+      const owner = account.members.find((m) => m.isOwner)?.user;
       const plan = account.subscription?.plan;
+
+      // Most recent login across all members of the account
+      const lastConnectionAt = account.members.reduce((latest, m) => {
+        const ts = m.user?.lastLoginAt;
+        if (!ts) return latest;
+        return !latest || ts > latest ? ts : latest;
+      }, null);
       
       // Format plan translations as object keyed by language
       const planTranslations = {};
@@ -119,8 +120,10 @@ export async function GET(request) {
         billingInterval: account.subscription?.billingInterval || 'MONTHLY',
         planTranslations,
         status: account.isActive ? 'active' : 'inactive',
-        usersCount: account._count.members,
+        usersCount: account.members.length,
         createdAt: account.createdAt.toISOString(),
+        updatedAt: account.updatedAt.toISOString(),
+        lastConnectionAt: lastConnectionAt ? lastConnectionAt.toISOString() : null,
       };
     });
 
@@ -128,7 +131,7 @@ export async function GET(request) {
     const stats = {
       total: accounts.length,
       active: accounts.filter((a) => a.isActive).length,
-      totalUsers: accounts.reduce((sum, a) => sum + a._count.members, 0),
+      totalUsers: accounts.reduce((sum, a) => sum + a.members.length, 0),
     };
 
     return NextResponse.json({

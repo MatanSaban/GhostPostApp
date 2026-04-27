@@ -11,16 +11,16 @@ export function ViewToggle({ viewMode, onChange, translations }) {
       <button
         className={`${styles.viewToggleButton} ${viewMode === 'list' ? styles.active : ''}`}
         onClick={() => onChange('list')}
-        title={t.listView}
+        title={t.tableView}
       >
-        <List size={18} />
+        <LayoutGrid size={18} />
       </button>
       <button
         className={`${styles.viewToggleButton} ${viewMode === 'table' ? styles.active : ''}`}
         onClick={() => onChange('table')}
-        title={t.tableView}
+        title={t.listView}
       >
-        <LayoutGrid size={18} />
+        <List size={18} />
       </button>
     </div>
   );

@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { BOT_FETCH_HEADERS, WAF_BLOCK_STATUSES } from '@/lib/bot-identity';
 
 /**
  * POST /api/interview/detect-languages
@@ -18,7 +19,11 @@ export async function POST(request) {
     const fetched = await fetchPage(normalized);
     if (!fetched.success) {
       return NextResponse.json(
-        { success: false, errorCode: 'SITE_UNREACHABLE', error: fetched.error },
+        {
+          success: false,
+          errorCode: fetched.wafBlocked ? 'WAF_BLOCKED' : 'SITE_UNREACHABLE',
+          error: fetched.error,
+        },
         { status: 200 }
       );
     }
@@ -57,60 +62,30 @@ function normalizeUrl(url) {
   }
 }
 
-// Browser-like header set - same fingerprint the analyzer uses, so a site
-// that lets us through here will also let the analyzer through. Mismatched
-// fingerprints trigger WAF rate-limiting on a follow-up request from the
-// "same" client.
-const CHROME_NAV_HEADERS = {
-  'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-  'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
-  'Accept-Language': 'en-US,en;q=0.9,he;q=0.8',
-  'Accept-Encoding': 'gzip, deflate, br',
-  'sec-ch-ua': '"Chromium";v="120", "Not_A Brand";v="24", "Google Chrome";v="120"',
-  'sec-ch-ua-mobile': '?0',
-  'sec-ch-ua-platform': '"Windows"',
-  'Sec-Fetch-Dest': 'document',
-  'Sec-Fetch-Mode': 'navigate',
-  'Sec-Fetch-Site': 'none',
-  'Sec-Fetch-User': '?1',
-  'Upgrade-Insecure-Requests': '1',
-};
-
-const SAFARI_NAV_HEADERS = {
-  'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.2 Safari/605.1.15',
-  'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-  'Accept-Language': 'en-US,en;q=0.9',
-  'Accept-Encoding': 'gzip, deflate, br',
-  'Upgrade-Insecure-Requests': '1',
-};
-
 async function fetchPage(url) {
-  const attempt = async (headers) => {
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 15000);
-    try {
-      const response = await fetch(url, {
-        headers,
-        signal: controller.signal,
-        redirect: 'follow',
-      });
-      clearTimeout(timeout);
-      if (!response.ok) return { success: false, status: response.status, error: `HTTP ${response.status}` };
-      const html = await response.text();
-      return { success: true, html };
-    } catch (error) {
-      clearTimeout(timeout);
-      return { success: false, error: error.message };
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 15000);
+  try {
+    const response = await fetch(url, {
+      headers: BOT_FETCH_HEADERS,
+      signal: controller.signal,
+      redirect: 'follow',
+    });
+    clearTimeout(timeout);
+    if (!response.ok) {
+      return {
+        success: false,
+        status: response.status,
+        wafBlocked: WAF_BLOCK_STATUSES.has(response.status),
+        error: `HTTP ${response.status}`,
+      };
     }
-  };
-
-  const first = await attempt(CHROME_NAV_HEADERS);
-  if (first.success) return first;
-  if (first.status === 403 || first.status === 429 || first.status === 503) {
-    const second = await attempt(SAFARI_NAV_HEADERS);
-    if (second.success) return second;
+    const html = await response.text();
+    return { success: true, html };
+  } catch (error) {
+    clearTimeout(timeout);
+    return { success: false, error: error.message };
   }
-  return first;
 }
 
 function detectPageLanguage(html) {

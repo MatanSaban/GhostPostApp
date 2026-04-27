@@ -33,7 +33,7 @@ export default function PlatformUsersPage() {
   const { isSuperAdmin, isLoading: isUserLoading } = useUser();
   const [users, setUsers] = useState([]);
   const [accounts, setAccounts] = useState([]);
-  const [stats, setStats] = useState({ total: 0, active: 0, superAdmins: 0 });
+  const [stats, setStats] = useState({ total: 0, active: 0, superAdmins: 0, online: 0 });
   const [searchQuery, setSearchQuery] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
@@ -87,7 +87,7 @@ export default function PlatformUsersPage() {
       }
       const data = await response.json();
       setUsers(data.users || []);
-      setStats(data.stats || { total: 0, active: 0, superAdmins: 0 });
+      setStats(data.stats || { total: 0, active: 0, superAdmins: 0, online: 0 });
     } catch (error) {
       console.error('Failed to load users:', error);
     } finally {
@@ -145,11 +145,23 @@ export default function PlatformUsersPage() {
     const date = new Date(dateString);
     const now = new Date();
     const diffHours = Math.floor((now - date) / (1000 * 60 * 60));
-    
+
     if (diffHours < 1) return t('admin.common.time.justNow');
     if (diffHours < 24) return t('admin.common.time.hoursAgo').replace('{hours}', diffHours);
     if (diffHours < 48) return t('admin.common.time.yesterday');
     return date.toLocaleDateString(locale === 'he' ? 'he-IL' : 'en-US');
+  };
+
+  const formatActivity = (dateString) => {
+    if (!dateString) return '-';
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffHours = Math.floor((now - date) / (1000 * 60 * 60));
+
+    if (diffHours < 1) return t('admin.common.time.justNow');
+    if (diffHours < 24) return t('admin.common.time.hoursAgo').replace('{hours}', diffHours);
+    if (diffHours < 48) return t('admin.common.time.yesterday');
+    return date.toLocaleString(locale === 'he' ? 'he-IL' : 'en-US');
   };
 
   // Open view modal
@@ -300,7 +312,7 @@ export default function PlatformUsersPage() {
   };
 
   if (isUserLoading) {
-    return <AdminPageSkeleton statsCount={3} columns={5} />;
+    return <AdminPageSkeleton statsCount={4} columns={7} />;
   }
 
   if (!isSuperAdmin) {
@@ -324,6 +336,10 @@ export default function PlatformUsersPage() {
         <div className={styles.statCard}>
           <div className={styles.statLabel}>{t('admin.users.statuses.active')}</div>
           <div className={styles.statValue}>{stats.active}</div>
+        </div>
+        <div className={styles.statCard}>
+          <div className={styles.statLabel}>{t('admin.users.onlineNow')}</div>
+          <div className={styles.statValue}>{stats.online ?? 0}</div>
         </div>
         <div className={styles.statCard}>
           <div className={styles.statLabel}>{t('admin.users.roles.superAdmin')}</div>
@@ -367,7 +383,7 @@ export default function PlatformUsersPage() {
       {/* Table */}
       <div className={styles.tableContainer}>
         {isLoading ? (
-          <TableSkeleton rows={8} columns={5} hasActions />
+          <TableSkeleton rows={8} columns={7} hasActions />
         ) : paginatedUsers.length === 0 ? (
           <div className={styles.emptyState}>
             <Users className={styles.emptyIcon} />
@@ -383,7 +399,9 @@ export default function PlatformUsersPage() {
                   <th>{t('admin.users.columns.accounts')}</th>
                   <th>{t('admin.users.columns.role')}</th>
                   <th>{t('admin.users.columns.status')}</th>
+                  <th>{t('admin.users.columns.online')}</th>
                   <th>{t('admin.users.columns.lastLogin')}</th>
+                  <th>{t('admin.users.columns.lastAction')}</th>
                   <th>{t('admin.users.columns.actions')}</th>
                 </tr>
               </thead>
@@ -433,7 +451,22 @@ export default function PlatformUsersPage() {
                         {t(`admin.users.statuses.${user.status}`)}
                       </span>
                     </td>
+                    <td>
+                      <span
+                        className={styles.presenceCell}
+                        title={user.lastSeenAt ? formatActivity(user.lastSeenAt) : '-'}
+                      >
+                        <span
+                          className={`${styles.presenceDot} ${user.isOnline ? styles.online : ''}`}
+                          aria-hidden="true"
+                        />
+                        {user.isOnline
+                          ? t('admin.users.statuses.online')
+                          : t('admin.users.statuses.offline')}
+                      </span>
+                    </td>
                     <td>{formatLastLogin(user.lastLoginAt)}</td>
+                    <td>{formatActivity(user.updatedAt)}</td>
                     <td>
                       <div className={styles.actionsCell}>
                         <Button 
@@ -574,8 +607,24 @@ export default function PlatformUsersPage() {
               disabled
             />
             <FormInput
+              label={t('admin.users.columns.online')}
+              value={
+                selectedUser.isOnline
+                  ? t('admin.users.statuses.online')
+                  : selectedUser.lastSeenAt
+                    ? formatActivity(selectedUser.lastSeenAt)
+                    : t('admin.users.statuses.offline')
+              }
+              disabled
+            />
+            <FormInput
               label={t('admin.users.columns.lastLogin')}
               value={formatLastLogin(selectedUser.lastLoginAt)}
+              disabled
+            />
+            <FormInput
+              label={t('admin.users.form.updatedAt')}
+              value={formatActivity(selectedUser.updatedAt)}
               disabled
             />
             <FormInput

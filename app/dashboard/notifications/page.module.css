@@ -347,6 +347,16 @@
   color: var(--primary);
 }
 
+.notificationIcon.competitor_discovery_complete {
+  background: rgba(123, 44, 191, 0.1);
+  color: var(--primary);
+}
+
+.notificationIcon.competitor_discovery_failed {
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+}
+
 .notificationIcon.alert {
   background: rgba(245, 158, 11, 0.1);
   color: #f59e0b;

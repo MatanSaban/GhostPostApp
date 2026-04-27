@@ -8,6 +8,7 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import prisma from '@/lib/prisma';
 import { cms } from '@/lib/cms';
+import { BOT_FETCH_HEADERS } from '@/lib/bot-identity';
 
 const SESSION_COOKIE = 'user_session';
 
@@ -190,10 +191,7 @@ export async function POST(request, { params }) {
         const response = await fetch(
           `${baseUrl}/wp-json/wp/v2/posts?per_page=${limit}&_fields=id,title,link,excerpt,date,featured_media`,
           {
-            headers: {
-              'Accept': 'application/json',
-              'User-Agent': 'Mozilla/5.0 (compatible; GhostSEOBot/1.0)',
-            },
+            headers: BOT_FETCH_HEADERS,
             signal: AbortSignal.timeout(10000),
           }
         );

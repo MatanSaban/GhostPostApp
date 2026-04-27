@@ -12,19 +12,21 @@ import styles from './actions.module.css';
  * @param {boolean} props.disabled - Whether the button is disabled
  * @param {string} props.className - Additional CSS class
  */
-export function AIDiscoverButton({ 
-  isDiscovering, 
-  onClick, 
+export function AIDiscoverButton({
+  isDiscovering,
+  onClick,
   label,
   disabled = false,
-  className = '' 
+  className = '',
+  title,
 }) {
   return (
     <button
       className={`${styles.aiDiscoverButton} ${className}`}
       onClick={onClick}
-      disabled={disabled || isDiscovering}
+      disabled={disabled}
       type="button"
+      title={title}
     >
       {isDiscovering ? (
         <Loader2 size={16} className={styles.spinIcon} />

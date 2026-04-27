@@ -175,7 +175,11 @@ export function CompetitorTable({ competitors, selectedCompetitor, scanningIds, 
                     disabled={scanningIds.has(competitor.id)}
                     title={t.rescan}
                   >
-                    <RefreshCw size={14} />
+                    {scanningIds.has(competitor.id) ? (
+                      <Loader2 size={14} className={styles.spinIcon} />
+                    ) : (
+                      <RefreshCw size={14} />
+                    )}
                   </button>
                   <button
                     className={`${styles.tableActionButton} ${styles.danger}`}

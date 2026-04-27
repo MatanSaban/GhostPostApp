@@ -272,6 +272,30 @@ useEffect(() => {
   };
 }, [user?.accountId]); // Re-setup if account changes
 
+// Heartbeat — keeps lastSeenAt fresh so admin "online now" indicators are accurate.
+// Pings every 2 minutes while the tab is visible.
+useEffect(() => {
+  if (!user) return;
+
+  const HEARTBEAT_INTERVAL = 120_000; // 2 minutes
+
+  const ping = () => {
+    if (document.visibilityState !== 'visible') return;
+    fetch('/api/user/heartbeat', { method: 'POST' }).catch(() => {});
+  };
+
+  const timerId = setInterval(ping, HEARTBEAT_INTERVAL);
+  const handleVisibility = () => {
+    if (document.visibilityState === 'visible') ping();
+  };
+  document.addEventListener('visibilitychange', handleVisibility);
+
+  return () => {
+    clearInterval(timerId);
+    document.removeEventListener('visibilitychange', handleVisibility);
+  };
+}, [user?.id]);
+
 // Check if user is super admin
 const isSuperAdmin = user?.isSuperAdmin === true;
 

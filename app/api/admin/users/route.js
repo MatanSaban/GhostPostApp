@@ -65,6 +65,18 @@ export async function GET(request) {
       },
     });
 
+    // A user is considered "online" if their heartbeat fired within the last 5 minutes.
+    // The heartbeat lives in user-context; cadence is 2 minutes, so 5 gives a safe margin.
+    // We also fall back to lastLoginAt: a user who just logged in but hasn't heartbeated yet
+    // (or whose tab pre-dates the heartbeat code) still counts as online for a short window.
+    const ONLINE_THRESHOLD_MS = 5 * 60 * 1000;
+    const onlineCutoff = Date.now() - ONLINE_THRESHOLD_MS;
+    const isUserOnline = (u) => {
+      const seen = u.lastSeenAt?.getTime() ?? 0;
+      const login = u.lastLoginAt?.getTime() ?? 0;
+      return Math.max(seen, login) > onlineCutoff;
+    };
+
     // Format the response
     const formattedUsers = users.map((user) => {
       // Determine primary role
@@ -99,6 +111,8 @@ export async function GET(request) {
         status: user.isActive ? 'active' : 'inactive',
         isSuperAdmin: user.isSuperAdmin,
         lastLoginAt: user.lastLoginAt?.toISOString() || null,
+        lastSeenAt: user.lastSeenAt?.toISOString() || null,
+        isOnline: isUserOnline(user),
         createdAt: user.createdAt.toISOString(),
         updatedAt: user.updatedAt.toISOString(),
       };
@@ -109,6 +123,7 @@ export async function GET(request) {
       total: users.length,
       active: users.filter((u) => u.isActive).length,
       superAdmins: users.filter((u) => u.isSuperAdmin).length,
+      online: users.filter(isUserOnline).length,
     };
 
     return NextResponse.json({

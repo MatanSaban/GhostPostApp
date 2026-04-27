@@ -288,6 +288,7 @@ model User {
   isActive              Boolean          @default(true)
   isSuperAdmin          Boolean          @default(false) // Platform-level admin (developer access)
   lastLoginAt           DateTime?
+  lastSeenAt            DateTime? // Heartbeat — bumped while user is actively using the app. Used for "online now" indicators.
   createdAt             DateTime         @default(now())
   updatedAt             DateTime         @updatedAt
 

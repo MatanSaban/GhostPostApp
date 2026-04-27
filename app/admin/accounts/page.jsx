@@ -284,6 +284,18 @@ export default function PlatformAccountsPage() {
     return new Date(dateString).toLocaleDateString(locale === 'he' ? 'he-IL' : 'en-US');
   };
 
+  const formatActivity = (dateString) => {
+    if (!dateString) return '-';
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffHours = Math.floor((now - date) / (1000 * 60 * 60));
+
+    if (diffHours < 1) return t('admin.common.time.justNow');
+    if (diffHours < 24) return t('admin.common.time.hoursAgo').replace('{hours}', diffHours);
+    if (diffHours < 48) return t('admin.common.time.yesterday');
+    return date.toLocaleString(locale === 'he' ? 'he-IL' : 'en-US');
+  };
+
   // Get translated plan name
   const getPlanName = (account) => {
     if (!account.plan || account.plan === 'No Plan') return t('admin.accounts.noPlan');
@@ -292,7 +304,7 @@ export default function PlatformAccountsPage() {
   };
 
   if (isUserLoading) {
-    return <AdminPageSkeleton statsCount={3} columns={5} />;
+    return <AdminPageSkeleton statsCount={3} columns={7} />;
   }
 
   if (!isSuperAdmin) {
@@ -359,7 +371,7 @@ export default function PlatformAccountsPage() {
       {/* Table */}
       <div className={styles.tableContainer}>
         {isLoading ? (
-          <TableSkeleton rows={8} columns={5} hasActions />
+          <TableSkeleton rows={8} columns={7} hasActions />
         ) : paginatedAccounts.length === 0 ? (
           <div className={styles.emptyState}>
             <Building2 className={styles.emptyIcon} />
@@ -376,6 +388,8 @@ export default function PlatformAccountsPage() {
                   <th>{t('admin.accounts.columns.plan')}</th>
                   <th>{t('admin.accounts.columns.status')}</th>
                   <th>{t('admin.accounts.columns.createdAt')}</th>
+                  <th>{t('admin.accounts.columns.lastConnection')}</th>
+                  <th>{t('admin.accounts.columns.lastAction')}</th>
                   <th>{t('admin.accounts.columns.actions')}</th>
                 </tr>
               </thead>
@@ -411,6 +425,8 @@ export default function PlatformAccountsPage() {
                       </span>
                     </td>
                     <td>{formatDate(account.createdAt)}</td>
+                    <td>{formatActivity(account.lastConnectionAt)}</td>
+                    <td>{formatActivity(account.updatedAt)}</td>
                     <td>
                       <div className={styles.actionsCell}>
                         <Button 
@@ -561,6 +577,16 @@ export default function PlatformAccountsPage() {
             <FormInput
               label={t('admin.accounts.columns.createdAt')}
               value={formatDate(selectedAccount.createdAt)}
+              disabled
+            />
+            <FormInput
+              label={t('admin.accounts.form.lastConnection')}
+              value={formatActivity(selectedAccount.lastConnectionAt)}
+              disabled
+            />
+            <FormInput
+              label={t('admin.accounts.form.updatedAt')}
+              value={formatActivity(selectedAccount.updatedAt)}
               disabled
             />
             <FormActions>

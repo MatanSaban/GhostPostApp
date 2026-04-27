@@ -4,6 +4,7 @@ import { z } from 'zod';
 import prisma from '@/lib/prisma';
 import { generateImage, generateStructuredResponse, analyzeImageStructured } from '@/lib/ai/gemini';
 import { enforceCredits } from '@/lib/account-limits';
+import { BOT_FETCH_HEADERS } from '@/lib/bot-identity';
 
 const SESSION_COOKIE = 'user_session';
 
@@ -64,7 +65,7 @@ async function resolveSiteLanguage(site, override) {
   if (site.url) {
     try {
       const res = await fetch(site.url, {
-        headers: { 'User-Agent': 'Mozilla/5.0 (compatible; GhostSEOBot/1.0)' },
+        headers: BOT_FETCH_HEADERS,
         signal: AbortSignal.timeout(8000),
       });
       if (res.ok) {
@@ -105,7 +106,7 @@ function languageName(code) {
 async function fetchImageAsBase64(url) {
   try {
     const res = await fetch(url, {
-      headers: { 'User-Agent': 'Mozilla/5.0 (compatible; GhostSEOBot/1.0)' },
+      headers: BOT_FETCH_HEADERS,
       signal: AbortSignal.timeout(12000),
     });
     if (!res.ok) return null;

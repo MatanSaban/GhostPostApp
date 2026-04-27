@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import prisma from '@/lib/prisma';
+import { BOT_FETCH_HEADERS } from '@/lib/bot-identity';
 
 const SESSION_COOKIE = 'user_session';
 
@@ -71,7 +72,7 @@ export async function POST(request, { params }) {
     try {
       // Fetch fresh sitemap content
       const response = await fetch(sitemap.url, {
-        headers: { 'User-Agent': 'GhostSEO-Platform/1.0' },
+        headers: BOT_FETCH_HEADERS,
         signal: AbortSignal.timeout(30000),
       });
 

@@ -85,6 +85,12 @@ export async function GET() {
       );
     }
 
+    // Heartbeat — drives the "online now" indicator in admin views.
+    // Fire-and-forget so the response stays fast.
+    prisma.user
+      .update({ where: { id: userId }, data: { lastSeenAt: new Date() } })
+      .catch(() => {});
+
     // Get the current account (last selected or first available), preferring non-archived accounts.
     // An archived account should never be auto-selected - if lastSelectedAccountId points to one,
     // fall through to the first non-archived membership.
