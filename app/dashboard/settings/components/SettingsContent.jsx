@@ -42,7 +42,7 @@ const iconMap = {
   Key,
   Globe,
   Building2,
-  Coins,
+  Coins: GCoinIcon,
   Puzzle,
   Bot,
   FileText,
