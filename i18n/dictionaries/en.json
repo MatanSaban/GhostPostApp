@@ -2829,6 +2829,16 @@
     "trash": "Trashed",
     "actions": "Actions",
     "featuredImage": "Featured image",
+    "featuredImageAi": {
+      "generate": "Generate featured image with AI",
+      "tooltip": "Generate featured image with AI (10 credits) — published via plugin",
+      "errors": {
+        "pluginDisconnected": "Plugin not connected — connect WordPress to apply images",
+        "insufficientCredits": "Not enough credits to generate an image",
+        "noImage": "AI didn't return an image — try again",
+        "generic": "Image generation failed"
+      }
+    },
     "viewOnSite": "View on site",
     "search": "Search entities...",
     "totalEntities": "Total Entities",

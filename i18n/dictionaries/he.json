@@ -2829,6 +2829,16 @@
     "trash": "באשפה",
     "actions": "פעולות",
     "featuredImage": "תמונה ראשית",
+    "featuredImageAi": {
+      "generate": "צור תמונה ראשית עם AI",
+      "tooltip": "צור תמונה ראשית עם AI (10 קרדיטים) — מתפרסמת דרך התוסף",
+      "errors": {
+        "pluginDisconnected": "התוסף אינו מחובר — חבר את WordPress כדי להחיל תמונות",
+        "insufficientCredits": "אין מספיק קרדיטים ליצירת תמונה",
+        "noImage": "ה-AI לא החזיר תמונה — נסה שוב",
+        "generic": "יצירת התמונה נכשלה"
+      }
+    },
     "viewOnSite": "צפה באתר",
     "search": "חפש ישויות...",
     "totalEntities": "סה״כ ישויות",

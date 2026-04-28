@@ -482,6 +482,7 @@
 }
 
 .thumbnailPlaceholder {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -493,8 +494,46 @@
   background: rgba(0, 0, 0, 0.02);
 }
 
-.thumbnailPlaceholder :global(svg) {
+.thumbnailPlaceholderIcon {
   opacity: 0.6;
+  transition: opacity 0.15s ease;
+}
+
+.thumbnailPlaceholder:hover .thumbnailPlaceholderIcon {
+  opacity: 0;
+}
+
+/* Sparkles "Generate with AI" button — hover-revealed over the placeholder. */
+.thumbnailAiButton {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 6px;
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.95), rgba(139, 92, 246, 0.95));
+  color: white;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.thumbnailPlaceholder:hover .thumbnailAiButton:not(:disabled) {
+  opacity: 1;
+}
+
+.thumbnailAiButton:disabled {
+  cursor: not-allowed;
+  background: linear-gradient(135deg, rgba(156, 163, 175, 0.85), rgba(107, 114, 128, 0.85));
+}
+
+.thumbnailPlaceholder:hover .thumbnailAiButton:disabled {
+  opacity: 0.85;
+}
+
+.thumbnailAiButtonError {
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.95), rgba(220, 38, 38, 0.95));
 }
 
 .checkboxButton {

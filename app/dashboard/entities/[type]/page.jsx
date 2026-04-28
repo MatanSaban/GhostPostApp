@@ -460,6 +460,9 @@ export default function EntityTypePage({ params }) {
           setEntities(prev => prev.filter(e => e.id !== entityId));
           setStats(prev => ({ ...prev, total: prev.total - 1 }));
         }}
+        onEntityUpdated={(entityId, partial) => {
+          setEntities(prev => prev.map(e => (e.id === entityId ? { ...e, ...partial } : e)));
+        }}
         onEntitiesRemoved={(entityIds) => {
           setEntities(prev => prev.filter(e => !entityIds.includes(e.id)));
           setStats(prev => ({ ...prev, total: prev.total - entityIds.length }));

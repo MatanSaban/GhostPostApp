@@ -19,7 +19,9 @@ import {
   Shield,
   ShieldCheck,
   Image as ImageIcon,
+  Sparkles,
 } from 'lucide-react';
+import { CREDITS_UPDATED_EVENT } from '@/app/context/user-context';
 import { useLocale } from '@/app/context/locale-context';
 import { usePermissions } from '@/app/hooks/usePermissions';
 import { TableSkeleton, Button } from '@/app/dashboard/components';
@@ -36,8 +38,8 @@ const decodeText = (text) => {
   }
 };
 
-export function EntitiesTable({ 
-  entities = [], 
+export function EntitiesTable({
+  entities = [],
   entityType,
   entityTypeName,
   onSync,
@@ -45,6 +47,7 @@ export function EntitiesTable({
   onRefreshEntity,
   onEntityRemoved,
   onEntitiesRemoved,
+  onEntityUpdated,
   onDownloadPlugin,
   isLoading = false,
   isSyncing = false,
@@ -530,18 +533,12 @@ export function EntitiesTable({
                     </button>
                   </td>
                   <td className={styles.thumbnailCell}>
-                    {entity.featuredImage ? (
-                      <img
-                        src={entity.featuredImage}
-                        alt=""
-                        className={styles.thumbnail}
-                        loading="lazy"
-                      />
-                    ) : (
-                      <div className={styles.thumbnailPlaceholder} aria-hidden="true">
-                        <ImageIcon size={14} />
-                      </div>
-                    )}
+                    <FeaturedImageThumbnail
+                      entity={entity}
+                      isPluginConnected={isPluginConnected}
+                      onUpdated={onEntityUpdated}
+                      t={t}
+                    />
                   </td>
                   <td>
                     <div className={styles.entityTitle}>
@@ -660,6 +657,95 @@ export function EntitiesTable({
         </table>
         </>
       )}
+    </div>
+  );
+}
+
+/**
+ * Renders the featured-image cell:
+ *   - thumbnail when entity.featuredImage is set
+ *   - dashed placeholder otherwise, with a Sparkles "Generate with AI" button
+ *     that reveals on hover and pushes the new image to WordPress via the plugin
+ */
+function FeaturedImageThumbnail({ entity, isPluginConnected, onUpdated, t }) {
+  const [state, setState] = useState('idle'); // idle | generating | error
+  const [errorMessage, setErrorMessage] = useState('');
+
+  if (entity.featuredImage) {
+    return (
+      <img
+        src={entity.featuredImage}
+        alt=""
+        className={styles.thumbnail}
+        loading="lazy"
+      />
+    );
+  }
+
+  const aiDisabled =
+    state === 'generating' || !isPluginConnected || !entity.externalId;
+
+  const handleGenerate = async (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (aiDisabled) return;
+    setState('generating');
+    setErrorMessage('');
+    try {
+      const res = await fetch(`/api/entities/${entity.id}/generate-featured-image`, {
+        method: 'POST',
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        const code = data?.code;
+        const msg =
+          code === 'PLUGIN_DISCONNECTED'
+            ? t('entities.featuredImageAi.errors.pluginDisconnected')
+            : code === 'INSUFFICIENT_CREDITS'
+              ? t('entities.featuredImageAi.errors.insufficientCredits')
+              : code === 'NO_IMAGE'
+                ? t('entities.featuredImageAi.errors.noImage')
+                : data?.error || t('entities.featuredImageAi.errors.generic');
+        setErrorMessage(msg);
+        setState('error');
+        return;
+      }
+      // Tell the user-context badge to refresh credits.
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent(CREDITS_UPDATED_EVENT));
+      }
+      onUpdated?.(entity.id, { featuredImage: data.featuredImage });
+      // No state reset needed — the row's `entity.featuredImage` flips truthy
+      // and we re-render as the <img> branch above.
+    } catch (err) {
+      setErrorMessage(err?.message || t('entities.featuredImageAi.errors.generic'));
+      setState('error');
+    }
+  };
+
+  return (
+    <div className={styles.thumbnailPlaceholder} aria-hidden={state === 'idle'}>
+      {state === 'generating' ? (
+        <Loader2 size={14} className={styles.spinningIcon} />
+      ) : (
+        <ImageIcon size={14} className={styles.thumbnailPlaceholderIcon} />
+      )}
+      <button
+        type="button"
+        className={`${styles.thumbnailAiButton} ${state === 'error' ? styles.thumbnailAiButtonError : ''}`}
+        onClick={handleGenerate}
+        disabled={aiDisabled}
+        title={
+          state === 'error'
+            ? errorMessage
+            : !isPluginConnected
+              ? t('entities.featuredImageAi.errors.pluginDisconnected')
+              : t('entities.featuredImageAi.tooltip')
+        }
+        aria-label={t('entities.featuredImageAi.generate')}
+      >
+        <Sparkles size={12} />
+      </button>
     </div>
   );
 }
