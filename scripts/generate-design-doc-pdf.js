@@ -12,7 +12,7 @@ doc.pipe(stream);
 
 // Note at top (red)
 doc.fillColor('#cc0000').fontSize(10).font('Helvetica-Oblique')
-  .text('Note: Our tool is externally accessible at https://app.ghostpost.co.il - screenshots/mockups are included below.', { align: 'left' });
+  .text('Note: Our tool is externally accessible at https://app.ghostseo.ai - screenshots/mockups are included below.', { align: 'left' });
 
 doc.moveDown(1.5);
 
@@ -34,7 +34,7 @@ doc.moveDown(1);
 // Tool Access/Use
 doc.font('Helvetica-Bold').text('Tool Access/Use: ', { continued: true })
   .font('Helvetica').text(
-    'Our tool is used by our platform\'s customers (businesses and content managers) to track keyword rankings and plan content strategy. Users log into our platform at https://app.ghostpost.co.il and view a keywords dashboard that displays search volume, ranking position, clicks, and impressions for their tracked keywords. The search volume data is fetched from the Google Ads Keyword Planner API using our platform\'s own MCC account credentials. Individual users do not need a Google Ads account - all API calls are made server-side using our platform\'s single set of credentials.'
+    'Our tool is used by our platform\'s customers (businesses and content managers) to track keyword rankings and plan content strategy. Users log into our platform at https://app.ghostseo.ai and view a keywords dashboard that displays search volume, ranking position, clicks, and impressions for their tracked keywords. The search volume data is fetched from the Google Ads Keyword Planner API using our platform\'s own MCC account credentials. Individual users do not need a Google Ads account - all API calls are made server-side using our platform\'s single set of credentials.'
   );
 
 doc.moveDown(1);

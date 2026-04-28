@@ -29,7 +29,7 @@ export default function WebsiteSettingsPage() {
   const [hasChanges, setHasChanges] = useState(false);
 
   const [settings, setSettings] = useState({
-    siteUrl: 'https://ghostpost.co.il',
+    siteUrl: 'https://ghostseo.ai',
     twitterHandle: '',
     defaultOgImage: '/og/default.png',
     defaultRobots: 'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1',

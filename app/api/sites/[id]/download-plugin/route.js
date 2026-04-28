@@ -113,7 +113,7 @@ export async function GET(request, { params }) {
 
     // API URL for the plugin to communicate with
     // Use dedicated plugin API URL, fall back to base URL, then default to production
-    const apiUrl = process.env.GP_PLUGIN_API_URL || process.env.NEXT_PUBLIC_BASE_URL || 'https://app.ghostpost.co.il';
+    const apiUrl = process.env.GP_PLUGIN_API_URL || process.env.NEXT_PUBLIC_BASE_URL || 'https://app.ghostseo.ai';
 
     // Main plugin file (with current version from centralized config)
     pluginFolder.file('ghostseo-connector.php', getPluginMainFile(PLUGIN_VERSION));

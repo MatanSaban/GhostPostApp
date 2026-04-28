@@ -34,7 +34,7 @@ if (!in_array($active_tab, $allowed_tabs, true)) {
     $active_tab = 'connection';
 }
 
-$platform_url = defined('GP_API_URL') ? GP_API_URL : 'https://app.ghostpost.co.il';
+$platform_url = defined('GP_API_URL') ? GP_API_URL : 'https://app.ghostseo.ai';
 $site_key_display = defined('GP_SITE_KEY') ? GP_SITE_KEY : '';
 $masked_key = $is_configured ? substr($site_key_display, 0, 8) . '...' . substr($site_key_display, -4) : '';
 
@@ -155,7 +155,7 @@ $theme_class = ($gp_theme === 'light') ? 'gp-theme-light' : 'gp-theme-dark';
                     <h2><?php esc_html_e('Connect your site to GhostSEO', 'ghostseo-connector'); ?></h2>
                     <p class="gp-connect-desc">
                         <?php esc_html_e('Copy your Access Key and paste it at', 'ghostseo-connector'); ?>
-                        <a href="<?php echo esc_url($platform_url); ?>" target="_blank" rel="noopener noreferrer">ghostpost.co.il</a>
+                        <a href="<?php echo esc_url($platform_url); ?>" target="_blank" rel="noopener noreferrer">ghostseo.ai</a>
                         <?php esc_html_e('to start managing this site with AI.', 'ghostseo-connector'); ?>
                     </p>
 

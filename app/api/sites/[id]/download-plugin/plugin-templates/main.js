@@ -8,11 +8,11 @@ export function getPluginMainFile(version = PLUGIN_VERSION) {
   return `<?php
 /**
  * Plugin Name: GhostSEO Connector
- * Plugin URI: https://ghostpost.co.il
+ * Plugin URI: https://ghostseo.ai
  * Description: Connects your WordPress site to GhostSEO platform for AI-powered content management.
  * Version: ${version}
  * Author: GhostSEO
- * Author URI: https://ghostpost.co.il
+ * Author URI: https://ghostseo.ai
  * License: GPL v2 or later
  * License URI: https://www.gnu.org/licenses/gpl-2.0.html
  * Text Domain: ghostseo-connector

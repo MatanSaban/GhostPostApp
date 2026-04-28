@@ -2459,7 +2459,7 @@ model WebsiteSeo {
 
   // Site-wide defaults
   siteName       Json // { en: "GhostSEO", he: "GhostSEO", fr: "GhostSEO" }
-  siteUrl        String  @default("https://ghostpost.co.il")
+  siteUrl        String  @default("https://ghostseo.ai")
   defaultOgImage String?
   twitterHandle  String?
 

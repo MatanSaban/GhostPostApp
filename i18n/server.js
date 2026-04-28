@@ -7,14 +7,14 @@ const dictionaryCache = {};
 
 /**
  * Get default locale based on domain
- * app.ghostpost.co.il → Hebrew (he)
+ * app.ghostseo.ai → Hebrew (he)
  * app.ghostpost.com → English (en)
  */
 async function getDefaultLocaleForDomain() {
   try {
     const headersList = await headers();
     const host = headersList.get('host') || '';
-    if (host.includes('ghostpost.co.il')) {
+    if (host.includes('ghostseo.ai')) {
       return 'he';
     }
   } catch (error) {

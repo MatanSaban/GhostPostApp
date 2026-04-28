@@ -60,11 +60,11 @@ function generatePageSeo(content, locale, page) {
         '@context': 'https://schema.org',
         '@type': 'WebSite',
         name: 'GhostSEO',
-        url: 'https://ghostpost.co.il',
+        url: 'https://ghostseo.ai',
         description: seo.description,
         potentialAction: {
           '@type': 'SearchAction',
-          target: 'https://ghostpost.co.il/search?q={search_term_string}',
+          target: 'https://ghostseo.ai/search?q={search_term_string}',
           'query-input': 'required name=search_term_string'
         }
       };
@@ -83,7 +83,7 @@ function generatePageSeo(content, locale, page) {
         mainEntity: {
           '@type': 'Organization',
           name: 'GhostSEO',
-          url: 'https://ghostpost.co.il'
+          url: 'https://ghostseo.ai'
         }
       };
       break;
@@ -171,7 +171,7 @@ function generatePageSeo(content, locale, page) {
         '@type': 'Blog',
         name: seo.title,
         description: seo.description,
-        url: 'https://ghostpost.co.il/blog'
+        url: 'https://ghostseo.ai/blog'
       };
       break;
   }
@@ -193,7 +193,7 @@ async function seedWebsiteContent() {
         he: 'GhostSEO',
         fr: 'GhostSEO'
       },
-      siteUrl: 'https://ghostpost.co.il',
+      siteUrl: 'https://ghostseo.ai',
       defaultOgImage: '/og/default.png',
       twitterHandle: '@ghostpost',
       defaultRobots: 'index, follow, max-video-preview:-1, max-image-preview:large, max-snippet:-1'
@@ -204,7 +204,7 @@ async function seedWebsiteContent() {
         he: 'GhostSEO',
         fr: 'GhostSEO'
       },
-      siteUrl: 'https://ghostpost.co.il'
+      siteUrl: 'https://ghostseo.ai'
     }
   });
   console.log('   ✓ WebsiteSeo created/updated\n');

@@ -13,7 +13,7 @@ function redirectToDashboard(siteId, status) {
   const host =
     process.env.SHOPIFY_APP_HOST ||
     process.env.NEXT_PUBLIC_BASE_URL ||
-    'https://app.ghostpost.co.il';
+    'https://app.ghostseo.ai';
   const path = siteId
     ? `/dashboard/my-websites?connected=shopify&siteId=${siteId}&status=${status}`
     : `/dashboard/my-websites?status=${status}`;
@@ -119,7 +119,7 @@ export async function GET(request) {
 
   // 5. Register webhooks (best-effort - don't block the redirect on failure).
   try {
-    const host = (process.env.SHOPIFY_APP_HOST || process.env.NEXT_PUBLIC_BASE_URL || 'https://app.ghostpost.co.il').replace(/\/$/, '');
+    const host = (process.env.SHOPIFY_APP_HOST || process.env.NEXT_PUBLIC_BASE_URL || 'https://app.ghostseo.ai').replace(/\/$/, '');
     const callbackUrl = `${host}/api/shopify/webhook`;
     const webhookIds = await registerWebhooks({
       shop,

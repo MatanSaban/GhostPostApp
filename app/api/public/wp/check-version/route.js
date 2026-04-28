@@ -54,7 +54,7 @@ export async function POST(request) {
 
     return NextResponse.json({
       version: PLUGIN_VERSION,
-      download_url: `${process.env.NEXT_PUBLIC_APP_URL || 'https://app.ghostpost.co.il'}/api/plugin/download?site_key=${siteKey}`,
+      download_url: `${process.env.NEXT_PUBLIC_APP_URL || 'https://app.ghostseo.ai'}/api/plugin/download?site_key=${siteKey}`,
       changelog: PLUGIN_CHANGELOG,
     });
   } catch (error) {

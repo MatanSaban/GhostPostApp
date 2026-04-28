@@ -1,7 +1,7 @@
 // One-shot rename: "Ghost Post" -> "GhostSEO" (and Hebrew "גוסט פוסט" -> "GhostSEO")
 // across gp-platform source files and database.
 //
-// URLs/emails/handles like "ghostpost.co.il", "@ghostpost", "ghostpost_logo.png",
+// URLs/emails/handles like "ghostseo.ai", "@ghostpost", "ghostpost_logo.png",
 // "ghost-post-connector" use lowercase or hyphenated forms and don't match the
 // "Ghost Post" pattern, so they're naturally preserved.
 //

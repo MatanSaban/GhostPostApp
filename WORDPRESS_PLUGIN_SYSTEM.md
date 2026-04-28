@@ -69,7 +69,7 @@ Each template is a JavaScript function that returns PHP source code as a templat
 define('GP_SITE_ID', '{mongodb_site_id}');
 define('GP_SITE_KEY', 'gp_site_{32_hex_chars}');
 define('GP_SITE_SECRET', '{64_char_hex_secret}');
-define('GP_API_URL', 'https://app.ghostpost.co.il');
+define('GP_API_URL', 'https://app.ghostseo.ai');
 define('GP_PERMISSIONS', serialize(array(
   'CONTENT_READ', 'CONTENT_CREATE', 'CONTENT_UPDATE', 'CONTENT_DELETE', 'CONTENT_PUBLISH',
   'MEDIA_UPLOAD', 'MEDIA_DELETE',
@@ -103,7 +103,7 @@ function gp_has_permission($permission) {
 7. Add `assets/icon.svg` (ghost icon)
 8. Return ZIP with filename: `Ghost-Post-Connector-{siteName}_{version}.zip`
 
-**API URL Resolution:** `GP_PLUGIN_API_URL` env → `NEXT_PUBLIC_BASE_URL` env → default `https://app.ghostpost.co.il`
+**API URL Resolution:** `GP_PLUGIN_API_URL` env → `NEXT_PUBLIC_BASE_URL` env → default `https://app.ghostseo.ai`
 
 ### `GET /api/plugin/download?site_key=xxx` - Unauthenticated Plugin Auto-Update Download
 
@@ -161,7 +161,7 @@ ghost-post-connector/
 ```php
 // Plugin Header
 Plugin Name: GhostSEO Connector
-Plugin URI: https://ghostpost.co.il
+Plugin URI: https://ghostseo.ai
 Version: 3.0.1
 Requires at least: 5.6
 Requires PHP: 7.4
@@ -847,7 +847,7 @@ export const PLUGIN_CHANGELOG = `
      "success": true,
      "version": "3.0.1",
      "update_available": true,
-     "download_url": "https://app.ghostpost.co.il/api/plugin/download?site_key=...",
+     "download_url": "https://app.ghostseo.ai/api/plugin/download?site_key=...",
      "changelog": "= 3.0.1 =...",
      "tested_wp": "6.7",
      "requires_wp": "5.6",

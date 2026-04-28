@@ -6049,7 +6049,7 @@
       "namePlaceholder": "Enter your organization name",
       "slugLabel": "Organization URL",
       "slugPlaceholder": "your-organization",
-      "slugPrefix": "app.ghostpost.co.il/",
+      "slugPrefix": "app.ghostseo.ai/",
       "slugHint": "This will be your unique URL. Only lowercase letters, numbers, and hyphens allowed.",
       "slugAvailable": "Available!",
       "slugTooShort": "Slug must be at least 3 characters",

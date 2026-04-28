@@ -2678,7 +2678,7 @@ Each template is a JavaScript function that returns PHP source code, with site-s
 define('GP_SITE_ID', '{mongodb_site_id}');
 define('GP_SITE_KEY', 'gp_site_{32_hex_chars}');
 define('GP_SITE_SECRET', '{64_char_hex_secret}');
-define('GP_API_URL', 'https://app.ghostpost.co.il');
+define('GP_API_URL', 'https://app.ghostseo.ai');
 define('GP_PERMISSIONS', serialize(array(
   'CONTENT_READ', 'CONTENT_CREATE', 'CONTENT_UPDATE', 'CONTENT_DELETE', 'CONTENT_PUBLISH',
   'MEDIA_UPLOAD', 'MEDIA_DELETE',
@@ -2708,7 +2708,7 @@ function gp_has_permission($permission) {
 7. Add `assets/icon.svg` (ghost icon)
 8. Return ZIP with filename: `ghost-post-connector-{short-key}.zip`
 
-**API URL Resolution:** `GP_PLUGIN_API_URL` env → `NEXT_PUBLIC_BASE_URL` env → default `https://app.ghostpost.co.il`
+**API URL Resolution:** `GP_PLUGIN_API_URL` env → `NEXT_PUBLIC_BASE_URL` env → default `https://app.ghostseo.ai`
 
 ### 24d. Generated ZIP Structure
 
@@ -2751,7 +2751,7 @@ ghost-post-connector/
 
 // Plugin Header
 Plugin Name: GhostSEO Connector
-Plugin URI: https://ghostpost.co.il
+Plugin URI: https://ghostseo.ai
 Version: 2.4.9
 Requires at least: 5.6
 Requires PHP: 7.4

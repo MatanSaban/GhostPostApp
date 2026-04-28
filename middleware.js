@@ -6,11 +6,11 @@ const REG_DONE_COOKIE = "reg_done";
 
 /**
  * Get default locale based on domain
- * app.ghostpost.co.il → Hebrew (he)
+ * app.ghostseo.ai → Hebrew (he)
  * app.ghostpost.com → English (en)
  */
 function getDefaultLocaleForDomain(host) {
-  if (host?.includes("ghostpost.co.il")) {
+  if (host?.includes("ghostseo.ai")) {
     return "he";
   }
   return "en";

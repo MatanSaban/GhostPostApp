@@ -201,7 +201,7 @@ export default function EditBlogPostPage({ params }) {
 
   const currentContent = postData.content?.[activeLocale] || {};
   const currentSeo = postData.seo?.[activeLocale] || {};
-  const previewUrl = process.env.NEXT_PUBLIC_GP_WS_URL || 'https://ghostpost.co.il';
+  const previewUrl = process.env.NEXT_PUBLIC_GP_WS_URL || 'https://ghostseo.ai';
 
   return (
     <div className={adminStyles.pageContainer}>

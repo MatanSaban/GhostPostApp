@@ -74,7 +74,7 @@ export async function GET() {
       return NextResponse.json({
         websiteId: 'gp-ws',
         siteName: { en: 'GhostSEO', he: 'GhostSEO', fr: 'GhostSEO' },
-        siteUrl: 'https://ghostpost.co.il',
+        siteUrl: 'https://ghostseo.ai',
         defaultOgImage: '/og/default.png',
         twitterHandle: '@ghostpost',
         defaultRobots: 'index, follow, max-video-preview:-1, max-image-preview:large, max-snippet:-1'
@@ -110,7 +110,7 @@ export async function PUT(request) {
       create: {
         websiteId: 'gp-ws',
         siteName: siteName || { en: 'GhostSEO', he: 'GhostSEO', fr: 'GhostSEO' },
-        siteUrl: siteUrl || 'https://ghostpost.co.il',
+        siteUrl: siteUrl || 'https://ghostseo.ai',
         defaultOgImage,
         twitterHandle,
         defaultRobots: defaultRobots || 'index, follow',

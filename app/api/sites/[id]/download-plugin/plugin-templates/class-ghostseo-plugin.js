@@ -1029,7 +1029,7 @@ class GhostSEO_Plugin {
             'plugin'      => GP_CONNECTOR_PLUGIN_BASENAME,
             'new_version' => $new_version,
             'package'     => esc_url_raw($download_url),
-            'url'         => 'https://ghostpost.co.il',
+            'url'         => 'https://ghostseo.ai',
         );
         
         $transient = get_site_transient('update_plugins');

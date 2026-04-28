@@ -67,7 +67,7 @@ export async function GET(request) {
     const pluginFolder = zip.folder('ghostseo-connector');
 
     // API URL for the plugin to communicate with
-    const apiUrl = process.env.GP_PLUGIN_API_URL || process.env.NEXT_PUBLIC_BASE_URL || 'https://app.ghostpost.co.il';
+    const apiUrl = process.env.GP_PLUGIN_API_URL || process.env.NEXT_PUBLIC_BASE_URL || 'https://app.ghostseo.ai';
 
     // Main plugin file (with updated version)
     pluginFolder.file('ghostseo-connector.php', getPluginMainFile(PLUGIN_VERSION));

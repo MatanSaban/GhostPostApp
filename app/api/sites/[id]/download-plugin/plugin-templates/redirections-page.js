@@ -221,7 +221,7 @@ $theme_class = ($gp_theme === 'light') ? 'gp-theme-light' : '';
         <?php
         printf(
             esc_html__('Powered by %s', 'ghostseo-connector'),
-            '<a href="https://ghostpost.co.il" target="_blank" rel="noopener">GhostSEO</a>'
+            '<a href="https://ghostseo.ai" target="_blank" rel="noopener">GhostSEO</a>'
         );
         ?>
     </div>

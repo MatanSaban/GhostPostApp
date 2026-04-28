@@ -429,7 +429,7 @@ export function EntitiesTable({
           }
           onSecondaryAction={onboardingVariant === 'connect' ? () => {
             // Open instructions - could link to docs or show a modal
-            window.open('https://docs.ghostpost.co.il/wordpress-plugin', '_blank');
+            window.open('https://docs.ghostseo.ai/wordpress-plugin', '_blank');
           } : undefined}
         />
       ) : filteredEntities.length === 0 ? (

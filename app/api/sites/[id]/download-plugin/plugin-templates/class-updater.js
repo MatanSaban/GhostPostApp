@@ -142,7 +142,7 @@ class GP_Updater {
                 'slug'        => $this->plugin_slug,
                 'plugin'      => $this->plugin_basename,
                 'new_version' => $this->current_version,
-                'url'         => 'https://ghostpost.co.il',
+                'url'         => 'https://ghostseo.ai',
                 'icons'       => array(
                     'svg' => GP_API_URL . '/favicon.svg',
                     '1x'  => GP_API_URL . '/favicon.svg',

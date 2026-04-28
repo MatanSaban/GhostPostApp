@@ -52,7 +52,7 @@ The GhostSEO chat system is an AI-powered SEO assistant that can analyze WordPre
 - **AI SDK:** Vercel AI SDK v6 - `streamText`, `generateText`, `tool`, `jsonSchema`, `stepCountIs`, `hasToolCall` from `'ai'`
 - **Frontend:** `useChat` hook from `@ai-sdk/react` with UIMessage format (parts array)
 - **Database:** MongoDB via Prisma - `ChatConversation`, `ChatMessage`, `ChatAction` models
-- **Platform:** Next.js App Router, deployed at `app.ghostpost.co.il`
+- **Platform:** Next.js App Router, deployed at `app.ghostseo.ai`
 
 ---
 

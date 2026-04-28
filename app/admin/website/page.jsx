@@ -40,7 +40,7 @@ export default function WebsiteContentPage() {
     return <AdminPageSkeleton statsCount={0} columns={3} />;
   }
 
-  const previewUrl = process.env.NEXT_PUBLIC_GP_WS_URL || 'https://ghostpost.co.il';
+  const previewUrl = process.env.NEXT_PUBLIC_GP_WS_URL || 'https://ghostseo.ai';
 
   // Build sections with translations
   const sections = Object.entries(SECTION_CONFIG).map(([id, config]) => ({

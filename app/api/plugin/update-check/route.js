@@ -34,7 +34,7 @@ export async function GET(request) {
     }
 
     // Get the API URL for downloads
-    const apiUrl = process.env.GP_PLUGIN_API_URL || process.env.NEXT_PUBLIC_BASE_URL || 'https://app.ghostpost.co.il';
+    const apiUrl = process.env.GP_PLUGIN_API_URL || process.env.NEXT_PUBLIC_BASE_URL || 'https://app.ghostseo.ai';
 
     // Compare versions
     const updateAvailable = isNewerVersion(PLUGIN_VERSION, currentVersion);
@@ -51,11 +51,11 @@ export async function GET(request) {
       requires_wp: '5.6',
       requires_php: '7.4',
       last_updated: new Date().toISOString().split('T')[0],
-      homepage: 'https://ghostpost.co.il',
+      homepage: 'https://ghostseo.ai',
       plugin_name: 'GhostSEO Connector',
       slug: 'ghostseo-connector',
       author: 'GhostSEO',
-      author_profile: 'https://ghostpost.co.il',
+      author_profile: 'https://ghostseo.ai',
       sections: {
         description: 'Connects your WordPress site to GhostSEO platform for AI-powered content management.',
         installation: 'Upload the plugin files to your WordPress installation and activate it.',

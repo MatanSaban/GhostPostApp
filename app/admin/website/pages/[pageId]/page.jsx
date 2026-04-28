@@ -314,7 +314,7 @@ export default function EditPagePage({ params }) {
   }
 
   const PageIcon = pageConfig.icon;
-  const previewUrl = process.env.NEXT_PUBLIC_GP_WS_URL || 'https://ghostpost.co.il';
+  const previewUrl = process.env.NEXT_PUBLIC_GP_WS_URL || 'https://ghostseo.ai';
 
   return (
     <div className={adminStyles.pageContainer}>
