@@ -278,13 +278,32 @@ class GP_I18n {
             'Time' => 'זמן',
             'No activity recorded yet. Actions will appear here once GhostSEO starts managing your content.' => 'טרם נרשמה פעילות. פעולות יופיעו כאן ברגע ש-GhostSEO יתחיל לנהל את התוכן שלך.',
             'No activity recorded yet. Actions performed by GhostSEO will appear here.' => 'טרם נרשמה פעילות. פעולות שבוצעו על ידי GhostSEO יופיעו כאן.',
+            // Action labels rendered as English source strings via __()
+            // (post-overhaul). The action_labels[] array in settings-page.js
+            // calls __('Connected', …) etc. so we map English → Hebrew here.
+            'Connected' => 'מחובר',
+            'Disconnected' => 'מנותק',
+            'Content created' => 'תוכן נוצר',
+            'Content updated' => 'תוכן עודכן',
+            'Content deleted' => 'תוכן נמחק',
+            'Media uploaded' => 'מדיה הועלתה',
+            'Media deleted' => 'מדיה נמחקה',
+            'SEO updated' => 'SEO עודכן',
+            'Element edited' => 'אלמנט נערך',
+
+            // Legacy raw-key fallbacks — pre-overhaul activity-log entries
+            // stored the action key directly (no English label) and the
+            // settings page used to translate it via __() . These mappings
+            // keep old log entries readable until they age out.
             'connection_verified' => 'חיבור אומת',
             'disconnected' => 'מנותק',
             'content_created' => 'תוכן נוצר',
             'content_updated' => 'תוכן עודכן',
             'content_deleted' => 'תוכן נמחק',
             'media_uploaded' => 'מדיה הועלתה',
+            'media_deleted' => 'מדיה נמחקה',
             'seo_updated' => 'SEO עודכן',
+            'element_manipulated' => 'אלמנט נערך',
             'redirect_created' => 'הפניה נוצרה',
             'redirect_updated' => 'הפניה עודכנה',
             'redirect_deleted' => 'הפניה נמחקה',
@@ -294,6 +313,23 @@ class GP_I18n {
             // ---- Activity Detail strings ----
             'Connection verified with GhostSEO platform' => 'החיבור אומת עם פלטפורמת GhostSEO',
             'Disconnected from GhostSEO platform' => 'התנתק מפלטפורמת GhostSEO',
+            // sprintf templates passed to vsprintf() at render time. Order
+            // of %-args is preserved across translations.
+            'Created %s' => 'נוצר %s',
+            'Updated %s' => 'עודכן %s',
+            'Deleted %s' => 'נמחק %s',
+            'Uploaded %s' => 'הועלה %s',
+            'SEO meta updated for %s' => 'מטא SEO עודכן עבור %s',
+            '%s on %s' => '%s על %s',
+            // Post / media label sub-templates used inside the above
+            '%1$s #%2$d "%3$s"' => '%1$s #%2$d "%3$s"',
+            'media #%1$d "%2$s"' => 'מדיה #%1$d "%2$s"',
+            '(untitled)' => '(ללא כותרת)',
+
+            // ---- Pagination ----
+            'Previous' => 'הקודם',
+            'Next' => 'הבא',
+            'Page %1$d of %2$d' => 'עמוד %1$d מתוך %2$d',
 
             // ---- Admin JS strings ----
             'Testing connection...' => 'בודק חיבור...',

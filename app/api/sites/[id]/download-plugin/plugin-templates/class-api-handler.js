@@ -749,7 +749,8 @@ class GP_API_Handler {
             return new WP_REST_Response(array('error' => 'Permission denied'), 403);
         }
         $result = $this->content_manager->create_item('post', $request->get_json_params());
-        GhostSEO_Plugin::log_activity('content_created', 'Post created via API');
+        $new_id = is_array($result) && isset($result['id']) ? $result['id'] : (is_object($result) && isset($result->id) ? $result->id : 0);
+        GhostSEO_Plugin::log_activity('content_created', 'Created %s', array(GhostSEO_Plugin::format_post_label($new_id)));
         return $result;
     }
     
@@ -758,7 +759,7 @@ class GP_API_Handler {
             return new WP_REST_Response(array('error' => 'Permission denied'), 403);
         }
         $result = $this->content_manager->update_item('post', $request['id'], $request->get_json_params());
-        GhostSEO_Plugin::log_activity('content_updated', 'Post #' . $request['id'] . ' updated via API');
+        GhostSEO_Plugin::log_activity('content_updated', 'Updated %s', array(GhostSEO_Plugin::format_post_label($request['id'])));
         return $result;
     }
     
@@ -766,8 +767,10 @@ class GP_API_Handler {
         if (!gp_has_permission('CONTENT_DELETE')) {
             return new WP_REST_Response(array('error' => 'Permission denied'), 403);
         }
+        // Capture label BEFORE delete; format_post_label needs the post to still exist
+        $label = GhostSEO_Plugin::format_post_label($request['id']);
         $result = $this->content_manager->delete_item('post', $request['id']);
-        GhostSEO_Plugin::log_activity('content_deleted', 'Post #' . $request['id'] . ' deleted via API');
+        GhostSEO_Plugin::log_activity('content_deleted', 'Deleted %s', array($label));
         return $result;
     }
     
@@ -871,7 +874,8 @@ class GP_API_Handler {
             return new WP_REST_Response(array('error' => 'Permission denied'), 403);
         }
         $result = $this->media_manager->upload($request);
-        GhostSEO_Plugin::log_activity('media_uploaded', 'Media uploaded via API');
+        $new_id = is_array($result) && isset($result['id']) ? $result['id'] : 0;
+        GhostSEO_Plugin::log_activity('media_uploaded', 'Uploaded %s', array(GhostSEO_Plugin::format_media_label($new_id)));
         return $result;
     }
     
@@ -879,8 +883,9 @@ class GP_API_Handler {
         if (!gp_has_permission('MEDIA_DELETE')) {
             return new WP_REST_Response(array('error' => 'Permission denied'), 403);
         }
+        $label = GhostSEO_Plugin::format_media_label($request['id']);
         $result = $this->media_manager->delete($request['id']);
-        GhostSEO_Plugin::log_activity('media_deleted', 'Media #' . $request['id'] . ' deleted via API');
+        GhostSEO_Plugin::log_activity('media_deleted', 'Deleted %s', array($label));
         return $result;
     }
     
@@ -1040,7 +1045,7 @@ class GP_API_Handler {
             return new WP_REST_Response(array('error' => 'Permission denied'), 403);
         }
         $result = $this->seo_manager->update_meta($request['id'], $request->get_json_params());
-        GhostSEO_Plugin::log_activity('seo_updated', 'SEO meta updated for post #' . $request['id']);
+        GhostSEO_Plugin::log_activity('seo_updated', 'SEO meta updated for %s', array(GhostSEO_Plugin::format_post_label($request['id'])));
         return $result;
     }
     
@@ -1524,7 +1529,8 @@ class GP_API_Handler {
         if (class_exists('GP_Cache_Manager')) {
             GP_Cache_Manager::clear_all(array($post_id));
         }
-        GhostSEO_Plugin::log_activity('element_manipulated', 'Post #' . $post_id . ' ' . (isset($spec['operation']) ? $spec['operation'] : 'modified'));
+        $op = isset($spec['operation']) ? (string) $spec['operation'] : 'modified';
+        GhostSEO_Plugin::log_activity('element_manipulated', '%s on %s', array($op, GhostSEO_Plugin::format_post_label($post_id)));
         return new WP_REST_Response($result, 200);
     }
 

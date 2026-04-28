@@ -485,27 +485,79 @@ class GhostSEO_Plugin {
     }
     
     /**
-     * Log activity for the activity tab
+     * Log activity for the activity tab.
      *
-     * @param string $action Short action label (e.g. 'content_created')
-     * @param string $details Human-readable details
+     * Stores a translation key + params instead of pre-rendered text so the
+     * Activity tab can localize the details column at render time and
+     * follow the user's current plugin language even when WP is switched
+     * after the entry was logged. A plain string second arg is still
+     * accepted for backwards compatibility with old entries already in
+     * wp_options['gp_activity_log'].
+     *
+     * @param string $action       Short action key (e.g. 'content_created')
+     * @param string $details_key  Translation key/sprintf template
+     *                             (e.g. 'Updated %s') OR a plain prerendered string
+     * @param array  $params       Positional sprintf params for $details_key
      */
-    public static function log_activity($action, $details = '') {
+    public static function log_activity($action, $details_key = '', $params = array()) {
         $log = get_option('gp_activity_log', array());
         if (!is_array($log)) {
             $log = array();
         }
-        
+
         array_unshift($log, array(
             'action'  => sanitize_text_field($action),
-            'details' => sanitize_text_field($details),
+            'details' => array(
+                'key'    => sanitize_text_field((string) $details_key),
+                'params' => array_map('sanitize_text_field', is_array($params) ? array_map('strval', $params) : array()),
+            ),
             'time'    => time(),
         ));
-        
+
         // Keep max 200 entries
         $log = array_slice($log, 0, 200);
-        
+
         update_option('gp_activity_log', $log, false);
+    }
+
+    /**
+     * Build a short, human-friendly label for a WordPress post/page used
+     * inside activity-log details (e.g. "post #123 \"About Us\"").
+     */
+    public static function format_post_label($id) {
+        $id = intval($id);
+        $post = get_post($id);
+        if (!$post) {
+            return '#' . $id;
+        }
+        $type  = $post->post_type ?: 'post';
+        $title = trim($post->post_title);
+        if ($title === '') {
+            $title = __('(untitled)', 'ghostseo-connector');
+        }
+        // Translators: %1$s post-type slug, %2$d numeric WP id, %3$s post title
+        return sprintf(__('%1$s #%2$d "%3$s"', 'ghostseo-connector'), $type, $id, $title);
+    }
+
+    /**
+     * Build a short, human-friendly label for an attachment used inside
+     * activity-log details (e.g. "image #45 \"hero.jpg\"").
+     */
+    public static function format_media_label($id) {
+        $id = intval($id);
+        $att = get_post($id);
+        if (!$att) {
+            return '#' . $id;
+        }
+        $title = trim($att->post_title);
+        if ($title === '') {
+            $title = trim(basename(get_attached_file($id) ?: ''));
+        }
+        if ($title === '') {
+            $title = __('(untitled)', 'ghostseo-connector');
+        }
+        // Translators: %1$d numeric WP id, %2$s file name or media title
+        return sprintf(__('media #%1$d "%2$s"', 'ghostseo-connector'), $id, $title);
     }
     
     /**
@@ -769,7 +821,7 @@ class GhostSEO_Plugin {
             update_option('gp_connector_last_ping', time());
             update_option('gp_connector_last_connection_check', time());
             delete_option('gp_connector_last_error');
-            self::log_activity('connection_verified', 'Connection verified with GhostSEO platform');
+            self::log_activity('connection_verified', 'Connection verified with GhostSEO platform');  // English template; GP_I18n filter translates at render time
             return true;
         }
         
@@ -799,7 +851,7 @@ class GhostSEO_Plugin {
         
         wp_clear_scheduled_hook('gp_connector_ping');
         update_option('gp_connector_connection_status', 'disconnected');
-        self::log_activity('disconnected', 'Disconnected from GhostSEO platform');
+        self::log_activity('disconnected', 'Disconnected from GhostSEO platform');  // English template
     }
     
     /**

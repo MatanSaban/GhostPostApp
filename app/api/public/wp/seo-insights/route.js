@@ -111,19 +111,40 @@ export async function POST(request) {
       avgPosition: null,
     }));
 
-    // Extract issues from latest audit. Translate `audit.issues.<key>`
-    // titles using the plugin-supplied locale so the WP admin shows
-    // "Too many external scripts" / "יותר מדי סקריפטים חיצוניים" instead
-    // of the raw key. The plugin renders `description` verbatim, so
-    // decode percent-encoded URLs before sending — otherwise Hebrew
-    // slugs land as "%d7%90%d7%99%d7%9a-…".
+    // Convert kebab/snake-case axe rule IDs into a Title-Case fallback so
+    // an unmapped accessibility violation reads as "Skip Link" instead of
+    // the raw "skip-link". Used only when neither the i18n dictionary nor
+    // the issue's stored axe `suggestion` (English help text) provides a
+    // better human label.
+    const humanize = (s) =>
+      s.replace(/[-_]+/g, ' ')
+       .replace(/\s+/g, ' ')
+       .trim()
+       .replace(/\b\w/g, (c) => c.toUpperCase());
+
+    // Extract issues from latest audit. The plugin renders `description`
+    // verbatim, so decode percent-encoded URLs before sending — otherwise
+    // Hebrew slugs land as "%d7%90%d7%99%d7%9a-…".
     const issues = (latestAudit?.issues || [])
       .filter(i => i.severity === 'error' || i.severity === 'warning')
       .slice(0, 20)
       .map(issue => {
         const raw = issue.message || '';
-        // Translate keys; pass any other text through as-is.
-        const title = raw.startsWith('audit.issues.') ? t(raw) : raw;
+        // Title resolution priority:
+        //   1. dictionary key (audit.issues.<id>, a11y.<rule>, etc)
+        //   2. axe-core's English help text stored on issue.suggestion (a11y rules only)
+        //   3. humanized version of the suffix after the namespace dot
+        let title = raw;
+        if (raw.includes('.')) {
+          const translated = t(raw);
+          if (translated !== raw) {
+            title = translated;
+          } else if (raw.startsWith('a11y.') && issue.suggestion) {
+            title = issue.suggestion;
+          } else {
+            title = humanize(raw.split('.').pop() || raw);
+          }
+        }
         return {
           severity: issue.severity || 'info',
           title,

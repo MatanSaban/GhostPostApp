@@ -292,11 +292,63 @@ $theme_class = ($gp_theme === 'light') ? 'gp-theme-light' : 'gp-theme-dark';
                 <p class="gp-desc"><?php esc_html_e('Actions performed by GhostSEO on your site.', 'ghostseo-connector'); ?></p>
 
                 <?php
-                $activity_log = get_option('gp_activity_log', array());
-                $activity_log = array_slice(array_reverse($activity_log), 0, 50);
+                // Activity log is stored newest-first (array_unshift in
+                // log_activity()), so we slice directly without reversing.
+                $activity_log_full = get_option('gp_activity_log', array());
+                if (!is_array($activity_log_full)) { $activity_log_full = array(); }
+
+                // Pagination — 30 per page, controlled via ?activity_page=N.
+                // Custom param name avoids any collision with WP core's "paged"
+                // and the menu-slug "page" query var on this admin screen.
+                $per_page    = 30;
+                $total_items = count($activity_log_full);
+                $total_pages = max(1, (int) ceil($total_items / $per_page));
+                $current_page = isset($_GET['activity_page']) ? max(1, intval($_GET['activity_page'])) : 1;
+                $current_page = min($current_page, $total_pages);
+                $offset      = ($current_page - 1) * $per_page;
+                $activity_log = array_slice($activity_log_full, $offset, $per_page);
+
+                // Action key → translatable English label. GP_I18n's gettext
+                // filter will swap the English source string for the Hebrew
+                // translation when the plugin language is Hebrew, so this map
+                // works for both locales.
+                $action_labels = array(
+                    'connection_verified' => __('Connected', 'ghostseo-connector'),
+                    'disconnected'        => __('Disconnected', 'ghostseo-connector'),
+                    'content_created'     => __('Content created', 'ghostseo-connector'),
+                    'content_updated'     => __('Content updated', 'ghostseo-connector'),
+                    'content_deleted'     => __('Content deleted', 'ghostseo-connector'),
+                    'media_uploaded'      => __('Media uploaded', 'ghostseo-connector'),
+                    'media_deleted'       => __('Media deleted', 'ghostseo-connector'),
+                    'seo_updated'         => __('SEO updated', 'ghostseo-connector'),
+                    'element_manipulated' => __('Element edited', 'ghostseo-connector'),
+                );
+
+                /**
+                 * Render the "Details" cell for a stored entry. New entries
+                 * store details as { key: <sprintf template>, params: [...] };
+                 * old entries (pre-translation overhaul) store a plain string
+                 * that we just pass through __() in case it happens to match
+                 * a translation source.
+                 */
+                $render_details = function ($entry) {
+                    $d = $entry['details'] ?? '';
+                    if (is_array($d)) {
+                        $key    = isset($d['key']) ? (string) $d['key'] : '';
+                        $params = isset($d['params']) && is_array($d['params']) ? $d['params'] : array();
+                        if ($key === '') return '';
+                        $template = __($key, 'ghostseo-connector');
+                        // vsprintf needs at least as many args as the template's
+                        // %-tokens; on mismatch we silently fall back to the
+                        // raw template so we don't fatal on a malformed entry.
+                        $rendered = @vsprintf($template, $params);
+                        return $rendered === false ? $template : $rendered;
+                    }
+                    return $d ? __($d, 'ghostseo-connector') : '';
+                };
                 ?>
 
-                <?php if (empty($activity_log)): ?>
+                <?php if (empty($activity_log_full)): ?>
                     <div class="gp-empty-state">
                         <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.3">
                             <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
@@ -314,14 +366,46 @@ $theme_class = ($gp_theme === 'light') ? 'gp-theme-light' : 'gp-theme-dark';
                         </thead>
                         <tbody>
                             <?php foreach ($activity_log as $entry): ?>
+                            <?php
+                                $action_key = isset($entry['action']) ? (string) $entry['action'] : '';
+                                $action_label = isset($action_labels[$action_key])
+                                    ? $action_labels[$action_key]
+                                    : ($action_key !== '' ? __($action_key, 'ghostseo-connector') : '');
+                            ?>
                             <tr>
                                 <td class="gp-activity-time"><?php echo esc_html(isset($entry['time']) && is_numeric($entry['time']) ? sprintf(__('%s ago', 'ghostseo-connector'), human_time_diff($entry['time'])) : ($entry['time'] ?? '')); ?></td>
-                                <td><span class="gp-activity-badge"><?php echo esc_html(__($entry['action'] ?? '', 'ghostseo-connector')); ?></span></td>
-                                <td><?php echo esc_html(__($entry['details'] ?? '', 'ghostseo-connector')); ?></td>
+                                <td><span class="gp-activity-badge"><?php echo esc_html($action_label); ?></span></td>
+                                <td><?php echo esc_html($render_details($entry)); ?></td>
                             </tr>
                             <?php endforeach; ?>
                         </tbody>
                     </table>
+
+                    <?php if ($total_pages > 1): ?>
+                    <div class="gp-activity-pagination">
+                        <?php
+                        $base_url = admin_url('admin.php?page=ghostseo&tab=activity');
+                        $prev_disabled = $current_page <= 1;
+                        $next_disabled = $current_page >= $total_pages;
+                        ?>
+                        <a class="gp-pagination-btn <?php echo $prev_disabled ? 'gp-disabled' : ''; ?>"
+                           href="<?php echo $prev_disabled ? '#' : esc_url(add_query_arg('activity_page', $current_page - 1, $base_url)); ?>"
+                           <?php echo $prev_disabled ? 'aria-disabled="true" tabindex="-1"' : ''; ?>>
+                            <?php esc_html_e('Previous', 'ghostseo-connector'); ?>
+                        </a>
+                        <span class="gp-pagination-info">
+                            <?php
+                            // Translators: %1$d current page, %2$d total pages
+                            printf(esc_html__('Page %1$d of %2$d', 'ghostseo-connector'), $current_page, $total_pages);
+                            ?>
+                        </span>
+                        <a class="gp-pagination-btn <?php echo $next_disabled ? 'gp-disabled' : ''; ?>"
+                           href="<?php echo $next_disabled ? '#' : esc_url(add_query_arg('activity_page', $current_page + 1, $base_url)); ?>"
+                           <?php echo $next_disabled ? 'aria-disabled="true" tabindex="-1"' : ''; ?>>
+                            <?php esc_html_e('Next', 'ghostseo-connector'); ?>
+                        </a>
+                    </div>
+                    <?php endif; ?>
                 <?php endif; ?>
             </div>
         </div>

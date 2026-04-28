@@ -655,6 +655,49 @@ export function getAdminCss() {
     color: var(--gp-primary);
 }
 
+/* Activity tab pagination — Prev / page-info / Next, controlled by ?activity_page=N. */
+.gp-activity-pagination {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    margin-top: 20px;
+    padding-top: 16px;
+    border-top: 1px solid var(--gp-border-light);
+}
+
+.gp-pagination-btn {
+    display: inline-flex;
+    align-items: center;
+    padding: 6px 16px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--gp-text);
+    text-decoration: none;
+    background: var(--gp-card);
+    border: 1px solid var(--gp-border);
+    border-radius: 6px;
+    transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+
+.gp-pagination-btn:hover {
+    background: var(--gp-tab-hover);
+    border-color: var(--gp-primary);
+    color: var(--gp-primary);
+}
+
+.gp-pagination-btn.gp-disabled {
+    opacity: 0.4;
+    pointer-events: none;
+    cursor: not-allowed;
+}
+
+.gp-pagination-info {
+    font-size: 12px;
+    color: var(--gp-text-muted);
+    font-variant-numeric: tabular-nums;
+}
+
 /* ==========================================
    Empty State
    ========================================== */
