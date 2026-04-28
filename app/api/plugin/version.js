@@ -10,15 +10,10 @@
  */
 
 // Current plugin version - increment this when making updates
-export const PLUGIN_VERSION = "5.0.1";
+export const PLUGIN_VERSION = "5.0.0";
 
 // Changelog for the current version
 export const PLUGIN_CHANGELOG = `
-= 5.0.1 =
-* BRANDING: The plugin admin topbar (settings page) and the dashboard page header now render the proper GhostSEO wordmark logo (logo-light.svg on the light theme, logo-dark.svg on the dark theme) instead of the small ghost icon plus "GhostSEO" text label.
-* FIX: AI Agent Issue URLs in the SEO Insights tab now render strictly LTR even on Hebrew/RTL admin pages — previously a URL whose path contained Hebrew chars (e.g. /איך-לפתוח/) got reordered by the parent RTL bidi context and looked broken. Top-pages cells follow the same isolation rule.
-* FIX: AI Agent Issue titles in the SEO Insights tab are now properly translated to the user's plugin language ("Too many external scripts" / "יותר מדי סקריפטים חיצוניים") instead of showing the raw translation key like "audit.issues.tooManyScripts". The plugin now sends its current language with each /seo-insights call so the platform can return already-translated titles.
-
 = 5.0.0 =
 * MAJOR REBRAND — full slug/identity rename. Every "ghost-post" reference (folder, file names, PHP class, text domain, REST namespace, plugin slug, locale cookie) is now "ghostseo". This is a clean break.
   - Plugin folder: ghost-post-connector → ghostseo-connector
