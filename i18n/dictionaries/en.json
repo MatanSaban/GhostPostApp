@@ -5606,6 +5606,15 @@
       }
     }
   },
+  "entitiesSelection": {
+    "scanning": "Scanning your site for content types...",
+    "title": "What types of content does your site have?",
+    "subtitle": "Select the content types you want to manage and track.",
+    "skip": "Skip",
+    "continue": "Continue",
+    "coreBadge": "Core",
+    "itemCount": "{count} items"
+  },
   "interviewWizard": {
     "title": "Site Interview Wizard",
     "questionProgress": "Question {current} of {total}",

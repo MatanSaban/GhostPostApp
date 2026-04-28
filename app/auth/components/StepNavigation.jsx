@@ -3,7 +3,7 @@
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import styles from '../auth.module.css';
 
-export function StepNavigation({ 
+export function StepNavigation({
   translations,
   currentStepIndex,
   totalSteps,
@@ -14,12 +14,21 @@ export function StepNavigation({
   showNext = true,
   isPreviousDisabled = false,
   isNextDisabled = false,
+  nextEnabledOverride,
 }) {
   // Can go back if not on first step
   const canGoPrevious = currentStepIndex > 0 && !isPreviousDisabled;
-  
-  // Can go forward if current step is already completed (highestCompleted >= current)
-  const canGoNext = currentStepIndex <= highestCompletedIndex && currentStepIndex < totalSteps - 1 && !isNextDisabled;
+
+  // Default rule: can go forward if current step is already completed
+  // (highestCompleted >= current). Steps that drive their own submission
+  // (e.g. account-setup) can override this with a validity flag.
+  const defaultCanGoNext =
+    currentStepIndex <= highestCompletedIndex &&
+    currentStepIndex < totalSteps - 1 &&
+    !isNextDisabled;
+  const canGoNext = nextEnabledOverride !== undefined
+    ? (nextEnabledOverride && currentStepIndex < totalSteps - 1 && !isNextDisabled)
+    : defaultCanGoNext;
 
   return (
     <div className={styles.stepNavigation}>

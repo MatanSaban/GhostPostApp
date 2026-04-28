@@ -97,10 +97,10 @@ export function EntitiesSelectionPanel({
   // race the timeout internally.
   if (scan.status === 'SCANNING' || scan.status === 'IDLE') {
     return (
-      <div className={styles.panel}>
+      <div className={styles.panel} dir={isRTL ? 'rtl' : 'ltr'}>
         <div className={styles.loadingState}>
           <Loader2 size={18} className={styles.spinningIcon} />
-          <span>{t('entitiesSelection.scanning') || (locale === 'he' ? 'סורק את האתר שלך לזיהוי תכנים...' : 'Scanning your site for content types...')}</span>
+          <span>{t('entitiesSelection.scanning')}</span>
         </div>
       </div>
     );
@@ -124,12 +124,8 @@ export function EntitiesSelectionPanel({
       <div className={styles.header}>
         <Layers size={20} className={styles.headerIcon} />
         <div className={styles.headerText}>
-          <h3 className={styles.title}>
-            {t('entitiesSelection.title') || (locale === 'he' ? 'איזה סוגי תוכן יש באתר שלך?' : 'What types of content does your site have?')}
-          </h3>
-          <p className={styles.subtitle}>
-            {t('entitiesSelection.subtitle') || (locale === 'he' ? 'בחר את סוגי התוכן שברצונך לנהל ולעקוב אחריהם.' : 'Select the content types you want to manage and track.')}
-          </p>
+          <h3 className={styles.title}>{t('entitiesSelection.title')}</h3>
+          <p className={styles.subtitle}>{t('entitiesSelection.subtitle')}</p>
         </div>
       </div>
 
@@ -160,13 +156,13 @@ export function EntitiesSelectionPanel({
                 <span className={styles.typeName}>{displayName}</span>
                 {count > 0 && (
                   <span className={styles.typeMeta}>
-                    {locale === 'he' ? `${count} פריטים` : `${count} items`}
+                    {t('entitiesSelection.itemCount', { count })}
                   </span>
                 )}
               </div>
               {type.isCore && (
                 <span className={styles.coreBadge}>
-                  {locale === 'he' ? 'בסיסי' : 'Core'}
+                  {t('entitiesSelection.coreBadge')}
                 </span>
               )}
             </div>
@@ -181,7 +177,7 @@ export function EntitiesSelectionPanel({
           onClick={onSkip}
         >
           <SkipForward size={14} />
-          <span>{t('entitiesSelection.skip') || (locale === 'he' ? 'דלג' : 'Skip')}</span>
+          <span>{t('entitiesSelection.skip')}</span>
         </button>
         <button
           type="button"
@@ -189,7 +185,7 @@ export function EntitiesSelectionPanel({
           onClick={handleConfirm}
           disabled={(scan.selectedSlugs || []).length === 0}
         >
-          <span>{t('entitiesSelection.continue') || (locale === 'he' ? 'המשך' : 'Continue')}</span>
+          <span>{t('entitiesSelection.continue')}</span>
           <ArrowRight size={14} style={{ transform: isRTL ? 'rotate(180deg)' : 'none' }} />
         </button>
       </div>

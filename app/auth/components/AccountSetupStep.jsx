@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import styles from '../auth.module.css';
 
 // Check if a string contains only English characters
@@ -17,17 +17,33 @@ const toSlug = (str) => {
     .replace(/^-|-$/g, '');     // Remove leading/trailing hyphens
 };
 
-export function AccountSetupStep({ translations, onComplete, initialData = {} }) {
+export function AccountSetupStep({
+  translations,
+  onComplete,
+  initialData = {},
+  submitRef,
+  onValidityChange,
+}) {
   const [formData, setFormData] = useState({
     name: initialData?.name || '',
     slug: initialData?.slug || '',
   });
   const [slugEdited, setSlugEdited] = useState(!!initialData?.slug);
   const [isCheckingSlug, setIsCheckingSlug] = useState(false);
+  const [isTranslating, setIsTranslating] = useState(false);
   const [slugAvailable, setSlugAvailable] = useState(initialData?.slug ? true : null);
   const [slugError, setSlugError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
+
+  // Latest slugEdited tracked in a ref so async handlers (AI fetch resolves
+  // after the user starts manually editing the slug) don't clobber user input.
+  const slugEditedRef = useRef(slugEdited);
+  useEffect(() => { slugEditedRef.current = slugEdited; }, [slugEdited]);
+
+  // Track which name we've already asked the AI to translate so debounced
+  // re-renders don't re-issue identical requests.
+  const lastTranslatedNameRef = useRef('');
 
   // Debounced slug check
   const checkSlugAvailability = useCallback(async (slug) => {
@@ -79,6 +95,43 @@ export function AccountSetupStep({ translations, onComplete, initialData = {} })
     return () => clearTimeout(timeoutId);
   }, [formData.slug, checkSlugAvailability]);
 
+  // For non-English names (e.g. Hebrew) the sync slugify in handleNameChange
+  // produces an empty slug, so we fall back to AI to transliterate the name
+  // into an available English slug.
+  useEffect(() => {
+    if (slugEdited) return;
+    const trimmedName = formData.name.trim();
+    if (!trimmedName) return;
+    if (isEnglishOnly(trimmedName)) return;
+    if (lastTranslatedNameRef.current === trimmedName) return;
+
+    const timeoutId = setTimeout(async () => {
+      lastTranslatedNameRef.current = trimmedName;
+      setIsTranslating(true);
+      try {
+        const response = await fetch('/api/auth/account/translate-slug', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name: trimmedName }),
+        });
+        const data = await response.json();
+        if (response.ok && data.slug && !slugEditedRef.current) {
+          setFormData(prev => (
+            prev.name.trim() === trimmedName
+              ? { ...prev, slug: data.slug }
+              : prev
+          ));
+        }
+      } catch {
+        // Network error - leave slug for the user to enter manually.
+      } finally {
+        setIsTranslating(false);
+      }
+    }, 800);
+
+    return () => clearTimeout(timeoutId);
+  }, [formData.name, slugEdited]);
+
   const handleNameChange = (e) => {
     const name = e.target.value;
     setFormData(prev => ({ ...prev, name }));
@@ -99,8 +152,8 @@ export function AccountSetupStep({ translations, onComplete, initialData = {} })
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    
+    if (e?.preventDefault) e.preventDefault();
+
     if (!formData.name.trim()) {
       setError(translations?.nameRequired);
       return;
@@ -144,7 +197,21 @@ export function AccountSetupStep({ translations, onComplete, initialData = {} })
     }
   };
 
-  const isFormValid = formData.name.trim() && formData.slug && slugAvailable && !isCheckingSlug;
+  const isFormValid =
+    !!formData.name.trim() &&
+    !!formData.slug &&
+    slugAvailable === true &&
+    !isCheckingSlug &&
+    !isTranslating;
+
+  // Expose the submit handler so the parent's "הבא / Next" button can drive it.
+  if (submitRef) submitRef.current = handleSubmit;
+
+  // Report validity (and submitting state) to the parent so it can enable/disable
+  // its Next button accordingly.
+  useEffect(() => {
+    if (onValidityChange) onValidityChange(isFormValid && !isSubmitting);
+  }, [isFormValid, isSubmitting, onValidityChange]);
 
   return (
     <div className={styles.interviewStepContainer}>
@@ -186,17 +253,17 @@ export function AccountSetupStep({ translations, onComplete, initialData = {} })
               onChange={handleSlugChange}
               placeholder={translations?.slugPlaceholder}
               className={`${styles.slugInput} ${
-                slugAvailable === true ? styles.slugValid : 
+                slugAvailable === true ? styles.slugValid :
                 slugAvailable === false ? styles.slugInvalid : ''
               }`}
             />
-            {isCheckingSlug && (
+            {(isCheckingSlug || isTranslating) && (
               <span className={styles.slugLoading}>⏳</span>
             )}
-            {!isCheckingSlug && slugAvailable === true && (
+            {!isCheckingSlug && !isTranslating && slugAvailable === true && (
               <span className={styles.slugCheck}>✓</span>
             )}
-            {!isCheckingSlug && slugAvailable === false && (
+            {!isCheckingSlug && !isTranslating && slugAvailable === false && (
               <span className={styles.slugX}>✗</span>
             )}
           </div>
@@ -217,16 +284,10 @@ export function AccountSetupStep({ translations, onComplete, initialData = {} })
           <div className={styles.errorMessage}>{error}</div>
         )}
 
-        <button
-          type="submit"
-          disabled={!isFormValid || isSubmitting}
-          className={styles.submitButton}
-        >
-          {isSubmitting 
-            ? translations?.creating 
-            : translations?.continue
-          }
-        </button>
+        {/* Hidden submit button keeps Enter-to-submit working. The visible
+            "הבא / Next" button lives in StepNavigation and calls handleSubmit
+            via submitRef. */}
+        <button type="submit" style={{ display: 'none' }} aria-hidden="true" tabIndex={-1} />
       </form>
     </div>
   );

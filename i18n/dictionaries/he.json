@@ -5611,6 +5611,15 @@
       }
     }
   },
+  "entitiesSelection": {
+    "scanning": "סורק את האתר שלך לזיהוי תכנים...",
+    "title": "אילו סוגי תוכן יש באתר שלך?",
+    "subtitle": "בחר את סוגי התוכן שברצונך לנהל ולעקוב אחריהם.",
+    "skip": "דלג",
+    "continue": "המשך",
+    "coreBadge": "בסיסי",
+    "itemCount": "{count} פריטים"
+  },
   "interviewWizard": {
     "title": "אשף ראיון האתר",
     "questionProgress": "שאלה {current} מתוך {total}",

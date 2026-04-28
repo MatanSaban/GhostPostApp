@@ -156,91 +156,99 @@ export default function CardComPaymentForm({
     return () => { cancelled = true; };
   }, [effectiveAmount, currency, productName, lang]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Initialize iframes once LP is ready
-  useEffect(() => {
-    if (!lowProfileId || iframeInitialized.current) return;
+  // Build the init payload (LP + themed CSS) every time we need to (re)apply
+  // styling. Reads CSS variables from the parent document so the iframe fields
+  // match the active theme.
+  const buildInitPayload = useCallback(() => {
+    const rootStyles = getComputedStyle(document.documentElement);
+    const borderColor = rootStyles.getPropertyValue('--input-border').trim() || '#d1d5db';
+    const focusColor = rootStyles.getPropertyValue('--primary').trim() || '#7b2cbf';
+    const bgColor = rootStyles.getPropertyValue('--input-background').trim() || 'transparent';
+    const textColor = rootStyles.getPropertyValue('--foreground').trim() || '#111827';
+    const placeholderColor = rootStyles.getPropertyValue('--muted-foreground').trim() || '#9ca3af';
+    const isDark = document.documentElement.classList.contains('dark');
+    const focusShadow = isDark
+      ? `0 0 0 2px rgba(155, 77, 224, 0.25)`
+      : `0 0 0 2px rgba(123, 44, 191, 0.15)`;
 
-    // Wait for iframes to load
-    const timer = setTimeout(() => {
-      const masterFrame = document.getElementById('CardComMasterFrame');
-      if (masterFrame && masterFrame.contentWindow) {
-        masterFrameRef.current = masterFrame;
-
-        // Read computed theme values from the parent document
-        const rootStyles = getComputedStyle(document.documentElement);
-        const borderColor = rootStyles.getPropertyValue('--input-border').trim() || '#d1d5db';
-        const focusColor = rootStyles.getPropertyValue('--primary').trim() || '#7b2cbf';
-        const bgColor = rootStyles.getPropertyValue('--input-background').trim() || 'transparent';
-        const textColor = rootStyles.getPropertyValue('--foreground').trim() || '#111827';
-        const placeholderColor = rootStyles.getPropertyValue('--muted-foreground').trim() || '#9ca3af';
-        const isDark = document.documentElement.classList.contains('dark');
-        const focusShadow = isDark
-          ? `0 0 0 2px rgba(155, 77, 224, 0.25)`
-          : `0 0 0 2px rgba(123, 44, 191, 0.15)`;
-
-        // Compose CSS for iframe fields using resolved values
-        const cardFieldCSS = `
-          body { margin: 0; padding: 0; display: flex; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: transparent; }
-          #cardNumber {
-            border: 1px solid ${borderColor};
-            border-radius: 0.5rem;
-            height: 42px;
-            width: 100%;
-            padding: 0 12px 0 2.25rem;
-            font-size: 0.75rem;
-            outline: none;
-            direction: ltr;
-            background: ${bgColor};
-            color: ${textColor};
-            transition: border-color 0.15s, box-shadow 0.15s;
-            box-sizing: border-box;
-          }
-          #cardNumber::placeholder { color: ${placeholderColor}; }
-          #cardNumber:focus { border-color: ${focusColor}; box-shadow: ${focusShadow}; }
-          #cardNumber.invalid { border-color: #ef4444; box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.2); }
-          input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
-          input[type=number] { -moz-appearance: textfield; }
-        `;
-
-        const cvvFieldCSS = `
-          body { margin: 0; padding: 0; display: flex; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: transparent; }
-          #cvvField {
-            border: 1px solid ${borderColor};
-            border-radius: 0.5rem;
-            height: 42px;
-            width: 100%;
-            padding: 0 12px;
-            font-size: 0.75rem;
-            outline: none;
-            direction: ltr;
-            background: ${bgColor};
-            color: ${textColor};
-            transition: border-color 0.15s, box-shadow 0.15s;
-          }
-          #cvvField::placeholder { color: ${placeholderColor}; }
-          #cvvField:focus { border-color: ${focusColor}; box-shadow: ${focusShadow}; }
-          #cvvField.invalid { border-color: #ef4444; box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.2); }
-          input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
-          input[type=number] { -moz-appearance: textfield; }
-        `;
-
-        const initMessage = {
-          action: 'init',
-          lowProfileCode: lowProfileId,
-          cardFieldCSS,
-          cvvFieldCSS,
-          placeholder: '0000 0000 0000 0000',
-          cvvPlaceholder: '123',
-          language: lang,
-        };
-
-        masterFrame.contentWindow.postMessage(initMessage, '*');
-        iframeInitialized.current = true;
+    const cardFieldCSS = `
+      body { margin: 0; padding: 0; display: flex; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: transparent; }
+      #cardNumber {
+        border: 1px solid ${borderColor};
+        border-radius: 0.5rem;
+        height: 42px;
+        width: 100%;
+        padding: 0 12px 0 2.25rem;
+        font-size: 0.75rem;
+        outline: none;
+        direction: ltr;
+        background: ${bgColor};
+        color: ${textColor};
+        transition: border-color 0.15s, box-shadow 0.15s;
+        box-sizing: border-box;
       }
-    }, 1000);
+      #cardNumber::placeholder { color: ${placeholderColor}; }
+      #cardNumber:focus { border-color: ${focusColor}; box-shadow: ${focusShadow}; }
+      #cardNumber.invalid { border-color: #ef4444; box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.2); }
+      input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+      input[type=number] { -moz-appearance: textfield; }
+    `;
 
-    return () => clearTimeout(timer);
+    const cvvFieldCSS = `
+      body { margin: 0; padding: 0; display: flex; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: transparent; }
+      #cvvField {
+        border: 1px solid ${borderColor};
+        border-radius: 0.5rem;
+        height: 42px;
+        width: 100%;
+        padding: 0 12px;
+        font-size: 0.75rem;
+        outline: none;
+        direction: ltr;
+        background: ${bgColor};
+        color: ${textColor};
+        transition: border-color 0.15s, box-shadow 0.15s;
+      }
+      #cvvField::placeholder { color: ${placeholderColor}; }
+      #cvvField:focus { border-color: ${focusColor}; box-shadow: ${focusShadow}; }
+      #cvvField.invalid { border-color: #ef4444; box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.2); }
+      input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+      input[type=number] { -moz-appearance: textfield; }
+    `;
+
+    return {
+      action: 'init',
+      lowProfileCode: lowProfileId,
+      cardFieldCSS,
+      cvvFieldCSS,
+      placeholder: '0000 0000 0000 0000',
+      cvvPlaceholder: '123',
+      language: lang,
+    };
   }, [lowProfileId, lang]);
+
+  // Post the init payload to CardCom's master iframe. Idempotent — safe to call
+  // any time we suspect the iframe styling needs to be (re-)applied.
+  const sendIframeInit = useCallback(() => {
+    if (!lowProfileId) return;
+    const masterFrame = document.getElementById('CardComMasterFrame');
+    if (!masterFrame || !masterFrame.contentWindow) return;
+    masterFrameRef.current = masterFrame;
+    masterFrame.contentWindow.postMessage(buildInitPayload(), '*');
+    iframeInitialized.current = true;
+  }, [lowProfileId, buildInitPayload]);
+
+  // Initialize iframes when a LowProfile becomes available. The 1000ms delay
+  // matches the original timing heuristic and gives CardCom's JS inside the
+  // master iframe time to set up its postMessage listeners before we post
+  // init — without it, the message lands before CardCom is ready and is lost
+  // (which leaves the master frame unbound to the LowProfile, so doTransaction
+  // from Pay Now silently does nothing).
+  useEffect(() => {
+    if (!lowProfileId) return;
+    const timer = setTimeout(() => sendIframeInit(), 1000);
+    return () => clearTimeout(timer);
+  }, [lowProfileId, sendIframeInit]);
 
   // Listen for iframe messages
   const handleMessage = useCallback(async (event) => {
@@ -261,7 +269,7 @@ export default function CardComPaymentForm({
               body: JSON.stringify({ paymentId, lowProfileId }),
             });
             const confirmData = await confirmRes.json();
-            
+
             if (confirmRes.ok && confirmData.success) {
               setPaymentResult({ success: true, message: data.Description || t('payment.success') || 'Payment successful!' });
               onSuccess?.(confirmData);
@@ -276,6 +284,10 @@ export default function CardComPaymentForm({
         } else {
           setPaymentResult({ success: false, message: data?.Description || t('payment.failed') || 'Payment failed' });
           onError?.(data?.Description);
+          // CardCom resets the iframe DOM after a declined transaction, which
+          // wipes out our themed CSS. Re-post the init payload so the user
+          // can retry without seeing unstyled white card / CVV inputs.
+          sendIframeInit();
         }
         setIsProcessing(false);
         break;
@@ -284,6 +296,8 @@ export default function CardComPaymentForm({
         setIsProcessing(false);
         setPaymentResult({ success: false, message: msg.message || t('payment.error') || 'Payment error' });
         onError?.(msg.message);
+        // Same recovery path as a declined transaction — restore styling.
+        sendIframeInit();
         break;
       }
       case 'handleValidations': {
@@ -294,7 +308,7 @@ export default function CardComPaymentForm({
       default:
         break;
     }
-  }, [paymentId, lowProfileId, onSuccess, onError, t]);
+  }, [paymentId, lowProfileId, onSuccess, onError, t, sendIframeInit]);
 
   useEffect(() => {
     window.addEventListener('message', handleMessage);
@@ -577,9 +591,14 @@ export default function CardComPaymentForm({
         </div>
       )}
 
-      {/* CardCom Hidden Master Frame */}
+      {/* CardCom Hidden Master Frame.
+          Keyed by lowProfileId so a coupon-driven LP change forces a clean
+          remount of the master + child iframes. The init useEffect then waits
+          its 1000ms grace period before posting CSS + the new LowProfile, so
+          CardCom's internal scripts are ready to receive both. */}
       {effectiveAmount > 0 && (
         <iframe
+          key={`master-${lowProfileId || 'pending'}`}
           id="CardComMasterFrame"
           name="CardComMasterFrame"
           src={`${CARDCOM_BASE}/api/openfields/master`}
@@ -707,6 +726,7 @@ export default function CardComPaymentForm({
           <div className={`${styles.iframeWrapper} ${styles.cardInputWrapper} ${cardNumberValid === false ? styles.iframeInvalid : ''}`}>
             <svg className={styles.cardInputIcon} width="22" height="16" viewBox="0 0 24 17" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="1" y="1" width="22" height="15" rx="3" /><line x1="1" y1="6" x2="23" y2="6" /></svg>
             <iframe
+              key={`card-${lowProfileId || 'pending'}`}
               id="CardComCardNumber"
               name="CardComCardNumber"
               src={`${CARDCOM_BASE}/api/openfields/cardNumber`}
@@ -754,6 +774,7 @@ export default function CardComPaymentForm({
             <label className={styles.label}>CVV</label>
             <div className={`${styles.iframeWrapper} ${cvvValid === false ? styles.iframeInvalid : ''}`}>
               <iframe
+                key={`cvv-${lowProfileId || 'pending'}`}
                 id="CardComCvv"
                 name="CardComCvv"
                 src={`${CARDCOM_BASE}/api/openfields/CVV`}

@@ -1835,6 +1835,8 @@
   border-radius: var(--radius-lg);
   overflow: hidden;
   transition: all var(--transition-fast);
+  /* Slugs are always English, so the wrapper stays LTR even on RTL pages. */
+  direction: ltr;
 
   &:focus-within {
     border-color: var(--primary);

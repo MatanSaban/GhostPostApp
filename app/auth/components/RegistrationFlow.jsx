@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useLocale } from '@/app/context/locale-context';
 import { RegisterForm } from './RegisterForm';
@@ -66,6 +66,12 @@ export function RegistrationFlow({ translations, initialStep = 'form', initialFo
     interviewData: {},
     selectedPlan: initialPlan,
   });
+
+  // Account-setup step submits via the StepNavigation "הבא / Next" button.
+  // The child writes its submit handler into this ref and reports validity
+  // through state so we can enable/disable the parent's Next button.
+  const accountSetupSubmitRef = useRef(null);
+  const [isAccountSetupValid, setIsAccountSetupValid] = useState(false);
 
   // Fetch the authoritative registration state from the server on mount.
   // The server knows the user's current step from the draft user/account row,
@@ -367,6 +373,12 @@ export function RegistrationFlow({ translations, initialStep = 'form', initialFo
 
   const handleNext = () => {
     const currentIndex = getCurrentStepIndex();
+    // Account-setup step has no inline submit button: pressing "הבא / Next"
+    // submits the form. handleSubmit calls onComplete on success which advances.
+    if (currentStep === 'account-setup' && currentIndex > highestCompletedIndex) {
+      accountSetupSubmitRef.current?.();
+      return;
+    }
     // Can only go forward if the next step has been completed before
     if (currentIndex < highestCompletedIndex) {
       setCurrentStep(steps[currentIndex + 1].id);
@@ -400,6 +412,8 @@ export function RegistrationFlow({ translations, initialStep = 'form', initialFo
             translations={translations.accountSetup}
             onComplete={handleAccountSetupComplete}
             initialData={registrationData.accountData}
+            submitRef={accountSetupSubmitRef}
+            onValidityChange={setIsAccountSetupValid}
           />
         );
       case 'interview':
@@ -484,6 +498,11 @@ export function RegistrationFlow({ translations, initialStep = 'form', initialFo
           onPrevious={handlePrevious}
           onNext={handleNext}
           translations={translations.navigation || { previous: 'הקודם', next: 'הבא' }}
+          nextEnabledOverride={
+            currentStep === 'account-setup' && getCurrentStepIndex() > highestCompletedIndex
+              ? isAccountSetupValid
+              : undefined
+          }
         />
       )}
 
