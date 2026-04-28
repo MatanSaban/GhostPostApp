@@ -42,9 +42,18 @@ export default function PluginRequiredModal({ open, onClose }) {
       const response = await fetch(`/api/sites/${selectedSite.id}/download-plugin`);
       if (!response.ok) throw new Error('Download failed');
 
-      const contentDisposition = response.headers.get('Content-Disposition');
-      const filenameMatch = contentDisposition?.match(/filename="?([^"]+)"?/);
-      const filename = filenameMatch?.[1] || 'ghostseo-connector.zip';
+      // Prefer RFC 5987 filename*=UTF-8''<encoded> so Hebrew / non-Latin
+      // site names render correctly; the legacy filename= is ASCII fallback.
+      const cd = response.headers.get('Content-Disposition') || '';
+      const utf8Match = cd.match(/filename\*\s*=\s*UTF-8''([^;]+)/i);
+      const legacyMatch = cd.match(/filename(?!\*)\s*=\s*"?([^";]+)"?/i);
+      let filename = 'ghostseo-connector.zip';
+      if (utf8Match?.[1]) {
+        try { filename = decodeURIComponent(utf8Match[1]); }
+        catch { filename = utf8Match[1]; }
+      } else if (legacyMatch?.[1]) {
+        filename = legacyMatch[1];
+      }
 
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);

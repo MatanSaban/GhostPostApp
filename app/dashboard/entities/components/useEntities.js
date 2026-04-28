@@ -617,11 +617,24 @@ export function useEntities() {
     try {
       const response = await fetch(`/api/sites/${selectedSite.id}/download-plugin`);
       if (!response.ok) throw new Error('Failed to download plugin');
+      // Read filename from server's Content-Disposition (preferring the
+      // RFC 5987 UTF-8 form) so Hebrew / non-Latin site names render
+      // correctly instead of being replaced by the site id.
+      const cd = response.headers.get('Content-Disposition') || '';
+      const utf8Match = cd.match(/filename\*\s*=\s*UTF-8''([^;]+)/i);
+      const legacyMatch = cd.match(/filename(?!\*)\s*=\s*"?([^";]+)"?/i);
+      let downloadName = `ghostseo-${selectedSite.id}.zip`;
+      if (utf8Match?.[1]) {
+        try { downloadName = decodeURIComponent(utf8Match[1]); }
+        catch { downloadName = utf8Match[1]; }
+      } else if (legacyMatch?.[1]) {
+        downloadName = legacyMatch[1];
+      }
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `ghostseo-${selectedSite.id}.zip`;
+      a.download = downloadName;
       document.body.appendChild(a);
       a.click();
       window.URL.revokeObjectURL(url);
