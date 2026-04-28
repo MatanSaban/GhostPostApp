@@ -169,8 +169,20 @@ export async function GET(request, { params }) {
 
     // Return as downloadable file
     // Build filename: GhostSEO-Connector-{siteName}_{version}.zip
-    const safeName = (site.name || 'site')
-      .replace(/[^a-zA-Z0-9\u0590-\u05FF\s-]/g, '')
+    // Fallback when site has no name: hostname of site.url, stripped of
+    // scheme + leading "www." (e.g. "https://www.dgblog.co.il" → "dgblog.co.il").
+    const fallbackFromUrl = (() => {
+      const raw = site.url || '';
+      if (!raw) return 'site';
+      try {
+        return new URL(raw).hostname.replace(/^www\./i, '') || 'site';
+      } catch {
+        return raw.replace(/^https?:\/\//i, '').replace(/^www\./i, '').replace(/\/.*$/, '') || 'site';
+      }
+    })();
+    const rawName = (site.name && site.name.trim()) ? site.name : fallbackFromUrl;
+    const safeName = rawName
+      .replace(/[^a-zA-Z0-9\u0590-\u05FF.\s-]/g, '')
       .trim()
       .replace(/\s+/g, '-');
     const fileName = `GhostSEO-Connector-${safeName}_${PLUGIN_VERSION}.zip`;

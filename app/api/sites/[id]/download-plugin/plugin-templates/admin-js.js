@@ -447,7 +447,9 @@ export function getAdminJs() {
                 var severity = issue.severity || 'info';
                 html += '<li class="gp-issue gp-issue-' + severity + '">';
                 html += '<strong>' + $('<span>').text(issue.title || '').html() + '</strong>';
-                html += '<p>' + $('<span>').text(issue.description || '').html() + '</p>';
+                // URLs must always render LTR — even on Hebrew/RTL pages — so
+                // the path doesn't get reversed when it contains Hebrew chars.
+                html += '<p class="gp-issue-url" dir="ltr">' + $('<span>').text(issue.description || '').html() + '</p>';
                 html += '</li>';
             }
             html += '</ul>';
@@ -473,7 +475,10 @@ export function getAdminJs() {
             var pgHtml = '';
             for (var i = 0; i < data.topPages.length; i++) {
                 var pg = data.topPages[i];
-                pgHtml += '<tr><td>' + (i + 1) + '</td><td>' + $('<span>').text(pg.page || '').html() + '</td><td>' + (pg.traffic || '-') + '</td><td>' + (pg.avgPosition || '-') + '</td></tr>';
+                // The page cell may be a title (any language) or a URL fallback
+                // — wrap in unicode-bidi:isolate so a URL with Hebrew slug
+                // renders LTR instead of getting reordered by the RTL parent.
+                pgHtml += '<tr><td>' + (i + 1) + '</td><td class="gp-page-cell">' + $('<span>').text(pg.page || '').html() + '</td><td>' + (pg.traffic || '-') + '</td><td>' + (pg.avgPosition || '-') + '</td></tr>';
             }
             $pgBody.html(pgHtml);
         }

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { verifySignature } from '@/lib/site-keys';
+import { getDictionary, createTranslator } from '@/i18n/server';
 
 /**
  * Decode percent-encoded characters in a URL so non-Latin paths (Hebrew,
@@ -60,6 +61,19 @@ export async function POST(request) {
       return NextResponse.json({ success: false, error: 'Site not connected' }, { status: 403 });
     }
 
+    // Parse the (already-verified) body for the plugin-supplied locale so we
+    // can translate audit.issues.* keys into the language the user is
+    // viewing the WP admin in. Defaults to English on missing/invalid input.
+    let requestLocale = 'en';
+    try {
+      const parsed = JSON.parse(body);
+      if (parsed?.locale === 'he' || parsed?.locale === 'en') {
+        requestLocale = parsed.locale;
+      }
+    } catch { /* body was already validated upstream — fall through to en */ }
+    const dictionary = await getDictionary(requestLocale);
+    const t = createTranslator(dictionary);
+
     // Fetch keywords for this site
     const keywords = await prisma.keyword.findMany({
       where: { siteId: site.id },
@@ -97,17 +111,25 @@ export async function POST(request) {
       avgPosition: null,
     }));
 
-    // Extract issues from latest audit. The plugin renders `description`
-    // verbatim, so decode percent-encoded URLs before sending — otherwise
-    // Hebrew slugs land as "%d7%90%d7%99%d7%9a-…".
+    // Extract issues from latest audit. Translate `audit.issues.<key>`
+    // titles using the plugin-supplied locale so the WP admin shows
+    // "Too many external scripts" / "יותר מדי סקריפטים חיצוניים" instead
+    // of the raw key. The plugin renders `description` verbatim, so
+    // decode percent-encoded URLs before sending — otherwise Hebrew
+    // slugs land as "%d7%90%d7%99%d7%9a-…".
     const issues = (latestAudit?.issues || [])
       .filter(i => i.severity === 'error' || i.severity === 'warning')
       .slice(0, 20)
-      .map(issue => ({
-        severity: issue.severity || 'info',
-        title: issue.message || '',
-        description: prettifyUrl(issue.url || ''),
-      }));
+      .map(issue => {
+        const raw = issue.message || '';
+        // Translate keys; pass any other text through as-is.
+        const title = raw.startsWith('audit.issues.') ? t(raw) : raw;
+        return {
+          severity: issue.severity || 'info',
+          title,
+          description: prettifyUrl(issue.url || ''),
+        };
+      });
 
     // Build traffic chart labels (last 6 months)
     const months = [];

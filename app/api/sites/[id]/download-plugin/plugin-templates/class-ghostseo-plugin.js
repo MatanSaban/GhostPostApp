@@ -999,12 +999,16 @@ class GhostSEO_Plugin {
         }
         
         $timestamp = time();
+        // Send the user's current plugin locale so the platform can return
+        // already-translated audit issue titles (audit.issues.* keys live in
+        // gp-platform's i18n dictionaries, not in the plugin's gettext catalog).
         $body = wp_json_encode(array(
             'siteUrl' => get_site_url(),
+            'locale'  => GP_I18n::get_lang(),
         ));
-        
+
         $signature = $this->create_signature($body, $timestamp);
-        
+
         $response = wp_remote_post(GP_API_URL . '/api/public/wp/seo-insights', array(
             'timeout' => 30,
             'headers' => array(

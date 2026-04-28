@@ -101,8 +101,13 @@ $theme_class = ($gp_theme === 'light') ? 'gp-theme-light' : 'gp-theme-dark';
                     <?php esc_html_e('Check for Updates', 'ghostseo-connector'); ?>
                 </button>
             <?php endif; ?>
-            <img src="<?php echo esc_url($platform_url . '/favicon.svg'); ?>" alt="GhostSEO" class="gp-topbar-logo">
-            <span class="gp-topbar-title">GhostSEO</span>
+            <?php
+            // Theme-aware wordmark — light theme uses the dark wordmark
+            // (black text on light bg), dark theme uses the light wordmark
+            // (white text on dark bg).
+            $logo_path = ($gp_theme === 'light') ? '/logo-light.svg' : '/logo-dark.svg';
+            ?>
+            <img src="<?php echo esc_url($platform_url . $logo_path); ?>" alt="GhostSEO" class="gp-topbar-wordmark">
         </div>
     </div>
 

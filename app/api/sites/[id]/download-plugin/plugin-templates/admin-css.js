@@ -150,6 +150,44 @@ export function getAdminCss() {
     letter-spacing: -0.3px;
 }
 
+/* Wordmark logo in the plugin topbar — replaces the icon+text combo with
+ * a single theme-aware image (logo-light.svg on light theme, logo-dark.svg
+ * on dark theme). Width is auto so the wordmark proportions are preserved. */
+.gp-topbar-wordmark {
+    height: 24px;
+    width: auto;
+    object-fit: contain;
+    display: block;
+}
+
+/* Wordmark logo in the plugin dashboard page header (larger sibling of
+ * .gp-topbar-wordmark used in /admin/views/dashboard-page.php). */
+.gp-header-wordmark {
+    height: 36px;
+    width: auto;
+    object-fit: contain;
+    display: block;
+}
+
+/* AI Agent Issue URL line — render strictly LTR even on Hebrew sites so
+ * a URL whose path contains Hebrew chars (decoded by the server) doesn't
+ * get reversed by the parent RTL bidi context. */
+.gp-issue-url {
+    direction: ltr;
+    unicode-bidi: isolate;
+    text-align: left;
+    word-break: break-all;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 12px;
+}
+
+/* Top-pages cell may hold a title (any language) or a URL fallback —
+ * unicode-bidi:isolate keeps URL fragments LTR while leaving titles
+ * to follow the page's natural direction. */
+.gp-page-cell {
+    unicode-bidi: isolate;
+}
+
 .gp-tabs {
     display: flex;
     gap: 0;
