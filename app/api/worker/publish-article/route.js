@@ -30,7 +30,7 @@ async function uploadFeaturedToWp(site, imageUrl, altText) {
 
 // ─── WordPress Publisher ─────────────────────────────────────────────
 async function pushToWordPress(site, aiResult, content) {
-  const wpEndpoint = `${site.url.replace(/\/+$/, '')}/wp-json/ghost-post/v1/posts`;
+  const wpEndpoint = `${site.url.replace(/\/+$/, '')}/wp-json/ghostseo/v1/posts`;
   const timestamp = Math.floor(Date.now() / 1000);
 
   // Upload featured image to WP media library

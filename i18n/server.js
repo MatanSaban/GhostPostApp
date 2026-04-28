@@ -52,7 +52,7 @@ export async function getDictionary(locale) {
  */
 export async function getLocale() {
   const cookieStore = await cookies();
-  const localeCookie = cookieStore.get('ghost-post-locale');
+  const localeCookie = cookieStore.get('ghostseo-locale');
   
   if (localeCookie?.value && locales.includes(localeCookie.value)) {
     return localeCookie.value;

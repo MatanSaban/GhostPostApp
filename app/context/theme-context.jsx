@@ -10,7 +10,7 @@ export function ThemeProvider({ children }) {
 
   useEffect(() => {
     setMounted(true);
-    const savedTheme = localStorage.getItem('ghost-post-theme');
+    const savedTheme = localStorage.getItem('ghostseo-theme');
     if (savedTheme) {
       setTheme(savedTheme);
     }
@@ -18,7 +18,7 @@ export function ThemeProvider({ children }) {
 
   useEffect(() => {
     if (mounted) {
-      localStorage.setItem('ghost-post-theme', theme);
+      localStorage.setItem('ghostseo-theme', theme);
       document.documentElement.classList.remove('light', 'dark');
       document.documentElement.classList.add(theme);
     }

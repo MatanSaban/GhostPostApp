@@ -5,7 +5,7 @@ import { cms } from '@/lib/cms';
 import { acquireSyncLock, releaseSyncLock, buildEntityData } from '@/lib/entity-sync';
 
 const SESSION_COOKIE = 'user_session';
-const LOCALE_COOKIE = 'ghost-post-locale';
+const LOCALE_COOKIE = 'ghostseo-locale';
 
 // Sync progress message translations
 const SYNC_MESSAGES = {

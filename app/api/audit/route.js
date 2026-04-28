@@ -352,7 +352,7 @@ export async function POST(request) {
 
     // Pull the initiating user's locale so the summary generator can
     // pre-cache a translation for them. Falls back to 'en'.
-    const localeCookie = (await cookies()).get('ghost-post-locale')?.value;
+    const localeCookie = (await cookies()).get('ghostseo-locale')?.value;
     const userLocale = localeCookie || 'en';
 
     const auditOptions = {

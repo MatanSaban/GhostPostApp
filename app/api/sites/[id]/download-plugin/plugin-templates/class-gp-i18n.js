@@ -51,7 +51,7 @@ class GP_I18n {
      * WordPress gettext filter - translate strings for our text domain only.
      */
     public static function filter_gettext($translated, $text, $domain) {
-        if ($domain !== 'ghost-post-connector') {
+        if ($domain !== 'ghostseo-connector') {
             return $translated;
         }
         return isset(self::$translations[$text]) ? self::$translations[$text] : $translated;
@@ -61,7 +61,7 @@ class GP_I18n {
      * WordPress ngettext filter - translate plural strings for our text domain only.
      */
     public static function filter_ngettext($translation, $single, $plural, $number, $domain) {
-        if ($domain !== 'ghost-post-connector') {
+        if ($domain !== 'ghostseo-connector') {
             return $translation;
         }
         $key = ($number === 1) ? $single : $plural;

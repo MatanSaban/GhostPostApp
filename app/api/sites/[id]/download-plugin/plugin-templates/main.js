@@ -15,7 +15,7 @@ export function getPluginMainFile(version = PLUGIN_VERSION) {
  * Author URI: https://ghostpost.co.il
  * License: GPL v2 or later
  * License URI: https://www.gnu.org/licenses/gpl-2.0.html
- * Text Domain: ghost-post-connector
+ * Text Domain: ghostseo-connector
  * Domain Path: /languages
  * Requires at least: 5.6
  * Requires PHP: 7.4
@@ -39,7 +39,7 @@ require_once GP_CONNECTOR_PLUGIN_DIR . 'includes/config.php';
 require_once GP_CONNECTOR_PLUGIN_DIR . 'includes/class-gp-i18n.php';
 
 // Load dependencies
-require_once GP_CONNECTOR_PLUGIN_DIR . 'includes/class-ghost-post.php';
+require_once GP_CONNECTOR_PLUGIN_DIR . 'includes/class-ghostseo-plugin.php';
 require_once GP_CONNECTOR_PLUGIN_DIR . 'includes/class-gp-api-handler.php';
 require_once GP_CONNECTOR_PLUGIN_DIR . 'includes/class-gp-request-validator.php';
 require_once GP_CONNECTOR_PLUGIN_DIR . 'includes/class-gp-content-manager.php';
@@ -57,7 +57,7 @@ require_once GP_CONNECTOR_PLUGIN_DIR . 'includes/class-gp-updater.php';
  * Initialize the plugin
  */
 function gp_connector_init() {
-    $ghost_post = new Ghost_Post();
+    $ghost_post = new GhostSEO_Plugin();
     $ghost_post->init();
     
     // Initialize auto-updater
@@ -197,7 +197,7 @@ add_action('wp_enqueue_scripts', 'gp_editor_enqueue_bridge');
  */
 function gp_connector_activate() {
     // Verify connection with GhostSEO platform
-    $ghost_post = new Ghost_Post();
+    $ghost_post = new GhostSEO_Plugin();
     $ghost_post->verify_connection();
     
     // Flush rewrite rules
@@ -210,7 +210,7 @@ register_activation_hook(__FILE__, 'gp_connector_activate');
  */
 function gp_connector_deactivate() {
     // Notify GhostSEO platform about disconnection
-    $ghost_post = new Ghost_Post();
+    $ghost_post = new GhostSEO_Plugin();
     $ghost_post->notify_disconnection();
     
     // Flush rewrite rules

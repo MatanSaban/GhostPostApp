@@ -11,7 +11,7 @@ import { getPluginMainFile } from './plugin-templates/main';
 import { getPluginConfigFile } from './plugin-templates/config';
 import { getPluginReadme } from './plugin-templates/readme';
 import { getPluginUninstall } from './plugin-templates/uninstall';
-import { getClassGhostSEO } from './plugin-templates/class-ghost-post';
+import { getClassGhostSEO } from './plugin-templates/class-ghostseo-plugin';
 import { getClassApiHandler } from './plugin-templates/class-api-handler';
 import { getClassRequestValidator } from './plugin-templates/class-request-validator';
 import { getClassContentManager } from './plugin-templates/class-content-manager';
@@ -109,14 +109,14 @@ export async function GET(request, { params }) {
 
     // Generate ZIP file
     const zip = new JSZip();
-    const pluginFolder = zip.folder('ghost-post-connector');
+    const pluginFolder = zip.folder('ghostseo-connector');
 
     // API URL for the plugin to communicate with
     // Use dedicated plugin API URL, fall back to base URL, then default to production
     const apiUrl = process.env.GP_PLUGIN_API_URL || process.env.NEXT_PUBLIC_BASE_URL || 'https://app.ghostpost.co.il';
 
     // Main plugin file (with current version from centralized config)
-    pluginFolder.file('ghost-post-connector.php', getPluginMainFile(PLUGIN_VERSION));
+    pluginFolder.file('ghostseo-connector.php', getPluginMainFile(PLUGIN_VERSION));
 
     // Config file with site-specific values
     pluginFolder.file('includes/config.php', getPluginConfigFile({
@@ -132,7 +132,7 @@ export async function GET(request, { params }) {
     pluginFolder.file('uninstall.php', getPluginUninstall());
     
     // Includes folder
-    pluginFolder.file('includes/class-ghost-post.php', getClassGhostSEO());
+    pluginFolder.file('includes/class-ghostseo-plugin.php', getClassGhostSEO());
     pluginFolder.file('includes/class-gp-api-handler.php', getClassApiHandler());
     pluginFolder.file('includes/class-gp-request-validator.php', getClassRequestValidator());
     pluginFolder.file('includes/class-gp-content-manager.php', getClassContentManager());

@@ -151,7 +151,7 @@ export default function WordPressPluginSection({
       // Get filename from Content-Disposition header
       const contentDisposition = response.headers.get('Content-Disposition');
       const filenameMatch = contentDisposition?.match(/filename="?([^"]+)"?/);
-      const filename = filenameMatch?.[1] || 'ghost-post-connector.zip';
+      const filename = filenameMatch?.[1] || 'ghostseo-connector.zip';
 
       // Download the file
       const blob = await response.blob();

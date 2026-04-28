@@ -15,7 +15,7 @@ import { buildRootMetadata, defaultViewport } from '@/lib/seo/metadata';
 
 export async function generateMetadata() {
   const cookieStore = await cookies();
-  const localeCookie = cookieStore.get('ghost-post-locale');
+  const localeCookie = cookieStore.get('ghostseo-locale');
   const locale = localeCookie?.value && locales.includes(localeCookie.value)
     ? localeCookie.value
     : defaultLocale;
@@ -27,7 +27,7 @@ export const viewport = defaultViewport;
 export default async function RootLayout({ children }) {
   // Read locale from cookie server-side
   const cookieStore = await cookies();
-  const localeCookie = cookieStore.get('ghost-post-locale');
+  const localeCookie = cookieStore.get('ghostseo-locale');
   const locale = localeCookie?.value && locales.includes(localeCookie.value) 
     ? localeCookie.value 
     : defaultLocale;

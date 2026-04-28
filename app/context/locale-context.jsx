@@ -78,7 +78,7 @@ export function LocaleProvider({ children }) {
   // Initialize from cookie (syncs with server)
   useEffect(() => {
     setMounted(true);
-    const savedLocale = getCookie('ghost-post-locale');
+    const savedLocale = getCookie('ghostseo-locale');
     if (savedLocale && locales.includes(savedLocale)) {
       setLocaleState(savedLocale);
       loadLocale(savedLocale);
@@ -98,7 +98,7 @@ export function LocaleProvider({ children }) {
   const setLocale = useCallback((newLocale) => {
     if (locales.includes(newLocale)) {
       // Set cookie synchronously so it's available immediately for server requests
-      setCookie('ghost-post-locale', newLocale);
+      setCookie('ghostseo-locale', newLocale);
       document.documentElement.lang = newLocale;
       document.documentElement.dir = getDirection(newLocale);
       setLocaleState(newLocale);

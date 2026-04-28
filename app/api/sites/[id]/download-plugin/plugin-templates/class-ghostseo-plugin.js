@@ -1,5 +1,5 @@
 ﻿/**
- * Generate main Ghost_Post class
+ * Generate main GhostSEO_Plugin class
  */
 export function getClassGhostSEO() {
   return `<?php
@@ -11,7 +11,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-class Ghost_Post {
+class GhostSEO_Plugin {
     
     /**
      * @var GP_API_Handler
@@ -122,13 +122,13 @@ class Ghost_Post {
         $icon = 'none';
 
         // The menu slug (URL ?page=ghostseo) is intentionally divorced from the
-        // plugin folder/text-domain (still 'ghost-post-connector' so existing
+        // plugin folder/text-domain (still 'ghostseo-connector' so existing
         // installs auto-update without re-registering as a new plugin).
         $menu_slug = 'ghostseo';
 
         // Top-level menu
         add_menu_page(
-            __('GhostSEO Connector', 'ghost-post-connector'),
+            __('GhostSEO Connector', 'ghostseo-connector'),
             'GhostSEO',
             'manage_options',
             $menu_slug,
@@ -140,8 +140,8 @@ class Ghost_Post {
         // Submenu: Dashboard (replaces auto-generated first item)
         add_submenu_page(
             $menu_slug,
-            __('Dashboard', 'ghost-post-connector'),
-            __('Dashboard', 'ghost-post-connector'),
+            __('Dashboard', 'ghostseo-connector'),
+            __('Dashboard', 'ghostseo-connector'),
             'manage_options',
             $menu_slug,
             array($this, 'render_admin_page')
@@ -150,8 +150,8 @@ class Ghost_Post {
         // Submenu: Settings
         add_submenu_page(
             $menu_slug,
-            __('Settings', 'ghost-post-connector'),
-            __('Settings', 'ghost-post-connector'),
+            __('Settings', 'ghostseo-connector'),
+            __('Settings', 'ghostseo-connector'),
             'manage_options',
             $menu_slug . '&tab=settings',
             array($this, 'render_admin_page')
@@ -160,8 +160,8 @@ class Ghost_Post {
         // Submenu: Activity
         add_submenu_page(
             $menu_slug,
-            __('Activity', 'ghost-post-connector'),
-            __('Activity', 'ghost-post-connector'),
+            __('Activity', 'ghostseo-connector'),
+            __('Activity', 'ghostseo-connector'),
             'manage_options',
             $menu_slug . '&tab=activity',
             array($this, 'render_admin_page')
@@ -170,8 +170,8 @@ class Ghost_Post {
         // Submenu: Redirections
         add_submenu_page(
             $menu_slug,
-            __('Redirections', 'ghost-post-connector'),
-            __('Redirections', 'ghost-post-connector'),
+            __('Redirections', 'ghostseo-connector'),
+            __('Redirections', 'ghostseo-connector'),
             'manage_options',
             $menu_slug . '&tab=redirections',
             array($this, 'render_admin_page')
@@ -180,8 +180,8 @@ class Ghost_Post {
         // Submenu: SEO Insights
         add_submenu_page(
             $menu_slug,
-            __('SEO Insights', 'ghost-post-connector'),
-            __('SEO Insights', 'ghost-post-connector'),
+            __('SEO Insights', 'ghostseo-connector'),
+            __('SEO Insights', 'ghostseo-connector'),
             'manage_options',
             $menu_slug . '&tab=seo-insights',
             array($this, 'render_admin_page')
@@ -190,8 +190,8 @@ class Ghost_Post {
         // Submenu: Code Snippets
         add_submenu_page(
             $menu_slug,
-            __('Code Snippets', 'ghost-post-connector'),
-            __('Code Snippets', 'ghost-post-connector'),
+            __('Code Snippets', 'ghostseo-connector'),
+            __('Code Snippets', 'ghostseo-connector'),
             'manage_options',
             $menu_slug . '&tab=snippets',
             array($this, 'render_admin_page')
@@ -200,8 +200,8 @@ class Ghost_Post {
         // Submenu: Add-ons
         add_submenu_page(
             $menu_slug,
-            __('Add-ons', 'ghost-post-connector'),
-            __('Add-ons', 'ghost-post-connector'),
+            __('Add-ons', 'ghostseo-connector'),
+            __('Add-ons', 'ghostseo-connector'),
             'manage_options',
             $menu_slug . '&tab=addons',
             array($this, 'render_admin_page')
@@ -251,68 +251,68 @@ class Ghost_Post {
             'pluginBasename' => GP_CONNECTOR_PLUGIN_BASENAME,
             'updateCoreUrl'  => admin_url('update-core.php'),
             'strings' => array(
-                'testing'             => __('Testing...', 'ghost-post-connector'),
-                'test_connection'     => __('Test Connection', 'ghost-post-connector'),
-                'connection_success'  => __('Connection successful!', 'ghost-post-connector'),
-                'connection_failed'   => __('Connection failed:', 'ghost-post-connector'),
-                'sending'             => __('Sending...', 'ghost-post-connector'),
-                'send_ping'           => __('Send Ping', 'ghost-post-connector'),
-                'ping_success'        => __('Ping sent successfully!', 'ghost-post-connector'),
-                'ping_failed'         => __('Ping failed:', 'ghost-post-connector'),
-                'disconnecting'       => __('Disconnecting...', 'ghost-post-connector'),
-                'disconnect'          => __('Disconnect', 'ghost-post-connector'),
-                'disconnected'        => __('Disconnected successfully.', 'ghost-post-connector'),
-                'disconnect_failed'   => __('Disconnect failed:', 'ghost-post-connector'),
-                'disconnect_error'    => __('Disconnect failed. Please try again.', 'ghost-post-connector'),
-                'confirm_disconnect'  => __('Are you sure you want to disconnect from GhostSEO? You can reconnect later by downloading a new plugin.', 'ghost-post-connector'),
-                'checking'            => __('Checking...', 'ghost-post-connector'),
-                'check_updates'       => __('Check for Updates', 'ghost-post-connector'),
-                'update_available'    => __('Update available! Version', 'ghost-post-connector'),
-                'go_to_plugins'       => __('Go to Plugins page to update.', 'ghost-post-connector'),
-                'latest_version'      => __('You have the latest version!', 'ghost-post-connector'),
-                'check_failed'        => __('Failed to check for updates.', 'ghost-post-connector'),
-                'confirm_delete'      => __('Are you sure you want to delete this redirect?', 'ghost-post-connector'),
-                'importing'           => __('Importing redirects...', 'ghost-post-connector'),
-                'import_success'      => __('Import completed!', 'ghost-post-connector'),
-                'add_redirect'        => __('Add Redirect', 'ghost-post-connector'),
-                'save_redirect'       => __('Save Redirect', 'ghost-post-connector'),
-                'confirm_deactivate'  => __('Are you sure you want to deactivate %s?', 'ghost-post-connector'),
-                'deactivating'        => __('Deactivating...', 'ghost-post-connector'),
-                'deactivated'         => __('Plugin deactivated successfully. Refreshing...', 'ghost-post-connector'),
-                'saving'              => __('Saving...', 'ghost-post-connector'),
-                'save_settings'       => __('Save Settings', 'ghost-post-connector'),
-                'settings_saved'      => __('Settings saved successfully!', 'ghost-post-connector'),
-                'theme_saved'         => __('Theme saved!', 'ghost-post-connector'),
-                'syncing'             => __('Syncing...', 'ghost-post-connector'),
-                'sync_success'        => __('Widget updated!', 'ghost-post-connector'),
-                'sync_failed'         => __('Sync failed', 'ghost-post-connector'),
-                'site_health_score'   => __('Site Health Score', 'ghost-post-connector'),
-                'insights_waiting'    => __('AI Insights waiting', 'ghost-post-connector'),
-                'no_data_yet'         => __('No data yet. Stats will appear after the next sync.', 'ghost-post-connector'),
+                'testing'             => __('Testing...', 'ghostseo-connector'),
+                'test_connection'     => __('Test Connection', 'ghostseo-connector'),
+                'connection_success'  => __('Connection successful!', 'ghostseo-connector'),
+                'connection_failed'   => __('Connection failed:', 'ghostseo-connector'),
+                'sending'             => __('Sending...', 'ghostseo-connector'),
+                'send_ping'           => __('Send Ping', 'ghostseo-connector'),
+                'ping_success'        => __('Ping sent successfully!', 'ghostseo-connector'),
+                'ping_failed'         => __('Ping failed:', 'ghostseo-connector'),
+                'disconnecting'       => __('Disconnecting...', 'ghostseo-connector'),
+                'disconnect'          => __('Disconnect', 'ghostseo-connector'),
+                'disconnected'        => __('Disconnected successfully.', 'ghostseo-connector'),
+                'disconnect_failed'   => __('Disconnect failed:', 'ghostseo-connector'),
+                'disconnect_error'    => __('Disconnect failed. Please try again.', 'ghostseo-connector'),
+                'confirm_disconnect'  => __('Are you sure you want to disconnect from GhostSEO? You can reconnect later by downloading a new plugin.', 'ghostseo-connector'),
+                'checking'            => __('Checking...', 'ghostseo-connector'),
+                'check_updates'       => __('Check for Updates', 'ghostseo-connector'),
+                'update_available'    => __('Update available! Version', 'ghostseo-connector'),
+                'go_to_plugins'       => __('Go to Plugins page to update.', 'ghostseo-connector'),
+                'latest_version'      => __('You have the latest version!', 'ghostseo-connector'),
+                'check_failed'        => __('Failed to check for updates.', 'ghostseo-connector'),
+                'confirm_delete'      => __('Are you sure you want to delete this redirect?', 'ghostseo-connector'),
+                'importing'           => __('Importing redirects...', 'ghostseo-connector'),
+                'import_success'      => __('Import completed!', 'ghostseo-connector'),
+                'add_redirect'        => __('Add Redirect', 'ghostseo-connector'),
+                'save_redirect'       => __('Save Redirect', 'ghostseo-connector'),
+                'confirm_deactivate'  => __('Are you sure you want to deactivate %s?', 'ghostseo-connector'),
+                'deactivating'        => __('Deactivating...', 'ghostseo-connector'),
+                'deactivated'         => __('Plugin deactivated successfully. Refreshing...', 'ghostseo-connector'),
+                'saving'              => __('Saving...', 'ghostseo-connector'),
+                'save_settings'       => __('Save Settings', 'ghostseo-connector'),
+                'settings_saved'      => __('Settings saved successfully!', 'ghostseo-connector'),
+                'theme_saved'         => __('Theme saved!', 'ghostseo-connector'),
+                'syncing'             => __('Syncing...', 'ghostseo-connector'),
+                'sync_success'        => __('Widget updated!', 'ghostseo-connector'),
+                'sync_failed'         => __('Sync failed', 'ghostseo-connector'),
+                'site_health_score'   => __('Site Health Score', 'ghostseo-connector'),
+                'insights_waiting'    => __('AI Insights waiting', 'ghostseo-connector'),
+                'no_data_yet'         => __('No data yet. Stats will appear after the next sync.', 'ghostseo-connector'),
                 // Version
-                'checking_version'     => __('Checking for updates...', 'ghost-post-connector'),
-                'up_to_date'           => __('You are using the latest version.', 'ghost-post-connector'),
-                'version_error'        => __('Could not check for updates.', 'ghost-post-connector'),
+                'checking_version'     => __('Checking for updates...', 'ghostseo-connector'),
+                'up_to_date'           => __('You are using the latest version.', 'ghostseo-connector'),
+                'version_error'        => __('Could not check for updates.', 'ghostseo-connector'),
                 // SEO
-                'loading_seo'          => __('Loading SEO data...', 'ghost-post-connector'),
-                'seo_error'            => __('Could not load SEO data.', 'ghost-post-connector'),
-                'no_issues'            => __('No issues found.', 'ghost-post-connector'),
-                'organic_traffic'      => __('Organic Traffic', 'ghost-post-connector'),
-                'ai_traffic_label'     => __('AI Traffic', 'ghost-post-connector'),
-                'refresh_data'         => __('Refresh Data', 'ghost-post-connector'),
+                'loading_seo'          => __('Loading SEO data...', 'ghostseo-connector'),
+                'seo_error'            => __('Could not load SEO data.', 'ghostseo-connector'),
+                'no_issues'            => __('No issues found.', 'ghostseo-connector'),
+                'organic_traffic'      => __('Organic Traffic', 'ghostseo-connector'),
+                'ai_traffic_label'     => __('AI Traffic', 'ghostseo-connector'),
+                'refresh_data'         => __('Refresh Data', 'ghostseo-connector'),
                 // Header update
-                'update_to'            => __('Update to v', 'ghost-post-connector'),
-                'updating'             => __('Updating...', 'ghost-post-connector'),
-                'updated'              => __('Updated! Reloading...', 'ghost-post-connector'),
+                'update_to'            => __('Update to v', 'ghostseo-connector'),
+                'updating'             => __('Updating...', 'ghostseo-connector'),
+                'updated'              => __('Updated! Reloading...', 'ghostseo-connector'),
                 // Snippets
-                'snippet_saved'        => __('Snippet saved successfully!', 'ghost-post-connector'),
-                'snippet_trashed'      => __('Snippet moved to trash.', 'ghost-post-connector'),
-                'snippet_restored'     => __('Snippet restored.', 'ghost-post-connector'),
-                'snippet_deleted'      => __('Snippet permanently deleted.', 'ghost-post-connector'),
-                'confirm_permanent_delete' => __('Are you sure? This cannot be undone.', 'ghost-post-connector'),
-                'add_new_snippet'      => __('Add New Snippet', 'ghost-post-connector'),
-                'edit_snippet'         => __('Edit Snippet', 'ghost-post-connector'),
-                'generic_error'        => __('An error occurred. Please try again.', 'ghost-post-connector'),
+                'snippet_saved'        => __('Snippet saved successfully!', 'ghostseo-connector'),
+                'snippet_trashed'      => __('Snippet moved to trash.', 'ghostseo-connector'),
+                'snippet_restored'     => __('Snippet restored.', 'ghostseo-connector'),
+                'snippet_deleted'      => __('Snippet permanently deleted.', 'ghostseo-connector'),
+                'confirm_permanent_delete' => __('Are you sure? This cannot be undone.', 'ghostseo-connector'),
+                'add_new_snippet'      => __('Add New Snippet', 'ghostseo-connector'),
+                'edit_snippet'         => __('Edit Snippet', 'ghostseo-connector'),
+                'generic_error'        => __('An error occurred. Please try again.', 'ghostseo-connector'),
             ),
         ));
     }
@@ -360,8 +360,8 @@ class Ghost_Post {
             #adminmenu .toplevel_page_ghostseo > a .wp-menu-name {
                 font-weight: 700 !important;
             }
-            tr[data-slug="ghost-post-connector"] .plugin-icon img,
-            .plugin-card-ghost-post-connector .plugin-icon img {
+            tr[data-slug="ghostseo-connector"] .plugin-icon img,
+            .plugin-card-ghostseo-connector .plugin-icon img {
                 object-fit: contain;
             }
         </style>';
@@ -431,11 +431,11 @@ class Ghost_Post {
                 <svg class="gp-widget-icon" width="22" height="22" viewBox="0 0 150 150" xmlns="http://www.w3.org/2000/svg"><path fill="#8231F1" fill-rule="evenodd" clip-rule="evenodd" d="M75.5461 3.00018C108.904 3.08102 135.88 30.1882 135.799 63.5461C135.782 70.4471 134.608 77.0746 132.462 83.2463C128.767 94.9403 114.793 138.722 116.926 125.109C119.38 109.444 115.241 108.796 115.241 108.796C115.241 108.796 108.932 134.279 99.1515 142.226C97.432 143.945 92.4613 124.597 91.5666 121.612C75.2533 142.837 60.6398 146.505 60.6398 146.505C57.975 145.585 68.0358 128.033 53.4728 119.945C53.3927 120.061 32.9192 149.64 37.174 135.183C41.4231 120.744 34.0604 107.477 34.0129 107.392C34.0129 107.392 28.4578 110.169 23.3517 121.612C23.2612 121.814 23.1625 121.884 23.0558 121.834C25.0063 112.559 20.6972 92.9492 18.05 82.4025C16.0562 76.3826 14.984 69.9435 15.0002 63.2531C15.0811 29.8953 42.1883 2.91935 75.5461 3.00018ZM98.7795 39.343C93.1724 38.8818 88.0574 45.4345 87.3547 53.9787C86.6521 62.5227 90.6275 69.8232 96.2346 70.2844C101.842 70.7455 106.956 64.1927 107.659 55.6486C108.362 47.1044 104.387 39.8041 98.7795 39.343ZM64.6467 53.8635C63.8471 45.3278 58.6574 38.8329 53.0558 39.3576C47.4546 39.8825 43.5621 47.2275 44.3615 55.7629C45.1611 64.2984 50.3499 70.7932 55.9514 70.2687C61.5528 69.744 65.4461 62.399 64.6467 53.8635Z"/></svg>
                 <span class="gp-widget-title">GhostSEO</span>
                 <?php if ($status === 'connected'): ?>
-                    <span class="gp-badge gp-badge-success"><?php esc_html_e('Connected', 'ghost-post-connector'); ?></span>
+                    <span class="gp-badge gp-badge-success"><?php esc_html_e('Connected', 'ghostseo-connector'); ?></span>
                 <?php else: ?>
-                    <span class="gp-badge gp-badge-neutral"><?php esc_html_e('Disconnected', 'ghost-post-connector'); ?></span>
+                    <span class="gp-badge gp-badge-neutral"><?php esc_html_e('Disconnected', 'ghostseo-connector'); ?></span>
                 <?php endif; ?>
-                <button type="button" class="gp-widget-sync" id="gp-widget-sync" title="<?php esc_attr_e('Sync', 'ghost-post-connector'); ?>">
+                <button type="button" class="gp-widget-sync" id="gp-widget-sync" title="<?php esc_attr_e('Sync', 'ghostseo-connector'); ?>">
                     <svg class="gp-widget-sync-icon" width="14" height="14" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
                 </button>
             </div>
@@ -443,7 +443,7 @@ class Ghost_Post {
             <div class="gp-widget-body">
                 <?php if ($audit_score !== null): ?>
                 <div class="gp-widget-stat">
-                    <span class="gp-widget-stat-label"><?php esc_html_e('Site Health Score', 'ghost-post-connector'); ?></span>
+                    <span class="gp-widget-stat-label"><?php esc_html_e('Site Health Score', 'ghostseo-connector'); ?></span>
                     <span class="gp-widget-stat-value <?php echo $audit_score >= 70 ? 'gp-score-good' : ($audit_score >= 40 ? 'gp-score-ok' : 'gp-score-bad'); ?>">
                         <?php echo esc_html($audit_score); ?><small>/100</small>
                     </span>
@@ -456,7 +456,7 @@ class Ghost_Post {
                     <span>
                         <?php
                         printf(
-                            esc_html(_n('%d AI Insight is waiting for your approval!', '%d AI Insights are waiting for your approval!', $pending, 'ghost-post-connector')),
+                            esc_html(_n('%d AI Insight is waiting for your approval!', '%d AI Insights are waiting for your approval!', $pending, 'ghostseo-connector')),
                             $pending
                         );
                         ?>
@@ -469,13 +469,13 @@ class Ghost_Post {
                 <?php endif; ?>
                 
                 <?php if ($audit_score === null && $pending === 0 && !$activity): ?>
-                <p class="gp-widget-empty"><?php esc_html_e('No data yet. Stats will appear after the next sync.', 'ghost-post-connector'); ?></p>
+                <p class="gp-widget-empty"><?php esc_html_e('No data yet. Stats will appear after the next sync.', 'ghostseo-connector'); ?></p>
                 <?php endif; ?>
             </div>
             
             <div class="gp-widget-footer">
                 <a href="<?php echo esc_url($dashboard_url); ?>" class="gp-btn gp-btn-primary gp-btn-sm" target="_blank" rel="noopener">
-                    <?php esc_html_e('Open GhostSEO Dashboard', 'ghost-post-connector'); ?>
+                    <?php esc_html_e('Open GhostSEO Dashboard', 'ghostseo-connector'); ?>
                 </a>
                 <p class="gp-widget-last-sync" id="gp-widget-last-sync"></p>
             </div>
@@ -973,7 +973,7 @@ class Ghost_Post {
      */
     private function inject_update_transient($new_version, $download_url) {
         $update = (object) array(
-            'slug'        => 'ghost-post-connector',
+            'slug'        => 'ghostseo-connector',
             'plugin'      => GP_CONNECTOR_PLUGIN_BASENAME,
             'new_version' => $new_version,
             'package'     => esc_url_raw($download_url),

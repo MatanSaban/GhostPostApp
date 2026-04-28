@@ -34,7 +34,7 @@ All communications are secured with HMAC-SHA256 signatures.
 
 == Installation ==
 
-1. Upload the plugin files to the \`/wp-content/plugins/ghost-post-connector\` directory
+1. Upload the plugin files to the \`/wp-content/plugins/ghostseo-connector\` directory
 2. Activate the plugin through the 'Plugins' screen in WordPress
 3. The plugin will automatically connect to your GhostSEO account
 

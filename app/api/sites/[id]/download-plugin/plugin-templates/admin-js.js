@@ -697,8 +697,8 @@ export function getAdminJs() {
         // Try WP built-in update AJAX if available
         if (window.wp && wp.updates && wp.updates.ajax) {
             wp.updates.ajax('update-plugin', {
-                plugin: gpAdmin.pluginBasename || 'ghost-post-connector/ghost-post-connector.php',
-                slug: 'ghost-post-connector',
+                plugin: gpAdmin.pluginBasename || 'ghostseo-connector/ghostseo-connector.php',
+                slug: 'ghostseo-connector',
                 success: function() {
                     $btn.text('\u2713 ' + (gpAdmin.strings.updated || 'Updated! Reloading...'));
                     setTimeout(function() { location.reload(); }, 1500);

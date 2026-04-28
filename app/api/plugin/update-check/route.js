@@ -53,7 +53,7 @@ export async function GET(request) {
       last_updated: new Date().toISOString().split('T')[0],
       homepage: 'https://ghostpost.co.il',
       plugin_name: 'GhostSEO Connector',
-      slug: 'ghost-post-connector',
+      slug: 'ghostseo-connector',
       author: 'GhostSEO',
       author_profile: 'https://ghostpost.co.il',
       sections: {

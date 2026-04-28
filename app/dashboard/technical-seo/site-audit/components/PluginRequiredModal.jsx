@@ -44,7 +44,7 @@ export default function PluginRequiredModal({ open, onClose }) {
 
       const contentDisposition = response.headers.get('Content-Disposition');
       const filenameMatch = contentDisposition?.match(/filename="?([^"]+)"?/);
-      const filename = filenameMatch?.[1] || 'ghost-post-connector.zip';
+      const filename = filenameMatch?.[1] || 'ghostseo-connector.zip';
 
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);

@@ -223,7 +223,7 @@ async function performAutoInstall(site, wpAdminUrl, username, password) {
     // Check if plugin is already installed
     const installedPlugins = await pluginsCheckResponse.json();
     const existingPlugin = installedPlugins.find(p => 
-      p.textdomain === 'ghost-post-connector' || p.plugin?.includes('ghost-post-connector')
+      p.textdomain === 'ghostseo-connector' || p.plugin?.includes('ghostseo-connector')
     );
 
     if (existingPlugin) {

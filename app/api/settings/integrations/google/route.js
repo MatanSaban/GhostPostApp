@@ -237,7 +237,7 @@ export async function POST(request) {
       case 'connect': {
         // Get locale and Google email hint for smoother UX
         const cookieStore = await cookies();
-        const locale = cookieStore.get('ghost-post-locale')?.value || 'en';
+        const locale = cookieStore.get('ghostseo-locale')?.value || 'en';
         const existingInteg = await prisma.googleIntegration.findUnique({
           where: { siteId },
           select: { googleEmail: true },

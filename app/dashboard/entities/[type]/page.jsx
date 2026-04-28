@@ -302,7 +302,7 @@ export default function EntityTypePage({ params }) {
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `ghost-post-${selectedSite.id}.zip`;
+      a.download = `ghostseo-${selectedSite.id}.zip`;
       document.body.appendChild(a);
       a.click();
       window.URL.revokeObjectURL(url);

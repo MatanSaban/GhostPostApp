@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-const LOCALE_COOKIE = "ghost-post-locale";
+const LOCALE_COOKIE = "ghostseo-locale";
 const SESSION_COOKIE = "user_session";
 const REG_DONE_COOKIE = "reg_done";
 

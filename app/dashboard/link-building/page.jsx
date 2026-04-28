@@ -31,7 +31,7 @@ export default async function LinkBuildingPage() {
     { domain: 'blog.example.com', url: '/guest-post-seo-tips', da: 45, type: t('linkBuilding.types.guestPost'), date: t('linkBuilding.dates.jan15') },
     { domain: 'medium.com', url: '/@user/article-123', da: 92, type: t('linkBuilding.types.mention'), date: t('linkBuilding.dates.jan12') },
     { domain: 'industry-news.com', url: '/best-seo-tools-2024', da: 58, type: t('linkBuilding.types.listicle'), date: t('linkBuilding.dates.jan10') },
-    { domain: 'tech-review.net', url: '/ghost-post-review', da: 42, type: t('linkBuilding.types.review'), date: t('linkBuilding.dates.jan8') },
+    { domain: 'tech-review.net', url: '/ghostseo-review', da: 42, type: t('linkBuilding.types.review'), date: t('linkBuilding.dates.jan8') },
   ];
   
   return (

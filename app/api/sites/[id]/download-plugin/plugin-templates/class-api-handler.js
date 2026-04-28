@@ -67,7 +67,7 @@ class GP_API_Handler {
      * Register REST API routes
      */
     public function register_routes() {
-        $namespace = 'ghost-post/v1';
+        $namespace = 'ghostseo/v1';
         
         // Verify endpoint
         register_rest_route($namespace, '/verify', array(
@@ -749,7 +749,7 @@ class GP_API_Handler {
             return new WP_REST_Response(array('error' => 'Permission denied'), 403);
         }
         $result = $this->content_manager->create_item('post', $request->get_json_params());
-        Ghost_Post::log_activity('content_created', 'Post created via API');
+        GhostSEO_Plugin::log_activity('content_created', 'Post created via API');
         return $result;
     }
     
@@ -758,7 +758,7 @@ class GP_API_Handler {
             return new WP_REST_Response(array('error' => 'Permission denied'), 403);
         }
         $result = $this->content_manager->update_item('post', $request['id'], $request->get_json_params());
-        Ghost_Post::log_activity('content_updated', 'Post #' . $request['id'] . ' updated via API');
+        GhostSEO_Plugin::log_activity('content_updated', 'Post #' . $request['id'] . ' updated via API');
         return $result;
     }
     
@@ -767,7 +767,7 @@ class GP_API_Handler {
             return new WP_REST_Response(array('error' => 'Permission denied'), 403);
         }
         $result = $this->content_manager->delete_item('post', $request['id']);
-        Ghost_Post::log_activity('content_deleted', 'Post #' . $request['id'] . ' deleted via API');
+        GhostSEO_Plugin::log_activity('content_deleted', 'Post #' . $request['id'] . ' deleted via API');
         return $result;
     }
     
@@ -794,7 +794,7 @@ class GP_API_Handler {
             return new WP_REST_Response(array('error' => 'Permission denied'), 403);
         }
         $result = $this->content_manager->create_item('page', $request->get_json_params());
-        Ghost_Post::log_activity('content_created', 'Page created via API');
+        GhostSEO_Plugin::log_activity('content_created', 'Page created via API');
         return $result;
     }
     
@@ -803,7 +803,7 @@ class GP_API_Handler {
             return new WP_REST_Response(array('error' => 'Permission denied'), 403);
         }
         $result = $this->content_manager->update_item('page', $request['id'], $request->get_json_params());
-        Ghost_Post::log_activity('content_updated', 'Page #' . $request['id'] . ' updated via API');
+        GhostSEO_Plugin::log_activity('content_updated', 'Page #' . $request['id'] . ' updated via API');
         return $result;
     }
     
@@ -812,7 +812,7 @@ class GP_API_Handler {
             return new WP_REST_Response(array('error' => 'Permission denied'), 403);
         }
         $result = $this->content_manager->delete_item('page', $request['id']);
-        Ghost_Post::log_activity('content_deleted', 'Page #' . $request['id'] . ' deleted via API');
+        GhostSEO_Plugin::log_activity('content_deleted', 'Page #' . $request['id'] . ' deleted via API');
         return $result;
     }
     
@@ -871,7 +871,7 @@ class GP_API_Handler {
             return new WP_REST_Response(array('error' => 'Permission denied'), 403);
         }
         $result = $this->media_manager->upload($request);
-        Ghost_Post::log_activity('media_uploaded', 'Media uploaded via API');
+        GhostSEO_Plugin::log_activity('media_uploaded', 'Media uploaded via API');
         return $result;
     }
     
@@ -880,7 +880,7 @@ class GP_API_Handler {
             return new WP_REST_Response(array('error' => 'Permission denied'), 403);
         }
         $result = $this->media_manager->delete($request['id']);
-        Ghost_Post::log_activity('media_deleted', 'Media #' . $request['id'] . ' deleted via API');
+        GhostSEO_Plugin::log_activity('media_deleted', 'Media #' . $request['id'] . ' deleted via API');
         return $result;
     }
     
@@ -1040,7 +1040,7 @@ class GP_API_Handler {
             return new WP_REST_Response(array('error' => 'Permission denied'), 403);
         }
         $result = $this->seo_manager->update_meta($request['id'], $request->get_json_params());
-        Ghost_Post::log_activity('seo_updated', 'SEO meta updated for post #' . $request['id']);
+        GhostSEO_Plugin::log_activity('seo_updated', 'SEO meta updated for post #' . $request['id']);
         return $result;
     }
     
@@ -1524,7 +1524,7 @@ class GP_API_Handler {
         if (class_exists('GP_Cache_Manager')) {
             GP_Cache_Manager::clear_all(array($post_id));
         }
-        Ghost_Post::log_activity('element_manipulated', 'Post #' . $post_id . ' ' . (isset($spec['operation']) ? $spec['operation'] : 'modified'));
+        GhostSEO_Plugin::log_activity('element_manipulated', 'Post #' . $post_id . ' ' . (isset($spec['operation']) ? $spec['operation'] : 'modified'));
         return new WP_REST_Response($result, 200);
     }
 
@@ -2436,7 +2436,7 @@ class GP_API_Handler {
         require_once ABSPATH . 'wp-admin/includes/misc.php';
 
         // Locate this plugin's slug (the directory/file path WP uses for plugin_basename).
-        $plugin_slug = plugin_basename(dirname(dirname(__FILE__)) . '/ghost-post-connector.php');
+        $plugin_slug = plugin_basename(dirname(dirname(__FILE__)) . '/ghostseo-connector.php');
         if (!file_exists(WP_PLUGIN_DIR . '/' . $plugin_slug)) {
             // Fallback: scan for our plugin header among installed plugins.
             $all = get_plugins();

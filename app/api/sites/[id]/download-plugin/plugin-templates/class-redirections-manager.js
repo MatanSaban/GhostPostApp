@@ -196,7 +196,7 @@ class GP_Redirections_Manager {
                 'is_active'  => isset($r['is_active']) ? (bool) $r['is_active'] : true,
                 'hit_count'  => intval($r['hit_count'] ?? 0),
                 'created_at' => $r['created_at'] ?? '',
-                'plugin'     => 'ghost-post',
+                'plugin'     => 'ghostseo',
             );
         }
         return $result;
@@ -316,7 +316,7 @@ class GP_Redirections_Manager {
      */
     public function import_from_detected_plugin() {
         $primary = $this->get_primary_plugin();
-        if (!$primary || $primary === 'ghost-post') {
+        if (!$primary || $primary === 'ghostseo') {
             return array('imported' => 0, 'skipped' => 0, 'errors' => 0, 'message' => 'No external redirection plugin detected');
         }
 

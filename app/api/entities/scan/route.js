@@ -3095,7 +3095,7 @@ export async function GET(request) {
     }
 
     // Get user's locale for AI translation of post type names
-    const userLocale = cookieStore.get('ghost-post-locale')?.value || 'he';
+    const userLocale = cookieStore.get('ghostseo-locale')?.value || 'he';
 
     // Perform quick discovery (pass userId to save who triggered the scan)
     const result = await discoverPostTypes(site, customSitemapUrl, userId, userLocale);
@@ -3130,7 +3130,7 @@ export async function POST(request) {
 
     const body = await request.json();
     const { siteId, phase, entityTypeId, options = {} } = body;
-    const locale = cookieStore.get('ghost-post-locale')?.value || 'he';
+    const locale = cookieStore.get('ghostseo-locale')?.value || 'he';
     const msg = getScanMessages(locale);
 
     if (!siteId) {

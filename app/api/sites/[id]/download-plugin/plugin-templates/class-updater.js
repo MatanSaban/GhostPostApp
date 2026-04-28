@@ -46,7 +46,7 @@ class GP_Updater {
      */
     public function __construct() {
         $this->plugin_basename = GP_CONNECTOR_PLUGIN_BASENAME;
-        $this->plugin_slug = 'ghost-post-connector';
+        $this->plugin_slug = 'ghostseo-connector';
         $this->current_version = GP_CONNECTOR_VERSION;
     }
 
@@ -82,8 +82,8 @@ class GP_Updater {
         echo '<style>
             img[src*="ghost"][src*="logo.png"],
             img[src*="ghost"][src*="favicon.svg"],
-            tr[data-slug="ghost-post-connector"] .plugin-icon img,
-            .plugin-card-ghost-post-connector .plugin-icon img {
+            tr[data-slug="ghostseo-connector"] .plugin-icon img,
+            .plugin-card-ghostseo-connector .plugin-icon img {
                 object-fit: contain !important;
                 width: 100% !important;
                 height: 100% !important;

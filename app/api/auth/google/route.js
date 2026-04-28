@@ -36,7 +36,7 @@ export async function GET(request) {
     
     // Get locale from cookie or default to 'en'
     const cookieStore = await cookies();
-    const localeCookie = cookieStore.get('ghost-post-locale');
+    const localeCookie = cookieStore.get('ghostseo-locale');
     const locale = localeCookie?.value || 'en';
     
     // Store consent and mode in a cookie for callback to use
