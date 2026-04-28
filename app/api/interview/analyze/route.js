@@ -64,7 +64,7 @@ export async function POST(request) {
       }
     }
 
-    const { url } = await request.json();
+    const { url, userLocale } = await request.json();
 
     if (!url) {
       return NextResponse.json({ error: 'URL is required' }, { status: 400 });
@@ -83,9 +83,11 @@ export async function POST(request) {
 
     // Normalize URL
     const normalizedUrl = normalizeUrl(url);
-    
-    // Run analysis
-    const analysis = await analyzeWebsite(normalizedUrl);
+
+    // Run analysis. userLocale (user's UI locale) is forwarded to the AI step
+    // so human-readable fields (description, niche, services, audience, goals)
+    // come back in the chat's language even when the site itself is in another.
+    const analysis = await analyzeWebsite(normalizedUrl, { userLocale });
 
     // Track AI usage if user is logged in with a real (non-draft) account
     let creditsUsed = 0;
@@ -140,6 +142,24 @@ export async function POST(request) {
 }
 
 /**
+ * Map an ISO 639-1 language code to a human-readable language name. Used
+ * in AI prompts so the model gets the actual language name ("Hebrew") rather
+ * than a code ("he") it might mis-handle. Defaults to "English" for codes
+ * we don't have a friendly name for.
+ */
+function languageCodeToName(code) {
+  const map = {
+    he: 'Hebrew', en: 'English', ar: 'Arabic', es: 'Spanish', fr: 'French',
+    de: 'German', it: 'Italian', pt: 'Portuguese', ru: 'Russian',
+    nl: 'Dutch', pl: 'Polish', sv: 'Swedish', no: 'Norwegian', da: 'Danish',
+    fi: 'Finnish', el: 'Greek', tr: 'Turkish', th: 'Thai', vi: 'Vietnamese',
+    id: 'Indonesian', ms: 'Malay', hi: 'Hindi', zh: 'Chinese', ja: 'Japanese',
+    ko: 'Korean', cs: 'Czech', hu: 'Hungarian', ro: 'Romanian', uk: 'Ukrainian',
+  };
+  return map[(code || '').toLowerCase()] || 'English';
+}
+
+/**
  * Normalize URL (add https://, handle www, etc.)
  */
 function normalizeUrl(url) {
@@ -164,8 +184,15 @@ function normalizeUrl(url) {
 
 /**
  * Main analysis function
+ *
+ * @param {string} url
+ * @param {object} options
+ * @param {string} [options.userLocale] - User UI locale ("he", "en", ...).
+ *   When provided, AI text fields are written in this locale regardless of
+ *   the site's own language, so the registration chat stays monolingual.
  */
-async function analyzeWebsite(url) {
+async function analyzeWebsite(url, options = {}) {
+  const { userLocale } = options;
   const results = {
     url,
     isReachable: false,
@@ -262,7 +289,12 @@ async function analyzeWebsite(url) {
   
   // Step 6: AI-powered analysis for keywords, competitors, and business understanding
   console.log('[Analyze] Running AI analysis...');
-  const aiAnalysis = await analyzeWithAI(results, html, additionalData.pagesContent || []);
+  const aiAnalysis = await analyzeWithAI(
+    results,
+    html,
+    additionalData.pagesContent || [],
+    { userLocale },
+  );
   
   // Merge AI insights
   if (aiAnalysis) {
@@ -306,9 +338,10 @@ async function analyzeWebsite(url) {
       results.inferredAudience = aiAnalysis.targetAudience;
     }
   } else {
-    // Fallback to rule-based inference if AI fails
+    // Fallback to rule-based inference if AI fails. Pass userLocale so the
+    // rule-based audience copy still matches the chat's display language.
     results.inferredGoals = inferSeoGoals(results);
-    results.inferredAudience = inferTargetAudience(results);
+    results.inferredAudience = inferTargetAudience(results, userLocale);
 
     // Try Google search for competitors as fallback
     results.competitors = await findCompetitors(results);
@@ -674,9 +707,19 @@ function extractKeywords(html) {
 
 /**
  * AI-powered analysis using Gemini
- * Analyzes page content to understand business, suggest keywords and competitors
+ * Analyzes page content to understand business, suggest keywords and competitors.
+ *
+ * @param {object} basicAnalysis
+ * @param {string} homepageHtml
+ * @param {Array} additionalPagesContent
+ * @param {object} options
+ * @param {string} [options.userLocale] - User UI locale. When provided, this
+ *   becomes the language for human-readable fields (description, niche label,
+ *   services, target audience, goal labels). Keywords still target the site
+ *   language since those are SEO terms users actually search for.
  */
-async function analyzeWithAI(basicAnalysis, homepageHtml, additionalPagesContent = []) {
+async function analyzeWithAI(basicAnalysis, homepageHtml, additionalPagesContent = [], options = {}) {
+  const { userLocale } = options;
   try {
     // Extract clean text content from HTML
     const cleanContent = extractTextContent(homepageHtml);
@@ -699,11 +742,13 @@ ${cleanContent.slice(0, 4000)}
 ${additionalContent ? `=== ADDITIONAL PAGES ===\n${additionalContent.slice(0, 2000)}` : ''}
 `.trim();
 
-    // Define the schema for AI response
+    // Define the schema for AI response. Field-level language hints reinforce
+    // the system-prompt rules so the AI keeps keywords in site language while
+    // emitting display fields in the user's UI language.
     const analysisSchema = z.object({
-      businessDescription: z.string().describe('A clear, concise description of what this business does (1-2 sentences, in the site language)'),
+      businessDescription: z.string().describe(`A clear, concise description of what this business does (1-2 sentences). MUST be written in ${displayLanguageName} (the user's UI language), even if the website is in another language.`),
       businessNiche: z.string().describe('The business niche/category (e.g., law, medical, ecommerce, tech, marketing, education, real-estate, restaurant, finance, other)'),
-      services: z.array(z.string()).describe('List of main services or products offered (max 8 items)'),
+      services: z.array(z.string()).describe(`List of main services or products offered (max 8 items). Write in ${displayLanguageName}.`),
       keywords: z.array(z.object({
         keyword: z.string().describe('A real SEO search query that people type into Google to find this type of business. NOT a heading or title from the website. Example: "עורך דין מקרקעין תל אביב" or "התחדשות עירונית ייעוץ משפטי"'),
         intent: z.enum(['commercial', 'informational', 'navigational', 'transactional']).describe('Search intent'),
@@ -721,11 +766,17 @@ ${additionalContent ? `=== ADDITIONAL PAGES ===\n${additionalContent.slice(0, 20
         labelEn: z.string().describe('Goal in English'),
         confidence: z.number().describe('Confidence score 0-1'),
       })).describe('2-4 likely SEO/marketing goals for this business'),
-      targetAudience: z.string().describe('Description of target audience (in the site language)'),
+      targetAudience: z.string().describe(`Description of target audience. Write in ${displayLanguageName}.`),
     });
 
-    const isHebrew = basicAnalysis.contentStyle?.language === 'he';
-    
+    const siteLang = basicAnalysis.contentStyle?.language || 'en';
+    const isHebrewSite = siteLang === 'he';
+    // Display language = the chat's language. Falls back to site language if
+    // the caller didn't pass a userLocale (older clients, server-side calls).
+    const displayLang = (userLocale || siteLang || 'en').toLowerCase();
+    const displayLanguageName = languageCodeToName(displayLang);
+    const isHebrewDisplay = displayLang === 'he';
+
     const systemPrompt = `You are an expert SEO analyst specializing in keyword research.
 Analyze the provided website content and generate REAL SEO KEYWORDS.
 
@@ -754,9 +805,13 @@ KEYWORD TYPES TO INCLUDE:
 4. Long-tail keywords: Specific queries (e.g., "כמה עולה עורך דין לקניית דירה")
 5. Informational keywords: Questions people ask (e.g., "האם צריך עורך דין לקניית דירה")
 
-For competitors: Suggest real businesses that compete in the same market. ${isHebrew ? 'For Israeli businesses, suggest Israeli competitors.' : 'Focus on the same geographic market.'}
+For competitors: Suggest real businesses that compete in the same market. ${isHebrewSite ? 'For Israeli businesses, suggest Israeli competitors.' : 'Focus on the same geographic market.'}
 
-Respond in ${isHebrew ? 'Hebrew' : 'English'} since that's the site's primary language.`;
+LANGUAGE RULES — CRITICAL, FOLLOW EXACTLY:
+- Keywords (the \`keywords\` field) MUST be in the SITE LANGUAGE (${siteLang}). Those are real Google queries that real searchers type, so they have to match what people actually search in that market.
+- Every other human-readable text field — businessDescription, businessNiche, services, targetAudience, competitors[].reasoning, goals[].labelHe/labelEn — MUST be written in ${displayLanguageName} (locale: ${displayLang}). The user is reading these in a chat that is rendering in ${displayLanguageName}; mixing in ${siteLang === displayLang ? 'a different language' : siteLang + ' text'} produces a bilingual mess.
+- For \`goals\`: the \`labelHe\` field stays Hebrew and \`labelEn\` stays English regardless (those keys are language-tagged), but pick the recommended display label to match ${displayLanguageName}.
+- Never repeat a sentence in two languages. Translate cleanly into ${displayLanguageName}.`;
 
     const result = await generateStructuredResponse({
       system: systemPrompt,
@@ -1223,12 +1278,14 @@ function inferSeoGoals(analysis) {
 }
 
 /**
- * Infer target audience based on analysis
+ * Infer target audience based on analysis. The display language is the
+ * user's UI locale when provided, falling back to the site's content
+ * language so older callers keep their old behavior.
  */
-function inferTargetAudience(analysis) {
+function inferTargetAudience(analysis, userLocale) {
   const niche = analysis.businessInfo?.niche;
-  const language = analysis.contentStyle?.language;
-  
+  const displayLang = (userLocale || analysis.contentStyle?.language || 'en').toLowerCase();
+
   const audiences = {
     'law': { he: 'אנשים פרטיים ועסקים הזקוקים לייעוץ משפטי', en: 'Individuals and businesses needing legal advice' },
     'medical': { he: 'מטופלים המחפשים שירותי בריאות', en: 'Patients seeking healthcare services' },
@@ -1239,13 +1296,13 @@ function inferTargetAudience(analysis) {
     'marketing': { he: 'עסקים המחפשים לשפר את הנוכחות הדיגיטלית שלהם', en: 'Businesses looking to improve digital presence' },
     'education': { he: 'סטודנטים ואנשי מקצוע המחפשים ללמוד', en: 'Students and professionals looking to learn' },
   };
-  
+
   if (niche && audiences[niche]) {
-    return language === 'he' ? audiences[niche].he : audiences[niche].en;
+    return displayLang === 'he' ? audiences[niche].he : audiences[niche].en;
   }
-  
-  return language === 'he' 
-    ? 'קהל המחפש את השירותים/המוצרים שלך' 
+
+  return displayLang === 'he'
+    ? 'קהל המחפש את השירותים/המוצרים שלך'
     : 'People searching for your services/products';
 }
 

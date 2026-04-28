@@ -29,6 +29,48 @@ async function verifyClusterAccess(clusterId, user) {
   return member ? cluster : null;
 }
 
+// GET /api/clusters/[id]
+//
+// Returns the cluster with its members hydrated and the pillar SiteEntity included.
+// Used by the AI Content Wizard when launched via ?clusterId=X to pre-fill pillar
+// URL, main keyword, and seed gap suggestions.
+export async function GET(_request, { params }) {
+  try {
+    const user = await getAuthenticatedUser();
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const { id } = await params;
+    const cluster = await verifyClusterAccess(id, user);
+    if (!cluster) {
+      return NextResponse.json({ error: 'Cluster not found or no access' }, { status: 404 });
+    }
+
+    const members = cluster.memberEntityIds?.length
+      ? await prisma.siteEntity.findMany({
+          where: { id: { in: cluster.memberEntityIds } },
+          select: { id: true, title: true, slug: true, url: true, status: true },
+        })
+      : [];
+
+    const pillar = cluster.pillarEntityId
+      ? members.find((m) => m.id === cluster.pillarEntityId) || null
+      : null;
+
+    // Strip the joined `site` field — caller doesn't need it and we already
+    // verified access. Keep response shape minimal.
+    const { site: _site, ...clusterPayload } = cluster;
+
+    return NextResponse.json({
+      cluster: { ...clusterPayload, members, pillar },
+    });
+  } catch (error) {
+    console.error('[Cluster API] GET error:', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  }
+}
+
 // PATCH /api/clusters/[id]
 // Body: { status?, name?, mainKeyword?, pillarEntityId? }
 //
@@ -48,7 +90,27 @@ export async function PATCH(request, { params }) {
     }
 
     const body = await request.json().catch(() => ({}));
-    const { status, name, mainKeyword, pillarEntityId } = body;
+    const { status, name, mainKeyword, pillarEntityId, expectedUpdatedAt } = body;
+
+    // Optimistic-concurrency check: if the client tells us what version it
+    // last saw, refuse the write when the row has moved on.
+    if (expectedUpdatedAt) {
+      const expected = new Date(expectedUpdatedAt).getTime();
+      const actual = new Date(cluster.updatedAt).getTime();
+      if (Number.isFinite(expected) && expected !== actual) {
+        return NextResponse.json(
+          {
+            error: 'Cluster was updated elsewhere',
+            code: 'STALE',
+            cluster: {
+              id: cluster.id,
+              updatedAt: cluster.updatedAt,
+            },
+          },
+          { status: 409 },
+        );
+      }
+    }
 
     const data = {};
 
@@ -101,6 +163,33 @@ export async function PATCH(request, { params }) {
     return NextResponse.json({ cluster: updated });
   } catch (error) {
     console.error('[Cluster API] PATCH error:', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  }
+}
+
+// DELETE /api/clusters/[id]
+//
+// Hard-deletes a cluster row. Linked Campaigns keep existing — their
+// `topicClusterId` is cleared via the schema's `onDelete: SetNull` rule.
+// Content rows already created with a `preflight` JSON snapshot retain it.
+export async function DELETE(_request, { params }) {
+  try {
+    const user = await getAuthenticatedUser();
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const { id } = await params;
+    const cluster = await verifyClusterAccess(id, user);
+    if (!cluster) {
+      return NextResponse.json({ error: 'Cluster not found or no access' }, { status: 404 });
+    }
+
+    await prisma.topicCluster.delete({ where: { id } });
+
+    return NextResponse.json({ success: true, deletedId: id });
+  } catch (error) {
+    console.error('[Cluster API] DELETE error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

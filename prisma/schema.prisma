@@ -78,6 +78,51 @@ model Account {
   chatConversations ChatConversation[]
   chatActions       ChatAction[]
   supportTickets    SupportTicket[]
+  paymentMethods    PaymentMethod[]
+}
+
+// Tokenized card-on-file. Created by CardCom's CreateTokenOnly + J2 flow on
+// first subscription charge so future charges (recurring billing, addon
+// purchases) can use Transactions/Transaction with the saved token without
+// asking the user to re-enter card details.
+model PaymentMethod {
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  accountId    String   @db.ObjectId
+  provider     String   @default("CARDCOM")
+  // CardCom-issued opaque token (UUID). NEVER a raw PAN.
+  token        String
+  // Token expiry from CardCom (YYYYMMDD per their docs).
+  tokenExpDate String
+  // Cardholder data we're allowed to retain for display & for future charges
+  // (CardCom requires CardExpirationMMYY on every token charge).
+  cardYear     Int
+  cardMonth    Int
+  cardLast4    String?
+  cardBrand    String?
+  // User-set display name (e.g. "Personal Visa"). Capped at 50 chars by API.
+  // Picker UIs always render last4 alongside, regardless of nickname.
+  nickname     String?
+  // CardCom's CardInfo/PaymentType enums (e.g. "Israeli", "Standard"). Lets
+  // us know after-the-fact whether the card is a debit / gift card so we can
+  // refuse to use it for recurring charges.
+  cardInfo     String?
+  paymentType  String?
+  // Identifies the cardholder for J5/captures + invoice issuance.
+  ownerName    String?
+  ownerPhone   String?
+  ownerEmail   String?
+  ownerTaxId   String?
+  // Tracks which expiry-reminder email (E3) we've already sent so we don't
+  // spam the user. 0 = none, 1 = T-30 sent, 2 = T-7 sent, 3 = expired sent.
+  expiryReminderStage Int @default(0)
+  isDefault    Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  account Account @relation(fields: [accountId], references: [id], onDelete: Cascade)
+
+  @@index([accountId])
+  @@unique([accountId, token])
 }
 
 // ==========================================
@@ -309,6 +354,7 @@ model User {
   impersonationGrants           ImpersonationGrant[]   @relation("ImpersonationGrantUser")
   impersonationSessionsAsAdmin  ImpersonationSession[] @relation("ImpersonationSessionAdmin")
   impersonationSessionsAsTarget ImpersonationSession[] @relation("ImpersonationSessionTarget")
+  pushSubscriptions             PushSubscription[]
 }
 
 enum RegistrationStep {
@@ -534,6 +580,19 @@ model Subscription {
   currentPeriodEnd   DateTime
   cancelAtPeriodEnd  Boolean            @default(false)
   canceledAt         DateTime?
+  // Recurring billing engine state (E1/E2). Signup charge is cycle 0;
+  // first cron-driven renewal increments to 1, etc. Used by B2's
+  // priceForRecurringCycle to pick the right schedule segment.
+  recurringCycleIndex   Int       @default(0)
+  // Set on every renewal attempt (success and failure). Lets E2 space
+  // out retries (day+1, day+3, day+5).
+  lastRenewalAttemptAt  DateTime?
+  // Number of consecutive failed renewals; resets to 0 on success. After
+  // it hits 3, E2 cancels the subscription.
+  renewalRetryCount     Int       @default(0)
+  // Last failure message (CardCom Description / our error). Surfaced in
+  // the dashboard PAST_DUE banner.
+  renewalFailureMessage String?
   createdAt          DateTime           @default(now())
   updatedAt          DateTime           @updatedAt
 
@@ -650,9 +709,21 @@ model Coupon {
   code        String  @unique // Unique coupon code (e.g. "LAUNCH50")
   description String? // Internal description for admin
 
-  // Discount settings
-  discountType  DiscountType @default(PERCENTAGE) // Percentage or fixed amount
-  discountValue Float        @default(0) // Discount value (e.g. 50 for 50% or 50 for $50)
+  // Discount settings.
+  //  - PERCENTAGE     → discountValue is a percentage (50 = 50% off).
+  //  - FIXED_DISCOUNT → discountValue is a USD amount to subtract (50 = $50 off).
+  //  - FIXED_PRICE    → discountValue is the FINAL USD price the user pays
+  //                     (replaces the order total entirely).
+  //  - FIXED_AMOUNT   → legacy alias for FIXED_DISCOUNT, kept so existing DB
+  //                     rows still parse. Treated identically at compute time.
+  discountType  DiscountType @default(PERCENTAGE)
+  discountValue Float        @default(0)
+
+  // Only meaningful for FIXED_PRICE. When the coupon's fixed price exceeds
+  // the natural order total (e.g. a $50 fixed-price coupon on a $30 order):
+  //   - false (default) → coupon refuses to apply, user sees an error.
+  //   - true            → order total is forced to $0 instead.
+  floorOrderToZero Boolean @default(false)
 
   // Limitation overrides – JSON array of {key, value} that OVERRIDE plan limitations
   // e.g. [{"key":"aiCredits","value":50000},{"key":"maxSites","value":10}]
@@ -676,6 +747,20 @@ model Coupon {
 
   // Duration of benefits (in billing cycles, null = lifetime of subscription)
   durationMonths Int? // How many months the coupon benefits last
+
+  // Optional per-cycle price schedule for the recurring engine (B2). When
+  // present, it overrides discountType/discountValue from the SECOND charge
+  // onward (the first charge always uses discountType/discountValue per
+  // spec). Format:
+  //   [
+  //     { "months": 5,    "amount": 70  },  // charges 2..6
+  //     { "months": 6,    "amount": 80  },  // charges 7..12
+  //     { "months": null, "amount": 90  }   // forever after charge 12
+  //   ]
+  // Amounts are pre-VAT USD. If the last segment has months !== null and
+  // the user keeps the subscription past the schedule, that last segment's
+  // price freezes forever ("run until the user cancels subscription").
+  recurringPriceSchedule Json? @default("[]")
 
   isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
@@ -705,10 +790,15 @@ model CouponRedemption {
   subscriptionId String? @db.ObjectId
 
   // Snapshot of what was applied
-  discountType        DiscountType
-  discountValue       Float
-  limitationOverrides Json? // Snapshot of overrides at time of redemption
-  extraFeatures       Json? // Snapshot of extra features at time of redemption
+  discountType           DiscountType
+  discountValue          Float
+  // Snapshot of the coupon's recurringPriceSchedule (B2). Frozen at redemption
+  // time so the recurring billing engine charges the price the user agreed
+  // to even if the admin later edits the coupon.
+  recurringPriceSchedule Json?      @default("[]")
+  floorOrderToZero       Boolean    @default(false)
+  limitationOverrides    Json? // Snapshot of overrides at time of redemption
+  extraFeatures          Json? // Snapshot of extra features at time of redemption
 
   // Duration tracking
   durationMonths Int? // Inherited from coupon
@@ -727,8 +817,10 @@ model CouponRedemption {
 }
 
 enum DiscountType {
-  PERCENTAGE // e.g. 50% off
-  FIXED_AMOUNT // e.g. $50 off
+  PERCENTAGE     // e.g. 50% off
+  FIXED_DISCOUNT // e.g. $50 off the order
+  FIXED_PRICE    // e.g. final order price set to $50 regardless of base
+  FIXED_AMOUNT   // legacy alias for FIXED_DISCOUNT, retained for old DB rows
 }
 
 enum CouponRedemptionStatus {
@@ -1353,6 +1445,7 @@ enum TopicClusterStatus {
 enum TopicClusterSource {
   DISCOVERED_FROM_SITE
   CREATED_FROM_WIZARD
+  CREATED_MANUALLY
 }
 
 model Keyword {
@@ -1877,6 +1970,12 @@ model ChatAction {
   result       Json? // Execution result summary
   error        String? // Error message if failed
 
+  // Cluster context — populated when the proposal contains a wp_create_post
+  // (or similar) action. Auto-mapped to the best-matching CONFIRMED cluster,
+  // with cannibalization preflight results so the user can see warnings before approving.
+  // Shape: { clusterId, clusterName, matchScore, preflight: { hasConflict, conflicts[] } }
+  clusterContext Json?
+
   // Approval timing
   expiresAt   DateTime // 5 min from creation
   warningAt   DateTime // 2 min from creation
@@ -2163,6 +2262,27 @@ model Notification {
   @@index([userId, read, createdAt(sort: Desc)])
   @@index([accountId, createdAt(sort: Desc)])
   @@map("notifications")
+}
+
+// Web Push subscription for a user's browser/device.
+// One row per (user, browser) — endpoint is the unique identity issued
+// by the browser's push service (FCM for Chrome/Edge/Firefox, Apple for Safari).
+// We keep the keys (p256dh + auth) as base64url strings exactly as the
+// PushSubscription.toJSON() serializes them, so they can be passed straight
+// into web-push.sendNotification.
+model PushSubscription {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String   @db.ObjectId
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
+  userAgent String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@map("push_subscriptions")
 }
 
 // ==========================================

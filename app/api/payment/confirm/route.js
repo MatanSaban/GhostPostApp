@@ -1,7 +1,13 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import prisma from '@/lib/prisma';
-import { getLowProfileResult } from '@/lib/cardcom';
+import {
+  getLowProfileResult,
+  chargeWithToken,
+  buildDocument,
+  getBlockedCardReason,
+  externalUniqTranIdFromLpId,
+} from '@/lib/cardcom';
 import { canPurchaseAddOn, addAiCredits } from '@/lib/account-utils';
 import { getNextFirstOfMonth } from '@/lib/proration';
 
@@ -14,7 +20,7 @@ async function getAuthenticatedUser() {
     if (!userId) return null;
     return await prisma.user.findUnique({
       where: { id: userId },
-      select: { id: true, email: true },
+      select: { id: true, email: true, firstName: true, lastName: true, phoneNumber: true },
     });
   } catch {
     return null;
@@ -23,12 +29,24 @@ async function getAuthenticatedUser() {
 
 /**
  * POST /api/payment/confirm
- * 
- * Verifies a payment at CardCom and executes the associated action.
- * 
+ *
+ * Completes a two-step charge for the dashboard addon / plan-upgrade flows:
+ *   1. /payment/init created the LP with Operation: CreateTokenOnly + J2 — at
+ *      this point CardCom has validated the card and issued a token, no money
+ *      has moved.
+ *   2. Here we:
+ *      a) Pull the J2 result via GetLpResult (server-to-server).
+ *      b) Reject gift cards (debit is allowed for one-shot addons per spec).
+ *      c) Run DoTransaction with the token + the localized
+ *         TaxInvoiceAndReceipt document. ExternalUniqTranId is derived from
+ *         the LP id so a duplicate confirm gets CardCom's idempotent
+ *         "original response" instead of a re-charge.
+ *      d) Upsert the token into PaymentMethod for future reuse.
+ *      e) Execute the action (addon_purchase / plan_upgrade).
+ *
  * Body:
- *  - paymentId: string (required)
- *  - lowProfileId: string (required)
+ *   - paymentId: string (required)
+ *   - lowProfileId: string (required)
  */
 export async function POST(request) {
   try {
@@ -47,7 +65,6 @@ export async function POST(request) {
       );
     }
 
-    // Find the payment record
     const payment = await prisma.payment.findUnique({
       where: { id: paymentId },
       include: {
@@ -71,39 +88,211 @@ export async function POST(request) {
       return NextResponse.json({ error: 'LowProfile ID mismatch' }, { status: 400 });
     }
 
-    // Verify payment at CardCom
-    let cardcomResult;
+    // Step a: pull the J2 result.
+    let lpResult;
     try {
-      cardcomResult = await getLowProfileResult(lowProfileId);
+      lpResult = await getLowProfileResult(lowProfileId);
     } catch (err) {
-      console.error('CardCom verification failed:', err);
-      // If verification fails, still mark as completed if called after HandleSubmit success
-      // The frontend only calls confirm after getting HandleSubmit with IsSuccess
+      console.error('CardCom GetLpResult failed:', err);
+      return NextResponse.json(
+        { error: 'Could not verify payment session with CardCom' },
+        { status: 502 }
+      );
     }
 
-    // Update payment status
-    const isSuccess = cardcomResult?.IsSuccess !== false; // Default to trusting frontend if API check fails
-    
+    const tranzInfo = lpResult?.TranzactionInfo;
+    const tokenInfo = lpResult?.TokenInfo;
+
+    // J2 success codes: 701 (J2 OK) or 0 (already charged — shouldn't happen
+    // on a CreateTokenOnly LP but we accept it for forward-compat).
+    const lpOk = lpResult?.ResponseCode === 0;
+    const validateOk = tranzInfo?.ResponseCode === 701 || tranzInfo?.ResponseCode === 0;
+
+    if (!lpOk || !validateOk) {
+      console.warn('Payment validation failed:', { lpResult });
+      await prisma.payment.update({
+        where: { id: paymentId },
+        data: {
+          status: 'FAILED',
+          metadata: {
+            ...((payment.metadata || {})),
+            failureReason: 'J2 validation failed',
+            cardcomResult: lpResult,
+            failedAt: new Date().toISOString(),
+          },
+        },
+      });
+      return NextResponse.json({
+        error: tranzInfo?.Description || lpResult?.Description || 'Card validation failed',
+      }, { status: 400 });
+    }
+
+    // Step b: refuse gift cards. Debit cards are allowed on this dashboard
+    // path because the user explicitly chose "Use a different card" — debit
+    // is fine for a one-shot addon purchase even though it can't be used for
+    // recurring subscription billing.
+    const blocked = getBlockedCardReason(tranzInfo, { allowDebit: true });
+    if (blocked) {
+      await prisma.payment.update({
+        where: { id: paymentId },
+        data: {
+          status: 'FAILED',
+          metadata: {
+            ...((payment.metadata || {})),
+            failureReason: blocked.code,
+            failedAt: new Date().toISOString(),
+          },
+        },
+      });
+      return NextResponse.json({
+        error: 'Gift cards are not accepted. Please use a credit or debit card.',
+        code: blocked.code,
+      }, { status: 400 });
+    }
+
+    if (!tokenInfo?.Token) {
+      console.error('CardCom did not return a token:', { lpResult });
+      return NextResponse.json(
+        { error: 'Card was validated but no token was issued' },
+        { status: 502 }
+      );
+    }
+
+    // Step c: build the localized document and run the actual charge.
+    const productName = payment.metadata?.productName || 'Purchase';
+    const customerName = `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.email;
+    const language = payment.metadata?.language || 'he';
+
+    const document = buildDocument({
+      customerName: tranzInfo.CardOwnerName || customerName,
+      customerEmail: tranzInfo.CardOwnerEmail || user.email,
+      customerPhone: tranzInfo.CardOwnerPhone || user.phoneNumber || '',
+      language,
+      products: [{
+        productId: payment.metadata?.action?.itemId || '',
+        description: productName,
+        quantity: payment.metadata?.action?.quantity || 1,
+        unitCost: payment.amount / (payment.metadata?.action?.quantity || 1),
+      }],
+    });
+
+    const mm = String(tokenInfo.CardMonth ?? '').padStart(2, '0');
+    const yy = String(tokenInfo.CardYear ?? '').slice(-2).padStart(2, '0');
+    const cardExpirationMMYY = `${mm}${yy}`;
+
+    let chargeResult;
+    try {
+      chargeResult = await chargeWithToken({
+        token: tokenInfo.Token,
+        cardExpirationMMYY,
+        amount: payment.amount,
+        currency: payment.currency || 'USD',
+        externalUniqTranId: externalUniqTranIdFromLpId(lowProfileId),
+        cardOwnerInformation: {
+          Phone: tranzInfo.CardOwnerPhone || user.phoneNumber || '',
+          FullName: tranzInfo.CardOwnerName || customerName,
+          IdentityNumber: tranzInfo.CardOwnerIdentityNumber || '000000000',
+          CardOwnerEmail: tranzInfo.CardOwnerEmail || user.email,
+        },
+        document,
+      });
+    } catch (err) {
+      console.error('CardCom DoTransaction failed:', err);
+      await prisma.payment.update({
+        where: { id: paymentId },
+        data: { status: 'FAILED', metadata: { ...((payment.metadata || {})), failedAt: new Date().toISOString() } },
+      });
+      return NextResponse.json(
+        { error: 'Failed to charge the card' },
+        { status: 502 }
+      );
+    }
+
+    const chargeOk = chargeResult?.ResponseCode === 0 || chargeResult?.ResponseCode === 608;
+    if (!chargeOk) {
+      console.warn('Charge failed:', { chargeResult });
+      await prisma.payment.update({
+        where: { id: paymentId },
+        data: {
+          status: 'FAILED',
+          metadata: {
+            ...((payment.metadata || {})),
+            cardcomResult: chargeResult,
+            failedAt: new Date().toISOString(),
+          },
+        },
+      });
+      return NextResponse.json({
+        error: chargeResult?.Description || 'Card charge failed',
+      }, { status: 400 });
+    }
+
+    // Step d: persist the token. Upsert by (accountId, token) so duplicate
+    // confirms don't break the unique constraint.
+    try {
+      const last4 = tranzInfo.Last4CardDigitsString
+        || (tranzInfo.Last4CardDigits != null ? String(tranzInfo.Last4CardDigits).padStart(4, '0') : null);
+
+      // First card on the account becomes the default automatically.
+      const existingCount = await prisma.paymentMethod.count({
+        where: { accountId: payment.accountId },
+      });
+
+      await prisma.paymentMethod.upsert({
+        where: {
+          accountId_token: { accountId: payment.accountId, token: tokenInfo.Token },
+        },
+        update: {
+          tokenExpDate: tokenInfo.TokenExDate || '',
+          cardYear: tokenInfo.CardYear || 0,
+          cardMonth: tokenInfo.CardMonth || 0,
+          cardLast4: last4,
+          cardBrand: tranzInfo.Brand || null,
+          cardInfo: tranzInfo.CardInfo || null,
+          paymentType: tranzInfo.PaymentType || null,
+          ownerName: tranzInfo.CardOwnerName || null,
+          ownerPhone: tranzInfo.CardOwnerPhone || null,
+          ownerEmail: tranzInfo.CardOwnerEmail || null,
+          ownerTaxId: tranzInfo.CardOwnerIdentityNumber || null,
+        },
+        create: {
+          accountId: payment.accountId,
+          provider: 'CARDCOM',
+          token: tokenInfo.Token,
+          tokenExpDate: tokenInfo.TokenExDate || '',
+          cardYear: tokenInfo.CardYear || 0,
+          cardMonth: tokenInfo.CardMonth || 0,
+          cardLast4: last4,
+          cardBrand: tranzInfo.Brand || null,
+          cardInfo: tranzInfo.CardInfo || null,
+          paymentType: tranzInfo.PaymentType || null,
+          ownerName: tranzInfo.CardOwnerName || null,
+          ownerPhone: tranzInfo.CardOwnerPhone || null,
+          ownerEmail: tranzInfo.CardOwnerEmail || null,
+          ownerTaxId: tranzInfo.CardOwnerIdentityNumber || null,
+          isDefault: existingCount === 0,
+        },
+      });
+    } catch (err) {
+      // Charge already succeeded — token-persist failure is a soft error.
+      console.error('PaymentMethod persist failed (charge already succeeded):', err);
+    }
+
+    // Update payment status to COMPLETED.
     await prisma.payment.update({
       where: { id: paymentId },
       data: {
-        status: isSuccess ? 'COMPLETED' : 'FAILED',
+        status: 'COMPLETED',
         metadata: {
           ...((payment.metadata || {})),
-          cardcomResult: cardcomResult || { frontendConfirmed: true },
+          cardcomResult: chargeResult,
+          tranzactionId: chargeResult?.TranzactionId || null,
           confirmedAt: new Date().toISOString(),
         },
       },
     });
 
-    if (!isSuccess) {
-      return NextResponse.json(
-        { error: 'Payment verification failed', details: cardcomResult },
-        { status: 400 }
-      );
-    }
-
-    // Execute the action based on payment metadata
+    // Step e: execute the action.
     const action = payment.metadata?.action;
     let actionResult = null;
 
@@ -143,13 +332,11 @@ async function handleAddonPurchase(payment, action, user) {
     throw new Error('No active subscription');
   }
 
-  // Check purchase limits
   const canPurchase = await canPurchaseAddOn(payment.accountId, addOn.type, quantity);
   if (!canPurchase.allowed) {
     throw new Error(canPurchase.reason);
   }
 
-  // Create the add-on purchase
   const purchase = await prisma.addOnPurchase.create({
     data: {
       subscriptionId: subscription.id,
@@ -166,7 +353,6 @@ async function handleAddonPurchase(payment, action, user) {
     include: { addOn: true },
   });
 
-  // Add Ai-GCoins if applicable
   if (addOn.type === 'AI_CREDITS') {
     const creditsToAdd = (addOn.quantity || 0) * quantity;
     await addAiCredits(payment.accountId, creditsToAdd, {
@@ -195,18 +381,14 @@ async function handlePlanUpgrade(payment, action, user) {
     throw new Error('No active subscription');
   }
 
-  // Prevent upgrading to the same plan
   if (subscription.planId === plan.id) {
     throw new Error('Already on this plan');
   }
 
   const now = new Date();
   const nextFirst = getNextFirstOfMonth(now);
-
-  // Store proration details from the payment metadata
   const prorationData = action.proration || null;
 
-  // Update subscription to new plan - align to 1st of month
   await prisma.subscription.update({
     where: { id: subscription.id },
     data: {

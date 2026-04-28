@@ -4,6 +4,26 @@ import prisma from '@/lib/prisma';
 
 const SESSION_COOKIE = 'user_session';
 
+// Coerce admin input into the shape we store on Coupon.recurringPriceSchedule:
+// an array of { months: number|null, amount: number }. Drops malformed rows.
+function normalizeSchedule(input) {
+  if (!Array.isArray(input)) return [];
+  const out = [];
+  for (const seg of input) {
+    if (!seg || typeof seg !== 'object') continue;
+    const amount = Number(seg.amount);
+    if (!Number.isFinite(amount) || amount < 0) continue;
+    let months = seg.months;
+    if (months === '' || months === undefined) months = null;
+    if (months !== null) {
+      months = parseInt(months, 10);
+      if (!Number.isFinite(months) || months <= 0) continue;
+    }
+    out.push({ months, amount });
+  }
+  return out;
+}
+
 // Verify super admin access
 async function verifySuperAdmin() {
   try {
@@ -60,6 +80,7 @@ export async function GET() {
       description: coupon.description,
       discountType: coupon.discountType,
       discountValue: coupon.discountValue,
+      floorOrderToZero: coupon.floorOrderToZero ?? false,
       limitationOverrides: coupon.limitationOverrides || [],
       extraFeatures: coupon.extraFeatures || [],
       maxRedemptions: coupon.maxRedemptions,
@@ -68,6 +89,7 @@ export async function GET() {
       validUntil: coupon.validUntil?.toISOString() || null,
       applicablePlanIds: coupon.applicablePlanIds || [],
       durationMonths: coupon.durationMonths,
+      recurringPriceSchedule: Array.isArray(coupon.recurringPriceSchedule) ? coupon.recurringPriceSchedule : [],
       isActive: coupon.isActive,
       totalRedemptions: coupon._count.redemptions,
       activeRedemptions: activeCountMap[coupon.id] || 0,
@@ -109,6 +131,8 @@ export async function POST(request) {
       description,
       discountType,
       discountValue,
+      floorOrderToZero,
+      recurringPriceSchedule,
       limitationOverrides,
       extraFeatures,
       maxRedemptions,
@@ -136,6 +160,9 @@ export async function POST(request) {
         description: description || null,
         discountType: discountType || 'PERCENTAGE',
         discountValue: parseFloat(discountValue) || 0,
+        // Only meaningful for FIXED_PRICE; harmless on other types.
+        floorOrderToZero: !!floorOrderToZero,
+        recurringPriceSchedule: normalizeSchedule(recurringPriceSchedule),
         limitationOverrides: limitationOverrides || [],
         extraFeatures: extraFeatures || [],
         maxRedemptions: maxRedemptions ? parseInt(maxRedemptions) : null,

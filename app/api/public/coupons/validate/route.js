@@ -58,6 +58,14 @@ export async function POST(request) {
         code: coupon.code,
         discountType: coupon.discountType,
         discountValue: coupon.discountValue,
+        // floorOrderToZero only matters for FIXED_PRICE; the client-side
+        // applyCouponToOrder helper reads it to decide whether an over-priced
+        // FIXED_PRICE coupon (e.g. $50 fixed price on a $30 order) should
+        // floor the total to $0 or refuse to apply.
+        floorOrderToZero: coupon.floorOrderToZero ?? false,
+        // Per-cycle override for the recurring engine (B2). Empty array →
+        // no schedule, recurring follows discountType/discountValue.
+        recurringPriceSchedule: Array.isArray(coupon.recurringPriceSchedule) ? coupon.recurringPriceSchedule : [],
         hasLimitationOverrides: limitationOverrides.length > 0,
         hasExtraFeatures: extraFeatures.length > 0,
         limitationOverrides,

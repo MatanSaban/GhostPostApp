@@ -99,12 +99,17 @@ export function AnalysisProgress({ url, onComplete, onError }) {
         }, totalDelay);
       }
 
-      // Actually run the API call
+      // Actually run the API call. We pass the user's UI locale so the AI
+      // generates user-facing text fields (description, niche, services,
+      // target audience) in the same language the chat is rendering in,
+      // rather than in the website's own content language. Otherwise an
+      // English site analyzed by a Hebrew-speaking user produces a Hebrew
+      // chat with English sentences spliced into it.
       try {
         const response = await fetch('/api/interview/analyze', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ url }),
+          body: JSON.stringify({ url, userLocale: locale }),
         });
 
         const data = await response.json();

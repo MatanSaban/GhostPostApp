@@ -1,10 +1,11 @@
 import Link from 'next/link';
-import { 
+import {
   Search,
   Calendar,
   Sparkles,
   Users,
   MessageSquare,
+  Network,
   ArrowRight,
 } from 'lucide-react';
 import { getTranslations } from '@/i18n/server';
@@ -54,6 +55,14 @@ const strategyFeaturesConfig = [
     descriptionKey: 'strategy.competitorAnalysis.cardDescription',
     href: '/dashboard/strategy/competitors',
     color: 'orange',
+  },
+  {
+    id: 'clusters',
+    icon: Network,
+    titleKey: 'strategy.clusters.title',
+    descriptionKey: 'strategy.clusters.cardDescription',
+    href: '/dashboard/strategy/clusters',
+    color: 'green',
   },
 ];
 

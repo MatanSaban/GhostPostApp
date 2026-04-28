@@ -31,6 +31,7 @@ export default async function SettingsPage() {
     { id: 'roles', label: t('settings.roles'), iconName: 'Shield', description: t('settings.descriptions.roles') },
     { id: 'permissions', label: t('settings.permissions'), iconName: 'Key', description: t('settings.descriptions.permissions') },
     { id: 'subscription', label: t('settings.subscription'), iconName: 'CreditCard', description: t('settings.descriptions.subscription') },
+    { id: 'payment-methods', label: t('settings.paymentMethods.title'), iconName: 'Wallet', description: t('settings.paymentMethods.description') },
     { id: 'credits', label: t('settings.credits.title'), iconName: 'Coins', description: t('settings.descriptions.credits') },
     { id: 'addons', label: t('settings.addons'), iconName: 'Puzzle', description: t('settings.descriptions.addons') },
     { id: 'account', label: t('settings.account'), iconName: 'Building2', description: t('settings.descriptions.account') },

@@ -331,6 +331,7 @@ export default function UpgradePlanModal({ isOpen, onClose }) {
               <CardComPaymentForm
                 amount={prorationData ? (prorationData.netAmount ?? prorationData.proratedAmount) : selectedPlan.monthlyPrice}
                 currency={selectedPlan.currency || 'USD'}
+                usdToIlsRate={selectedPlan.usdToIlsRate}
                 productName={selectedPlan.name}
                 action={{
                   type: 'plan_upgrade',

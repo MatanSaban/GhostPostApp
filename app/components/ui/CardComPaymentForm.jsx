@@ -11,6 +11,7 @@ import {
   X,
 } from 'lucide-react';
 import { useLocale } from '@/app/context/locale-context';
+import { applyCouponToOrder } from '@/lib/coupon-pricing';
 import styles from './CardComPaymentForm.module.css';
 
 const CARDCOM_BASE = 'https://secure.cardcom.solutions';
@@ -37,7 +38,7 @@ const CARDCOM_BASE = 'https://secure.cardcom.solutions';
  */
 export default function CardComPaymentForm({
   amount,
-  currency = 'ILS',
+  currency = 'USD',
   productName,
   action,
   onSuccess,
@@ -48,6 +49,7 @@ export default function CardComPaymentForm({
   defaultPhone = '',
   showOrderSummary = true,
   orderSummaryContent = null,
+  usdToIlsRate,
 }) {
   const { t, locale, direction } = useLocale();
   const lang = locale === 'he' ? 'he' : 'en';
@@ -73,26 +75,38 @@ export default function CardComPaymentForm({
   const [cardNumberValid, setCardNumberValid] = useState(null);
   const [cvvValid, setCvvValid] = useState(null);
 
+  // True once we've posted init for the current LowProfile AND given CardCom
+  // a moment to internally bind. Pay Now is disabled until this flips so we
+  // can't post doTransaction to a master iframe that hasn't been bound yet
+  // (which silently drops the message — the failure mode users hit on coupon
+  // apply, where the iframe fully remounts behind the loader).
+  const [iframeReady, setIframeReady] = useState(false);
+
   // Coupon state
   const [couponCode, setCouponCode] = useState('');
   const [couponData, setCouponData] = useState(null);
   const [couponLoading, setCouponLoading] = useState(false);
   const [couponError, setCouponError] = useState('');
 
+  // Saved-payment-method picker (D1). Two modes:
+  //   'saved' → user picked a previously-saved card; we POST to
+  //              /api/payment/charge-saved-card with the paymentMethodId.
+  //   'new'   → "Use a different card" — show the iframe flow which now goes
+  //              through J2 + DoTransaction and saves a new token on success.
+  // Defaults to 'saved' when there's an eligible method, else 'new'.
+  const [savedMethods, setSavedMethods] = useState([]);
+  const [savedLoaded, setSavedLoaded] = useState(false);
+  const [paymentMode, setPaymentMode] = useState('new');
+  const [selectedSavedId, setSelectedSavedId] = useState(null);
+
   const iframeInitialized = useRef(false);
   const masterFrameRef = useRef(null);
 
-  // Calculate effective amount after coupon discount
-  const effectiveAmount = (() => {
-    if (!couponData) return amount;
-    let discount = 0;
-    if (couponData.discountType === 'PERCENTAGE') {
-      discount = amount * (couponData.discountValue / 100);
-    } else if (couponData.discountType === 'FIXED_AMOUNT') {
-      discount = couponData.discountValue;
-    }
-    return Math.max(0, Math.round((amount - discount) * 100) / 100);
-  })();
+  // Coupon math via the centralized helper so PERCENTAGE / FIXED_DISCOUNT /
+  // FIXED_PRICE / legacy FIXED_AMOUNT all behave identically across the
+  // registration flow, dashboard addon flow, and the recurring billing engine.
+  const couponResult = applyCouponToOrder(amount, couponData);
+  const effectiveAmount = couponResult.applies ? couponResult.finalUsd : amount;
 
   // Load 3DS script
   useEffect(() => {
@@ -105,10 +119,40 @@ export default function CardComPaymentForm({
     }
   }, []);
 
-  // Initialize payment session
+  // Load saved payment methods on mount. We only show cards that are
+  // eligible for this flow — gift cards never; debit cards OK because the
+  // dashboard addon path explicitly allows them. The default-isDefault card
+  // is preselected; user can switch or pick "Use a different card".
   useEffect(() => {
-    // Skip init when coupon covers full amount
-    if (effectiveAmount <= 0) {
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch('/api/payment-methods');
+        if (!res.ok) throw new Error('failed');
+        const data = await res.json();
+        const eligible = (data.paymentMethods || []).filter((pm) => pm.cardInfo !== 'GiftCard');
+        if (cancelled) return;
+        setSavedMethods(eligible);
+        if (eligible.length > 0) {
+          const def = eligible.find((pm) => pm.isDefault) || eligible[0];
+          setSelectedSavedId(def.id);
+          setPaymentMode('saved');
+        }
+      } catch {
+        // No saved cards available — silently fall back to "new card" mode.
+      } finally {
+        if (!cancelled) setSavedLoaded(true);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, []);
+
+  // Initialize payment session. Skipped when:
+  //   - coupon covers the full amount (no charge needed)
+  //   - paymentMode === 'saved' (we'll charge the saved token via a separate
+  //     endpoint instead of going through the iframe / J2 flow)
+  useEffect(() => {
+    if (effectiveAmount <= 0 || paymentMode === 'saved') {
       setIsInitializing(false);
       setInitError(null);
       return;
@@ -154,7 +198,7 @@ export default function CardComPaymentForm({
     })();
 
     return () => { cancelled = true; };
-  }, [effectiveAmount, currency, productName, lang]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [effectiveAmount, currency, productName, lang, paymentMode]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Build the init payload (LP + themed CSS) every time we need to (re)apply
   // styling. Reads CSS variables from the parent document so the iframe fields
@@ -238,16 +282,24 @@ export default function CardComPaymentForm({
     iframeInitialized.current = true;
   }, [lowProfileId, buildInitPayload]);
 
-  // Initialize iframes when a LowProfile becomes available. The 1000ms delay
-  // matches the original timing heuristic and gives CardCom's JS inside the
-  // master iframe time to set up its postMessage listeners before we post
-  // init — without it, the message lands before CardCom is ready and is lost
-  // (which leaves the master frame unbound to the LowProfile, so doTransaction
-  // from Pay Now silently does nothing).
+  // Initialize iframes when a LowProfile becomes available.
+  // - The 1000ms init delay matches the original timing heuristic: CardCom's JS
+  //   inside the master iframe needs time to set up its postMessage listeners.
+  //   Posting init too early just gets the message dropped, leaving the master
+  //   frame unbound and doTransaction silent.
+  // - We then wait an additional 500ms before flipping iframeReady=true so
+  //   CardCom can finish processing init (binding to the new LowProfile) before
+  //   we let the user submit. This is the gate that prevents Pay Now from
+  //   landing on an unbound master iframe after a coupon-driven LP change.
   useEffect(() => {
+    setIframeReady(false);
     if (!lowProfileId) return;
-    const timer = setTimeout(() => sendIframeInit(), 1000);
-    return () => clearTimeout(timer);
+    const initTimer = setTimeout(() => sendIframeInit(), 1000);
+    const readyTimer = setTimeout(() => setIframeReady(true), 1500);
+    return () => {
+      clearTimeout(initTimer);
+      clearTimeout(readyTimer);
+    };
   }, [lowProfileId, sendIframeInit]);
 
   // Listen for iframe messages
@@ -331,9 +383,54 @@ export default function CardComPaymentForm({
   }, [cardholderName, billingEmail, cardOwnerPhone]);
 
   // Submit payment
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
+    // Saved-card path: bypass the iframe entirely and run the
+    // /charge-saved-card endpoint, which calls CardCom DoTransaction with
+    // the stored token. No card-data entry, no J2 round-trip.
+    if (paymentMode === 'saved' && selectedSavedId) {
+      setIsProcessing(true);
+      setPaymentResult(null);
+      try {
+        const res = await fetch('/api/payment/charge-saved-card', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            paymentMethodId: selectedSavedId,
+            amount: effectiveAmount,
+            currency,
+            productName,
+            language: lang,
+            action: {
+              ...action,
+              coupon: couponData ? {
+                code: couponData.code,
+                discountType: couponData.discountType,
+                discountValue: couponData.discountValue,
+              } : null,
+            },
+          }),
+        });
+        const data = await res.json();
+        if (!res.ok || !data.success) {
+          throw new Error(data.error || 'Charge failed');
+        }
+        setPaymentResult({ success: true, message: t('payment.success') || 'Payment successful!' });
+        onSuccess?.(data);
+      } catch (err) {
+        setPaymentResult({ success: false, message: err.message || t('payment.failed') || 'Payment failed' });
+        onError?.(err.message);
+      } finally {
+        setIsProcessing(false);
+      }
+      return;
+    }
+
+    // New-card path: hand off to CardCom's iframe via postMessage. The init
+    // we posted earlier was a CreateTokenOnly+J2, so this doTransaction will
+    // run J2 → return HandleSubmit → /payment/confirm runs the actual charge
+    // and persists the token.
     const masterFrame = masterFrameRef.current || document.getElementById('CardComMasterFrame');
     if (!masterFrame?.contentWindow) {
       setPaymentResult({ success: false, message: t('payment.iframeError') || 'Payment system not ready' });
@@ -343,10 +440,8 @@ export default function CardComPaymentForm({
     setIsProcessing(true);
     setPaymentResult(null);
 
-    // Update card owner details before transaction
     updateCardOwnerDetails();
 
-    // Send doTransaction to CardCom
     const transactionData = {
       action: 'doTransaction',
       cardOwnerId: citizenId || '000000000',
@@ -365,6 +460,18 @@ export default function CardComPaymentForm({
     const sym = currency === 'ILS' ? '₪' : currency === 'USD' ? '$' : '€';
     return `${sym}${Number(val).toLocaleString(lang === 'he' ? 'he-IL' : 'en-US', { minimumFractionDigits: 0, maximumFractionDigits: 2 })}`;
   };
+
+  // ILS estimate next to USD prices. Only shown when we know the rate.
+  // Bank converts at its own rate at charge time so the user knows the
+  // actual hit on their statement may vary slightly from what we show.
+  const formatIlsEstimate = (val) => {
+    if (currency !== 'USD' || !usdToIlsRate) return null;
+    return `≈ ₪${Math.round(Number(val) * usdToIlsRate)}`;
+  };
+  const showUsdDisclaimer = currency === 'USD';
+  const usdDisclaimer = lang === 'he'
+    ? 'החיוב מתבצע בדולרים. הסכום בשקלים הוא הערכה לפי השער היומי; הבנק שלך יבצע המרה לפי השער שלו ועשוי להשתנות מעט.'
+    : 'Charged in USD. ILS amount is a daily-rate estimate; your bank converts at its own rate at the time of charge.';
 
   // Coupon handlers
   const handleApplyCoupon = async () => {
@@ -501,7 +608,14 @@ export default function CardComPaymentForm({
             <>
               <div className={styles.orderRow}>
                 <span>{productName}</span>
-                <span className={couponData ? '' : styles.orderPrice}>{formatPrice(amount)}</span>
+                <span className={couponData ? '' : styles.orderPrice}>
+                  {formatPrice(amount)}
+                  {formatIlsEstimate(amount) && (
+                    <span style={{ fontSize: '0.75rem', opacity: 0.7, marginInlineStart: '0.375rem' }}>
+                      {formatIlsEstimate(amount)}
+                    </span>
+                  )}
+                </span>
               </div>
               {couponData && (
                 <div className={styles.orderRow} style={{ color: 'var(--success-color, #22c55e)' }}>
@@ -512,14 +626,33 @@ export default function CardComPaymentForm({
                       ({couponData.discountType === 'PERCENTAGE' ? `${couponData.discountValue}%` : formatPrice(couponData.discountValue)})
                     </span>
                   </span>
-                  <span>-{formatPrice(amount - effectiveAmount)}</span>
+                  <span>
+                    -{formatPrice(amount - effectiveAmount)}
+                    {formatIlsEstimate(amount - effectiveAmount) && (
+                      <span style={{ fontSize: '0.75rem', opacity: 0.7, marginInlineStart: '0.375rem' }}>
+                        ≈ -₪{Math.round((amount - effectiveAmount) * usdToIlsRate)}
+                      </span>
+                    )}
+                  </span>
                 </div>
               )}
               {couponData && (
                 <div className={`${styles.orderRow} ${styles.orderTotal}`}>
                   <span>{t('payment.total') || 'Total'}</span>
-                  <span className={styles.orderPrice}>{formatPrice(effectiveAmount)}</span>
+                  <span className={styles.orderPrice}>
+                    {formatPrice(effectiveAmount)}
+                    {formatIlsEstimate(effectiveAmount) && (
+                      <span style={{ fontSize: '0.8125rem', opacity: 0.75, marginInlineStart: '0.375rem' }}>
+                        {formatIlsEstimate(effectiveAmount)}
+                      </span>
+                    )}
+                  </span>
                 </div>
+              )}
+              {showUsdDisclaimer && (
+                <p style={{ fontSize: '0.75rem', opacity: 0.7, marginTop: '0.5rem', lineHeight: 1.5 }}>
+                  {usdDisclaimer}
+                </p>
               )}
             </>
           )}
@@ -592,13 +725,12 @@ export default function CardComPaymentForm({
       )}
 
       {/* CardCom Hidden Master Frame.
-          Keyed by lowProfileId so a coupon-driven LP change forces a clean
-          remount of the master + child iframes. The init useEffect then waits
-          its 1000ms grace period before posting CSS + the new LowProfile, so
-          CardCom's internal scripts are ready to receive both. */}
-      {effectiveAmount > 0 && (
+          NOT keyed by lowProfileId — remounting the iframe on LP change leaves
+          CardCom's internal session in a state where doTransaction silently
+          drops, so the iframe stays mounted across coupon-driven LP changes
+          and the init useEffect just re-posts the new LP + themed CSS. */}
+      {effectiveAmount > 0 && paymentMode === 'new' && (
         <iframe
-          key={`master-${lowProfileId || 'pending'}`}
           id="CardComMasterFrame"
           name="CardComMasterFrame"
           src={`${CARDCOM_BASE}/api/openfields/master`}
@@ -648,7 +780,76 @@ export default function CardComPaymentForm({
       ) : (
       /* Payment Form */
       <form onSubmit={handleSubmit} className={styles.form}>
+        {/* Saved-card picker (D1). Only renders when the account has at least
+            one eligible saved card. Default selection is the isDefault card.
+            Switching to "Use a different card" hides the saved-card form
+            and reveals the iframe + manual entry fields below. */}
+        {savedLoaded && savedMethods.length > 0 && (
+          <div className={styles.formGroup}>
+            <label className={styles.label}>
+              {t('payment.savedCardLabel') || 'Payment method'}
+            </label>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
+              {savedMethods.map((pm) => {
+                const last4 = pm.cardLast4 ? `•••• ${pm.cardLast4}` : '';
+                const display = pm.nickname
+                  ? `${pm.nickname} ${last4}`.trim()
+                  : (pm.cardBrand ? `${pm.cardBrand} ${last4}`.trim() : last4 || (t('payment.savedCardUnnamed') || 'Card'));
+                const checked = paymentMode === 'saved' && selectedSavedId === pm.id;
+                return (
+                  <label
+                    key={pm.id}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.5rem',
+                      padding: '0.5rem 0.625rem',
+                      border: checked ? '1px solid var(--primary, #7b2cbf)' : '1px solid var(--input-border, #e5e7eb)',
+                      borderRadius: '0.5rem',
+                      cursor: 'pointer',
+                      background: checked ? 'rgba(123,44,191,0.04)' : 'transparent',
+                    }}
+                  >
+                    <input
+                      type="radio"
+                      name="cardcom-payment-method"
+                      checked={checked}
+                      onChange={() => { setPaymentMode('saved'); setSelectedSavedId(pm.id); }}
+                      disabled={isProcessing}
+                    />
+                    <span style={{ flex: 1, fontSize: '0.875rem' }}>{display}</span>
+                  </label>
+                );
+              })}
+              <label
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.5rem',
+                  padding: '0.5rem 0.625rem',
+                  border: paymentMode === 'new' ? '1px solid var(--primary, #7b2cbf)' : '1px solid var(--input-border, #e5e7eb)',
+                  borderRadius: '0.5rem',
+                  cursor: 'pointer',
+                  background: paymentMode === 'new' ? 'rgba(123,44,191,0.04)' : 'transparent',
+                }}
+              >
+                <input
+                  type="radio"
+                  name="cardcom-payment-method"
+                  checked={paymentMode === 'new'}
+                  onChange={() => { setPaymentMode('new'); setSelectedSavedId(null); }}
+                  disabled={isProcessing}
+                />
+                <span style={{ flex: 1, fontSize: '0.875rem' }}>
+                  {t('payment.useDifferentCard') || 'Use a different card'}
+                </span>
+              </label>
+            </div>
+          </div>
+        )}
+
         {/* Cardholder Name */}
+        {paymentMode === 'new' && (
         <div className={styles.formGroup}>
           <label className={styles.label}>
             {t('payment.cardholderName') || 'Cardholder Name'}
@@ -664,7 +865,11 @@ export default function CardComPaymentForm({
             disabled={isProcessing}
           />
         </div>
+        )}
 
+        {/* New-card-only fields. Saved-card path skips all of this and
+            charges the stored token directly via /charge-saved-card. */}
+        {paymentMode === 'new' && (<>
         {/* Citizen ID */}
         <div className={styles.formGroup}>
           <label className={styles.label}>
@@ -726,7 +931,6 @@ export default function CardComPaymentForm({
           <div className={`${styles.iframeWrapper} ${styles.cardInputWrapper} ${cardNumberValid === false ? styles.iframeInvalid : ''}`}>
             <svg className={styles.cardInputIcon} width="22" height="16" viewBox="0 0 24 17" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="1" y="1" width="22" height="15" rx="3" /><line x1="1" y1="6" x2="23" y2="6" /></svg>
             <iframe
-              key={`card-${lowProfileId || 'pending'}`}
               id="CardComCardNumber"
               name="CardComCardNumber"
               src={`${CARDCOM_BASE}/api/openfields/cardNumber`}
@@ -774,7 +978,6 @@ export default function CardComPaymentForm({
             <label className={styles.label}>CVV</label>
             <div className={`${styles.iframeWrapper} ${cvvValid === false ? styles.iframeInvalid : ''}`}>
               <iframe
-                key={`cvv-${lowProfileId || 'pending'}`}
                 id="CardComCvv"
                 name="CardComCvv"
                 src={`${CARDCOM_BASE}/api/openfields/CVV`}
@@ -784,6 +987,7 @@ export default function CardComPaymentForm({
             </div>
           </div>
         </div>
+        </>)}
 
         {/* Error Message */}
         {paymentResult && !paymentResult.success && (
@@ -799,16 +1003,26 @@ export default function CardComPaymentForm({
           <span>{t('payment.securePayment') || 'Secure payment processed by CardCom'}</span>
         </div>
 
-        {/* Submit */}
+        {/* Submit. The saved-card path doesn't need iframeReady or
+            isFormValid (no card-data fields) — it's enabled as soon as a
+            saved card is selected. */}
         <button
           type="submit"
           className={styles.submitBtn}
-          disabled={!isFormValid || isProcessing}
+          disabled={
+            isProcessing
+            || (paymentMode === 'saved' ? !selectedSavedId : (!isFormValid || !iframeReady))
+          }
         >
           {isProcessing ? (
             <>
               <Loader2 size={16} className={styles.spinning} />
               {t('payment.processing') || 'Processing...'}
+            </>
+          ) : (paymentMode === 'new' && !iframeReady) ? (
+            <>
+              <Loader2 size={16} className={styles.spinning} />
+              {t('payment.initializing') || 'Setting up secure payment...'}
             </>
           ) : (
             <>

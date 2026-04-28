@@ -1698,6 +1698,10 @@
     "competitorAnalysis": {
       "title": "מתחרים",
       "cardDescription": "נתח את אסטרטגיות ה-SEO של המתחרים שלך, גלה את מילות המפתח המובילות שלהם ומצא פערי תוכן לניצול."
+    },
+    "clusters": {
+      "title": "אשכולות נושאים",
+      "cardDescription": "ארגן את עמודי האתר לאשכולות נושאים עם עמודי עוגן ותוכן תומך. תפוס קניבליזציה לפני הפרסום."
     }
   },
   "contentPlanner": {
@@ -1761,6 +1765,10 @@
       "noCampaigns": "אין קמפיינים עדיין",
       "createFirst": "צור את הקמפיין הראשון שלך",
       "createNew": "צור קמפיין",
+      "clusterFilter": "אשכול",
+      "allClusters": "כל האשכולות",
+      "noCampaignsInCluster": "אין קמפיינים באשכול זה",
+      "clearClusterFilter": "נקה סינון",
       "posts": "פוסטים",
       "active": "פעיל",
       "draft": "טיוטה",
@@ -2820,6 +2828,7 @@
     "private": "פרטי",
     "trash": "באשפה",
     "actions": "פעולות",
+    "featuredImage": "תמונה ראשית",
     "viewOnSite": "צפה באתר",
     "search": "חפש ישויות...",
     "totalEntities": "סה״כ ישויות",
@@ -3491,6 +3500,21 @@
     "team": "צוות",
     "users": "משתמשים",
     "subscription": "מנוי",
+    "paymentMethods": {
+      "title": "אמצעי תשלום",
+      "description": "כרטיסים שמורים לחיובי מנוי חוזרים ולרכישות תוספות בלחיצה אחת.",
+      "empty": "עוד אין כרטיסים שמורים. כרטיס נשמר אוטומטית בפעם הראשונה שתשלים מנוי או רכישת תוספת.",
+      "loadError": "טעינת אמצעי התשלום נכשלה.",
+      "default": "ברירת מחדל",
+      "makeDefault": "הגדר כברירת מחדל",
+      "nicknamePlaceholder": "כינוי לכרטיס (למשל: ויזה אישי)",
+      "unnamedCard": "כרטיס",
+      "deleteTitle": "להסיר אמצעי תשלום זה?",
+      "deleteMessage": "תוכל להוסיף אותו שוב בפעם הבאה שתבצע רכישה. אם כרטיס זה משמש למנוי חוזר, החיוב הבא ייכשל עד שתוסיף כרטיס חלופי.",
+      "deleteConfirm": "הסר",
+      "giftCardWarning": "כרטיס מתנה — לא ניתן לשימוש",
+      "debitCardWarning": "כרטיס חיוב מיידי — לתוספות בלבד, לא למנוי"
+    },
     "credits": {
       "title": "Ai-GCoins",
       "credits": "Ai-GCoins"
@@ -4603,6 +4627,18 @@
         "mobile": "מובייל"
       }
     },
+    "agentApprovalPending": {
+      "title": "פעולת סוכן ממתינה לאישור",
+      "message": "אשר או דחה בתוך 5 דקות כדי להמשיך."
+    },
+    "pushPrompt": {
+      "enable": "הפעל התראות דפדפן",
+      "enabled": "התראות דפדפן פעילות",
+      "disable": "כבה התראות דפדפן",
+      "blocked": "התראות חסומות בהגדרות הדפדפן",
+      "unsupported": "התראות דפדפן לא נתמכות במכשיר הזה",
+      "description": "קבל התראה ברגע שבדיקה מסתיימת או שהסוכן זקוק לאישור — גם כשהטאב סגור."
+    },
     "support": {
       "title": "תגובה לפנייה #{ticketNumber}",
       "message": "{subject}"
@@ -5082,6 +5118,10 @@
       "reject": "דחה",
       "rollback": "בטל שינויים",
       "remaining": "נותרו",
+      "cluster": {
+        "label": "אשכול",
+        "warning": "{n} התנגשויות פוטנציאליות באשכול זה"
+      },
       "minuteShort": "ד׳",
       "secondShort": "ש׳",
       "fetchingData": "מביא נתונים",
@@ -5235,6 +5275,11 @@
       "description": "חבר את אתר ה-WordPress שלך עם תוסף GhostSEO כדי להשתמש באשף תוכן AI.",
       "notWordpress": "אשף תוכן AI דורש אתר WordPress עם תוסף GhostSEO מותקן.",
       "notConnected": "אתר ה-WordPress שלך צריך להיות מחובר דרך תוסף GhostSEO."
+    },
+    "clusterContext": {
+      "label": "אשכול",
+      "members": "עמודים",
+      "loading": "טוען הקשר אשכול..."
     },
     "steps": {
       "campaign": "קמפיין",
@@ -5568,6 +5613,15 @@
       "confirmed": "אושרו",
       "rejected": "נדחו"
     },
+    "viewMode": {
+      "list": "רשימה",
+      "graph": "גרף"
+    },
+    "graph": {
+      "zoomIn": "הגדל",
+      "zoomOut": "הקטן",
+      "resetView": "אפס תצוגה"
+    },
     "status": {
       "DISCOVERED": "התגלה",
       "CONFIRMED": "אושר",
@@ -5579,7 +5633,10 @@
       "edit": "עריכה",
       "save": "שמירה",
       "cancel": "ביטול",
-      "setPillar": "הגדר כעמוד עוגן"
+      "setPillar": "הגדר כעמוד עוגן",
+      "expand": "הרחב אשכול",
+      "delete": "מחק",
+      "confirmDelete": "אשר מחיקה"
     },
     "edit": {
       "title": "עריכת אשכול",
@@ -5594,7 +5651,44 @@
     "errors": {
       "loadFailed": "טעינת האשכולות נכשלה.",
       "updateFailed": "עדכון האשכול נכשל.",
-      "discoverFailed": "הגילוי נכשל."
+      "discoverFailed": "הגילוי נכשל.",
+      "deleteFailed": "מחיקת האשכול נכשלה.",
+      "staleConflict": "האשכול עודכן במקום אחר. רענון בוצע — נסה שוב."
+    },
+    "orphans": {
+      "title": "תוכן לא ממוין",
+      "count": "{n} עמודים שאינם באף אשכול",
+      "capped": "מציג {shown} מתוך {total} לא ממוינים",
+      "selectedCount": "{n} נבחרו",
+      "selectAll": "בחר הכל",
+      "actions": {
+        "assign": "שייך לאשכול",
+        "create": "צור אשכול חדש",
+        "clear": "נקה בחירה"
+      },
+      "assignModal": {
+        "title": "שיוך לאשכול",
+        "label": "אשכול",
+        "placeholder": "בחר אשכול...",
+        "noConfirmed": "אין עדיין אשכולות מאושרים — צור אחד קודם.",
+        "confirm": "הוסף"
+      },
+      "createModal": {
+        "title": "צור אשכול מהבחירה",
+        "nameLabel": "שם האשכול",
+        "namePlaceholder": "לדוגמה: גרבי ריצה",
+        "keywordLabel": "מילת מפתח ראשית",
+        "keywordPlaceholder": "לדוגמה: גרבי ריצה",
+        "pillarLabel": "עמוד עוגן (אופציונלי)",
+        "noPillarOption": "ללא עמוד עוגן",
+        "memberCount": "נבחרו: {n}",
+        "confirm": "צור"
+      },
+      "errors": {
+        "loadFailed": "טעינת התוכן הלא ממוין נכשלה.",
+        "assignFailed": "השיוך לאשכול נכשל.",
+        "createFailed": "יצירת האשכול נכשלה."
+      }
     },
     "preflight": {
       "title": "קניבליזציה של אשכול",
@@ -5608,6 +5702,39 @@
         "MERGE": "מיזוג",
         "DIFFERENTIATE": "ייחוד",
         "REVIEW": "בדיקה"
+      }
+    },
+    "health": {
+      "loading": "בודק תקינות...",
+      "healthy": "תקין",
+      "issues": "{n} בעיות",
+      "more": "עוד {n}+",
+      "linkGaps": {
+        "title": "פערי קישורים פנימיים",
+        "severity": {
+          "HIGH": "פער בעמוד עוגן",
+          "MEDIUM": "פער בין עמודים"
+        },
+        "fix": {
+          "button": "תקן עם AI",
+          "tooltip": "הוסף קישור פנימי דרך התוסף",
+          "loading": "מתקן...",
+          "fixed": "בוצע",
+          "retry": "נסה שוב",
+          "errors": {
+            "pluginDisconnected": "התוסף אינו מחובר",
+            "noMatch": "ה-AI הציע עריכה שאינה תואמת לעמוד",
+            "aiFailed": "ה-AI לא הצליח להפיק תיקון תקין",
+            "generic": "התיקון נכשל"
+          }
+        }
+      },
+      "cannibalizations": {
+        "title": "קניבליזציה"
+      },
+      "staleness": {
+        "title": "תוכן ישן",
+        "daysAgo": "לפני {n} ימים"
       }
     }
   },
@@ -7239,8 +7366,11 @@
         "description": "תיאור",
         "descriptionPlaceholder": "הערה פנימית על הקופון...",
         "discountType": "סוג הנחה",
-        "percentage": "אחוז",
-        "fixedAmount": "סכום קבוע",
+        "percentage": "אחוז הנחה",
+        "fixedAmount": "סכום קבוע להפחתה",
+        "fixedDiscount": "סכום קבוע להפחתה (₪/$)",
+        "fixedPrice": "מחיר סופי קבוע (מחליף את הסכום)",
+        "floorOrderToZero": "אם המחיר הסופי בקופון גבוה מסכום ההזמנה, אפס את ההזמנה במקום לסרב להחיל את הקופון",
         "discountValue": "ערך הנחה",
         "maxRedemptions": "מקסימום מימושים",
         "maxPerAccount": "מקסימום לחשבון",
@@ -8360,6 +8490,9 @@
     "processing": "מעבד...",
     "payNow": "שלם עכשיו",
     "confirmFree": "אשר",
+    "savedCardLabel": "אמצעי תשלום",
+    "useDifferentCard": "השתמש בכרטיס אחר",
+    "savedCardUnnamed": "כרטיס",
     "total": "סה״כ",
     "coupon": {
       "label": "קוד קופון",

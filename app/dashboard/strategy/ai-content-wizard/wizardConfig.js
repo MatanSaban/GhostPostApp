@@ -57,6 +57,12 @@ export const INITIAL_WIZARD_STATE = {
   campaignStatus: 'DRAFT',
   isNewCampaign: true,
 
+  // Topic cluster context — set when wizard is launched via ?clusterId=
+  // Drives pillar/keyword pre-fill, gap suggestions, and is persisted on the
+  // resulting Campaign so preflight can fire on activate.
+  topicClusterId: null,
+  clusterContext: null, // { name, mainKeyword, pillarUrl, pillarTitle, memberCount } — display-only
+
   // Step 2 - Pillar Page
   pillarPageUrl: '',
   pillarEntityId: null,

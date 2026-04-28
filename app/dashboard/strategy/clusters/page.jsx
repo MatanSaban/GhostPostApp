@@ -29,6 +29,15 @@ export default async function ClustersPage() {
       confirmed: t('clusters.filters.confirmed'),
       rejected: t('clusters.filters.rejected'),
     },
+    viewMode: {
+      list: t('clusters.viewMode.list'),
+      graph: t('clusters.viewMode.graph'),
+    },
+    graph: {
+      zoomIn: t('clusters.graph.zoomIn'),
+      zoomOut: t('clusters.graph.zoomOut'),
+      resetView: t('clusters.graph.resetView'),
+    },
     status: {
       DISCOVERED: t('clusters.status.DISCOVERED'),
       CONFIRMED: t('clusters.status.CONFIRMED'),
@@ -41,6 +50,9 @@ export default async function ClustersPage() {
       save: t('clusters.actions.save'),
       cancel: t('clusters.actions.cancel'),
       setPillar: t('clusters.actions.setPillar'),
+      expand: t('clusters.actions.expand'),
+      delete: t('clusters.actions.delete'),
+      confirmDelete: t('clusters.actions.confirmDelete'),
     },
     edit: {
       title: t('clusters.edit.title'),
@@ -56,6 +68,76 @@ export default async function ClustersPage() {
       loadFailed: t('clusters.errors.loadFailed'),
       updateFailed: t('clusters.errors.updateFailed'),
       discoverFailed: t('clusters.errors.discoverFailed'),
+      deleteFailed: t('clusters.errors.deleteFailed'),
+      staleConflict: t('clusters.errors.staleConflict'),
+    },
+    health: {
+      loading: t('clusters.health.loading'),
+      healthy: t('clusters.health.healthy'),
+      issues: t('clusters.health.issues'),
+      more: t('clusters.health.more'),
+      linkGaps: {
+        title: t('clusters.health.linkGaps.title'),
+        severity: {
+          HIGH: t('clusters.health.linkGaps.severity.HIGH'),
+          MEDIUM: t('clusters.health.linkGaps.severity.MEDIUM'),
+        },
+        fix: {
+          button: t('clusters.health.linkGaps.fix.button'),
+          tooltip: t('clusters.health.linkGaps.fix.tooltip'),
+          loading: t('clusters.health.linkGaps.fix.loading'),
+          fixed: t('clusters.health.linkGaps.fix.fixed'),
+          retry: t('clusters.health.linkGaps.fix.retry'),
+          errors: {
+            pluginDisconnected: t('clusters.health.linkGaps.fix.errors.pluginDisconnected'),
+            noMatch: t('clusters.health.linkGaps.fix.errors.noMatch'),
+            aiFailed: t('clusters.health.linkGaps.fix.errors.aiFailed'),
+            generic: t('clusters.health.linkGaps.fix.errors.generic'),
+          },
+        },
+      },
+      cannibalizations: {
+        title: t('clusters.health.cannibalizations.title'),
+      },
+      staleness: {
+        title: t('clusters.health.staleness.title'),
+        daysAgo: t('clusters.health.staleness.daysAgo'),
+      },
+    },
+    orphans: {
+      title: t('clusters.orphans.title'),
+      count: t('clusters.orphans.count'),
+      capped: t('clusters.orphans.capped'),
+      selectedCount: t('clusters.orphans.selectedCount'),
+      selectAll: t('clusters.orphans.selectAll'),
+      actions: {
+        assign: t('clusters.orphans.actions.assign'),
+        create: t('clusters.orphans.actions.create'),
+        clear: t('clusters.orphans.actions.clear'),
+      },
+      assignModal: {
+        title: t('clusters.orphans.assignModal.title'),
+        label: t('clusters.orphans.assignModal.label'),
+        placeholder: t('clusters.orphans.assignModal.placeholder'),
+        noConfirmed: t('clusters.orphans.assignModal.noConfirmed'),
+        confirm: t('clusters.orphans.assignModal.confirm'),
+      },
+      createModal: {
+        title: t('clusters.orphans.createModal.title'),
+        nameLabel: t('clusters.orphans.createModal.nameLabel'),
+        namePlaceholder: t('clusters.orphans.createModal.namePlaceholder'),
+        keywordLabel: t('clusters.orphans.createModal.keywordLabel'),
+        keywordPlaceholder: t('clusters.orphans.createModal.keywordPlaceholder'),
+        pillarLabel: t('clusters.orphans.createModal.pillarLabel'),
+        noPillarOption: t('clusters.orphans.createModal.noPillarOption'),
+        memberCount: t('clusters.orphans.createModal.memberCount'),
+        confirm: t('clusters.orphans.createModal.confirm'),
+      },
+      errors: {
+        loadFailed: t('clusters.orphans.errors.loadFailed'),
+        assignFailed: t('clusters.orphans.errors.assignFailed'),
+        createFailed: t('clusters.orphans.errors.createFailed'),
+      },
     },
   };
 

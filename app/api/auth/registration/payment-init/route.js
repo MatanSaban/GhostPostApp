@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import prisma from '@/lib/prisma';
-import { createLowProfile, buildDocument } from '@/lib/cardcom';
+import { createLowProfile } from '@/lib/cardcom';
 import { getDraftAccountForUser } from '@/lib/draft-account';
 
 const SESSION_COOKIE = 'user_session';
@@ -14,7 +14,8 @@ const SESSION_COOKIE = 'user_session';
  * on the draft user.
  *
  * Body:
- *  - amount: number (total to charge, in ILS)
+ *  - amount: number (total to charge, in USD — Israeli cardholders' banks
+ *    handle the USD→ILS conversion at their own rate)
  *  - language: string (default 'he')
  */
 export async function POST(request) {
@@ -75,6 +76,7 @@ export async function POST(request) {
 
     const plan = await prisma.plan.findUnique({
       where: { id: draftAccount.draftSelectedPlanId },
+      include: { translations: true },
     });
 
     if (!plan) {
@@ -97,25 +99,42 @@ export async function POST(request) {
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.NEXTAUTH_URL || '';
     const webhookUrl = baseUrl ? `${baseUrl}/api/payment/webhook` : '';
 
-    const customerName = `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.email;
-    const document = buildDocument({
-      customerName,
-      customerEmail: user.email,
-      customerPhone: user.phoneNumber || '',
-      products: [{
-        description: `${plan.name} Plan - Monthly Subscription`,
-        quantity: 1,
-        unitCost: amount,
-      }],
-    });
+    // Resolve the plan name in the user's language so the CardCom receipt /
+    // invoice gets a localized description (the user complaint: a Hebrew
+    // session was getting "Enterprise Plan - Monthly Subscription" in English).
+    const langCode = language === 'en' ? 'EN' : 'HE';
+    const planTranslation = plan.translations?.find(t => t.language === langCode);
+    const localizedPlanName = planTranslation?.name || plan.name;
 
+    // Localized productName is shown by CardCom inside the iframe payment
+    // page header. The full "{plan} - Monthly Subscription" description is
+    // built in /payment-confirm at the actual charge so the document gets
+    // tied to the charge transaction, not the J2 validation.
+    const planLabel = language === 'en' ? 'Plan' : 'תוכנית';
+    const productName = language === 'en'
+      ? `${localizedPlanName} ${planLabel}`
+      : `${planLabel} ${localizedPlanName}`;
+
+    // Two-step charge flow:
+    //   1) here — Operation: CreateTokenOnly + JValidateType: 2 (J2). CardCom
+    //      validates the card with the issuer (catches bad CVV / expired
+    //      card) and issues a token, but does NOT charge yet. We do NOT
+    //      attach a Document at this step — J2 is a validate-only check, the
+    //      invoice is generated at the actual charge below.
+    //   2) /payment-confirm — inspects card type (block debit/gift), then
+    //      runs Transactions/Transaction with the token + the document so
+    //      CardCom emits the TaxInvoiceAndReceipt against the real charge.
+    // This is what powers our debit-card block, our pre-charge CVV
+    // validation, and our save-card-on-file feature.
     const lpResult = await createLowProfile({
       amount,
-      currency: 'ILS',
+      currency: 'USD',
       language,
-      productName: `${plan.name} Plan`,
+      productName,
       webhookUrl,
-      document,
+      operation: 'CreateTokenOnly',
+      jValidateType: 2,
+      returnValue: draftAccount.id,
     });
 
     if (!lpResult.LowProfileId) {

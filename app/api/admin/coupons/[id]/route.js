@@ -4,6 +4,24 @@ import prisma from '@/lib/prisma';
 
 const SESSION_COOKIE = 'user_session';
 
+function normalizeSchedule(input) {
+  if (!Array.isArray(input)) return [];
+  const out = [];
+  for (const seg of input) {
+    if (!seg || typeof seg !== 'object') continue;
+    const amount = Number(seg.amount);
+    if (!Number.isFinite(amount) || amount < 0) continue;
+    let months = seg.months;
+    if (months === '' || months === undefined) months = null;
+    if (months !== null) {
+      months = parseInt(months, 10);
+      if (!Number.isFinite(months) || months <= 0) continue;
+    }
+    out.push({ months, amount });
+  }
+  return out;
+}
+
 async function verifySuperAdmin() {
   try {
     const cookieStore = await cookies();
@@ -70,6 +88,8 @@ export async function PUT(request, { params }) {
       description,
       discountType,
       discountValue,
+      floorOrderToZero,
+      recurringPriceSchedule,
       limitationOverrides,
       extraFeatures,
       maxRedemptions,
@@ -102,6 +122,8 @@ export async function PUT(request, { params }) {
         ...(description !== undefined && { description }),
         ...(discountType !== undefined && { discountType }),
         ...(discountValue !== undefined && { discountValue: parseFloat(discountValue) || 0 }),
+        ...(floorOrderToZero !== undefined && { floorOrderToZero: !!floorOrderToZero }),
+        ...(recurringPriceSchedule !== undefined && { recurringPriceSchedule: normalizeSchedule(recurringPriceSchedule) }),
         ...(limitationOverrides !== undefined && { limitationOverrides }),
         ...(extraFeatures !== undefined && { extraFeatures }),
         ...(maxRedemptions !== undefined && { maxRedemptions: maxRedemptions ? parseInt(maxRedemptions) : null }),

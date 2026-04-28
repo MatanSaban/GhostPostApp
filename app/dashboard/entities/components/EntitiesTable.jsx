@@ -2,11 +2,11 @@
 
 import { useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
-import { 
-  Search, 
-  RefreshCw, 
-  ExternalLink, 
-  Edit, 
+import {
+  Search,
+  RefreshCw,
+  ExternalLink,
+  Edit,
   Trash2,
   X,
   FileText,
@@ -18,6 +18,7 @@ import {
   AlertTriangle,
   Shield,
   ShieldCheck,
+  Image as ImageIcon,
 } from 'lucide-react';
 import { useLocale } from '@/app/context/locale-context';
 import { usePermissions } from '@/app/hooks/usePermissions';
@@ -415,7 +416,7 @@ export function EntitiesTable({
       </div>
 
       {isLoading ? (
-        <TableSkeleton rows={8} columns={4} hasCheckbox hasHeader={false} />
+        <TableSkeleton rows={8} columns={5} hasCheckbox hasHeader={false} />
       ) : onboardingVariant ? (
         <OnboardingCard
           variant={onboardingVariant}
@@ -502,6 +503,7 @@ export function EntitiesTable({
                     )}
                   </button>
                 </th>
+                <th className={styles.thumbnailCell} aria-label={t('entities.featuredImage')} />
                 <th>{t('common.title')}</th>
                 <th>{t('entities.status')}</th>
                 <th>{t('common.date')}</th>
@@ -526,6 +528,20 @@ export function EntitiesTable({
                         <Square className={styles.checkboxIcon} />
                       )}
                     </button>
+                  </td>
+                  <td className={styles.thumbnailCell}>
+                    {entity.featuredImage ? (
+                      <img
+                        src={entity.featuredImage}
+                        alt=""
+                        className={styles.thumbnail}
+                        loading="lazy"
+                      />
+                    ) : (
+                      <div className={styles.thumbnailPlaceholder} aria-hidden="true">
+                        <ImageIcon size={14} />
+                      </div>
+                    )}
                   </td>
                   <td>
                     <div className={styles.entityTitle}>

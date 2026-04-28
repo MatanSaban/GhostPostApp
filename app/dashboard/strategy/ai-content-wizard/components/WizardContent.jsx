@@ -6,7 +6,7 @@ import {
   FolderOpen, Hash, Calendar, FileText,
   Settings, BookOpen, Search, MessageSquare,
   Sparkles, Check, ArrowLeft, ArrowRight,
-  AlertTriangle, X, Loader2, Play, Pause, Globe,
+  AlertTriangle, X, Loader2, Play, Pause, Globe, Network,
 } from 'lucide-react';
 import { useLocale } from '@/app/context/locale-context';
 import { useSite } from '@/app/context/site-context';
@@ -156,6 +156,61 @@ export function WizardContent({ translations }) {
       .catch(() => {});
   }, []);
 
+  // Pre-fill from a topic cluster when launched via ?clusterId=X.
+  // Pulls the cluster + AI gap suggestions in parallel so step 1 lands ready
+  // to go: pillar URL, anchor keyword, and seeded subjectSuggestions.
+  // Skipped if ?campaignId is also present — editing-an-existing-campaign wins.
+  const [clusterLoading, setClusterLoading] = useState(false);
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const clusterId = params.get('clusterId');
+    if (!clusterId || params.get('campaignId')) return;
+
+    setClusterLoading(true);
+    Promise.allSettled([
+      fetch(`/api/clusters/${clusterId}`).then((r) => (r.ok ? r.json() : null)),
+      fetch(`/api/clusters/${clusterId}/suggest-gaps`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ count: 8 }),
+      }).then((r) => (r.ok ? r.json() : null)),
+    ])
+      .then(([clusterRes, gapsRes]) => {
+        const cluster =
+          clusterRes.status === 'fulfilled' ? clusterRes.value?.cluster : null;
+        if (cluster) {
+          dispatch({ type: 'SET_FIELD', field: 'topicClusterId', value: cluster.id });
+          dispatch({ type: 'SET_FIELD', field: 'mainKeyword', value: cluster.mainKeyword || '' });
+          if (cluster.pillar?.url) {
+            dispatch({ type: 'SET_FIELD', field: 'pillarPageUrl', value: cluster.pillar.url });
+          }
+          if (cluster.pillar?.id) {
+            dispatch({ type: 'SET_FIELD', field: 'pillarEntityId', value: cluster.pillar.id });
+          }
+          dispatch({
+            type: 'SET_FIELD',
+            field: 'clusterContext',
+            value: {
+              name: cluster.name,
+              mainKeyword: cluster.mainKeyword,
+              pillarUrl: cluster.pillar?.url || null,
+              pillarTitle: cluster.pillar?.title || null,
+              memberCount: cluster.members?.length || 0,
+            },
+          });
+          // Sensible default — user can override on step 1
+          dispatch({ type: 'SET_FIELD', field: 'campaignName', value: cluster.name });
+        }
+
+        const gaps =
+          gapsRes.status === 'fulfilled' ? gapsRes.value?.gaps || [] : [];
+        if (gaps.length > 0) {
+          dispatch({ type: 'SET_FIELD', field: 'subjectSuggestions', value: gaps });
+        }
+      })
+      .finally(() => setClusterLoading(false));
+  }, []);
+
   // Check WP connection
   const isWordpress = selectedSite?.platform === 'wordpress';
   const isConnected = selectedSite?.connectionStatus === 'CONNECTED';
@@ -223,6 +278,8 @@ export function WizardContent({ translations }) {
               keywordIds: [],
               pillarPageUrl: state.pillarPageUrl || '',
               mainKeyword: state.mainKeyword || '',
+              pillarEntityId: state.pillarEntityId || null,
+              topicClusterId: state.topicClusterId || null,
               textPrompt: '',
               imagePrompt: '',
             }),
@@ -304,6 +361,30 @@ export function WizardContent({ translations }) {
         <div className={styles.wpNotice}>
           <AlertTriangle size={16} className={styles.wpNoticeIcon} />
           <span>{translations.wpRequired.description}</span>
+        </div>
+      )}
+
+      {/* Cluster context banner — surfaces when wizard launched via ?clusterId= */}
+      {clusterLoading && !state.clusterContext && (
+        <div className={styles.clusterBanner}>
+          <Loader2 size={14} className={styles.spinner} />
+          <span>{translations.clusterContext?.loading || 'Loading cluster context...'}</span>
+        </div>
+      )}
+      {state.clusterContext && (
+        <div className={styles.clusterBanner}>
+          <Network size={16} className={styles.clusterBannerIcon} />
+          <span>
+            <strong>{translations.clusterContext?.label || 'Cluster'}:</strong>{' '}
+            {state.clusterContext.name}
+            {state.clusterContext.memberCount > 0 && (
+              <span className={styles.clusterBannerMeta}>
+                {' · '}
+                {state.clusterContext.memberCount}{' '}
+                {translations.clusterContext?.members || 'members'}
+              </span>
+            )}
+          </span>
         </div>
       )}
 
@@ -396,9 +477,9 @@ export function WizardContent({ translations }) {
         </div>
 
         {currentStep < WIZARD_STEPS.length && (
-          <button onClick={handleNext} disabled={nextLoading} className={`${styles.navButton} ${styles.next}`}>
-            {nextLoading ? <Loader2 size={16} className={styles.spinner} /> : translations.nav.next}
-            {!nextLoading && <NextArrow className={styles.navIcon} />}
+          <button onClick={handleNext} disabled={nextLoading || clusterLoading} className={`${styles.navButton} ${styles.next}`}>
+            {nextLoading || clusterLoading ? <Loader2 size={16} className={styles.spinner} /> : translations.nav.next}
+            {!nextLoading && !clusterLoading && <NextArrow className={styles.navIcon} />}
           </button>
         )}
       </div>

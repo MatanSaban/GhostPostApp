@@ -48,6 +48,8 @@ export function ContentPlannerView({ translations }) {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [campaigns, setCampaigns] = useState([]);
   const [loadingCampaigns, setLoadingCampaigns] = useState(true);
+  const [clusters, setClusters] = useState([]);
+  const [selectedClusterId, setSelectedClusterId] = useState(null);
   const [selectedCampaignId, setSelectedCampaignId] = useState(null); // null = "All"
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [editingCampaign, setEditingCampaign] = useState(null);
@@ -478,6 +480,26 @@ export function ContentPlannerView({ translations }) {
       .catch(() => setCampaigns([]))
       .finally(() => setLoadingCampaigns(false));
   }, [selectedSite?.id]);
+
+  // Load CONFIRMED clusters so users can filter the campaign list to a single cluster.
+  // Only confirmed clusters appear in the picker — discovered/rejected would be noise here.
+  useEffect(() => {
+    if (!selectedSite?.id) return;
+    fetch(`/api/clusters?siteId=${selectedSite.id}&status=CONFIRMED`)
+      .then(res => res.json())
+      .then(data => setClusters(data.clusters || []))
+      .catch(() => setClusters([]));
+  }, [selectedSite?.id]);
+
+  // Drop the selectedCampaignId when the cluster filter excludes the selected campaign.
+  useEffect(() => {
+    if (!selectedClusterId || !selectedCampaignId) return;
+    const selected = campaigns.find((c) => c.id === selectedCampaignId);
+    if (selected && selected.topicClusterId !== selectedClusterId) {
+      setSelectedCampaignId(null);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedClusterId]);
 
   // Listen for campaign-created event from header button
   useEffect(() => {
@@ -1040,6 +1062,11 @@ export function ContentPlannerView({ translations }) {
     }
   };
 
+  // Filter campaigns by the selected cluster (when set) — strategic lens above the operational list.
+  const visibleCampaigns = selectedClusterId
+    ? campaigns.filter((c) => c.topicClusterId === selectedClusterId)
+    : campaigns;
+
   return (
     <div className={styles.plannerLayout}>
       {/* Campaigns Sidebar */}
@@ -1053,6 +1080,28 @@ export function ContentPlannerView({ translations }) {
             </button>
           )}
         </div>
+
+        {/* Cluster filter — narrows which campaigns are visible. Only shows when the
+            site has confirmed clusters; otherwise the picker would be empty noise. */}
+        {clusters.length > 0 && (
+          <div className={styles.clusterFilterRow}>
+            <label className={styles.clusterFilterLabel}>
+              {tc.clusterFilter || 'Cluster'}
+            </label>
+            <select
+              className={styles.clusterFilterSelect}
+              value={selectedClusterId || ''}
+              onChange={(e) => setSelectedClusterId(e.target.value || null)}
+            >
+              <option value="">{tc.allClusters || 'All clusters'}</option>
+              {clusters.map((cluster) => (
+                <option key={cluster.id} value={cluster.id}>
+                  {cluster.name}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
 
         {loadingCampaigns ? (
           <div className={styles.sidebarLoading}>
@@ -1069,6 +1118,16 @@ export function ContentPlannerView({ translations }) {
               </button>
             )}
           </div>
+        ) : visibleCampaigns.length === 0 ? (
+          <div className={styles.sidebarEmpty}>
+            <p>{tc.noCampaignsInCluster || 'No campaigns in this cluster'}</p>
+            <button
+              className={styles.sidebarWizardLink}
+              onClick={() => setSelectedClusterId(null)}
+            >
+              {tc.clearClusterFilter || 'Clear filter'}
+            </button>
+          </div>
         ) : (
           <div className={styles.sidebarCampaignList}>
             {/* All filter */}
@@ -1079,14 +1138,14 @@ export function ContentPlannerView({ translations }) {
               <span className={styles.sidebarCampaignDot} style={{ background: 'var(--muted-foreground)' }} />
               <span className={styles.sidebarCampaignName}>{tc.all || 'All'}</span>
               <span className={styles.sidebarCampaignCount}>
-                {campaigns.reduce((sum, c) => {
+                {visibleCampaigns.reduce((sum, c) => {
                   const pipelineCount = pipelineContents.filter(p => p.campaignId === c.id).length;
                   return sum + (pipelineCount || (Array.isArray(c.generatedPlan) ? c.generatedPlan.length : 0));
                 }, 0)}
               </span>
             </button>
 
-            {campaigns.map(campaign => {
+            {visibleCampaigns.map(campaign => {
               // Calculate real counts from pipeline or generatedPlan
               const campaignContents = pipelineContents.filter(c => c.campaignId === campaign.id);
               const publishedCount = campaignContents.filter(c => c.status === 'PUBLISHED').length;

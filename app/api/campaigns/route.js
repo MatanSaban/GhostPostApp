@@ -93,6 +93,7 @@ export async function POST(request) {
       pillarPageUrl,
       mainKeyword,
       pillarEntityId,
+      topicClusterId,
       textPrompt,
       imagePrompt,
     } = body;
@@ -129,6 +130,7 @@ export async function POST(request) {
         pillarPageUrl: pillarPageUrl || null,
         mainKeyword: mainKeyword || null,
         pillarEntityId: pillarEntityId || null,
+        topicClusterId: topicClusterId || null,
         textPrompt: textPrompt || '',
         imagePrompt: imagePrompt || '',
         status: 'DRAFT',

@@ -30,6 +30,10 @@ const EMPTY_FORM = {
   description: '',
   discountType: 'PERCENTAGE',
   discountValue: '',
+  // Only used when discountType === 'FIXED_PRICE'. When the coupon's fixed
+  // price exceeds the order: false (default) refuses to apply, true forces
+  // the order total to $0.
+  floorOrderToZero: false,
   maxRedemptions: '',
   maxPerAccount: '1',
   validFrom: '',
@@ -58,6 +62,9 @@ export default function CouponsPage() {
   const [formData, setFormData] = useState(EMPTY_FORM);
   const [limitationOverrides, setLimitationOverrides] = useState([]);
   const [extraFeatures, setExtraFeatures] = useState([]);
+  // Recurring price schedule (B2): [{ months: number|null, amount: number }, ...].
+  // Edited as strings so empty inputs don't fight controlled-input warnings.
+  const [recurringPriceSchedule, setRecurringPriceSchedule] = useState([]);
 
   // Delete dialog
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -128,6 +135,7 @@ export default function CouponsPage() {
     setFormData({ ...EMPTY_FORM });
     setLimitationOverrides([]);
     setExtraFeatures([]);
+    setRecurringPriceSchedule([]);
     setEditModalOpen(true);
   };
 
@@ -136,8 +144,12 @@ export default function CouponsPage() {
     setFormData({
       code: coupon.code,
       description: coupon.description || '',
-      discountType: coupon.discountType,
+      // Display the legacy FIXED_AMOUNT under its new name FIXED_DISCOUNT in
+      // the form so admins author against a clean three-way enum. The DB
+      // value is preserved on save unless they explicitly switch types.
+      discountType: coupon.discountType === 'FIXED_AMOUNT' ? 'FIXED_DISCOUNT' : coupon.discountType,
       discountValue: coupon.discountValue?.toString() || '',
+      floorOrderToZero: !!coupon.floorOrderToZero,
       maxRedemptions: coupon.maxRedemptions?.toString() || '',
       maxPerAccount: coupon.maxPerAccount?.toString() || '1',
       validFrom: coupon.validFrom ? coupon.validFrom.slice(0, 16) : '',
@@ -148,6 +160,14 @@ export default function CouponsPage() {
     });
     setLimitationOverrides(Array.isArray(coupon.limitationOverrides) ? coupon.limitationOverrides : []);
     setExtraFeatures(Array.isArray(coupon.extraFeatures) ? coupon.extraFeatures : []);
+    setRecurringPriceSchedule(
+      Array.isArray(coupon.recurringPriceSchedule)
+        ? coupon.recurringPriceSchedule.map((s) => ({
+            months: s.months == null ? '' : String(s.months),
+            amount: String(s.amount ?? ''),
+          }))
+        : []
+    );
     setEditModalOpen(true);
   };
 
@@ -158,6 +178,11 @@ export default function CouponsPage() {
         ...formData,
         limitationOverrides,
         extraFeatures,
+        // Server normalizes / drops malformed rows; we just send what's typed.
+        recurringPriceSchedule: recurringPriceSchedule.map((row) => ({
+          months: row.months === '' ? null : Number(row.months),
+          amount: Number(row.amount),
+        })),
       };
 
       const url = selectedCoupon ? `/api/admin/coupons/${selectedCoupon.id}` : '/api/admin/coupons';
@@ -469,7 +494,9 @@ export default function CouponsPage() {
                         {coupon.discountValue > 0
                           ? coupon.discountType === 'PERCENTAGE'
                             ? `${coupon.discountValue}%`
-                            : `$${coupon.discountValue}`
+                            : coupon.discountType === 'FIXED_PRICE'
+                              ? `= $${coupon.discountValue}`
+                              : `-$${coupon.discountValue}`
                           : '-'}
                       </span>
                     </div>
@@ -577,8 +604,9 @@ export default function CouponsPage() {
               value={formData.discountType}
               onChange={(e) => setFormData({ ...formData, discountType: e.target.value })}
               options={[
-                { value: 'PERCENTAGE', label: t('admin.coupons.form.percentage') },
-                { value: 'FIXED_AMOUNT', label: t('admin.coupons.form.fixedAmount') },
+                { value: 'PERCENTAGE', label: t('admin.coupons.form.percentage') || '% off' },
+                { value: 'FIXED_DISCOUNT', label: t('admin.coupons.form.fixedDiscount') || '$ off (discount)' },
+                { value: 'FIXED_PRICE', label: t('admin.coupons.form.fixedPrice') || '$ final price' },
               ]}
             />
             <FormInput
@@ -590,6 +618,13 @@ export default function CouponsPage() {
               placeholder="0"
             />
           </div>
+          {formData.discountType === 'FIXED_PRICE' && (
+            <FormCheckbox
+              label={t('admin.coupons.form.floorOrderToZero') || 'Force order to $0 if fixed price exceeds order total (otherwise the coupon refuses to apply on small orders)'}
+              checked={formData.floorOrderToZero}
+              onChange={(e) => setFormData({ ...formData, floorOrderToZero: e.target.checked })}
+            />
+          )}
 
           {/* Usage Limits */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem' }}>
@@ -617,6 +652,60 @@ export default function CouponsPage() {
               onChange={(e) => setFormData({ ...formData, durationMonths: e.target.value })}
               placeholder={t('admin.coupons.form.lifetime')}
             />
+          </div>
+
+          {/* Recurring Price Schedule (B2) */}
+          <div>
+            <label style={{ fontSize: '0.875rem', fontWeight: 500, display: 'block', marginBottom: '0.25rem' }}>
+              {t('admin.coupons.form.recurringSchedule') || 'Recurring price schedule (optional)'}
+            </label>
+            <p style={{ fontSize: '0.75rem', opacity: 0.7, margin: '0 0 0.5rem' }}>
+              {t('admin.coupons.form.recurringScheduleHelp') || 'Per-cycle USD prices (pre-VAT) starting from the SECOND charge. Leave months blank on the last row to extend that price forever. If left empty, recurring uses the regular discountType/discountValue.'}
+            </p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+              {recurringPriceSchedule.map((row, idx) => (
+                <div key={idx} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr auto', gap: '0.5rem', alignItems: 'center' }}>
+                  <FormInput
+                    label={idx === 0 ? (t('admin.coupons.form.scheduleMonths') || 'Months') : undefined}
+                    type="number"
+                    min="1"
+                    value={row.months}
+                    onChange={(e) => {
+                      const next = [...recurringPriceSchedule];
+                      next[idx] = { ...next[idx], months: e.target.value };
+                      setRecurringPriceSchedule(next);
+                    }}
+                    placeholder={t('admin.coupons.form.scheduleForever') || 'forever'}
+                  />
+                  <FormInput
+                    label={idx === 0 ? (t('admin.coupons.form.scheduleAmount') || 'Amount (USD)') : undefined}
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={row.amount}
+                    onChange={(e) => {
+                      const next = [...recurringPriceSchedule];
+                      next[idx] = { ...next[idx], amount: e.target.value };
+                      setRecurringPriceSchedule(next);
+                    }}
+                    placeholder="0.00"
+                  />
+                  <SecondaryButton
+                    type="button"
+                    onClick={() => setRecurringPriceSchedule(recurringPriceSchedule.filter((_, i) => i !== idx))}
+                    style={{ alignSelf: idx === 0 ? 'end' : 'center' }}
+                  >
+                    {t('admin.common.remove') || 'Remove'}
+                  </SecondaryButton>
+                </div>
+              ))}
+              <SecondaryButton
+                type="button"
+                onClick={() => setRecurringPriceSchedule([...recurringPriceSchedule, { months: '', amount: '' }])}
+              >
+                + {t('admin.coupons.form.scheduleAddRow') || 'Add cycle bracket'}
+              </SecondaryButton>
+            </div>
           </div>
 
           {/* Validity Period */}

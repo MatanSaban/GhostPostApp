@@ -234,7 +234,7 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { questionId, response, skipValidation, interviewId } = await request.json();
+    const { questionId, response, skipValidation, interviewId, userLocale } = await request.json();
 
     if (!questionId) {
       return NextResponse.json(
@@ -531,6 +531,7 @@ export async function POST(request) {
           accountId, // For credits tracking
           siteId: interview.siteId || null,
           prisma, // Pass prisma client for database operations
+          userLocale, // Forwarded to text-producing handlers so AI output matches the chat language
           trigger: 'submit', // Only run 'submit' auto-actions; skip 'display'-only ones
         });
       } catch (actionError) {

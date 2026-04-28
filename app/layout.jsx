@@ -10,6 +10,7 @@ import { NotificationsProvider } from '@/app/context/notifications-context';
 import { AgentProvider } from '@/app/context/agent-context';
 import { SiteLocaleSync } from '@/app/components/SiteLocaleSync';
 import { BackgroundTasksNotification } from '@/app/components/ui/background-tasks-notification';
+import SwProvider from '@/app/components/SwProvider';
 import { locales, defaultLocale, getDirection } from '@/i18n/config';
 import { buildRootMetadata, defaultViewport } from '@/lib/seo/metadata';
 
@@ -44,6 +45,7 @@ export default async function RootLayout({ children }) {
         />
       </head>
       <body suppressHydrationWarning>
+        <SwProvider>
         <LocaleProvider>
           <ThemeProvider>
             <UserProvider>
@@ -63,6 +65,7 @@ export default async function RootLayout({ children }) {
             </UserProvider>
           </ThemeProvider>
         </LocaleProvider>
+        </SwProvider>
       </body>
     </html>
   );

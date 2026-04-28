@@ -1698,6 +1698,10 @@
     "competitorAnalysis": {
       "title": "Competitors",
       "cardDescription": "Analyze your competitors' SEO strategies, discover their top keywords, and find content gaps to exploit."
+    },
+    "clusters": {
+      "title": "Topic Clusters",
+      "cardDescription": "Group your site's pages into topic clusters with pillar pages and supporting content. Catch cannibalization before it ships."
     }
   },
   "contentPlanner": {
@@ -1761,6 +1765,10 @@
       "noCampaigns": "No campaigns yet",
       "createFirst": "Create your first campaign",
       "createNew": "Create Campaign",
+      "clusterFilter": "Cluster",
+      "allClusters": "All clusters",
+      "noCampaignsInCluster": "No campaigns in this cluster",
+      "clearClusterFilter": "Clear filter",
       "posts": "posts",
       "active": "Active",
       "draft": "Draft",
@@ -2820,6 +2828,7 @@
     "private": "Private",
     "trash": "Trashed",
     "actions": "Actions",
+    "featuredImage": "Featured image",
     "viewOnSite": "View on site",
     "search": "Search entities...",
     "totalEntities": "Total Entities",
@@ -3491,6 +3500,21 @@
     "team": "Team",
     "users": "Users",
     "subscription": "Subscription",
+    "paymentMethods": {
+      "title": "Payment Methods",
+      "description": "Saved cards used for subscription renewals and one-click addon purchases.",
+      "empty": "No saved cards yet. A card is saved automatically the first time you complete a subscription or addon purchase.",
+      "loadError": "Failed to load payment methods.",
+      "default": "Default",
+      "makeDefault": "Make default",
+      "nicknamePlaceholder": "Card nickname (e.g. Personal Visa)",
+      "unnamedCard": "Card",
+      "deleteTitle": "Remove this payment method?",
+      "deleteMessage": "You can always add it back the next time you make a purchase. If this card is being used for a recurring subscription, the next renewal will fail until you add another card.",
+      "deleteConfirm": "Remove",
+      "giftCardWarning": "Gift card — not usable",
+      "debitCardWarning": "Debit card — addons only, not subscription"
+    },
     "credits": {
       "title": "Ai-GCoins",
       "credits": "Ai-GCoins"
@@ -4598,6 +4622,18 @@
         "mobile": "Mobile"
       }
     },
+    "agentApprovalPending": {
+      "title": "Agent action awaiting approval",
+      "message": "Approve or reject within 5 minutes to continue."
+    },
+    "pushPrompt": {
+      "enable": "Enable browser notifications",
+      "enabled": "Browser notifications enabled",
+      "disable": "Disable browser notifications",
+      "blocked": "Notifications are blocked in browser settings",
+      "unsupported": "Browser notifications aren't supported on this device",
+      "description": "Get notified the moment an audit finishes or the agent needs your approval — even when this tab is closed."
+    },
     "support": {
       "title": "Support reply on #{ticketNumber}",
       "message": "{subject}"
@@ -5077,6 +5113,10 @@
       "reject": "Reject",
       "rollback": "Rollback",
       "remaining": "remaining",
+      "cluster": {
+        "label": "Cluster",
+        "warning": "{n} potential conflict(s) in this cluster"
+      },
       "minuteShort": "m",
       "secondShort": "s",
       "fetchingData": "Fetching data",
@@ -5230,6 +5270,11 @@
       "description": "Connect your WordPress site with the GhostSEO plugin to use the AI Content Wizard.",
       "notWordpress": "The AI Content Wizard requires a WordPress website with the GhostSEO plugin installed.",
       "notConnected": "Your WordPress site needs to be connected via the GhostSEO plugin."
+    },
+    "clusterContext": {
+      "label": "Cluster",
+      "members": "members",
+      "loading": "Loading cluster context..."
     },
     "steps": {
       "campaign": "Campaign",
@@ -5563,6 +5608,15 @@
       "confirmed": "Confirmed",
       "rejected": "Rejected"
     },
+    "viewMode": {
+      "list": "List",
+      "graph": "Graph"
+    },
+    "graph": {
+      "zoomIn": "Zoom in",
+      "zoomOut": "Zoom out",
+      "resetView": "Reset view"
+    },
     "status": {
       "DISCOVERED": "Discovered",
       "CONFIRMED": "Confirmed",
@@ -5574,7 +5628,10 @@
       "edit": "Edit",
       "save": "Save",
       "cancel": "Cancel",
-      "setPillar": "Set as pillar"
+      "setPillar": "Set as pillar",
+      "expand": "Expand cluster",
+      "delete": "Delete",
+      "confirmDelete": "Confirm delete"
     },
     "edit": {
       "title": "Edit cluster",
@@ -5589,7 +5646,44 @@
     "errors": {
       "loadFailed": "Failed to load clusters.",
       "updateFailed": "Failed to update cluster.",
-      "discoverFailed": "Discovery failed."
+      "discoverFailed": "Discovery failed.",
+      "deleteFailed": "Failed to delete cluster.",
+      "staleConflict": "Cluster was updated elsewhere. Refreshed — try your change again."
+    },
+    "orphans": {
+      "title": "Uncategorized content",
+      "count": "{n} entries not in any cluster",
+      "capped": "Showing {shown} of {total} uncategorized",
+      "selectedCount": "{n} selected",
+      "selectAll": "Select all visible",
+      "actions": {
+        "assign": "Assign to cluster",
+        "create": "Create new cluster",
+        "clear": "Clear selection"
+      },
+      "assignModal": {
+        "title": "Assign to cluster",
+        "label": "Cluster",
+        "placeholder": "Choose a cluster...",
+        "noConfirmed": "No confirmed clusters yet — create one first.",
+        "confirm": "Add"
+      },
+      "createModal": {
+        "title": "Create cluster from selection",
+        "nameLabel": "Cluster name",
+        "namePlaceholder": "e.g. Running socks",
+        "keywordLabel": "Main keyword",
+        "keywordPlaceholder": "e.g. running socks",
+        "pillarLabel": "Pillar (optional)",
+        "noPillarOption": "No pillar",
+        "memberCount": "Selected: {n}",
+        "confirm": "Create"
+      },
+      "errors": {
+        "loadFailed": "Failed to load uncategorized content.",
+        "assignFailed": "Failed to assign to cluster.",
+        "createFailed": "Failed to create cluster."
+      }
     },
     "preflight": {
       "title": "Cluster cannibalization",
@@ -5603,6 +5697,39 @@
         "MERGE": "Merge",
         "DIFFERENTIATE": "Differentiate",
         "REVIEW": "Review"
+      }
+    },
+    "health": {
+      "loading": "Checking health...",
+      "healthy": "Healthy",
+      "issues": "{n} issues",
+      "more": "+{n} more",
+      "linkGaps": {
+        "title": "Internal link gaps",
+        "severity": {
+          "HIGH": "Pillar gap",
+          "MEDIUM": "Member gap"
+        },
+        "fix": {
+          "button": "Fix with AI",
+          "tooltip": "Insert internal link via plugin",
+          "loading": "Fixing...",
+          "fixed": "Done",
+          "retry": "Retry",
+          "errors": {
+            "pluginDisconnected": "Plugin not connected",
+            "noMatch": "AI suggested an edit that didn't match the page",
+            "aiFailed": "AI couldn't produce a usable fix",
+            "generic": "Fix failed"
+          }
+        }
+      },
+      "cannibalizations": {
+        "title": "Cannibalization"
+      },
+      "staleness": {
+        "title": "Stale content",
+        "daysAgo": "{n}d ago"
       }
     }
   },
@@ -7237,8 +7364,11 @@
         "description": "Description (internal)",
         "descriptionPlaceholder": "Internal note about this coupon...",
         "discountType": "Discount Type",
-        "percentage": "Percentage",
-        "fixedAmount": "Fixed Amount",
+        "percentage": "Percentage off",
+        "fixedAmount": "Fixed amount off",
+        "fixedDiscount": "$ off (discount)",
+        "fixedPrice": "$ final price (replaces total)",
+        "floorOrderToZero": "Force order to $0 if fixed price exceeds order total (otherwise the coupon refuses to apply on small orders)",
         "discountValue": "Discount Value",
         "maxRedemptions": "Max Uses",
         "maxPerAccount": "Max per Account",
@@ -8359,6 +8489,9 @@
     "processing": "Processing...",
     "payNow": "Pay Now",
     "confirmFree": "Confirm",
+    "savedCardLabel": "Payment method",
+    "useDifferentCard": "Use a different card",
+    "savedCardUnnamed": "Card",
     "total": "Total",
     "coupon": {
       "label": "Coupon Code",

@@ -5,6 +5,7 @@ import { Lock, Loader2, Ticket, Check, X, AlertCircle } from 'lucide-react';
 import { ArrowIcon } from '@/app/components/ui/arrow-icon';
 import { calculateNewSubscriptionProration } from '@/lib/proration';
 import { isValidIsraeliId } from '@/lib/israeli-id';
+import { applyCouponToOrder } from '@/lib/coupon-pricing';
 import styles from '../auth.module.css';
 
 const CARDCOM_BASE = 'https://secure.cardcom.solutions';
@@ -34,16 +35,36 @@ export function PaymentStep({ translations, selectedPlan, userData, onComplete }
   const showCitizenIdError = citizenIdTouched && citizenId.length > 0 && !isCitizenIdValid;
   const [billingEmail, setBillingEmail] = useState(defaultBillingEmail);
   const [cardOwnerPhone, setCardOwnerPhone] = useState(defaultPhone);
-  const [expirationMonth, setExpirationMonth] = useState('');
-  const [expirationYear, setExpirationYear] = useState('');
+  // Combined "MM/YY" expiry — stored as up to 4 raw digits; the first two are
+  // the month, the last two are the year. handleSubmit derives the separate
+  // values CardCom expects.
+  const [expiry, setExpiry] = useState('');
+  const expirationMonth = expiry.slice(0, 2);
+  const expirationYear = expiry.slice(2, 4);
   const [numberOfPayments] = useState('1');
+
+  // Refs for the React-controlled inputs so we can auto-advance focus to the
+  // next empty field when one completes (e.g. ID → email → phone → card).
+  const cardholderNameInputRef = useRef(null);
+  const citizenIdInputRef = useRef(null);
+  const billingEmailInputRef = useRef(null);
+  const cardOwnerPhoneInputRef = useRef(null);
+  const expiryInputRef = useRef(null);
 
   // Validation state from iframes
   const [cardNumberValid, setCardNumberValid] = useState(null);
   const [cvvValid, setCvvValid] = useState(null);
 
+  // True once we've posted init for the current LowProfile AND given CardCom
+  // a moment to bind. Pay Now stays disabled until this flips so we don't
+  // post doTransaction to a master iframe that's still bound to an old LP.
+  const [iframeReady, setIframeReady] = useState(false);
+
   const iframeInitialized = useRef(false);
   const masterFrameRef = useRef(null);
+  // Tracks the previous LowProfile so we can detect LP-change events (e.g.
+  // coupon apply / remove) and force a CardCom session reset.
+  const previousLpRef = useRef(null);
 
   // Coupon state
   const [couponCode, setCouponCode] = useState('');
@@ -51,49 +72,67 @@ export function PaymentStep({ translations, selectedPlan, userData, onComplete }
   const [couponLoading, setCouponLoading] = useState(false);
   const [couponError, setCouponError] = useState('');
 
-  // Prices are stored in USD (per the Plan seed convention) - always convert
-  // to ILS using the live rate. If the plan's own rate is missing (e.g. on a
-  // resumed session before the status endpoint responded) fall back to 3.6.
+  // Prices are stored in USD (per the Plan seed convention). Charges run in
+  // USD too (CardCom ISOCoinId 2) — Israeli cardholders' banks convert to
+  // ILS at their own rate at the time of charge. We still show an ILS
+  // estimate next to every USD figure so the user has a sense of the actual
+  // cost. Fallback rate covers the resumed-session case before the status
+  // endpoint hydrates the plan.
   const USD_TO_ILS_RATE = selectedPlan?.usdToIlsRate || 3.6;
   const VAT_RATE = 0.18;
 
+  // Active UI locale (used by the USD-charge disclaimer + iframe init).
+  const lang = typeof document !== 'undefined' && document.documentElement.lang === 'en' ? 'en' : 'he';
+
+  const round2 = (n) => Math.round((n || 0) * 100) / 100;
+  const formatUsd = (usd) => `$${(usd || 0).toFixed(2)}`;
+  const formatIlsEstimate = (usd) => `₪${Math.round((usd || 0) * USD_TO_ILS_RATE)}`;
+
   const getPriceBreakdown = (plan) => {
-    if (!plan?.monthlyPrice) return { basePrice: 0, fullMonthlyPrice: 0, discount: 0, discountedPrice: 0, vatAmount: 0, totalPrice: 0, proration: null };
+    if (!plan?.monthlyPrice) return {
+      basePriceUsd: 0,
+      fullMonthlyPriceUsd: 0,
+      discountUsd: 0,
+      discountedPriceUsd: 0,
+      vatAmountUsd: 0,
+      totalPriceUsd: 0,
+      recurringTotalUsd: 0,
+      proration: null,
+    };
 
     // Prorate for remaining days in the month (align to 1st)
     const proration = calculateNewSubscriptionProration(plan.monthlyPrice);
-    const basePrice = Math.round(proration.proratedAmount * USD_TO_ILS_RATE);
-    const fullMonthlyPrice = Math.round(plan.monthlyPrice * USD_TO_ILS_RATE);
+    const basePriceUsd = round2(proration.proratedAmount);
+    const fullMonthlyPriceUsd = round2(plan.monthlyPrice);
 
-    let discount = 0;
-    if (couponData) {
-      if (couponData.discountType === 'PERCENTAGE') {
-        discount = Math.round(basePrice * (couponData.discountValue / 100));
-      } else if (couponData.discountType === 'FIXED_AMOUNT') {
-        // Coupon fixed amounts are also stored in USD.
-        discount = Math.round(couponData.discountValue * USD_TO_ILS_RATE);
-      }
-    }
+    // First-charge coupon application — the helper handles all four types
+    // (PERCENTAGE, FIXED_DISCOUNT, FIXED_PRICE, legacy FIXED_AMOUNT) and the
+    // FIXED_PRICE > order edge case.
+    const firstCharge = applyCouponToOrder(basePriceUsd, couponData);
+    const discountUsd = firstCharge.applies ? firstCharge.discountUsd : 0;
+    const discountedPriceUsd = firstCharge.applies ? firstCharge.finalUsd : basePriceUsd;
+    const vatAmountUsd = round2(discountedPriceUsd * VAT_RATE);
+    const totalPriceUsd = round2(discountedPriceUsd + vatAmountUsd);
 
-    const discountedPrice = Math.max(0, basePrice - discount);
-    const vatAmount = Math.round(discountedPrice * VAT_RATE);
-    const totalPrice = discountedPrice + vatAmount;
+    // Recurring monthly cycle (what we'll bill on the 1st each month). Only
+    // applied while the coupon's durationMonths window is active; once it
+    // lapses, the recurring engine reverts to the plan price.
+    const recurringCoupon = couponData && !couponData.durationMonths ? couponData : null;
+    const recurringCharge = applyCouponToOrder(fullMonthlyPriceUsd, recurringCoupon);
+    const recurringDiscountedUsd = recurringCharge.applies ? recurringCharge.finalUsd : fullMonthlyPriceUsd;
+    const recurringVatUsd = round2(recurringDiscountedUsd * VAT_RATE);
+    const recurringTotalUsd = round2(recurringDiscountedUsd + recurringVatUsd);
 
-    // Recurring monthly payment (what will be charged on the 1st of every month).
-    // Apply the coupon discount only if it's a permanent discount (no durationMonths cap).
-    let recurringDiscount = 0;
-    if (couponData && !couponData.durationMonths) {
-      if (couponData.discountType === 'PERCENTAGE') {
-        recurringDiscount = Math.round(fullMonthlyPrice * (couponData.discountValue / 100));
-      } else if (couponData.discountType === 'FIXED_AMOUNT') {
-        recurringDiscount = Math.round(couponData.discountValue * USD_TO_ILS_RATE);
-      }
-    }
-    const recurringDiscounted = Math.max(0, fullMonthlyPrice - recurringDiscount);
-    const recurringVat = Math.round(recurringDiscounted * VAT_RATE);
-    const recurringTotal = recurringDiscounted + recurringVat;
-
-    return { basePrice, fullMonthlyPrice, discount, discountedPrice, vatAmount, totalPrice, recurringTotal, proration };
+    return {
+      basePriceUsd,
+      fullMonthlyPriceUsd,
+      discountUsd,
+      discountedPriceUsd,
+      vatAmountUsd,
+      totalPriceUsd,
+      recurringTotalUsd,
+      proration,
+    };
   };
 
   const priceBreakdown = getPriceBreakdown(selectedPlan);
@@ -109,10 +148,13 @@ export function PaymentStep({ translations, selectedPlan, userData, onComplete }
     }
   }, []);
 
-  // Initialize CardCom LowProfile session
+  // Initialize CardCom LowProfile session.
+  // lowProfileId MUST be in the deps so that when handleApplyCoupon /
+  // handleRemoveCoupon reset it to null, this effect re-fires and fetches a
+  // new LP for the updated amount. Without it, the button stays stuck in
+  // "Setting up secure payment..." because lowProfileId never gets reassigned.
   useEffect(() => {
-    // Skip if free plan or already initialized
-    if (!priceBreakdown.totalPrice || priceBreakdown.totalPrice <= 0) return;
+    if (!priceBreakdown.totalPriceUsd || priceBreakdown.totalPriceUsd <= 0) return;
     if (lowProfileId) return;
 
     let cancelled = false;
@@ -126,7 +168,7 @@ export function PaymentStep({ translations, selectedPlan, userData, onComplete }
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            amount: priceBreakdown.totalPrice,
+            amount: priceBreakdown.totalPriceUsd,
             language: document.documentElement.lang === 'en' ? 'en' : 'he',
           }),
         });
@@ -147,13 +189,42 @@ export function PaymentStep({ translations, selectedPlan, userData, onComplete }
     })();
 
     return () => { cancelled = true; };
-  }, [priceBreakdown.totalPrice]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [priceBreakdown.totalPriceUsd, lowProfileId]);
 
-  // Initialize iframes once LP is ready
+  // Initialize iframes once LP is ready (or re-initialize after coupon-driven
+  // LP changes). CardCom's master iframe is "sticky" — once initialized for an
+  // LP, posting a second init message to the same iframe does not reliably
+  // rebind it to the new LP, so doTransaction from Pay Now silently targets
+  // the old (now-superseded) LP and produces no response. We work around this
+  // by reloading all three iframe sources whenever the LP changes, giving
+  // CardCom a clean session for the new LP.
   useEffect(() => {
-    if (!lowProfileId || iframeInitialized.current) return;
+    setIframeReady(false);
+    if (!lowProfileId) return;
 
-    const timer = setTimeout(() => {
+    const isReinit = previousLpRef.current !== null && previousLpRef.current !== lowProfileId;
+    previousLpRef.current = lowProfileId;
+
+    if (isReinit) {
+      iframeInitialized.current = false;
+      const masterFrame = document.getElementById('CardComMasterFrame');
+      if (masterFrame) masterFrame.src = `${CARDCOM_BASE}/api/openfields/master`;
+      const cardFrame = document.getElementById('CardComCardNumber');
+      if (cardFrame) cardFrame.src = `${CARDCOM_BASE}/api/openfields/cardNumber`;
+      const cvvFrame = document.getElementById('CardComCvv');
+      if (cvvFrame) cvvFrame.src = `${CARDCOM_BASE}/api/openfields/CVV`;
+    }
+
+    if (iframeInitialized.current) {
+      // Already initialized for this LP, nothing to re-post.
+      setIframeReady(true);
+      return;
+    }
+
+    // 1500ms gives the iframes time to load (longer when reloading on reinit)
+    // before CardCom's JS sets up its postMessage listeners. Posting earlier
+    // gets the message dropped.
+    const initTimer = setTimeout(() => {
       const masterFrame = document.getElementById('CardComMasterFrame');
       if (masterFrame && masterFrame.contentWindow) {
         masterFrameRef.current = masterFrame;
@@ -228,9 +299,16 @@ export function PaymentStep({ translations, selectedPlan, userData, onComplete }
         }, '*');
         iframeInitialized.current = true;
       }
-    }, 1000);
+    }, 1500);
 
-    return () => clearTimeout(timer);
+    // Hold Pay Now disabled until CardCom has had a moment to process init
+    // and bind to the new LP.
+    const readyTimer = setTimeout(() => setIframeReady(true), 2000);
+
+    return () => {
+      clearTimeout(initTimer);
+      clearTimeout(readyTimer);
+    };
   }, [lowProfileId]);
 
   // Listen for iframe messages
@@ -302,13 +380,29 @@ export function PaymentStep({ translations, selectedPlan, userData, onComplete }
   }, [cardholderName, billingEmail, cardOwnerPhone]);
 
   // Submit payment
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // For free plans, skip payment
-    if (priceBreakdown.totalPrice <= 0) {
+    // Free flow: a 100%-off coupon (PERCENTAGE / FIXED_DISCOUNT large enough
+    // to wipe out the order, or FIXED_PRICE=$0) brought the first-charge
+    // total to $0. We skip CardCom entirely but must still flip
+    // paymentConfirmed=true on the draft account so /finalize will accept.
+    if (priceBreakdown.totalPriceUsd <= 0) {
       setIsProcessing(true);
-      onComplete();
+      try {
+        const res = await fetch('/api/auth/registration/payment-free-with-coupon', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+        });
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({}));
+          throw new Error(data.error || translations.confirmFailed);
+        }
+        onComplete();
+      } catch (err) {
+        setPaymentError(err.message || translations.confirmFailed);
+        setIsProcessing(false);
+      }
       return;
     }
 
@@ -349,6 +443,19 @@ export function PaymentStep({ translations, selectedPlan, userData, onComplete }
       });
       const data = await res.json();
       if (res.ok && data.valid) {
+        // Pre-flight: a FIXED_PRICE coupon that exceeds the current order total
+        // refuses to apply unless the admin marked floorOrderToZero. The
+        // helper centralizes this rule across registration + recurring billing.
+        const baseUsd = round2((selectedPlan?.monthlyPrice
+          ? calculateNewSubscriptionProration(selectedPlan.monthlyPrice).proratedAmount
+          : 0));
+        const preflight = applyCouponToOrder(baseUsd, data.coupon);
+        if (!preflight.applies) {
+          setCouponError(translations.coupon?.notApplicable || data.coupon?.notApplicableReason || 'This coupon doesn\'t apply to this order');
+          setCouponData(null);
+          return;
+        }
+
         setCouponData(data.coupon);
         // Also save coupon to registration
         await fetch('/api/auth/registration/coupon', {
@@ -385,15 +492,61 @@ export function PaymentStep({ translations, selectedPlan, userData, onComplete }
     iframeInitialized.current = false;
   };
 
-  const isFormValid = priceBreakdown.totalPrice <= 0 || (
+  // Expiry validation: MM must be 01-12, YY must not be in the past.
+  const isExpiryValid = (() => {
+    if (expiry.length !== 4) return false;
+    const m = parseInt(expirationMonth, 10);
+    const y = parseInt(expirationYear, 10);
+    if (Number.isNaN(m) || Number.isNaN(y)) return false;
+    if (m < 1 || m > 12) return false;
+    const fullYear = 2000 + y;
+    const now = new Date();
+    if (fullYear < now.getFullYear()) return false;
+    if (fullYear === now.getFullYear() && m < now.getMonth() + 1) return false;
+    return true;
+  })();
+
+  const isPaidPlan = priceBreakdown.totalPriceUsd > 0;
+
+  // Tightened validity: for paid plans we also require CardCom to have
+  // confirmed the card number and CVV are valid (so we don't post
+  // doTransaction with a broken card / CVV that some Israeli issuers would
+  // approve anyway), and the expiry must be a real future date.
+  const isFormValid = !isPaidPlan || (
     cardholderName.trim().length > 0 &&
     billingEmail.includes('@') &&
-    expirationMonth.length === 2 &&
-    expirationYear.length === 2 &&
-    isCitizenIdValid
+    isExpiryValid &&
+    isCitizenIdValid &&
+    cardNumberValid === true &&
+    cvvValid === true
   );
 
-  const isPaidPlan = priceBreakdown.totalPrice > 0;
+  // Advance focus from a given field to the next field that's still empty.
+  // Skip-filled lets pre-populated fields (e.g. email/phone from registration)
+  // not steal focus when the previous field completes.
+  const advanceFocusFrom = (currentName) => {
+    const fields = [
+      { name: 'cardholderName', ref: cardholderNameInputRef, complete: cardholderName.trim().length > 0 },
+      { name: 'citizenId', ref: citizenIdInputRef, complete: isValidIsraeliId(citizenId) },
+      { name: 'billingEmail', ref: billingEmailInputRef, complete: /\S+@\S+\.\S+/.test(billingEmail) },
+      { name: 'cardOwnerPhone', ref: cardOwnerPhoneInputRef, complete: cardOwnerPhone.replace(/\D/g, '').length >= 10 },
+      { name: 'cardNumber', iframeId: 'CardComCardNumber', complete: cardNumberValid === true },
+      { name: 'expiry', ref: expiryInputRef, complete: expiry.length === 4 },
+      { name: 'cvv', iframeId: 'CardComCvv', complete: cvvValid === true },
+    ];
+    const idx = fields.findIndex(f => f.name === currentName);
+    if (idx < 0) return;
+    for (let i = idx + 1; i < fields.length; i++) {
+      const f = fields[i];
+      if (f.complete) continue;
+      if (f.iframeId) {
+        document.getElementById(f.iframeId)?.focus();
+      } else {
+        f.ref?.current?.focus();
+      }
+      return;
+    }
+  };
 
   return (
     <div className={styles.paymentContainer}>
@@ -417,15 +570,25 @@ export function PaymentStep({ translations, selectedPlan, userData, onComplete }
             </div>
             <div className={styles.orderRow}>
               <span>{translations.planPrice}</span>
-              <span>₪{priceBreakdown.fullMonthlyPrice}</span>
+              <span>
+                {formatUsd(priceBreakdown.fullMonthlyPriceUsd)}
+                <span style={{ fontSize: '0.75rem', opacity: 0.7, marginInlineStart: '0.375rem' }}>
+                  ≈ {formatIlsEstimate(priceBreakdown.fullMonthlyPriceUsd)}
+                </span>
+              </span>
             </div>
             {priceBreakdown.proration && priceBreakdown.proration.remainingDays < priceBreakdown.proration.totalDays && (
               <div className={styles.orderRow} style={{ fontSize: '0.75rem', opacity: 0.7 }}>
                 <span>{translations.prorated} ({priceBreakdown.proration.remainingDays}/{priceBreakdown.proration.totalDays} {translations.days})</span>
-                <span>₪{priceBreakdown.basePrice}</span>
+                <span>
+                  {formatUsd(priceBreakdown.basePriceUsd)}
+                  <span style={{ marginInlineStart: '0.375rem' }}>
+                    ≈ {formatIlsEstimate(priceBreakdown.basePriceUsd)}
+                  </span>
+                </span>
               </div>
             )}
-            {priceBreakdown.discount > 0 && (
+            {priceBreakdown.discountUsd > 0 && (
               <div className={styles.orderRow} style={{ color: '#22c55e' }}>
                 <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
                   <Ticket size={14} />
@@ -436,30 +599,67 @@ export function PaymentStep({ translations, selectedPlan, userData, onComplete }
                     </span>
                   )}
                 </span>
-                <span>-₪{priceBreakdown.discount}</span>
+                <span>
+                  -{formatUsd(priceBreakdown.discountUsd)}
+                  <span style={{ fontSize: '0.75rem', opacity: 0.7, marginInlineStart: '0.375rem' }}>
+                    ≈ -{formatIlsEstimate(priceBreakdown.discountUsd)}
+                  </span>
+                </span>
               </div>
             )}
             <div className={styles.orderRow}>
               <span>{translations.vat}</span>
-              <span>₪{priceBreakdown.vatAmount}</span>
+              <span>
+                {formatUsd(priceBreakdown.vatAmountUsd)}
+                <span style={{ fontSize: '0.75rem', opacity: 0.7, marginInlineStart: '0.375rem' }}>
+                  ≈ {formatIlsEstimate(priceBreakdown.vatAmountUsd)}
+                </span>
+              </span>
             </div>
             <div className={`${styles.orderRow} ${styles.orderTotal}`}>
               <span>{translations.total}</span>
-              <span>₪{priceBreakdown.totalPrice}</span>
+              <span>
+                {formatUsd(priceBreakdown.totalPriceUsd)}
+                <span style={{ fontSize: '0.8125rem', opacity: 0.75, marginInlineStart: '0.375rem' }}>
+                  ≈ {formatIlsEstimate(priceBreakdown.totalPriceUsd)}
+                </span>
+              </span>
             </div>
             <div className={styles.orderRow}>
               <span>{translations.recurringMonthly}</span>
-              <span>₪{priceBreakdown.recurringTotal}{selectedPlan?.period}</span>
+              <span>
+                {formatUsd(priceBreakdown.recurringTotalUsd)}
+                <span style={{ fontSize: '0.75rem', opacity: 0.7, marginInlineStart: '0.375rem' }}>
+                  ≈ {formatIlsEstimate(priceBreakdown.recurringTotalUsd)}{selectedPlan?.period}
+                </span>
+              </span>
             </div>
+            {couponData?.recurringPriceSchedule?.length > 0 && (
+              // The displayed "Recurring monthly" above is only accurate when
+              // the coupon doesn't have a multi-segment schedule. For
+              // schedule-driven coupons the recurring engine bills different
+              // amounts per cycle, so warn the user that future months may
+              // differ from this single number.
+              <p style={{ fontSize: '0.75rem', opacity: 0.7, marginTop: '0.25rem', lineHeight: 1.5 }}>
+                {translations.coupon?.scheduleHint || (lang === 'he'
+                  ? 'הקופון כולל לוח חיוב מדורג; הסכומים בחודשים הבאים עשויים להשתנות בהתאם לתנאי הקופון.'
+                  : 'This coupon has a multi-month price schedule; charges for upcoming months may differ from the amount shown.')}
+              </p>
+            )}
+            <p style={{ fontSize: '0.75rem', opacity: 0.7, marginTop: '0.75rem', lineHeight: 1.5 }}>
+              {translations.usdDisclaimer || (lang === 'he'
+                ? 'החיוב מתבצע בדולרים אמריקאים. הסכום בשקלים הוא הערכה לפי השער היומי; החיוב בפועל יומר על ידי הבנק שלך לפי השער שלו ועשוי להשתנות מעט.'
+                : 'Charged in USD. ILS amount shown is a daily-rate estimate; your bank converts at its own rate at the time of charge.')}
+            </p>
             {priceBreakdown.proration && priceBreakdown.proration.remainingDays < priceBreakdown.proration.totalDays && (() => {
               const d = priceBreakdown.proration.nextBillingDate;
               const dateStr = `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`;
               return (
                 <p style={{ fontSize: '0.75rem', opacity: 0.75, marginTop: '0.75rem', lineHeight: 1.5 }}>
                   {translations.billingDisclaimer
-                    ?.replace('{now}', `₪${priceBreakdown.totalPrice}`)
+                    ?.replace('{now}', formatUsd(priceBreakdown.totalPriceUsd))
                     .replace('{date}', dateStr)
-                    .replace('{recurring}', `₪${priceBreakdown.recurringTotal}`)}
+                    .replace('{recurring}', formatUsd(priceBreakdown.recurringTotalUsd))}
                 </p>
               );
             })()}
@@ -596,6 +796,7 @@ export function PaymentStep({ translations, selectedPlan, userData, onComplete }
                 {translations.cardholderName}
               </label>
               <input
+                ref={cardholderNameInputRef}
                 type="text"
                 id="cardholderName"
                 value={cardholderName}
@@ -613,10 +814,17 @@ export function PaymentStep({ translations, selectedPlan, userData, onComplete }
                   {translations.citizenId}
               </label>
               <input
+                ref={citizenIdInputRef}
                 type="text"
                 id="citizenId"
                 value={citizenId}
-                onChange={(e) => setCitizenId(e.target.value.replace(/\D/g, '').slice(0, 9))}
+                onChange={(e) => {
+                  const next = e.target.value.replace(/\D/g, '').slice(0, 9);
+                  setCitizenId(next);
+                  if (next.length === 9 && isValidIsraeliId(next)) {
+                    advanceFocusFrom('citizenId');
+                  }
+                }}
                 onBlur={() => setCitizenIdTouched(true)}
                 className={`${styles.formInput} ${showCitizenIdError ? styles.formInputError : ''}`}
                 placeholder={translations.citizenIdPlaceholder}
@@ -638,6 +846,7 @@ export function PaymentStep({ translations, selectedPlan, userData, onComplete }
                   {translations.billingEmail}
               </label>
               <input
+                ref={billingEmailInputRef}
                 type="email"
                 id="billingEmail"
                 value={billingEmail}
@@ -656,10 +865,17 @@ export function PaymentStep({ translations, selectedPlan, userData, onComplete }
                 {translations.phone}
               </label>
               <input
+                ref={cardOwnerPhoneInputRef}
                 type="tel"
                 id="cardOwnerPhone"
                 value={cardOwnerPhone}
-                onChange={(e) => setCardOwnerPhone(e.target.value.replace(/[^\d\-+]/g, '').slice(0, 15))}
+                onChange={(e) => {
+                  const next = e.target.value.replace(/[^\d\-+]/g, '').slice(0, 15);
+                  setCardOwnerPhone(next);
+                  if (next.replace(/\D/g, '').length === 10) {
+                    advanceFocusFrom('cardOwnerPhone');
+                  }
+                }}
                 onBlur={updateCardOwnerDetails}
                 className={styles.formInput}
                 placeholder={translations.phonePlaceholder}
@@ -689,36 +905,29 @@ export function PaymentStep({ translations, selectedPlan, userData, onComplete }
                   </div>
                 </div>
 
-                {/* Expiration & CVV Row */}
+                {/* Expiration (combined MM/YY) & CVV Row */}
                 <div className={styles.formRow}>
                   <div className={styles.formGroup}>
                     <label className={styles.formLabel}>
-                      {translations.expMonth}
+                      {translations.expiry || translations.expMonth}
                     </label>
                     <input
+                      ref={expiryInputRef}
                       type="text"
-                      value={expirationMonth}
-                      onChange={(e) => setExpirationMonth(e.target.value.replace(/\D/g, '').slice(0, 2))}
+                      inputMode="numeric"
+                      value={expiry.length <= 2 ? expiry : `${expiry.slice(0, 2)}/${expiry.slice(2)}`}
+                      onChange={(e) => {
+                        const digits = e.target.value.replace(/\D/g, '').slice(0, 4);
+                        setExpiry(digits);
+                        if (digits.length === 4) {
+                          advanceFocusFrom('expiry');
+                        }
+                      }}
                       className={styles.formInput}
-                      placeholder="MM"
+                      placeholder="MM/YY"
                       dir="ltr"
-                      maxLength={2}
-                      required
-                      disabled={isProcessing}
-                    />
-                  </div>
-                  <div className={styles.formGroup}>
-                    <label className={styles.formLabel}>
-                      {translations.expYear}
-                    </label>
-                    <input
-                      type="text"
-                      value={expirationYear}
-                      onChange={(e) => setExpirationYear(e.target.value.replace(/\D/g, '').slice(0, 2))}
-                      className={styles.formInput}
-                      placeholder="YY"
-                      dir="ltr"
-                      maxLength={2}
+                      style={{ textAlign: 'center' }}
+                      maxLength={5}
                       required
                       disabled={isProcessing}
                     />
@@ -753,10 +962,10 @@ export function PaymentStep({ translations, selectedPlan, userData, onComplete }
               <span>{translations.securePayment}</span>
             </div>
 
-            <button 
+            <button
               type="submit"
               className={styles.submitButton}
-              disabled={!isFormValid || isProcessing || (isPaidPlan && !lowProfileId)}
+              disabled={!isFormValid || isProcessing || (isPaidPlan && (!lowProfileId || !iframeReady))}
             >
               <span className={styles.buttonContent}>
                 {isProcessing ? (
@@ -764,10 +973,16 @@ export function PaymentStep({ translations, selectedPlan, userData, onComplete }
                     <Loader2 size={16} className={styles.spinIcon} />
                     {translations.processing}
                   </>
+                ) : isPaidPlan && (!lowProfileId || !iframeReady) ? (
+                  <>
+                    <Loader2 size={16} className={styles.spinIcon} />
+                    {translations.initializing}
+                  </>
                 ) : (
                   <>
                     <Lock size={16} />
-                    {translations.payNow} {isPaidPlan ? `₪${priceBreakdown.totalPrice}` : ''}
+                    {translations.payNow}
+                    {isPaidPlan ? ` ${formatUsd(priceBreakdown.totalPriceUsd)}` : ''}
                     <ArrowIcon className={styles.buttonIcon} />
                   </>
                 )}

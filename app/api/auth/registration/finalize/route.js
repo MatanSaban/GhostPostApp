@@ -149,7 +149,13 @@ export async function POST() {
             && (!coupon.applicablePlanIds?.length || coupon.applicablePlanIds.includes(plan.id));
 
           if (isValid) {
-            const expiresAt = coupon.durationMonths
+            // When a recurringPriceSchedule is present (B2), the schedule
+            // itself governs each cycle's price for the life of the
+            // subscription, so expiresAt stays null. durationMonths only
+            // applies to old-style schedule-less coupons.
+            const hasRecurringSchedule = Array.isArray(coupon.recurringPriceSchedule)
+              && coupon.recurringPriceSchedule.length > 0;
+            const expiresAt = (!hasRecurringSchedule && coupon.durationMonths)
               ? new Date(Date.now() + coupon.durationMonths * 30 * 24 * 60 * 60 * 1000)
               : null;
 
@@ -160,6 +166,12 @@ export async function POST() {
                 subscriptionId: subscription.id,
                 discountType: coupon.discountType,
                 discountValue: coupon.discountValue,
+                // Snapshot the schedule + price-floor flag at redemption time
+                // so the recurring billing engine keeps charging the price
+                // the user agreed to even if the admin edits the coupon
+                // later.
+                recurringPriceSchedule: Array.isArray(coupon.recurringPriceSchedule) ? coupon.recurringPriceSchedule : [],
+                floorOrderToZero: !!coupon.floorOrderToZero,
                 limitationOverrides: coupon.limitationOverrides || [],
                 extraFeatures: coupon.extraFeatures || [],
                 durationMonths: coupon.durationMonths,

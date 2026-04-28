@@ -2474,3 +2474,101 @@
   background: color-mix(in srgb, var(--primary) 15%, transparent);
   white-space: nowrap;
 }
+/* ── Cluster context (auto-mapped on wp_create_post proposals) ───── */
+
+.clusterContextBox {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin: 0.5rem 0;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.5rem;
+  background: rgba(34, 197, 94, 0.08);
+  border: 1px solid rgba(34, 197, 94, 0.2);
+  font-size: 0.75rem;
+
+  .dark & {
+    background: rgba(34, 197, 94, 0.12);
+  }
+}
+
+.clusterContextHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.clusterContextIcon {
+  color: rgb(22, 163, 74);
+  flex-shrink: 0;
+}
+
+.clusterContextLabel {
+  color: var(--muted-foreground);
+  font-weight: 500;
+}
+
+.clusterContextName {
+  color: var(--foreground);
+  font-weight: 600;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.clusterContextScore {
+  color: var(--muted-foreground);
+  font-variant-numeric: tabular-nums;
+  flex-shrink: 0;
+}
+
+.clusterContextWarning {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.45rem;
+  padding-top: 0.5rem;
+  border-top: 1px dashed rgba(34, 197, 94, 0.25);
+}
+
+.clusterContextWarningIcon {
+  color: rgb(217, 119, 6);
+  flex-shrink: 0;
+  margin-top: 0.1rem;
+}
+
+.clusterContextWarningBody {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.clusterContextConflicts {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.clusterContextConflicts li {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.clusterContextConflictTitle {
+  color: var(--foreground);
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.clusterContextConflictScore {
+  color: var(--muted-foreground);
+  font-variant-numeric: tabular-nums;
+  flex-shrink: 0;
+}

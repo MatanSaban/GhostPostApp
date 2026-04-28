@@ -1,26 +1,34 @@
-import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { addAiCredits } from '@/lib/account-utils';
 
+// CardCom expects HTTP 200 with body "OK" (or "-1") on its webhook callback.
+// Any other status — including the JSON 400/500 we used to return on errors —
+// triggers a 7-attempt retry storm: 1m, 2m, 2m, 16m, 60m, 12h, 12h.
+// We always ack with `OK` and surface real errors via server logs instead.
+const ackOk = () => new Response('OK', {
+  status: 200,
+  headers: { 'Content-Type': 'text/plain; charset=utf-8' },
+});
+
 /**
  * POST /api/payment/webhook
- * 
- * CardCom webhook handler - receives payment result notifications.
- * This is a backup verification mechanism; the primary flow uses /api/payment/confirm.
+ *
+ * CardCom webhook handler — receives payment result notifications.
+ * Backup verification path; the primary flow is /api/payment/confirm.
  */
 export async function POST(request) {
   try {
     const body = await request.json();
-    
+
     console.log('CardCom webhook received:', JSON.stringify(body, null, 2));
 
     const lowProfileId = body.LowProfileId || body.lowProfileId;
-    
+
     if (!lowProfileId) {
-      return NextResponse.json({ error: 'Missing LowProfileId' }, { status: 400 });
+      console.warn('Webhook: missing LowProfileId, payload:', body);
+      return ackOk();
     }
 
-    // Find the payment by transaction ID
     const payment = await prisma.payment.findFirst({
       where: { transactionId: lowProfileId },
       include: {
@@ -30,17 +38,15 @@ export async function POST(request) {
 
     if (!payment) {
       console.warn('Webhook: Payment not found for LowProfileId:', lowProfileId);
-      return NextResponse.json({ received: true, warning: 'Payment not found' });
+      return ackOk();
     }
 
-    // Skip if already completed
     if (payment.status === 'COMPLETED') {
-      return NextResponse.json({ received: true, message: 'Already completed' });
+      return ackOk();
     }
 
     const isSuccess = body.IsSuccess === true || body.IsSuccess === 'true';
 
-    // Update payment status
     await prisma.payment.update({
       where: { id: payment.id },
       data: {
@@ -53,10 +59,9 @@ export async function POST(request) {
       },
     });
 
-    // If successful and not yet processed, execute the action
     if (isSuccess) {
       const action = payment.metadata?.action;
-      
+
       if (action?.type === 'addon_purchase') {
         try {
           const addOn = await prisma.addOn.findUnique({ where: { id: action.addOnId } });
@@ -65,7 +70,7 @@ export async function POST(request) {
               where: {
                 subscriptionId: payment.account.subscription.id,
                 addOnId: addOn.id,
-                createdAt: { gte: new Date(Date.now() - 60000) }, // Within last minute
+                createdAt: { gte: new Date(Date.now() - 60000) },
               },
             });
 
@@ -98,14 +103,14 @@ export async function POST(request) {
       }
     }
 
-    return NextResponse.json({ received: true, status: isSuccess ? 'completed' : 'failed' });
+    return ackOk();
   } catch (error) {
     console.error('Webhook error:', error);
-    return NextResponse.json({ error: 'Webhook processing error' }, { status: 500 });
+    return ackOk();
   }
 }
 
-// CardCom may also send GET requests for verification
+// CardCom probes the URL with GET on setup; ack the same way.
 export async function GET() {
-  return NextResponse.json({ status: 'ok' });
+  return ackOk();
 }

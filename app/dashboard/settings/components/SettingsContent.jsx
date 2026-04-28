@@ -4,7 +4,7 @@ import { useState, useRef, useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Image from 'next/image';
-import { Settings, Sparkles, Calendar, Bell, Search, Link, Users, CreditCard, User, UserPlus, Globe, Puzzle, Clock, Timer, Workflow, AlertTriangle, Play, Download, Plus, Edit2, Trash2, Check, Zap, Crown, Shield, Lock, Loader2, Key, X, Send, RefreshCw, Ban, Building2, Package, Mail, Phone, Camera, AlertCircle, Eye, EyeOff, Unlink, Minus, ShoppingCart, ExternalLink, Bot, FileText, TrendingUp, Wrench, LogOut, ChevronUp, ChevronDown, ChevronLeft, ChevronRight, GitCompareArrows } from 'lucide-react';
+import { Settings, Sparkles, Calendar, Bell, Search, Link, Users, CreditCard, User, UserPlus, Globe, Puzzle, Clock, Timer, Workflow, AlertTriangle, Play, Download, Plus, Edit2, Trash2, Check, Zap, Crown, Shield, Lock, Loader2, Key, X, Send, RefreshCw, Ban, Building2, Package, Mail, Phone, Camera, AlertCircle, Eye, EyeOff, Unlink, Minus, ShoppingCart, ExternalLink, Bot, FileText, TrendingUp, Wrench, LogOut, ChevronUp, ChevronDown, ChevronLeft, ChevronRight, GitCompareArrows, Wallet, Star } from 'lucide-react';
 import { useSite } from '@/app/context/site-context';
 import { useLocale } from '@/app/context/locale-context';
 import { useUser } from '@/app/context/user-context';
@@ -47,10 +47,11 @@ const iconMap = {
   Bot,
   FileText,
   TrendingUp,
+  Wallet,
 };
 
 // Account-level tab IDs that require special permissions
-const ACCOUNT_TAB_IDS = ['users', 'roles', 'permissions', 'subscription', 'credits', 'addons', 'account', 'profile'];
+const ACCOUNT_TAB_IDS = ['users', 'roles', 'permissions', 'subscription', 'payment-methods', 'credits', 'addons', 'account', 'profile'];
 
 export default function SettingsContent({ translations, websiteTabs, accountTabs, mainTabs, initialData }) {
   const router = useRouter();
@@ -345,6 +346,8 @@ export default function SettingsContent({ translations, websiteTabs, accountTabs
         return <PermissionsSettings translations={translations} canEdit={canEdit} />;
       case 'subscription':
         return <SubscriptionSettings subscription={subscription} translations={translations} canEdit={canEdit} isLoading={userLoading} />;
+      case 'payment-methods':
+        return <PaymentMethodsSettings translations={translations} canEdit={canEdit} />;
       case 'credits':
         return <CreditsSettings subscription={subscription} translations={translations} canEdit={canEdit} isLoading={userLoading} />;
       case 'addons':
@@ -3477,6 +3480,237 @@ function PurchasedAddonsList({ translate, locale, filterType, title, icon: IconC
           </div>
         ))}
       </div>
+    </div>
+  );
+}
+
+// Payment Methods Settings Component
+// Manages saved CardCom tokens (PaymentMethod rows). Lets the user rename a
+// card (nickname), promote one to default, or delete one. Always renders the
+// last-4 digits + brand alongside the nickname so the user can verify which
+// card they're acting on.
+function PaymentMethodsSettings({ translations, canEdit = true }) {
+  const t = translations;
+  const { t: translate } = useLocale();
+  const [methods, setMethods] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [editingId, setEditingId] = useState(null);
+  const [editingNickname, setEditingNickname] = useState('');
+  const [busyId, setBusyId] = useState(null);
+  const [confirmDeleteId, setConfirmDeleteId] = useState(null);
+
+  const formatExpiry = (m, y) => {
+    if (!m || !y) return '';
+    const mm = String(m).padStart(2, '0');
+    const yy = String(y).slice(-2).padStart(2, '0');
+    return `${mm}/${yy}`;
+  };
+
+  const isDebitOrGift = (pm) =>
+    pm.cardInfo === 'GiftCard' ||
+    pm.cardInfo === 'ImmediateChargeCard' ||
+    pm.paymentType === 'ImmediateCharge';
+
+  const reload = async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const res = await fetch('/api/payment-methods');
+      if (!res.ok) throw new Error('failed');
+      const data = await res.json();
+      setMethods(data.paymentMethods || []);
+    } catch {
+      setError(translate('settings.paymentMethods.loadError') || 'Failed to load payment methods');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => { reload(); }, []);
+
+  const startRename = (pm) => {
+    setEditingId(pm.id);
+    setEditingNickname(pm.nickname || '');
+  };
+  const cancelRename = () => {
+    setEditingId(null);
+    setEditingNickname('');
+  };
+  const saveRename = async (pm) => {
+    setBusyId(pm.id);
+    try {
+      const res = await fetch(`/api/payment-methods/${pm.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ nickname: editingNickname.trim() || null }),
+      });
+      if (!res.ok) throw new Error('failed');
+      await reload();
+      cancelRename();
+    } finally {
+      setBusyId(null);
+    }
+  };
+
+  const setDefault = async (pm) => {
+    if (pm.isDefault) return;
+    setBusyId(pm.id);
+    try {
+      await fetch(`/api/payment-methods/${pm.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ isDefault: true }),
+      });
+      await reload();
+    } finally {
+      setBusyId(null);
+    }
+  };
+
+  const remove = async (id) => {
+    setBusyId(id);
+    try {
+      await fetch(`/api/payment-methods/${id}`, { method: 'DELETE' });
+      await reload();
+    } finally {
+      setBusyId(null);
+      setConfirmDeleteId(null);
+    }
+  };
+
+  const renderCard = (pm) => {
+    const last4 = pm.cardLast4 ? `•••• ${pm.cardLast4}` : '';
+    const display = pm.nickname
+      ? `${pm.nickname} ${last4}`.trim()
+      : (pm.cardBrand ? `${pm.cardBrand} ${last4}`.trim() : last4 || translate('settings.paymentMethods.unnamedCard') || 'Card');
+
+    return (
+      <div
+        key={pm.id}
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          gap: '0.75rem',
+          padding: '0.875rem 1rem',
+          border: pm.isDefault ? '1px solid var(--primary, #7b2cbf)' : '1px solid var(--border, #e5e7eb)',
+          borderRadius: '0.5rem',
+          background: 'var(--card, #fff)',
+          marginBottom: '0.5rem',
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flex: 1, minWidth: 0 }}>
+          <CreditCard size={18} style={{ flexShrink: 0, opacity: 0.7 }} />
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.125rem', minWidth: 0 }}>
+            {editingId === pm.id ? (
+              <input
+                type="text"
+                value={editingNickname}
+                maxLength={50}
+                onChange={(e) => setEditingNickname(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') saveRename(pm);
+                  if (e.key === 'Escape') cancelRename();
+                }}
+                placeholder={translate('settings.paymentMethods.nicknamePlaceholder') || 'Card nickname'}
+                autoFocus
+                style={{
+                  fontSize: '0.875rem', padding: '0.25rem 0.5rem',
+                  border: '1px solid var(--input-border, #e5e7eb)', borderRadius: '0.25rem',
+                }}
+              />
+            ) : (
+              <span style={{ fontSize: '0.9375rem', fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                {display}
+              </span>
+            )}
+            <span style={{ fontSize: '0.75rem', opacity: 0.7, display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
+              {formatExpiry(pm.cardMonth, pm.cardYear) && <span>{formatExpiry(pm.cardMonth, pm.cardYear)}</span>}
+              {pm.isDefault && (
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.125rem', color: 'var(--primary, #7b2cbf)' }}>
+                  <Star size={10} fill="currentColor" />
+                  {translate('settings.paymentMethods.default') || 'Default'}
+                </span>
+              )}
+              {isDebitOrGift(pm) && (
+                <span style={{ color: '#f59e0b' }}>
+                  {pm.cardInfo === 'GiftCard'
+                    ? (translate('settings.paymentMethods.giftCardWarning') || 'Gift card — not usable')
+                    : (translate('settings.paymentMethods.debitCardWarning') || 'Debit card — addons only, not subscription')}
+                </span>
+              )}
+            </span>
+          </div>
+        </div>
+        <div style={{ display: 'flex', gap: '0.375rem', alignItems: 'center', flexShrink: 0 }}>
+          {editingId === pm.id ? (
+            <>
+              <Button size="sm" onClick={() => saveRename(pm)} disabled={busyId === pm.id}>
+                <Check size={14} />
+              </Button>
+              <Button size="sm" variant="ghost" onClick={cancelRename} disabled={busyId === pm.id}>
+                <X size={14} />
+              </Button>
+            </>
+          ) : (
+            <>
+              {canEdit && !pm.isDefault && !isDebitOrGift(pm) && (
+                <Button size="sm" variant="default" onClick={() => setDefault(pm)} disabled={busyId === pm.id}>
+                  {translate('settings.paymentMethods.makeDefault') || 'Make default'}
+                </Button>
+              )}
+              {canEdit && (
+                <Button size="sm" variant="ghost" iconOnly onClick={() => startRename(pm)} disabled={busyId === pm.id}>
+                  <Edit2 size={14} />
+                </Button>
+              )}
+              {canEdit && (
+                <Button size="sm" variant="ghost" iconOnly iconDanger onClick={() => setConfirmDeleteId(pm.id)} disabled={busyId === pm.id}>
+                  <Trash2 size={14} />
+                </Button>
+              )}
+            </>
+          )}
+        </div>
+      </div>
+    );
+  };
+
+  return (
+    <div className={styles.settingsSection}>
+      <div className={styles.sectionHeader}>
+        <h2>{translate('settings.paymentMethods.title') || 'Payment Methods'}</h2>
+        <p>{translate('settings.paymentMethods.description') || 'Saved cards used for subscription renewals and one-click addon purchases.'}</p>
+      </div>
+
+      {isLoading ? (
+        <SettingsFormSkeleton />
+      ) : error ? (
+        <div className={styles.errorMessage || ''} style={{ color: '#ef4444', padding: '0.75rem' }}>
+          {error}
+        </div>
+      ) : methods.length === 0 ? (
+        <div style={{ padding: '2rem', textAlign: 'center', opacity: 0.7, fontSize: '0.875rem' }}>
+          {translate('settings.paymentMethods.empty') || 'No saved cards yet. A card is saved automatically the first time you complete a subscription or addon purchase.'}
+        </div>
+      ) : (
+        <div>
+          {methods.map(renderCard)}
+        </div>
+      )}
+
+      {confirmDeleteId && (
+        <ConfirmModal
+          isOpen={true}
+          onClose={() => setConfirmDeleteId(null)}
+          onConfirm={() => remove(confirmDeleteId)}
+          title={translate('settings.paymentMethods.deleteTitle') || 'Remove this payment method?'}
+          message={translate('settings.paymentMethods.deleteMessage') || 'You can always add it back the next time you make a purchase. If this card is being used for a recurring subscription, the next renewal will fail until you add another card.'}
+          confirmText={translate('settings.paymentMethods.deleteConfirm') || 'Remove'}
+          danger
+        />
+      )}
     </div>
   );
 }

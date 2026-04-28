@@ -34,6 +34,12 @@ export default async function AIContentWizardPage() {
       notWordpress: t('aiWizard.wpRequired.notWordpress'),
       notConnected: t('aiWizard.wpRequired.notConnected'),
     },
+    // Cluster context (when wizard is launched via ?clusterId=)
+    clusterContext: {
+      label: t('aiWizard.clusterContext.label'),
+      members: t('aiWizard.clusterContext.members'),
+      loading: t('aiWizard.clusterContext.loading'),
+    },
     // Campaign step
     campaign: {
       title: t('aiWizard.campaign.title'),

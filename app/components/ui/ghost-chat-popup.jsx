@@ -10,7 +10,7 @@ import {
   Globe, Target, Users, Wrench, TrendingUp, Link2, CalendarDays, ShieldCheck,
   Loader2, CheckCircle, XCircle, AlertTriangle, RotateCcw, Timer,
   Monitor, Smartphone, Tablet, MousePointerClick, ExternalLink,
-  MessageCircle,
+  MessageCircle, Network,
 } from 'lucide-react';
 import { useLocale } from '@/app/context/locale-context';
 import { useSite } from '@/app/context/site-context';
@@ -1553,6 +1553,53 @@ export const GhostChatPopup = forwardRef(function GhostChatPopup({ isOpen, onClo
                                       <ReactMarkdown remarkPlugins={[remarkGfm]}>
                                         {input.description}
                                       </ReactMarkdown>
+                                    </div>
+                                  )}
+
+                                  {/* Cluster context — auto-mapped from a wp_create_post action.
+                                      Surfaces the matched cluster + any cannibalization preflight conflicts. */}
+                                  {actionStatus?.clusterContext && (
+                                    <div className={styles.clusterContextBox}>
+                                      <div className={styles.clusterContextHeader}>
+                                        <Network size={14} className={styles.clusterContextIcon} />
+                                        <span className={styles.clusterContextLabel}>
+                                          {t('chat.actionCard.cluster.label') || 'Cluster'}:
+                                        </span>
+                                        <span className={styles.clusterContextName}>
+                                          {actionStatus.clusterContext.clusterName}
+                                        </span>
+                                        <span className={styles.clusterContextScore}>
+                                          {Math.round((actionStatus.clusterContext.matchScore || 0) * 100)}%
+                                        </span>
+                                      </div>
+                                      {actionStatus.clusterContext.preflight?.hasConflict && (
+                                        <div className={styles.clusterContextWarning}>
+                                          <AlertTriangle size={14} className={styles.clusterContextWarningIcon} />
+                                          <div className={styles.clusterContextWarningBody}>
+                                            <strong>
+                                              {(t('chat.actionCard.cluster.warning') || '{n} potential conflict(s)')
+                                                .replace(
+                                                  '{n}',
+                                                  String(actionStatus.clusterContext.preflight.conflicts?.length || 0),
+                                                )}
+                                            </strong>
+                                            <ul className={styles.clusterContextConflicts}>
+                                              {(actionStatus.clusterContext.preflight.conflicts || [])
+                                                .slice(0, 3)
+                                                .map((c, ci) => (
+                                                  <li key={`${c.entityId}-${ci}`}>
+                                                    <span className={styles.clusterContextConflictTitle}>
+                                                      {c.entityTitle}
+                                                    </span>
+                                                    <span className={styles.clusterContextConflictScore}>
+                                                      {Math.round((c.score || 0) * 100)}%
+                                                    </span>
+                                                  </li>
+                                                ))}
+                                            </ul>
+                                          </div>
+                                        </div>
+                                      )}
                                     </div>
                                   )}
 

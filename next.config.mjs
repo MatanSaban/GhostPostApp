@@ -1,7 +1,18 @@
 import { dirname } from 'path';
 import { fileURLToPath } from 'url';
+import withSerwistInit from '@serwist/next';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
+
+const withSerwist = withSerwistInit({
+  swSrc: 'app/sw.js',
+  swDest: 'public/sw.js',
+  // Disable in dev so HMR isn't fighting a cached service worker.
+  // The SW still runs in production builds.
+  disable: process.env.NODE_ENV === 'development',
+  cacheOnNavigation: true,
+  reloadOnOnline: true,
+});
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
@@ -29,4 +40,4 @@ const nextConfig = {
   },
 };
 
-export default nextConfig;
+export default withSerwist(nextConfig);

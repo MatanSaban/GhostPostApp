@@ -148,7 +148,8 @@ export default function AddCreditsModal({ isOpen, onClose }) {
               </div>
               <CardComPaymentForm
                 amount={selectedAddon.price * selectedQty}
-                currency={selectedAddon.currency || 'ILS'}
+                currency={selectedAddon.currency || 'USD'}
+                usdToIlsRate={selectedAddon.usdToIlsRate}
                 productName={selectedAddon.name}
                 action={{
                   type: 'addon_purchase',

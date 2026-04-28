@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import prisma from '@/lib/prisma';
-import { createLowProfile, buildDocument } from '@/lib/cardcom';
+import { createLowProfile } from '@/lib/cardcom';
 
 const SESSION_COOKIE = 'user_session';
 
@@ -39,7 +39,7 @@ export async function POST(request) {
     }
 
     const body = await request.json();
-    const { amount, currency = 'ILS', productName, language = 'he', action } = body;
+    const { amount, currency = 'USD', productName, language = 'he', action } = body;
 
     if (!amount || amount <= 0) {
       return NextResponse.json({ error: 'Invalid amount' }, { status: 400 });
@@ -67,28 +67,23 @@ export async function POST(request) {
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.NEXTAUTH_URL || '';
     const webhookUrl = baseUrl ? `${baseUrl}/api/payment/webhook` : '';
 
-    // Build document for invoice
-    const document = buildDocument({
-      customerName: `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.email,
-      customerEmail: user.email,
-      customerPhone: user.phoneNumber || '',
-      products: [{
-        productId: action.itemId || '',
-        description: productName,
-        quantity: action.quantity || 1,
-        unitCost: amount / (action.quantity || 1),
-      }],
-      language,
-    });
-
-    // Create LowProfile deal at CardCom
+    // Two-step charge flow (matches the registration path):
+    //   1) here — Operation: CreateTokenOnly + JValidateType: 2 (J2). CardCom
+    //      validates the card with the issuer (catches bad CVV / expired
+    //      card) and issues a token, but does NOT charge yet. No document
+    //      attached to this LP — the invoice is generated against the actual
+    //      charge in /payment/confirm.
+    //   2) /payment/confirm — runs Transactions/Transaction with the token
+    //      + invoice document. Token saved into PaymentMethod for one-click
+    //      reuse on future addon purchases.
     const lpResult = await createLowProfile({
       amount,
       currency,
       productName,
       language,
       webhookUrl,
-      document,
+      operation: 'CreateTokenOnly',
+      jValidateType: 2,
     });
 
     if (!lpResult.LowProfileId) {

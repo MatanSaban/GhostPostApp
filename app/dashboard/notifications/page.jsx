@@ -22,6 +22,7 @@ import {
 } from 'lucide-react';
 import { useLocale } from '@/app/context/locale-context';
 import { useNotifications } from '@/app/context/notifications-context';
+import PushSubscribeButton from '@/app/components/PushSubscribeButton';
 import styles from './page.module.css';
 
 // Notification type → icon mapping (same as DashboardHeader)
@@ -259,6 +260,8 @@ export default function NotificationsPage() {
           </div>
         )}
       </div>
+
+      <PushSubscribeButton />
 
       {/* Filters */}
       <div className={styles.filters} data-onboarding="notifications-filters">

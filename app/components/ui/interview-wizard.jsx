@@ -953,10 +953,13 @@ export const InterviewWizard = forwardRef(function InterviewWizard({ onClose, on
   const submitResponse = async (questionId, response) => {
     try {
       setIsProcessing(true);
+      // Send the chat's UI locale so submit-time auto-actions (e.g.
+      // CRAWL_WEBSITE on the URL question) extract description/category/etc.
+      // in the user's language rather than the site's content language.
       const res = await fetch('/api/interview', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ questionId, response, interviewId }),
+        body: JSON.stringify({ questionId, response, interviewId, userLocale: locale }),
       });
       
       if (!res.ok) {
@@ -1041,16 +1044,21 @@ export const InterviewWizard = forwardRef(function InterviewWizard({ onClose, on
     return {};
   };
 
-  // Trigger an AI action and get suggestions
+  // Trigger an AI action and get suggestions. We tack the user's UI locale
+  // onto every action's parameters so handlers that produce human-readable
+  // text (CRAWL_WEBSITE, GENERATE_KEYWORDS, ANALYZE_WRITING_STYLE,
+  // FIND_COMPETITORS) can write their output in the chat's language rather
+  // than the website's language. Handlers ignore unknown params, so this is
+  // safe to send to all of them unconditionally.
   const triggerAiAction = async (actionName, params) => {
     try {
       setIsLoadingAiSuggestions(true);
       const res = await fetch('/api/interview/actions', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          actionName, 
-          parameters: params,
+        body: JSON.stringify({
+          actionName,
+          parameters: { userLocale: locale, ...params },
           interviewId,
         }),
       });
