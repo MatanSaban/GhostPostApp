@@ -1,8 +1,13 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import prisma from '@/lib/prisma';
+import { preflightCandidates } from '@/lib/cluster-cannibalization-preflight';
 
 const SESSION_COOKIE = 'user_session';
+
+// Preflight runs an embedding pass against all cluster members; allow extra
+// headroom for campaigns with many planned posts.
+export const maxDuration = 300;
 
 async function getAuthenticatedUser() {
   const cookieStore = await cookies();
@@ -18,8 +23,7 @@ async function verifySiteAccess(siteId, user) {
   const where = user.isSuperAdmin
     ? { id: siteId }
     : { id: siteId, account: { members: { some: { userId: user.id } } } };
-  return prisma.site.findFirst({ where,
-    select: { id: true } });
+  return prisma.site.findFirst({ where, select: { id: true, accountId: true } });
 }
 
 /**
@@ -52,7 +56,7 @@ export async function POST(request, { params }) {
       return NextResponse.json({ error: 'Campaign not found' }, { status: 404 });
     }
 
-    const site = await verifySiteAccess(campaign.siteId, user.id);
+    const site = await verifySiteAccess(campaign.siteId, user);
     if (!site) {
       return NextResponse.json({ error: 'No access' }, { status: 403 });
     }
@@ -99,8 +103,34 @@ export async function POST(request, { params }) {
       });
     }
 
+    // ── Cluster cannibalization preflight ────────────────────────
+    // If the campaign is linked to a TopicCluster, check each planned post
+    // against existing cluster members and stash warnings on the Content row.
+    // Best-effort: if preflight throws, we still activate without warnings.
+    let preflightResults = plan.map(() => ({ hasConflict: false, conflicts: [] }));
+    if (campaign.topicClusterId) {
+      try {
+        const candidates = plan.map((entry) => ({
+          title: entry.title || `Post ${(entry.index || 0) + 1}`,
+          excerpt: entry.subject?.explanation || '',
+        }));
+        const { results } = await preflightCandidates({
+          candidates,
+          topicClusterId: campaign.topicClusterId,
+          accountId: site.accountId,
+          userId: user.id,
+          siteId: campaign.siteId,
+        });
+        if (Array.isArray(results) && results.length === plan.length) {
+          preflightResults = results;
+        }
+      } catch (err) {
+        console.error('[Campaign Activate] Preflight failed (non-fatal):', err.message);
+      }
+    }
+
     // ── Create Content records from the plan ─────────────────────
-    const contentRecords = plan.map((entry) => ({
+    const contentRecords = plan.map((entry, i) => ({
       siteId: campaign.siteId,
       campaignId: campaign.id,
       keywordId: entry.keywordId || null,
@@ -109,6 +139,7 @@ export async function POST(request, { params }) {
       type: entry.type || 'BLOG_POST',
       scheduledAt: new Date(entry.scheduledAt),
       aiGenerated: true,
+      preflight: preflightResults[i],
     }));
 
     // Use createMany for efficient batch insertion
@@ -122,10 +153,13 @@ export async function POST(request, { params }) {
       data: { status: 'ACTIVE' },
     });
 
+    const withConflicts = preflightResults.filter((r) => r?.hasConflict).length;
+
     return NextResponse.json({
       campaign: updated,
       message: `Campaign activated with ${result.count} scheduled posts`,
       contentsCreated: result.count,
+      preflightConflicts: withConflicts,
     });
   } catch (error) {
     console.error('[Campaign Activate] Error:', error);

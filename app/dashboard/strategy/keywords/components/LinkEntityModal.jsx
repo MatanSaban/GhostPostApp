@@ -7,15 +7,15 @@ import { useTranslation, useLocale } from '@/app/context/locale-context';
 import styles from './LinkEntityModal.module.css';
 
 /**
- * Modal for linking a keyword to an existing SiteEntity — page, post,
+ * Modal for linking a keyword to an existing SiteEntity - page, post,
  * category, or any custom type the user has populated for their site.
  *
  * Props:
  *   isOpen    boolean
  *   onClose   () => void
- *   siteId    string — the current site
- *   keyword   { id, keyword } — keyword being linked
- *   onLinked  (keywordId, entity) => void — called with { id, title, url, entityTypeSlug, entityTypeName, entityTypeLabels }
+ *   siteId    string - the current site
+ *   keyword   { id, keyword } - keyword being linked
+ *   onLinked  (keywordId, entity) => void - called with { id, title, url, entityTypeSlug, entityTypeName, entityTypeLabels }
  */
 export function LinkEntityModal({ isOpen, onClose, siteId, keyword, onLinked }) {
   const { t } = useTranslation();
@@ -74,7 +74,7 @@ export function LinkEntityModal({ isOpen, onClose, siteId, keyword, onLinked }) 
     };
   }, [isOpen]);
 
-  // Esc closes (unless actively linking — don't interrupt the request).
+  // Esc closes (unless actively linking - don't interrupt the request).
   useEffect(() => {
     if (!isOpen) return;
     const handler = (e) => {

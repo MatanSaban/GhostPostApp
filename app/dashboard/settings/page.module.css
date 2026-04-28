@@ -911,7 +911,7 @@
 
 /* Subscription Card */
 /*
- * Plan hero card — redesigned. Card background stays flat (inherits the
+ * Plan hero card - redesigned. Card background stays flat (inherits the
  * settings card look) while the "crown" icon gets a pill-shaped gradient
  * chip so the plan name has visual anchoring without the whole card
  * pulling focus. A thin left-edge accent stripe ties it to the rest of
@@ -995,7 +995,7 @@
 }
 
 /*
- * Gradient chip around the crown — anchors the plan name visually and
+ * Gradient chip around the crown - anchors the plan name visually and
  * gives the card one strong brand-colored element without tinting the
  * whole background.
  */
@@ -1435,7 +1435,7 @@
 
 /*
  * Header stacks vertically inside each tile: label on top, value below.
- * Previously this was a horizontal row — that worked in the list layout
+ * Previously this was a horizontal row - that worked in the list layout
  * but tiles are too narrow to keep label and value side-by-side.
  */
 .limitationHeader {
@@ -1452,10 +1452,10 @@
   margin-inline-start: 0.35rem;
   white-space: nowrap;
   /*
-   * No forced direction — let bidi order the numbers naturally. In LTR
+   * No forced direction - let bidi order the numbers naturally. In LTR
    * the text reads "used/total", in RTL the digit runs are placed
    * right-to-left giving visual "total/used", which an RTL reader
-   * scans as usage-first (on the right) then limit — matching the
+   * scans as usage-first (on the right) then limit - matching the
    * main plan value just above.
    */
 }
@@ -1485,7 +1485,7 @@
    * on their natural sides:
    *   - LTR:  "1,000 / 1,000" on the left, addon/temp badges on the right
    *   - RTL:  addon/temp badges on the left, "1,000 / 1,000" on the right
-   * Same pattern as the header credits pair — the numbers inside each
+   * Same pattern as the header credits pair - the numbers inside each
    * span follow the page's bidi rules, and the group/badge ordering
    * follows the page direction too.
    */
@@ -4439,7 +4439,7 @@
   }
 }
 
-/* Report period picker — two month dropdowns shown above Generate button */
+/* Report period picker - two month dropdowns shown above Generate button */
 .reportPeriodPicker {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -4470,7 +4470,7 @@
 }
 
 /*
- * Filters bar — search box on the start edge, then status / year /
+ * Filters bar - search box on the start edge, then status / year /
  * language selects, and (when more than a page exists) compact
  * pagination on the end edge. Designed to read the same in light
  * and dark themes by relying on platform tokens (`--muted`,
@@ -4652,7 +4652,7 @@
   transform: scaleX(-1);
 }
 
-/* Report status pill — interactive (select) variant + PENDING spinner */
+/* Report status pill - interactive (select) variant + PENDING spinner */
 .reportStatus.pending {
   display: inline-flex;
   align-items: center;
@@ -4723,7 +4723,7 @@
 .reportStatusCaret {
   /*
    * Vertical centering done via flex on the wrap (parent has
-   * `align-items: center`), not via `transform: translateY(-50%)` —
+   * `align-items: center`), not via `transform: translateY(-50%)` -
    * the global RTL chevron auto-flip in globals.css applies
    * `transform: scaleX(-1)` to all chevron icons and would clobber
    * a translate Y, pushing the caret down by half its height.
@@ -4754,7 +4754,7 @@
 }
 
 /* The whole recipients cell is a button so users can click anywhere on
-   it to edit. Underline-on-hover is the affordance — at rest it looks
+   it to edit. Underline-on-hover is the affordance - at rest it looks
    like plain text so the table doesn't read as a row of buttons. */
 .reportRecipientsBtn {
   background: transparent;
@@ -4784,7 +4784,7 @@
   text-decoration: none;
 }
 
-/* Sections column — small text with truncation, mirrors recipients style. */
+/* Sections column - small text with truncation, mirrors recipients style. */
 .reportSectionsCell {
   font-size: 0.8125rem;
   color: var(--foreground);
@@ -4800,7 +4800,7 @@
   color: var(--foreground);
 }
 
-/* Created column — date on top, time muted underneath. The time is
+/* Created column - date on top, time muted underneath. The time is
    always rendered LTR so HH:MM stays readable next to a Hebrew date. */
 .reportGeneratedCell {
   display: flex;
@@ -4816,7 +4816,7 @@
   direction: ltr;
 }
 
-/* Comparison cell — two month labels with a compare icon between
+/* Comparison cell - two month labels with a compare icon between
    them. inline-flex so the icon stays vertically centered with the
    labels and the gap is consistent. */
 .reportMonthCompare {
@@ -4833,7 +4833,7 @@
   flex-shrink: 0;
 }
 
-/* Languages cell — small uppercase locale chips (EN, HE) clustered
+/* Languages cell - small uppercase locale chips (EN, HE) clustered
    together so the user immediately sees what languages exist. */
 .reportLanguagesCell {
   display: inline-flex !important;
@@ -4855,7 +4855,7 @@
   letter-spacing: 0.04em;
 }
 
-/* Delete button — ghost style by default, tints red on hover so the
+/* Delete button - ghost style by default, tints red on hover so the
    destructive action is signaled without dominating the row at rest. */
 .reportActionDanger:hover:not(:disabled),
 .reportActionDanger:focus-visible:not(:disabled) {
@@ -4870,7 +4870,7 @@
  * sets `border: 1px solid border-light` plus a `border-color: primary`
  * on hover. With the table container's overflow:hidden + border-radius,
  * those borders get clipped at the rounded corners and the row reads
- * as a broken pill on hover — both for thead and tbody rows.
+ * as a broken pill on hover - both for thead and tbody rows.
  *
  * Because `tableRow` lives in a different CSS module its class name is
  * hashed (e.g. `shared-module_tableRow__abc123`) by the time it hits
@@ -4901,7 +4901,7 @@
   width: 100%;
 }
 
-/* Actions column aligns to start in both LTR and RTL — the header
+/* Actions column aligns to start in both LTR and RTL - the header
    sits on the same side as every other header (right in RTL), and
    the action toolbar matches by pinning to flex-start. */
 .reportActions {
@@ -5233,7 +5233,7 @@
 }
 
 /*
- * Report-section chooser — one row per section with a checkbox, a label
+ * Report-section chooser - one row per section with a checkbox, a label
  * and a pair of ↑/↓ controls on the side. Disabled rows get a muted
  * look so the user can still see them and re-enable, but it's obvious
  * which ones won't be in the next export.

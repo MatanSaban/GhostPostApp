@@ -144,7 +144,7 @@ export default function SmartActionButton({
           {busy && busyLabel ? busyLabel : (children || label)}
         </span>
 
-        {/* Cost badge — Ai-GCoin price for this action */}
+        {/* Cost badge - Ai-GCoin price for this action */}
         {costCredits != null && !busy && (
           <span className={styles.usageBadge} aria-label={`${costCredits} Ai-GCoins`}>
             <GCoinIcon size={Math.max(10, iconSize - 4)} />

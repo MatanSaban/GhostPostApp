@@ -1395,6 +1395,7 @@ export function ContentPlannerView({ translations }) {
         onClose={closePopover}
         translations={{
           ...translations.preview,
+          preflight: translations.preflight,
           published: translations.published,
           scheduled: translations.scheduled,
           draft: translations.draft,

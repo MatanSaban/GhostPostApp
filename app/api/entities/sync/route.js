@@ -133,7 +133,7 @@ export async function POST(request) {
     // Get user's account IDs
     const accountIds = user.accountMemberships.map(m => m.accountId);
 
-    // Get the site with connection details (full row — adapter may need any field)
+    // Get the site with connection details (full row - adapter may need any field)
     const site = await prisma.site.findFirst({
       where: user.isSuperAdmin ? { id: siteId } : { id: siteId, accountId: { in: accountIds } },
     });

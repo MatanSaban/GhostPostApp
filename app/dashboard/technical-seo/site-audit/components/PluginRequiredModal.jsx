@@ -16,7 +16,7 @@ import { useCapabilities } from '@/app/hooks/useCapabilities';
 import styles from './PluginRequiredModal.module.css';
 
 /**
- * ConnectionRequiredModal — shown when an action needs the site to be
+ * ConnectionRequiredModal - shown when an action needs the site to be
  * connected (WP plugin for WordPress, OAuth app for Shopify). The modal
  * swaps copy + primary CTA based on capabilities instead of assuming
  * WordPress.

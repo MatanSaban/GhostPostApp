@@ -150,7 +150,7 @@ export function getAdminCss() {
     letter-spacing: -0.3px;
 }
 
-/* Wordmark logo in the plugin topbar — replaces the icon+text combo with
+/* Wordmark logo in the plugin topbar - replaces the icon+text combo with
  * a single theme-aware image (logo-light.svg on light theme, logo-dark.svg
  * on dark theme). Width is auto so the wordmark proportions are preserved. */
 .gp-topbar-wordmark {
@@ -169,7 +169,7 @@ export function getAdminCss() {
     display: block;
 }
 
-/* AI Agent Issue URL line — render strictly LTR even on Hebrew sites so
+/* AI Agent Issue URL line - render strictly LTR even on Hebrew sites so
  * a URL whose path contains Hebrew chars (decoded by the server) doesn't
  * get reversed by the parent RTL bidi context. */
 .gp-issue-url {
@@ -181,7 +181,7 @@ export function getAdminCss() {
     font-size: 12px;
 }
 
-/* Top-pages cell may hold a title (any language) or a URL fallback —
+/* Top-pages cell may hold a title (any language) or a URL fallback -
  * unicode-bidi:isolate keeps URL fragments LTR while leaving titles
  * to follow the page's natural direction. */
 .gp-page-cell {
@@ -655,7 +655,7 @@ export function getAdminCss() {
     color: var(--gp-primary);
 }
 
-/* Activity tab pagination — Prev / page-info / Next, controlled by ?activity_page=N. */
+/* Activity tab pagination - Prev / page-info / Next, controlled by ?activity_page=N. */
 .gp-activity-pagination {
     display: flex;
     align-items: center;

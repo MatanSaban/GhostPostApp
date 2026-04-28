@@ -5,8 +5,8 @@ import styles from './media.module.css';
 
 /**
  * Suspense fallback for /dashboard/entities/media that mirrors the full
- * layout the page component shows during its in-page loading state —
- * header, top pagination bar, and grid — so there is no visible "pop-in"
+ * layout the page component shows during its in-page loading state -
+ * header, top pagination bar, and grid - so there is no visible "pop-in"
  * when the fallback is replaced by the real page. Without this file the
  * router falls back to /dashboard/entities/loading.jsx, whose layout is
  * for a different page entirely.

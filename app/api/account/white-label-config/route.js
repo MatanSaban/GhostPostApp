@@ -120,7 +120,7 @@ export async function PUT(request) {
     // Merge with existing config instead of replacing it. Previously we
     // rebuilt whiteLabelConfig from the request body alone, so a PUT that
     // sent only `{agencyLogo: url}` wiped agencyName / accentColor /
-    // replyToEmail back to defaults — and vice-versa, the "Save" button
+    // replyToEmail back to defaults - and vice-versa, the "Save" button
     // on the White-Label section (which sends only accentColor +
     // replyToEmail) silently erased the uploaded logo.
     const existing =

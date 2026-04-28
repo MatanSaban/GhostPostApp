@@ -56,7 +56,7 @@ export async function POST(request, { params }) {
       currentMonthKey: existing.metadata?.currentMonth || null,
       previousMonthKey: existing.metadata?.previousMonth || null,
       forceMonth: existing.month,
-      // Reuse the persisted snapshot — only the PDF render layer runs again.
+      // Reuse the persisted snapshot - only the PDF render layer runs again.
       // Pulling the latest aiSummary from the archive captures any user
       // edits made since the last render.
       snapshot: {

@@ -80,7 +80,7 @@ const POLL_INTERVAL = 3000;
  * The Wand2/Wrench/Loader2 icons are rendered by the FixButton component.
  */
 
-/** Security header issue keys — used to filter into the SecurityHeadersModal. */
+/** Security header issue keys - used to filter into the SecurityHeadersModal. */
 const SECURITY_HEADER_ISSUES = new Set([
   'audit.issues.noHsts',
   'audit.issues.noXFrameOptions',

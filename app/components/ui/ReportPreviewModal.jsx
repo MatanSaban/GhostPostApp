@@ -169,7 +169,7 @@ export function ReportPreviewModal({ isOpen, onClose, reportId, onUpdated }) {
   }, [sectionsEditing, sectionsDraft]);
 
   // The draft is "dirty" when its ordered enabled-id list differs from
-  // the persisted sectionsOrdered — this gates the Save bar.
+  // the persisted sectionsOrdered - this gates the Save bar.
   const sectionsDirty = useMemo(() => {
     if (!sectionsEditing) return false;
     const draft = sectionsDraft.filter((s) => s?.enabled !== false).map((s) => s.id);
@@ -205,7 +205,7 @@ export function ReportPreviewModal({ isOpen, onClose, reportId, onUpdated }) {
   };
 
   const removeDraftSection = (id) => {
-    // Soft-disable rather than splice — preserves position so re-adding
+    // Soft-disable rather than splice - preserves position so re-adding
     // doesn't reorder unrelated sections.
     setSectionsDraft((prev) => prev.map((s) => (s.id === id ? { ...s, enabled: false } : s)));
   };
@@ -295,7 +295,7 @@ export function ReportPreviewModal({ isOpen, onClose, reportId, onUpdated }) {
     }
   };
 
-  // Full PDF regeneration — used by the snapshot-missing fallback
+  // Full PDF regeneration - used by the snapshot-missing fallback
   // (no preview data available, only path forward is to re-render
   // the whole report). The section-editor save bar uses its own
   // handler since it also persists section changes first.
@@ -309,7 +309,7 @@ export function ReportPreviewModal({ isOpen, onClose, reportId, onUpdated }) {
         const err = await res.json().catch(() => ({}));
         throw new Error(err.error || 'Failed to regenerate');
       }
-      // Optimistic flip — the polling effect above will overwrite
+      // Optimistic flip - the polling effect above will overwrite
       // once the pipeline finishes.
       setData((prev) => prev ? { ...prev, report: { ...prev.report, status: 'PENDING' } } : prev);
     } catch (e) {
@@ -348,7 +348,7 @@ export function ReportPreviewModal({ isOpen, onClose, reportId, onUpdated }) {
         ? { ...prev, report: { ...prev.report, aiSummary: newSummary } }
         : prev);
       setDraftSummary(newSummary);
-      // Stay in view-mode after regeneration — the user can flip back
+      // Stay in view-mode after regeneration - the user can flip back
       // to edit if they want to keep tweaking the new draft.
       setEditing(false);
       onUpdated?.({ ...data?.report, aiSummary: newSummary });
@@ -362,7 +362,7 @@ export function ReportPreviewModal({ isOpen, onClose, reportId, onUpdated }) {
   if (!isOpen) return null;
   if (typeof document === 'undefined') return null;
 
-  // The report's own locale (en/he) — falls back to the UI locale.
+  // The report's own locale (en/he) - falls back to the UI locale.
   // Drives the modal's `dir` so an EN report previewed inside a HE
   // dashboard reads LTR (and vice-versa), matching the PDF.
   const reportDir = (data?.report?.locale || locale) === 'he' ? 'rtl' : 'ltr';
@@ -438,7 +438,7 @@ export function ReportPreviewModal({ isOpen, onClose, reportId, onUpdated }) {
               {report.status === 'PENDING' && (
                 <div className={styles.pendingBanner}>
                   <Loader2 className={styles.spinningIcon} size={16} />
-                  <span>{t('settings.clientReportingSection.preview.regenerating') || 'Regenerating PDF — preview will refresh when ready.'}</span>
+                  <span>{t('settings.clientReportingSection.preview.regenerating') || 'Regenerating PDF - preview will refresh when ready.'}</span>
                 </div>
               )}
               {report.status === 'ERROR' && report.error && (
@@ -461,7 +461,7 @@ export function ReportPreviewModal({ isOpen, onClose, reportId, onUpdated }) {
                   <div className={styles.brandName} style={{ color: branding?.primaryColor }}>
                     {branding?.agencyName}
                   </div>
-                  {/* Contact lines — only render when present so we
+                  {/* Contact lines - only render when present so we
                       don't leave empty rows for agencies that haven't
                       filled in every field. */}
                   {(branding?.contactEmail || branding?.contactWebsite || branding?.contactPhone) && (
@@ -531,7 +531,7 @@ export function ReportPreviewModal({ isOpen, onClose, reportId, onUpdated }) {
                 </div>
               )}
 
-              {/* AI Summary — rendered up front when the report either has
+              {/* AI Summary - rendered up front when the report either has
                   an actual summary or has aiSummary in its section list.
                   This guarantees the summary stays editable on older
                   reports that pre-date the snapshot-persistence work.
@@ -593,7 +593,7 @@ export function ReportPreviewModal({ isOpen, onClose, reportId, onUpdated }) {
                   )}
                 </div>
               ) : (
-                /* Sections — render in either the saved order (normal
+                /* Sections - render in either the saved order (normal
                    mode) or the user's draft (edit mode). When editing
                    we DO render aiSummary inside the loop so move/remove
                    controls work for it too; the standalone render
@@ -633,7 +633,7 @@ export function ReportPreviewModal({ isOpen, onClose, reportId, onUpdated }) {
             </>
           )}
         </div>
-        {/* Save bar — visible only while the user has unsaved
+        {/* Save bar - visible only while the user has unsaved
             section-edit changes. Triggers PATCH + regenerate. */}
         {sectionsEditing && (
           <div className={styles.saveBar}>
@@ -897,14 +897,14 @@ function localizeActionType(actionType, t) {
     .join(' ');
 }
 
-// Description mirrors the PDF's `humanizeActionDescription` — when
+// Description mirrors the PDF's `humanizeActionDescription` - when
 // the description is a translation key (a.b.c) we surface the last
 // segment as title-cased text so the preview never shows raw keys.
 function localizeActionDescription(action, t) {
   const candidate = action?.data?.description || action?.descriptionKey || '';
   if (!candidate) return t('settings.clientReportingSection.actionTypes.default') || '-';
   if (/^[a-z][a-zA-Z]*(\.[a-zA-Z][a-zA-Z0-9]*)+$/.test(candidate)) {
-    // It's a translation key — try to resolve it directly first;
+    // It's a translation key - try to resolve it directly first;
     // otherwise humanize the tail segment.
     const direct = t(candidate);
     if (direct && direct !== candidate) return direct;

@@ -58,7 +58,7 @@ const COPY = {
   disconnecting: 'Disconnecting…',
   disconnectConfirm:
     'Are you sure? GhostSEO will stop managing this Shopify store. To fully revoke access, you must also uninstall the app from Shopify admin → Settings → Apps.',
-  disconnectFailed: 'Failed to disconnect — please try again.',
+  disconnectFailed: 'Failed to disconnect - please try again.',
 };
 
 /**
@@ -161,7 +161,7 @@ export default function ShopifyConnectionSection({ compact = false } = {}) {
   };
 
   const formatDate = (d) => {
-    if (!d) return '—';
+    if (!d) return '-';
     return new Date(d).toLocaleString(locale === 'he' ? 'he-IL' : 'en-US');
   };
 
@@ -238,14 +238,14 @@ export default function ShopifyConnectionSection({ compact = false } = {}) {
             <dl className={styles.details}>
               <div className={styles.detailRow}>
                 <dt>{COPY.shopDomainField}</dt>
-                <dd>{shopifyDomain || '—'}</dd>
+                <dd>{shopifyDomain || '-'}</dd>
               </div>
               <div className={styles.detailRow}>
                 <dt>{COPY.scopes}</dt>
                 <dd>
                   {shopifyScopes.length
                     ? `${shopifyScopes.length} granted`
-                    : '—'}
+                    : '-'}
                 </dd>
               </div>
               <div className={styles.detailRow}>

@@ -44,7 +44,7 @@
   padding: 1.25rem 1.25rem 0;
 }
 
-/* Tinted icon badge — color varies with variant so the modal reads
+/* Tinted icon badge - color varies with variant so the modal reads
    immediately as either destructive or neutral confirmation. */
 .iconBadge {
   display: inline-flex;

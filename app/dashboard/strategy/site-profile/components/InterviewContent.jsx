@@ -1,8 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { 
-  Check, 
+import {
+  Check,
   Sparkles,
   Building2,
   Users,
@@ -22,7 +22,8 @@ import {
   Plus,
   MessageSquare,
   SkipForward,
-  Send
+  Send,
+  Plug
 } from 'lucide-react';
 import { InterviewWizard } from '@/app/components/ui/interview-wizard';
 import { useSite } from '@/app/context/site-context';
@@ -30,6 +31,8 @@ import { useLocale } from '@/app/context/locale-context';
 import { decodeDisplayUrl } from '@/lib/urlDisplay';
 import styles from '../page.module.css';
 import { Button } from '@/app/dashboard/components';
+import WordPressPluginSection from '@/app/dashboard/settings/components/WordPressPluginSection';
+import Link from 'next/link';
 
 const iconMap = {
   Building2,
@@ -37,6 +40,7 @@ const iconMap = {
   Target,
   Wrench,
   PenTool,
+  Plug,
 };
 
 const sectionIconMap = {
@@ -83,6 +87,11 @@ export function InterviewContent({ translations }) {
   const [pushQuestions, setPushQuestions] = useState([]);
   const [pushQuestionAnswers, setPushQuestionAnswers] = useState({}); // { questionId: answer }
   const [submittingQuestion, setSubmittingQuestion] = useState(null); // ID of question being submitted
+
+  // Google integration status - drives the connect/connected display in the
+  // integrations section below the regular interview sections.
+  const [googleIntegration, setGoogleIntegration] = useState(null);
+  const [isLoadingGoogleStatus, setIsLoadingGoogleStatus] = useState(false);
   
   const { selectedSite } = useSite();
   const { locale, t } = useLocale();
@@ -132,6 +141,35 @@ export function InterviewContent({ translations }) {
       }
     }
   };
+
+  // Fetch Google integration status when the selected site changes so the
+  // integrations section can show connected/not-connected accurately.
+  useEffect(() => {
+    async function fetchGoogleStatus() {
+      if (!selectedSite?.id) {
+        setGoogleIntegration(null);
+        return;
+      }
+      setIsLoadingGoogleStatus(true);
+      try {
+        const res = await fetch(
+          `/api/settings/integrations/google?siteId=${selectedSite.id}`,
+        );
+        if (res.ok) {
+          const data = await res.json();
+          setGoogleIntegration(data);
+        } else {
+          setGoogleIntegration(null);
+        }
+      } catch (err) {
+        console.error('[InterviewContent] Error fetching Google status:', err);
+        setGoogleIntegration(null);
+      } finally {
+        setIsLoadingGoogleStatus(false);
+      }
+    }
+    fetchGoogleStatus();
+  }, [selectedSite?.id]);
 
   // Fetch push questions when site changes
   useEffect(() => {
@@ -316,7 +354,36 @@ export function InterviewContent({ translations }) {
     }
   };
 
-  const handleStartInterview = () => {
+  const handleStartInterview = async () => {
+    // After completion, "Start new" should hand the wizard a clean slate.
+    // We mark any leftover NOT_STARTED/IN_PROGRESS interview as ABANDONED so
+    // the wizard's GET creates a fresh one instead of resuming the previous
+    // (clamped-to-last-step) record. The COMPLETED record stays put, so its
+    // responses are still available for merging defaults later.
+    if (interviewStatus === 'COMPLETED' && selectedSite?.id) {
+      try {
+        await fetch(`/api/sites/${selectedSite.id}/interview-profile`, {
+          method: 'DELETE',
+        });
+      } catch (err) {
+        console.error('Failed to abandon prior interview before restart:', err);
+      }
+    }
+    setShowWizard(true);
+  };
+
+  // Explicit "Start fresh" action used when the user has an IN_PROGRESS
+  // record on top of a previously COMPLETED one and wants to discard it.
+  const handleStartFreshInterview = async () => {
+    if (selectedSite?.id) {
+      try {
+        await fetch(`/api/sites/${selectedSite.id}/interview-profile`, {
+          method: 'DELETE',
+        });
+      } catch (err) {
+        console.error('Failed to abandon prior interview before restart:', err);
+      }
+    }
     setShowWizard(true);
   };
 
@@ -602,6 +669,7 @@ export function InterviewContent({ translations }) {
   const sections = profileData?.sections || [];
   const interviewStatus = profileData?.status || 'NOT_STARTED';
   const responses = profileData?.responses || {};
+  const hasCompletedInterview = !!profileData?.hasCompletedInterview;
 
   // Check if a response field has a valid value
   const hasValue = (field) => {
@@ -618,17 +686,35 @@ export function InterviewContent({ translations }) {
     seo: ['keywords', 'competitors'],
     audience: ['targetLocations'],
     content: ['writingStyle', 'favoriteArticles'],
-    technical: ['websitePlatform'], // wordpressPlugin and googleIntegration are optional/conditional
+    technical: ['websitePlatform'],
+    // Integrations: WP plugin (only required when site is on WordPress) and
+    // Google integration (GA4 + GSC). These are answered late in the
+    // interview (Q10/Q12) and weren't reflected in the old 5-step display.
+    integrations: ['googleIntegration'],
   };
 
-  // Check if a section is complete (all its required fields have values)
+  // Check if a section is complete (all its required fields have values).
+  // Integrations are special-cased: read live connection state instead of
+  // interview responses so the badge stays accurate when the user connects
+  // the plugin or Google account from the integrations card below.
   const isSectionComplete = (sectionId) => {
+    if (sectionId === 'integrations') {
+      const platform = responses.websitePlatform || selectedSite?.platform;
+      const wpRequired = platform === 'wordpress';
+      const wpConnected =
+        selectedSite?.connectionStatus === 'CONNECTED' ||
+        responses.wordpressPlugin === true ||
+        hasValue('wordpressPlugin');
+      const wpDone = !wpRequired || wpConnected;
+      const googleConnected = !!googleIntegration?.connected || hasValue('googleIntegration');
+      return wpDone && googleConnected;
+    }
     const fields = sectionFields[sectionId] || [];
     return fields.every(field => hasValue(field));
   };
 
   // Display order of sections
-  const displayOrder = ['business', 'seo', 'audience', 'content', 'technical'];
+  const displayOrder = ['business', 'seo', 'audience', 'content', 'technical', 'integrations'];
 
   // Find the first incomplete section in display order
   const getFirstIncompleteIndex = () => {
@@ -659,13 +745,16 @@ export function InterviewContent({ translations }) {
     }
   };
 
-  // Build progress steps - sequential order maintained
+  // Build progress steps - order matches the interview's section grouping.
+  // The integrations step covers the WP plugin (Q10) and Google connection
+  // (Q12) so the progress card reflects the full new interview flow.
   const interviewSteps = [
     { id: 1, label: 'פרטי העסק', status: getSequentialStatus('business'), iconName: 'Building2' },
     { id: 2, label: 'מילות מפתח', status: getSequentialStatus('seo'), iconName: 'Target' },
     { id: 3, label: 'קהל יעד', status: getSequentialStatus('audience'), iconName: 'Users' },
     { id: 4, label: 'סגנון תוכן', status: getSequentialStatus('content'), iconName: 'PenTool' },
     { id: 5, label: 'פרטים טכניים', status: getSequentialStatus('technical'), iconName: 'Wrench' },
+    { id: 6, label: 'אינטגרציות', status: getSequentialStatus('integrations'), iconName: 'Plug' },
   ];
 
   // Render edit input based on field type
@@ -679,7 +768,9 @@ export function InterviewContent({ translations }) {
             onChange={(e) => setEditValue(e.target.value)}
           >
             {item.options?.map(opt => (
-              <option key={opt.value} value={opt.value}>{opt.label}</option>
+              <option key={opt.value} value={opt.value}>
+                {opt.labelKey ? t(opt.labelKey) : opt.label}
+              </option>
             ))}
           </select>
         );
@@ -1008,6 +1099,13 @@ export function InterviewContent({ translations }) {
       case 'text':
         return <p className={styles.textValue}>{String(item.value)}</p>;
       default:
+        // Prefer translation key when the API provides one - for select-style
+        // values (writing style, platform, language, country) this keeps the
+        // displayed label aligned with the user's current locale.
+        if (item.valueLabelKey) {
+          const translated = t(item.valueLabelKey);
+          if (translated && translated !== item.valueLabelKey) return translated;
+        }
         return String(item.value);
     }
   };
@@ -1031,16 +1129,31 @@ export function InterviewContent({ translations }) {
               <h3 className={styles.progressTitle}>{translations.interviewProgress}</h3>
               <p className={styles.progressSubtitle}>{translations.helpGhost}</p>
             </div>
-            <button className={styles.startButton} onClick={handleStartInterview}>
-              <Sparkles className={styles.startButtonIcon} />
-              <span>
-                {interviewStatus === 'COMPLETED' 
-                  ? 'ערוך פרופיל' 
-                  : interviewStatus === 'IN_PROGRESS' 
-                    ? 'המשך ראיון' 
-                    : translations.startInterview}
-              </span>
-            </button>
+            <div className={styles.startButtonGroup}>
+              <button className={styles.startButton} onClick={handleStartInterview}>
+                <Sparkles className={styles.startButtonIcon} />
+                <span>
+                  {interviewStatus === 'COMPLETED'
+                    ? 'התחל ראיון חדש'
+                    : interviewStatus === 'IN_PROGRESS'
+                      ? 'המשך ראיון'
+                      : translations.startInterview}
+                </span>
+              </button>
+              {/* When the user has both an unfinished IN_PROGRESS record and a
+                  prior COMPLETED one, give them an explicit way to scrap the
+                  unfinished draft and start over. The primary button still
+                  defaults to "Continue" so they don't lose progress by accident. */}
+              {interviewStatus === 'IN_PROGRESS' && hasCompletedInterview && (
+                <button
+                  type="button"
+                  className={styles.startFreshLink}
+                  onClick={handleStartFreshInterview}
+                >
+                  התחל ראיון חדש
+                </button>
+              )}
+            </div>
           </div>
           
           {/* Progress Bar */}
@@ -1254,6 +1367,95 @@ export function InterviewContent({ translations }) {
           </div>
         );
       })}
+
+      {/* Integrations Section
+          Surfaces the WordPress plugin (only when the site is on WordPress)
+          and the Google account connection so the user can connect from this
+          page directly - same UX as the integrations tab in settings, but
+          inline with the rest of the site profile. */}
+      {!isLoading && selectedSite && (
+        <div className={styles.sectionCard}>
+          <div className={styles.sectionGlow}></div>
+          <div className={styles.sectionContent}>
+            <div className={styles.sectionHeader}>
+              <div className={styles.sectionTitleGroup}>
+                <Plug size={24} className={styles.sectionIcon} />
+                <h3 className={styles.sectionTitle}>אינטגרציות</h3>
+              </div>
+            </div>
+
+            {/* WordPress Plugin */}
+            {(responses.websitePlatform === 'wordpress' || selectedSite.platform === 'wordpress') && (
+              <div className={styles.integrationBlock}>
+                <div className={styles.integrationBlockHeader}>
+                  <h4 className={styles.integrationBlockTitle}>תוסף וורדפרס</h4>
+                </div>
+                <WordPressPluginSection compact onConnectionChange={refreshProfile} />
+              </div>
+            )}
+
+            {/* Google Account (GA4 + Search Console) */}
+            <div className={styles.integrationBlock}>
+              <div className={styles.integrationBlockHeader}>
+                <h4 className={styles.integrationBlockTitle}>חשבון Google</h4>
+                {googleIntegration?.connected ? (
+                  <span className={`${styles.integrationStatusBadge} ${styles.connected}`}>
+                    <CheckCircle2 size={14} />
+                    <span>מחובר</span>
+                  </span>
+                ) : (
+                  <span className={`${styles.integrationStatusBadge} ${styles.notConnected}`}>
+                    <Circle size={14} />
+                    <span>לא מחובר</span>
+                  </span>
+                )}
+              </div>
+              <p className={styles.integrationBlockDesc}>
+                חבר את חשבון Google שלך כדי להפעיל אינטגרציות עם Analytics ו-Search Console.
+              </p>
+              {isLoadingGoogleStatus ? (
+                <div className={styles.integrationBlockBody}>
+                  <Loader2 size={16} className={styles.spinning} />
+                  <span>טוען מצב חיבור...</span>
+                </div>
+              ) : googleIntegration?.connected ? (
+                <div className={styles.integrationBlockBody}>
+                  {googleIntegration.integration?.gaPropertyName && (
+                    <div className={styles.integrationDetail}>
+                      <span className={styles.integrationDetailLabel}>Google Analytics:</span>
+                      <span>{googleIntegration.integration.gaPropertyName}</span>
+                    </div>
+                  )}
+                  {googleIntegration.integration?.gscSiteUrl && (
+                    <div className={styles.integrationDetail}>
+                      <span className={styles.integrationDetailLabel}>Search Console:</span>
+                      <span dir="ltr">{googleIntegration.integration.gscSiteUrl}</span>
+                    </div>
+                  )}
+                  <Link
+                    href="/dashboard/settings?tab=integrations"
+                    className={styles.integrationManageLink}
+                  >
+                    <ExternalLink size={14} />
+                    <span>נהל בהגדרות</span>
+                  </Link>
+                </div>
+              ) : (
+                <div className={styles.integrationBlockBody}>
+                  <Link
+                    href="/dashboard/settings?tab=integrations&reconnect=google"
+                    className={styles.integrationConnectButton}
+                    prefetch={false}
+                  >
+                    <Plug size={14} />
+                    <span>חבר Google</span>
+                  </Link>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }

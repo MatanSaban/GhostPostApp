@@ -142,7 +142,7 @@
 }
 
 /*
- * Current plan card — non-interactive, visually "selected": stronger purple
+ * Current plan card - non-interactive, visually "selected": stronger purple
  * outline + a faint purple wash. Hover and popular decorations don't apply
  * here, so the card reads as "this is you" instead of a pick-me target.
  */

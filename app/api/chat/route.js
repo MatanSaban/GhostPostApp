@@ -371,7 +371,7 @@ export async function POST(request) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }
 
-  // Pre-flight Ai-GCoins check — refuse before saving the user message or
+  // Pre-flight Ai-GCoins check - refuse before saving the user message or
   // invoking the model. The frontend's `handleLimitError` recognizes the
   // standard payload and pops LimitReachedModal.
   if (member.accountId) {

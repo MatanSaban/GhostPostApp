@@ -8,7 +8,7 @@ import styles from './LanguagePickerModal.module.css';
 
 /**
  * Lightweight picker shown when a row has multiple languages and the
- * user clicks Preview or Download — they need to choose which locale's
+ * user clicks Preview or Download - they need to choose which locale's
  * report to open. For single-language rows the parent skips this modal
  * and routes directly to the only available report.
  *
@@ -48,7 +48,7 @@ export function LanguagePickerModal({ isOpen, onClose, intent = 'preview', langu
           </p>
           <ul className={styles.list}>
             {languages.map((lang) => {
-              // Disable any locale that isn't ready yet — PENDING means
+              // Disable any locale that isn't ready yet - PENDING means
               // the pipeline hasn't finished, no PDF means download is
               // unavailable (preview can still work off the snapshot).
               const isPending = lang.status === 'PENDING';

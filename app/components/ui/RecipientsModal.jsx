@@ -9,13 +9,13 @@ import styles from './RecipientsModal.module.css';
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 /**
- * RecipientsModal — manages a report's recipient list.
+ * RecipientsModal - manages a report's recipient list.
  *
  * Two modes:
- *   • mode="edit" — opened from clicking the recipients cell. Just lets
+ *   • mode="edit" - opened from clicking the recipients cell. Just lets
  *     the user add/edit/remove emails. Save → PATCH /api/reports/[id]
  *     and close.
- *   • mode="send" — opened from the Send button when the report has no
+ *   • mode="send" - opened from the Send button when the report has no
  *     recipients yet. The user picks recipients + the email/PDF language,
  *     then "Save & Send" persists the recipients on the report (so the
  *     row updates) and POSTs /api/reports/send with that language.
@@ -71,7 +71,7 @@ export function RecipientsModal({ isOpen, onClose, mode = 'edit', report, onSave
   const handleKeyDown = (e) => {
     // Enter / comma → commit current input as a chip. Pasting "a,b,c"
     // shouldn't get auto-split mid-paste, so we only fire on the key
-    // up — paste handling could be a separate refinement.
+    // up - paste handling could be a separate refinement.
     if (e.key === 'Enter' || e.key === ',') {
       e.preventDefault();
       addEmail();

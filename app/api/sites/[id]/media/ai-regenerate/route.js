@@ -146,7 +146,7 @@ function buildRegeneratePrompt({ existing, userInstructions, language, hasRefere
 
   parts.push(`IMPORTANT: Any visible text inside the image (labels, signs, headings, buttons, banners, captions, screens) MUST be written in ${langName}.`);
   if (language === 'he' || language === 'ar') {
-    parts.push(`${langName} is a right-to-left language — ensure any text reads correctly right-to-left.`);
+    parts.push(`${langName} is a right-to-left language - ensure any text reads correctly right-to-left.`);
   }
   parts.push('Photorealistic, high resolution, sharp focus, professional quality. No watermarks, no borders.');
 
@@ -240,7 +240,7 @@ export async function POST(req, { params }) {
     const generated = images[0];
 
     // ── Generate metadata (alt / title / caption / description) in site language ─────────────
-    // Not billed separately — the 5-credit cost already covers this feature.
+    // Not billed separately - the 5-credit cost already covers this feature.
     const metaSchema = z.object({
       altText: z.string().min(1).max(200).describe(`Concise descriptive alt text (50-125 chars) in ${languageName(language)}. Do not start with "Image of".`),
       title: z.string().min(1).max(100).describe(`Short title in ${languageName(language)}.`),
@@ -267,14 +267,14 @@ Produce metadata that would help this image be findable and accessible on the we
         prompt: metaPrompt,
         schema: metaSchema,
         temperature: 0.4,
-        operation: 'GENERIC', // not billed — covered by the image generation charge
+        operation: 'GENERIC', // not billed - covered by the image generation charge
       });
     } catch (metaErr) {
       console.warn('[ai-regenerate] metadata generation failed:', metaErr.message);
     }
 
     // ── Verify the generated image (text language + instructions honored) ──
-    // Not billed separately — bundled into the 5-credit image regen cost, the
+    // Not billed separately - bundled into the 5-credit image regen cost, the
     // same way metadata generation is. Failures are non-fatal; we surface the
     // verdict to the UI so the user can regenerate if something's off.
     let verification = null;
@@ -287,10 +287,10 @@ Produce metadata that would help this image be findable and accessible on the we
       });
 
       verification = await analyzeImageStructured({
-        system: 'You are a strict image QA reviewer. Inspect the image and answer the schema precisely. Be honest — false positives on "correct" are worse than false negatives.',
+        system: 'You are a strict image QA reviewer. Inspect the image and answer the schema precisely. Be honest - false positives on "correct" are worse than false negatives.',
         prompt: `The image below was just generated. Verify it against these requirements:
 
-1. Any visible text MUST be in ${languageName(language)} (${language}).${language === 'he' || language === 'ar' ? ` ${languageName(language)} is right-to-left — text must read correctly RTL.` : ''}
+1. Any visible text MUST be in ${languageName(language)} (${language}).${language === 'he' || language === 'ar' ? ` ${languageName(language)} is right-to-left - text must read correctly RTL.` : ''}
 2. The user's additional instructions (if any) must be honored.
 
 User instructions (may be empty): ${body.userInstructions || '(none)'}

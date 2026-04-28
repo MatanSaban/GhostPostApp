@@ -136,7 +136,7 @@ export function CompetitorsPageContent({ translations }) {
                 isDiscovering={discovering}
                 onClick={() => {
                   if (discovering) {
-                    // Background discovery in progress — reopen the modal so
+                    // Background discovery in progress - reopen the modal so
                     // the user can check status without restarting.
                     setShowDiscoveryModal(true);
                   } else {

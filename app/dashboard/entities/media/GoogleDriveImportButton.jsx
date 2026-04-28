@@ -9,7 +9,7 @@ import styles from './GoogleDriveImportButton.module.css';
 /**
  * "Import from Google Drive" button.
  *
- * Opens the platform-themed {@link GoogleDriveBrowser} modal — a custom
+ * Opens the platform-themed {@link GoogleDriveBrowser} modal - a custom
  * replacement for the Google Picker that honors the dashboard's theme,
  * opens in the site's language, and fetches the user's Drive files
  * through our backend (so the OAuth access token never touches the
@@ -78,7 +78,7 @@ export function GoogleDriveImportButton({ siteId, onImported, disabled }) {
 }
 
 function DriveIcon({ className }) {
-  // Multi-color Google Drive glyph — matches the icon used in the Settings
+  // Multi-color Google Drive glyph - matches the icon used in the Settings
   // integrations section so the button reads as "Google Drive" at a glance.
   return (
     <svg className={className} viewBox="0 0 87.3 78" fill="none" aria-hidden="true">

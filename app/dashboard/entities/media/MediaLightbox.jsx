@@ -84,7 +84,7 @@ export function MediaLightbox({
     onIndexChange(next);
   };
 
-  // Keyboard: Esc closes. Left arrow = previous, right arrow = next —
+  // Keyboard: Esc closes. Left arrow = previous, right arrow = next -
   // same convention as the on-screen buttons, in both LTR and RTL.
   useEffect(() => {
     if (!isOpen) return;
@@ -159,7 +159,7 @@ export function MediaLightbox({
       setUrlCopied(true);
       setTimeout(() => setUrlCopied(false), 1600);
     } catch {
-      /* ignore — user just won't see the copied flash */
+      /* ignore - user just won't see the copied flash */
     }
   };
 
@@ -208,7 +208,7 @@ export function MediaLightbox({
       {/*
         Universal arrow convention matching the pagination buttons elsewhere
         in the app: left arrow = previous, right arrow = next regardless of
-        text direction. Swapping action per direction caused confusion — this
+        text direction. Swapping action per direction caused confusion - this
         is what users here are used to.
       */}
       <button
@@ -286,7 +286,7 @@ export function MediaLightbox({
             </div>
           )}
 
-          {/* Editable fields — read-only when canEdit is false. Each field has
+          {/* Editable fields - read-only when canEdit is false. Each field has
               an inline AI rewrite button that costs 1 credit. */}
           <div className={styles.editField}>
             <div className={styles.editFieldHeader}>
@@ -427,7 +427,7 @@ export function MediaLightbox({
           {kind === 'image' && typeof onRegenerate === 'function' && (() => {
             const isBroken = brokenImageIds ? brokenImageIds.has(item.id) : false;
             // When the image is broken we can only regenerate if we have some
-            // metadata to work from — otherwise the AI has nothing to go on.
+            // metadata to work from - otherwise the AI has nothing to go on.
             const hasAnyMeta = !!(editAlt || editTitle || editCaption || editDescription);
             if (isBroken && !hasAnyMeta) return null;
             return (

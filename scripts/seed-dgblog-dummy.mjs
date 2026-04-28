@@ -229,7 +229,7 @@ async function seedReportForMonth({ siteId, accountId, year, monthIndex, current
   const { from, to } = monthBounds(year, monthIndex);
   if (from > CUTOFF) return [];
 
-  // Already-seeded check — skip if any DRAFT/SENT for this site/month exists.
+  // Already-seeded check - skip if any DRAFT/SENT for this site/month exists.
   const monthString = monthLabel(year, monthIndex, 'en');
   const existing = await prisma.reportArchive.findFirst({
     where: { siteId, month: monthString },
@@ -288,7 +288,7 @@ async function seedReportForMonth({ siteId, accountId, year, monthIndex, current
   const keywordsSnapshot = makeKeywordsSnapshot(currentMonthKey, previousMonthKey);
   const competitorsSnapshot = makeCompetitorsSnapshot();
 
-  // Stub snapshot — preview will work, even if not fully data-rich.
+  // Stub snapshot - preview will work, even if not fully data-rich.
   const persistedSnapshot = {
     sectionsOrdered,
     sectionData: {
@@ -349,7 +349,7 @@ async function seedReportForMonth({ siteId, accountId, year, monthIndex, current
         sectionsConfig: { sections: sectionsOrdered.map((id) => ({ id, enabled: true })) },
         sectionData: persistedSnapshot,
         // Cloudinary URL is intentionally null for seeded rows so the
-        // download button shows disabled — the in-platform preview
+        // download button shows disabled - the in-platform preview
         // works fine off the snapshot alone.
         pdfUrl: null,
         // Stamp generatedAt back-dated so the table sort works as if

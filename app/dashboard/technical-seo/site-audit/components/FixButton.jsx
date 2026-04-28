@@ -1,7 +1,7 @@
 'use client';
 
 /**
- * FixButton — single component that renders the right button based on the
+ * FixButton - single component that renders the right button based on the
  * registry classification for the issue. Replaces the previously-duplicated
  * inline AI/Free button logic.
  *
@@ -10,12 +10,12 @@
  *   - kind="free" → outlined accent, wrench icon, "Free" suffix
  *
  * Size variants:
- *   - "default" — used in aggregated rows / drill-down headers
- *   - "small"   — used in page-detail modal issue list
+ *   - "default" - used in aggregated rows / drill-down headers
+ *   - "small"   - used in page-detail modal issue list
  *
  * The label is composed from i18n keys plus the static fixed price the registry
  * holds for AI handlers. Showing the price up front (not after the call) is
- * intentional — users decide before paying. Real deduction may differ slightly
+ * intentional - users decide before paying. Real deduction may differ slightly
  * from the displayed price; we adjust the registry over time as usage data
  * accumulates.
  */

@@ -5,6 +5,11 @@ import {
   releaseSyncLock,
   performEntitySync,
 } from '@/lib/entity-sync';
+import { maybeDiscoverClustersAfterSync } from '@/lib/ai/cluster-discovery';
+
+// Discovery can run AI validation across multiple candidate clusters per site,
+// so allow more headroom than the default serverless function timeout.
+export const maxDuration = 300;
 
 // ─── Security ────────────────────────────────────────────────────────
 function verifyAuth(request) {
@@ -89,12 +94,24 @@ export async function GET(request) {
           hasErrors ? `${errors.length} error(s) during sync` : null,
         );
 
+        // After a clean sync, opportunistically discover topic clusters.
+        // The helper is a no-op once the site has any TopicCluster rows,
+        // so this is safe to call on every successful sync.
+        let discoveryResult = null;
+        if (!hasErrors) {
+          discoveryResult = await maybeDiscoverClustersAfterSync({
+            siteId: site.id,
+            accountId: site.accountId,
+          });
+        }
+
         results.push({
           siteId: site.id,
           url: site.url,
           status: 'completed',
           stats,
           errors: errors.length,
+          discovery: discoveryResult,
         });
 
         console.log(

@@ -12,7 +12,7 @@ const MAX_BYTES_PER_FILE = 50 * 1024 * 1024; // 50MB
 /**
  * Normalize a GhostSEO plugin media item to the WordPress REST API shape
  * the client expects (source_url, alt_text, title.rendered, media_details,
- * etc.). Same logic as the main media/route.js — duplicated here to avoid
+ * etc.). Same logic as the main media/route.js - duplicated here to avoid
  * an unnecessary export.
  */
 function normalizeItem(item) {
@@ -85,7 +85,7 @@ function checkCmsConnection(site) {
  * Obtain a fresh Google access token for the site. Prefers a client-supplied
  * token (the Picker flow hands us one with only `drive.file` scope), falling
  * back to the stored refresh token on the GoogleIntegration record. Returns
- * null if neither works — the caller surfaces that as "connect first".
+ * null if neither works - the caller surfaces that as "connect first".
  */
 async function getAccessToken({ site, clientAccessToken }) {
   if (clientAccessToken) return clientAccessToken;

@@ -7,7 +7,7 @@ const ACTION_LIMIT = 500;
 /**
  * GET /api/admin/impersonation/sessions/[id]
  * Returns a single session with its full action log (capped at 500 most recent
- * entries — sessions shouldn't normally generate that many; the cap protects
+ * entries - sessions shouldn't normally generate that many; the cap protects
  * the response payload).
  */
 export async function GET(_request, { params }) {

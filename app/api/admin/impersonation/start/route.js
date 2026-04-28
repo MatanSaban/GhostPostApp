@@ -28,7 +28,7 @@ function clientMeta(request) {
  * enforcement) until the session ends or the cookie is cleared.
  *
  * Reason is required (and audited) so we always have a "why" attached to a
- * session — operationally useful, also a soft deterrent against casual access.
+ * session - operationally useful, also a soft deterrent against casual access.
  */
 export async function POST(request) {
   try {

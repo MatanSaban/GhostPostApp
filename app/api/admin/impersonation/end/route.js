@@ -11,7 +11,7 @@ import { IMPERSONATION_COOKIE } from '@/lib/impersonation-context';
  * Idempotent: if no active session exists, this just clears the cookie.
  *
  * Note: this is intentionally allowed under READ_ONLY scope (see
- * `READ_ONLY_ALLOWED_MUTATING_PREFIXES` in impersonation-context) — admins
+ * `READ_ONLY_ALLOWED_MUTATING_PREFIXES` in impersonation-context) - admins
  * must always be able to escape their own impersonation.
  */
 export async function POST(request) {
@@ -31,7 +31,7 @@ export async function POST(request) {
         endReason = body.reason.trim().slice(0, 100);
       }
     } catch {
-      // ignore — body is optional
+      // ignore - body is optional
     }
 
     if (token) {

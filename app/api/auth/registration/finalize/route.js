@@ -1,8 +1,9 @@
-import { NextResponse } from 'next/server';
+import { NextResponse, after } from 'next/server';
 import { cookies } from 'next/headers';
 import prisma from '@/lib/prisma';
 import { getNextFirstOfMonth } from '@/lib/proration';
 import { getDraftAccountForUser } from '@/lib/draft-account';
+import { migrateDraftEntityScanToSite } from '@/lib/entity-scan-migration';
 
 const SESSION_COOKIE = 'user_session';
 const REG_DONE_COOKIE = 'reg_done';
@@ -260,6 +261,27 @@ export async function POST() {
 
       return { user: updatedUser, account, site };
     });
+
+    // Migrate the entity scan that was collected during onboarding (if any)
+    // onto the freshly-created Site. Scheduled via Next.js `after()` so it
+    // runs after the response is sent (the user lands on the dashboard
+    // without waiting) but is still guaranteed to complete by the runtime
+    // - unlike a fire-and-forget Promise, which can be cut off when the
+    // serverless instance suspends.
+    if (result.site && interviewData.entityScan) {
+      after(async () => {
+        try {
+          await migrateDraftEntityScanToSite({
+            entityScan: interviewData.entityScan,
+            site: result.site,
+            account: result.account,
+            locale: interviewData.selectedLanguage || 'en',
+          });
+        } catch (e) {
+          console.error('[Finalize] Entity scan migration failed:', e);
+        }
+      });
+    }
 
     // Mark the session as a completed (non-draft) user so middleware allows it
     // everywhere.

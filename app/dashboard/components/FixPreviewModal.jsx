@@ -366,7 +366,7 @@ export default function FixPreviewModal({ open, onClose, insight, translations, 
       }).filter(Boolean);
     }
 
-    // Meta-length variants reuse the missingSeo skeleton — same data shape.
+    // Meta-length variants reuse the missingSeo skeleton - same data shape.
     if (
       type === 'metaTitleTooShort' || type === 'metaTitleTooLong'
       || type === 'metaDescTooShort' || type === 'metaDescTooLong'
@@ -449,7 +449,7 @@ export default function FixPreviewModal({ open, onClose, insight, translations, 
       }).filter(Boolean);
     }
 
-    // Internal links (unlinkedKeywords) — single batch proposal, not per-item
+    // Internal links (unlinkedKeywords) - single batch proposal, not per-item
     if (type === 'unlinkedKeywords') {
       return [{
         keywords: insight.data?.keywords || [],
@@ -459,7 +459,7 @@ export default function FixPreviewModal({ open, onClose, insight, translations, 
       }];
     }
 
-    // AI engine gap — single page, two-part fix
+    // AI engine gap - single page, two-part fix
     if (type === 'aiEngineGap') {
       return [{
         url: insight.data?.url || insight.data?.page,
@@ -1753,7 +1753,7 @@ export default function FixPreviewModal({ open, onClose, insight, translations, 
                           </div>
                         )}
                         <div className={styles.seoFieldLabel} style={{ marginTop: '6px', opacity: 0.7 }}>
-                          {t.fixNewArticleDraftNote || 'Will be created as a draft — review before publishing.'}
+                          {t.fixNewArticleDraftNote || 'Will be created as a draft - review before publishing.'}
                         </div>
                         {appliedResult && (
                           <div className={`${styles.applyStatus} ${appliedResult.status === 'fixed' ? styles.applyStatusFixed : styles.applyStatusError}`}>

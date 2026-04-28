@@ -225,7 +225,7 @@ function InsightDetails({ insight, translations, siteId, pluginConnected, onItem
   // Show per-item fix buttons for fixable types regardless of plugin connection.
   // The FixPreviewModal handles connection errors at action time.
   const canFix = FIXABLE_INSIGHT_TYPES.has(type) && ['PENDING', 'APPROVED', 'FAILED', 'EXECUTED', 'EXPIRED'].includes(insight.status);
-  // Header label for the Fix column — matches FixItemButton's wording.
+  // Header label for the Fix column - matches FixItemButton's wording.
   const fixColLabel = isFreeFixableInsight(insight.titleKey)
     ? (t.fixFree || 'Fix')
     : (t.fixWithAi || 'Fix with AI');
@@ -679,7 +679,7 @@ function InsightDetails({ insight, translations, siteId, pluginConnected, onItem
   }
 
   // Stale Competitor Scans - list of competitors. Single shared rescan
-  // button — no per-row action since the fix is "rescan all stale ones".
+  // button - no per-row action since the fix is "rescan all stale ones".
   if (type === 'staleCompetitorScans' && d.competitors?.length > 0) {
     const anyFixed = (insight.executionResult?.results || []).some(r => r.status === 'fixed');
     return (
@@ -1287,7 +1287,7 @@ function InsightDetails({ insight, translations, siteId, pluginConnected, onItem
   }
 
   // Meta-length variants (metaTitleTooShort/Long, metaDescTooShort/Long)
-  // share a single render — they all surface `data.pages[]` with `length`.
+  // share a single render - they all surface `data.pages[]` with `length`.
   if (
     (type === 'metaTitleTooShort' || type === 'metaTitleTooLong'
       || type === 'metaDescTooShort' || type === 'metaDescTooLong')
@@ -1387,7 +1387,7 @@ function InsightDetails({ insight, translations, siteId, pluginConnected, onItem
     );
   }
 
-  // AI Engine Gap — single page, two-part fix wrapped in the detail section
+  // AI Engine Gap - single page, two-part fix wrapped in the detail section
   if (type === 'aiEngineGap' && d.page) {
     const isExecuted = insight.status === 'EXECUTED' || (insight.executionResult?.results || []).some(r => r.status === 'fixed');
     return (

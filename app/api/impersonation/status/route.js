@@ -25,7 +25,7 @@ export async function GET() {
 
     const ctx = await getActiveImpersonation();
     if (!ctx) {
-      // Cookie may be stale (session ended/expired since last request) — clear
+      // Cookie may be stale (session ended/expired since last request) - clear
       // it so the browser stops sending it.
       const stale = cookieStore.get(IMPERSONATION_COOKIE)?.value;
       if (stale) {

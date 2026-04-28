@@ -85,7 +85,7 @@ export async function GET() {
       );
     }
 
-    // Heartbeat — drives the "online now" indicator in admin views.
+    // Heartbeat - drives the "online now" indicator in admin views.
     // Fire-and-forget so the response stays fast.
     prisma.user
       .update({ where: { id: userId }, data: { lastSeenAt: new Date() } })

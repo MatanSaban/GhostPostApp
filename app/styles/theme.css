@@ -2,7 +2,7 @@
 /* Supports Light and Dark themes */
 
 :root {
-  /* Brand source-of-truth — change these two to reskin the light theme */
+  /* Brand source-of-truth - change these two to reskin the light theme */
   --brand-primary: #7C3AED;   /* violet */
   --brand-secondary: #3B82F6; /* blue */
 

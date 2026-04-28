@@ -55,6 +55,7 @@ const strategyItemsConfig = [
   { labelKey: 'nav.strategy.siteProfile', path: '/dashboard/strategy/site-profile' },
   { labelKey: 'nav.strategy.keywords', path: '/dashboard/strategy/keywords' },
   { labelKey: 'nav.strategy.competitorAnalysis', path: '/dashboard/strategy/competitors' },
+  { labelKey: 'nav.strategy.clusters', path: '/dashboard/strategy/clusters' },
   { labelKey: 'nav.strategy.contentPlanner', path: '/dashboard/strategy/content-planner' },
   { labelKey: 'nav.strategy.aiWizard', path: '/dashboard/strategy/ai-content-wizard' },
 ];

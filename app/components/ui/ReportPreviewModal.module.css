@@ -192,7 +192,7 @@
   font-size: 0.75rem;
 }
 
-/* Site block — logo + name + url, all in a row. */
+/* Site block - logo + name + url, all in a row. */
 .siteBlock {
   display: flex;
   align-items: center;
@@ -242,7 +242,7 @@
   border-bottom: 1px solid var(--border);
 }
 
-/* Per-section edit toolbar — only visible while in sections-edit mode. */
+/* Per-section edit toolbar - only visible while in sections-edit mode. */
 .sectionEditControls {
   display: inline-flex;
   align-items: center;
@@ -279,7 +279,7 @@
   background: color-mix(in srgb, #dc2626 12%, transparent);
 }
 
-/* Add-section row — chips of the currently-removed sections you can
+/* Add-section row - chips of the currently-removed sections you can
    click to bring back. */
 .addSectionRow {
   display: flex;
@@ -324,7 +324,7 @@
   color: var(--primary);
 }
 
-/* Save bar — pinned at the bottom of the body while in edit mode. */
+/* Save bar - pinned at the bottom of the body while in edit mode. */
 .saveBar {
   display: flex;
   align-items: center;
@@ -548,7 +548,7 @@
   font-weight: 700;
 }
 
-/* Tables — column count is driven by `--cols` set inline by each block,
+/* Tables - column count is driven by `--cols` set inline by each block,
    which keeps every column equally sized regardless of how many there
    are (1 for competitors, 3 for keywords / actions / audits, etc.). */
 .dataTable {
@@ -582,7 +582,7 @@
 }
 
 /* Long values (like full domain strings or recipient lists) shouldn't
-   force the grid track wider than its 1fr share — `minmax(0, 1fr)`
+   force the grid track wider than its 1fr share - `minmax(0, 1fr)`
    above lets the cell shrink, this just ensures the text inside
    truncates rather than overflowing. */
 .dataTableHead > *,
@@ -638,7 +638,7 @@
   margin: 0;
 }
 
-/* Friendly placeholder when the report has no persisted snapshot —
+/* Friendly placeholder when the report has no persisted snapshot -
    typically older reports generated before snapshot fields existed. */
 .snapshotMissingState {
   display: flex;

@@ -41,7 +41,7 @@ export default function WebpConverterPage() {
   const [replaceUrls, setReplaceUrls] = useState(true);
 
   // Shopify (and any future non-WP platform) can't run server-side WebP
-  // conversion — there's no file-system hook to re-encode originals.
+  // conversion - there's no file-system hook to re-encode originals.
   if (selectedSite && !caps.supportsWebpConversion) {
     return (
       <PlatformUnsupportedNotice

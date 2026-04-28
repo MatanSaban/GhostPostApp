@@ -879,7 +879,7 @@
 
 /* Ai-GCoin cost pill rendered next to the fix label.
    `dir="ltr"` on the element keeps icon→number ordering stable inside RTL
-   button text (Hebrew) — without it the bidi algorithm reorders pieces. */
+   button text (Hebrew) - without it the bidi algorithm reorders pieces. */
 .itemFixCost {
   display: inline-flex;
   align-items: center;

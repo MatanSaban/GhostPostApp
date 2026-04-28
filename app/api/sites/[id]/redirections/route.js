@@ -30,7 +30,7 @@ export async function GET(request, { params }) {
       totalHits: redirections.reduce((sum, r) => sum + r.hitCount, 0),
     };
 
-    // Detected redirect backends — WP returns plugin list, Shopify returns
+    // Detected redirect backends - WP returns plugin list, Shopify returns
     // a single synthetic "shopify-native" provider.
     const caps = getCapabilities(site);
     const isShopifyConnected = !!site.shopifyAccessToken && !!site.shopifyDomain;
@@ -43,7 +43,7 @@ export async function GET(request, { params }) {
         const pluginData = await cms.getDetectedRedirectPlugins(site);
         detectedPlugins = pluginData.plugins || pluginData.detected || [];
       } catch {
-        // endpoint not available — fine
+        // endpoint not available - fine
       }
     }
 

@@ -20,7 +20,7 @@ function getPreflightFloor(titleKey) {
   return cfg.credits || 3;
 }
 
-// Mirror of the audit dispatcher's classifier — Vertex/Gemini upstream
+// Mirror of the audit dispatcher's classifier - Vertex/Gemini upstream
 // failures bubble up as fetch errors with these markers.
 function isThirdPartyAiError(e) {
   if (!e) return false;
@@ -304,7 +304,7 @@ export async function POST(request, { params }) {
       if (mode !== 'apply' && mode !== 'preview') {
         return NextResponse.json({ error: 'Free fixes only support mode "apply"' }, { status: 400 });
       }
-      // Free fixes don't have a preview phase — UI calls apply directly.
+      // Free fixes don't have a preview phase - UI calls apply directly.
       // We still allow `mode: 'preview'` to return the no-op success so the
       // shared modal-open path doesn't have to special-case free fixers.
       if (mode === 'preview') {
@@ -585,7 +585,7 @@ export async function POST(request, { params }) {
         else allResults.push(r);
       }
       // executionResult is replaced wholesale here, which implicitly drops
-      // previewCache — the proposals are now consumed; a future re-open
+      // previewCache - the proposals are now consumed; a future re-open
       // would regenerate against the post-apply state.
       const mergedResult = { ...result, results: allResults };
 

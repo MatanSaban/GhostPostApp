@@ -70,7 +70,7 @@ export async function POST(request) {
       if (parsed?.locale === 'he' || parsed?.locale === 'en') {
         requestLocale = parsed.locale;
       }
-    } catch { /* body was already validated upstream — fall through to en */ }
+    } catch { /* body was already validated upstream - fall through to en */ }
     const dictionary = await getDictionary(requestLocale);
     const t = createTranslator(dictionary);
 
@@ -123,7 +123,7 @@ export async function POST(request) {
        .replace(/\b\w/g, (c) => c.toUpperCase());
 
     // Extract issues from latest audit. The plugin renders `description`
-    // verbatim, so decode percent-encoded URLs before sending — otherwise
+    // verbatim, so decode percent-encoded URLs before sending - otherwise
     // Hebrew slugs land as "%d7%90%d7%99%d7%9a-…".
     const issues = (latestAudit?.issues || [])
       .filter(i => i.severity === 'error' || i.severity === 'warning')

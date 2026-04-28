@@ -322,8 +322,8 @@
 /*
  * A global rule in app/globals.css auto-flips any svg whose class contains
  * "chevron" in RTL (html[dir="rtl"] [class*="chevron"]:not(...):not(...)).
- * That rule has 4 attribute selectors of specificity — more than we can
- * beat with a plain class+type combo — so we use !important here to keep
+ * That rule has 4 attribute selectors of specificity - more than we can
+ * beat with a plain class+type combo - so we use !important here to keep
  * ChevronLeft pointing left and ChevronRight pointing right inside the
  * lightbox.
  */

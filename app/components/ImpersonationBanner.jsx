@@ -27,12 +27,12 @@ function fullName(u, fallback) {
  * Sticky banner that surfaces an active impersonation session in the UI.
  *
  * Mounted globally inside both the dashboard and admin layouts so the warning
- * is impossible to lose track of. Renders nothing when no session is active —
+ * is impossible to lose track of. Renders nothing when no session is active -
  * the polling cost is one cheap GET every 30s, which we're fine with for the
  * audit-trail value of always-correct UI state.
  *
  * The banner has a single action: end the session. We deliberately don't add
- * other controls here — keep the surface tiny so it doesn't become its own
+ * other controls here - keep the surface tiny so it doesn't become its own
  * misuse vector.
  */
 export function ImpersonationBanner() {
@@ -48,7 +48,7 @@ export function ImpersonationBanner() {
       const data = await res.json();
       setStatus(data?.active ? data : null);
     } catch {
-      // Silent failure — banner just stays in its previous state. Auth errors
+      // Silent failure - banner just stays in its previous state. Auth errors
       // unrelated to impersonation shouldn't trigger UI noise here.
     }
   }, []);
@@ -64,7 +64,7 @@ export function ImpersonationBanner() {
     try {
       await fetch('/api/admin/impersonation/end', { method: 'POST' });
     } catch {
-      // ignore — we'll re-poll status anyway
+      // ignore - we'll re-poll status anyway
     } finally {
       setStatus(null);
       setEnding(false);

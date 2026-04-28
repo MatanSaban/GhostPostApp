@@ -1703,7 +1703,7 @@ function IntegrationsSettings({ translations, canEdit = true }) {
         )}
       </div>
 
-      {/* Google Drive — lives on the same OAuth grant as Analytics/Search
+      {/* Google Drive - lives on the same OAuth grant as Analytics/Search
           Console. Mirrors the section structure of the GA/GSC blocks above
           (connectedBadgeSmall, scopesBanner, grantScopesBtn) so it feels
           like one page, not a one-off card. */}
@@ -1759,7 +1759,7 @@ function IntegrationsSettings({ translations, canEdit = true }) {
         )}
       </div>
 
-      {/* Platform connection — WordPress or Shopify, gated by capabilities */}
+      {/* Platform connection - WordPress or Shopify, gated by capabilities */}
       {selectedSite?.platform === 'wordpress' && caps.supportsPlugin && (
         <div className={styles.settingsSection}>
           <div className={styles.integrationHeader}>
@@ -2791,7 +2791,7 @@ function SubscriptionSettings({ subscription, translations, canEdit = true, isLo
         const purchases = data.purchases || [];
         
         // Group bonuses by limitation key. Each AddOnPurchase is kept as
-        // a separate entry so the UI can render one badge per purchase —
+        // a separate entry so the UI can render one badge per purchase -
         // users who bought the same add-on type in multiple separate
         // purchases will see each one individually (a qty-3 purchase still
         // renders as a single combined badge, since they were bought
@@ -2893,7 +2893,7 @@ function SubscriptionSettings({ subscription, translations, canEdit = true, isLo
   // Format number for display. Under 10,000 we show the exact value with a
   // locale-aware thousands separator (e.g. 1,480) so the subscription tab
   // matches the precision of the user-menu credit counter. Larger values
-  // fall back to K/M abbreviations — with one decimal for K so we don't
+  // fall back to K/M abbreviations - with one decimal for K so we don't
   // collapse 1,480 and 1,390 down to the same "1K".
   const formatNumber = (num) => {
     if (num == null) return '0';
@@ -3065,7 +3065,7 @@ function SubscriptionSettings({ subscription, translations, canEdit = true, isLo
               </button>
             </div>
             {/*
-             * Status ("Active") pill removed — implied by the card being
+             * Status ("Active") pill removed - implied by the card being
              * shown at all. Keep only the cancel-at-period-end notice,
              * since that's a state the user needs to see.
              */}
@@ -3083,7 +3083,7 @@ function SubscriptionSettings({ subscription, translations, canEdit = true, isLo
              * Always format the displayed plan price in USD so users see the
              * canonical price regardless of what currency the plan record
              * was created in. `subscription.price` is the plan's numeric
-             * price — we force the USD Intl currency formatter.
+             * price - we force the USD Intl currency formatter.
              */}
             <div className={styles.priceAmount}>{formatPrice(subscription.price, 'USD')}</div>
             <div className={styles.pricePeriod}>{getPeriodLabel()}</div>
@@ -3121,7 +3121,7 @@ function SubscriptionSettings({ subscription, translations, canEdit = true, isLo
               const translatedLabel = getLimitationLabel(limitation);
 
               // For Ai-GCoins, `subscription.aiCreditsLimit` already comes
-              // from /api/credits/balance which is addon-aware — prefer it
+              // from /api/credits/balance which is addon-aware - prefer it
               // so we don't double-count bonuses. For everything else we
               // show the plan's raw value plus any addon bonuses.
               const currentUsage = isAiCredits
@@ -3273,7 +3273,7 @@ function SubscriptionSettings({ subscription, translations, canEdit = true, isLo
         icon={Package}
       />
 
-      {/* Billing Actions — the "Upgrade plan" button moved up into the plan
+      {/* Billing Actions - the "Upgrade plan" button moved up into the plan
           header card, next to the plan name. */}
       <div className={styles.subsection}>
         <h3 className={styles.subsectionTitle}>
@@ -3430,7 +3430,7 @@ function PurchasedAddonsList({ translate, locale, filterType, title, icon: IconC
                 {/*
                  * Show how many of this add-on were bought in this
                  * transaction ("×5"), not the total amount added. For
-                 * a qty-of-1 purchase we hide the badge entirely — the
+                 * a qty-of-1 purchase we hide the badge entirely - the
                  * add-on name already communicates what the user got.
                  */}
                 {(purchase.quantity || 1) > 1 && (
@@ -4008,7 +4008,7 @@ function AddonsSettings({ translations, canEdit = true }) {
     return Number(entry.value) || 0;
   };
 
-  // Sum purchased quantity per addon type — mirrors how the backend computes
+  // Sum purchased quantity per addon type - mirrors how the backend computes
   // `seatAddOnsCount` / `siteAddOnsCount` in canPurchaseAddOn.
   const purchasedByType = purchasedAddons.reduce((acc, p) => {
     if (!p?.addOn?.type || p.status !== 'ACTIVE') return acc;
@@ -4085,7 +4085,7 @@ function AddonsSettings({ translations, canEdit = true }) {
   // Get quantity for an addon
   const getQuantity = (addonId) => quantities[addonId] || 1;
 
-  // Set quantity for an addon — clamp to [1, remaining plan headroom]
+  // Set quantity for an addon - clamp to [1, remaining plan headroom]
   // so the counter can't even be typed past the plan limit. The backend
   // still validates on POST as a safety net.
   const setQuantity = (addonId, qty) => {
@@ -4274,7 +4274,7 @@ function AddonsSettings({ translations, canEdit = true }) {
                           <div className={styles.pricePeriod}>/{period}</div>
                         )}
                       </div>
-                      {/* Quantity counter — clamped to the plan's addon cap */}
+                      {/* Quantity counter - clamped to the plan's addon cap */}
                       <div className={styles.addonQuantityRow}>
                         <div className={styles.addonQuantityCounter}>
                           <button
@@ -5984,7 +5984,7 @@ function WhiteLabelReportingSettings({ translations, canEdit = true }) {
             </span>
           </div>
 
-          {/* Website + Phone — surfaced as contact lines under the
+          {/* Website + Phone - surfaced as contact lines under the
               agency logo in both the in-platform preview and the
               downloadable PDF. Optional; empty values just don't
               render in the report. */}
@@ -6083,10 +6083,10 @@ function ClientReportingSettings({ translations, canEdit = true, onSwitchTab, on
   // Recipients modal: { mode: 'edit' | 'send', report }
   const [recipientsModal, setRecipientsModal] = useState(null);
 
-  // Delete confirmation modal — { reportId, isPending }
+  // Delete confirmation modal - { reportId, isPending }
   const [deleteConfirm, setDeleteConfirm] = useState(null);
 
-  // Sections info modal — opened from clicking the Sections cell.
+  // Sections info modal - opened from clicking the Sections cell.
   const [sectionsInfoReport, setSectionsInfoReport] = useState(null);
 
   // Tracks which row's download or preview is mid-click. Lets us
@@ -6095,11 +6095,11 @@ function ClientReportingSettings({ translations, canEdit = true, onSwitchTab, on
   const [downloadingId, setDownloadingId] = useState(null);
   const [previewLoadingId, setPreviewLoadingId] = useState(null);
 
-  // Languages modal — opened from clicking the Languages cell. Lets the
+  // Languages modal - opened from clicking the Languages cell. Lets the
   // user view current locales and queue generation for new ones.
   const [languagesModalReport, setLanguagesModalReport] = useState(null);
 
-  // Language picker — opened when the user clicks Preview or Download
+  // Language picker - opened when the user clicks Preview or Download
   // on a row that has multiple languages. The picker resolves to a
   // single reportId before invoking the actual action. Shape:
   //   { intent: 'preview' | 'download', languages: [...] }
@@ -6136,7 +6136,7 @@ function ClientReportingSettings({ translations, canEdit = true, onSwitchTab, on
   const checkBrandingConfig = async () => {
     try {
       // Check account has name and white-label logo configured. The
-      // account endpoint is `/api/account/current` — we were hitting
+      // account endpoint is `/api/account/current` - we were hitting
       // `/api/account` which 404s, so `hasAccountName` stayed false no
       // matter what the user entered and this screen kept nagging them
       // to "configure branding" even when it already was.
@@ -6236,7 +6236,7 @@ function ClientReportingSettings({ translations, canEdit = true, onSwitchTab, on
       const response = await fetch(`/api/reports/${reportId}`, { method: 'DELETE' });
       if (response.ok) {
         setStatusMessage({ type: 'success', text: t('settings.clientReportingSection.reportDeleted') || 'Report deleted successfully' });
-        // Optimistic in-place update — avoids the full re-fetch +
+        // Optimistic in-place update - avoids the full re-fetch +
         // re-render the user noticed as "reloading all the component".
         // Two cases per row:
         //   1. The deleted report is the displayed row.id (single
@@ -6583,7 +6583,7 @@ function ClientReportingSettings({ translations, canEdit = true, onSwitchTab, on
             <option value="he">עברית</option>
           </select>
 
-          {/* Inline pagination — sits flush to the end of the filter
+          {/* Inline pagination - sits flush to the end of the filter
               bar so users can flip pages without scrolling to the
               bottom of the list. Hidden when only one page exists. */}
           {filteredReports.length > REPORTS_PER_PAGE && (
@@ -6615,7 +6615,7 @@ function ClientReportingSettings({ translations, canEdit = true, onSwitchTab, on
           )}
         </div>
 
-        {/* Reports table — wrapper class lets us override the row-border
+        {/* Reports table - wrapper class lets us override the row-border
             leak and force consistent end-alignment for the actions column,
             both of which the shared DataTable styles don't get right by
             themselves in this RTL context. */}
@@ -6633,7 +6633,7 @@ function ClientReportingSettings({ translations, canEdit = true, onSwitchTab, on
                 // single `month` string for legacy / single-period reports.
                 const md = row.metadata || {};
                 if (md.previousPeriodLabel && md.currentPeriodLabel) {
-                  // Comparison range — render the two months on either
+                  // Comparison range - render the two months on either
                   // side of a small compare icon so the relationship is
                   // recognizable across both LTR and RTL contexts (a
                   // bare arrow flips meaning in RTL).
@@ -6757,7 +6757,7 @@ function ClientReportingSettings({ translations, canEdit = true, onSwitchTab, on
                 // Empty state stays a non-interactive em-dash since
                 // there's nothing to inspect.
                 if (sections.length === 0) {
-                  return <span className={styles.reportRecipientsEmpty}>—</span>;
+                  return <span className={styles.reportRecipientsEmpty}>-</span>;
                 }
                 const titles = sections.map(
                   (id) => t(`settings.clientReportingSection.options.${id}`) || id
@@ -6785,7 +6785,7 @@ function ClientReportingSettings({ translations, canEdit = true, onSwitchTab, on
                 <div className={styles.reportActions}>
                   {/* All action buttons share the same ghost icon-only style
                       so the row reads as a unified toolbar. Color is reserved
-                      for hover hints (delete tints red) — no filled buttons
+                      for hover hints (delete tints red) - no filled buttons
                       stealing visual weight. */}
                   <Button
                     variant="ghost"
@@ -6844,7 +6844,7 @@ function ClientReportingSettings({ translations, canEdit = true, onSwitchTab, on
         />
         </div>
 
-        {/* Pagination — only render when more than one page */}
+        {/* Pagination - only render when more than one page */}
         {filteredReports.length > REPORTS_PER_PAGE && (
           <div className={styles.reportsPagination}>
             <button
@@ -6955,7 +6955,7 @@ function ClientReportingSettings({ translations, canEdit = true, onSwitchTab, on
 /**
  * Status pill that doubles as a manual status change menu. PENDING is
  * shown as a non-interactive spinning indicator since the user can't
- * override it — that status is owned by the generation pipeline.
+ * override it - that status is owned by the generation pipeline.
  */
 function ReportStatusBadge({ report, canEdit, onChange, t }) {
   const status = report?.status || 'DRAFT';

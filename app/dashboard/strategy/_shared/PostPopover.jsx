@@ -2,7 +2,7 @@
 
 import { useRef, useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { X, Check, Type, Tag, Calendar, Clock, Globe, ExternalLink, RefreshCw, Loader2, Sparkles, Eye, ChevronDown, ChevronUp, Pencil, Trash2 } from 'lucide-react';
+import { X, Check, Type, Tag, Calendar, Clock, Globe, ExternalLink, RefreshCw, Loader2, Sparkles, Eye, ChevronDown, ChevronUp, Pencil, Trash2, AlertTriangle } from 'lucide-react';
 import { ConfirmDialog } from '@/app/admin/components/AdminModal';
 import { useLocale } from '@/app/context/locale-context';
 import styles from './PostPopover.module.css';
@@ -401,6 +401,14 @@ export default function PostPopover({
           </div>
         )}
 
+        {/* Cluster cannibalization preflight warnings */}
+        {post.preflight?.hasConflict && Array.isArray(post.preflight.conflicts) && post.preflight.conflicts.length > 0 && (
+          <PreflightSection
+            preflight={post.preflight}
+            translations={t.preflight || {}}
+          />
+        )}
+
         {/* Actions footer */}
         <div className={styles.footer}>
           <div className={styles.footerActions}>
@@ -468,5 +476,68 @@ export default function PostPopover({
       )}
     </div>,
     document.body
+  );
+}
+
+/**
+ * Renders cluster cannibalization preflight warnings.
+ * preflight = { hasConflict: boolean, conflicts: Array<{ entityId, entityTitle, entityUrl, score, type, recommendation }> }
+ */
+function PreflightSection({ preflight, translations: pt }) {
+  const [expanded, setExpanded] = useState(false);
+  const conflicts = preflight.conflicts || [];
+  const count = conflicts.length;
+  const headline = count === 1
+    ? (pt.warningOne || '1 potential conflict')
+    : (pt.warningCount || `${count} potential conflicts`).replace('{count}', String(count));
+
+  return (
+    <div className={styles.preflightSection}>
+      <button
+        type="button"
+        className={styles.preflightToggle}
+        onClick={() => setExpanded((v) => !v)}
+      >
+        <AlertTriangle size={14} className={styles.preflightWarnIcon} />
+        <span className={styles.preflightTitle}>{pt.title || 'Cluster cannibalization'}</span>
+        <span className={styles.preflightCount}>{headline}</span>
+        {expanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+      </button>
+      {expanded && (
+        <ul className={styles.preflightList}>
+          {conflicts.map((c, i) => {
+            const typeLabel = pt.types?.[c.type] || c.type;
+            const recLabel = pt.recommendations?.[c.recommendation] || c.recommendation;
+            const scorePct = Math.round((c.score || 0) * 100);
+            const titleNode = c.entityUrl ? (
+              <a
+                href={c.entityUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={styles.preflightEntityLink}
+              >
+                {c.entityTitle}
+              </a>
+            ) : (
+              <span className={styles.preflightEntityLink}>{c.entityTitle}</span>
+            );
+            return (
+              <li key={`${c.entityId}-${i}`} className={styles.preflightItem}>
+                <div className={styles.preflightItemRow}>
+                  {titleNode}
+                  <span className={styles.preflightScore}>{scorePct}%</span>
+                </div>
+                <div className={styles.preflightItemRow}>
+                  <span className={styles.preflightTypeBadge}>{typeLabel}</span>
+                  <span className={`${styles.preflightRecBadge} ${styles[`rec_${c.recommendation}`] || ''}`}>
+                    {recLabel}
+                  </span>
+                </div>
+              </li>
+            );
+          })}
+        </ul>
+      )}
+    </div>
   );
 }

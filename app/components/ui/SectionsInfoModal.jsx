@@ -33,7 +33,7 @@ const SECTION_ICONS = {
 };
 
 /**
- * SectionsInfoModal — shows the sections included in a given report,
+ * SectionsInfoModal - shows the sections included in a given report,
  * each with a short explanation of what it contains. Triggered by
  * clicking the Sections cell on a row in the reports table.
  *

@@ -37,7 +37,7 @@ const RESOURCE_LABEL_KEY = {
  *  1. Which resource hit the limit
  *  2. Whether the user has BILLING_MANAGE / Owner permission
  *
- * State A (has permission): list every active add-on for the resource —
+ * State A (has permission): list every active add-on for the resource -
  *                           RECURRING (permanent) options first, then ONE_TIME.
  * State B (no permission):  "Request upgrade from owner" CTA
  */
@@ -125,7 +125,7 @@ export default function LimitReachedModal({
           }
         }
       } catch {
-        // Non-critical — user-context polling will catch up
+        // Non-critical - user-context polling will catch up
       }
 
       // Notify the rest of the app (DashboardHeader credits bar, etc.)

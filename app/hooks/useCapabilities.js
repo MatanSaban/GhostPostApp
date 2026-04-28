@@ -14,7 +14,7 @@ import { capabilitiesFor } from '@/lib/cms/capabilities';
  *     const caps = useCapabilities();
  *     if (!caps.supportsPlugin) return null;
  *
- * Falls back to WordPress capabilities when no site is selected — that's the
+ * Falls back to WordPress capabilities when no site is selected - that's the
  * historical default and keeps legacy UI rendering during initial load.
  */
 export function useCapabilities() {

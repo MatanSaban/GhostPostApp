@@ -148,7 +148,7 @@ export function GoogleDriveBrowser({ isOpen, onClose, onImport, siteId }) {
     };
   }, [isOpen]);
 
-  // Esc closes (unless we're mid-import — don't drop the action).
+  // Esc closes (unless we're mid-import - don't drop the action).
   useEffect(() => {
     if (!isOpen) return;
     const handler = (e) => {

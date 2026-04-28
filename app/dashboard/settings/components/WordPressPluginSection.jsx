@@ -152,7 +152,7 @@ export default function WordPressPluginSection({
       // `filename*=UTF-8''<percent-encoded>` over the legacy `filename="…"`
       // so non-Latin site names (Hebrew, Arabic, …) render correctly. The
       // legacy parameter contains an ASCII-only fallback (Hebrew chars
-      // replaced with `_`) on purpose — picking it up here is what was
+      // replaced with `_`) on purpose - picking it up here is what was
       // saving sites named "קידוז" as "____" before this fix.
       const cd = response.headers.get('Content-Disposition') || '';
       const utf8Match = cd.match(/filename\*\s*=\s*UTF-8''([^;]+)/i);

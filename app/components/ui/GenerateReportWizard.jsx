@@ -181,7 +181,7 @@ export function GenerateReportWizard({ isOpen, onClose, site, onGenerated }) {
   };
 
   // Dictionary stores section labels under `clientReportingSection.options.<id>`,
-  // so the wizard reads from the same place the legacy settings page used —
+  // so the wizard reads from the same place the legacy settings page used -
   // otherwise the Hebrew labels never show up despite being in the dictionary.
   const sectionLabel = (id) =>
     t(`settings.clientReportingSection.options.${id}`) || SECTION_LABELS_FALLBACK[id] || id;
@@ -206,7 +206,7 @@ export function GenerateReportWizard({ isOpen, onClose, site, onGenerated }) {
   // Polls the report's status every 3s until it leaves PENDING. Uses the
   // platform's BackgroundTasks system so the user sees a non-blocking
   // notification while continuing to work elsewhere in the dashboard.
-  // Stops the interval the moment status flips off PENDING — leaving it
+  // Stops the interval the moment status flips off PENDING - leaving it
   // running would leak a closure once the wizard unmounts.
   const startReportPolling = (reportId, taskId) => {
     let interval = null;
@@ -217,7 +217,7 @@ export function GenerateReportWizard({ isOpen, onClose, site, onGenerated }) {
     const tick = async () => {
       try {
         const res = await fetch(`/api/reports/${reportId}`);
-        if (!res.ok) return; // transient — try next tick
+        if (!res.ok) return; // transient - try next tick
         const { report } = await res.json();
         if (!report) return;
 
@@ -229,7 +229,7 @@ export function GenerateReportWizard({ isOpen, onClose, site, onGenerated }) {
           return;
         }
 
-        // Terminal status reached — clear the interval first so a slow
+        // Terminal status reached - clear the interval first so a slow
         // request can't trigger another tick after we've finalized.
         stop();
 
@@ -250,7 +250,7 @@ export function GenerateReportWizard({ isOpen, onClose, site, onGenerated }) {
         }
         onGenerated?.({ reportId, report });
       } catch {
-        // ignore — next tick retries
+        // ignore - next tick retries
       }
     };
     tick();
@@ -305,7 +305,7 @@ export function GenerateReportWizard({ isOpen, onClose, site, onGenerated }) {
 
       // Register a background task so the user gets a non-blocking
       // notification when the PDF finishes rendering. The wizard then
-      // closes immediately — generation no longer blocks the modal.
+      // closes immediately - generation no longer blocks the modal.
       const taskId = `report-generate-${data.reportId}`;
       addTask({
         id: taskId,
@@ -435,7 +435,7 @@ export function GenerateReportWizard({ isOpen, onClose, site, onGenerated }) {
               </p>
               {availablePeriods.availableMonths.length === 0 ? (
                 <p className={styles.formHint}>
-                  {t('settings.clientReportingSection.wizard.noPeriodsHint') || 'No historical data yet — the report will use current data only.'}
+                  {t('settings.clientReportingSection.wizard.noPeriodsHint') || 'No historical data yet - the report will use current data only.'}
                 </p>
               ) : (
                 <div className={styles.periodGrid}>

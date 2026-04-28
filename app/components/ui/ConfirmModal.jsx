@@ -6,7 +6,7 @@ import { useLocale } from '@/app/context/locale-context';
 import styles from './ConfirmModal.module.css';
 
 /**
- * Reusable confirmation modal — drops in wherever we'd otherwise use
+ * Reusable confirmation modal - drops in wherever we'd otherwise use
  * `window.confirm()`. Renders via createPortal so it floats above any
  * page chrome and can't be clipped by overflow:hidden ancestors.
  *

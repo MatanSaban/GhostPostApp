@@ -85,7 +85,7 @@ export default function MediaPage() {
     return () => clearTimeout(timer);
   }, [search]);
 
-  // Clear cache when the site, search term, or page size changes — those invalidate every cached page.
+  // Clear cache when the site, search term, or page size changes - those invalidate every cached page.
   useEffect(() => {
     pageCacheRef.current.clear();
   }, [selectedSite?.id, searchDebounce, perPage]);
@@ -100,7 +100,7 @@ export default function MediaPage() {
     }
   }, [selectedItem]);
   
-  // Fetch media — uses an in-memory page cache so revisiting a page is instant.
+  // Fetch media - uses an in-memory page cache so revisiting a page is instant.
   const fetchMedia = useCallback(async ({ force = false } = {}) => {
     if (!selectedSite?.id) return;
 
@@ -159,7 +159,7 @@ export default function MediaPage() {
   }, [fetchMedia]);
 
   // Progressive search: while the user types, filter already-loaded items by
-  // title first, then other metadata fields — so they see matches instantly.
+  // title first, then other metadata fields - so they see matches instantly.
   // Once the debounce fires, the server search replaces `media` with the
   // definitive result set (which spans the full library, not just the current
   // page), and the filter re-applies on top of that.
@@ -213,9 +213,9 @@ export default function MediaPage() {
    * triggering a refetch. Used for uploads / deletes / AI replacements so
    * the grid updates instantly instead of flashing back to the skeleton.
    *
-   *   patch.add    — items to prepend (new uploads/imports)
-   *   patch.remove — Set<id> of items to drop (deletes/AI replacement)
-   *   patch.delta  — change to `totalItems` (defaults to add.length - remove.size)
+   *   patch.add    - items to prepend (new uploads/imports)
+   *   patch.remove - Set<id> of items to drop (deletes/AI replacement)
+   *   patch.delta  - change to `totalItems` (defaults to add.length - remove.size)
    */
   const applyLocalMediaPatch = useCallback((patch) => {
     const addItems = Array.isArray(patch?.add) ? patch.add.filter(Boolean) : [];
@@ -234,7 +234,7 @@ export default function MediaPage() {
     pageCacheRef.current.forEach((entry, key) => {
       let items = entry.items;
       if (removeIds.size) items = items.filter((m) => !removeIds.has(m.id));
-      // Only prepend new items to the CURRENT page cache — adding them to
+      // Only prepend new items to the CURRENT page cache - adding them to
       // every page would make them appear multiple times.
       if (addItems.length && String(key) === String(page)) {
         items = [...addItems, ...items];
@@ -247,8 +247,8 @@ export default function MediaPage() {
     }
   }, [page]);
 
-  // Called when the user "keeps" an AI-regenerated image. We get `oldId` — the
-  // media item the user was regenerating — and delete it so the new upload
+  // Called when the user "keeps" an AI-regenerated image. We get `oldId` - the
+  // media item the user was regenerating - and delete it so the new upload
   // replaces it in the library, rather than leaving both side by side.
   const handleAIUploaded = useCallback(async (newItem, oldId) => {
     const removeIds = new Set();
@@ -302,7 +302,7 @@ export default function MediaPage() {
       reader.readAsDataURL(file);
     });
 
-  // Handle file upload — client converts File → base64 JSON which both the
+  // Handle file upload - client converts File → base64 JSON which both the
   // WordPress plugin and the Shopify Files API path accept. Successfully
   // uploaded items are prepended to the grid optimistically; no full refetch.
   const handleFileSelect = async (e) => {
@@ -468,7 +468,7 @@ export default function MediaPage() {
 
       const deletedId = selectedItem.id;
       setSelectedItem(null);
-      // Optimistic local update — drop the deleted item from the grid and
+      // Optimistic local update - drop the deleted item from the grid and
       // caches without a full refetch.
       applyLocalMediaPatch({ remove: new Set([deletedId]) });
     } catch (err) {
@@ -556,7 +556,7 @@ export default function MediaPage() {
     );
   }
 
-  // Either site is still loading, or media is loading — the grid skeleton
+  // Either site is still loading, or media is loading - the grid skeleton
   // covers both so the user sees a single consistent placeholder.
   const showGridSkeleton = isSiteLoading || isLoading;
   

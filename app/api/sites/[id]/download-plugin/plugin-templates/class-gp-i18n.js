@@ -291,7 +291,7 @@ class GP_I18n {
             'SEO updated' => 'SEO עודכן',
             'Element edited' => 'אלמנט נערך',
 
-            // Legacy raw-key fallbacks — pre-overhaul activity-log entries
+            // Legacy raw-key fallbacks - pre-overhaul activity-log entries
             // stored the action key directly (no English label) and the
             // settings page used to translate it via __() . These mappings
             // keep old log entries readable until they age out.

@@ -608,7 +608,7 @@
    * direction of the page:
    *   - LTR:  "1,390 / 1,480"  (usage on the left, limit on the right)
    *   - RTL:  "1,480 / 1,390"  (limit on the left, usage on the right)
-   * which RTL readers read right-to-left as "usage first, then limit" —
+   * which RTL readers read right-to-left as "usage first, then limit" -
    * matching how we render every other "used / total" pair in the app
    * for Hebrew users.
    */

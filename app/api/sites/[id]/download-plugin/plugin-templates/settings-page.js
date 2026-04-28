@@ -102,7 +102,7 @@ $theme_class = ($gp_theme === 'light') ? 'gp-theme-light' : 'gp-theme-dark';
                 </button>
             <?php endif; ?>
             <?php
-            // Theme-aware wordmark — light theme uses the dark wordmark
+            // Theme-aware wordmark - light theme uses the dark wordmark
             // (black text on light bg), dark theme uses the light wordmark
             // (white text on dark bg).
             $logo_path = ($gp_theme === 'light') ? '/logo-light.svg' : '/logo-dark.svg';
@@ -297,7 +297,7 @@ $theme_class = ($gp_theme === 'light') ? 'gp-theme-light' : 'gp-theme-dark';
                 $activity_log_full = get_option('gp_activity_log', array());
                 if (!is_array($activity_log_full)) { $activity_log_full = array(); }
 
-                // Pagination — 30 per page, controlled via ?activity_page=N.
+                // Pagination - 30 per page, controlled via ?activity_page=N.
                 // Custom param name avoids any collision with WP core's "paged"
                 // and the menu-slug "page" query var on this admin screen.
                 $per_page    = 30;

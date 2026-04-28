@@ -6,13 +6,13 @@
  * Body: { hint?: string }
  *
  * Generates a fresh AI executive summary for an existing report. The
- * `hint` field — if present — carries whatever the user typed in the
+ * `hint` field - if present - carries whatever the user typed in the
  * preview's summary editor before clicking "Regenerate summary"; we
  * pass it to the model as user guidance so the new summary expands /
  * rewrites that draft rather than replacing it cold.
  *
  * Returns the persisted summary string. The PDF is NOT re-rendered
- * here — that's a heavier operation and can be triggered separately
+ * here - that's a heavier operation and can be triggered separately
  * via /regenerate when the user is ready to ship the updated PDF.
  */
 
@@ -45,7 +45,7 @@ function buildPrompt({ siteName, currentPeriodLabel, previousPeriodLabel, curren
       : `Actions performed: ${actions.slice(0, 10).map((a) => a?.data?.description || a.descriptionKey || a.actionType).join(', ')}.`)
     : (isHe ? 'לא בוצעו פעולות אוטומטיות בתקופה.' : 'No automated actions performed in this period.');
 
-  // The user's existing draft — when present we ask the model to refine
+  // The user's existing draft - when present we ask the model to refine
   // it instead of starting from scratch, so manual edits aren't lost.
   const hintBlock = hint && hint.trim()
     ? (isHe

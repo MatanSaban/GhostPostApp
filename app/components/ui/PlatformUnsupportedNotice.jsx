@@ -11,10 +11,10 @@ import styles from './PlatformUnsupportedNotice.module.css';
  * Shopify (or a future platform) don't see a broken WP-only experience.
  *
  * Props:
- *   feature      — display name of the feature (e.g. "WebP Converter")
- *   platform     — the active site's platform (e.g. "shopify")
- *   reason       — optional sentence explaining why it's unsupported
- *   showBackButton — whether to render the "Go to dashboard" CTA
+ *   feature      - display name of the feature (e.g. "WebP Converter")
+ *   platform     - the active site's platform (e.g. "shopify")
+ *   reason       - optional sentence explaining why it's unsupported
+ *   showBackButton - whether to render the "Go to dashboard" CTA
  */
 export function PlatformUnsupportedNotice({
   feature,

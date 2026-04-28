@@ -6,6 +6,8 @@ import Image from 'next/image';
 import { useLocale } from '@/app/context/locale-context';
 import { AnalysisProgress } from './AnalysisProgress';
 import { CompetitorSelector } from './CompetitorSelector';
+import { EntitiesSelectionPanel } from '@/app/components/ui/EntitiesSelectionPanel';
+import { useEntitiesScan } from '@/app/hooks/useEntitiesScan';
 import { GHOSTSEO_BOT_UA, GHOSTSEO_BOT_INFO_URL } from '@/lib/bot-identity';
 import styles from '../auth.module.css';
 
@@ -62,6 +64,12 @@ export function InterviewStep({ translations, onComplete, initialData = {}, onAn
 
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
+
+  // Background entity scan. Fires once URL + language are confirmed and
+  // runs in parallel with the rest of the chat. The selection UI shows up
+  // as the last confirmation question.
+  const entitiesScan = useEntitiesScan({ type: 'tempReg' });
+  const scanTriggeredRef = useRef(false);
 
   // Confirmation questions - uses the analysis data and the user's prior
   // language choice. Accepts an optional `data` argument so callers that are
@@ -181,6 +189,23 @@ export function InterviewStep({ translations, onComplete, initialData = {}, onAn
       });
     }
 
+    // 6. Entity-type selection. Always pushed last so the background scan
+    //    (kicked off when URL+language were confirmed) has the maximum
+    //    amount of in-chat time to finish before this panel is reached.
+    //    The panel itself decides whether to render (COMPLETED with types),
+    //    hold for up to 10s (SCANNING), or skip silently (FAILED/EMPTY).
+    questions.push({
+      id: 'entitiesSelection',
+      field: 'entitiesSelection',
+      type: 'panel',
+      getMessage: () =>
+        t('interviewWizard.proactive.entitiesIntro') ||
+        (locale === 'he'
+          ? 'בואו נסתכל על סוגי התוכן שזיהינו באתר שלך.'
+          : "Let's take a look at the content types we found on your site."),
+      getDefaultValue: () => [],
+    });
+
     return questions;
   };
 
@@ -251,12 +276,11 @@ export function InterviewStep({ translations, onComplete, initialData = {}, onAn
     setInterviewData(newData);
     onAnswerSaved?.(newData, false);
 
+    // Run the language probe silently - we only want to surface the result if
+     // the site actually has multiple language variants. Showing "Checking if
+     // your site has multiple languages..." for every URL is noisy and the
+     // user spec is to inform only when something is found.
     setPhase(PHASES.DETECTING_LANGUAGES);
-    setMessages(prev => [...prev, {
-      id: prev.length,
-      type: 'agent',
-      content: t('interviewWizard.proactive.detectingLanguages'),
-    }]);
 
     try {
       const res = await fetch('/api/interview/detect-languages', {
@@ -358,6 +382,21 @@ export function InterviewStep({ translations, onComplete, initialData = {}, onAn
     setInterviewData(newData);
     onAnswerSaved?.(newData, false);
 
+    // Single-language flow: language wasn't selected explicitly so scan
+    // wasn't triggered in handleLanguageSelect. Trigger it now using the
+    // language inferred by the analyzer (or the user's locale as fallback).
+    if (!scanTriggeredRef.current) {
+      const scanLanguage =
+        newData.selectedLanguage ||
+        data.contentStyle?.language ||
+        locale;
+      const scanUrl = data.url || websiteUrl;
+      if (scanUrl) {
+        scanTriggeredRef.current = true;
+        entitiesScan.triggerScan({ url: scanUrl, language: scanLanguage });
+      }
+    }
+
     startConfirmationFlow(data);
   };
 
@@ -402,6 +441,14 @@ export function InterviewStep({ translations, onComplete, initialData = {}, onAn
 
     setWebsiteUrl(variant.url);
     setPhase(PHASES.ANALYZING);
+
+    // Multi-language flow: URL + language are now confirmed. Kick off the
+    // background entity scan immediately so its results are likely ready
+    // by the time the user reaches the entities-selection question.
+    if (!scanTriggeredRef.current) {
+      scanTriggeredRef.current = true;
+      entitiesScan.triggerScan({ url: variant.url, language: variant.code });
+    }
   };
 
   // Handle confirmation response
@@ -504,6 +551,64 @@ export function InterviewStep({ translations, onComplete, initialData = {}, onAn
     }, 600);
   };
 
+  // Advance from the entities-selection question. Used by both the confirm
+  // and skip paths so the chat moves on identically - the only difference
+  // is whether we persist the user's selection first. `data` is passed
+  // explicitly (rather than read from interviewData closure) to avoid the
+  // stale-state issue: setInterviewData is async, so by the time the
+  // setTimeout fires, interviewData may be the previous render's value.
+  const advanceFromEntitiesQuestion = (data, typedDelay = 600) => {
+    setIsTyping(true);
+    setTimeout(() => {
+      const questions = getConfirmationQuestions();
+      const nextStep = confirmationStep + 1;
+      if (nextStep >= questions.length) {
+        completeInterview(data);
+        return;
+      }
+      setConfirmationStep(nextStep);
+      const nextQuestion = questions[nextStep];
+      setMessages(prev => [...prev, {
+        id: prev.length,
+        type: 'agent',
+        content: nextQuestion.getMessage(),
+        questionId: nextQuestion.id,
+        questionType: nextQuestion.type,
+      }]);
+      setIsTyping(false);
+    }, typedDelay);
+  };
+
+  const handleEntitiesConfirm = async (slugs) => {
+    // Persist the selection so it survives a refresh and is available at
+    // finalize for the tempReg -> Site migration.
+    await entitiesScan.saveSelection(slugs);
+
+    const newData = {
+      ...interviewData,
+      entitiesSelectedSlugs: slugs,
+    };
+    setInterviewData(newData);
+
+    const count = slugs.length;
+    const responseText = locale === 'he'
+      ? (count === 1 ? '✓ נבחר סוג תוכן אחד' : `✓ נבחרו ${count} סוגי תוכן`)
+      : (count === 1 ? '✓ Selected 1 content type' : `✓ Selected ${count} content types`);
+    setMessages(prev => [...prev, {
+      id: prev.length,
+      type: 'user',
+      content: responseText,
+    }]);
+
+    advanceFromEntitiesQuestion(newData, 600);
+  };
+
+  // Silent skip - fired by the panel on FAILED / EMPTY / 10s-timeout.
+  // No user-facing message; the chat just rolls forward.
+  const handleEntitiesSkip = () => {
+    advanceFromEntitiesQuestion(interviewData, 150);
+  };
+
   // Complete the interview
   const completeInterview = async (data) => {
     // Add completion message
@@ -568,7 +673,7 @@ export function InterviewStep({ translations, onComplete, initialData = {}, onAn
               {phase === PHASES.ANALYZING
                 ? t('interviewWizard.proactive.analyzing')
                 : phase === PHASES.DETECTING_LANGUAGES
-                  ? t('interviewWizard.proactive.detectingLanguages')
+                  ? t('interviewWizard.proactive.gettingStarted')
                   : phase === PHASES.LANGUAGE_SELECT
                     ? t('interviewWizard.proactive.selectingLanguage')
                     : phase === PHASES.CONFIRMATION
@@ -820,6 +925,23 @@ export function InterviewStep({ translations, onComplete, initialData = {}, onAn
                 <Check size={16} />
                 {locale === 'he' ? 'להמשיך' : 'Continue'}
               </button>
+            </div>
+          )}
+
+          {/* Entity-type selection panel. The panel itself races a 10s
+              timeout when the scan is still in flight, and silently calls
+              onSkip() when the scan failed/returned empty - so we don't
+              need to gate this render on scan status. */}
+          {phase === PHASES.CONFIRMATION &&
+           currentQuestion?.id === 'entitiesSelection' &&
+           !isTyping && (
+            <div className={styles.competitorContainer}>
+              <EntitiesSelectionPanel
+                scan={entitiesScan}
+                onConfirm={handleEntitiesConfirm}
+                onSkip={handleEntitiesSkip}
+                waitTimeoutMs={10000}
+              />
             </div>
           )}
 

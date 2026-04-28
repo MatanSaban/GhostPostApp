@@ -15,21 +15,21 @@ export const dynamic = 'force-dynamic';
  *   X-Shopify-Webhook-Id         dedup id
  *   X-Shopify-Triggered-At       ISO timestamp
  *
- * Validation is strict — anything failing HMAC returns 401 silently. Shopify
+ * Validation is strict - anything failing HMAC returns 401 silently. Shopify
  * retries 5xx but stops on 4xx, which is what we want for forged requests.
  *
  * Behavior per topic:
- *   products/update, products/create, products/delete       — touch site.lastEntityChangeAt
- *   collections/*                                           — same
- *   shop/update                                             — refresh shopify* fields cache
- *   app/uninstalled                                         — wipe access token, mark DISCONNECTED
+ *   products/update, products/create, products/delete       - touch site.lastEntityChangeAt
+ *   collections/*                                           - same
+ *   shop/update                                             - refresh shopify* fields cache
+ *   app/uninstalled                                         - wipe access token, mark DISCONNECTED
  *
- * We deliberately do NOT trigger heavy re-syncs on every webhook — the
+ * We deliberately do NOT trigger heavy re-syncs on every webhook - the
  * platform's entity sync is on-demand. Webhooks just stamp recency so the
  * UI knows when stored data is stale.
  */
 export async function POST(request) {
-  // 1. Read raw body — required for HMAC verification.
+  // 1. Read raw body - required for HMAC verification.
   const rawBody = await request.text();
   const hmac = request.headers.get('x-shopify-hmac-sha256');
   const topic = request.headers.get('x-shopify-topic');
@@ -53,7 +53,7 @@ export async function POST(request) {
     select: { id: true, accountId: true },
   });
   if (!site) {
-    // Webhook for a shop we don't track — return 200 so Shopify stops retrying.
+    // Webhook for a shop we don't track - return 200 so Shopify stops retrying.
     return NextResponse.json({ ok: true, ignored: true });
   }
 
@@ -61,14 +61,14 @@ export async function POST(request) {
   try {
     if (topic.startsWith('products/') || topic.startsWith('collections/')) {
       // Touch lastPingAt so the freshness UI knows the connection is live;
-      // we deliberately don't trigger a re-sync here — entity sync is on
+      // we deliberately don't trigger a re-sync here - entity sync is on
       // demand from the platform side.
       await prisma.site.update({
         where: { id: site.id },
         data: { lastPingAt: new Date() },
       });
     } else if (topic === 'shop/update') {
-      // Stash the new shop snapshot — body is JSON.
+      // Stash the new shop snapshot - body is JSON.
       try {
         const body = JSON.parse(rawBody);
         await prisma.site.update({
@@ -94,7 +94,7 @@ export async function POST(request) {
       });
     }
   } catch (err) {
-    // Log but still return 2xx — we don't want Shopify retrying because
+    // Log but still return 2xx - we don't want Shopify retrying because
     // of our internal failure on a verified webhook.
     console.error('[shopify/webhook] handler error:', err.message, { topic });
   }

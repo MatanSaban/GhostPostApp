@@ -5,11 +5,11 @@
   },
   "meta": {
     "default": {
-      "title": "GhostSEO — AI-Powered SEO Automation",
+      "title": "GhostSEO - AI-Powered SEO Automation",
       "description": "Automate your SEO strategy with GhostSEO. AI-powered content creation, optimization, and site management."
     },
     "home": {
-      "title": "GhostSEO — AI-Powered SEO Automation",
+      "title": "GhostSEO - AI-Powered SEO Automation",
       "description": "Let intelligent agents handle your content strategy while you focus on growth."
     },
     "auth": {
@@ -71,6 +71,10 @@
         "aiWizard": {
           "title": "AI Content Wizard",
           "description": "Generate content briefs and drafts with AI."
+        },
+        "clusters": {
+          "title": "Topic Clusters",
+          "description": "Manage topic clusters discovered from your site content."
         }
       },
       "entities": {
@@ -465,7 +469,7 @@
       "cost": "Costs {credits} Ai-GCoins",
       "costShort": "{credits} Ai-GCoins",
       "contextLabel": "Using this context",
-      "noMetadataHint": "No alt text, title, caption, or description yet — add instructions below to guide the AI.",
+      "noMetadataHint": "No alt text, title, caption, or description yet - add instructions below to guide the AI.",
       "instructionsLabel": "Additional instructions (optional)",
       "instructionsPlaceholder": "e.g. lighter background, more vibrant colors, add a person holding the product...",
       "aspectRatio": "Aspect ratio",
@@ -490,7 +494,7 @@
       "verification": {
         "allGoodTitle": "Looks good",
         "allGoodBody": "Text language matches the site and your instructions were followed.",
-        "issuesTitle": "Heads up — the AI flagged some issues",
+        "issuesTitle": "Heads up - the AI flagged some issues",
         "languageMismatch": "Visible text does not appear to be in the site's language ({language}).",
         "instructionsNotFollowed": "Your custom instructions may not have been fully followed."
       }
@@ -666,7 +670,8 @@
       "keywords": "Keywords",
       "contentPlanner": "Content Calendar",
       "aiWizard": "AI Content Wizard",
-      "competitorAnalysis": "Competitors"
+      "competitorAnalysis": "Competitors",
+      "clusters": "Topic Clusters"
     },
     "automations": "Automations",
     "linkBuilding": "Link Building",
@@ -2174,7 +2179,7 @@
     "findWithAI": "Find with AI",
     "findWithAIDescription": "Analyzing your website content to discover competitors...",
     "discoveringCompetitors": "Discovering competitors...",
-    "discoveringBackgroundHint": "You can close this window and keep working — we'll reopen it when results are ready.",
+    "discoveringBackgroundHint": "You can close this window and keep working - we'll reopen it when results are ready.",
     "viewProgress": "View discovery progress",
     "discoverCompetitors": "Discover Competitors",
     "noKeywordsForDiscovery": "Could not find any keywords to search for competitors",
@@ -3905,12 +3910,12 @@
         "overview": "Top-level summary cards showing tracked keywords, competitors, content pieces, and AI actions in the period.",
         "aiSummary": "AI-generated executive summary written for the client, covering progress and outcomes during the period.",
         "healthScore": "Current site health score with the delta versus the previous period and a category-by-category breakdown.",
-        "aiActions": "Table of automated actions executed by the AI agent during the period — date, type, and description.",
+        "aiActions": "Table of automated actions executed by the AI agent during the period - date, type, and description.",
         "keywords": "Top tracked keywords with their current rankings and search volumes.",
         "competitors": "Active competitors being tracked for this site.",
         "seo": "SEO insights including the audit score, category breakdown, writing style, and strategy preview.",
         "geo": "Target locations and the content language configured for this site.",
-        "siteAudits": "History of recent site audits — date, score, and status — across the report period."
+        "siteAudits": "History of recent site audits - date, score, and status - across the report period."
       },
       "sectionsModal": {
         "title": "Report sections",
@@ -3924,7 +3929,7 @@
         "currentMonth": "Current month",
         "previousMonth": "Compare to",
         "noComparison": "No comparison",
-        "noDataHint": "This site has no audit or action history yet — a report will still generate using current data."
+        "noDataHint": "This site has no audit or action history yet - a report will still generate using current data."
       },
       "recentReports": "Recent Reports",
       "reportsTitle": "Reports",
@@ -3963,7 +3968,7 @@
         "sections": "Included sections",
         "atLeastOneSection": "Select at least one section.",
         "periodHelp": "Pick which months to compare. Only months with audit or action data are shown.",
-        "noPeriodsHint": "No historical data yet — the report will use current data only.",
+        "noPeriodsHint": "No historical data yet - the report will use current data only.",
         "currentMonth": "Current month",
         "previousMonth": "Compare to",
         "noComparison": "No comparison",
@@ -4022,7 +4027,7 @@
       "preview": {
         "title": "Report Preview",
         "reportHeaderTitle": "SEO Performance Report",
-        "regenerating": "Regenerating PDF — preview will refresh when ready.",
+        "regenerating": "Regenerating PDF - preview will refresh when ready.",
         "noSnapshotTitle": "Limited preview available",
         "noSnapshotBody": "This report was generated before in-platform previews were supported, or its data snapshot is missing. Regenerate it to see the full preview here.",
         "editSections": "Edit sections",
@@ -4603,7 +4608,7 @@
     },
     "reportComplete": {
       "title": "Report ready",
-      "message": "{siteName} — {month} report is ready"
+      "message": "{siteName} - {month} report is ready"
     },
     "reportFailed": {
       "title": "Report generation failed",
@@ -5539,6 +5544,68 @@
       "next": "Next"
     }
   },
+  "clusters": {
+    "title": "Topic Clusters",
+    "subtitle": "Topics discovered from your site content. Confirm and assign pillars to use them in your strategy.",
+    "rediscover": "Re-run discovery",
+    "rediscovering": "Discovering...",
+    "noClusters": "No clusters yet",
+    "noClustersHint": "Run discovery to find topic clusters in your existing content.",
+    "noResults": "No clusters match this filter.",
+    "discoverNow": "Discover now",
+    "noPillar": "No pillar set",
+    "members": "{count} members",
+    "memberOne": "1 member",
+    "confidence": "Confidence: {value}%",
+    "filters": {
+      "all": "All",
+      "discovered": "Discovered",
+      "confirmed": "Confirmed",
+      "rejected": "Rejected"
+    },
+    "status": {
+      "DISCOVERED": "Discovered",
+      "CONFIRMED": "Confirmed",
+      "REJECTED": "Rejected"
+    },
+    "actions": {
+      "confirm": "Confirm",
+      "reject": "Reject",
+      "edit": "Edit",
+      "save": "Save",
+      "cancel": "Cancel",
+      "setPillar": "Set as pillar"
+    },
+    "edit": {
+      "title": "Edit cluster",
+      "nameLabel": "Cluster name",
+      "namePlaceholder": "e.g. Running socks",
+      "keywordLabel": "Main keyword",
+      "keywordPlaceholder": "e.g. running socks",
+      "pillarLabel": "Pillar page",
+      "pillarHint": "The cornerstone page that other cluster pages link to.",
+      "noPillarOption": "No pillar selected"
+    },
+    "errors": {
+      "loadFailed": "Failed to load clusters.",
+      "updateFailed": "Failed to update cluster.",
+      "discoverFailed": "Discovery failed."
+    },
+    "preflight": {
+      "title": "Cluster cannibalization",
+      "warningOne": "1 potential conflict",
+      "warningCount": "{count} potential conflicts",
+      "types": {
+        "TITLE_OVERLAP": "Title overlap",
+        "SEMANTIC_OVERLAP": "Semantic overlap"
+      },
+      "recommendations": {
+        "MERGE": "Merge",
+        "DIFFERENTIATE": "Differentiate",
+        "REVIEW": "Review"
+      }
+    }
+  },
   "interviewWizard": {
     "title": "Site Interview Wizard",
     "questionProgress": "Question {current} of {total}",
@@ -5634,7 +5701,7 @@
       "connectedMessage": "✓ Google account connected",
       "error": "Connection failed. You can try again or skip this step.",
       "popupBlocked": "The sign-in popup was blocked by your browser. Please allow popups for this site and try again.",
-      "skipText": "Skip — I'll set this up later in Settings"
+      "skipText": "Skip - I'll set this up later in Settings"
     },
     "wordpressPlugin": {
       "title": "Install GhostSEO WordPress Plugin",
@@ -5648,7 +5715,7 @@
       "checkConnection": "I installed & activated it - Check Connection",
       "connectionTimeout": "We couldn't detect the plugin connection. You can try again or skip and set it up later in Settings.",
       "noSiteKey": "Plugin will be available after setup is complete.",
-      "skipText": "Skip — I'll install it later"
+      "skipText": "Skip - I'll install it later"
     },
     "questions": {
       "welcome": "👋 Hi! I'm your Ghost AI Agent. I'll help you create a comprehensive SEO profile for your website.",
@@ -5737,7 +5804,7 @@
       "wafBlocked": {
         "title": "Your site's firewall is blocking us",
         "body": "Your security plugin (Wordfence, Cloudflare, Sucuri, etc.) rejected GhostSEOBot. Allowlist the User-Agent below to enable auto-analysis.",
-        "keepRuleNotice": "Keep this rule in place after registration — the platform uses GhostSEOBot for ongoing audits, sitemap syncs, and post-edit render checks. Removing it will silently break those features.",
+        "keepRuleNotice": "Keep this rule in place after registration - the platform uses GhostSEOBot for ongoing audits, sitemap syncs, and post-edit render checks. Removing it will silently break those features.",
         "scopeNotice": "For best security, scope the rule narrowly: skip rate limiting and bot detection only. Do NOT disable SQLi/XSS rules, login protection, or malicious-traffic rules.",
         "allowlistLabel": "Allowlist this User-Agent:",
         "copy": "Copy",
@@ -5746,7 +5813,7 @@
         "plugins": {
           "wordfence": {
             "title": "Wordfence",
-            "steps": "Wordfence → All Options → Whitelisted URLs / User Agents → add \"GhostSEOBot\". Bypass rate limiting and live-traffic logging only — leave brute-force and malicious-file scans active. Save."
+            "steps": "Wordfence → All Options → Whitelisted URLs / User Agents → add \"GhostSEOBot\". Bypass rate limiting and live-traffic logging only - leave brute-force and malicious-file scans active. Save."
           },
           "cloudflare": {
             "title": "Cloudflare",
@@ -8447,7 +8514,7 @@
     "fixFieldSeed": "Seed Topic",
     "fixFieldArticleTitle": "Article Title",
     "fixFieldExcerpt": "Excerpt",
-    "fixNewArticleDraftNote": "Will be created as a draft — review before publishing.",
+    "fixNewArticleDraftNote": "Will be created as a draft - review before publishing.",
     "fixFieldInternalLink": "Internal Link",
     "fixFieldSchema": "Schema (JSON-LD)",
     "fixFieldTldr": "TL;DR",

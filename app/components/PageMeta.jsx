@@ -10,7 +10,7 @@
 // Pages that need a DYNAMIC title (e.g. an entity name the user typed in)
 // call `useDynamicPageMeta(title, description?)`. That writes to a tiny
 // module-local store; PageMeta subscribes to it via useSyncExternalStore
-// and re-applies whenever the override changes — guaranteeing the
+// and re-applies whenever the override changes - guaranteeing the
 // dynamic title wins even though child effects normally fire BEFORE the
 // parent layout's effects.
 //

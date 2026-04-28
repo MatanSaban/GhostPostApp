@@ -20,7 +20,7 @@ function fullName(u) {
 }
 
 function formatDate(dateStr, locale) {
-  if (!dateStr) return '—';
+  if (!dateStr) return '-';
   return new Date(dateStr).toLocaleString(locale === 'he' ? 'he-IL' : 'en-US', {
     year: 'numeric',
     month: 'short',
@@ -115,8 +115,8 @@ export default function ImpersonationSessionDetailPage() {
         <div>
           <h1 className={styles.title}>
             {t('impersonation.admin.detailTitle', {
-              admin: fullName(s.admin) || s.admin?.email || '—',
-              target: fullName(s.target) || s.target?.email || '—',
+              admin: fullName(s.admin) || s.admin?.email || '-',
+              target: fullName(s.target) || s.target?.email || '-',
             })}
           </h1>
           <p className={styles.subtitle}>
@@ -146,14 +146,14 @@ export default function ImpersonationSessionDetailPage() {
           <div>
             <dt>{t('impersonation.admin.target')}</dt>
             <dd>
-              {fullName(s.target) || '—'}
+              {fullName(s.target) || '-'}
               {s.target?.email && <span className={styles.email}>{s.target.email}</span>}
             </dd>
           </div>
           <div>
             <dt>{t('impersonation.admin.adminUser')}</dt>
             <dd>
-              {fullName(s.admin) || '—'}
+              {fullName(s.admin) || '-'}
               {s.admin?.email && <span className={styles.email}>{s.admin.email}</span>}
             </dd>
           </div>
@@ -177,7 +177,7 @@ export default function ImpersonationSessionDetailPage() {
           )}
           <div>
             <dt>{t('impersonation.admin.ipAddress')}</dt>
-            <dd>{s.ipAddress || '—'}</dd>
+            <dd>{s.ipAddress || '-'}</dd>
           </div>
         </dl>
         {s.reason && (
@@ -219,7 +219,7 @@ export default function ImpersonationSessionDetailPage() {
                     {a.bodyPreview && <div className={styles.bodyPreview}>{a.bodyPreview}</div>}
                   </td>
                   <td className={statusClass(a.statusCode)}>
-                    {a.statusCode ?? '—'}
+                    {a.statusCode ?? '-'}
                   </td>
                 </tr>
               ))}

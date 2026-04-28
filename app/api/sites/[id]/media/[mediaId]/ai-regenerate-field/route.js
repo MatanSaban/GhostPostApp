@@ -59,8 +59,8 @@ function detectLanguageFromHtml(html) {
 /**
  * Resolve the site's content language. Priority (as requested):
  *   1. Explicit override from the caller
- *   2. Platform setting — `site.contentLanguage`
- *   3. Other stored fields — `site.crawledData.language`, then the completed
+ *   2. Platform setting - `site.contentLanguage`
+ *   3. Other stored fields - `site.crawledData.language`, then the completed
  *      onboarding interview's `responses.contentLanguage`
  *   4. Live check of the site's homepage HTML (lang attr, dir=rtl, meta
  *      content-language, or character heuristics)
@@ -96,7 +96,7 @@ async function resolveSiteLanguage(site, override) {
         if (detected) return detected;
       }
     } catch {
-      /* best-effort — fall through to the default */
+      /* best-effort - fall through to the default */
     }
   }
 
@@ -139,7 +139,7 @@ function buildPrompt({ field, context, language }) {
   if (context.sourceUrl) ctxLines.push(`Source URL: ${context.sourceUrl}`);
 
   const fieldExplain = {
-    altText: 'alt text — an accessibility-friendly description of the image content',
+    altText: 'alt text - an accessibility-friendly description of the image content',
     title: 'short title that summarizes the media item',
     caption: 'brief caption that could appear under the image on a page',
     description: 'longer description, 2–3 sentences, useful for SEO and media details',
@@ -147,7 +147,7 @@ function buildPrompt({ field, context, language }) {
 
   return `Generate a new ${fieldExplain[field]} for the media item described below.
 
-Write it in ${ln} (${language}). Do not mix languages. Return ONLY the new value for the "${field}" field — no labels, quotes, or commentary.
+Write it in ${ln} (${language}). Do not mix languages. Return ONLY the new value for the "${field}" field - no labels, quotes, or commentary.
 
 EXISTING METADATA (use as context, but do not echo verbatim):
 ${ctxLines.length ? ctxLines.join('\n') : '(no metadata yet)'}`;

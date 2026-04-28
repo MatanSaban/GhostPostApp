@@ -215,7 +215,7 @@ export function useCompetitors() {
     }
   };
 
-  // Discover competitors with AI. Runs in the background — the user can
+  // Discover competitors with AI. Runs in the background - the user can
   // dismiss the discovery modal and keep using the page; progress is shown
   // in the global background-tasks notification (same widget as site audit),
   // and the modal will automatically reopen once results (or an error) are
@@ -243,7 +243,7 @@ export function useCompetitors() {
 
     // Simulated progress so the bar grows while we wait for the single
     // long-running fetch (the discover endpoint doesn't stream progress).
-    // Caps at 90% — the final 10% jumps to 100% when the fetch resolves.
+    // Caps at 90% - the final 10% jumps to 100% when the fetch resolves.
     let simulated = 5;
     const simulator = setInterval(() => {
       const id = discoveryTaskIdRef.current;
@@ -310,7 +310,7 @@ export function useCompetitors() {
       // Auto-reopen the modal so the user sees results/errors even if they
       // dismissed it while the discovery was running in the background.
       setShowDiscoveryModal(true);
-      // Refresh the bell immediately instead of waiting for the 30s poll —
+      // Refresh the bell immediately instead of waiting for the 30s poll -
       // the API just persisted a notification for this account.
       refreshNotifications().catch(() => {});
     }

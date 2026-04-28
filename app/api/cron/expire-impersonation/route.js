@@ -19,7 +19,7 @@ function verifyAuth(request) {
  *   - Sessions tied to a now-revoked or expired grant are also force-ended,
  *     even if the session itself hasn't aged out yet.
  *
- * Runs every 5 minutes — small enough to feel responsive, large enough that we
+ * Runs every 5 minutes - small enough to feel responsive, large enough that we
  * don't pay a write storm. The resolver's per-request checks are still the
  * authoritative gate; this cron just keeps the DB tidy and makes audit views
  * accurate without waiting for the next request.
@@ -43,7 +43,7 @@ export async function POST(request) {
     });
 
     // Force-end live sessions whose grant is no longer ACTIVE/USED. Two-step
-    // because Prisma updateMany can't traverse relations on Mongo — we read
+    // because Prisma updateMany can't traverse relations on Mongo - we read
     // the candidate ids first, then end them in a single update.
     const orphanedSessions = await prisma.impersonationSession.findMany({
       where: {

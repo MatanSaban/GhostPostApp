@@ -123,7 +123,7 @@ export async function POST(request, { params }) {
     }
 
     if (direction === 'import-external') {
-      // Only meaningful on WP — Shopify has no third-party redirect plugin concept.
+      // Only meaningful on WP - Shopify has no third-party redirect plugin concept.
       if (caps.platform !== 'wordpress') {
         return NextResponse.json(
           { error: 'External plugin import is only available on WordPress sites' },

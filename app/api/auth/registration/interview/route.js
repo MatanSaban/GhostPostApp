@@ -42,9 +42,19 @@ export async function POST(request) {
       );
     }
 
+    // Preserve entityScan: it's owned by /api/auth/registration/entities/{scan,select}
+    // and the chat doesn't include it in its payload. A naive overwrite would
+    // wipe the scan results on every chat answer save, breaking the
+    // tempReg -> Site entity migration at finalize.
+    const existingData = draftAccount.draftInterviewData || {};
+    const merged = {
+      ...(interviewData || {}),
+      ...(existingData.entityScan ? { entityScan: existingData.entityScan } : {}),
+    };
+
     await prisma.account.update({
       where: { id: draftAccount.id },
-      data: { draftInterviewData: interviewData || {} },
+      data: { draftInterviewData: merged },
     });
 
     // On any interaction with the interview, advance ACCOUNT_SETUP → INTERVIEW

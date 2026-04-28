@@ -49,7 +49,7 @@ export async function GET(request) {
 
     const keywords = await getCachedKeywords(siteId, site.accountId);
 
-    // Find related SiteEntity by matching keyword.url — across ALL enabled
+    // Find related SiteEntity by matching keyword.url - across ALL enabled
     // entity types the user has populated (posts, pages, categories, custom
     // types). Previously we only looked up posts; extended so a keyword can
     // be linked to any entity the user owns.
@@ -80,7 +80,7 @@ export async function GET(request) {
 
     // Enrich keywords with related entity info. The client still reads the
     // old `relatedPost` key for back-compat (the column name in the UI is
-    // "Related Post" regardless of the underlying entity type) — we just
+    // "Related Post" regardless of the underlying entity type) - we just
     // ship back the entity type alongside so the UI can render an icon.
     const enrichedKeywords = keywords.map(kw => {
       const relatedEntity = kw.url ? siteEntitiesMap.get(kw.url) : null;
@@ -154,7 +154,7 @@ export async function POST(request) {
       return NextResponse.json({ error: 'All keywords already exist', duplicates: true }, { status: 409 });
     }
 
-    // Enforce keyword limit from plan — capacity-aware so a batch add
+    // Enforce keyword limit from plan - capacity-aware so a batch add
     // can't overshoot the limit (previously we only checked isLimitReached
     // once, which let a 5-keyword batch push a 98/100 account to 103).
     const limitCheck = await enforceResourceCapacity(

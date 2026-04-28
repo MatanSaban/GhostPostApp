@@ -139,7 +139,7 @@ export default function VisualEditorPage() {
       <PlatformUnsupportedNotice
         feature={t('visualEditor.title') || 'Visual Editor'}
         platform={caps.platform}
-        reason={t('visualEditor.unsupportedReason') || 'The Visual Editor needs live DOM manipulation via the GhostSEO WordPress plugin — which is WordPress-specific.'}
+        reason={t('visualEditor.unsupportedReason') || 'The Visual Editor needs live DOM manipulation via the GhostSEO WordPress plugin - which is WordPress-specific.'}
       />
     );
   }

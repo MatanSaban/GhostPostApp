@@ -288,7 +288,7 @@ model User {
   isActive              Boolean          @default(true)
   isSuperAdmin          Boolean          @default(false) // Platform-level admin (developer access)
   lastLoginAt           DateTime?
-  lastSeenAt            DateTime? // Heartbeat — bumped while user is actively using the app. Used for "online now" indicators.
+  lastSeenAt            DateTime? // Heartbeat - bumped while user is actively using the app. Used for "online now" indicators.
   createdAt             DateTime         @default(now())
   updatedAt             DateTime         @updatedAt
 
@@ -838,7 +838,7 @@ model Site {
   wpAdminPassword      String? // Encrypted, temporary
   autoInstallExpiresAt DateTime? // Credentials expire after this time
 
-  // Shopify Connection (OAuth-based — alternative to WordPress plugin)
+  // Shopify Connection (OAuth-based - alternative to WordPress plugin)
   shopifyDomain         String? // Canonical identifier: foo.myshopify.com
   shopifyAccessToken    String? // AES-256-GCM encrypted offline access token
   shopifyScopes         String[] @default([]) // Granted OAuth scopes
@@ -881,6 +881,7 @@ model Site {
   keywords          Keyword[]
   contents          Content[]
   campaigns         Campaign[]
+  topicClusters     TopicCluster[]
   redirections      Redirection[]
   audits            SiteAudit[]
   entityTypes       SiteEntityType[]
@@ -1279,6 +1280,7 @@ model Campaign {
   pillarPageUrl  String? // URL of the pillar page (entity or custom)
   mainKeyword    String? // Anchor text / cluster keyword
   pillarEntityId String? @db.ObjectId // Optional ref to SiteEntity
+  topicClusterId String? @db.ObjectId // Optional FK to TopicCluster (the durable topical noun this campaign acts on)
 
   // Content plan
   postsCount         Int
@@ -1299,10 +1301,12 @@ model Campaign {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  site     Site      @relation(fields: [siteId], references: [id], onDelete: Cascade)
-  contents Content[]
+  site         Site          @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  topicCluster TopicCluster? @relation(fields: [topicClusterId], references: [id], onDelete: SetNull)
+  contents     Content[]
 
   @@index([siteId])
+  @@index([topicClusterId])
 }
 
 enum CampaignStatus {
@@ -1310,6 +1314,45 @@ enum CampaignStatus {
   ACTIVE
   PAUSED
   COMPLETED
+}
+
+// ==========================================
+// TOPIC CLUSTER MODEL
+// ==========================================
+// A TopicCluster is the durable topical entity on a site (the noun: e.g. "running socks").
+// It can be discovered from existing site content during onboarding, or created via the
+// AI Content Wizard. Campaigns are time-bounded efforts that act on a cluster - a cluster
+// may have many campaigns over its lifetime, and a campaign may optionally link to one cluster.
+
+model TopicCluster {
+  id              String             @id @default(auto()) @map("_id") @db.ObjectId
+  siteId          String             @db.ObjectId
+  name            String // AI-suggested, user-editable
+  mainKeyword     String // The cluster's anchor keyword
+  pillarEntityId  String?            @db.ObjectId // User-confirmed pillar SiteEntity (soft ref)
+  memberEntityIds String[]           @db.ObjectId // Soft refs to SiteEntity members (includes pillar if set)
+  status          TopicClusterStatus @default(DISCOVERED)
+  source          TopicClusterSource @default(DISCOVERED_FROM_SITE)
+  confidenceScore Float? // 0-1, populated by discovery; null for wizard-created clusters
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+
+  site      Site       @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  campaigns Campaign[]
+
+  @@index([siteId])
+  @@index([siteId, status])
+}
+
+enum TopicClusterStatus {
+  DISCOVERED
+  CONFIRMED
+  REJECTED
+}
+
+enum TopicClusterSource {
+  DISCOVERED_FROM_SITE
+  CREATED_FROM_WIZARD
 }
 
 model Keyword {
@@ -1414,6 +1457,12 @@ model Content {
   lastAttemptAt      DateTime? // Timestamp of last worker attempt
   errorMessage       String? // Short error summary when FAILED (for UI display)
   aiResult           Json? // Generated HTML/title before push (failsafe)
+
+  // Cluster cannibalization preflight results - populated when a Content row is
+  // created from a campaign linked to a TopicCluster. Shape:
+  //   { hasConflict: boolean, conflicts: [{ entityId, score, type, recommendation }] }
+  // Surfaced in the planner so the user can address conflicts before publish.
+  preflight Json?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -2367,7 +2416,7 @@ model ReportArchive {
   // group. Null on legacy rows; treat those as singleton groups.
   reportGroupId  String?      @db.ObjectId
   generatedAt    DateTime     @default(now())
-  pdfUrl         String? // Cloudinary secure URL — null while status is PENDING
+  pdfUrl         String? // Cloudinary secure URL - null while status is PENDING
   recipients     String[] // Email addresses the report was sent to
   status         ReportStatus @default(DRAFT)
   month          String // e.g., "October 2026"

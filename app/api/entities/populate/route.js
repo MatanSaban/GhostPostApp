@@ -93,7 +93,7 @@ export async function POST(request) {
     if (isShopify) {
       if (!site.shopifyAccessToken || !site.shopifyDomain) {
         return NextResponse.json({
-          error: 'Shopify connection is missing — please reinstall the GhostSEO Shopify app.',
+          error: 'Shopify connection is missing - please reinstall the GhostSEO Shopify app.',
           errorCode: 'MISSING_KEYS',
         }, { status: 400 });
       }
@@ -564,7 +564,7 @@ async function syncEntitiesForType(site, entityType) {
 
   while (hasMore) {
     try {
-      // Route through the dispatcher — WP hits the plugin, Shopify hits GraphQL.
+      // Route through the dispatcher - WP hits the plugin, Shopify hits GraphQL.
       const response = await cms.getPosts(site, postTypeSlug, page, 50, true);
       
       // The plugin returns { items: [...], total, pages, page }

@@ -56,10 +56,10 @@ async function getDriveAccessToken(siteId) {
  * implementing the Drive query syntax.
  *
  * Query params:
- *   q            — free-text search; added as `name contains '...'`
- *   mimeFilter   — "image" | "video" | "doc" | "any" (default "image")
- *   pageToken    — continuation token from a previous response
- *   pageSize     — clamped to 1–100 (default 40)
+ *   q            - free-text search; added as `name contains '...'`
+ *   mimeFilter   - "image" | "video" | "doc" | "any" (default "image")
+ *   pageToken    - continuation token from a previous response
+ *   pageSize     - clamped to 1–100 (default 40)
  *
  * Response: { files, nextPageToken }
  */

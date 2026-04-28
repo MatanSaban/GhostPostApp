@@ -83,15 +83,18 @@ export async function GET(request, { params }) {
       return NextResponse.json({ error: 'Site not found' }, { status: 404 });
     }
 
-    // Find the interview for this site
-    // Prioritize IN_PROGRESS/NOT_STARTED interviews over COMPLETED ones
-    // This ensures if user starts a new interview after completing one,
-    // we show the new interview's data (not the old completed one)
-    let interview = await prisma.userInterview.findFirst({
+    // Pick the user's MOST-RECENT interview for this site (any status), so the
+    // page reflects whatever they did last. Previously we hard-prioritised
+    // IN_PROGRESS over COMPLETED, which caused users who finished an interview
+    // and then briefly opened the wizard again (creating an empty
+    // NOT_STARTED/IN_PROGRESS record behind the scenes) to be told to
+    // "Continue interview" forever. With most-recent-by-updatedAt the UI
+    // matches the user's last action: just-finished -> COMPLETED ("Start new"),
+    // mid-flow -> IN_PROGRESS ("Continue"), pristine -> NOT_STARTED ("Start").
+    const interview = await prisma.userInterview.findFirst({
       where: {
         userId: user.id,
         siteId: siteId,
-        status: { in: ['IN_PROGRESS', 'NOT_STARTED'] },
       },
       select: {
         id: true,
@@ -105,26 +108,19 @@ export async function GET(request, { params }) {
       orderBy: { updatedAt: 'desc' },
     });
 
-    // If no active interview, fall back to the most recent completed one
-    if (!interview) {
-      interview = await prisma.userInterview.findFirst({
-        where: {
-          userId: user.id,
-          siteId: siteId,
-          status: 'COMPLETED',
-        },
-        select: {
-          id: true,
-          status: true,
-          responses: true,
-          externalData: true,
-          currentStep: true,
-          completedAt: true,
-          updatedAt: true,
-        },
-        orderBy: { updatedAt: 'desc' },
-      });
-    }
+    // Surface separately whether a COMPLETED interview exists, so the client
+    // can offer "Start new" even when an unfinished IN_PROGRESS record was
+    // left behind on top of a previously completed one.
+    const completedRecord = await prisma.userInterview.findFirst({
+      where: {
+        userId: user.id,
+        siteId: siteId,
+        status: 'COMPLETED',
+      },
+      select: { id: true, completedAt: true, updatedAt: true },
+      orderBy: { updatedAt: 'desc' },
+    });
+    const hasCompletedInterview = !!completedRecord;
 
     if (!interview) {
       return NextResponse.json({
@@ -133,6 +129,7 @@ export async function GET(request, { params }) {
         sections: [],
         crawledData: site.crawledData || null,
         availablePosts: [],
+        hasCompletedInterview,
       });
     }
 
@@ -272,11 +269,66 @@ export async function GET(request, { params }) {
       responses,
       crawledData,
       availablePosts,
+      hasCompletedInterview,
     });
   } catch (error) {
     console.error('[InterviewProfile] Error:', error);
     return NextResponse.json(
       { error: 'Failed to fetch interview profile' },
+      { status: 500 }
+    );
+  }
+}
+
+/**
+ * DELETE - Abandon any unfinished interview for this site so the next wizard
+ * fetch creates a fresh NOT_STARTED record. Used when the user has already
+ * COMPLETED an interview and clicks "Start new interview" from the profile
+ * page; we don't touch the COMPLETED record (keeps history intact) but mark
+ * IN_PROGRESS / NOT_STARTED ones as ABANDONED so they don't get resumed.
+ */
+export async function DELETE(request, { params }) {
+  try {
+    const user = await getAuthenticatedUser();
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const { id: siteId } = await params;
+
+    // Verify site access (same access pattern as GET/PATCH)
+    let site;
+    if (user.isSuperAdmin) {
+      site = await prisma.site.findUnique({
+        where: { id: siteId },
+        select: { id: true },
+      });
+    } else {
+      const accountIds = user.accountMemberships.map(m => m.accountId);
+      site = await prisma.site.findFirst({
+        where: user.isSuperAdmin ? { id: siteId } : { id: siteId, accountId: { in: accountIds } },
+        select: { id: true },
+      });
+    }
+
+    if (!site) {
+      return NextResponse.json({ error: 'Site not found' }, { status: 404 });
+    }
+
+    const result = await prisma.userInterview.updateMany({
+      where: {
+        userId: user.id,
+        siteId,
+        status: { in: ['NOT_STARTED', 'IN_PROGRESS'] },
+      },
+      data: { status: 'ABANDONED' },
+    });
+
+    return NextResponse.json({ success: true, abandoned: result.count });
+  } catch (error) {
+    console.error('[InterviewProfile] DELETE error:', error);
+    return NextResponse.json(
+      { error: 'Failed to reset interview' },
       { status: 500 }
     );
   }
@@ -381,7 +433,7 @@ export async function PATCH(request, { params }) {
             tags: ['interview'],
           }));
 
-        // Respect plan's maxKeywords — drop overflow silently rather than
+        // Respect plan's maxKeywords - drop overflow silently rather than
         // failing the profile save (admin-triggered bulk operation).
         if (newKeywords.length > 0 && site?.accountId) {
           try {
@@ -607,18 +659,21 @@ function buildSections(responses, crawledData, availablePosts = [], siteKeywords
     });
   }
 
-  if (crawledData?.description) {
-    const desc = toDisplayString(crawledData.description);
-    if (desc) {
-      businessInfo.items.push({
-        label: 'תיאור מהאתר',
-        labelKey: 'siteProfile.fields.siteDescription',
-        fieldKey: null, // Crawled data - not directly editable
-        value: desc,
-        type: 'text',
-        editable: false,
-      });
-    }
+  // Site description: prefer the user-edited override (responses.siteDescription)
+  // over the originally crawled value, so edits stick after save.
+  const siteDescriptionValue = toDisplayString(
+    responses.siteDescription ?? crawledData?.description,
+  );
+  if (siteDescriptionValue) {
+    businessInfo.items.push({
+      label: 'תיאור מהאתר',
+      labelKey: 'siteProfile.fields.siteDescription',
+      fieldKey: 'siteDescription',
+      value: siteDescriptionValue,
+      rawValue: siteDescriptionValue,
+      type: 'text',
+      editable: true,
+    });
   }
 
   if (businessInfo.items.length > 0) {
@@ -713,18 +768,21 @@ function buildSections(responses, crawledData, availablePosts = [], siteKeywords
     });
   }
 
-  if (crawledData?.targetAudience) {
-    const targetAudienceValue = toDisplayString(crawledData.targetAudience);
-    if (targetAudienceValue) {
-      audience.items.push({
-        label: 'קהל יעד',
-        labelKey: 'siteProfile.fields.targetAudience',
-        fieldKey: null,
-        value: targetAudienceValue,
-        type: 'text',
-        editable: false,
-      });
-    }
+  // Target audience: prefer the user-edited override (responses.targetAudience)
+  // over the originally crawled value so edits persist.
+  const targetAudienceValue = toDisplayString(
+    responses.targetAudience ?? crawledData?.targetAudience,
+  );
+  if (targetAudienceValue) {
+    audience.items.push({
+      label: 'קהל יעד',
+      labelKey: 'siteProfile.fields.targetAudience',
+      fieldKey: 'targetAudience',
+      value: targetAudienceValue,
+      rawValue: targetAudienceValue,
+      type: 'text',
+      editable: true,
+    });
   }
 
   if (audience.items.length > 0) {
@@ -840,29 +898,27 @@ function buildSections(responses, crawledData, availablePosts = [], siteKeywords
   };
 
   if (responses.writingStyle) {
-    const styleLabels = {
-      professional: 'מקצועי ורשמי',
-      casual: 'קליל ונגיש',
-      educational: 'חינוכי ומעמיק',
-      persuasive: 'שכנועי ומכירתי',
-      storytelling: 'סיפורי ואישי',
-    };
-    const styleValue = styleLabels[responses.writingStyle] || toDisplayString(responses.writingStyle);
-    if (styleValue) {
+    const rawStyle = toDisplayString(responses.writingStyle);
+    if (rawStyle) {
+      const writingStyleOptions = [
+        'professional', 'casual', 'technical',
+        'friendly', 'authoritative', 'conversational',
+        'educational', 'persuasive', 'storytelling',
+      ].map(value => ({
+        value,
+        labelKey: `registration.interview.writingStyles.${value}`,
+      }));
       content.items.push({
         label: 'סגנון כתיבה',
         labelKey: 'siteProfile.fields.writingStyle',
         fieldKey: 'writingStyle',
-        value: styleValue,
-        rawValue: responses.writingStyle,
+        // Send the raw value; the client translates via valueLabelKey so the
+        // displayed style follows the user's locale (Hebrew or English).
+        value: rawStyle,
+        valueLabelKey: `registration.interview.writingStyles.${rawStyle}`,
+        rawValue: rawStyle,
         type: 'select',
-        options: [
-          { value: 'professional', label: 'מקצועי ורשמי' },
-          { value: 'casual', label: 'קליל ונגיש' },
-          { value: 'educational', label: 'חינוכי ומעמיק' },
-          { value: 'persuasive', label: 'שכנועי ומכירתי' },
-          { value: 'storytelling', label: 'סיפורי ואישי' },
-        ],
+        options: writingStyleOptions,
         editable: true,
       });
     }

@@ -82,6 +82,7 @@ export async function GET(request) {
         campaignId: true,
         campaignDeletedName: true,
         keywordId: true,
+        preflight: true, // Cluster cannibalization warnings populated by activate route
         createdAt: true,
         campaign: {
           select: { id: true, name: true, color: true, status: true },

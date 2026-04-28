@@ -4,7 +4,7 @@ import { cms, getCapabilities } from '@/lib/cms';
 
 /**
  * Bulk-replace the redirect set on the connected CMS so it mirrors our DB.
- * Best-effort — failures are logged, not surfaced.
+ * Best-effort - failures are logged, not surfaced.
  */
 async function syncAllToCms(site, siteId) {
   const caps = getCapabilities(site);

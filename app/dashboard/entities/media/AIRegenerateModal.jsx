@@ -95,7 +95,7 @@ export function AIRegenerateModal({
     setChosenLanguage(null);
   }, [isOpen, selectedItem?.id]);
 
-  // ESC closes the modal (unless we're mid-upload — those shouldn't be interrupted)
+  // ESC closes the modal (unless we're mid-upload - those shouldn't be interrupted)
   useEffect(() => {
     if (!isOpen) return;
     const handler = (e) => {

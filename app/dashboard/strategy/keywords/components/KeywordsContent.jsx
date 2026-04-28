@@ -380,7 +380,7 @@ export function KeywordsContent() {
     }
   };
 
-  // Called by LinkEntityModal after a successful PATCH — patch our local
+  // Called by LinkEntityModal after a successful PATCH - patch our local
   // state so the row updates without a full refetch.
   const handleEntityLinked = (keywordId, entity) => {
     setKeywords(prev => prev.map(kw =>
@@ -1134,9 +1134,9 @@ export function KeywordsContent() {
                     </div>
                     {/* Related Post / Entity Column.
                         A keyword is considered to have a pillar page as soon as
-                        `kw.url` is set — whether or not we managed to resolve
+                        `kw.url` is set - whether or not we managed to resolve
                         that URL back to a populated site entity. When a pillar
-                        exists, don't offer "Generate with AI" (redundant) —
+                        exists, don't offer "Generate with AI" (redundant) -
                         only the navigation + unlink actions. */}
                     {(() => {
                       const hasPillar = !!kw.url;

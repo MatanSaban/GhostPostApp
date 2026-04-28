@@ -5,11 +5,11 @@
   },
   "meta": {
     "default": {
-      "title": "GhostSEO — אוטומציית SEO מבוססת AI",
+      "title": "GhostSEO - אוטומציית SEO מבוססת AI",
       "description": "הפכו את אסטרטגיית ה-SEO לאוטומטית עם GhostSEO. יצירת תוכן, אופטימיזציה וניהול אתר באמצעות בינה מלאכותית."
     },
     "home": {
-      "title": "GhostSEO — אוטומציית SEO מבוססת AI",
+      "title": "GhostSEO - אוטומציית SEO מבוססת AI",
       "description": "תנו לסוכנים החכמים שלנו לנהל את אסטרטגיית התוכן בזמן שאתם מתמקדים בצמיחה."
     },
     "auth": {
@@ -71,6 +71,10 @@
         "aiWizard": {
           "title": "אשף תוכן AI",
           "description": "צרו תקצירי תוכן וטיוטות באמצעות AI."
+        },
+        "clusters": {
+          "title": "אשכולות נושאים",
+          "description": "ניהול אשכולות נושאים שזוהו מתוכן האתר."
         }
       },
       "entities": {
@@ -465,7 +469,7 @@
       "cost": "עולה {credits} Ai-GCoins",
       "costShort": "{credits} Ai-GCoins",
       "contextLabel": "ההקשר שישמש ליצירה",
-      "noMetadataHint": "אין עדיין טקסט חלופי, כותרת, כיתוב או תיאור — הוסיפו הנחיות למטה כדי להדריך את ה‑AI.",
+      "noMetadataHint": "אין עדיין טקסט חלופי, כותרת, כיתוב או תיאור - הוסיפו הנחיות למטה כדי להדריך את ה‑AI.",
       "instructionsLabel": "הנחיות נוספות (לא חובה)",
       "instructionsPlaceholder": "לדוגמה: רקע בהיר יותר, צבעים חיים, הוסיפו דמות שמחזיקה את המוצר...",
       "aspectRatio": "יחס גובה‑רוחב",
@@ -490,7 +494,7 @@
       "verification": {
         "allGoodTitle": "הכול תקין",
         "allGoodBody": "שפת הטקסט תואמת את האתר וההנחיות שלך נלקחו בחשבון.",
-        "issuesTitle": "שימו לב — ה‑AI זיהה בעיות",
+        "issuesTitle": "שימו לב - ה‑AI זיהה בעיות",
         "languageMismatch": "הטקסט בתמונה לא נראה בשפה של האתר ({language}).",
         "instructionsNotFollowed": "ייתכן שההנחיות המותאמות שלך לא יושמו במלואן."
       }
@@ -666,7 +670,8 @@
       "keywords": "מילות מפתח",
       "contentPlanner": "יומן תוכן",
       "aiWizard": "אשף תוכן AI",
-      "competitorAnalysis": "מתחרים"
+      "competitorAnalysis": "מתחרים",
+      "clusters": "אשכולות נושאים"
     },
     "automations": "אוטומציות",
     "linkBuilding": "בניית קישורים",
@@ -2174,7 +2179,7 @@
     "findWithAI": "מצא עם AI",
     "findWithAIDescription": "מנתח את תוכן האתר שלך כדי לגלות מתחרים...",
     "discoveringCompetitors": "מגלה מתחרים...",
-    "discoveringBackgroundHint": "אפשר לסגור את החלון ולהמשיך לעבוד — נפתח אותו מחדש כשהתוצאות מוכנות.",
+    "discoveringBackgroundHint": "אפשר לסגור את החלון ולהמשיך לעבוד - נפתח אותו מחדש כשהתוצאות מוכנות.",
     "viewProgress": "הצג התקדמות חיפוש",
     "discoverCompetitors": "גלה מתחרים",
     "noKeywordsForDiscovery": "לא נמצאו מילות מפתח לחיפוש מתחרים",
@@ -2303,7 +2308,7 @@
       "metaRobotsNofollow": "הדף מסומן כ-nofollow - מנועי חיפוש לא יעקבו אחרי קישורים בדף זה",
       "metaRobotsGood": "לא נמצאו הנחיות robots חוסמות",
       "robotsTxtBlocksAll": "קובץ robots.txt חוסם את כל סורקי מנועי החיפוש (Disallow: /)",
-      "wpSearchEngineDiscouraged": "הגדרת 'הרתעת מנועי חיפוש מאינדוקס אתר זה' מופעלת ב-WordPress — זה מונע מכל הדפים להופיע בתוצאות חיפוש",
+      "wpSearchEngineDiscouraged": "הגדרת 'הרתעת מנועי חיפוש מאינדוקס אתר זה' מופעלת ב-WordPress - זה מונע מכל הדפים להופיע בתוצאות חיפוש",
       "wpSearchEngineVisible": "הגדרת נראות מנועי חיפוש ב-WordPress מאפשרת אינדוקס",
       "robotsTxtFound": "קובץ robots.txt נמצא",
       "noRobotsTxt": "לא נמצא קובץ robots.txt",
@@ -3910,12 +3915,12 @@
         "overview": "כרטיסי סיכום עליונים המציגים מילות מפתח במעקב, מתחרים, פריטי תוכן ופעולות AI בתקופה.",
         "aiSummary": "סיכום מנהלים שנוצר על ידי AI עבור הלקוח, המסכם התקדמות ותוצאות במהלך התקופה.",
         "healthScore": "ציון בריאות האתר הנוכחי עם השינוי לעומת התקופה הקודמת ופירוט לפי קטגוריות.",
-        "aiActions": "טבלת פעולות אוטומטיות שבוצעו על ידי סוכן ה-AI במהלך תקופת הדוח — תאריך, סוג ותיאור.",
+        "aiActions": "טבלת פעולות אוטומטיות שבוצעו על ידי סוכן ה-AI במהלך תקופת הדוח - תאריך, סוג ותיאור.",
         "keywords": "מילות המפתח המובילות במעקב עם דירוגיהן הנוכחיים ונפחי החיפוש.",
         "competitors": "מתחרים פעילים שנמצאים במעקב עבור אתר זה.",
         "seo": "תובנות SEO כולל ציון הבדיקה, פירוט קטגוריות, סגנון כתיבה ותצוגה מקדימה של אסטרטגיה.",
         "geo": "מיקומים ממוקדים ושפת תוכן שהוגדרו עבור אתר זה.",
-        "siteAudits": "היסטוריית בדיקות אתר אחרונות — תאריך, ציון וסטטוס — לאורך תקופת הדוח."
+        "siteAudits": "היסטוריית בדיקות אתר אחרונות - תאריך, ציון וסטטוס - לאורך תקופת הדוח."
       },
       "sectionsModal": {
         "title": "סעיפי הדוח",
@@ -3929,7 +3934,7 @@
         "currentMonth": "חודש נוכחי",
         "previousMonth": "השוואה ל",
         "noComparison": "ללא השוואה",
-        "noDataHint": "לאתר זה עדיין אין היסטוריית בדיקות או פעולות — הדוח ייווצר על סמך הנתונים הנוכחיים."
+        "noDataHint": "לאתר זה עדיין אין היסטוריית בדיקות או פעולות - הדוח ייווצר על סמך הנתונים הנוכחיים."
       },
       "recentReports": "דוחות אחרונים",
       "reportsTitle": "דוחות",
@@ -3968,7 +3973,7 @@
         "sections": "סעיפים בדוח",
         "atLeastOneSection": "יש לבחור לפחות סעיף אחד.",
         "periodHelp": "בחר אילו חודשים להשוות. מוצגים רק חודשים עם נתוני בדיקה או פעולות.",
-        "noPeriodsHint": "אין עדיין היסטוריה — הדוח ייווצר על סמך הנתונים הנוכחיים.",
+        "noPeriodsHint": "אין עדיין היסטוריה - הדוח ייווצר על סמך הנתונים הנוכחיים.",
         "currentMonth": "חודש נוכחי",
         "previousMonth": "השוואה ל",
         "noComparison": "ללא השוואה",
@@ -4027,7 +4032,7 @@
       "preview": {
         "title": "תצוגה מקדימה של הדוח",
         "reportHeaderTitle": "דוח ביצועי SEO",
-        "regenerating": "מייצר מחדש את ה-PDF — התצוגה תתעדכן כשיהיה מוכן.",
+        "regenerating": "מייצר מחדש את ה-PDF - התצוגה תתעדכן כשיהיה מוכן.",
         "noSnapshotTitle": "תצוגה מוגבלת זמינה",
         "noSnapshotBody": "הדוח נוצר לפני תמיכה בתצוגה מקדימה בפלטפורמה, או שתמונת הנתונים שלו חסרה. צור אותו מחדש כדי לראות את התצוגה המלאה כאן.",
         "editSections": "ערוך סעיפים",
@@ -4608,7 +4613,7 @@
     },
     "reportComplete": {
       "title": "הדוח מוכן",
-      "message": "{siteName} — הדוח של {month} מוכן"
+      "message": "{siteName} - הדוח של {month} מוכן"
     },
     "reportFailed": {
       "title": "יצירת הדוח נכשלה",
@@ -5544,6 +5549,68 @@
       "next": "הבא"
     }
   },
+  "clusters": {
+    "title": "אשכולות נושאים",
+    "subtitle": "נושאים שזוהו מתוכן האתר שלך. אשרו והגדירו עמוד עוגן כדי להשתמש בהם באסטרטגיה.",
+    "rediscover": "הרץ גילוי מחדש",
+    "rediscovering": "מגלה...",
+    "noClusters": "אין אשכולות עדיין",
+    "noClustersHint": "הרץ גילוי כדי למצוא אשכולות נושאים בתוכן הקיים.",
+    "noResults": "אין אשכולות התואמים את הסינון הזה.",
+    "discoverNow": "גלה עכשיו",
+    "noPillar": "לא הוגדר עמוד עוגן",
+    "members": "{count} עמודים",
+    "memberOne": "עמוד אחד",
+    "confidence": "ביטחון: {value}%",
+    "filters": {
+      "all": "הכל",
+      "discovered": "התגלו",
+      "confirmed": "אושרו",
+      "rejected": "נדחו"
+    },
+    "status": {
+      "DISCOVERED": "התגלה",
+      "CONFIRMED": "אושר",
+      "REJECTED": "נדחה"
+    },
+    "actions": {
+      "confirm": "אישור",
+      "reject": "דחייה",
+      "edit": "עריכה",
+      "save": "שמירה",
+      "cancel": "ביטול",
+      "setPillar": "הגדר כעמוד עוגן"
+    },
+    "edit": {
+      "title": "עריכת אשכול",
+      "nameLabel": "שם האשכול",
+      "namePlaceholder": "לדוגמה: גרבי ריצה",
+      "keywordLabel": "מילת מפתח ראשית",
+      "keywordPlaceholder": "לדוגמה: גרבי ריצה",
+      "pillarLabel": "עמוד עוגן",
+      "pillarHint": "העמוד המרכזי שאליו עמודי האשכול האחרים מקושרים.",
+      "noPillarOption": "לא נבחר עמוד עוגן"
+    },
+    "errors": {
+      "loadFailed": "טעינת האשכולות נכשלה.",
+      "updateFailed": "עדכון האשכול נכשל.",
+      "discoverFailed": "הגילוי נכשל."
+    },
+    "preflight": {
+      "title": "קניבליזציה של אשכול",
+      "warningOne": "התנגשות פוטנציאלית אחת",
+      "warningCount": "{count} התנגשויות פוטנציאליות",
+      "types": {
+        "TITLE_OVERLAP": "חפיפת כותרת",
+        "SEMANTIC_OVERLAP": "חפיפה סמנטית"
+      },
+      "recommendations": {
+        "MERGE": "מיזוג",
+        "DIFFERENTIATE": "ייחוד",
+        "REVIEW": "בדיקה"
+      }
+    }
+  },
   "interviewWizard": {
     "title": "אשף ראיון האתר",
     "questionProgress": "שאלה {current} מתוך {total}",
@@ -5738,7 +5805,7 @@
       "wafBlocked": {
         "title": "חומת האש של האתר חוסמת אותנו",
         "body": "תוסף האבטחה של האתר (Wordfence, Cloudflare, Sucuri וכד') חסם את GhostSEOBot. הוסף את ה-User-Agent הבא לרשימת ההיתר בחומת האש כדי להפעיל ניתוח אוטומטי.",
-        "keepRuleNotice": "השאר את הכלל פעיל גם אחרי ההרשמה — הפלטפורמה משתמשת ב-GhostSEOBot גם לבדיקות אבטחה (Audits), סנכרון Sitemap ובדיקות רינדור אחרי עריכות. הסרת הכלל תשבית את התכונות האלה בשקט.",
+        "keepRuleNotice": "השאר את הכלל פעיל גם אחרי ההרשמה - הפלטפורמה משתמשת ב-GhostSEOBot גם לבדיקות אבטחה (Audits), סנכרון Sitemap ובדיקות רינדור אחרי עריכות. הסרת הכלל תשבית את התכונות האלה בשקט.",
         "scopeNotice": "לאבטחה מיטבית, הגבל את הכלל בצמצום: דלג רק על Rate Limiting ועל זיהוי בוטים. אל תכבה כללי SQLi/XSS, הגנה על התחברות, או חוקי תעבורה זדונית.",
         "allowlistLabel": "הוסף את ה-User-Agent הבא לרשימת ההיתר:",
         "copy": "העתק",
@@ -5747,7 +5814,7 @@
         "plugins": {
           "wordfence": {
             "title": "Wordfence",
-            "steps": "Wordfence ← All Options ← Whitelisted URLs / User Agents ← הוסף את הערך \"GhostSEOBot\". סמן רק bypass rate limiting ו-live traffic logging — השאר Brute Force ו-Malicious File Scan פעילים. שמור."
+            "steps": "Wordfence ← All Options ← Whitelisted URLs / User Agents ← הוסף את הערך \"GhostSEOBot\". סמן רק bypass rate limiting ו-live traffic logging - השאר Brute Force ו-Malicious File Scan פעילים. שמור."
           },
           "cloudflare": {
             "title": "Cloudflare",
@@ -8448,7 +8515,7 @@
     "fixFieldSeed": "נושא בסיס",
     "fixFieldArticleTitle": "כותרת המאמר",
     "fixFieldExcerpt": "תקציר",
-    "fixNewArticleDraftNote": "ייווצר כטיוטה — בדוק לפני פרסום.",
+    "fixNewArticleDraftNote": "ייווצר כטיוטה - בדוק לפני פרסום.",
     "fixFieldInternalLink": "קישור פנימי",
     "fixFieldSchema": "Schema (JSON-LD)",
     "fixFieldTldr": "TL;DR",

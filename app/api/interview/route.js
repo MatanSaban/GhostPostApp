@@ -414,7 +414,7 @@ export async function POST(request) {
                 tags: ['interview'],
               }));
 
-            // Respect the plan's maxKeywords cap — truncate overflow so
+            // Respect the plan's maxKeywords cap - truncate overflow so
             // the interview auto-save doesn't bypass the plan limits.
             if (newKeywords.length > 0) {
               try {
@@ -483,7 +483,7 @@ export async function POST(request) {
 
               if (!existing) {
                 if (remainingCap <= 0) {
-                  console.log(`[Interview] Skipping competitor ${domain} — maxCompetitors cap reached.`);
+                  console.log(`[Interview] Skipping competitor ${domain} - maxCompetitors cap reached.`);
                   continue;
                 }
                 await prisma.competitor.create({

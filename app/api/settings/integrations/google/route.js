@@ -174,7 +174,7 @@ export async function GET(request) {
     }
 
     // Check which capabilities the current OAuth grant covers. Drive is
-    // matched strictly to `drive.readonly` — users who only have the
+    // matched strictly to `drive.readonly` - users who only have the
     // narrower `drive.file` scope from an earlier version can't list their
     // full Drive, so we treat them as needing to reconnect.
     const hasGAScope = integration?.scopes?.some(s => s.includes('analytics'));

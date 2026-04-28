@@ -30,7 +30,7 @@ function ensureCloudinaryConfig() {
 /**
  * GET /api/reports/[id]
  *
- * Returns a single report — used by the wizard's background polling to
+ * Returns a single report - used by the wizard's background polling to
  * watch a PENDING report flip to DRAFT/ERROR.
  */
 export async function GET(request, { params }) {

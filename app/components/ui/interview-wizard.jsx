@@ -7,6 +7,8 @@ import Image from 'next/image';
 import { useLocale } from '@/app/context/locale-context';
 import AddCreditsModal from '@/app/components/ui/AddCreditsModal';
 import { useModalResize, ModalResizeButton } from '@/app/components/ui/ModalResizeButton';
+import { EntitiesSelectionPanel } from '@/app/components/ui/EntitiesSelectionPanel';
+import { useEntitiesScan } from '@/app/hooks/useEntitiesScan';
 import styles from './interview-wizard.module.css';
 
 export const InterviewWizard = forwardRef(function InterviewWizard({ onClose, onComplete, site }, ref) {
@@ -84,6 +86,32 @@ export const InterviewWizard = forwardRef(function InterviewWizard({ onClose, on
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
   const messageIdCounter = useRef(0);
+
+  // Entity-scan hook for the optional ENTITIES_SELECTION sub-step. When the
+  // site has no enabled entity types, fetchInterview injects an
+  // ENTITIES_SELECTION question into the questions array so the user can
+  // pick what to import. When the site already has entity types, the hook's
+  // initial load returns COMPLETED and the panel skips silently.
+  const entitiesScan = useEntitiesScan({ type: 'site', siteId: site?.id });
+
+  // Retry the entity scan when the WP plugin transitions to 'connected', if
+  // an earlier scan attempt FAILED. The plugin gives us access to the REST
+  // API content endpoints, so a previously-blocked / non-WP / WAF-dropped
+  // discover may now work. Silent retry - the user has likely already
+  // passed the entity panel by this point, so we just refresh the data on
+  // the site for the dashboard to use later. EMPTY scans aren't retried;
+  // the spec says "if the discover or population failed" specifically.
+  const lastWpStatusRef = useRef(wpPluginStatus);
+  useEffect(() => {
+    if (
+      wpPluginStatus === 'connected' &&
+      lastWpStatusRef.current !== 'connected' &&
+      entitiesScan.status === 'FAILED'
+    ) {
+      entitiesScan.triggerScan({});
+    }
+    lastWpStatusRef.current = wpPluginStatus;
+  }, [wpPluginStatus, entitiesScan.status, entitiesScan.triggerScan]);
 
   // Debug: Log component mount and state
   console.log('[InterviewWizard] Rendering - loading:', loading, 'isDictionaryLoading:', isDictionaryLoading, 'error:', error);
@@ -282,14 +310,54 @@ export const InterviewWizard = forwardRef(function InterviewWizard({ onClose, on
         throw new Error('Failed to fetch interview');
       }
       const data = await res.json();
-      console.log('[InterviewWizard] API data:', { 
+      console.log('[InterviewWizard] API data:', {
         questionsCount: data.questions?.length,
         interview: data.interview?.id,
         firstQuestion: data.questions?.[0]?.translationKey
       });
-      
-      setQuestions(data.questions || []);
-      setQuestionsData(data.questions || []);
+
+      let questions = data.questions || [];
+
+      // Inject an ENTITIES_SELECTION question for sites that have never had
+      // entities populated. The position is just before the WORDPRESS_PLUGIN
+      // question so the order matches the registration chat (and the user
+      // spec: "before the plugin, GSC and GA4 connections"). If the site
+      // already has enabled entity types, we skip injection - the user
+      // already went through this in registration or on the dashboard.
+      if (site?.id && !questions.some(q => q.questionType === 'ENTITIES_SELECTION')) {
+        try {
+          const typesRes = await fetch(`/api/entities/types?siteId=${site.id}`);
+          if (typesRes.ok) {
+            const typesData = await typesRes.json();
+            const hasEnabled = (typesData?.types || []).some(t => t.isEnabled);
+            if (!hasEnabled) {
+              const entitiesQuestion = {
+                id: 'entities-selection-injected',
+                translationKey: 'interviewWizard.entitiesSelection.intro',
+                questionType: 'ENTITIES_SELECTION',
+                inputConfig: {},
+              };
+              const pluginIdx = questions.findIndex(q => q.questionType === 'WORDPRESS_PLUGIN');
+              if (pluginIdx >= 0) {
+                questions = [
+                  ...questions.slice(0, pluginIdx),
+                  entitiesQuestion,
+                  ...questions.slice(pluginIdx),
+                ];
+              } else {
+                questions = [...questions, entitiesQuestion];
+              }
+            }
+          }
+        } catch (e) {
+          // Silent: failing to inject just means the panel won't appear.
+          // The user can still hit /dashboard/entities directly.
+          console.warn('[InterviewWizard] Entity-types probe failed:', e.message);
+        }
+      }
+
+      setQuestions(questions);
+      setQuestionsData(questions);
       setInterviewId(data.interview?.id);
       setInterviewSiteId(data.interview?.siteId || site?.id || null);
       setResponses(data.interview?.responses || {});
@@ -3063,6 +3131,42 @@ export const InterviewWizard = forwardRef(function InterviewWizard({ onClose, on
             )}
           </div>
         );
+
+      case 'ENTITIES_SELECTION': {
+        // Sub-step that lets the user pick which entity types to import for
+        // a site that hasn't been populated yet. Renders the shared panel
+        // which races a 10s wait if the discover scan is still in flight,
+        // and silently calls onSkip on FAILED/EMPTY/timeout per spec.
+        const handleEntitiesConfirm = async (slugs) => {
+          // Persist the selection. We don't kick off populate here - the
+          // dashboard's existing populate flow handles that, triggered by
+          // the user from /dashboard/entities once the wizard closes. This
+          // keeps the wizard fast and avoids duplicating populate logic.
+          await entitiesScan.saveSelection(slugs);
+          handleSubmit(slugs);
+        };
+
+        const handleEntitiesSkip = () => {
+          // 'skipped' matches the convention used by WORDPRESS_PLUGIN /
+          // GOOGLE_INTEGRATION skip paths, so the server-side interview
+          // pipeline records this question as deliberately skipped.
+          handleSubmit('skipped');
+        };
+
+        // The panel auto-triggers the scan via its own effect when status is
+        // IDLE - see EntitiesSelectionPanel. No render-time side effect here.
+
+        return (
+          <div className={styles.integrationContainer}>
+            <EntitiesSelectionPanel
+              scan={entitiesScan}
+              onConfirm={handleEntitiesConfirm}
+              onSkip={handleEntitiesSkip}
+              waitTimeoutMs={10000}
+            />
+          </div>
+        );
+      }
 
       case 'WORDPRESS_PLUGIN': {
         const pluginSiteId = interviewSiteId || site?.id;

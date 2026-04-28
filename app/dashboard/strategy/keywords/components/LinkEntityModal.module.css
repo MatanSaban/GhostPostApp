@@ -1,7 +1,7 @@
 /*
  * Platform-themed modal for picking an existing SiteEntity to link to a
  * keyword. Same structural pattern as the Drive browser and AI regenerate
- * modals — portaled, scroll-locked, CSS-variable driven so light/dark
+ * modals - portaled, scroll-locked, CSS-variable driven so light/dark
  * work automatically.
  */
 

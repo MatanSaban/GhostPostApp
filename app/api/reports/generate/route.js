@@ -100,7 +100,7 @@ export async function POST(request) {
     //
     // We can't filter on `metadata` directly because the field is a
     // Json column in Mongo and Prisma's `is`/`equals` filters don't
-    // accept arbitrary nested objects there — so we fetch a small
+    // accept arbitrary nested objects there - so we fetch a small
     // recent slice and match in JS instead.
     let reportGroupId = requestedGroupId || null;
     if (!reportGroupId) {

@@ -112,7 +112,7 @@ export default function AdminImpersonationPage() {
     try {
       await fetch('/api/admin/impersonation/end', { method: 'POST' });
     } catch {
-      // ignore — we'll re-poll and reflect reality
+      // ignore - we'll re-poll and reflect reality
     }
     await Promise.all([loadStatus(), loadSessions()]);
     router.refresh();
@@ -269,7 +269,7 @@ export default function AdminImpersonationPage() {
                   <div className={styles.sessionRowMain}>
                     <div className={styles.sessionRowTop}>
                       <span className={styles.sessionTarget}>
-                        {fullName(s.target) || s.target?.email || '—'}
+                        {fullName(s.target) || s.target?.email || '-'}
                       </span>
                       <span className={`${styles.scopeChip} ${styles[`scope_${s.scope}`]}`}>
                         {s.scope === 'READ_ONLY'
@@ -283,7 +283,7 @@ export default function AdminImpersonationPage() {
                       )}
                     </div>
                     <div className={styles.sessionRowMeta}>
-                      <span>{t('impersonation.admin.byAdmin', { name: fullName(s.admin) || s.admin?.email || '—' })}</span>
+                      <span>{t('impersonation.admin.byAdmin', { name: fullName(s.admin) || s.admin?.email || '-' })}</span>
                       <span>•</span>
                       <span>{formatDate(s.startedAt, locale)}</span>
                       <span>•</span>

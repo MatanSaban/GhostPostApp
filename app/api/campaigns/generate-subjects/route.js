@@ -63,7 +63,7 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Site not found or access denied' }, { status: 403 });
     }
 
-    // Pre-flight Ai-GCoins check — refuse before doing any AI work.
+    // Pre-flight Ai-GCoins check - refuse before doing any AI work.
     if (site.accountId) {
       const cost = await getOperationCreditCost('GENERATE_SUBJECTS');
       const creditCheck = await enforceCredits(site.accountId, cost);

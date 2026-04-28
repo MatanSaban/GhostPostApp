@@ -36,7 +36,7 @@ $status_text = $status_labels[$status] ?? __('Unknown', 'ghostseo-connector');
 
     <!-- Header -->
     <?php
-    // Theme-aware wordmark logo — replaces the standalone gradient ghost
+    // Theme-aware wordmark logo - replaces the standalone gradient ghost
     // SVG icon + "GhostSEO" h1 with a single image. Light theme uses the
     // dark wordmark (black text), dark theme uses the light wordmark.
     $gp_logo_path = ($gp_theme === 'light') ? '/logo-light.svg' : '/logo-dark.svg';

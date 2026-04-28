@@ -52,7 +52,7 @@ export const NEGATIVE_INSIGHT_TYPES = new Set(['trafficDrop', 'visitorsDrop', 'd
 
 /**
  * Check if an insight type can be fixed (AI or free) on the given platform.
- * `capabilities` comes from `capabilitiesFor(site.platform)` — pass it in to
+ * `capabilities` comes from `capabilitiesFor(site.platform)` - pass it in to
  * hide platform-incompatible fixes (e.g. WP-only visual editor on Shopify).
  * If `capabilities` is omitted, returns true for any registered fixable type.
  */
@@ -85,7 +85,7 @@ export function getInsightFixCredits(titleKey) {
 }
 
 /**
- * Full fixer config (kind / handler / credits / etc.) — useful when the UI
+ * Full fixer config (kind / handler / credits / etc.) - useful when the UI
  * needs to branch on `kind` to render different button labels.
  */
 export function getInsightFixerConfig(titleKey) {

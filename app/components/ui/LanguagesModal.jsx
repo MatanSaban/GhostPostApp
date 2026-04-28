@@ -12,7 +12,7 @@ const AVAILABLE_LANGUAGES = [
 ];
 
 /**
- * LanguagesModal — view + add languages for a report group.
+ * LanguagesModal - view + add languages for a report group.
  *
  * Shows the locales the report has already been generated in (read-only)
  * and lets the user check additional locales to generate. Clicking Save

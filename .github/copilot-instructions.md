@@ -16,13 +16,13 @@ The plugin is generated from **template JS files** in `plugin-templates/`, NOT f
 
 ## Page Metadata
 
-**All page metadata flows through `lib/seo/metadata.js`.** Never hand-write `export const metadata = {...}` in a page or layout — add an entry to `pageRegistry` (keyed by Next.js route pattern, e.g. `/dashboard/strategy/[slug]`) and add `meta.*` translation keys to `i18n/dictionaries/en.json` + `i18n/dictionaries/he.json`.
+**All page metadata flows through `lib/seo/metadata.js`.** Never hand-write `export const metadata = {...}` in a page or layout - add an entry to `pageRegistry` (keyed by Next.js route pattern, e.g. `/dashboard/strategy/[slug]`) and add `meta.*` translation keys to `i18n/dictionaries/en.json` + `i18n/dictionaries/he.json`.
 
 ### How it's wired
 
-- **Root layout** (`app/layout.jsx`) calls `buildRootMetadata({ locale })` from `generateMetadata` — this provides `metadataBase`, the `%s | GhostSEO` title template, default openGraph/twitter, robots `noindex` (private SaaS), icons, and theme color.
-- **Server pages and layouts**: one-liner — `export const generateMetadata = createGenerateMetadata('<route pattern>');`. The factory reads the `ghost-post-locale` cookie and looks up the registry entry. Use `buildMetadata(...)` directly only when you need to pass dynamic overrides.
-- **Client pages** (`'use client'`): they CANNOT export metadata. The `<PageMeta />` client component is mounted once in each client layout (`app/dashboard/layout.jsx`, `app/admin/layout.jsx`, `app/auth/layout.jsx`). It reads `usePathname()` and `useLocale()`, looks up the matching entry in `pageRegistry`, and updates `document.title`, the description meta tag, robots tag, and og:title / og:description on every navigation and locale change. **Do not add `<PageMeta />` to individual pages — it lives in the layout.**
+- **Root layout** (`app/layout.jsx`) calls `buildRootMetadata({ locale })` from `generateMetadata` - this provides `metadataBase`, the `%s | GhostSEO` title template, default openGraph/twitter, robots `noindex` (private SaaS), icons, and theme color.
+- **Server pages and layouts**: one-liner - `export const generateMetadata = createGenerateMetadata('<route pattern>');`. The factory reads the `ghost-post-locale` cookie and looks up the registry entry. Use `buildMetadata(...)` directly only when you need to pass dynamic overrides.
+- **Client pages** (`'use client'`): they CANNOT export metadata. The `<PageMeta />` client component is mounted once in each client layout (`app/dashboard/layout.jsx`, `app/admin/layout.jsx`, `app/auth/layout.jsx`). It reads `usePathname()` and `useLocale()`, looks up the matching entry in `pageRegistry`, and updates `document.title`, the description meta tag, robots tag, and og:title / og:description on every navigation and locale change. **Do not add `<PageMeta />` to individual pages - it lives in the layout.**
 - **Dynamic titles on client pages** (e.g. an entity name, a blog post title): call `useDynamicPageMeta(dynamicTitle, dynamicDescription?)` from `@/app/components/PageMeta` inside the page. It writes to an external store that the layout-mounted `<PageMeta />` subscribes to, so the dynamic title wins over the registry-derived one. Example: `useDynamicPageMeta(displayName)` in [app/dashboard/entities/[type]/page.jsx](../app/dashboard/entities/[type]/page.jsx).
 
 ### Adding a new page
@@ -33,7 +33,7 @@ The plugin is generated from **template JS files** in `plugin-templates/`, NOT f
    '/dashboard/my-new-page': { titleKey: 'meta.dashboard.myNewPage.title', descriptionKey: 'meta.dashboard.myNewPage.description' },
    ```
 3. Add the strings under `meta.*` in `en.json` AND `he.json`.
-4. If the page should be indexed by search engines (rare — defaults are noindex), add `robots: 'index'` to the registry entry.
+4. If the page should be indexed by search engines (rare - defaults are noindex), add `robots: 'index'` to the registry entry.
 5. For server pages, also export `generateMetadata` calling `buildMetadata({ pageKey, locale })`. For client pages, the layout-level `<PageMeta />` handles it automatically.
 
 ### Site-wide defaults

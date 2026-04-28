@@ -272,7 +272,7 @@ useEffect(() => {
   };
 }, [user?.accountId]); // Re-setup if account changes
 
-// Heartbeat — keeps lastSeenAt fresh so admin "online now" indicators are accurate.
+// Heartbeat - keeps lastSeenAt fresh so admin "online now" indicators are accurate.
 // Pings every 2 minutes while the tab is visible.
 useEffect(() => {
   if (!user) return;

@@ -117,7 +117,7 @@ export async function GET(request) {
     return redirectToDashboard(siteId, 'persist_failed');
   }
 
-  // 5. Register webhooks (best-effort — don't block the redirect on failure).
+  // 5. Register webhooks (best-effort - don't block the redirect on failure).
   try {
     const host = (process.env.SHOPIFY_APP_HOST || process.env.NEXT_PUBLIC_BASE_URL || 'https://app.ghostpost.co.il').replace(/\/$/, '');
     const callbackUrl = `${host}/api/shopify/webhook`;

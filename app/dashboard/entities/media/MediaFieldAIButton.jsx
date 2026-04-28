@@ -67,7 +67,7 @@ export function MediaFieldAIButton({
 
       // Let the rest of the app (header credit counter, etc.) know credits
       // changed. UserContext listens for this and refreshes the balance
-      // endpoint — the creditsProgressBar in the user menu updates immediately.
+      // endpoint - the creditsProgressBar in the user menu updates immediately.
       if (typeof window !== 'undefined') {
         window.dispatchEvent(new CustomEvent(CREDITS_UPDATED_EVENT));
       }

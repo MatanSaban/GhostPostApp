@@ -35,6 +35,20 @@ export default async function ContentPlannerPage() {
       time: t('contentPlanner.preview.time'),
       source: t('contentPlanner.preview.source'),
     },
+    preflight: {
+      title: t('clusters.preflight.title'),
+      warningOne: t('clusters.preflight.warningOne'),
+      warningCount: t('clusters.preflight.warningCount'),
+      types: {
+        TITLE_OVERLAP: t('clusters.preflight.types.TITLE_OVERLAP'),
+        SEMANTIC_OVERLAP: t('clusters.preflight.types.SEMANTIC_OVERLAP'),
+      },
+      recommendations: {
+        MERGE: t('clusters.preflight.recommendations.MERGE'),
+        DIFFERENTIATE: t('clusters.preflight.recommendations.DIFFERENTIATE'),
+        REVIEW: t('clusters.preflight.recommendations.REVIEW'),
+      },
+    },
     dayNames: [
       t('time.sun'), t('time.mon'), t('time.tue'), t('time.wed'), 
       t('time.thu'), t('time.fri'), t('time.sat')

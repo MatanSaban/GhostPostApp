@@ -118,7 +118,7 @@ export async function GET(request, { params }) {
           groups.set(groupKey, {
             // We surface the most-recent row's fields as the row's
             // identity. The `id` here is the row a user sees / acts
-            // on (Preview, Send, Delete) — they pick a different
+            // on (Preview, Send, Delete) - they pick a different
             // language via the languages column.
             ...r,
             reportGroupId: groupKey,

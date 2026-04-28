@@ -189,7 +189,7 @@ export async function GET(request, { params }) {
     // RFC 6266: `filename*=UTF-8''…` is the canonical UTF-8 source; modern
     // browsers decode it and save the file with its real name (Hebrew /
     // non-Latin chars intact). The legacy `filename="…"` parameter must be
-    // ASCII-only — if you put percent-encoded text there, some browsers
+    // ASCII-only - if you put percent-encoded text there, some browsers
     // prefer it and the saved file ends up named "%D7%A7%D7%99%D7%93%D7%95%D7%96…"
     // instead of "קידוז…".
     const asciiFallback = fileName.replace(/[^\x20-\x7E]/g, '_');

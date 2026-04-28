@@ -10,7 +10,7 @@ const SESSION_COOKIE = 'user_session';
  *
  * Revokes the Shopify connection on our side: wipes token + scopes, flips
  * status to DISCONNECTED. The merchant still needs to uninstall the app
- * from Shopify admin to fully revoke — we surface that in the UI.
+ * from Shopify admin to fully revoke - we surface that in the UI.
  *
  * Webhook cleanup is a no-op in Phase 2 (we haven't registered any yet);
  * Phase 4 adds the deregistration loop.

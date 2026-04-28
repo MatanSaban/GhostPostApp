@@ -8,7 +8,7 @@ const SESSION_COOKIE = 'user_session';
 
 // In-flight dedup: when two requests arrive simultaneously for the same
 // (auditId, lang) pair, the second one awaits the first instead of calling
-// Gemini again. Survives only per-process, which is fine — we're protecting
+// Gemini again. Survives only per-process, which is fine - we're protecting
 // against React StrictMode double-renders and rapid refetches, not a true
 // distributed race (cache check + write already handles the cross-process case).
 const inflight = new Map();

@@ -121,7 +121,7 @@ export function DataTable({
             // Empty-state row spans the full table width via colSpan
             // (HTML's actual mechanism). The previous implementation
             // used `gridColumn: span N` which only works for CSS-grid
-            // tables — our table is normal HTML table-row layout, so
+            // tables - our table is normal HTML table-row layout, so
             // the message ended up confined to the first column.
             <tr className={styles.tableRow}>
               <td

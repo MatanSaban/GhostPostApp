@@ -78,7 +78,7 @@ export default function UpgradePlanModal({ isOpen, onClose }) {
 
   const formatPrice = (plan) => {
     if (plan.monthlyPrice !== undefined) {
-      // Always format in USD — the modal is a consumer-facing upgrade
+      // Always format in USD - the modal is a consumer-facing upgrade
       // surface and the canonical plan price is USD, regardless of what
       // currency the plan record was seeded with. Using 'en-US' locale so
       // the "$" prefix and Latin digits render the same in both EN and HE.
@@ -450,7 +450,7 @@ export default function UpgradePlanModal({ isOpen, onClose }) {
 
                   /*
                    * Render a limitation as "N Label" (or "Unlimited Label"
-                   * / "— Label" for the unlimited / falsy cases). The
+                   * / "- Label" for the unlimited / falsy cases). The
                    * stored label is the noun ("Keywords", "מילות מפתח"),
                    * `.value` is the numeric cap. If the label is already a
                    * full sentence (contains digits or common count words
@@ -502,7 +502,7 @@ export default function UpgradePlanModal({ isOpen, onClose }) {
                         </div>
                       )}
                       {/*
-                       * Visual "current plan" indicator — top-anchored pill
+                       * Visual "current plan" indicator - top-anchored pill
                        * with a check so the selected state is obvious at a
                        * glance, not only via the disabled button at the
                        * bottom of the card.
@@ -525,7 +525,7 @@ export default function UpgradePlanModal({ isOpen, onClose }) {
                       </div>
 
                       {/*
-                       * Limitations first, then features — same order and
+                       * Limitations first, then features - same order and
                        * checkmark styling gp-ws uses on the public pricing
                        * page. We render the full list (not a sliced preview)
                        * so the modal shows the same information the user

@@ -8,20 +8,20 @@
  * fix-registry to per-handler modules in lib/audit/fixers/.
  *
  * Actions:
- *   preview — Generate AI suggestions (or compute manual-output for non-WP).
+ *   preview - Generate AI suggestions (or compute manual-output for non-WP).
  *             For WP+plugin: free, cached on the audit doc until next run.
  *             For non-WP / no-plugin: full charge on success (preview = result).
  *
- *   apply   — Push the user-confirmed values via the WP plugin and update
+ *   apply   - Push the user-confirmed values via the WP plugin and update
  *             the audit issues in-place. Charges full price on success.
  *
- *   cancel  — User opened a preview then closed without applying. If the
+ *   cancel  - User opened a preview then closed without applying. If the
  *             preview was already cached but never applied, charge the
  *             cancel-fee (half, rounded down to even). Two consecutive
  *             cancels of the same cached preview only charge once.
  *
  * Errors from third-party AI providers (Gemini, Imagen) trigger a SuperAdmin
- * email and return a "tryLater" code — the user is NOT charged.
+ * email and return a "tryLater" code - the user is NOT charged.
  *
  * Body shape:
  *   { auditId, siteId, issueType, action: 'preview'|'apply'|'cancel', payload? }
@@ -171,7 +171,7 @@ async function handlePreview(ctx, auditId) {
   const { fixer, issueType, payload, wpAuto, accountId, user, site } = ctx;
   const handler = getHandler(fixer.handler);
 
-  // 1. Cache hit — return immediately, no charge, no AI call.
+  // 1. Cache hit - return immediately, no charge, no AI call.
   const cached = await readPreview(auditId, issueType);
   if (cached?.suggestions || cached?.manualOutputs) {
     return NextResponse.json({
@@ -218,8 +218,8 @@ async function handlePreview(ctx, auditId) {
   }
 
   // Handler must return one of:
-  //   { suggestions: [...], usage }     — WP-auto path: AI suggested fixes
-  //   { manualOutputs: [...], usage }   — non-WP path: ready-to-copy outputs
+  //   { suggestions: [...], usage }     - WP-auto path: AI suggested fixes
+  //   { manualOutputs: [...], usage }   - non-WP path: ready-to-copy outputs
   if (!preview || (!preview.suggestions && !preview.manualOutputs)) {
     return err(500, 'PREVIEW_EMPTY', 'Handler returned no preview');
   }
@@ -285,18 +285,18 @@ async function handleApply(ctx, auditId, handler) {
 
   const cached = await readPreview(auditId, issueType);
   // The user MAY apply with edited values that differ from cache; that's
-  // fine — the modal sends the final values in payload.fixes. Cache only
+  // fine - the modal sends the final values in payload.fixes. Cache only
   // matters for charge-deduplication (so we don't double-bill).
 
   // Pre-flight: AI fixers charge full price on apply (unless we already
-  // charged at preview time on the no-plugin path — but apply is gated to
+  // charged at preview time on the no-plugin path - but apply is gated to
   // wpAuto so that case can't happen here).
   let creditsCharged = 0;
   let balance;
   if (fixer.kind === 'ai') {
     const alreadyCharged = cached?.charged?.apply || 0;
     if (alreadyCharged > 0) {
-      // Idempotent re-apply — don't charge again.
+      // Idempotent re-apply - don't charge again.
       creditsCharged = 0;
     } else {
       const check = await enforceCredits(accountId, fixer.credits);
@@ -309,7 +309,7 @@ async function handleApply(ctx, auditId, handler) {
     }
   }
 
-  // Run the apply handler — pushes to plugin + updates audit issues.
+  // Run the apply handler - pushes to plugin + updates audit issues.
   let result;
   try {
     result = await handler.apply({ site, payload, audit: { id: auditId }, wpAuto });
@@ -332,7 +332,7 @@ async function handleApply(ctx, auditId, handler) {
 
   const successCount = (result?.results || []).filter((r) => r.pushed).length;
   if (successCount === 0) {
-    // Nothing pushed — don't charge.
+    // Nothing pushed - don't charge.
     return NextResponse.json({
       success: false,
       results: result?.results || [],
@@ -398,7 +398,7 @@ async function handleCancel(ctx, auditId) {
     return NextResponse.json({ success: true, creditsUsed: 0, reason: 'no-preview' });
   }
   if (cached.charged?.preview || cached.charged?.apply || cached.charged?.cancel) {
-    // Already settled — opening again is free, closing again is free.
+    // Already settled - opening again is free, closing again is free.
     return NextResponse.json({ success: true, creditsUsed: 0, reason: 'already-charged' });
   }
 
