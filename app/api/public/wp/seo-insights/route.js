@@ -3,6 +3,22 @@ import prisma from '@/lib/prisma';
 import { verifySignature } from '@/lib/site-keys';
 
 /**
+ * Decode percent-encoded characters in a URL so non-Latin paths (Hebrew,
+ * Arabic, Cyrillic, …) render readably in plugin admin UIs instead of as
+ * "%d7%90%d7%99%d7%9a-…". decodeURI preserves reserved characters (?, #,
+ * &) so query strings and fragments stay intact. Returns the original
+ * string on malformed escape sequences.
+ */
+function prettifyUrl(url) {
+  if (!url || typeof url !== 'string') return '';
+  try {
+    return decodeURI(url);
+  } catch {
+    return url;
+  }
+}
+
+/**
  * POST /api/public/wp/seo-insights
  * Returns SEO insights data for a connected WordPress site.
  *
@@ -74,19 +90,23 @@ export async function POST(request) {
 
     // Build top pages from entities
     const topPages = entities.slice(0, 10).map(e => ({
-      page: e.title || e.url || `/${e.slug}`,
+      // Falling back to the URL means we may emit percent-encoded paths;
+      // decode so Hebrew / non-Latin slugs are readable in plugin admin.
+      page: e.title || prettifyUrl(e.url) || `/${e.slug}`,
       traffic: 0,
       avgPosition: null,
     }));
 
-    // Extract issues from latest audit
+    // Extract issues from latest audit. The plugin renders `description`
+    // verbatim, so decode percent-encoded URLs before sending — otherwise
+    // Hebrew slugs land as "%d7%90%d7%99%d7%9a-…".
     const issues = (latestAudit?.issues || [])
       .filter(i => i.severity === 'error' || i.severity === 'warning')
       .slice(0, 20)
       .map(issue => ({
         severity: issue.severity || 'info',
         title: issue.message || '',
-        description: issue.url || '',
+        description: prettifyUrl(issue.url || ''),
       }));
 
     // Build traffic chart labels (last 6 months)
