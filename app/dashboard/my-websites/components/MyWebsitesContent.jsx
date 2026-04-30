@@ -302,9 +302,12 @@ export function MyWebsitesContent() {
             <table className={styles.table}>
               <thead>
                 <tr>
-                  {Array.from({ length: 6 }).map((_, i) => (
-                    <th key={i}><Skeleton width={`${40 + Math.random() * 40}%`} height="0.75rem" /></th>
-                  ))}
+                  <th>{t('myWebsites.columns.name')}</th>
+                  <th>{t('myWebsites.columns.url')}</th>
+                  <th>{t('myWebsites.columns.platform')}</th>
+                  <th>{t('myWebsites.columns.status')}</th>
+                  <th>{t('myWebsites.columns.createdAt')}</th>
+                  <th>{t('myWebsites.columns.actions')}</th>
                 </tr>
               </thead>
               <tbody>

@@ -25,7 +25,7 @@ import {
 import { useLocale } from '@/app/context/locale-context';
 import { useUser } from '@/app/context/user-context';
 import { AdminModal, ConfirmDialog, FormInput, FormTextarea, FormSelect, FormCheckbox, FormActions, PrimaryButton, SecondaryButton } from '../components/AdminModal';
-import { AdminPageSkeleton, TableSkeleton, Button } from '@/app/dashboard/components';
+import { TableSkeleton, Skeleton, Button } from '@/app/dashboard/components';
 import styles from '../admin.module.css';
 
 export default function BotActionsPage() {
@@ -297,13 +297,11 @@ export default function BotActionsPage() {
     }
   };
 
-  if (isUserLoading) {
-    return <AdminPageSkeleton statsCount={3} columns={5} />;
-  }
-
-  if (!isSuperAdmin) {
+  if (!isUserLoading && !isSuperAdmin) {
     return null;
   }
+
+  const showSkeletons = isUserLoading || isLoading;
 
   return (
     <div className={styles.adminPage}>
@@ -317,15 +315,15 @@ export default function BotActionsPage() {
       <div className={styles.statsGrid}>
         <div className={styles.statCard}>
           <div className={styles.statLabel}>{t('admin.stats.totalActions')}</div>
-          <div className={styles.statValue}>{actions.length}</div>
+          {showSkeletons ? <Skeleton width="3rem" height="1.5rem" /> : <div className={styles.statValue}>{actions.length}</div>}
         </div>
         <div className={styles.statCard}>
           <div className={styles.statLabel}>{t('admin.stats.activeActions')}</div>
-          <div className={styles.statValue}>{actions.filter(a => a.isActive).length}</div>
+          {showSkeletons ? <Skeleton width="3rem" height="1.5rem" /> : <div className={styles.statValue}>{actions.filter(a => a.isActive).length}</div>}
         </div>
         <div className={styles.statCard}>
           <div className={styles.statLabel}>{t('admin.stats.inactiveActions')}</div>
-          <div className={styles.statValue}>{actions.filter(a => !a.isActive).length}</div>
+          {showSkeletons ? <Skeleton width="3rem" height="1.5rem" /> : <div className={styles.statValue}>{actions.filter(a => !a.isActive).length}</div>}
         </div>
       </div>
 
@@ -365,7 +363,7 @@ export default function BotActionsPage() {
 
       {/* Table */}
       <div className={styles.tableContainer}>
-        {isLoading ? (
+        {showSkeletons ? (
           <TableSkeleton rows={8} columns={5} hasActions />
         ) : filteredActions.length === 0 ? (
           <div className={styles.emptyState}>

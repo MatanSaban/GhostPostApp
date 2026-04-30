@@ -22,7 +22,7 @@ import {
 import { useLocale } from '@/app/context/locale-context';
 import { useUser } from '@/app/context/user-context';
 import { AdminModal, ConfirmDialog, FormInput, FormTextarea, FormCheckbox, FormSelect, FormActions, PrimaryButton, SecondaryButton } from '../components/AdminModal';
-import { AdminPageSkeleton, TableSkeleton, Button } from '@/app/dashboard/components';
+import { TableSkeleton, Skeleton, Button } from '@/app/dashboard/components';
 import styles from '../admin.module.css';
 
 // AddOnType enum values mirrored from prisma/schema.prisma. Labels resolve
@@ -397,13 +397,11 @@ export default function CouponsPage() {
     setExtraFeatures(extraFeatures.filter((_, i) => i !== index));
   };
 
-  if (isUserLoading) {
-    return <AdminPageSkeleton statsCount={4} columns={7} />;
-  }
-
-  if (!isSuperAdmin) {
+  if (!isUserLoading && !isSuperAdmin) {
     return null;
   }
+
+  const showSkeletons = isUserLoading || isLoading;
 
   return (
     <div className={styles.adminPage}>
@@ -417,19 +415,19 @@ export default function CouponsPage() {
       <div className={styles.statsGrid}>
         <div className={styles.statCard}>
           <div className={styles.statLabel}>{t('admin.coupons.stats.total')}</div>
-          <div className={styles.statValue}>{stats.totalCoupons}</div>
+          {showSkeletons ? <Skeleton width="3rem" height="1.5rem" /> : <div className={styles.statValue}>{stats.totalCoupons}</div>}
         </div>
         <div className={styles.statCard}>
           <div className={styles.statLabel}>{t('admin.coupons.stats.active')}</div>
-          <div className={styles.statValue}>{stats.activeCoupons}</div>
+          {showSkeletons ? <Skeleton width="3rem" height="1.5rem" /> : <div className={styles.statValue}>{stats.activeCoupons}</div>}
         </div>
         <div className={styles.statCard}>
           <div className={styles.statLabel}>{t('admin.coupons.stats.totalRedemptions')}</div>
-          <div className={styles.statValue}>{stats.totalRedemptions}</div>
+          {showSkeletons ? <Skeleton width="3rem" height="1.5rem" /> : <div className={styles.statValue}>{stats.totalRedemptions}</div>}
         </div>
         <div className={styles.statCard}>
           <div className={styles.statLabel}>{t('admin.coupons.stats.activeRedemptions')}</div>
-          <div className={styles.statValue}>{stats.activeRedemptions}</div>
+          {showSkeletons ? <Skeleton width="3rem" height="1.5rem" /> : <div className={styles.statValue}>{stats.activeRedemptions}</div>}
         </div>
       </div>
 
@@ -460,7 +458,7 @@ export default function CouponsPage() {
 
       {/* Table */}
       <div className={styles.tableContainer}>
-        {isLoading ? (
+        {showSkeletons ? (
           <TableSkeleton columns={7} rows={5} />
         ) : filteredCoupons.length === 0 ? (
           <div className={styles.emptyState}>

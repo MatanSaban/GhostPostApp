@@ -29,7 +29,7 @@ import {
   PrimaryButton,
   SecondaryButton,
 } from '../components/AdminModal';
-import { AdminPageSkeleton, TableSkeleton, Button } from '@/app/dashboard/components';
+import { TableSkeleton, Skeleton, Button } from '@/app/dashboard/components';
 import styles from '../admin.module.css';
 import modalStyles from '../components/AdminModal.module.css';
 
@@ -303,13 +303,11 @@ export default function PlatformAccountsPage() {
     return account.planTranslations?.[langKey]?.name || account.plan;
   };
 
-  if (isUserLoading) {
-    return <AdminPageSkeleton statsCount={3} columns={7} />;
-  }
-
-  if (!isSuperAdmin) {
+  if (!isUserLoading && !isSuperAdmin) {
     return null;
   }
+
+  const showSkeletons = isUserLoading || isLoading;
 
   return (
     <div className={styles.adminPage}>
@@ -323,15 +321,15 @@ export default function PlatformAccountsPage() {
       <div className={styles.statsGrid}>
         <div className={styles.statCard}>
           <div className={styles.statLabel}>{t('admin.accounts.totalAccounts')}</div>
-          <div className={styles.statValue}>{stats.total}</div>
+          {showSkeletons ? <Skeleton width="3rem" height="1.5rem" /> : <div className={styles.statValue}>{stats.total}</div>}
         </div>
         <div className={styles.statCard}>
           <div className={styles.statLabel}>{t('admin.accounts.statuses.active')}</div>
-          <div className={styles.statValue}>{stats.active}</div>
+          {showSkeletons ? <Skeleton width="3rem" height="1.5rem" /> : <div className={styles.statValue}>{stats.active}</div>}
         </div>
         <div className={styles.statCard}>
           <div className={styles.statLabel}>{t('admin.users.totalUsers')}</div>
-          <div className={styles.statValue}>{stats.totalUsers}</div>
+          {showSkeletons ? <Skeleton width="3rem" height="1.5rem" /> : <div className={styles.statValue}>{stats.totalUsers}</div>}
         </div>
       </div>
 
@@ -370,7 +368,7 @@ export default function PlatformAccountsPage() {
 
       {/* Table */}
       <div className={styles.tableContainer}>
-        {isLoading ? (
+        {showSkeletons ? (
           <TableSkeleton rows={8} columns={7} hasActions />
         ) : paginatedAccounts.length === 0 ? (
           <div className={styles.emptyState}>

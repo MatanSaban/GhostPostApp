@@ -16,7 +16,7 @@ import {
 import { useLocale } from '@/app/context/locale-context';
 import { useUser } from '@/app/context/user-context';
 import { AdminModal, ConfirmDialog, FormInput, FormTextarea, FormSelect, FormActions, PrimaryButton, SecondaryButton } from '../components/AdminModal';
-import { AdminPageSkeleton, Button } from '@/app/dashboard/components';
+import { Skeleton, Button } from '@/app/dashboard/components';
 import SearchableSelect from '@/app/components/ui/searchable-select';
 import styles from './translations.module.css';
 import adminStyles from '../admin.module.css';
@@ -426,13 +426,11 @@ export default function TranslationsPage() {
     }
   };
 
-  if (isUserLoading) {
-    return <AdminPageSkeleton statsCount={0} columns={4} />;
-  }
-
-  if (!isSuperAdmin) {
+  if (!isUserLoading && !isSuperAdmin) {
     return null;
   }
+
+  const showSkeletons = isUserLoading || loading;
 
   return (
     <div className={styles.translationsPage}>
@@ -458,15 +456,15 @@ export default function TranslationsPage() {
       <div className={adminStyles.statsGrid}>
         <div className={adminStyles.statCard}>
           <div className={adminStyles.statLabel}>{t('admin.translations.totalKeys')}</div>
-          <div className={adminStyles.statValue}>{totalCount}</div>
+          {showSkeletons ? <Skeleton width="3rem" height="1.5rem" /> : <div className={adminStyles.statValue}>{totalCount}</div>}
         </div>
         <div className={adminStyles.statCard}>
           <div className={adminStyles.statLabel}>{t('admin.translations.languages')}</div>
-          <div className={adminStyles.statValue}>{langs.length}</div>
+          {showSkeletons ? <Skeleton width="3rem" height="1.5rem" /> : <div className={adminStyles.statValue}>{langs.length}</div>}
         </div>
         <div className={adminStyles.statCard}>
           <div className={adminStyles.statLabel}>{t('admin.translations.namespaces')}</div>
-          <div className={adminStyles.statValue}>{namespaces.length}</div>
+          {showSkeletons ? <Skeleton width="3rem" height="1.5rem" /> : <div className={adminStyles.statValue}>{namespaces.length}</div>}
         </div>
       </div>
 

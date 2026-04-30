@@ -9,7 +9,6 @@ import styles from '../admin.module.css';
 
 import {
   useInterviewFlow,
-  InterviewFlowSkeleton,
   InterviewFlowStats,
   InterviewFlowToolbar,
   QuestionTable,
@@ -30,13 +29,11 @@ export default function InterviewFlowPage() {
     }
   }, [isSuperAdmin, isUserLoading, router]);
 
-  if (isUserLoading) {
-    return <InterviewFlowSkeleton />;
-  }
-
-  if (!isSuperAdmin) {
+  if (!isUserLoading && !isSuperAdmin) {
     return null;
   }
+
+  const showSkeletons = isUserLoading || flow.isLoading;
 
   return (
     <div className={styles.adminPage}>
@@ -47,9 +44,10 @@ export default function InterviewFlowPage() {
       </div>
 
       {/* Stats */}
-      <InterviewFlowStats 
-        questions={flow.questions} 
-        botActions={flow.botActions} 
+      <InterviewFlowStats
+        questions={flow.questions}
+        botActions={flow.botActions}
+        isLoading={showSkeletons}
       />
 
       {/* Toolbar */}
@@ -68,7 +66,7 @@ export default function InterviewFlowPage() {
       <div className={styles.tableContainer}>
         <QuestionTable
           filteredQuestions={flow.filteredQuestions}
-          isLoading={flow.isLoading}
+          isLoading={showSkeletons}
           onMove={flow.handleMove}
           onToggleActive={flow.handleToggleActive}
           onEdit={flow.handleEdit}

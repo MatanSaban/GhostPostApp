@@ -16,7 +16,6 @@ import {
 } from 'lucide-react';
 import { useUser } from '@/app/context/user-context';
 import { useLocale } from '@/app/context/locale-context';
-import { AdminPageSkeleton } from '@/app/dashboard/components';
 import styles from '../website.module.css';
 import adminStyles from '../../admin.module.css';
 
@@ -94,8 +93,8 @@ export default function BlogPostsPage() {
     post.slug?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  if (isUserLoading || !isSuperAdmin) {
-    return <AdminPageSkeleton statsCount={0} columns={3} />;
+  if (!isUserLoading && !isSuperAdmin) {
+    return null;
   }
 
   const previewUrl = process.env.NEXT_PUBLIC_GP_WS_URL || 'https://ghostseo.ai';

@@ -25,7 +25,6 @@ import {
 import Link from 'next/link';
 import { useUser } from '@/app/context/user-context';
 import { useLocale } from '@/app/context/locale-context';
-import { AdminPageSkeleton } from '@/app/dashboard/components';
 import LocaleTabs from '../../_components/LocaleTabs';
 import ContentEditor from '../../_components/ContentEditor';
 import SeoEditor from '../../_components/SeoEditor';
@@ -300,8 +299,8 @@ export default function EditPagePage({ params }) {
     }
   };
 
-  if (isUserLoading || !isSuperAdmin) {
-    return <AdminPageSkeleton statsCount={0} columns={2} />;
+  if (!isUserLoading && !isSuperAdmin) {
+    return null;
   }
 
   if (!pageConfig) {

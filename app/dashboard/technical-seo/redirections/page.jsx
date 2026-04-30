@@ -18,7 +18,7 @@ import {
 import { useLocale } from '@/app/context/locale-context';
 import { useSite } from '@/app/context/site-context';
 import { RedirectForm } from './components';
-import { Button } from '@/app/dashboard/components';
+import { Button, Skeleton } from '@/app/dashboard/components';
 import styles from './page.module.css';
 
 export default function RedirectionsPage() {
@@ -225,24 +225,9 @@ export default function RedirectionsPage() {
     ? Math.round((stats.active / stats.total) * 100) + '%' 
     : '100%';
 
-  // Loading skeleton
-  if (isSiteLoading || isLoading) {
-    return (
-      <div className={styles.container}>
-        <div className={styles.pageHeader}>
-          <div className={styles.headerContent}>
-            <h1 className={styles.pageTitle}>{t('redirections.title')}</h1>
-            <p className={styles.pageSubtitle}>{t('redirections.subtitle')}</p>
-          </div>
-        </div>
-        <div className={styles.loadingState}>
-          <Loader2 className={styles.spinner} size={32} />
-        </div>
-      </div>
-    );
-  }
+  const showSkeletons = isSiteLoading || isLoading;
 
-  if (!selectedSite) {
+  if (!isSiteLoading && !selectedSite) {
     return (
       <div className={styles.container}>
         <div className={styles.emptyState}>
@@ -344,7 +329,7 @@ export default function RedirectionsPage() {
             <RefreshCw size={20} />
           </div>
           <div className={styles.statInfo}>
-            <span className={styles.statValue}>{stats.active}</span>
+            {showSkeletons ? <Skeleton width="3rem" height="1.5rem" /> : <span className={styles.statValue}>{stats.active}</span>}
             <span className={styles.statLabel}>{t('redirections.activeRedirects')}</span>
           </div>
         </div>
@@ -353,7 +338,7 @@ export default function RedirectionsPage() {
             <BarChart2 size={20} />
           </div>
           <div className={styles.statInfo}>
-            <span className={styles.statValue}>{stats.totalHits.toLocaleString()}</span>
+            {showSkeletons ? <Skeleton width="3rem" height="1.5rem" /> : <span className={styles.statValue}>{stats.totalHits.toLocaleString()}</span>}
             <span className={styles.statLabel}>{t('redirections.totalHits')}</span>
           </div>
         </div>
@@ -362,7 +347,7 @@ export default function RedirectionsPage() {
             <AlertTriangle size={20} />
           </div>
           <div className={styles.statInfo}>
-            <span className={styles.statValue}>{stats.total - stats.active}</span>
+            {showSkeletons ? <Skeleton width="3rem" height="1.5rem" /> : <span className={styles.statValue}>{stats.total - stats.active}</span>}
             <span className={styles.statLabel}>{t('redirections.disabled')}</span>
           </div>
         </div>
@@ -371,7 +356,7 @@ export default function RedirectionsPage() {
             <CheckCircle size={20} />
           </div>
           <div className={styles.statInfo}>
-            <span className={styles.statValue}>{successRate}</span>
+            {showSkeletons ? <Skeleton width="3rem" height="1.5rem" /> : <span className={styles.statValue}>{successRate}</span>}
             <span className={styles.statLabel}>{t('redirections.successRate')}</span>
           </div>
         </div>
@@ -389,10 +374,37 @@ export default function RedirectionsPage() {
       <div className={styles.tableCard}>
         <h3 className={styles.cardTitle}>
           {t('redirections.activeRedirects')}
-          <span className={styles.countBadge}>{redirections.length}</span>
+          {!showSkeletons && <span className={styles.countBadge}>{redirections.length}</span>}
         </h3>
-        
-        {redirections.length === 0 ? (
+
+        {showSkeletons ? (
+          <div className={styles.tableContainer}>
+            <table className={styles.table}>
+              <thead className={styles.tableHead}>
+                <tr>
+                  <th style={{ width: '6.5rem' }}>{t('redirections.status')}</th>
+                  <th>{t('redirections.from')}</th>
+                  <th>{t('redirections.to')}</th>
+                  <th style={{ width: '5rem' }}>{t('redirections.type')}</th>
+                  <th style={{ width: '5rem' }}>{t('redirections.hits')}</th>
+                  <th style={{ width: '5rem' }}>{t('common.actions')}</th>
+                </tr>
+              </thead>
+              <tbody className={styles.tableBody}>
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <tr key={i}>
+                    <td><Skeleton width="5rem" height="1.5rem" borderRadius="full" /></td>
+                    <td><Skeleton width="80%" height="0.875rem" /></td>
+                    <td><Skeleton width="75%" height="0.875rem" /></td>
+                    <td><Skeleton width="2.5rem" height="1.4rem" borderRadius="sm" /></td>
+                    <td><Skeleton width="2rem" height="0.875rem" /></td>
+                    <td><Skeleton width="4rem" height="1.5rem" /></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : redirections.length === 0 ? (
           <div className={styles.emptyState}>
             <ArrowUpDown size={48} />
             <p>{t('redirections.noRedirects')}</p>

@@ -18,7 +18,7 @@ import {
 import { useLocale } from '@/app/context/locale-context';
 import { useUser } from '@/app/context/user-context';
 import { AdminModal, ConfirmDialog, FormInput, FormTextarea, FormSelect, FormActions, PrimaryButton, SecondaryButton } from '../components/AdminModal';
-import { AdminPageSkeleton, Button } from '@/app/dashboard/components';
+import { Skeleton, Button } from '@/app/dashboard/components';
 import styles from '../admin.module.css';
 
 // ──────────────────────────────────────────────
@@ -498,11 +498,9 @@ export default function AdminBacklinksPage() {
     }
   };
 
-  // ── Loading / Auth ──
-  if (isUserLoading) {
-    return <AdminPageSkeleton statsCount={5} columns={8} />;
-  }
-  if (!isSuperAdmin) return null;
+  // ── Auth ──
+  if (!isUserLoading && !isSuperAdmin) return null;
+  const showStatSkeletons = isUserLoading || !listingStats;
 
   const statusColor = (s) => {
     const map = {
@@ -523,30 +521,28 @@ export default function AdminBacklinksPage() {
       </div>
 
       {/* Stats */}
-      {listingStats && (
-        <div className={styles.statsGrid}>
-          <div className={styles.statCard}>
-            <div className={styles.statLabel}>{t('admin.stats.totalListings')}</div>
-            <div className={styles.statValue}>{listingStats.totalListings}</div>
-          </div>
-          <div className={styles.statCard}>
-            <div className={styles.statLabel}>{t('admin.stats.activeListings')}</div>
-            <div className={styles.statValue}>{listingStats.activeListings}</div>
-          </div>
-          <div className={styles.statCard}>
-            <div className={styles.statLabel}>{t('admin.stats.totalPurchases')}</div>
-            <div className={styles.statValue}>{listingStats.totalPurchases}</div>
-          </div>
-          <div className={styles.statCard}>
-            <div className={styles.statLabel}>{t('admin.stats.pendingPurchases')}</div>
-            <div className={styles.statValue}>{listingStats.pendingPurchases}</div>
-          </div>
-          <div className={styles.statCard}>
-            <div className={styles.statLabel}>{t('admin.stats.totalRevenue')}</div>
-            <div className={styles.statValue}>${listingStats.totalRevenue?.toLocaleString() || 0}</div>
-          </div>
+      <div className={styles.statsGrid}>
+        <div className={styles.statCard}>
+          <div className={styles.statLabel}>{t('admin.stats.totalListings')}</div>
+          {showStatSkeletons ? <Skeleton width="3rem" height="1.5rem" /> : <div className={styles.statValue}>{listingStats.totalListings}</div>}
         </div>
-      )}
+        <div className={styles.statCard}>
+          <div className={styles.statLabel}>{t('admin.stats.activeListings')}</div>
+          {showStatSkeletons ? <Skeleton width="3rem" height="1.5rem" /> : <div className={styles.statValue}>{listingStats.activeListings}</div>}
+        </div>
+        <div className={styles.statCard}>
+          <div className={styles.statLabel}>{t('admin.stats.totalPurchases')}</div>
+          {showStatSkeletons ? <Skeleton width="3rem" height="1.5rem" /> : <div className={styles.statValue}>{listingStats.totalPurchases}</div>}
+        </div>
+        <div className={styles.statCard}>
+          <div className={styles.statLabel}>{t('admin.stats.pendingPurchases')}</div>
+          {showStatSkeletons ? <Skeleton width="3rem" height="1.5rem" /> : <div className={styles.statValue}>{listingStats.pendingPurchases}</div>}
+        </div>
+        <div className={styles.statCard}>
+          <div className={styles.statLabel}>{t('admin.stats.totalRevenue')}</div>
+          {showStatSkeletons ? <Skeleton width="3rem" height="1.5rem" /> : <div className={styles.statValue}>${listingStats.totalRevenue?.toLocaleString() || 0}</div>}
+        </div>
+      </div>
 
       {/* Tabs */}
       <div className={styles.adminToolbar}>

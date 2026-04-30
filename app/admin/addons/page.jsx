@@ -6,7 +6,7 @@ import { Search, Filter, RefreshCw, Plus, Edit2, Trash2, Archive, Package, Check
 import { useLocale } from '@/app/context/locale-context';
 import { useUser } from '@/app/context/user-context';
 import { AdminModal, ConfirmDialog, FormInput, FormTextarea, FormCheckbox, FormSelect, FormActions, PrimaryButton, SecondaryButton } from '../components/AdminModal';
-import { AdminPageSkeleton, TableSkeleton, Button } from '@/app/dashboard/components';
+import { TableSkeleton, Skeleton, Button } from '@/app/dashboard/components';
 import styles from '../admin.module.css';
 import GCoinIcon from '@/app/components/ui/GCoinIcon';
 
@@ -423,13 +423,11 @@ export default function AddOnsSettingsPage() {
     return t(`admin.addons.billingTypes.${billingType === 'ONE_TIME' ? 'oneTime' : 'recurring'}`);
   };
 
-  if (isUserLoading) {
-    return <AdminPageSkeleton statsCount={3} columns={6} />;
-  }
-
-  if (!isSuperAdmin) {
+  if (!isUserLoading && !isSuperAdmin) {
     return null;
   }
+
+  const showSkeletons = isUserLoading || isLoading;
 
   return (
     <div className={styles.adminPage}>
@@ -443,15 +441,15 @@ export default function AddOnsSettingsPage() {
       <div className={styles.statsGrid}>
         <div className={styles.statCard}>
           <div className={styles.statLabel}>{t('admin.addons.stats.total') || 'Total Add-Ons'}</div>
-          <div className={styles.statValue}>{stats.totalAddOns}</div>
+          {showSkeletons ? <Skeleton width="3rem" height="1.5rem" /> : <div className={styles.statValue}>{stats.totalAddOns}</div>}
         </div>
         <div className={styles.statCard}>
           <div className={styles.statLabel}>{t('admin.addons.stats.active') || 'Active Add-Ons'}</div>
-          <div className={styles.statValue}>{stats.activeAddOns}</div>
+          {showSkeletons ? <Skeleton width="3rem" height="1.5rem" /> : <div className={styles.statValue}>{stats.activeAddOns}</div>}
         </div>
         <div className={styles.statCard}>
           <div className={styles.statLabel}>{t('admin.addons.stats.purchases') || 'Active Purchases'}</div>
-          <div className={styles.statValue}>{stats.totalPurchases}</div>
+          {showSkeletons ? <Skeleton width="3rem" height="1.5rem" /> : <div className={styles.statValue}>{stats.totalPurchases}</div>}
         </div>
       </div>
 
@@ -494,7 +492,7 @@ export default function AddOnsSettingsPage() {
 
       {/* Table */}
       <div className={styles.tableContainer}>
-        {isLoading ? (
+        {showSkeletons ? (
           <TableSkeleton rows={8} columns={6} hasActions />
         ) : filteredAddOns.length === 0 ? (
           <div className={styles.emptyState}>

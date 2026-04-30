@@ -15,7 +15,6 @@ import {
 } from 'lucide-react';
 import { useUser } from '@/app/context/user-context';
 import { useLocale } from '@/app/context/locale-context';
-import { AdminPageSkeleton } from '@/app/dashboard/components';
 import LocaleTabs from '../../_components/LocaleTabs';
 import styles from '../../website.module.css';
 import adminStyles from '../../../admin.module.css';
@@ -184,8 +183,8 @@ export default function EditBlogPostPage({ params }) {
     }
   };
 
-  if (isUserLoading || !isSuperAdmin) {
-    return <AdminPageSkeleton statsCount={0} columns={2} />;
+  if (!isUserLoading && !isSuperAdmin) {
+    return null;
   }
 
   if (loading) {

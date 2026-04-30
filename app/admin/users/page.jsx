@@ -20,7 +20,7 @@ import {
 import { useLocale } from '@/app/context/locale-context';
 import { useUser } from '@/app/context/user-context';
 import { AdminModal, ConfirmDialog, FormInput, FormCheckbox, FormSelect, FormActions, PrimaryButton, SecondaryButton } from '../components/AdminModal';
-import { AdminPageSkeleton, TableSkeleton, Button } from '@/app/dashboard/components';
+import { TableSkeleton, Skeleton, Button } from '@/app/dashboard/components';
 import styles from '../admin.module.css';
 import modalStyles from '../components/AdminModal.module.css';
 
@@ -311,13 +311,11 @@ export default function PlatformUsersPage() {
     }
   };
 
-  if (isUserLoading) {
-    return <AdminPageSkeleton statsCount={4} columns={7} />;
-  }
-
-  if (!isSuperAdmin) {
+  if (!isUserLoading && !isSuperAdmin) {
     return null;
   }
+
+  const showSkeletons = isUserLoading || isLoading;
 
   return (
     <div className={styles.adminPage}>
@@ -331,19 +329,19 @@ export default function PlatformUsersPage() {
       <div className={styles.statsGrid}>
         <div className={styles.statCard}>
           <div className={styles.statLabel}>{t('admin.users.totalUsers')}</div>
-          <div className={styles.statValue}>{stats.total}</div>
+          {showSkeletons ? <Skeleton width="3rem" height="1.5rem" /> : <div className={styles.statValue}>{stats.total}</div>}
         </div>
         <div className={styles.statCard}>
           <div className={styles.statLabel}>{t('admin.users.statuses.active')}</div>
-          <div className={styles.statValue}>{stats.active}</div>
+          {showSkeletons ? <Skeleton width="3rem" height="1.5rem" /> : <div className={styles.statValue}>{stats.active}</div>}
         </div>
         <div className={styles.statCard}>
           <div className={styles.statLabel}>{t('admin.users.onlineNow')}</div>
-          <div className={styles.statValue}>{stats.online ?? 0}</div>
+          {showSkeletons ? <Skeleton width="3rem" height="1.5rem" /> : <div className={styles.statValue}>{stats.online ?? 0}</div>}
         </div>
         <div className={styles.statCard}>
           <div className={styles.statLabel}>{t('admin.users.roles.superAdmin')}</div>
-          <div className={styles.statValue}>{stats.superAdmins}</div>
+          {showSkeletons ? <Skeleton width="3rem" height="1.5rem" /> : <div className={styles.statValue}>{stats.superAdmins}</div>}
         </div>
       </div>
 
@@ -382,7 +380,7 @@ export default function PlatformUsersPage() {
 
       {/* Table */}
       <div className={styles.tableContainer}>
-        {isLoading ? (
+        {showSkeletons ? (
           <TableSkeleton rows={8} columns={7} hasActions />
         ) : paginatedUsers.length === 0 ? (
           <div className={styles.emptyState}>

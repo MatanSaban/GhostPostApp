@@ -24,7 +24,7 @@ import {
 } from 'lucide-react';
 import { useLocale } from '@/app/context/locale-context';
 import { useUser } from '@/app/context/user-context';
-import { AdminPageSkeleton, TableSkeleton, Button } from '@/app/dashboard/components';
+import { TableSkeleton, Skeleton, Button } from '@/app/dashboard/components';
 import styles from '../admin.module.css';
 
 export default function SubscriptionsPage() {
@@ -186,13 +186,11 @@ export default function SubscriptionsPage() {
     return plan.translations?.[langKey]?.name || plan.name;
   };
 
-  if (isUserLoading) {
-    return <AdminPageSkeleton statsCount={4} columns={7} />;
-  }
-
-  if (!isSuperAdmin) {
+  if (!isUserLoading && !isSuperAdmin) {
     return null;
   }
+
+  const showSkeletons = isUserLoading || isLoading;
 
   return (
     <div className={styles.adminPage}>
@@ -206,19 +204,19 @@ export default function SubscriptionsPage() {
       <div className={styles.statsGrid}>
         <div className={styles.statCard}>
           <div className={styles.statLabel}>{t('admin.subscriptions.totalSubscriptions')}</div>
-          <div className={styles.statValue}>{stats.total}</div>
+          {showSkeletons ? <Skeleton width="3rem" height="1.5rem" /> : <div className={styles.statValue}>{stats.total}</div>}
         </div>
         <div className={styles.statCard}>
           <div className={styles.statLabel}>{t('admin.subscriptions.mrr')}</div>
-          <div className={styles.statValue}>{formatCurrency(stats.mrr)}</div>
+          {showSkeletons ? <Skeleton width="4rem" height="1.5rem" /> : <div className={styles.statValue}>{formatCurrency(stats.mrr)}</div>}
         </div>
         <div className={styles.statCard}>
           <div className={styles.statLabel}>{t('admin.subscriptions.arr')}</div>
-          <div className={styles.statValue}>{formatCurrency(stats.arr)}</div>
+          {showSkeletons ? <Skeleton width="4rem" height="1.5rem" /> : <div className={styles.statValue}>{formatCurrency(stats.arr)}</div>}
         </div>
         <div className={styles.statCard}>
           <div className={styles.statLabel}>{t('admin.subscriptions.statuses.active')}</div>
-          <div className={styles.statValue}>{stats.active}</div>
+          {showSkeletons ? <Skeleton width="3rem" height="1.5rem" /> : <div className={styles.statValue}>{stats.active}</div>}
         </div>
       </div>
 
@@ -253,7 +251,7 @@ export default function SubscriptionsPage() {
 
       {/* Table */}
       <div className={styles.tableContainer}>
-        {isLoading ? (
+        {showSkeletons ? (
           <TableSkeleton rows={8} columns={7} hasActions />
         ) : paginatedSubscriptions.length === 0 ? (
           <div className={styles.emptyState}>

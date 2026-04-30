@@ -27,7 +27,7 @@ import {
   PrimaryButton,
   SecondaryButton,
 } from '../components/AdminModal';
-import { AdminPageSkeleton, Button } from '@/app/dashboard/components';
+import { TableSkeleton, Skeleton, Button } from '@/app/dashboard/components';
 import styles from '../admin.module.css';
 
 const AVAILABLE_LANGUAGES = ['en', 'he'];
@@ -271,11 +271,9 @@ export default function FAQManagementPage() {
     }
   };
 
-  if (isUserLoading) {
-    return <AdminPageSkeleton statsCount={4} columns={5} />;
-  }
+  if (!isUserLoading && !isSuperAdmin) return null;
 
-  if (!isSuperAdmin) return null;
+  const showSkeletons = isUserLoading || isLoading;
 
   return (
     <div className={styles.adminPage}>
@@ -293,19 +291,19 @@ export default function FAQManagementPage() {
       <div className={styles.statsGrid}>
         <div className={styles.statCard}>
           <div className={styles.statLabel}>{t('admin.faq.stats.total') || 'Total FAQs'}</div>
-          <div className={styles.statValue}>{stats.total || 0}</div>
+          {showSkeletons ? <Skeleton width="3rem" height="1.5rem" /> : <div className={styles.statValue}>{stats.total || 0}</div>}
         </div>
         <div className={styles.statCard}>
           <div className={styles.statLabel}>{t('admin.faq.stats.active') || 'Active'}</div>
-          <div className={styles.statValue}>{stats.active || 0}</div>
+          {showSkeletons ? <Skeleton width="3rem" height="1.5rem" /> : <div className={styles.statValue}>{stats.active || 0}</div>}
         </div>
         <div className={styles.statCard}>
           <div className={styles.statLabel}>{t('admin.faq.stats.pricing') || 'Pricing Page'}</div>
-          <div className={styles.statValue}>{stats.pricing || 0}</div>
+          {showSkeletons ? <Skeleton width="3rem" height="1.5rem" /> : <div className={styles.statValue}>{stats.pricing || 0}</div>}
         </div>
         <div className={styles.statCard}>
           <div className={styles.statLabel}>{t('admin.faq.stats.faqPage') || 'FAQ Page'}</div>
-          <div className={styles.statValue}>{stats.faqPage || 0}</div>
+          {showSkeletons ? <Skeleton width="3rem" height="1.5rem" /> : <div className={styles.statValue}>{stats.faqPage || 0}</div>}
         </div>
       </div>
 
@@ -345,8 +343,8 @@ export default function FAQManagementPage() {
       </div>
 
       {/* Table */}
-      {isLoading ? (
-        <AdminPageSkeleton statsCount={0} columns={5} />
+      {showSkeletons ? (
+        <TableSkeleton rows={6} columns={5} hasActions />
       ) : (
         <div className={styles.tableContainer}>
           <table className={styles.table}>

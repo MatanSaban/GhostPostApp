@@ -3,7 +3,6 @@
 import { useUser } from '@/app/context/user-context';
 import { useLocale } from '@/app/context/locale-context';
 import { ConfirmDialog } from '../components/AdminModal';
-import { AdminPageSkeleton } from '@/app/dashboard/components/Skeleton';
 import styles from '../admin.module.css';
 import {
   usePlans,
@@ -92,13 +91,11 @@ export default function PlansPage() {
     getPlanFeatures,
   } = usePlans(isSuperAdmin, t);
 
-  if (isUserLoading) {
-    return <AdminPageSkeleton statsCount={3} columns={6} />;
-  }
-
-  if (!isSuperAdmin) {
+  if (!isUserLoading && !isSuperAdmin) {
     return null;
   }
+
+  const showSkeletons = isUserLoading || isLoading;
 
   return (
     <div className={styles.adminPage}>
@@ -109,7 +106,7 @@ export default function PlansPage() {
       </div>
 
       {/* Stats */}
-      <PlansStats stats={stats} />
+      <PlansStats stats={stats} isLoading={showSkeletons} />
 
       {/* Toolbar */}
       <PlansToolbar
@@ -123,7 +120,7 @@ export default function PlansPage() {
       <div className={styles.tableContainer}>
         <PlansTable
           filteredPlans={filteredPlans}
-          isLoading={isLoading}
+          isLoading={showSkeletons}
           expandedPlan={expandedPlan}
           onToggleExpand={(id) => setExpandedPlan(expandedPlan === id ? null : id)}
           onEdit={handleEdit}

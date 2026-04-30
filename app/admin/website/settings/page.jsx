@@ -14,7 +14,6 @@ import {
 } from 'lucide-react';
 import { useUser } from '@/app/context/user-context';
 import { useLocale } from '@/app/context/locale-context';
-import { AdminPageSkeleton } from '@/app/dashboard/components';
 import styles from '../website.module.css';
 import adminStyles from '../../admin.module.css';
 
@@ -191,8 +190,8 @@ export default function WebsiteSettingsPage() {
     input.click();
   };
 
-  if (isUserLoading || !isSuperAdmin) {
-    return <AdminPageSkeleton statsCount={0} columns={2} />;
+  if (!isUserLoading && !isSuperAdmin) {
+    return null;
   }
 
   return (

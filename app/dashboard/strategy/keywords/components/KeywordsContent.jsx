@@ -73,14 +73,22 @@ const getPreviousPeriod = (startStr, endStr, preset) => {
   return { start: fmtDate(ps), end: fmtDate(pe) };
 };
 
-function KeywordsPageSkeleton() {
+function KeywordsPageSkeleton({ t }) {
+  const STAT_ICONS = [
+    { icon: Tag, color: 'Purple', label: t('keywordStrategy.trackedKeywords') },
+    { icon: BarChart3, color: 'Blue', label: t('keywordStrategy.clicks') },
+    { icon: Trophy, color: 'Green', label: t('keywordStrategy.topRankings') },
+    { icon: Crosshair, color: 'Orange', label: t('keywordStrategy.impressions') },
+  ];
   return (
     <>
       {/* Filter Tabs Skeleton */}
       <div className={styles.filterTabs}>
         <div className={styles.filterButtons}>
-          {Array.from({ length: 5 }).map((_, i) => (
-            <Skeleton key={i} width={`${60 + i * 8}px`} height="2rem" borderRadius="full" />
+          {['all', 'tracking', 'targeting', 'ranking', 'archived'].map((f) => (
+            <button key={f} className={styles.filterTab} disabled>
+              {t(`keywordStrategy.filter.${f}`)}
+            </button>
           ))}
         </div>
         <Skeleton width="7rem" height="1.75rem" borderRadius="md" />
@@ -88,14 +96,16 @@ function KeywordsPageSkeleton() {
 
       {/* Stat Cards Skeleton */}
       <div className={styles.statsRow}>
-        {['purple', 'blue', 'green', 'orange'].map((color) => (
+        {STAT_ICONS.map(({ icon: Icon, color, label }) => (
           <div key={color} className={styles.statCard}>
             <div className={styles.statCardGlow} />
             <div className={styles.statCardContent}>
               <div className={styles.statHeader}>
-                <Skeleton width="2.25rem" height="2.25rem" borderRadius="lg" />
+                <div className={`${styles.statIconWrap} ${styles[`statIcon${color}`]}`}>
+                  <Icon className={styles.statIcon} />
+                </div>
               </div>
-              <Skeleton width="60%" height="0.75rem" borderRadius="sm" />
+              <span className={styles.statLabel}>{label}</span>
               <Skeleton width="3rem" height="1.4rem" borderRadius="sm" />
             </div>
           </div>
@@ -738,7 +748,7 @@ export function KeywordsContent() {
   };
 
   if (isSiteLoading || isLoading) {
-    return <KeywordsPageSkeleton />;
+    return <KeywordsPageSkeleton t={t} />;
   }
 
   if (!selectedSite) {

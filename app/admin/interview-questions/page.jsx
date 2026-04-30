@@ -21,7 +21,7 @@ import {
 import { useLocale } from '@/app/context/locale-context';
 import { useUser } from '@/app/context/user-context';
 import { AdminModal, ConfirmDialog, FormInput, FormTextarea, FormSelect, FormCheckbox, FormActions, PrimaryButton, SecondaryButton } from '../components/AdminModal';
-import { AdminPageSkeleton, TableSkeleton, Button } from '@/app/dashboard/components';
+import { TableSkeleton, Skeleton, Button } from '@/app/dashboard/components';
 import styles from '../admin.module.css';
 
 export default function InterviewQuestionsPage() {
@@ -250,13 +250,11 @@ export default function InterviewQuestionsPage() {
     }
   };
 
-  if (isUserLoading) {
-    return <AdminPageSkeleton statsCount={3} columns={6} />;
-  }
-
-  if (!isSuperAdmin) {
+  if (!isUserLoading && !isSuperAdmin) {
     return null;
   }
+
+  const showSkeletons = isUserLoading || isLoading;
 
   return (
     <div className={styles.adminPage}>
@@ -270,15 +268,15 @@ export default function InterviewQuestionsPage() {
       <div className={styles.statsGrid}>
         <div className={styles.statCard}>
           <div className={styles.statLabel}>{t('admin.stats.totalQuestions')}</div>
-          <div className={styles.statValue}>{questions.length}</div>
+          {showSkeletons ? <Skeleton width="3rem" height="1.5rem" /> : <div className={styles.statValue}>{questions.length}</div>}
         </div>
         <div className={styles.statCard}>
           <div className={styles.statLabel}>{t('admin.stats.categories')}</div>
-          <div className={styles.statValue}>{categories.length}</div>
+          {showSkeletons ? <Skeleton width="3rem" height="1.5rem" /> : <div className={styles.statValue}>{categories.length}</div>}
         </div>
         <div className={styles.statCard}>
           <div className={styles.statLabel}>{t('admin.stats.required')}</div>
-          <div className={styles.statValue}>{questions.filter(q => q.required).length}</div>
+          {showSkeletons ? <Skeleton width="3rem" height="1.5rem" /> : <div className={styles.statValue}>{questions.filter(q => q.required).length}</div>}
         </div>
       </div>
 
@@ -331,7 +329,7 @@ export default function InterviewQuestionsPage() {
 
       {/* Table */}
       <div className={styles.tableContainer}>
-        {isLoading ? (
+        {showSkeletons ? (
           <TableSkeleton rows={8} columns={6} hasActions />
         ) : filteredQuestions.length === 0 ? (
           <div className={styles.emptyState}>
