@@ -10,6 +10,7 @@ import {
 } from '@/lib/cardcom';
 import { canPurchaseAddOn, addAiCredits } from '@/lib/account-utils';
 import { getNextFirstOfMonth } from '@/lib/proration';
+import { buildUpgradeUpdateData } from '@/lib/billing-engine';
 import { redeemAddOnCouponBestEffort } from '@/lib/coupon-redemption';
 import { notifyAdmins, emailTemplates } from '@/lib/mailer';
 
@@ -346,7 +347,7 @@ async function handleAddonPurchase(payment, action, user) {
   }
 
   const subscription = payment.account?.subscription;
-  if (!subscription) {
+  if (!subscription || subscription.status === 'CANCELED' || subscription.status === 'EXPIRED') {
     throw new Error('No active subscription');
   }
 
@@ -412,7 +413,7 @@ async function handlePlanUpgrade(payment, action, user) {
   }
 
   const subscription = payment.account?.subscription;
-  if (!subscription) {
+  if (!subscription || subscription.status === 'CANCELED' || subscription.status === 'EXPIRED') {
     throw new Error('No active subscription');
   }
 
@@ -421,23 +422,24 @@ async function handlePlanUpgrade(payment, action, user) {
   }
 
   const now = new Date();
-  const nextFirst = getNextFirstOfMonth(now);
   const prorationData = action.proration || null;
+
+  // buildUpgradeUpdateData handles TRIALING → ACTIVE transition (the user
+  // upgraded mid-trial, paid, so the trial is consumed and they're now a
+  // regular paying customer on the new plan) and clears cancelAtPeriodEnd
+  // if it was set.
+  const updateData = buildUpgradeUpdateData(subscription, plan, now);
 
   await prisma.subscription.update({
     where: { id: subscription.id },
-    data: {
-      planId: plan.id,
-      currentPeriodStart: now,
-      currentPeriodEnd: nextFirst,
-    },
+    data: updateData,
   });
 
   return {
     type: 'plan_upgrade',
     planName: plan.name,
     planSlug: plan.slug,
-    nextBillingDate: nextFirst.toISOString(),
+    nextBillingDate: updateData.currentPeriodEnd.toISOString(),
     proration: prorationData,
   };
 }

@@ -87,8 +87,14 @@ export async function POST(request) {
     const subscription = membership.account.subscription;
     const now = new Date();
 
-    // CASE 1: No existing subscription (new subscription)
-    if (!subscription || !subscription.plan) {
+    // CASE 1: No existing subscription, or current sub is canceled/expired
+    // — treat both as "new subscription" for proration purposes.
+    if (
+      !subscription ||
+      !subscription.plan ||
+      subscription.status === 'CANCELED' ||
+      subscription.status === 'EXPIRED'
+    ) {
       const proration = calculateNewSubscriptionProration(newPlan.price, now);
       return NextResponse.json({
         type: 'new',

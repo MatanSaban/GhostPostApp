@@ -66,6 +66,8 @@ export async function GET(request) {
       yearlyPrice: plan.yearlyPrice ?? plan.price * 10, // Default to 2 months free
       status: plan.isActive ? 'active' : 'archived',
       subscribersCount: plan._count.subscriptions,
+      trialDays: plan.trialDays || 0,
+      isFreeFallback: !!plan.isFreeFallback,
       // Features now stored as [{key, label}]
       features: Array.isArray(plan.features) ? plan.features : [],
       // All limitations stored in JSON field
@@ -118,19 +120,33 @@ export async function POST(request) {
     }
 
     const body = await request.json();
-    const { 
-      name, 
-      slug, 
-      description, 
-      price, 
-      yearlyPrice, 
-      features, 
+    const {
+      name,
+      slug,
+      description,
+      price,
+      yearlyPrice,
+      features,
       isActive,
       limitations,
+      trialDays,
+      isFreeFallback,
     } = body;
 
     if (!name || !slug) {
       return NextResponse.json({ error: 'Name and slug are required' }, { status: 400 });
+    }
+
+    const trialDaysInt = Number.isFinite(parseInt(trialDays, 10)) ? parseInt(trialDays, 10) : 0;
+    if (trialDaysInt < 0 || trialDaysInt > 365) {
+      return NextResponse.json({ error: 'trialDays must be between 0 and 365' }, { status: 400 });
+    }
+    const isFallback = !!isFreeFallback;
+    if (isFallback && trialDaysInt > 0) {
+      return NextResponse.json(
+        { error: 'A free fallback plan cannot itself grant a trial (trialDays must be 0)' },
+        { status: 400 }
+      );
     }
 
     // Check if slug already exists
@@ -143,19 +159,31 @@ export async function POST(request) {
     const lastPlan = await prisma.plan.findFirst({ orderBy: { sortOrder: 'desc' } });
     const sortOrder = (lastPlan?.sortOrder || 0) + 1;
 
-    const plan = await prisma.plan.create({
-      data: {
-        name,
-        slug,
-        description: description || '',
-        price: parseFloat(price) || 0,
-        yearlyPrice: yearlyPrice ? parseFloat(yearlyPrice) : null,
-        features: features || [],
-        isActive: isActive !== false,
-        sortOrder,
-        // All limitations stored as JSON array
-        limitations: limitations || [],
-      },
+    // If marking this plan as the free fallback, demote any existing fallback
+    // in the same transaction so at most one plan ever has the flag.
+    const plan = await prisma.$transaction(async (tx) => {
+      if (isFallback) {
+        await tx.plan.updateMany({
+          where: { isFreeFallback: true },
+          data: { isFreeFallback: false },
+        });
+      }
+      return tx.plan.create({
+        data: {
+          name,
+          slug,
+          description: description || '',
+          price: parseFloat(price) || 0,
+          yearlyPrice: yearlyPrice ? parseFloat(yearlyPrice) : null,
+          features: features || [],
+          isActive: isActive !== false,
+          sortOrder,
+          // All limitations stored as JSON array
+          limitations: limitations || [],
+          trialDays: trialDaysInt,
+          isFreeFallback: isFallback,
+        },
+      });
     });
 
     return NextResponse.json({ plan, message: 'Plan created successfully' });

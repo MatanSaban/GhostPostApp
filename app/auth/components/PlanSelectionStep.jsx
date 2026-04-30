@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Check, Sparkles, Loader2 } from 'lucide-react';
+import { Check, Sparkles, Loader2, Gift } from 'lucide-react';
 import { ArrowIcon } from '@/app/components/ui/arrow-icon';
 import { useLocale } from '@/app/context/locale-context';
 import styles from '../auth.module.css';
@@ -178,6 +178,34 @@ export function PlanSelectionStep({ translations, onSelect, initialPlanSlug = nu
                 <span className={styles.planPrice}>{displayPrice}</span>
                 <span className={styles.planPeriod}>{plan.period}</span>
               </div>
+
+              {plan.trialDays > 0 && (
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.5rem',
+                    padding: '0.5rem 0.75rem',
+                    margin: '0.5rem 0 0.75rem',
+                    borderRadius: '0.5rem',
+                    background: 'rgba(34, 197, 94, 0.12)',
+                    border: '1px solid rgba(34, 197, 94, 0.35)',
+                    color: '#22c55e',
+                    fontSize: '0.8125rem',
+                    lineHeight: 1.3,
+                  }}
+                >
+                  <Gift size={14} />
+                  <span>
+                    <strong>
+                      {(translations?.trialBadge || '{days}-day free trial').replace('{days}', plan.trialDays)}
+                    </strong>
+                    <span style={{ opacity: 0.85, marginInlineStart: '0.375rem' }}>
+                      · {translations?.trialNoCard || 'No credit card required'}
+                    </span>
+                  </span>
+                </div>
+              )}
 
               <ul className={styles.planFeatures}>
                 {featuresList.map((feature, index) => (

@@ -118,6 +118,28 @@ async function main() {
   // Create default plans
   const plans = [
     {
+      name: 'Free',
+      slug: 'free',
+      description: 'Free tier — limited usage, no payment required',
+      price: 0,
+      yearlyPrice: 0,
+      currency: 'USD',
+      interval: 'MONTHLY',
+      trialDays: 0,
+      isFreeFallback: true,
+      features: [
+        { key: 'community_support', label: 'Community support' },
+      ],
+      limitations: [
+        { key: 'maxSites', label: '1 Website', value: 1, type: 'number' },
+        { key: 'maxMembers', label: '1 Team member', value: 1, type: 'number' },
+        { key: 'maxKeywords', label: '20 Keywords', value: 20, type: 'number' },
+        { key: 'maxContent', label: '5 Content pieces/month', value: 5, type: 'number' },
+      ],
+      isActive: true,
+      sortOrder: 0,
+    },
+    {
       name: 'Basic',
       slug: 'basic',
       description: 'Perfect for small businesses getting started with SEO',
@@ -191,6 +213,51 @@ async function main() {
       create: plan,
     });
     console.log('✅ Plan created/updated:', createdPlan.name);
+  }
+
+  // Seed EN + HE translations for the Free plan. Other plans can be
+  // translated by superadmin via the PlanTranslateModal in the admin UI;
+  // Free is seeded here because it's the trial-expiry downgrade target
+  // and must be displayable in both languages on day one.
+  const freePlanForTranslation = await prisma.plan.findUnique({ where: { slug: 'free' } });
+  const freePlanTranslations = [
+    {
+      language: 'EN',
+      name: 'Free',
+      description: 'Free tier — limited usage, no payment required',
+      features: [
+        { key: 'community_support', label: 'Community support' },
+      ],
+      limitations: [
+        { key: 'maxSites', label: '1 Website' },
+        { key: 'maxMembers', label: '1 Team member' },
+        { key: 'maxKeywords', label: '20 Keywords' },
+        { key: 'maxContent', label: '5 Content pieces/month' },
+      ],
+    },
+    {
+      language: 'HE',
+      name: 'חינם',
+      description: 'תוכנית חינם — שימוש מוגבל, ללא צורך בפרטי תשלום',
+      features: [
+        { key: 'community_support', label: 'תמיכת קהילה' },
+      ],
+      limitations: [
+        { key: 'maxSites', label: 'אתר 1' },
+        { key: 'maxMembers', label: 'חבר צוות 1' },
+        { key: 'maxKeywords', label: '20 מילות מפתח' },
+        { key: 'maxContent', label: '5 פריטי תוכן בחודש' },
+      ],
+    },
+  ];
+
+  for (const t of freePlanTranslations) {
+    await prisma.planTranslation.upsert({
+      where: { planId_language: { planId: freePlanForTranslation.id, language: t.language } },
+      update: t,
+      create: { planId: freePlanForTranslation.id, ...t },
+    });
+    console.log(`✅ Free plan translation upserted: ${t.language}`);
   }
 
   // Get all plans for creating subscriptions

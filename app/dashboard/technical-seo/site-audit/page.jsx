@@ -169,7 +169,8 @@ function shortenUrl(url) {
 export default function SiteAuditPage() {
   const { t, locale } = useLocale();
   const { selectedSite, isLoading: isSiteLoading } = useSite();
-  const { user } = useUser();
+  const { user, isSuperAdmin } = useUser();
+  const canForceCancel = isSuperAdmin || process.env.NODE_ENV === 'development';
   const { addTask, updateTask, findActiveTask, startTaskPolling } = useBackgroundTasks();
   const { isMaximized: isPageDetailMaximized, toggleMaximize: togglePageDetailMaximize } = useModalResize();
 
@@ -245,6 +246,10 @@ export default function SiteAuditPage() {
   const bgTaskIds = useRef({});       // siteId → taskId
   const isStartingRef = useRef(false); // sync double-click guard for handleStartAudit
   const hasRestoredFromUrl = useRef(false);
+  // Read inside the polling closure so a terminal-state tick can decide whether
+  // to refresh the page state — avoids capturing a stale selectedSite.id.
+  const selectedSiteIdRef = useRef(selectedSite?.id);
+  useEffect(() => { selectedSiteIdRef.current = selectedSite?.id; }, [selectedSite?.id]);
 
   // ─── URL State Sync ─────────────────────────────────────────
   const updateUrl = useCallback((tab, issueKey, pageUrl) => {
@@ -485,11 +490,18 @@ export default function SiteAuditPage() {
             });
             delete bgTaskIds.current[siteId];
           }
+          // Refresh page state if this is the site currently being viewed.
+          // stopPolling tears down the UI-refresh interval, so without this the
+          // page would stay on "scanning in progress" until the user reloads —
+          // latestAudit would never transition to FAILED/COMPLETED.
+          if (selectedSiteIdRef.current === siteId) {
+            await fetchAudits(siteId, device);
+          }
           stopPolling(siteId);
         }
       } catch { /* ignore poll errors */ }
     }, POLL_INTERVAL);
-  }, [updateTask, t]);
+  }, [updateTask, t, fetchAudits]);
 
   const stopPolling = useCallback((siteId) => {
     if (siteId) {
@@ -607,6 +619,29 @@ export default function SiteAuditPage() {
     // Invalidate cache for current device so fresh data is fetched
     delete auditCacheRef.current[activeDevice];
     if (selectedSite?.id) fetchAudits(selectedSite.id, activeDevice);
+  };
+
+  // Force-fail a stuck audit (superadmin / dev only). Server-side gate enforces
+  // permissions; this just unblocks the UI without waiting on the 5-min stale
+  // detector. Doesn't actually halt an in-flight worker — late writes from a
+  // resurrected worker just land on a record that's already FAILED.
+  // We don't tear down polling here: the next poll tick will see status=FAILED,
+  // update the floating background-task bar, refresh latestAudit, and stop
+  // polling — same path as a naturally-failing audit.
+  const handleForceCancel = async () => {
+    if (!canForceCancel || !selectedSite?.id || !latestAudit?.id) return;
+    if (!window.confirm('Force-mark this audit as FAILED? The background worker may keep running until killed.')) return;
+    try {
+      const res = await fetch(`/api/audit?siteId=${selectedSite.id}&auditId=${latestAudit.id}`, {
+        method: 'DELETE',
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || 'Failed to cancel audit');
+      }
+    } catch (err) {
+      setError(err.message);
+    }
   };
 
   // ─── Derived State ────────────────────────────────────────────
@@ -1093,6 +1128,17 @@ export default function SiteAuditPage() {
               </div>
               <span className={styles.scanProgressLabel}>{Math.round(pct)}%</span>
               <p className={styles.scanningHint}>{t('siteAudit.scanHint')}</p>
+              {canForceCancel && latestAudit?.id && (
+                <button
+                  type="button"
+                  onClick={handleForceCancel}
+                  className={styles.forceCancelButton}
+                  title="Admin/dev: force-mark this audit as FAILED so a new one can be started. Won't actually halt the in-flight worker."
+                >
+                  <XCircle size={14} />
+                  Force cancel (admin)
+                </button>
+              )}
             </div>
           </div>
         );

@@ -47,6 +47,8 @@ export async function GET() {
                     currentPeriodStart: true,
                     currentPeriodEnd: true,
                     cancelAtPeriodEnd: true,
+                    trialStartedAt: true,
+                    trialEndAt: true,
                     plan: {
                       select: {
                         id: true,

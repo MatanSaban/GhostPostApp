@@ -145,14 +145,17 @@ export async function GET(request) {
       })
     );
 
-    // Auto-fail audits stuck in PENDING/RUNNING for >15 min
-    // (e.g. background process died after server restart)
-    const STALE_MS = 15 * 60 * 1000;
+    // Auto-fail audits whose worker has stopped writing progress
+    // (e.g. background process died after server restart). The audit pipeline
+    // writes progress every few seconds while alive, so a multi-minute gap on
+    // updatedAt means the worker is gone — much sharper than waiting on
+    // startedAt + a long absolute timeout.
+    const STALE_MS = 5 * 60 * 1000;
     const now = Date.now();
     for (const audit of audits) {
       if (audit.status === 'PENDING' || audit.status === 'RUNNING') {
-        const started = audit.startedAt || audit.createdAt;
-        if (now - new Date(started).getTime() > STALE_MS) {
+        const lastTouch = audit.updatedAt || audit.startedAt || audit.createdAt;
+        if (now - new Date(lastTouch).getTime() > STALE_MS) {
           const p = audit.progress || {};
           const stuckAt = p.labelKey || 'unknown';
           const stuckStep = p.currentStep ?? null;
@@ -176,17 +179,17 @@ export async function GET(request) {
                 message: 'audit.issues.auditTimedOut',
                 suggestion: 'audit.suggestions.retryAudit',
                 source: 'system',
-                details: {
+                details: JSON.stringify({
                   stuckAt,
                   currentStep: stuckStep,
                   totalSteps: stuckTotal,
                   deviceType: audit.deviceType || null,
-                },
+                }),
               }],
             },
           })
             .then(() => invalidateAudit(siteId))
-            .catch(() => {});
+            .catch((err) => console.error(`[API/audit] GET stale-fail update for ${audit.id} failed:`, err));
         }
       }
     }
@@ -278,20 +281,22 @@ export async function POST(request) {
       },
     });
 
-    // Mark audits stuck for >15 min as FAILED so we don't block new scans
-    const STALE_MS = 15 * 60 * 1000;
+    // Mark audits whose worker has stopped writing progress as FAILED so we
+    // don't block new scans. Keyed off updatedAt — the audit pipeline writes
+    // progress every few seconds while alive.
+    const STALE_MS = 5 * 60 * 1000;
     const now = Date.now();
     const stillRunning = [];
 
     for (const audit of runningAudits) {
-      const started = audit.startedAt || audit.createdAt;
-      if (now - new Date(started).getTime() > STALE_MS) {
+      const lastTouch = audit.updatedAt || audit.startedAt || audit.createdAt;
+      if (now - new Date(lastTouch).getTime() > STALE_MS) {
         const p = audit.progress || {};
         const stuckAt = p.labelKey || 'unknown';
         const stuckStep = p.currentStep ?? null;
         const stuckTotal = p.totalSteps ?? null;
         console.warn(
-          `[API/audit] Marking stale audit ${audit.id} as FAILED (stuck at: ${stuckAt}${stuckStep != null ? ` step ${stuckStep}/${stuckTotal}` : ''}, since ${started})`
+          `[API/audit] Marking stale audit ${audit.id} as FAILED (stuck at: ${stuckAt}${stuckStep != null ? ` step ${stuckStep}/${stuckTotal}` : ''}, last touch ${lastTouch})`
         );
         await prisma.siteAudit.update({
           where: { id: audit.id },
@@ -305,15 +310,15 @@ export async function POST(request) {
               message: 'audit.issues.auditTimedOut',
               suggestion: 'audit.suggestions.retryAudit',
               source: 'system',
-              details: {
+              details: JSON.stringify({
                 stuckAt,
                 currentStep: stuckStep,
                 totalSteps: stuckTotal,
                 deviceType: audit.deviceType || null,
-              },
+              }),
             }],
           },
-        }).catch(() => {});
+        }).catch((err) => console.error(`[API/audit] POST stale-fail update for ${audit.id} failed:`, err));
         invalidateAudit(siteId);
       } else {
         stillRunning.push(audit);
@@ -376,6 +381,82 @@ export async function POST(request) {
     });
   } catch (error) {
     console.error('[API/audit] POST error:', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  }
+}
+
+// ─── DELETE: Force-fail a stuck audit (superadmin / dev only) ────
+//
+// The in-flight worker (if still alive) keeps running — we can't reach across
+// processes to abort it. But once the DB record is FAILED, the polling UI
+// flips to the failed card immediately and a new audit can be started; any
+// late write from the dead worker just updates a record that's already done.
+export async function DELETE(request) {
+  try {
+    const user = await getAuthenticatedUser();
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const isDev = process.env.NODE_ENV === 'development';
+    if (!user.isSuperAdmin && !isDev) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
+
+    const { searchParams } = new URL(request.url);
+    const auditId = searchParams.get('auditId');
+    const siteId = searchParams.get('siteId');
+
+    if (!auditId || !siteId) {
+      return NextResponse.json({ error: 'auditId and siteId are required' }, { status: 400 });
+    }
+
+    const site = await verifySiteAccess(user, siteId);
+    if (!site) {
+      return NextResponse.json({ error: 'Site not found' }, { status: 404 });
+    }
+
+    const audit = await prisma.siteAudit.findFirst({
+      where: { id: auditId, siteId },
+      select: { id: true, status: true, progress: true, deviceType: true },
+    });
+    if (!audit) {
+      return NextResponse.json({ error: 'Audit not found' }, { status: 404 });
+    }
+    if (audit.status !== 'PENDING' && audit.status !== 'RUNNING') {
+      return NextResponse.json({ error: 'Audit is not running' }, { status: 409 });
+    }
+
+    const p = audit.progress || {};
+    await prisma.siteAudit.update({
+      where: { id: auditId },
+      data: {
+        status: 'FAILED',
+        completedAt: new Date(),
+        score: 0,
+        progress: { ...p, failureReason: 'CANCELLED_BY_USER' },
+        issues: [{
+          type: 'technical',
+          severity: 'error',
+          message: 'audit.issues.auditCancelled',
+          suggestion: 'audit.suggestions.retryAudit',
+          source: 'system',
+          details: JSON.stringify({
+            cancelledBy: user.id,
+            stuckAt: p.labelKey || 'unknown',
+            currentStep: p.currentStep ?? null,
+            totalSteps: p.totalSteps ?? null,
+            deviceType: audit.deviceType || null,
+          }),
+        }],
+      },
+    });
+    await invalidateAudit(siteId);
+
+    console.warn(`[API/audit] DELETE: audit ${auditId} force-failed by ${user.id} (superadmin=${user.isSuperAdmin}, dev=${isDev})`);
+    return NextResponse.json({ ok: true });
+  } catch (error) {
+    console.error('[API/audit] DELETE error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

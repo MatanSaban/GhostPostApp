@@ -3070,6 +3070,9 @@ function SubscriptionSettings({ subscription, translations, canEdit = true, isLo
   const { user } = useUser();
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [addonBonuses, setAddonBonuses] = useState({});
+  const [showCancelConfirm, setShowCancelConfirm] = useState(false);
+  const [cancelPending, setCancelPending] = useState(false);
+  const [cancelError, setCancelError] = useState(null);
   const usagePercentage = subscription.aiCreditsLimit > 0 
     ? (subscription.aiCreditsUsed / subscription.aiCreditsLimit) * 100 
     : 0;
@@ -3183,6 +3186,42 @@ function SubscriptionSettings({ subscription, translations, canEdit = true, isLo
       month: 'long',
       day: 'numeric',
     });
+  };
+
+  // Cancellation eligibility:
+  //  - hide on the Free plan (nothing to cancel — they're already there)
+  //  - hide once cancelAtPeriodEnd is set (UI already shows the cancel notice)
+  //  - hide for CANCELED / EXPIRED statuses
+  const status = (subscription.status || 'ACTIVE').toUpperCase();
+  const isTrialing = status === 'TRIALING';
+  const canCancel =
+    canEdit &&
+    subscription.plan !== 'free' &&
+    !subscription.cancelAtPeriodEnd &&
+    status !== 'CANCELED' &&
+    status !== 'EXPIRED';
+
+  const handleCancelSubscription = async () => {
+    setCancelPending(true);
+    setCancelError(null);
+    try {
+      const res = await fetch('/api/account/subscription/cancel', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({}),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || 'Failed to cancel subscription');
+      }
+      // Re-fetch user state. Cancellation changes planId (trial→Free) and
+      // cancelAtPeriodEnd; a hard reload is the simplest way to keep all
+      // the surfaces that read user/subscription consistent.
+      window.location.reload();
+    } catch (e) {
+      setCancelError(e.message);
+      setCancelPending(false);
+    }
   };
 
   // Format currency
@@ -3593,10 +3632,51 @@ function SubscriptionSettings({ subscription, translations, canEdit = true, isLo
           <button className={styles.editButton}>
             {t.subscriptionViewInvoices}
           </button>
+          {canCancel && (
+            <button
+              type="button"
+              className={styles.editButton}
+              onClick={() => setShowCancelConfirm(true)}
+              style={{ color: '#ef4444', borderColor: 'rgba(239, 68, 68, 0.4)' }}
+            >
+              {isTrialing
+                ? (translate('settings.subscriptionSection.cancelTrial') || 'Cancel trial')
+                : (translate('settings.subscriptionSection.cancelSubscription') || 'Cancel subscription')}
+            </button>
+          )}
         </div>
+        {cancelError && (
+          <p style={{ color: '#ef4444', fontSize: '0.8125rem', marginTop: '0.5rem' }}>{cancelError}</p>
+        )}
       </div>
 
       <UpgradePlanModal isOpen={showUpgradeModal} onClose={() => setShowUpgradeModal(false)} />
+
+      <ConfirmModal
+        isOpen={showCancelConfirm}
+        onClose={() => setShowCancelConfirm(false)}
+        onConfirm={handleCancelSubscription}
+        title={
+          isTrialing
+            ? (translate('settings.subscriptionSection.cancelTrialTitle') || 'Cancel free trial?')
+            : (translate('settings.subscriptionSection.cancelSubscriptionTitle') || 'Cancel subscription?')
+        }
+        description={
+          isTrialing
+            ? (translate('settings.subscriptionSection.cancelTrialDesc') || 'Your account will switch to the Free plan immediately. You\'ll keep all your data, just at lower limits.')
+            : (translate('settings.subscriptionSection.cancelSubscriptionDesc')
+                ?.replace('{date}', formatDate(subscription.currentPeriodEnd))
+                || `You'll keep access until ${formatDate(subscription.currentPeriodEnd)}. The subscription will not renew after that.`)
+        }
+        confirmLabel={
+          isTrialing
+            ? (translate('settings.subscriptionSection.cancelTrialConfirm') || 'Switch to Free now')
+            : (translate('settings.subscriptionSection.cancelSubscriptionConfirm') || 'Yes, cancel')
+        }
+        cancelLabel={translate('common.cancel') || 'Keep subscription'}
+        variant="danger"
+        isPending={cancelPending}
+      />
     </>
   );
 }

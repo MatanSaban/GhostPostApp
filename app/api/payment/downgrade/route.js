@@ -69,8 +69,20 @@ export async function POST(request) {
     const account = membership.account;
     const subscription = account.subscription;
 
-    if (!subscription) {
+    if (!subscription || subscription.status === 'CANCELED' || subscription.status === 'EXPIRED') {
       return NextResponse.json({ error: 'No active subscription' }, { status: 400 });
+    }
+
+    // Trial subscriptions cannot be downgraded — let them either upgrade
+    // (which converts the trial to ACTIVE on the higher plan) or expire/cancel
+    // (which routes through downgradeToFreeFallback). Downgrading mid-trial
+    // would muddle the billing math and the user is already getting the
+    // higher plan free anyway.
+    if (subscription.status === 'TRIALING') {
+      return NextResponse.json(
+        { error: 'Cannot downgrade during a free trial. Upgrade to keep the higher plan, or cancel the trial to switch to Free.' },
+        { status: 400 }
+      );
     }
 
     // Verify this is actually a downgrade (new plan costs less)

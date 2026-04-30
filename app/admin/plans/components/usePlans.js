@@ -15,6 +15,8 @@ const initialFormData = {
   price: '',
   yearlyPrice: '',
   isActive: true,
+  trialDays: '0',
+  isFreeFallback: false,
 };
 
 export function usePlans(isSuperAdmin, t) {
@@ -148,6 +150,8 @@ export function usePlans(isSuperAdmin, t) {
       price: plan.monthlyPrice?.toString() || '',
       yearlyPrice: plan.yearlyPrice?.toString() || '',
       isActive: plan.status === 'active',
+      trialDays: (plan.trialDays ?? 0).toString(),
+      isFreeFallback: !!plan.isFreeFallback,
     });
     
     const planFeatures = Array.isArray(plan.features) 
@@ -225,6 +229,8 @@ export function usePlans(isSuperAdmin, t) {
         features: featuresArray,
         isActive: formData.isActive,
         limitations: limitationsArray,
+        trialDays: parseInt(formData.trialDays, 10) || 0,
+        isFreeFallback: !!formData.isFreeFallback,
       };
 
       let response;

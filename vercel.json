@@ -39,6 +39,10 @@
     {
       "path": "/api/cron/billing/expiring-cards",
       "schedule": "0 5 * * *"
+    },
+    {
+      "path": "/api/cron/trial-lifecycle",
+      "schedule": "0 6 * * *"
     }
   ]
 }

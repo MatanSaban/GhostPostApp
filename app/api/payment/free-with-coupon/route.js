@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import prisma from '@/lib/prisma';
 import { getNextFirstOfMonth } from '@/lib/proration';
+import { buildUpgradeUpdateData } from '@/lib/billing-engine';
 import { isCouponApplicableToPlan } from '@/lib/coupon-applicability';
 import { validateAndRedeemAddOnCoupon, CouponRedemptionError } from '@/lib/coupon-redemption';
 import { notifyAdmins, emailTemplates } from '@/lib/mailer';
@@ -257,25 +258,23 @@ async function handlePlanUpgrade(account, action) {
   if (!plan) throw new Error('Plan not found or inactive');
 
   const subscription = account.subscription;
-  if (!subscription) throw new Error('No active subscription');
+  if (!subscription || subscription.status === 'CANCELED' || subscription.status === 'EXPIRED') {
+    throw new Error('No active subscription');
+  }
 
   const now = new Date();
-  const nextFirst = getNextFirstOfMonth(now);
+  const updateData = buildUpgradeUpdateData(subscription, plan, now);
 
   await prisma.subscription.update({
     where: { id: subscription.id },
-    data: {
-      planId: plan.id,
-      currentPeriodStart: now,
-      currentPeriodEnd: nextFirst,
-    },
+    data: updateData,
   });
 
   return {
     type: 'plan_upgrade',
     planName: plan.name,
     planSlug: plan.slug,
-    nextBillingDate: nextFirst.toISOString(),
+    nextBillingDate: updateData.currentPeriodEnd.toISOString(),
   };
 }
 
@@ -286,7 +285,9 @@ async function handleAddonPurchase(account, action) {
   if (!addOn || !addOn.isActive) throw new Error('Add-on not found or inactive');
 
   const subscription = account.subscription;
-  if (!subscription) throw new Error('No active subscription');
+  if (!subscription || subscription.status === 'CANCELED' || subscription.status === 'EXPIRED') {
+    throw new Error('No active subscription');
+  }
 
   const purchase = await prisma.addOnPurchase.create({
     data: {

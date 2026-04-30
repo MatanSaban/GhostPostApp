@@ -47,6 +47,15 @@ export default function UpgradePlanModal({ isOpen, onClose }) {
 
   // Current plan slug
   const currentPlanSlug = user?.subscription?.plan?.slug || null;
+  // Trial state — surfaces a banner so the user understands that picking a
+  // paid plan here will end the trial early and start billing immediately.
+  const isOnTrial = user?.subscription?.status === 'TRIALING';
+  const trialEndAt = user?.subscription?.trialEndAt
+    ? new Date(user.subscription.trialEndAt)
+    : null;
+  const trialEndStr = trialEndAt
+    ? `${String(trialEndAt.getDate()).padStart(2, '0')}/${String(trialEndAt.getMonth() + 1).padStart(2, '0')}/${trialEndAt.getFullYear()}`
+    : '';
 
   useEffect(() => {
     if (!isOpen) return;
@@ -423,6 +432,36 @@ export default function UpgradePlanModal({ isOpen, onClose }) {
                 {t('upgradePlanModal.subtitle') || 'Choose the plan that best fits your needs'}
               </p>
             </div>
+
+            {isOnTrial && (() => {
+              const endSuffix = trialEndStr
+                ? ` (${t('upgradePlanModal.trialEndsLabel') || 'ends'} ${trialEndStr})`
+                : '';
+              return (
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'flex-start',
+                    gap: '0.625rem',
+                    padding: '0.75rem 1rem',
+                    margin: '0 1.5rem 1rem',
+                    borderRadius: '0.5rem',
+                    background: 'rgba(168, 85, 247, 0.1)',
+                    border: '1px solid rgba(168, 85, 247, 0.35)',
+                    color: '#c4b5fd',
+                    fontSize: '0.8125rem',
+                    lineHeight: 1.5,
+                  }}
+                >
+                  <Sparkles size={16} style={{ flexShrink: 0, marginTop: '0.125rem' }} />
+                  <span>
+                    {(t('upgradePlanModal.trialNotice') ||
+                      "You're currently on a free trial{end}. Upgrading now will end your trial and start billing immediately for the new plan.")
+                      .replace('{end}', endSuffix)}
+                  </span>
+                </div>
+              );
+            })()}
 
             {/* Plans */}
             {isLoading ? (

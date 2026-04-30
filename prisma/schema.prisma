@@ -610,6 +610,15 @@ model Subscription {
   // Last failure message (CardCom Description / our error). Surfaced in
   // the dashboard PAST_DUE banner.
   renewalFailureMessage String?
+
+  // Free-trial state. Populated only when the subscription was created with
+  // status=TRIALING. Kept as historical record after trial conversion or
+  // downgrade — do not null on transition.
+  trialStartedAt     DateTime?
+  trialEndAt         DateTime?
+  // 0 = no reminder sent, 1 = T-2 sent, 2 = T-1 sent. Reset to 0 on downgrade.
+  trialReminderStage Int       @default(0)
+
   createdAt          DateTime           @default(now())
   updatedAt          DateTime           @updatedAt
 

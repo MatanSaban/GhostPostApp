@@ -11,8 +11,12 @@ import styles from '../auth.module.css';
 const CARDCOM_BASE = 'https://secure.cardcom.solutions';
 
 export function PaymentStep({ translations, selectedPlan, userData, onComplete }) {
+  // Trial plans skip CardCom entirely — see /api/auth/registration/payment-skip-for-trial.
+  // The flag also gates the LP init useEffect below so we don't waste a CardCom session.
+  const isTrialPlan = (selectedPlan?.trialDays ?? 0) > 0;
+
   // Auto-populate cardholder name from user's first and last name
-  const defaultCardholderName = userData 
+  const defaultCardholderName = userData
     ? `${userData.firstName || ''} ${userData.lastName || ''}`.trim()
     : '';
   
@@ -154,6 +158,7 @@ export function PaymentStep({ translations, selectedPlan, userData, onComplete }
   // new LP for the updated amount. Without it, the button stays stuck in
   // "Setting up secure payment..." because lowProfileId never gets reassigned.
   useEffect(() => {
+    if (isTrialPlan) return;
     if (!priceBreakdown.totalPriceUsd || priceBreakdown.totalPriceUsd <= 0) return;
     if (lowProfileId) return;
 
@@ -383,6 +388,28 @@ export function PaymentStep({ translations, selectedPlan, userData, onComplete }
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    // Trial flow: plan has trialDays > 0 and the account hasn't used a trial.
+    // Skip CardCom entirely — finalize will create a TRIALING subscription
+    // and we'll collect a card later (or not, if they don't convert).
+    if (isTrialPlan) {
+      setIsProcessing(true);
+      try {
+        const res = await fetch('/api/auth/registration/payment-skip-for-trial', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+        });
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({}));
+          throw new Error(data.error || translations.confirmFailed);
+        }
+        onComplete();
+      } catch (err) {
+        setPaymentError(err.message || translations.confirmFailed);
+        setIsProcessing(false);
+      }
+      return;
+    }
+
     // Free flow: a 100%-off coupon (PERCENTAGE / FIXED_DISCOUNT large enough
     // to wipe out the order, or FIXED_PRICE=$0) brought the first-charge
     // total to $0. We skip CardCom entirely but must still flip
@@ -547,6 +574,76 @@ export function PaymentStep({ translations, selectedPlan, userData, onComplete }
       return;
     }
   };
+
+  // Trial plan UI — short-circuit the full payment form. No CardCom, no
+  // coupon math, just a confirm-and-go panel that calls
+  // /api/auth/registration/payment-skip-for-trial on submit.
+  if (isTrialPlan) {
+    const trialDays = selectedPlan?.trialDays ?? 0;
+    const trialEnd = new Date(Date.now() + trialDays * 86400000);
+    const trialEndStr = `${String(trialEnd.getDate()).padStart(2, '0')}/${String(trialEnd.getMonth() + 1).padStart(2, '0')}/${trialEnd.getFullYear()}`;
+    const description = (translations.trialDescription || '')
+      .replace('{days}', String(trialDays))
+      .replace('{plan}', selectedPlan?.name || '');
+    const endsOn = (translations.trialEndsOn || '').replace('{date}', trialEndStr);
+
+    return (
+      <div className={styles.paymentContainer}>
+        <div className={styles.paymentHeader}>
+          <h2 className={styles.paymentTitle}>{translations.trialTitle || translations.title}</h2>
+          <p className={styles.paymentSubtitle}>{translations.trialSubtitle || translations.subtitle}</p>
+        </div>
+        <form onSubmit={handleSubmit} className={styles.paymentContent}>
+          <div className={styles.orderSummary}>
+            <h3 className={styles.orderSummaryTitle}>{translations.orderSummary}</h3>
+            <div className={styles.orderDetails}>
+              <div className={styles.orderRow}>
+                <span>{translations.plan}</span>
+                <span>{selectedPlan?.name}</span>
+              </div>
+              <div className={styles.orderRow}>
+                <span>{translations.subscriptionType}</span>
+                <span>{translations.monthly}</span>
+              </div>
+              <p style={{ fontSize: '0.875rem', opacity: 0.85, marginTop: '0.75rem', lineHeight: 1.6 }}>
+                {description}
+              </p>
+              <p style={{ fontSize: '0.8125rem', opacity: 0.75, marginTop: '0.5rem' }}>
+                {endsOn}
+              </p>
+            </div>
+          </div>
+
+          {paymentError && (
+            <div className={styles.paymentErrorMsg} role="alert">
+              <AlertCircle size={14} />
+              <span>{paymentError}</span>
+            </div>
+          )}
+
+          <button
+            type="submit"
+            disabled={isProcessing}
+            className={styles.submitButton}
+          >
+            <span className={styles.buttonContent}>
+              {isProcessing ? (
+                <>
+                  <Loader2 size={16} className={styles.spinIcon} />
+                  {translations.processing}
+                </>
+              ) : (
+                <>
+                  {translations.startTrial || translations.payNow}
+                  <ArrowIcon className={styles.buttonIcon} />
+                </>
+              )}
+            </span>
+          </button>
+        </form>
+      </div>
+    );
+  }
 
   return (
     <div className={styles.paymentContainer}>

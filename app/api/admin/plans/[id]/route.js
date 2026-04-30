@@ -61,15 +61,17 @@ export async function PUT(request, { params }) {
 
     const { id } = await params;
     const body = await request.json();
-    const { 
-      name, 
-      slug, 
-      description, 
-      price, 
-      yearlyPrice, 
-      features, 
+    const {
+      name,
+      slug,
+      description,
+      price,
+      yearlyPrice,
+      features,
       isActive,
       limitations,
+      trialDays,
+      isFreeFallback,
     } = body;
 
     // Check if plan exists
@@ -86,19 +88,50 @@ export async function PUT(request, { params }) {
       }
     }
 
-    const plan = await prisma.plan.update({
-      where: { id },
-      data: {
-        ...(name && { name }),
-        ...(slug && { slug }),
-        ...(description !== undefined && { description }),
-        ...(price !== undefined && { price: parseFloat(price) }),
-        ...(yearlyPrice !== undefined && { yearlyPrice: yearlyPrice ? parseFloat(yearlyPrice) : null }),
-        ...(features !== undefined && { features }),
-        ...(isActive !== undefined && { isActive }),
-        // All limitations stored as JSON array
-        ...(limitations !== undefined && { limitations }),
-      },
+    // Validate trial fields. Resolve effective values (incoming OR existing)
+    // so the cross-field check (fallback ⇒ trialDays===0) catches partial
+    // updates that flip only one of the two fields.
+    let trialDaysInt;
+    if (trialDays !== undefined) {
+      trialDaysInt = Number.isFinite(parseInt(trialDays, 10)) ? parseInt(trialDays, 10) : 0;
+      if (trialDaysInt < 0 || trialDaysInt > 365) {
+        return NextResponse.json({ error: 'trialDays must be between 0 and 365' }, { status: 400 });
+      }
+    }
+    const effectiveTrialDays = trialDays !== undefined ? trialDaysInt : existingPlan.trialDays;
+    const effectiveIsFallback =
+      isFreeFallback !== undefined ? !!isFreeFallback : existingPlan.isFreeFallback;
+    if (effectiveIsFallback && effectiveTrialDays > 0) {
+      return NextResponse.json(
+        { error: 'A free fallback plan cannot itself grant a trial (trialDays must be 0)' },
+        { status: 400 }
+      );
+    }
+
+    const plan = await prisma.$transaction(async (tx) => {
+      // Demote any other fallback plan when this one is being promoted to fallback.
+      if (isFreeFallback === true && !existingPlan.isFreeFallback) {
+        await tx.plan.updateMany({
+          where: { isFreeFallback: true, id: { not: id } },
+          data: { isFreeFallback: false },
+        });
+      }
+      return tx.plan.update({
+        where: { id },
+        data: {
+          ...(name && { name }),
+          ...(slug && { slug }),
+          ...(description !== undefined && { description }),
+          ...(price !== undefined && { price: parseFloat(price) }),
+          ...(yearlyPrice !== undefined && { yearlyPrice: yearlyPrice ? parseFloat(yearlyPrice) : null }),
+          ...(features !== undefined && { features }),
+          ...(isActive !== undefined && { isActive }),
+          // All limitations stored as JSON array
+          ...(limitations !== undefined && { limitations }),
+          ...(trialDays !== undefined && { trialDays: trialDaysInt }),
+          ...(isFreeFallback !== undefined && { isFreeFallback: !!isFreeFallback }),
+        },
+      });
     });
 
     return NextResponse.json({ plan, message: 'Plan updated successfully' });
@@ -126,6 +159,19 @@ export async function DELETE(request, { params }) {
 
     if (!plan) {
       return NextResponse.json({ error: 'Plan not found' }, { status: 404 });
+    }
+
+    // Block deleting/archiving the free fallback while any TRIALING subscription
+    // is still relying on it as a downgrade target — the trial-lifecycle cron
+    // would have nowhere to send them.
+    if (plan.isFreeFallback) {
+      const trialingCount = await prisma.subscription.count({ where: { status: 'TRIALING' } });
+      if (trialingCount > 0) {
+        return NextResponse.json(
+          { error: `Cannot remove the free fallback plan — ${trialingCount} trialing subscription(s) depend on it. Mark another plan as the fallback first.` },
+          { status: 400 }
+        );
+      }
     }
 
     if (plan._count.subscriptions > 0) {
@@ -184,6 +230,9 @@ export async function POST(request, { params }) {
         limitations: originalPlan.limitations,
         isActive: false, // Duplicated plans start as inactive
         sortOrder,
+        trialDays: originalPlan.trialDays,
+        // Duplicates never inherit the fallback flag — only one plan can be it.
+        isFreeFallback: false,
       },
     });
 

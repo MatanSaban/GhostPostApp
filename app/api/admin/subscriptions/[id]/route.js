@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import prisma from '@/lib/prisma';
+import { downgradeToFreeFallback } from '@/lib/billing-engine';
 
 const SESSION_COOKIE = 'user_session';
 
@@ -111,27 +112,45 @@ export async function PATCH(request, { params }) {
 
     switch (action) {
       case 'cancel':
-        // Cancel the subscription immediately and delete the subscription record
-        // This resets the account's plan selection
-        await prisma.subscription.delete({
+      case 'cancel_immediately': {
+        // Admin cancel is immediate (vs. user cancel, which respects period
+        // end). We preserve the subscription row so we keep an audit trail
+        // — earlier versions of this route called .delete() and lost all
+        // history of who was on which plan when.
+        //
+        // For TRIALING subs we route through downgradeToFreeFallback so
+        // the same lifecycle the trial-expiry cron uses applies here too;
+        // the account ends up on the Free plan with status=ACTIVE.
+        if (subscription.status === 'TRIALING') {
+          const res = await downgradeToFreeFallback(prisma, subscription, new Date());
+          if (!res.ok && res.reason === 'no_fallback') {
+            return NextResponse.json(
+              { error: 'No free fallback plan configured. Designate one in Plan settings before canceling trials.' },
+              { status: 503 }
+            );
+          }
+          return NextResponse.json({
+            success: true,
+            outcome: 'switched_to_free',
+            message: 'Trial canceled and switched to free plan',
+          });
+        }
+
+        await prisma.subscription.update({
           where: { id },
-        });
-        
-        return NextResponse.json({
-          success: true,
-          message: 'Subscription canceled and removed successfully',
+          data: {
+            status: 'CANCELED',
+            cancelAtPeriodEnd: false,
+            canceledAt: new Date(),
+          },
         });
 
-      case 'cancel_immediately':
-        // Cancel immediately (legacy - same as cancel now)
-        await prisma.subscription.delete({
-          where: { id },
-        });
-        
         return NextResponse.json({
           success: true,
-          message: 'Subscription canceled and removed successfully',
+          outcome: 'canceled',
+          message: 'Subscription canceled successfully',
         });
+      }
 
       case 'reactivate':
         // Reactivate a canceled subscription
@@ -183,6 +202,12 @@ export async function PATCH(request, { params }) {
           cancelAtPeriodEnd: false,
           canceledAt: null,
           status: 'ACTIVE',
+          // If we're converting a trial via admin change_plan, the trial is
+          // consumed — clear the reminder stage so a residual stage doesn't
+          // make the trial-lifecycle cron behave oddly if the sub somehow
+          // returns to TRIALING in the future. trialStartedAt/trialEndAt are
+          // preserved as historical record.
+          ...(subscription.status === 'TRIALING' && { trialReminderStage: 0 }),
         };
         break;
 

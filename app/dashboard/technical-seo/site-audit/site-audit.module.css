@@ -111,6 +111,27 @@
   }
 }
 
+.forceCancelButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 12px;
+  padding: 6px 12px;
+  background: transparent;
+  color: var(--text-muted, #888);
+  border: 1px dashed var(--border-color, #d4d4d8);
+  border-radius: var(--radius-sm, 6px);
+  font-size: 0.7rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s;
+}
+
+.forceCancelButton:hover {
+  color: #c2410c;
+  border-color: #c2410c;
+}
+
 .auditQuotaBadge {
   display: inline-flex;
   align-items: center;

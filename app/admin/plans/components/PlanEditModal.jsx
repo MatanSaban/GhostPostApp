@@ -78,6 +78,21 @@ export default function PlanEditModal({
           onChange={(e) => setFormData({ ...formData, yearlyPrice: e.target.value })}
           placeholder={t('admin.plans.form.yearlyPlaceholder')}
         />
+        <FormInput
+          label={t('admin.plans.form.trialDays')}
+          type="number"
+          step="1"
+          min="0"
+          max="365"
+          value={formData.trialDays}
+          onChange={(e) => setFormData({ ...formData, trialDays: e.target.value })}
+          placeholder="0"
+        />
+        <FormCheckbox
+          label={t('admin.plans.form.isFreeFallback')}
+          checked={formData.isFreeFallback}
+          onChange={(e) => setFormData({ ...formData, isFreeFallback: e.target.checked })}
+        />
 
         {/* Dynamic Features Section */}
         <div className={styles.formSection}>

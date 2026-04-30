@@ -4,7 +4,7 @@ import prisma from '@/lib/prisma';
 import { getNextFirstOfMonth } from '@/lib/proration';
 import { getDraftAccountForUser } from '@/lib/draft-account';
 import { migrateDraftEntityScanToSite } from '@/lib/entity-scan-migration';
-import { notifyAdmins, emailTemplates } from '@/lib/mailer';
+import { notifyAdmins, queueEmail, emailTemplates } from '@/lib/mailer';
 
 const SESSION_COOKIE = 'user_session';
 const REG_DONE_COOKIE = 'reg_done';
@@ -81,13 +81,6 @@ export async function POST() {
     const interviewData = draftAccount.draftInterviewData || {};
     const couponCode = draftAccount.draftCouponCode || null;
 
-    if (!interviewData.paymentConfirmed) {
-      return NextResponse.json(
-        { error: 'Payment confirmation required' },
-        { status: 400 }
-      );
-    }
-
     const plan = await prisma.plan.findUnique({
       where: { id: draftAccount.draftSelectedPlanId },
     });
@@ -99,9 +92,31 @@ export async function POST() {
       );
     }
 
+    // Trial eligibility: paid plan offers a trial AND the account never used one.
+    // Skips the paymentConfirmed gate because no card was collected up front
+    // (the wizard hits /payment-skip-for-trial which sets paymentConfirmed=true
+    // anyway, but we preserve the branch for defense in depth).
+    const willStartTrial = plan.trialDays > 0 && !draftAccount.hasUsedTrial;
+
+    if (!willStartTrial && !interviewData.paymentConfirmed) {
+      return NextResponse.json(
+        { error: 'Payment confirmation required' },
+        { status: 400 }
+      );
+    }
+
+    // Compute trial timestamps once (outside the transaction) so we can
+    // also reuse them when sending the welcome email below.
+    const finalizeNow = new Date();
+    const trialEndAt = willStartTrial
+      ? new Date(finalizeNow.getTime() + plan.trialDays * 86400000)
+      : null;
+
     const result = await prisma.$transaction(async (tx) => {
       // 1. Activate the account: clear draft flag, clear draft fields,
-      //    fill in billing/general email.
+      //    fill in billing/general email. When starting a trial, also
+      //    flip hasUsedTrial=true so the same account can never claim
+      //    another free trial.
       const account = await tx.account.update({
         where: { id: draftAccount.id },
         data: {
@@ -111,6 +126,7 @@ export async function POST() {
           draftCouponCode: null,
           billingEmail: user.email,
           generalEmail: user.email,
+          ...(willStartTrial && { hasUsedTrial: true }),
         },
       });
 
@@ -123,15 +139,22 @@ export async function POST() {
         },
       });
 
-      // 3. Create the subscription.
+      // 3. Create the subscription. Trial subscriptions get
+      //    status=TRIALING, currentPeriodEnd=trialEndAt; the
+      //    trial-lifecycle cron flips them to ACTIVE on the Free plan
+      //    (or whichever plan is flagged isFreeFallback) at expiry.
       const subscription = await tx.subscription.create({
         data: {
           accountId: account.id,
           planId: plan.id,
-          status: 'ACTIVE',
+          status: willStartTrial ? 'TRIALING' : 'ACTIVE',
           billingInterval: 'MONTHLY',
-          currentPeriodStart: new Date(),
-          currentPeriodEnd: getNextFirstOfMonth(new Date()),
+          currentPeriodStart: finalizeNow,
+          currentPeriodEnd: willStartTrial ? trialEndAt : getNextFirstOfMonth(finalizeNow),
+          ...(willStartTrial && {
+            trialStartedAt: finalizeNow,
+            trialEndAt,
+          }),
         },
       });
 
@@ -312,6 +335,28 @@ export async function POST() {
       }));
     } catch (e) {
       console.error('[Finalize] admin notification failed:', e);
+    }
+
+    // Send the user-facing welcome email (paid OR trial variant). Localized
+    // to selectedLanguage, falling back to the account's defaultLanguage,
+    // then EN. Fire-and-forget — we do not block the response on SMTP.
+    try {
+      const baseUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.NEXTAUTH_URL || '';
+      const lang = result.user.selectedLanguage || result.account.defaultLanguage || 'EN';
+      const userName = result.user.firstName || result.user.email;
+      queueEmail({
+        to: result.user.email,
+        ...emailTemplates.welcome({
+          userName,
+          planName: plan.name,
+          trialEndAt,
+          addPaymentUrl: `${baseUrl}/dashboard/settings?tab=payment-methods`,
+          dashboardUrl: `${baseUrl}/dashboard`,
+          lang,
+        }),
+      });
+    } catch (e) {
+      console.error('[Finalize] welcome email failed:', e);
     }
 
     // Mark the session as a completed (non-draft) user so middleware allows it
