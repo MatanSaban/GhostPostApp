@@ -1409,57 +1409,6 @@
   }
 }
 
-/* Loading skeletons */
-.kpiSkeletonRow {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 1rem;
-
-  @media (max-width: 768px) {
-    grid-template-columns: repeat(2, 1fr);
-  }
-
-  @media (max-width: 480px) {
-    grid-template-columns: 1fr;
-  }
-}
-
-.kpiSkeleton {
-  height: 120px;
-  border-radius: var(--radius-lg);
-  background: var(--muted);
-  position: relative;
-  overflow: hidden;
-
-  :global(.dark) & {
-    background: rgba(0, 0, 0, 0.3);
-  }
-}
-
-.cardSkeleton {
-  height: 200px;
-  border-radius: var(--radius-lg);
-  background: var(--muted);
-  position: relative;
-  overflow: hidden;
-
-  :global(.dark) & {
-    background: rgba(0, 0, 0, 0.3);
-  }
-}
-
-.skeletonShimmer {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(90deg, transparent, rgba(147, 51, 234, 0.04), transparent);
-  animation: shimmer 1.5s ease infinite;
-}
-
-@keyframes shimmer {
-  0% { transform: translateX(-100%); }
-  100% { transform: translateX(100%); }
-}
-
 /* ── Chart Comparison Summary Row ───────────────────────────── */
 .chartComparisonRow {
   display: flex;

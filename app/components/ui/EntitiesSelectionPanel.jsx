@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Check, Loader2, Layers, ArrowRight, SkipForward } from 'lucide-react';
 import { useLocale } from '@/app/context/locale-context';
 import styles from './EntitiesSelectionPanel.module.css';
@@ -30,6 +30,10 @@ export function EntitiesSelectionPanel({
   const isRTL = locale === 'he';
   const hasSkippedRef = useRef(false);
   const hasMountedRef = useRef(false);
+  // Local "in flight" state so the buttons can disable+spin synchronously
+  // on click, even while the parent's onConfirm/onSkip is still processing
+  // (saving the selection, animating the next message, etc.).
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // 10-second wait/skip behavior - the panel is reached either after the
   // scan has already finished (in which case the wait resolves immediately)
@@ -115,8 +119,24 @@ export function EntitiesSelectionPanel({
   const entityTypes = scan.entityTypes || [];
   const selectedSet = new Set(scan.selectedSlugs || []);
 
-  const handleConfirm = () => {
-    onConfirm?.(scan.selectedSlugs || []);
+  const handleConfirm = async () => {
+    if (isSubmitting) return;
+    setIsSubmitting(true);
+    try {
+      await onConfirm?.(scan.selectedSlugs || []);
+    } catch {
+      // Parent surfaces errors; we just release the lock so the user can retry.
+      setIsSubmitting(false);
+    }
+    // On success the panel typically unmounts (parent advances to next
+    // question), so we don't reset the flag — leaving it true keeps the
+    // button disabled in the brief window before unmount.
+  };
+
+  const handleSkip = () => {
+    if (isSubmitting) return;
+    setIsSubmitting(true);
+    onSkip?.();
   };
 
   return (
@@ -174,7 +194,8 @@ export function EntitiesSelectionPanel({
         <button
           type="button"
           className={styles.skipButton}
-          onClick={onSkip}
+          onClick={handleSkip}
+          disabled={isSubmitting}
         >
           <SkipForward size={14} />
           <span>{t('entitiesSelection.skip')}</span>
@@ -183,10 +204,19 @@ export function EntitiesSelectionPanel({
           type="button"
           className={styles.confirmButton}
           onClick={handleConfirm}
-          disabled={(scan.selectedSlugs || []).length === 0}
+          disabled={isSubmitting || (scan.selectedSlugs || []).length === 0}
         >
-          <span>{t('entitiesSelection.continue')}</span>
-          <ArrowRight size={14} style={{ transform: isRTL ? 'rotate(180deg)' : 'none' }} />
+          {isSubmitting ? (
+            <>
+              <Loader2 size={14} className={styles.spinningIcon} />
+              <span>{t('entitiesSelection.processing') || t('entitiesSelection.continue')}</span>
+            </>
+          ) : (
+            <>
+              <span>{t('entitiesSelection.continue')}</span>
+              <ArrowRight size={14} style={{ transform: isRTL ? 'rotate(180deg)' : 'none' }} />
+            </>
+          )}
         </button>
       </div>
     </div>

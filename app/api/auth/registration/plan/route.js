@@ -32,13 +32,24 @@ export async function POST(request) {
     const looksLikeObjectId = typeof planId === 'string' && /^[a-f0-9]{24}$/i.test(planId);
     const select = { id: true, name: true, slug: true, price: true };
 
-    let plan = looksLikeObjectId
-      ? await prisma.plan.findUnique({ where: { id: planId }, select })
-      : null;
+    // Run the plan, user, and draft-account lookups in parallel — they don't
+    // depend on each other (only on session/body), so a single round of
+    // network latency to Mongo instead of three sequential ones.
+    const [planById, user, draftAccount] = await Promise.all([
+      looksLikeObjectId
+        ? prisma.plan.findUnique({ where: { id: planId }, select })
+        : Promise.resolve(null),
+      prisma.user.findUnique({
+        where: { id: sessionUserId },
+        select: { id: true, registrationStep: true },
+      }),
+      getDraftAccountForUser(sessionUserId),
+    ]);
 
-    if (!plan) {
-      plan = await prisma.plan.findUnique({ where: { slug: planId }, select });
-    }
+    // Slug fallback only if the ObjectId lookup didn't hit. Sequential by
+    // necessity (depends on the parallel planById result).
+    const plan = planById
+      || (await prisma.plan.findUnique({ where: { slug: planId }, select }));
 
     if (!plan) {
       return NextResponse.json(
@@ -46,11 +57,6 @@ export async function POST(request) {
         { status: 400 }
       );
     }
-
-    const user = await prisma.user.findUnique({
-      where: { id: sessionUserId },
-      select: { id: true, registrationStep: true },
-    });
 
     if (!user) {
       cookieStore.delete(SESSION_COOKIE);
@@ -60,8 +66,6 @@ export async function POST(request) {
       );
     }
 
-    const draftAccount = await getDraftAccountForUser(user.id);
-
     if (!draftAccount) {
       return NextResponse.json(
         { error: 'No draft account found. Please start over.' },
@@ -69,17 +73,24 @@ export async function POST(request) {
       );
     }
 
-    await prisma.account.update({
-      where: { id: draftAccount.id },
-      data: { draftSelectedPlanId: plan.id },
-    });
-
+    // Two writes in parallel as well. Conditional registrationStep bump is
+    // only emitted when needed so we don't pay a write when the user is
+    // already past PAYMENT (e.g. revisits to change their plan).
+    const writes = [
+      prisma.account.update({
+        where: { id: draftAccount.id },
+        data: { draftSelectedPlanId: plan.id },
+      }),
+    ];
     if (['VERIFY', 'ACCOUNT_SETUP', 'INTERVIEW', 'PLAN'].includes(user.registrationStep)) {
-      await prisma.user.update({
-        where: { id: user.id },
-        data: { registrationStep: 'PAYMENT' },
-      });
+      writes.push(
+        prisma.user.update({
+          where: { id: user.id },
+          data: { registrationStep: 'PAYMENT' },
+        })
+      );
     }
+    await Promise.all(writes);
 
     return NextResponse.json({
       success: true,

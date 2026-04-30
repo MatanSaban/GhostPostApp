@@ -133,6 +133,7 @@ async function main() {
       limitations: [
         { key: 'maxSites', label: '1 Website', value: 1, type: 'number' },
         { key: 'maxMembers', label: '1 Team member', value: 1, type: 'number' },
+        { key: 'aiCredits', label: '100 Ai-GCoins', value: 100, type: 'number' },
         { key: 'maxKeywords', label: '20 Keywords', value: 20, type: 'number' },
         { key: 'maxContent', label: '5 Content pieces/month', value: 5, type: 'number' },
       ],
@@ -153,6 +154,7 @@ async function main() {
       limitations: [
         { key: 'maxSites', label: '1 Website', value: 1, type: 'number' },
         { key: 'maxMembers', label: '1 Team member', value: 1, type: 'number' },
+        { key: 'aiCredits', label: '1,000 Ai-GCoins', value: 1000, type: 'number' },
         { key: 'maxKeywords', label: '100 Keywords', value: 100, type: 'number' },
         { key: 'maxContent', label: '50 Content pieces/month', value: 50, type: 'number' },
       ],
@@ -175,6 +177,7 @@ async function main() {
       limitations: [
         { key: 'maxSites', label: '5 Websites', value: 5, type: 'number' },
         { key: 'maxMembers', label: '5 Team members', value: 5, type: 'number' },
+        { key: 'aiCredits', label: '2,000 Ai-GCoins', value: 2000, type: 'number' },
         { key: 'maxKeywords', label: '500 Keywords', value: 500, type: 'number' },
         { key: 'maxContent', label: '200 Content pieces/month', value: 200, type: 'number' },
       ],
@@ -198,6 +201,7 @@ async function main() {
       limitations: [
         { key: 'maxSites', label: 'Unlimited Websites', value: -1, type: 'number' },
         { key: 'maxMembers', label: 'Unlimited Team members', value: -1, type: 'number' },
+        { key: 'aiCredits', label: '5,000 Ai-GCoins', value: 5000, type: 'number' },
         { key: 'maxKeywords', label: 'Unlimited Keywords', value: -1, type: 'number' },
         { key: 'maxContent', label: 'Unlimited Content', value: -1, type: 'number' },
       ],
@@ -231,6 +235,7 @@ async function main() {
       limitations: [
         { key: 'maxSites', label: '1 Website' },
         { key: 'maxMembers', label: '1 Team member' },
+        { key: 'aiCredits', label: '100 Ai-GCoins' },
         { key: 'maxKeywords', label: '20 Keywords' },
         { key: 'maxContent', label: '5 Content pieces/month' },
       ],
@@ -245,6 +250,7 @@ async function main() {
       limitations: [
         { key: 'maxSites', label: 'אתר 1' },
         { key: 'maxMembers', label: 'חבר צוות 1' },
+        { key: 'aiCredits', label: '100 Ai-GCoins' },
         { key: 'maxKeywords', label: '20 מילות מפתח' },
         { key: 'maxContent', label: '5 פריטי תוכן בחודש' },
       ],
@@ -333,8 +339,9 @@ async function main() {
       'ROLES_VIEW', 'ROLES_CREATE', 'ROLES_EDIT', 'ROLES_DELETE',
       // Site Management
       'SITES_VIEW', 'SITES_CREATE', 'SITES_EDIT', 'SITES_DELETE',
-      // Content Management
-      'CONTENT_VIEW', 'CONTENT_CREATE', 'CONTENT_EDIT', 'CONTENT_PUBLISH', 'CONTENT_DELETE',
+      // Content Planner + AI Content Wizard (renamed from CONTENT_*)
+      'CONTENT_PLANNER_VIEW', 'CONTENT_PLANNER_CREATE', 'CONTENT_PLANNER_EDIT', 'CONTENT_PLANNER_DELETE',
+      'AI_CONTENT_VIEW', 'AI_CONTENT_CREATE', 'AI_CONTENT_EDIT', 'AI_CONTENT_DELETE',
       // Keyword Management
       'KEYWORDS_VIEW', 'KEYWORDS_CREATE', 'KEYWORDS_EDIT', 'KEYWORDS_DELETE',
       // Redirections
@@ -391,8 +398,8 @@ async function main() {
           'ROLES_VIEW',
           // Sites - View only
           'SITES_VIEW',
-          // Content - View only
-          'CONTENT_VIEW',
+          // Content Planner + AI Content - View only
+          'CONTENT_PLANNER_VIEW', 'AI_CONTENT_VIEW',
           // Keywords - View only
           'KEYWORDS_VIEW',
           // Redirections - View only
@@ -420,8 +427,9 @@ async function main() {
           'ROLES_VIEW',
           // Sites - Full access
           'SITES_VIEW', 'SITES_CREATE', 'SITES_EDIT',
-          // Content - Full access
-          'CONTENT_VIEW', 'CONTENT_CREATE', 'CONTENT_EDIT', 'CONTENT_PUBLISH', 'CONTENT_DELETE',
+          // Content Planner + AI Content - Full access
+          'CONTENT_PLANNER_VIEW', 'CONTENT_PLANNER_CREATE', 'CONTENT_PLANNER_EDIT', 'CONTENT_PLANNER_DELETE',
+          'AI_CONTENT_VIEW', 'AI_CONTENT_CREATE', 'AI_CONTENT_EDIT', 'AI_CONTENT_DELETE',
           // Keywords - Full access
           'KEYWORDS_VIEW', 'KEYWORDS_CREATE', 'KEYWORDS_EDIT', 'KEYWORDS_DELETE',
           // Redirections - Full access
@@ -457,8 +465,9 @@ async function main() {
           'MEMBERS_VIEW',
           // Sites - View and edit
           'SITES_VIEW', 'SITES_EDIT',
-          // Content - Full access
-          'CONTENT_VIEW', 'CONTENT_CREATE', 'CONTENT_EDIT', 'CONTENT_PUBLISH',
+          // Content Planner + AI Content - Full access (no delete)
+          'CONTENT_PLANNER_VIEW', 'CONTENT_PLANNER_CREATE', 'CONTENT_PLANNER_EDIT',
+          'AI_CONTENT_VIEW', 'AI_CONTENT_CREATE', 'AI_CONTENT_EDIT',
           // Keywords - Full access
           'KEYWORDS_VIEW', 'KEYWORDS_CREATE', 'KEYWORDS_EDIT',
           // Redirections - Create and edit
@@ -490,8 +499,9 @@ async function main() {
           'ACCOUNT_VIEW',
           // Sites - View only
           'SITES_VIEW',
-          // Content - Create and edit (no publish/delete)
-          'CONTENT_VIEW', 'CONTENT_CREATE', 'CONTENT_EDIT',
+          // Content Planner + AI Content - Create and edit (no delete)
+          'CONTENT_PLANNER_VIEW', 'CONTENT_PLANNER_CREATE', 'CONTENT_PLANNER_EDIT',
+          'AI_CONTENT_VIEW', 'AI_CONTENT_CREATE', 'AI_CONTENT_EDIT',
           // Keywords - View and create
           'KEYWORDS_VIEW', 'KEYWORDS_CREATE',
           // Redirections - View only

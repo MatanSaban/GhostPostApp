@@ -29,7 +29,7 @@ export async function POST(request) {
 
     const user = await prisma.user.findUnique({
       where: { id: sessionUserId },
-      select: { id: true, registrationStep: true },
+      select: { id: true, registrationStep: true, phoneNumber: true },
     });
 
     if (!user) {
@@ -84,6 +84,31 @@ export async function POST(request) {
         { error: 'Invalid code', remainingAttempts },
         { status: 400 }
       );
+    }
+
+    // Phone uniqueness check: phoneNumber isn't a DB-level @unique on User,
+    // so we enforce here. Once a phone is verified by anyone, no one else
+    // can verify the same number — abuse prevention so one person can't
+    // claim multiple free trials by reusing their phone across signups.
+    // Email doesn't need this check because User.email is already @unique.
+    if (otpCode.method === 'SMS' && user.phoneNumber) {
+      const phoneOwner = await prisma.user.findFirst({
+        where: {
+          phoneNumber: user.phoneNumber,
+          phoneVerified: { not: null },
+          id: { not: user.id },
+        },
+        select: { id: true },
+      });
+      if (phoneOwner) {
+        return NextResponse.json(
+          {
+            error: 'This phone number is already verified on another account',
+            errorCode: 'phoneTaken',
+          },
+          { status: 409 }
+        );
+      }
     }
 
     await prisma.otpCode.update({

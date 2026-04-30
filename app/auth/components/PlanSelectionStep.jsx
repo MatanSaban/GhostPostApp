@@ -2,11 +2,16 @@
 
 import { useState, useEffect } from 'react';
 import { Check, Sparkles, Loader2, Gift } from 'lucide-react';
-import { ArrowIcon } from '@/app/components/ui/arrow-icon';
 import { useLocale } from '@/app/context/locale-context';
 import styles from '../auth.module.css';
 
-export function PlanSelectionStep({ translations, onSelect, initialPlanSlug = null }) {
+export function PlanSelectionStep({
+  translations,
+  onSelect,
+  initialPlanSlug = null,
+  submitRef,
+  onSelectionChange,
+}) {
   const [selectedPlan, setSelectedPlan] = useState(null);
   const [plans, setPlans] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -91,26 +96,25 @@ export function PlanSelectionStep({ translations, onSelect, initialPlanSlug = nu
     },
   ];
 
-  // Format price for display (use live ILS price from API, or convert with fallback)
-  const formatPrice = (plan) => {
-    const VAT_RATE = 1.18; // 18% Israeli VAT
-    
-    if (plan.monthlyPrice !== undefined) {
-      // Use live ILS price from API if available
-      if (plan.ilsMonthlyPrice) {
-        return `₪${plan.ilsMonthlyPrice}`;
-      }
-      // If price is in USD, convert to ILS with fallback rate
-      if (plan.currency === 'USD' || !plan.currency) {
-        const FALLBACK_RATE = 3.6;
-        const ilsPrice = Math.round(plan.monthlyPrice * FALLBACK_RATE * VAT_RATE);
-        return `₪${ilsPrice}`;
-      }
-      // Already in ILS, just add VAT
-      const ilsPrice = Math.round(plan.monthlyPrice * VAT_RATE);
-      return `₪${ilsPrice}`;
+  // Primary price (USD). Matches gp-ws pricing page: dollars are the
+  // canonical headline price; ILS shows below as a daily-rate estimate.
+  const formatUsdPrice = (plan) => {
+    if (plan.monthlyPrice !== undefined && plan.monthlyPrice !== null) {
+      return `$${plan.monthlyPrice}`;
     }
     return plan.price || '';
+  };
+
+  // Secondary ILS estimate (incl. VAT). Falls through to a fallback rate
+  // when the public-plans endpoint hasn't supplied a live USD→ILS rate yet.
+  const formatIlsEstimate = (plan) => {
+    if (plan.monthlyPrice == null) return null;
+    if (plan.monthlyPrice === 0) return null;
+    if (plan.ilsMonthlyPrice) return `₪${plan.ilsMonthlyPrice}`;
+    const FALLBACK_RATE = 3.6;
+    const VAT_RATE = 1.18;
+    const ils = Math.round(plan.monthlyPrice * FALLBACK_RATE * VAT_RATE);
+    return `₪${ils}`;
   };
 
   const handleContinue = () => {
@@ -119,6 +123,22 @@ export function PlanSelectionStep({ translations, onSelect, initialPlanSlug = nu
       onSelect(plan);
     }
   };
+
+  // Register the submit handler so the parent's "Next" button can drive
+  // the plan-selection submit; mirrors the AccountSetupStep pattern.
+  useEffect(() => {
+    if (submitRef) submitRef.current = handleContinue;
+    return () => {
+      if (submitRef) submitRef.current = null;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [submitRef, selectedPlan, plans]);
+
+  // Tell the parent whether a plan is selected so it can enable / disable
+  // its "Next" button.
+  useEffect(() => {
+    onSelectionChange?.(!!selectedPlan);
+  }, [selectedPlan, onSelectionChange]);
 
   if (loading) {
     return (
@@ -144,7 +164,8 @@ export function PlanSelectionStep({ translations, onSelect, initialPlanSlug = nu
       <div className={styles.plansGrid}>
         {plans.map((plan) => {
           const planId = plan.id || plan.slug;
-          const displayPrice = formatPrice(plan);
+          const usdPrice = formatUsdPrice(plan);
+          const ilsEstimate = formatIlsEstimate(plan);
           // Handle limitations + features as array of objects {key, label} or array of strings
           const rawLimitations = Array.isArray(plan.limitations)
             ? plan.limitations
@@ -175,9 +196,23 @@ export function PlanSelectionStep({ translations, onSelect, initialPlanSlug = nu
               </div>
 
               <div className={styles.planPricing}>
-                <span className={styles.planPrice}>{displayPrice}</span>
+                <span className={styles.planPrice}>{usdPrice}</span>
                 <span className={styles.planPeriod}>{plan.period}</span>
               </div>
+              {ilsEstimate && (
+                <p
+                  style={{
+                    margin: '0.25rem 0 0',
+                    fontSize: '0.8125rem',
+                    opacity: 0.7,
+                    lineHeight: 1.4,
+                  }}
+                >
+                  ≈ {ilsEstimate}
+                  {plan.period}{' '}
+                  {(translations?.inclVat || (locale === 'he' ? 'כולל מע״מ' : 'incl. VAT'))}
+                </p>
+              )}
 
               {plan.trialDays > 0 && (
                 <div
@@ -226,18 +261,6 @@ export function PlanSelectionStep({ translations, onSelect, initialPlanSlug = nu
         })}
       </div>
 
-      <div className={styles.planContinueWrapper}>
-        <button 
-          className={styles.submitButton}
-          onClick={handleContinue}
-          disabled={!selectedPlan}
-        >
-          <span className={styles.buttonContent}>
-            {translations?.continueToPay || 'Continue to Payment'}
-            <ArrowIcon className={styles.buttonIcon} />
-          </span>
-        </button>
-      </div>
     </div>
   );
 }

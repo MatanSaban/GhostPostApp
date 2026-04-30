@@ -547,7 +547,7 @@
 .authCardWide {
   position: relative;
   width: 100%;
-  max-width: 800px;
+  max-width: 1100px;
   padding: 2.5rem;
   background: var(--card);
   border: 1px solid var(--border);
@@ -1016,16 +1016,19 @@
   display: flex;
 }
 
+/* LTR layout: user on the LEFT, agent on the RIGHT (mirror of typical chat
+   apps; matches the visual side the user reads from in this product). */
 .interviewMessageRow.agentRow {
-  justify-content: flex-start;
-}
-
-.interviewMessageRow.userRow {
   justify-content: flex-end;
 }
 
+.interviewMessageRow.userRow {
+  justify-content: flex-start;
+}
+
 /* In RTL, flex-start is the right edge and flex-end is the left edge.
-   Override so agent stays on the LEFT and user stays on the RIGHT visually. */
+   Keep agent on the LEFT and user on the RIGHT visually in RTL (existing
+   product convention for Hebrew). */
 [dir="rtl"] .interviewMessageRow.agentRow {
   justify-content: flex-end;
 }
@@ -1041,7 +1044,9 @@
   max-width: 80%;
 }
 
-.interviewMessageWrapper.userWrapper {
+/* LTR: agent's avatar sits on its outer (right) edge, user's avatar sits on
+   its outer (left) edge. */
+.interviewMessageWrapper.agentWrapper {
   flex-direction: row-reverse;
 }
 
@@ -1088,10 +1093,14 @@
   line-height: 1.5;
 }
 
+/* Bubble pointer corners: the "sharp" corner sits on the side the avatar
+   is on. LTR: agent on right → pointer on right; user on left → pointer
+   on left. RTL keeps the legacy convention (agent on left in RTL, user
+   on right in RTL). */
 .interviewBubble.agentBubble {
   background: var(--card);
   color: var(--foreground);
-  border-bottom-left-radius: var(--radius-sm);
+  border-bottom-right-radius: var(--radius-sm);
 
   .dark & {
     background: rgba(123, 44, 191, 0.15);
@@ -1099,19 +1108,19 @@
 }
 
 [dir="rtl"] .interviewBubble.agentBubble {
-  border-bottom-left-radius: var(--radius-lg);
-  border-bottom-right-radius: var(--radius-sm);
+  border-bottom-right-radius: var(--radius-lg);
+  border-bottom-left-radius: var(--radius-sm);
 }
 
 .interviewBubble.userBubble {
   background: var(--primary);
   color: white;
-  border-bottom-right-radius: var(--radius-sm);
+  border-bottom-left-radius: var(--radius-sm);
 }
 
 [dir="rtl"] .interviewBubble.userBubble {
-  border-bottom-right-radius: var(--radius-lg);
-  border-bottom-left-radius: var(--radius-sm);
+  border-bottom-left-radius: var(--radius-lg);
+  border-bottom-right-radius: var(--radius-sm);
 }
 
 .typingIndicator {

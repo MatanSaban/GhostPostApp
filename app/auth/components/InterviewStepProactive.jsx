@@ -209,6 +209,50 @@ export function InterviewStep({ translations, onComplete, initialData = {}, onAn
     return questions;
   };
 
+  // Format a saved interview answer as the brief "user message" line that
+  // appeared in the chat when the user originally answered. Mirrors the
+  // text styles used by handleConfirmation / handleCompetitorConfirm /
+  // handleKeywordsConfirm so the resumed transcript looks identical to
+  // the live one. Returns null when there's nothing meaningful to show.
+  const formatResumedAnswer = (question, data) => {
+    if (!data) return null;
+    const isHe = locale === 'he';
+    const confirmedTxt = isHe ? '✓ מאושר' : '✓ Confirmed';
+
+    switch (question.id) {
+      case 'platformLanguage': {
+        const v = data.platformLanguage;
+        if (!v) return confirmedTxt;
+        const platform = v.platform || '';
+        const lang = v.language || '';
+        const parts = [platform, lang].filter(Boolean).join(' / ');
+        return parts ? `✓ ${parts}` : confirmedTxt;
+      }
+      case 'character':
+        return confirmedTxt;
+      case 'competitors': {
+        const list = Array.isArray(data.competitors) ? data.competitors : [];
+        if (list.length === 0) return isHe ? '⤼ דולג' : '⤼ Skipped';
+        return isHe ? `✓ נבחרו ${list.length} מתחרים` : `✓ Selected ${list.length} competitors`;
+      }
+      case 'keywords': {
+        const list = Array.isArray(data.mainKeywords) ? data.mainKeywords : [];
+        if (list.length === 0) return isHe ? '⤼ דולג' : '⤼ Skipped';
+        const preview = list.slice(0, 5).join(', ') + (list.length > 5 ? '…' : '');
+        return `✓ ${preview}`;
+      }
+      case 'seoIssues':
+        return isHe ? '✓ אישרתי' : '✓ Acknowledged';
+      case 'entitiesSelection': {
+        const list = Array.isArray(data.entitiesSelection) ? data.entitiesSelection : [];
+        if (list.length === 0) return isHe ? '⤼ דולג' : '⤼ Skipped';
+        return isHe ? `✓ נבחרו ${list.length} סוגי תוכן` : `✓ Selected ${list.length} content types`;
+      }
+      default:
+        return confirmedTxt;
+    }
+  };
+
   // Initialize with welcome message
   useEffect(() => {
     if (initialized) return;
@@ -217,22 +261,47 @@ export function InterviewStep({ translations, onComplete, initialData = {}, onAn
     const urlQuestion = t('registration.interview.questions.websiteUrl');
 
     if (isResumed) {
-      // Rebuild a minimal transcript so the returning user sees evidence of
-      // the prior conversation instead of a blank slate. The full Q&A isn't
-      // reconstructed - the summary card below fills that role.
-      const resumedMessages = [
+      // Rebuild the full transcript so the returning user sees the actual
+      // conversation that took place, not a blank slate. We walk the same
+      // confirmation-questions list the live flow uses, emitting the
+      // agent's question text + the user's saved answer for each step.
+      const msgs = [
         { id: 0, type: 'agent', content: welcomeMsg },
         { id: 1, type: 'agent', content: urlQuestion },
       ];
       if (initialData?.websiteUrl) {
-        resumedMessages.push({ id: resumedMessages.length, type: 'user', content: initialData.websiteUrl });
+        msgs.push({ id: msgs.length, type: 'user', content: initialData.websiteUrl });
       }
-      resumedMessages.push({
-        id: resumedMessages.length,
+
+      // Walk the confirmation questions in the same order the live flow
+      // showed them. getConfirmationQuestions reads from analysisData state,
+      // which the constructor seeded from initialData.analysis when
+      // isResumed is true — but since this effect runs on the first render,
+      // analysisData may still be the initial value. Pass the analysis
+      // explicitly to dodge any stale-state risk.
+      const questions = getConfirmationQuestions(initialData?.analysis || analysisData);
+      for (const q of questions) {
+        try {
+          const agentText = q.getMessage();
+          if (agentText) {
+            msgs.push({ id: msgs.length, type: 'agent', content: agentText });
+          }
+          const userText = formatResumedAnswer(q, initialData);
+          if (userText) {
+            msgs.push({ id: msgs.length, type: 'user', content: userText });
+          }
+        } catch {
+          // If any single question fails to format, skip it rather than
+          // breaking the whole transcript reconstruction.
+        }
+      }
+
+      msgs.push({
+        id: msgs.length,
         type: 'agent',
         content: t('interviewWizard.proactive.resumedIntro') || t('interviewWizard.questions.complete'),
       });
-      setMessages(resumedMessages);
+      setMessages(msgs);
       setInitialized(true);
       return;
     }

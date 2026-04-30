@@ -3,10 +3,10 @@
 /* Base Skeleton Animation */
 @keyframes shimmer {
   0% {
-    background-position: -200% 0;
+    background-position: 200% 0;
   }
   100% {
-    background-position: 200% 0;
+    background-position: -200% 0;
   }
 }
 
@@ -29,6 +29,11 @@
   :global(.dark) & {
     --skeleton-base: rgba(255, 255, 255, 0.08);
     --skeleton-shine: rgba(255, 255, 255, 0.15);
+  }
+
+  /* RTL: reverse shine motion so it travels right-to-left */
+  :global([dir="rtl"]) & {
+    animation-direction: reverse;
   }
 }
 
@@ -313,13 +318,17 @@
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite ease-in-out;
   border-radius: var(--radius-sm) var(--radius-sm) 0 0;
-  
+
   --skeleton-base: rgba(147, 51, 234, 0.15);
   --skeleton-shine: rgba(147, 51, 234, 0.25);
 
   .dark & {
     --skeleton-base: rgba(123, 44, 191, 0.2);
     --skeleton-shine: rgba(123, 44, 191, 0.35);
+  }
+
+  :global([dir="rtl"]) & {
+    animation-direction: reverse;
   }
 }
 

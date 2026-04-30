@@ -55,7 +55,13 @@ export async function POST() {
       return NextResponse.json({ error: 'Plan not selected' }, { status: 400 });
     }
     if (!draftAccount.draftCouponCode) {
-      return NextResponse.json({ error: 'No coupon to apply' }, { status: 400 });
+      // Returns an errorCode so the client can localize the message; we
+      // keep the English `error` as a fallback for non-localized callers
+      // (admin tools, logs).
+      return NextResponse.json(
+        { error: 'No coupon to apply', errorCode: 'noCoupon' },
+        { status: 400 }
+      );
     }
 
     const plan = await prisma.plan.findUnique({

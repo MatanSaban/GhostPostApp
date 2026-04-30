@@ -31,6 +31,10 @@ export default async function RegisterPage({ searchParams }) {
     progressSteps: {
       goToStep: t('registration.progressSteps.goToStep'),
     },
+    navigation: {
+      previous: t('registration.navigation.previous'),
+      next: t('registration.navigation.next'),
+    },
     form: {
       firstName: t('auth.firstName'),
       firstNamePlaceholder: t('auth.firstNamePlaceholder'),
@@ -107,6 +111,9 @@ export default async function RegisterPage({ searchParams }) {
       selected: t('registration.plans.selected'),
       popular: t('registration.plans.popular'),
       continueToPay: t('registration.plans.continueToPay'),
+      trialBadge: t('registration.plans.trialBadge'),
+      trialNoCard: t('registration.plans.trialNoCard'),
+      inclVat: t('registration.plans.inclVat'),
       basic: {
         name: t('registration.plans.basic.name'),
         price: t('registration.plans.basic.price'),
@@ -164,6 +171,11 @@ export default async function RegisterPage({ searchParams }) {
       citizenId: t('registration.payment.citizenId'),
       citizenIdPlaceholder: t('registration.payment.citizenIdPlaceholder'),
       citizenIdInvalid: t('registration.payment.citizenIdInvalid'),
+      citizenIdErrors: {
+        required: t('registration.payment.citizenIdErrors.required'),
+        invalid: t('registration.payment.citizenIdErrors.invalid'),
+        duplicate: t('registration.payment.citizenIdErrors.duplicate'),
+      },
       billingEmail: t('registration.payment.billingEmail'),
       billingEmailPlaceholder: t('registration.payment.billingEmailPlaceholder'),
       phone: t('registration.payment.phone'),
@@ -205,7 +217,17 @@ export default async function RegisterPage({ searchParams }) {
         notYetActive: t('registration.payment.coupon.notYetActive'),
         expired: t('registration.payment.coupon.expired'),
         notApplicable: t('registration.payment.coupon.notApplicable'),
+        noCoupon: t('registration.payment.coupon.noCoupon'),
       },
+      trialTitle: t('registration.payment.trialTitle'),
+      trialSubtitle: t('registration.payment.trialSubtitle'),
+      trialDescription: t('registration.payment.trialDescription'),
+      trialEndsOn: t('registration.payment.trialEndsOn'),
+      startTrial: t('registration.payment.startTrial'),
+      freeTitle: t('registration.payment.freeTitle'),
+      freeSubtitle: t('registration.payment.freeSubtitle'),
+      freeDescription: t('registration.payment.freeDescription'),
+      startFreePlan: t('registration.payment.startFreePlan'),
       limitations: {
         maxSites: t('registration.payment.limitations.maxSites'),
         maxMembers: t('registration.payment.limitations.maxMembers'),

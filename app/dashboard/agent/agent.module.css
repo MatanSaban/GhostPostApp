@@ -771,6 +771,10 @@
   background: linear-gradient(90deg, var(--border-light) 25%, var(--border) 50%, var(--border-light) 75%);
   background-size: 200% 100%;
   animation: entityShimmer 1.5s ease-in-out infinite;
+
+  :global([dir="rtl"]) & {
+    animation-direction: reverse;
+  }
 }
 
 @keyframes entityShimmer {
@@ -1220,6 +1224,10 @@
   background-size: 200% 100%;
   animation: skeletonShimmer 1.5s infinite;
   border-radius: var(--radius-sm);
+
+  :global([dir="rtl"]) & {
+    animation-direction: reverse;
+  }
 }
 
 .skeletonList {
@@ -1246,6 +1254,10 @@
   background: linear-gradient(90deg, var(--muted) 25%, var(--muted-foreground-rgb, rgba(128, 128, 128, 0.08)) 50%, var(--muted) 75%);
   background-size: 200% 100%;
   animation: skeletonShimmer 1.5s infinite;
+
+  :global([dir="rtl"]) & {
+    animation-direction: reverse;
+  }
 }
 
 .skeletonContent {

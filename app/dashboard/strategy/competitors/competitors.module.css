@@ -1516,3 +1516,23 @@
   }
 }
 
+/* RTL: reverse skeleton shine motion so it travels right-to-left */
+:global([dir="rtl"]) .skeletonPill,
+:global([dir="rtl"]) .skeletonAvatar,
+:global([dir="rtl"]) .skeletonText,
+:global([dir="rtl"]) .skeletonBadge,
+:global([dir="rtl"]) .skeletonActionBtn,
+:global([dir="rtl"]) .skeletonButton {
+  animation-direction: reverse;
+}
+
+/* Dark theme: brighter shine on dark muted */
+:global(.dark) .skeletonPill,
+:global(.dark) .skeletonAvatar,
+:global(.dark) .skeletonText,
+:global(.dark) .skeletonBadge,
+:global(.dark) .skeletonActionBtn,
+:global(.dark) .skeletonButton {
+  background: linear-gradient(90deg, var(--muted) 25%, rgba(123, 44, 191, 0.18) 50%, var(--muted) 75%);
+  background-size: 800px 100%;
+}

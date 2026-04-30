@@ -1430,10 +1430,10 @@
 
 @keyframes shimmer {
   0% {
-    background-position: -200% 0;
+    background-position: 200% 0;
   }
   100% {
-    background-position: 200% 0;
+    background-position: -200% 0;
   }
 }
 
@@ -1447,6 +1447,20 @@
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite;
   border-radius: var(--radius-md);
+
+  :global(.dark) & {
+    background: linear-gradient(
+      90deg,
+      var(--muted) 25%,
+      rgba(123, 44, 191, 0.18) 50%,
+      var(--muted) 75%
+    );
+    background-size: 200% 100%;
+  }
+
+  :global([dir="rtl"]) & {
+    animation-direction: reverse;
+  }
 }
 
 .skeletonIcon {
@@ -1465,6 +1479,10 @@
   );
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite;
+
+  :global([dir="rtl"]) & {
+    animation-direction: reverse;
+  }
 }
 
 .skeletonTitle {

@@ -11,9 +11,25 @@ import styles from '../auth.module.css';
 const CARDCOM_BASE = 'https://secure.cardcom.solutions';
 
 export function PaymentStep({ translations, selectedPlan, userData, onComplete }) {
+  // Both checks require selectedPlan to be a fully-hydrated plan object
+  // (not a slug string from a URL resume). When the user lands on the
+  // payment step via a deep-link like ?step=payment&plan=basic, the parent
+  // hands us the slug as a string — we must NOT short-circuit the form in
+  // that case, otherwise paid-plan users see the wrong UI. The plan object
+  // gets populated as soon as the regular wizard flow reaches this step.
+  const isPlanObject = selectedPlan && typeof selectedPlan === 'object';
+
   // Trial plans skip CardCom entirely — see /api/auth/registration/payment-skip-for-trial.
   // The flag also gates the LP init useEffect below so we don't waste a CardCom session.
-  const isTrialPlan = (selectedPlan?.trialDays ?? 0) > 0;
+  const isTrialPlan = isPlanObject && Number(selectedPlan.trialDays) > 0;
+  // Free plans (price 0) also skip CardCom — they go through
+  // /api/auth/registration/payment-skip-for-free-plan and finalize creates
+  // an ACTIVE sub on the Free plan with no charge. Distinct from the
+  // "coupon brought price to $0" case, which keeps the regular UI so the
+  // user can review their applied coupon.
+  const isFreePlan = !isTrialPlan
+    && isPlanObject
+    && Number(selectedPlan.monthlyPrice) === 0;
 
   // Auto-populate cardholder name from user's first and last name
   const defaultCardholderName = userData
@@ -35,8 +51,40 @@ export function PaymentStep({ translations, selectedPlan, userData, onComplete }
   const [cardholderName, setCardholderName] = useState(defaultCardholderName);
   const [citizenId, setCitizenId] = useState('');
   const [citizenIdTouched, setCitizenIdTouched] = useState(false);
+  const [citizenIdServerError, setCitizenIdServerError] = useState(null);
+  const [isCheckingCitizenId, setIsCheckingCitizenId] = useState(false);
   const isCitizenIdValid = isValidIsraeliId(citizenId);
   const showCitizenIdError = citizenIdTouched && citizenId.length > 0 && !isCitizenIdValid;
+
+  // Persist + uniqueness-check the citizen ID against all other registered
+  // users. Fires on blur once the ID is structurally valid. The server
+  // returns errorCode='duplicate' (409) when the ID is already in use by
+  // another account, blocking abuse where one person registers multiple
+  // accounts to claim multiple free trials.
+  const checkCitizenIdUniqueness = async (id) => {
+    if (!id || !isValidIsraeliId(id)) return;
+    setIsCheckingCitizenId(true);
+    setCitizenIdServerError(null);
+    try {
+      const res = await fetch('/api/auth/registration/save-citizen-id', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ citizenId: id }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        const localized = data.errorCode
+          ? (translations.citizenIdErrors?.[data.errorCode] || data.error)
+          : data.error;
+        setCitizenIdServerError(localized || translations.citizenIdInvalid);
+      }
+    } catch {
+      // Network failure: don't block the user — server-side enforcement
+      // at finalize will still catch duplicates.
+    } finally {
+      setIsCheckingCitizenId(false);
+    }
+  };
   const [billingEmail, setBillingEmail] = useState(defaultBillingEmail);
   const [cardOwnerPhone, setCardOwnerPhone] = useState(defaultPhone);
   // Combined "MM/YY" expiry — stored as up to 4 raw digits; the first two are
@@ -158,7 +206,7 @@ export function PaymentStep({ translations, selectedPlan, userData, onComplete }
   // new LP for the updated amount. Without it, the button stays stuck in
   // "Setting up secure payment..." because lowProfileId never gets reassigned.
   useEffect(() => {
-    if (isTrialPlan) return;
+    if (isTrialPlan || isFreePlan) return;
     if (!priceBreakdown.totalPriceUsd || priceBreakdown.totalPriceUsd <= 0) return;
     if (lowProfileId) return;
 
@@ -388,6 +436,28 @@ export function PaymentStep({ translations, selectedPlan, userData, onComplete }
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    // Free-plan flow: selected plan has price <= 0. Skip CardCom and the
+    // coupon path — we don't need a coupon to bring price to $0 because
+    // the plan itself is free. Distinct from the coupon-zero path below.
+    if (isFreePlan) {
+      setIsProcessing(true);
+      try {
+        const res = await fetch('/api/auth/registration/payment-skip-for-free-plan', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+        });
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({}));
+          throw new Error(data.error || translations.confirmFailed);
+        }
+        onComplete();
+      } catch (err) {
+        setPaymentError(err.message || translations.confirmFailed);
+        setIsProcessing(false);
+      }
+      return;
+    }
+
     // Trial flow: plan has trialDays > 0 and the account hasn't used a trial.
     // Skip CardCom entirely — finalize will create a TRIALING subscription
     // and we'll collect a card later (or not, if they don't convert).
@@ -423,7 +493,12 @@ export function PaymentStep({ translations, selectedPlan, userData, onComplete }
         });
         if (!res.ok) {
           const data = await res.json().catch(() => ({}));
-          throw new Error(data.error || translations.confirmFailed);
+          // Server sets errorCode for known cases (e.g. 'noCoupon') so we
+          // can localize the message instead of surfacing English text.
+          const localized = data.errorCode
+            ? (translations.coupon?.[data.errorCode] || data.error)
+            : data.error;
+          throw new Error(localized || translations.confirmFailed);
         }
         onComplete();
       } catch (err) {
@@ -535,18 +610,24 @@ export function PaymentStep({ translations, selectedPlan, userData, onComplete }
 
   const isPaidPlan = priceBreakdown.totalPriceUsd > 0;
 
+  // Citizen ID is required on EVERY plan (free, trial, paid) for global
+  // uniqueness — abuse prevention so one person can't register multiple
+  // accounts to claim multiple free trials. The server-side @unique on
+  // User.citizenId is the authoritative gate; this client check just
+  // disables the submit button so users get immediate feedback.
+  const isCitizenIdGloballyOk = isCitizenIdValid && !citizenIdServerError && !isCheckingCitizenId;
+
   // Tightened validity: for paid plans we also require CardCom to have
   // confirmed the card number and CVV are valid (so we don't post
   // doTransaction with a broken card / CVV that some Israeli issuers would
   // approve anyway), and the expiry must be a real future date.
-  const isFormValid = !isPaidPlan || (
+  const isFormValid = isCitizenIdGloballyOk && (!isPaidPlan || (
     cardholderName.trim().length > 0 &&
     billingEmail.includes('@') &&
     isExpiryValid &&
-    isCitizenIdValid &&
     cardNumberValid === true &&
     cvvValid === true
-  );
+  ));
 
   // Advance focus from a given field to the next field that's still empty.
   // Skip-filled lets pre-populated fields (e.g. email/phone from registration)
@@ -574,6 +655,12 @@ export function PaymentStep({ translations, selectedPlan, userData, onComplete }
       return;
     }
   };
+
+  // Free plan: render the regular payment form below — the JSX hides the
+  // CardCom card-iframe section when isFreePlan, and handleSubmit routes
+  // the click to /api/auth/registration/payment-skip-for-free-plan instead
+  // of CardCom. The order summary, coupon section, and submit button stay
+  // visible so the user has the same context as a paid signup.
 
   // Trial plan UI — short-circuit the full payment form. No CardCom, no
   // coupon math, just a confirm-and-go panel that calls
@@ -762,7 +849,10 @@ export function PaymentStep({ translations, selectedPlan, userData, onComplete }
             })()}
           </div>
 
-          {/* Coupon Code Input */}
+          {/* Coupon Code Input — hidden on the Free plan: there's nothing
+              for a coupon to discount, and the original "No coupon to apply"
+              error came from this section being interactive on a $0 order. */}
+          {!isFreePlan && (
           <div style={{ marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid var(--border, #e5e7eb)' }}>
             <label style={{ display: 'block', fontSize: '0.8125rem', fontWeight: 500, marginBottom: '0.5rem', color: 'var(--foreground, #111)' }}>
               {translations.coupon?.label}
@@ -856,6 +946,7 @@ export function PaymentStep({ translations, selectedPlan, userData, onComplete }
               </p>
             )}
           </div>
+          )}
         </div>
 
         {/* Payment Form */}
@@ -918,22 +1009,28 @@ export function PaymentStep({ translations, selectedPlan, userData, onComplete }
                 onChange={(e) => {
                   const next = e.target.value.replace(/\D/g, '').slice(0, 9);
                   setCitizenId(next);
+                  setCitizenIdServerError(null);
                   if (next.length === 9 && isValidIsraeliId(next)) {
                     advanceFocusFrom('citizenId');
                   }
                 }}
-                onBlur={() => setCitizenIdTouched(true)}
-                className={`${styles.formInput} ${showCitizenIdError ? styles.formInputError : ''}`}
+                onBlur={() => {
+                  setCitizenIdTouched(true);
+                  if (citizenId && isValidIsraeliId(citizenId)) {
+                    checkCitizenIdUniqueness(citizenId);
+                  }
+                }}
+                className={`${styles.formInput} ${(showCitizenIdError || citizenIdServerError) ? styles.formInputError : ''}`}
                 placeholder={translations.citizenIdPlaceholder}
                 dir="ltr"
                 required
                 disabled={isProcessing}
-                aria-invalid={showCitizenIdError || undefined}
-                aria-describedby={showCitizenIdError ? 'citizenId-error' : undefined}
+                aria-invalid={(showCitizenIdError || !!citizenIdServerError) || undefined}
+                aria-describedby={(showCitizenIdError || citizenIdServerError) ? 'citizenId-error' : undefined}
               />
-              {showCitizenIdError && (
+              {(showCitizenIdError || citizenIdServerError) && (
                 <span id="citizenId-error" className={styles.fieldError}>
-                  {translations.citizenIdInvalid}
+                  {citizenIdServerError || translations.citizenIdInvalid}
                 </span>
               )}
             </div>
@@ -1074,6 +1171,11 @@ export function PaymentStep({ translations, selectedPlan, userData, onComplete }
                   <>
                     <Loader2 size={16} className={styles.spinIcon} />
                     {translations.initializing}
+                  </>
+                ) : isFreePlan ? (
+                  <>
+                    {translations.startFreePlan || translations.payNow}
+                    <ArrowIcon className={styles.buttonIcon} />
                   </>
                 ) : (
                   <>

@@ -1477,11 +1477,64 @@
 .skeletonKeyName,
 .skeletonKeySubtext,
 .skeletonMoveButtons {
-  background: linear-gradient(90deg, var(--muted) 0%, rgba(148, 163, 184, 0.2) 50%, var(--muted) 100%);
+  background: linear-gradient(
+    90deg,
+    var(--skeleton-base) 0%,
+    var(--skeleton-shine) 50%,
+    var(--skeleton-base) 100%
+  );
   background-size: 200% 100%;
   animation: admin-skeleton-shimmer 1.5s infinite;
   border-radius: var(--radius-md);
   display: inline-block;
+
+  /* Light mode colors */
+  --skeleton-base: rgba(0, 0, 0, 0.06);
+  --skeleton-shine: rgba(0, 0, 0, 0.12);
+}
+
+:global(.dark) .skeleton,
+:global(.dark) .skeletonTitle,
+:global(.dark) .skeletonSubtitle,
+:global(.dark) .skeletonButton,
+:global(.dark) .skeletonStatLabel,
+:global(.dark) .skeletonStatValue,
+:global(.dark) .skeletonHeaderCell,
+:global(.dark) .skeletonSearchInput,
+:global(.dark) .skeletonFilterSelect,
+:global(.dark) .skeletonBadge,
+:global(.dark) .skeletonActionButton,
+:global(.dark) .skeletonStatusButton,
+:global(.dark) .skeletonTypeLabel,
+:global(.dark) .skeletonTypeIcon,
+:global(.dark) .skeletonOrder,
+:global(.dark) .skeletonKeyName,
+:global(.dark) .skeletonKeySubtext,
+:global(.dark) .skeletonMoveButtons {
+  --skeleton-base: rgba(255, 255, 255, 0.07);
+  --skeleton-shine: rgba(255, 255, 255, 0.15);
+}
+
+/* RTL: reverse shine motion so it travels right-to-left */
+:global([dir="rtl"]) .skeleton,
+:global([dir="rtl"]) .skeletonTitle,
+:global([dir="rtl"]) .skeletonSubtitle,
+:global([dir="rtl"]) .skeletonButton,
+:global([dir="rtl"]) .skeletonStatLabel,
+:global([dir="rtl"]) .skeletonStatValue,
+:global([dir="rtl"]) .skeletonHeaderCell,
+:global([dir="rtl"]) .skeletonSearchInput,
+:global([dir="rtl"]) .skeletonFilterSelect,
+:global([dir="rtl"]) .skeletonBadge,
+:global([dir="rtl"]) .skeletonActionButton,
+:global([dir="rtl"]) .skeletonStatusButton,
+:global([dir="rtl"]) .skeletonTypeLabel,
+:global([dir="rtl"]) .skeletonTypeIcon,
+:global([dir="rtl"]) .skeletonOrder,
+:global([dir="rtl"]) .skeletonKeyName,
+:global([dir="rtl"]) .skeletonKeySubtext,
+:global([dir="rtl"]) .skeletonMoveButtons {
+  animation-direction: reverse;
 }
 
 .skeletonTitle { width: 40%; height: 1.25rem; }

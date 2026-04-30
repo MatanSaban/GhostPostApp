@@ -2553,3 +2553,20 @@
   0% { background-position: 200% 0; }
   100% { background-position: -200% 0; }
 }
+
+:global([dir="rtl"]) .skeletonText,
+:global([dir="rtl"]) .skeletonBadge,
+:global([dir="rtl"]) .skeletonButton,
+:global([dir="rtl"]) .skeletonCheckbox,
+:global([dir="rtl"]) .progressBarSkeleton {
+  animation-direction: reverse;
+}
+
+:global(.dark) .skeletonText,
+:global(.dark) .skeletonBadge,
+:global(.dark) .skeletonButton,
+:global(.dark) .skeletonCheckbox,
+:global(.dark) .progressBarSkeleton {
+  background: linear-gradient(90deg, var(--muted) 25%, rgba(123, 44, 191, 0.18) 50%, var(--muted) 75%);
+  background-size: 200% 100%;
+}

@@ -67,11 +67,18 @@ export function RegistrationFlow({ translations, initialStep = 'form', initialFo
     selectedPlan: initialPlan,
   });
 
-  // Account-setup step submits via the StepNavigation "הבא / Next" button.
+  // Account-setup step submits via the StepNavigation "Next" button.
   // The child writes its submit handler into this ref and reports validity
   // through state so we can enable/disable the parent's Next button.
   const accountSetupSubmitRef = useRef(null);
   const [isAccountSetupValid, setIsAccountSetupValid] = useState(false);
+
+  // Plan-selection step uses the same pattern: the in-step "Continue to
+  // Payment" button was removed in favor of the parent's Next button.
+  // PlanSelectionStep registers its handleContinue here and reports whether
+  // a plan is selected so we can gate the Next button.
+  const planSelectionSubmitRef = useRef(null);
+  const [isPlanSelected, setIsPlanSelected] = useState(false);
 
   // Fetch the authoritative registration state from the server on mount.
   // The server knows the user's current step from the draft user/account row,
@@ -373,10 +380,18 @@ export function RegistrationFlow({ translations, initialStep = 'form', initialFo
 
   const handleNext = () => {
     const currentIndex = getCurrentStepIndex();
-    // Account-setup step has no inline submit button: pressing "הבא / Next"
+    // Account-setup step has no inline submit button: pressing "Next"
     // submits the form. handleSubmit calls onComplete on success which advances.
     if (currentStep === 'account-setup' && currentIndex > highestCompletedIndex) {
       accountSetupSubmitRef.current?.();
+      return;
+    }
+    // Plan step: pressing Next always submits the selected plan to the
+    // server. The submit is idempotent (re-saving the same plan is fine),
+    // and re-submitting on revisits lets the user change their selection
+    // and continue. handlePlanSelected advances currentStep on success.
+    if (currentStep === 'plan') {
+      planSelectionSubmitRef.current?.();
       return;
     }
     // Can only go forward if the next step has been completed before
@@ -436,6 +451,8 @@ export function RegistrationFlow({ translations, initialStep = 'form', initialFo
                 ? registrationData.selectedPlan
                 : registrationData.selectedPlan?.slug || null
             }
+            submitRef={planSelectionSubmitRef}
+            onSelectionChange={setIsPlanSelected}
           />
         );
       case 'payment':
@@ -497,11 +514,13 @@ export function RegistrationFlow({ translations, initialStep = 'form', initialFo
           highestCompletedIndex={highestCompletedIndex}
           onPrevious={handlePrevious}
           onNext={handleNext}
-          translations={translations.navigation || { previous: 'הקודם', next: 'הבא' }}
+          translations={translations.navigation || { previous: 'Previous', next: 'Next' }}
           nextEnabledOverride={
             currentStep === 'account-setup' && getCurrentStepIndex() > highestCompletedIndex
-              ? isAccountSetupValid
-              : undefined
+              ? (isAccountSetupValid && !isLoading)
+              : currentStep === 'plan'
+                ? (isPlanSelected && !isLoading)
+                : undefined
           }
         />
       )}

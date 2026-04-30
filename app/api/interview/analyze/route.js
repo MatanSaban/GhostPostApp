@@ -742,6 +742,20 @@ ${cleanContent.slice(0, 4000)}
 ${additionalContent ? `=== ADDITIONAL PAGES ===\n${additionalContent.slice(0, 2000)}` : ''}
 `.trim();
 
+    // Resolve display/site languages BEFORE building the Zod schema — the
+    // schema's `.describe(...)` strings interpolate displayLanguageName, so
+    // declaring those names later put them in the TDZ and made the schema
+    // construction throw ReferenceError. The throw was caught by the outer
+    // try/catch and the whole AI analysis silently returned null, leaving
+    // competitors and keywords empty.
+    const siteLang = basicAnalysis.contentStyle?.language || 'en';
+    const isHebrewSite = siteLang === 'he';
+    // Display language = the chat's language. Falls back to site language if
+    // the caller didn't pass a userLocale (older clients, server-side calls).
+    const displayLang = (userLocale || siteLang || 'en').toLowerCase();
+    const displayLanguageName = languageCodeToName(displayLang);
+    const isHebrewDisplay = displayLang === 'he';
+
     // Define the schema for AI response. Field-level language hints reinforce
     // the system-prompt rules so the AI keeps keywords in site language while
     // emitting display fields in the user's UI language.
@@ -768,14 +782,6 @@ ${additionalContent ? `=== ADDITIONAL PAGES ===\n${additionalContent.slice(0, 20
       })).describe('2-4 likely SEO/marketing goals for this business'),
       targetAudience: z.string().describe(`Description of target audience. Write in ${displayLanguageName}.`),
     });
-
-    const siteLang = basicAnalysis.contentStyle?.language || 'en';
-    const isHebrewSite = siteLang === 'he';
-    // Display language = the chat's language. Falls back to site language if
-    // the caller didn't pass a userLocale (older clients, server-side calls).
-    const displayLang = (userLocale || siteLang || 'en').toLowerCase();
-    const displayLanguageName = languageCodeToName(displayLang);
-    const isHebrewDisplay = displayLang === 'he';
 
     const systemPrompt = `You are an expert SEO analyst specializing in keyword research.
 Analyze the provided website content and generate REAL SEO KEYWORDS.

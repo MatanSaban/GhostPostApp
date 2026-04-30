@@ -328,6 +328,17 @@ model User {
   image                 String?
   emailVerified         DateTime?
   phoneVerified         DateTime?
+  // Israeli citizen ID. Unique across the platform for abuse prevention —
+  // one person can't register multiple accounts to claim multiple free
+  // trials or sample plans. Captured during the payment step; persisted
+  // even on free/trial signups (the form still asks for it).
+  //
+  // NOT declared @unique because Mongo's unique index treats every null as
+  // equal — every existing user without a citizenId would collide on the
+  // index build. We enforce uniqueness in application code instead (see
+  // /api/auth/registration/save-citizen-id), which only blocks duplicates
+  // among rows that actually have a value.
+  citizenId             String?
   primaryAuthMethod     AuthMethod       @default(EMAIL)
   selectedLanguage      Language? // Overrides account default if set
   preferredCurrency     Currency? // Overrides language-based default if set
@@ -360,6 +371,10 @@ model User {
   impersonationSessionsAsAdmin  ImpersonationSession[] @relation("ImpersonationSessionAdmin")
   impersonationSessionsAsTarget ImpersonationSession[] @relation("ImpersonationSessionTarget")
   pushSubscriptions             PushSubscription[]
+
+  // Plain index (not unique) so the application-level uniqueness check in
+  // /api/auth/registration/save-citizen-id can run findFirst quickly.
+  @@index([citizenId])
 }
 
 enum RegistrationStep {

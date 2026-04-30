@@ -44,18 +44,40 @@ export async function POST(request) {
 
     const normalizedEmail = email.toLowerCase();
 
-    // Block re-registration for completed users. Draft users on the same email
-    // are wiped and replaced so the legitimate owner can recover.
+    // Block re-registration only when the email has actually been verified
+    // by someone. Unverified abandoned drafts are wiped and replaced so a
+    // new registration can take over the address — we don't want a typo
+    // or quit-mid-registration to lock an email forever.
+    //
+    // Once anyone successfully verifies the email (emailVerified is set),
+    // it's locked: nobody else can register with it. This prevents the
+    // owner from being squatted.
     const existing = await prisma.user.findUnique({
       where: { email: normalizedEmail },
-      select: { id: true, registrationStep: true },
+      select: { id: true, registrationStep: true, emailVerified: true },
     });
 
-    if (existing && existing.registrationStep === 'COMPLETED') {
+    if (existing && existing.emailVerified) {
       return NextResponse.json(
         { error: 'A user with this email already exists' },
         { status: 409 }
       );
+    }
+
+    // Also block if there's already a verified user on the same phone — same
+    // logic, applied before we delete the draft and create a fresh one.
+    const candidatePhone = phoneNumber || null;
+    if (candidatePhone) {
+      const phoneOwner = await prisma.user.findFirst({
+        where: { phoneNumber: candidatePhone, phoneVerified: { not: null } },
+        select: { id: true },
+      });
+      if (phoneOwner && phoneOwner.id !== existing?.id) {
+        return NextResponse.json(
+          { error: 'A user with this phone number already exists' },
+          { status: 409 }
+        );
+      }
     }
 
     await purgeDraftUserByEmail(normalizedEmail);

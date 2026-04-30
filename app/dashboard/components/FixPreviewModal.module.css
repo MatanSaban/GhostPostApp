@@ -796,6 +796,10 @@
   background: linear-gradient(90deg, var(--bg-hover) 25%, var(--border) 50%, var(--bg-hover) 75%);
   background-size: 200% 100%;
   animation: shimmer 1.5s ease-in-out infinite;
+
+  :global([dir="rtl"]) & {
+    animation-direction: reverse;
+  }
 }
 
 @keyframes shimmer {

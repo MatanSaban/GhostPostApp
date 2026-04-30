@@ -937,6 +937,11 @@
   100% { transform: translateX(100%); }
 }
 
+:global([dir="rtl"]) .skeletonCard::after,
+:global([dir="rtl"]) .skeletonTableRow::after {
+  animation-direction: reverse;
+}
+
 /* ── Pagination ──────────────────────────── */
 .pagination {
   display: flex;

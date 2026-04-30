@@ -11,7 +11,7 @@ import GeneratePostModal from '../strategy/keywords/components/GeneratePostModal
 import { useSite } from '@/app/context/site-context';
 import { useLocale } from '@/app/context/locale-context';
 import { useTheme } from '@/app/context/theme-context';
-import { StatsCard, DashboardCard, QuickActions, ProgressBar, KpiSlider } from '../components';
+import { StatsCard, DashboardCard, QuickActions, ProgressBar, KpiSlider, Skeleton } from '../components';
 import AgentActivity from './AgentActivity';
 import { ArrowIcon } from '@/app/components/ui/arrow-icon';
 import { useModalResize, ModalResizeButton } from '@/app/components/ui/ModalResizeButton';
@@ -2127,27 +2127,6 @@ export default function DashboardContent({ translations }) {
     { label: t.siteAudit, href: '/dashboard/technical-seo/site-audit', iconName: 'Activity' },
   ];
 
-  // Loading skeleton
-  const SectionSkeleton = ({ height = 200, count = 1 }) => (
-    <>
-      {Array.from({ length: count }, (_, i) => (
-        <div key={i} className={styles.cardSkeleton} style={{ height }}>
-          <div className={styles.skeletonShimmer} />
-        </div>
-      ))}
-    </>
-  );
-
-  const KpiSkeleton = ({ count = 3 }) => (
-    <div className={styles.kpiSkeletonRow}>
-      {Array.from({ length: count }, (_, i) => (
-        <div key={i} className={styles.kpiSkeleton}>
-          <div className={styles.skeletonShimmer} />
-        </div>
-      ))}
-    </div>
-  );
-
   return (
     <>
       {/* Welcome Section */}
@@ -2200,7 +2179,18 @@ export default function DashboardContent({ translations }) {
         <div className={styles.startColumn}>
           {/* GA4 + GSC KPIs - unified slider */}
           {loading ? (
-            <KpiSkeleton count={3} />
+            <div data-onboarding="dashboard-kpis">
+              <KpiSlider>
+                {[
+                  { iconName: 'Users', label: t.organicVisitors, color: 'purple', description: t.kpiDescriptions?.organicVisitors },
+                  { iconName: 'FileText', label: t.totalPageViews, color: 'blue', description: t.kpiDescriptions?.totalPageViews },
+                  { iconName: 'Clock', label: t.avgSessionDuration, color: 'orange', description: t.kpiDescriptions?.avgSessionDuration },
+                  { iconName: 'BarChart2', label: t.sessions, color: 'green', description: t.kpiDescriptions?.sessions },
+                ].map((kpi, index) => (
+                  <StatsCard key={index} {...kpi} loading={true} />
+                ))}
+              </KpiSlider>
+            </div>
           ) : (data?.gaConnected || data?.gscConnected) && (gaCards || gscCards) ? (
             <>
               <div className={styles.dashboardSectionHeader}>
@@ -2256,7 +2246,9 @@ export default function DashboardContent({ translations }) {
 
           {/* Traffic Overview Chart */}
           {loading ? (
-            <SectionSkeleton height={300} />
+            <DashboardCard title={t.trafficOverview}>
+              <Skeleton width="100%" height="300px" borderRadius="lg" />
+            </DashboardCard>
           ) : data?.gaConnected ? (
             <DashboardCard
               dataOnboarding="dashboard-chart"
@@ -2323,7 +2315,9 @@ export default function DashboardContent({ translations }) {
 
           {/* Top Keywords from GSC */}
           {loading ? (
-            <SectionSkeleton height={250} />
+            <DashboardCard title={t.topKeywords || 'Top Keywords'}>
+              <Skeleton width="100%" height="250px" borderRadius="lg" />
+            </DashboardCard>
           ) : data?.gscConnected && (data?.topQueries?.length > 0 || keywordsData !== null || data?.tokenError) ? (
             <DashboardCard
               dataOnboarding="dashboard-top-keywords"
@@ -2379,7 +2373,9 @@ export default function DashboardContent({ translations }) {
 
           {/* Top Pages from GSC */}
           {loading ? (
-            <SectionSkeleton height={250} />
+            <DashboardCard title={t.topPages}>
+              <Skeleton width="100%" height="250px" borderRadius="lg" />
+            </DashboardCard>
           ) : data?.gscConnected && (data?.topPages?.length > 0 || pagesData !== null || data?.tokenError) ? (
             <DashboardCard
               dataOnboarding="dashboard-top-pages"
@@ -2435,8 +2431,15 @@ export default function DashboardContent({ translations }) {
           {/* AI Traffic Overview */}
           {loading ? (
             <>
-              <SectionSkeleton height={80} />
-              <SectionSkeleton height={200} />
+              <div className={styles.dashboardSectionHeader} data-onboarding="dashboard-ai-traffic">
+                <AIIcon />
+                <h2 className={styles.dashboardSectionTitle}>{t.aiTrafficTitle || 'AI Traffic Overview'}</h2>
+              </div>
+              <div className={styles.aiKpiRow}>
+                <Skeleton width="100%" height="80px" borderRadius="lg" />
+                <Skeleton width="100%" height="80px" borderRadius="lg" />
+              </div>
+              <Skeleton width="100%" height="200px" borderRadius="lg" />
             </>
           ) : data?.gaConnected ? (
             <>
@@ -2459,7 +2462,7 @@ export default function DashboardContent({ translations }) {
               {aiLoading ? (
                 <div className={styles.kpiGrid}>
                   {[1, 2].map(i => (
-                    <div key={i} className={styles.kpiSkeleton}><div className={styles.skeletonShimmer} /></div>
+                    <Skeleton key={i} width="100%" height="120px" borderRadius="lg" />
                   ))}
                 </div>
               ) : aiData ? (

@@ -4359,7 +4359,6 @@ function CreditsSettings({ subscription, translations, canEdit = true, isLoading
           <div className={styles.subscriptionHeader}>
             <div className={styles.planInfo}>
               <Skeleton width="8rem" height="1.25rem" />
-              <Skeleton width="3rem" height="1rem" />
             </div>
             <div className={styles.planPrice}>
               <Skeleton width="4rem" height="2rem" />
@@ -4391,10 +4390,6 @@ function CreditsSettings({ subscription, translations, canEdit = true, isLoading
             <div className={styles.planName}>
               <GCoinIcon size={20} style={{ display: 'inline', marginInlineEnd: '0.5rem' }} />
               {translate('settings.creditsSection.title') || 'Ai-GCoins'}
-            </div>
-            <div className={styles.planStatus}>
-              <Check size={14} />
-              {translate('settings.creditsSection.used') || 'Used'}
             </div>
           </div>
           <div className={styles.planPrice}>

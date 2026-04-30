@@ -5838,6 +5838,7 @@
     "intro": "Let's take a look at the content types we found on your site.",
     "skip": "Skip",
     "continue": "Continue",
+    "processing": "Processing...",
     "coreBadge": "Core",
     "itemCount": "{count} items"
   },
@@ -6027,6 +6028,8 @@
     "useSuggestion": "Use this",
     "proactive": {
       "gettingStarted": "Getting Started",
+      "resumedHeader": "Interview completed",
+      "resumedIntro": "Welcome back! Your interview has already been completed — you can review your answers below or continue to the next step.",
       "analyzing": "Analyzing your website...",
       "urlPlaceholder": "Enter website URL (e.g., www.example.com)",
       "editPlaceholder": "Type your correction...",
@@ -6306,8 +6309,8 @@
       "continue": "Continue"
     },
     "interview": {
-      "title": "Tell Us About Your Business",
-      "subtitle": "Help us personalize your SEO strategy",
+      "title": "Add Your First Site",
+      "subtitle": "Tell us about the first site you'd like to add to GhostSEO",
       "greeting": "Welcome to GhostSEO! I'm your AI assistant and I'll help you set up your account. Let's learn about your business to create the perfect SEO strategy.",
       "startButton": "Start Setup",
       "questions": {
@@ -6465,6 +6468,7 @@
       "popular": "Most Popular",
       "trialBadge": "{days}-day free trial",
       "trialNoCard": "No credit card required",
+      "inclVat": "incl. VAT",
       "basic": {
         "name": "Basic",
         "price": "$29",
@@ -6523,6 +6527,11 @@
       "citizenId": "ID Number",
       "citizenIdPlaceholder": "Enter ID number",
       "citizenIdInvalid": "Invalid ID number",
+      "citizenIdErrors": {
+        "required": "ID number is required",
+        "invalid": "Invalid ID number",
+        "duplicate": "This ID is already registered to another account"
+      },
       "billingEmail": "Billing Email",
       "billingEmailPlaceholder": "Email for invoices",
       "phone": "Phone",
@@ -6545,6 +6554,10 @@
       "trialDescription": "Your {days}-day free trial of {plan} starts now. You'll have full access until then — we'll only ask for a payment method if you decide to continue.",
       "trialEndsOn": "Trial ends on {date}",
       "startTrial": "Start free trial",
+      "freeTitle": "Confirm your free plan",
+      "freeSubtitle": "No payment required",
+      "freeDescription": "You've selected the {plan} plan. No payment required to get started — confirm below to finish setting up your account.",
+      "startFreePlan": "Confirm and continue",
       "orderSummary": "Order Summary",
       "plan": "Plan",
       "billingCycle": "Monthly",
@@ -6572,7 +6585,8 @@
         "notActive": "This coupon is no longer active",
         "notYetActive": "This coupon is not yet active",
         "expired": "This coupon has expired",
-        "notApplicable": "This coupon does not apply to this purchase"
+        "notApplicable": "This coupon does not apply to this purchase",
+        "noCoupon": "No coupon to apply"
       },
       "limitations": {
         "maxSites": "Websites",

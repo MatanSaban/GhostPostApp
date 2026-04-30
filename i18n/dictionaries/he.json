@@ -5843,6 +5843,7 @@
     "intro": "בואו נסתכל על סוגי התוכן שזיהינו באתר שלך.",
     "skip": "דלג",
     "continue": "המשך",
+    "processing": "מעבד...",
     "coreBadge": "בסיסי",
     "itemCount": "{count} פריטים"
   },
@@ -6028,6 +6029,8 @@
     },
     "proactive": {
       "gettingStarted": "מתחילים",
+      "resumedHeader": "הראיון הושלם",
+      "resumedIntro": "ברוך שובך! הראיון שלך כבר הושלם — תוכל לסקור את התשובות שלך למטה או להמשיך לשלב הבא.",
       "analyzing": "מנתח את האתר שלך...",
       "urlPlaceholder": "הכנס כתובת אתר (למשל: www.example.com)",
       "editPlaceholder": "הקלד את התיקון שלך...",
@@ -6308,8 +6311,8 @@
       "continue": "המשך"
     },
     "interview": {
-      "title": "ספר לנו על העסק שלך",
-      "subtitle": "עזור לנו להתאים אישית את אסטרטגיית ה-SEO שלך",
+      "title": "הוספת האתר הראשון שלך",
+      "subtitle": "ספר לנו על האתר הראשון שתרצה להוסיף ל-GhostSEO",
       "greeting": "ברוכים הבאים ל-GhostSEO! אני העוזר ה-AI שלך ואעזור לך להקים את החשבון. בואו נלמד על העסק שלך כדי ליצור את אסטרטגיית ה-SEO המושלמת.",
       "startButton": "התחל הגדרה",
       "questions": {
@@ -6467,6 +6470,7 @@
       "popular": "הכי פופולרי",
       "trialBadge": "{days} ימי ניסיון חינם",
       "trialNoCard": "ללא צורך בכרטיס אשראי",
+      "inclVat": "כולל מע״מ",
       "basic": {
         "name": "בסיסי",
         "price": "₪99",
@@ -6525,6 +6529,11 @@
       "citizenId": "תעודת זהות",
       "citizenIdPlaceholder": "הכנס מספר ת.ז.",
       "citizenIdInvalid": "מספר תעודת זהות לא תקין",
+      "citizenIdErrors": {
+        "required": "מספר תעודת זהות נדרש",
+        "invalid": "מספר תעודת זהות לא תקין",
+        "duplicate": "תעודת זהות זו כבר רשומה בחשבון אחר"
+      },
       "billingEmail": "אימייל לחיוב",
       "billingEmailPlaceholder": "אימייל לקבלת חשבונית",
       "phone": "טלפון",
@@ -6547,6 +6556,10 @@
       "trialDescription": "תקופת הניסיון של {days} ימים על {plan} מתחילה עכשיו. תהיה לך גישה מלאה עד אז — נבקש פרטי תשלום רק אם תחליט להמשיך.",
       "trialEndsOn": "תקופת הניסיון מסתיימת ב-{date}",
       "startTrial": "התחל תקופת ניסיון חינם",
+      "freeTitle": "אישור התוכנית החינמית",
+      "freeSubtitle": "ללא צורך בתשלום",
+      "freeDescription": "בחרת בתוכנית {plan}. אין צורך בתשלום כדי להתחיל — אשר למטה כדי לסיים את הקמת החשבון שלך.",
+      "startFreePlan": "אשר והמשך",
       "orderSummary": "סיכום הזמנה",
       "plan": "תוכנית",
       "billingCycle": "חודשי",
@@ -6574,7 +6587,8 @@
         "notActive": "קופון זה אינו פעיל יותר",
         "notYetActive": "קופון זה עדיין לא פעיל",
         "expired": "פג תוקפו של קופון זה",
-        "notApplicable": "קופון זה אינו תקף לרכישה זו"
+        "notApplicable": "קופון זה אינו תקף לרכישה זו",
+        "noCoupon": "אין קופון להחיל"
       },
       "limitations": {
         "maxSites": "אתרים",
