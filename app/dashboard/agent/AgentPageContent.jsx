@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import { useSite } from '@/app/context/site-context';
 import { useAgent } from '@/app/context/agent-context';
+import { useUser } from '@/app/context/user-context';
 import { useLocale } from '@/app/context/locale-context';
 import { PageHeader } from '../components';
 import { DashboardCard } from '../components/DashboardCard';
@@ -1680,7 +1681,15 @@ export default function AgentPageContent({ translations, mode = 'full', onInsigh
   const { locale } = useLocale();
   const { selectedSite } = useSite();
   const { getCreditCost } = useAiPricing();
-  const { runningAnalysis, lastAnalysisTs, runAnalysis, entitiesRequired, setEntitiesRequired } = useAgent();
+  const { runningAnalysis, lastAnalysisTs, runAnalysis, cancelAnalysis, entitiesRequired, setEntitiesRequired } = useAgent();
+  const { isSuperAdmin } = useUser();
+  const canForceCancel = isSuperAdmin || process.env.NODE_ENV === 'development';
+
+  const handleForceCancel = useCallback(() => {
+    if (!canForceCancel || !runningAnalysis || !selectedSite?.id) return;
+    if (!window.confirm('Force-mark this AI agent run as FAILED? The background worker may keep running until killed.')) return;
+    cancelAnalysis(selectedSite.id);
+  }, [canForceCancel, runningAnalysis, selectedSite?.id, cancelAnalysis]);
 
   const [insights, setInsights] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -1995,17 +2004,29 @@ export default function AgentPageContent({ translations, mode = 'full', onInsigh
   // ── Compact mode (Dashboard Card) ──
   if (isCompact) {
     const headerRight = (
-      <button
-        className={styles.runButton}
-        onClick={handleRunAnalysis}
-        disabled={runningAnalysis || !selectedSite?.id}
-      >
-        {runningAnalysis ? (
-          <><Loader2 size={14} className={styles.spinning} /> {t?.agent?.running || 'Analyzing...'}</>
-        ) : (
-          <><Play size={14} /> {t?.agent?.runAnalysis || 'Run Analysis'}</>
+      <>
+        <button
+          className={styles.runButton}
+          onClick={handleRunAnalysis}
+          disabled={runningAnalysis || !selectedSite?.id}
+        >
+          {runningAnalysis ? (
+            <><Loader2 size={14} className={styles.spinning} /> {t?.agent?.running || 'Analyzing...'}</>
+          ) : (
+            <><Play size={14} /> {t?.agent?.runAnalysis || 'Run Analysis'}</>
+          )}
+        </button>
+        {runningAnalysis && canForceCancel && (
+          <button
+            type="button"
+            className={styles.forceCancelButton}
+            onClick={handleForceCancel}
+            title="Admin/dev: force-mark this agent run as FAILED. Won't actually halt the in-flight worker."
+          >
+            <XCircle size={12} /> Force cancel (admin)
+          </button>
         )}
-      </button>
+      </>
     );
 
     return (
@@ -2075,6 +2096,16 @@ export default function AgentPageContent({ translations, mode = 'full', onInsigh
             <><Play size={16} /> {t.runAnalysis || 'Run Analysis'}</>
           )}
         </button>
+        {runningAnalysis && canForceCancel && (
+          <button
+            type="button"
+            className={styles.forceCancelButton}
+            onClick={handleForceCancel}
+            title="Admin/dev: force-mark this agent run as FAILED. Won't actually halt the in-flight worker."
+          >
+            <XCircle size={14} /> Force cancel (admin)
+          </button>
+        )}
       </PageHeader>
 
       {/* Filters */}

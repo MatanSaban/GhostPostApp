@@ -9,6 +9,7 @@ const AgentContext = createContext({
   entitiesRequired: false,
   setEntitiesRequired: () => {},
   runAnalysis: async () => {},
+  cancelAnalysis: async () => {},
 });
 
 const POLL_INTERVAL = 2000;
@@ -126,8 +127,28 @@ export function AgentProvider({ children }) {
     }
   }, [runningAnalysis, checkingEntities, startPolling]);
 
+  // Force-fail a stuck analysis run. Server-side gate enforces superadmin/dev.
+  // Doesn't actually halt the in-flight worker; clears the UI lock immediately
+  // so the user can start a new run.
+  const cancelAnalysis = useCallback(async (siteId) => {
+    if (!siteId) return;
+    try {
+      const res = await fetch(`/api/agent/runs?siteId=${siteId}`, { method: 'DELETE' });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        console.error('[AgentContext] Cancel analysis error:', data.error);
+        return;
+      }
+      stopPolling();
+      setRunningAnalysis(false);
+      setLastAnalysisTs(Date.now());
+    } catch (err) {
+      console.error('[AgentContext] Cancel error:', err);
+    }
+  }, [stopPolling]);
+
   return (
-    <AgentContext.Provider value={{ runningAnalysis: runningAnalysis || checkingEntities, lastAnalysisTs, entitiesRequired, setEntitiesRequired, runAnalysis }}>
+    <AgentContext.Provider value={{ runningAnalysis: runningAnalysis || checkingEntities, lastAnalysisTs, entitiesRequired, setEntitiesRequired, runAnalysis, cancelAnalysis }}>
       {children}
     </AgentContext.Provider>
   );
