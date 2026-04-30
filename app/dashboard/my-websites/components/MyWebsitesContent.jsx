@@ -41,6 +41,25 @@ const PLATFORM_LABELS = {
   custom: 'Custom',
 };
 
+function SiteFavicon({ faviconUrl, size = 16, className }) {
+  const [hasError, setHasError] = useState(false);
+  if (!faviconUrl || hasError) {
+    return <Globe size={size} className={className} />;
+  }
+  return (
+    <img
+      src={faviconUrl}
+      alt=""
+      width={size}
+      height={size}
+      className={className}
+      onError={() => setHasError(true)}
+      loading="lazy"
+      style={{ objectFit: 'contain', borderRadius: 4 }}
+    />
+  );
+}
+
 function getStatusIcon(status) {
   switch (status) {
     case 'CONNECTED': return <PlugZap size={14} />;
@@ -65,7 +84,7 @@ function getStatusKey(status) {
 
 export function MyWebsitesContent() {
   const { t, isRtl } = useLocale();
-  const { sites, setSites, setSelectedSite, refreshSites, isLoading: isSitesLoading } = useSite();
+  const { sites, setSites, selectedSite, setSelectedSite, refreshSites, isLoading: isSitesLoading } = useSite();
   const { checkPermission, isOwner, isLoading: isPermissionsLoading } = usePermissions();
   const router = useRouter();
 
@@ -170,16 +189,37 @@ export function MyWebsitesContent() {
   const handleRemove = async () => {
     if (!removeModal) return;
 
+    const removedId = removeModal.id;
+    const wasSelected = selectedSite?.id === removedId;
+
     setIsRemoving(true);
     try {
-      const res = await fetch(`/api/sites/${removeModal.id}`, {
+      const res = await fetch(`/api/sites/${removedId}`, {
         method: 'DELETE',
       });
 
       if (!res.ok) throw new Error('Failed to remove');
 
-      // Update sites list locally
-      setSites(prev => prev.filter(s => s.id !== removeModal.id));
+      const remaining = sites.filter(s => s.id !== removedId);
+      setSites(remaining);
+
+      if (wasSelected) {
+        if (remaining.length > 0) {
+          const next = remaining[0];
+          setSelectedSite(next);
+          fetch('/api/sites/select', {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ siteId: next.id }),
+          }).catch(console.error);
+        } else {
+          setSelectedSite(null);
+          setRemoveModal(null);
+          router.push('/dashboard?addSite=1');
+          return;
+        }
+      }
+
       showToast(t('myWebsites.toast.removed'));
       setRemoveModal(null);
     } catch (err) {
@@ -320,7 +360,7 @@ export function MyWebsitesContent() {
                 <tr key={site.id}>
                   <td>
                     <div className={styles.siteName}>
-                      <Globe size={16} className={styles.siteIcon} />
+                      <SiteFavicon faviconUrl={site.favicon} size={16} className={styles.siteIcon} />
                       <span>{site.name}</span>
                     </div>
                   </td>
@@ -389,7 +429,7 @@ export function MyWebsitesContent() {
             <div key={site.id} className={styles.card}>
               <div className={styles.cardHeader}>
                 <div className={styles.cardTitle}>
-                  <Globe size={20} className={styles.cardIcon} />
+                  <SiteFavicon faviconUrl={site.favicon} size={20} className={styles.cardIcon} />
                   <h3>{site.name}</h3>
                 </div>
                 <span className={`${styles.statusBadge} ${styles[`status_${getStatusKey(site.connectionStatus)}`]}`}>

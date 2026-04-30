@@ -10,6 +10,8 @@ import {
 } from '@/lib/cardcom';
 import { canPurchaseAddOn, addAiCredits } from '@/lib/account-utils';
 import { getNextFirstOfMonth } from '@/lib/proration';
+import { redeemAddOnCouponBestEffort } from '@/lib/coupon-redemption';
+import { notifyAdmins, emailTemplates } from '@/lib/mailer';
 
 const SESSION_COOKIE = 'user_session';
 
@@ -302,6 +304,22 @@ export async function POST(request) {
       actionResult = await handlePlanUpgrade(payment, action, user);
     }
 
+    try {
+      notifyAdmins(emailTemplates.adminNewPayment({
+        kind: action?.type || 'addon_purchase',
+        amount: payment.amount,
+        currency: payment.currency || 'USD',
+        user,
+        account: { id: payment.accountId, name: payment.account?.name },
+        productName: payment.metadata?.productName,
+        planName: actionResult?.type === 'plan_upgrade' ? actionResult.planName : null,
+        transactionId: chargeResult?.TranzactionId || null,
+        couponCode: action?.coupon?.code || null,
+      }));
+    } catch (e) {
+      console.error('[Payment Confirm] admin notification failed:', e);
+    }
+
     return NextResponse.json({
       success: true,
       message: 'Payment confirmed successfully',
@@ -362,7 +380,24 @@ async function handleAddonPurchase(payment, action, user) {
     });
   }
 
-  return { type: 'addon_purchase', purchaseId: purchase.id, addOnName: addOn.name };
+  // Coupon redemption is best-effort: charge already succeeded, so a failed
+  // re-validation must NOT block delivery of the add-on. Failures get logged
+  // by the helper and rolled into the action result for audit.
+  const couponResult = await redeemAddOnCouponBestEffort(prisma, {
+    couponCode: action?.coupon?.code,
+    addOn: { id: addOn.id, type: addOn.type },
+    addOnPurchase: purchase,
+    accountId: payment.accountId,
+    subscriptionId: subscription.id,
+  });
+
+  return {
+    type: 'addon_purchase',
+    purchaseId: purchase.id,
+    addOnName: addOn.name,
+    couponApplied: couponResult.coupon ? { code: couponResult.coupon.code } : null,
+    couponError: couponResult.error || undefined,
+  };
 }
 
 /**

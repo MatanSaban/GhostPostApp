@@ -1759,6 +1759,17 @@
   font-size: 0.75rem;
 }
 
+/* Subtle inline pending indicator used in place of the loud "Searching..."
+   banner when a background prefetch hasn't finished yet. Just a small spinner
+   centred in its container — no copy, no big colored band. */
+.competitorPendingRow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  color: rgba(255, 255, 255, 0.5);
+}
+
 .aiRecommendationBanner {
   display: flex;
   align-items: center;
@@ -1825,18 +1836,36 @@
 }
 
 .articlesGrid {
+  /* Fixed 4-column grid of square cards. Falls back to fewer columns on
+     narrow viewports so cards never collapse below ~120px wide. */
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 16px;
-  max-height: 400px;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  max-height: 540px;
   overflow-y: auto;
   padding: 12px;
+}
+
+@media (max-width: 720px) {
+  .articlesGrid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 520px) {
+  .articlesGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
 
 .articleCard {
   position: relative;
   display: flex;
   flex-direction: column;
+  /* Force square aspect ratio regardless of whether the post has an image.
+     The image (or empty placeholder) takes the top half; title + meta sit
+     in the bottom half. This keeps the grid visually consistent. */
+  aspect-ratio: 1 / 1;
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 12px;
@@ -1844,6 +1873,7 @@
   cursor: pointer;
   transition: all 0.2s ease;
   text-align: left;
+  padding: 0;
 
   &:hover:not(:disabled) {
     background: rgba(255, 255, 255, 0.08);
@@ -1864,31 +1894,58 @@
 
 .articleImage {
   width: 100%;
-  height: 120px;
+  flex: 1 1 50%;
+  min-height: 0;
   background: rgba(255, 255, 255, 0.05);
+  overflow: hidden;
 
   img {
     width: 100%;
     height: 100%;
     object-fit: cover;
+    display: block;
   }
 }
 
+/* No-image fallback. Same shape as .articleImage so square aspect ratio
+   stays intact, but renders a centered "no image" hint instead. */
+.articleNoImage {
+  width: 100%;
+  flex: 1 1 50%;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.03);
+  color: rgba(255, 255, 255, 0.45);
+  font-size: 0.6875rem;
+  font-style: italic;
+  text-align: center;
+  padding: 8px;
+  line-height: 1.3;
+}
+
 .articleContent {
-  padding: 12px 12px 40px 12px;
-  flex: 1;
+  padding: 10px 10px 36px 10px;
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  overflow: hidden;
 }
 
 .articleTitle {
   font-size: 0.75rem;
-  font-weight: 500;
+  font-weight: 600;
   color: white;
-  margin: 0 0 8px 0;
+  margin: 0;
   line-height: 1.3;
   display: -webkit-box;
-  -webkit-line-clamp: 2;
+  -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
+  word-break: break-word;
 }
 
 .articleExcerpt {
@@ -1900,6 +1957,14 @@
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+}
+
+.articleNoImageNote {
+  font-size: 0.625rem;
+  color: rgba(255, 255, 255, 0.45);
+  font-style: italic;
+  margin-top: auto;
+  line-height: 1.2;
 }
 
 .articleLink {

@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { useRouter, usePathname } from 'next/navigation';
+import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import { ChevronRight, Search, Check, Plus, X, Loader2, AlertCircle, Globe, Plug, PlugZap, Pencil, ExternalLink } from 'lucide-react';
 import { useLocale } from '@/app/context/locale-context';
 import { useSite } from '@/app/context/site-context';
@@ -95,6 +95,7 @@ export function SiteSelector({ onSiteChange }) {
   const { t } = useLocale();
   const router = useRouter();
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const { sites, selectedSite, setSelectedSite, setSites, isLoading } = useSite();
   const [isOpen, setIsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -130,6 +131,19 @@ export function SiteSelector({ onSiteChange }) {
       searchInputRef.current.focus();
     }
   }, [isOpen]);
+
+  // Auto-open AddSiteModal when redirected with ?addSite=1 (e.g. after deleting
+  // the last website from My Websites). Clears the param so refresh doesn't
+  // re-trigger the modal.
+  useEffect(() => {
+    if (searchParams?.get('addSite') === '1') {
+      setShowAddModal(true);
+      const params = new URLSearchParams(searchParams.toString());
+      params.delete('addSite');
+      const qs = params.toString();
+      router.replace(qs ? `${pathname}?${qs}` : pathname);
+    }
+  }, [searchParams, router, pathname]);
 
   // Update favicon in local state for a site
   const updateSiteFavicon = (siteId, favicon) => {

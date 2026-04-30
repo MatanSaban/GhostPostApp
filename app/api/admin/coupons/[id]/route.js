@@ -97,6 +97,8 @@ export async function PUT(request, { params }) {
       validFrom,
       validUntil,
       applicablePlanIds,
+      applicableAddOnIds,
+      applicableAddOnTypes,
       durationMonths,
       isActive,
     } = body;
@@ -131,6 +133,8 @@ export async function PUT(request, { params }) {
         ...(validFrom !== undefined && { validFrom: validFrom ? new Date(validFrom) : new Date() }),
         ...(validUntil !== undefined && { validUntil: validUntil ? new Date(validUntil) : null }),
         ...(applicablePlanIds !== undefined && { applicablePlanIds }),
+        ...(applicableAddOnIds !== undefined && { applicableAddOnIds: Array.isArray(applicableAddOnIds) ? applicableAddOnIds : [] }),
+        ...(applicableAddOnTypes !== undefined && { applicableAddOnTypes: Array.isArray(applicableAddOnTypes) ? applicableAddOnTypes : [] }),
         ...(durationMonths !== undefined && { durationMonths: durationMonths ? parseInt(durationMonths) : null }),
         ...(isActive !== undefined && { isActive }),
       },

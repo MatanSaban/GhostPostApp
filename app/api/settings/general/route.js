@@ -69,6 +69,12 @@ export async function GET(request) {
         platform: true,
         maintenanceMode: true,
         accountId: true,
+        favicon: true,
+        faviconCustom: true,
+        logo: true,
+        logoCustom: true,
+        logoBgLight: true,
+        logoBgDark: true,
         account: {
           select: {
             timezone: true,
@@ -104,6 +110,12 @@ export async function GET(request) {
         siteName: site.name,
         platform: site.platform,
         maintenanceMode: site.maintenanceMode,
+        favicon: site.favicon,
+        faviconCustom: site.faviconCustom,
+        logo: site.logo,
+        logoCustom: site.logoCustom,
+        logoBgLight: site.logoBgLight,
+        logoBgDark: site.logoBgDark,
         // Language: user's site preference > account default
         language: userPreference?.language || site.account.defaultLanguage || 'EN',
         // Timezone: user's site preference > account default

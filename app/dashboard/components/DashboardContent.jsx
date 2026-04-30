@@ -2425,8 +2425,12 @@ export default function DashboardContent({ translations }) {
 
         {/* End Column */}
         <div className={styles.endColumn}>
-          {/* AI Agent Activity - show first if it has insights */}
-          {hasAgentInsights && <AgentActivity translations={t} onInsightsLoaded={setHasAgentInsights} />}
+          {/* AI Agent Activity - mounted once; flex `order` swaps its position
+              based on hasAgentInsights so it doesn't remount + lose state when
+              a freshly-finished analysis fills it with new insights. */}
+          <div style={{ order: hasAgentInsights ? -1 : 1 }}>
+            <AgentActivity translations={t} onInsightsLoaded={setHasAgentInsights} />
+          </div>
 
           {/* AI Traffic Overview */}
           {loading ? (
@@ -2541,9 +2545,6 @@ export default function DashboardContent({ translations }) {
               )}
             </>
           ) : null}
-
-          {/* AI Agent Activity - show after AI Traffic if no insights */}
-          {!hasAgentInsights && <AgentActivity translations={t} onInsightsLoaded={setHasAgentInsights} />}
 
           {/* Quick Actions */}
           {/*

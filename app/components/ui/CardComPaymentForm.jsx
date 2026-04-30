@@ -479,11 +479,20 @@ export default function CardComPaymentForm({
     setCouponLoading(true);
     setCouponError('');
     try {
-      const planId = action?.planId || action?.itemId || null;
+      // Build the validate payload based on what's actually being purchased.
+      // Misrouting an add-on id as planId triggers the "not applicable to the
+      // selected plan" rejection (the validate endpoint does a plan lookup).
+      const isAddOn = action?.type === 'addon_purchase';
+      const validatePayload = { code: couponCode };
+      if (isAddOn) {
+        validatePayload.addOnId = action?.addOnId || action?.itemId || null;
+      } else {
+        validatePayload.planId = action?.planId || action?.itemId || null;
+      }
       const res = await fetch('/api/public/coupons/validate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ code: couponCode, planId }),
+        body: JSON.stringify(validatePayload),
       });
       const data = await res.json();
       if (res.ok && data.valid) {

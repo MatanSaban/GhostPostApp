@@ -53,7 +53,7 @@ export async function POST(request, { params }) {
     }
 
     const body = await request.json().catch(() => ({}));
-    const { fromEntityId, toEntityId } = body;
+    const { fromEntityId, toEntityId, gapType } = body;
     if (!fromEntityId || !toEntityId) {
       return NextResponse.json(
         { error: 'fromEntityId and toEntityId are required' },
@@ -63,6 +63,9 @@ export async function POST(request, { params }) {
     if (fromEntityId === toEntityId) {
       return NextResponse.json({ error: 'from and to must differ' }, { status: 400 });
     }
+    // gapType is optional + advisory. When provided, must be one of the four.
+    const VALID_GAP_TYPES = new Set(['PARENT', 'ANCESTOR', 'BRAND', 'SIBLING']);
+    const validGapType = gapType && VALID_GAP_TYPES.has(gapType) ? gapType : null;
 
     const site = cluster.site;
     if (site.connectionStatus !== 'CONNECTED') {
@@ -124,6 +127,7 @@ export async function POST(request, { params }) {
       targetTitle: toEntity.title,
       targetUrl: toEntity.url,
       targetKeyword: targetKeywordRow?.keyword || cluster.mainKeyword,
+      gapType: validGapType,
       accountId: site.accountId,
       userId: user.id,
       siteId: cluster.siteId,

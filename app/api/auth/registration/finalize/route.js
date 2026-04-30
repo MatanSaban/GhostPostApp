@@ -4,6 +4,7 @@ import prisma from '@/lib/prisma';
 import { getNextFirstOfMonth } from '@/lib/proration';
 import { getDraftAccountForUser } from '@/lib/draft-account';
 import { migrateDraftEntityScanToSite } from '@/lib/entity-scan-migration';
+import { notifyAdmins, emailTemplates } from '@/lib/mailer';
 
 const SESSION_COOKIE = 'user_session';
 const REG_DONE_COOKIE = 'reg_done';
@@ -293,6 +294,24 @@ export async function POST() {
           console.error('[Finalize] Entity scan migration failed:', e);
         }
       });
+    }
+
+    try {
+      notifyAdmins(emailTemplates.adminNewUser({
+        user: {
+          id: result.user.id,
+          email: result.user.email,
+          firstName: result.user.firstName,
+          lastName: result.user.lastName,
+          phoneNumber: result.user.phoneNumber,
+        },
+        account: { id: result.account.id, name: result.account.name },
+        plan: { name: plan.name },
+        site: result.site ? { url: result.site.url } : null,
+        couponCode,
+      }));
+    } catch (e) {
+      console.error('[Finalize] admin notification failed:', e);
     }
 
     // Mark the session as a completed (non-draft) user so middleware allows it

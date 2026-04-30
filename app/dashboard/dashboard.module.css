@@ -1028,6 +1028,27 @@
   animation: pulse 2s ease-in-out infinite;
 }
 
+/* When the badge carries a number (unread message count from chat), it
+   becomes a pill-shaped counter instead of a tiny dot. Same anchor +
+   pulsing animation, but sized to fit one or two characters. */
+.chatButtonBadgeCount {
+  width: auto;
+  min-width: 1.1rem;
+  height: 1.1rem;
+  padding: 0 0.35rem;
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  border-radius: 999px;
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: 700;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0;
+}
+
 @keyframes pulse {
   0%, 100% {
     box-shadow: 0 0 0 0 rgba(0, 255, 157, 0.4);

@@ -12,7 +12,7 @@ import { useEntitiesScan } from '@/app/hooks/useEntitiesScan';
 import styles from './interview-wizard.module.css';
 
 export const InterviewWizard = forwardRef(function InterviewWizard({ onClose, onComplete, site }, ref) {
-  const { t, dictionary, isLoading: isDictionaryLoading } = useLocale();
+  const { t, dictionary, locale, isLoading: isDictionaryLoading } = useLocale();
   const { isMaximized, toggleMaximize } = useModalResize();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -86,6 +86,12 @@ export const InterviewWizard = forwardRef(function InterviewWizard({ onClose, on
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
   const messageIdCounter = useRef(0);
+  // Tracks whether a competitor search is in flight (foreground or
+  // background prefetch). Defined here at the top of the component because
+  // both the early prefetch effect and the on-question fallback effect
+  // reference it; declaring it inline next to one of them caused a TDZ
+  // error in the prefetch path.
+  const competitorSearchInProgress = useRef(false);
 
   // Entity-scan hook for the optional ENTITIES_SELECTION sub-step. When the
   // site has no enabled entity types, fetchInterview injects an
@@ -402,6 +408,20 @@ export const InterviewWizard = forwardRef(function InterviewWizard({ onClose, on
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
+  // When dynamic options (e.g. fetched blog posts grid) finish loading or
+  // change size, the panel below the chat grows and pushes the active
+  // question off-screen. Re-scroll so the user can see the new grid + the
+  // confirm/skip actions without manually scrolling.
+  useEffect(() => {
+    if (!isLoadingDynamicOptions && dynamicOptions.length > 0) {
+      // Use rAF + small delay so the layout has flushed before we scroll.
+      const id = requestAnimationFrame(() => {
+        setTimeout(() => scrollToBottom(), 50);
+      });
+      return () => cancelAnimationFrame(id);
+    }
+  }, [isLoadingDynamicOptions, dynamicOptions.length]);
 
   useEffect(() => {
     inputRef.current?.focus();
@@ -776,9 +796,9 @@ export const InterviewWizard = forwardRef(function InterviewWizard({ onClose, on
     runAutoAction();
   }, [currentQuestionIndex, questionsData]);
 
-  // Handle competitor finding for AI_SUGGESTION questions with findCompetitors source
-  const competitorSearchInProgress = useRef(false);
-  
+  // Handle competitor finding for AI_SUGGESTION questions with findCompetitors source.
+  // (competitorSearchInProgress ref declared at the top of the component so
+  // the prefetch effect can also touch it.)
   useEffect(() => {
     // Early exit if a competitor search was already completed or is in progress
     if (competitorSearchInProgress.current) return;
@@ -1096,6 +1116,208 @@ export const InterviewWizard = forwardRef(function InterviewWizard({ onClose, on
     }
   };
 
+  // Silent variant of triggerAiAction. Fires the same /api/interview/actions
+  // endpoint but does NOT toggle any user-visible loading state. Used for
+  // background prefetches kicked off mid-interview (e.g. competitor search
+  // and writing-style analysis) so the chat doesn't flash a spinner banner
+  // for an action the user hasn't actually reached yet. Caller is expected
+  // to refresh interview data themselves if they need the result locally.
+  const triggerAiActionSilently = async (actionName, params) => {
+    try {
+      const res = await fetch('/api/interview/actions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          actionName,
+          parameters: { userLocale: locale, ...params },
+          interviewId,
+        }),
+      });
+      if (!res.ok) {
+        return { success: false, error: `HTTP ${res.status}` };
+      }
+      return await res.json();
+    } catch (err) {
+      console.warn(`[Prefetch] ${actionName} failed silently:`, err.message);
+      return { success: false, error: err.message };
+    }
+  };
+
+  // Mirrors competitorSearchInProgress ref into state so the UI can react
+  // to it. We need both: the ref short-circuits effects synchronously,
+  // while the state lets the empty-state JSX hide the "no competitors
+  // found" panel during a background prefetch.
+  const [isCompetitorSearchInFlight, setIsCompetitorSearchInFlight] = useState(false);
+
+  // Background prefetch — competitor search.
+  // The competitor question takes 5–10s to render because FIND_COMPETITORS
+  // calls Google Search via Gemini grounding for each selected keyword.
+  // Once the user has answered keywords AND target locations, we have
+  // everything the handler needs, so we kick the search off NOW and let it
+  // populate externalData while the user continues through later questions.
+  // By the time they reach the competitor step, results are cached and the
+  // step renders instantly without the noisy "מחפש מתחרים בגוגל..." banner.
+  const competitorPrefetchTriggered = useRef(false);
+  useEffect(() => {
+    if (competitorPrefetchTriggered.current) return;
+    if (!interviewId) return;
+    if (creditsError) return;
+    // Need both keywords and at least one target location to prefetch.
+    const kws = responses?.keywords;
+    const locs = responses?.targetLocations;
+    const hasKws = Array.isArray(kws) ? kws.length > 0 : !!kws;
+    const hasLocs = Array.isArray(locs) ? locs.length > 0 : !!locs;
+    if (!hasKws || !hasLocs) return;
+    // Skip if we already have results cached from a previous run.
+    if ((externalData?.competitorSuggestions?.length || 0) > 0) return;
+    if (competitorSearchInProgress.current) return;
+
+    competitorPrefetchTriggered.current = true;
+    competitorSearchInProgress.current = true;
+    setIsCompetitorSearchInFlight(true);
+    console.log('[Prefetch] Starting background competitor search');
+
+    triggerAiActionSilently('FIND_COMPETITORS', {
+      keywords: Array.isArray(kws) ? kws : [kws],
+    })
+      .then(async (result) => {
+        if (!result.success) {
+          // Reset so the on-question fallback can try again if it fires.
+          competitorSearchInProgress.current = false;
+          competitorPrefetchTriggered.current = false;
+          setIsCompetitorSearchInFlight(false);
+          return;
+        }
+        // Pull the freshly-stored suggestions back into local state.
+        const fresh = await refreshInterviewData();
+        const suggestions = fresh?.competitorSuggestions || [];
+        if (suggestions.length > 0) {
+          setCompetitorSuggestions(suggestions);
+          const autoSelectedUrls = suggestions
+            .filter((c) => c.autoSelected)
+            .map((c) => {
+              try {
+                const parsed = new URL(c.url);
+                return `${parsed.protocol}//${parsed.host}`;
+              } catch {
+                return c.url;
+              }
+            });
+          if (autoSelectedUrls.length > 0) {
+            setSelectedCompetitors(autoSelectedUrls);
+          }
+        }
+        setIsCompetitorSearchInFlight(false);
+      })
+      .catch((err) => {
+        console.warn('[Prefetch] competitor search failed:', err);
+        competitorSearchInProgress.current = false;
+        competitorPrefetchTriggered.current = false;
+        setIsCompetitorSearchInFlight(false);
+      });
+    // We intentionally don't list externalData/competitorSearchInProgress as
+    // deps — they're checked imperatively above. Re-running on every responses
+    // change is the trigger point.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [responses?.keywords, responses?.targetLocations, interviewId]);
+
+  // Background prefetch — keyword generation.
+  // GENERATE_KEYWORDS reads the crawled site content + category and asks
+  // an LLM for a list of real SEO search queries. It's a 5-10s call that
+  // currently fires when the user reaches the keywords question and shows
+  // a loading banner. We kick it off as soon as the crawl finishes so by
+  // the time the user gets to "Pick relevant keywords" the suggestions
+  // are already populated and the step renders instantly.
+  const keywordPrefetchTriggered = useRef(false);
+  useEffect(() => {
+    if (keywordPrefetchTriggered.current) return;
+    if (!interviewId) return;
+    if (creditsError) return;
+    const url = responses?.websiteUrl || externalData?.crawledData?.url;
+    if (!url) return;
+    if (!externalData?.crawledData) return;
+    // Skip if suggestions are already cached.
+    if ((externalData?.keywordSuggestions?.length || 0) > 0) return;
+
+    keywordPrefetchTriggered.current = true;
+    console.log('[Prefetch] Starting background keyword generation');
+
+    const filterPlaceholders = (keywords) =>
+      (keywords || []).filter((k) => !/\[.*?\]/.test(typeof k === 'string' ? k : k.keyword));
+
+    triggerAiActionSilently('GENERATE_KEYWORDS', {
+      url,
+      category: externalData?.crawledData?.category,
+    })
+      .then(async (result) => {
+        if (!result.success) {
+          keywordPrefetchTriggered.current = false;
+          return;
+        }
+        const fresh = await refreshInterviewData();
+        const rawKeywords = fresh?.keywordSuggestions || result.result?.keywords || [];
+        const keywords = filterPlaceholders(rawKeywords);
+        if (keywords.length > 0) {
+          setAiSuggestions(keywords);
+          const preSelected = keywords
+            .filter((k) => k.type === 'primary')
+            .slice(0, 10)
+            .map((k) => k.keyword);
+          if (preSelected.length > 0) setSelectedSuggestions(preSelected);
+        }
+      })
+      .catch((err) => {
+        console.warn('[Prefetch] keyword generation failed:', err);
+        keywordPrefetchTriggered.current = false;
+      });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [responses?.websiteUrl, externalData?.crawledData, interviewId]);
+
+  // Background prefetch — writing-style analysis.
+  // Same idea as the competitor prefetch: ANALYZE_WRITING_STYLE takes a few
+  // seconds because the handler scrapes the site and runs an LLM on a
+  // content sample. We kick it off as soon as the URL is confirmed AND
+  // crawl data is available, so by the time the user reaches the writing
+  // style question the recommendation is already populated and the banner
+  // doesn't appear.
+  const writingStylePrefetchTriggered = useRef(false);
+  useEffect(() => {
+    if (writingStylePrefetchTriggered.current) return;
+    if (!interviewId) return;
+    if (creditsError) return;
+    // Need a confirmed URL and finished crawl to bother running this.
+    const url = responses?.websiteUrl || externalData?.crawledData?.url;
+    if (!url) return;
+    if (!externalData?.crawledData) return;
+    // Skip if analysis already cached.
+    if (externalData?.writingStyleAnalysis) return;
+
+    writingStylePrefetchTriggered.current = true;
+    console.log('[Prefetch] Starting background writing-style analysis');
+
+    triggerAiActionSilently('ANALYZE_WRITING_STYLE', { url })
+      .then(async (result) => {
+        if (!result.success) {
+          writingStylePrefetchTriggered.current = false;
+          return;
+        }
+        const fresh = await refreshInterviewData();
+        const analysis = fresh?.writingStyleAnalysis;
+        if (analysis?.style) {
+          setAiRecommendation({
+            value: analysis.style.tone,
+            confidence: analysis.style.confidence || 0.5,
+            characteristics: analysis.style.characteristics || [],
+          });
+        }
+      })
+      .catch((err) => {
+        console.warn('[Prefetch] writing-style analysis failed:', err);
+        writingStylePrefetchTriggered.current = false;
+      });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [responses?.websiteUrl, externalData?.crawledData, interviewId]);
+
   // Handle manual blog URL fetch (when automatic discovery fails)
   const handleBlogUrlFetch = async (url) => {
     setBlogDiscoveryPhase('fetching');
@@ -1398,7 +1620,20 @@ export const InterviewWizard = forwardRef(function InterviewWizard({ onClose, on
         await refreshInterviewData();
       }
       
-      moveToNextQuestion();
+      // Hand the just-submitted answer + saveToField to moveToNextQuestion
+      // directly so the showCondition lookup never races against the
+      // setResponses commit. Previously moveToNextQuestion read
+      // responsesRef.current inside setTimeout(0); under some scheduling
+      // (e.g. submitResponse resolving inside the same task as the state
+      // update flush), the ref still held the prior value and a question
+      // like wordpressPlugin would display even after the user picked
+      // "custom" on the platform step.
+      const justAnswered = {
+        questionId: currentQuestion.id,
+        saveToField: currentQuestion.saveToField,
+        value: submittedValue,
+      };
+      moveToNextQuestion(justAnswered);
     } else {
       // Remove processing message on error
       if (isUrlInput) {
@@ -1408,7 +1643,7 @@ export const InterviewWizard = forwardRef(function InterviewWizard({ onClose, on
     }
   };
 
-  const moveToNextQuestion = async () => {
+  const moveToNextQuestion = async (justAnswered = null) => {
     // Reset dynamic options state when moving to next question
     setDynamicOptions([]);
     setSelectedDynamicOptions([]);
@@ -1428,9 +1663,16 @@ export const InterviewWizard = forwardRef(function InterviewWizard({ onClose, on
       // past the competitor question. It stays true until a new interview starts.
       setCompetitorSuggestions([]);
       
-      // Find next question that passes showCondition
-      // Use ref to get latest responses (avoids stale closure from setTimeout)
-      const latestResponses = responsesRef.current;
+      // Find next question that passes showCondition.
+      // Build "latest responses" by overlaying the just-answered field on top
+      // of the ref. This ensures the showCondition for the very next step
+      // sees the correct value even if the React commit -> ref update -> our
+      // setTimeout race resolved in the wrong order.
+      const latestResponses = { ...responsesRef.current };
+      if (justAnswered) {
+        if (justAnswered.questionId) latestResponses[justAnswered.questionId] = justAnswered.value;
+        if (justAnswered.saveToField) latestResponses[justAnswered.saveToField] = justAnswered.value;
+      }
       let nextIndex = currentQuestionIndex + 1;
       while (nextIndex < questions.length) {
         const candidate = questions[nextIndex];
@@ -1633,7 +1875,7 @@ export const InterviewWizard = forwardRef(function InterviewWizard({ onClose, on
     setCompetitorSuggestions([]);
     setSelectedCompetitors([]);
     setAiSuggestions(null);
-    setSelectedKeywords([]);
+    setSelectedSuggestions([]);
 
     // Re-add the agent question message
     const question = questions[questionIdx];
@@ -1735,7 +1977,7 @@ export const InterviewWizard = forwardRef(function InterviewWizard({ onClose, on
     setCompetitorSuggestions([]);
     setSelectedCompetitors([]);
     setAiSuggestions(null);
-    setSelectedKeywords([]);
+    setSelectedSuggestions([]);
 
     // Re-add the agent question message
     const question = questions[questionIdx];
@@ -2180,13 +2422,23 @@ export const InterviewWizard = forwardRef(function InterviewWizard({ onClose, on
           
           return (
             <div className={styles.aiSuggestionContainer}>
-              {isLoadingCompetitors && (
-                <div className={styles.aiLoadingBanner}>
-                  <Loader2 size={16} className={styles.spinIcon} />
-                  <span>{t('interviewWizard.messages.findingCompetitors') || 'Finding competitors based on your keywords...'}</span>
+              {/* Competitor search now prefetches in the background as soon
+                  as keywords + targetLocations are answered, so by the time
+                  the user reaches this step results are usually already
+                  cached. The old "Searching Google for competitors..."
+                  banner was loud and gave the impression of a long blocking
+                  wait, so we replaced it with a subtle inline pending row.
+                  Show it whenever ANY search is in flight (foreground via
+                  isLoadingCompetitors, or background via the prefetch flag)
+                  AND we don't yet have results — otherwise the user briefly
+                  sees the "no competitors found" empty state while the
+                  prefetch is still running, which is exactly the bug. */}
+              {(isLoadingCompetitors || isCompetitorSearchInFlight) && competitorSuggestions.length === 0 && (
+                <div className={styles.competitorPendingRow}>
+                  <Loader2 size={14} className={styles.spinIcon} />
                 </div>
               )}
-              
+
               {!isLoadingCompetitors && competitorSuggestions.length > 0 && (
                 <>
                   <div className={styles.competitorCardsGrid}>
@@ -2204,12 +2456,15 @@ export const InterviewWizard = forwardRef(function InterviewWizard({ onClose, on
                       const keywords = competitor.keywords || [];
                       const isSelected = selectedCompetitors.includes(url);
                       const isAutoSelected = competitor.autoSelected;
-                      
-                      // Build description showing which keywords this competitor ranks for
-                      let description = '';
-                      if (keywordCount > 0) {
+
+                      // Prefer the meta-description scraped server-side (a
+                      // real one-line summary of the competitor) over the
+                      // synthesized "Ranks for: ..." line. Fall back to the
+                      // keyword line when no description was available.
+                      let description = competitor.description || '';
+                      if (!description && keywordCount > 0) {
                         const keywordNames = keywords.map(k => k.keyword).slice(0, 3).join(', ');
-                        description = keywordCount > 1 
+                        description = keywordCount > 1
                           ? `${t('interviewWizard.messages.ranksFor') || 'Ranks for'}: ${keywordNames}${keywords.length > 3 ? '...' : ''}`
                           : `${t('interviewWizard.messages.ranksFor') || 'Ranks for'}: ${keywordNames}`;
                       }
@@ -2271,15 +2526,27 @@ export const InterviewWizard = forwardRef(function InterviewWizard({ onClose, on
                           // Validate URL format
                           try {
                             const urlObj = new URL(url.startsWith('http') ? url : `https://${url}`);
-                            const normalizedUrl = urlObj.href;
+                            // Normalize to homepage URL (protocol + host only).
+                            // CRITICAL: this must match the same normalization
+                            // applied above when rendering existing cards
+                            // (`${parsed.protocol}//${parsed.host}`). Otherwise
+                            // selectedCompetitors holds the trailing-slash
+                            // form ("https://x.com/") while the card lookup
+                            // uses the no-slash form ("https://x.com"), so
+                            // `includes()` returns false and the card never
+                            // shows as selected even though it counts toward
+                            // the limit — and clicking again adds a *second*
+                            // entry for the same site.
+                            const normalizedUrl = `${urlObj.protocol}//${urlObj.host}`;
                             if (!selectedCompetitors.includes(normalizedUrl) && selectedCompetitors.length < maxCompetitors) {
                               setSelectedCompetitors(prev => [...prev, normalizedUrl]);
                               // Also add to suggestions so it shows in the grid
-                              setCompetitorSuggestions(prev => [...prev, { 
-                                url: normalizedUrl, 
+                              setCompetitorSuggestions(prev => [...prev, {
+                                url: normalizedUrl,
                                 name: urlObj.hostname.replace('www.', ''),
+                                domain: urlObj.hostname.replace(/^www\./, ''),
                                 description: t('interviewWizard.messages.manuallyAdded') || 'Manually added',
-                                isManual: true
+                                isManual: true,
                               }]);
                             }
                             e.target.value = '';
@@ -2323,7 +2590,12 @@ export const InterviewWizard = forwardRef(function InterviewWizard({ onClose, on
                 </>
               )}
               
-              {!isLoadingCompetitors && competitorSuggestions.length === 0 && (
+              {/* Only show the "no competitors found" empty state once we're
+                  certain there's no search still running. Without the
+                  isCompetitorSearchInFlight check the user briefly sees
+                  "No competitors found" while the background prefetch
+                  is still working, then the cards pop in afterwards. */}
+              {!isLoadingCompetitors && !isCompetitorSearchInFlight && competitorSuggestions.length === 0 && (
                 <div className={styles.noSuggestions}>
                   <p>{t('interviewWizard.messages.noCompetitorsFound') || 'No competitors found. Add your own or skip this step.'}</p>
                   
@@ -2338,14 +2610,19 @@ export const InterviewWizard = forwardRef(function InterviewWizard({ onClose, on
                           const url = e.target.value.trim();
                           try {
                             const urlObj = new URL(url.startsWith('http') ? url : `https://${url}`);
-                            const normalizedUrl = urlObj.href;
+                            // Same normalization as the populated-state branch
+                            // and as the existing competitor cards. See the
+                            // longer comment above; mismatched normalization
+                            // is what caused the "added but not selected" bug.
+                            const normalizedUrl = `${urlObj.protocol}//${urlObj.host}`;
                             if (!selectedCompetitors.includes(normalizedUrl) && selectedCompetitors.length < maxCompetitors) {
                               setSelectedCompetitors(prev => [...prev, normalizedUrl]);
-                              setCompetitorSuggestions(prev => [...prev, { 
-                                url: normalizedUrl, 
+                              setCompetitorSuggestions(prev => [...prev, {
+                                url: normalizedUrl,
                                 name: urlObj.hostname.replace('www.', ''),
+                                domain: urlObj.hostname.replace(/^www\./, ''),
                                 description: t('interviewWizard.messages.manuallyAdded') || 'Manually added',
-                                isManual: true
+                                isManual: true,
                               }]);
                             }
                             e.target.value = '';
@@ -2393,13 +2670,16 @@ export const InterviewWizard = forwardRef(function InterviewWizard({ onClose, on
           
           return (
             <div className={styles.aiSuggestionContainer}>
-              {isLoadingAiSuggestions && (
-                <div className={styles.aiLoadingBanner}>
-                  <Loader2 size={16} className={styles.spinIcon} />
-                  <span>{t('interviewWizard.messages.generatingKeywords') || 'Generating keyword suggestions...'}</span>
+              {/* Keyword generation now prefetches in the background as
+                  soon as the crawl finishes (see keywordPrefetchTriggered
+                  effect). The loud banner only shows now if the user
+                  somehow got here before the prefetch completed. */}
+              {isLoadingAiSuggestions && (!aiSuggestions || aiSuggestions.length === 0) && (
+                <div className={styles.competitorPendingRow}>
+                  <Loader2 size={14} className={styles.spinIcon} />
                 </div>
               )}
-              
+
               {!isLoadingAiSuggestions && aiSuggestions && aiSuggestions.length > 0 && (
                 <>
                   <div className={styles.keywordTagsGrid}>
@@ -2537,13 +2817,17 @@ export const InterviewWizard = forwardRef(function InterviewWizard({ onClose, on
         
         return (
           <div className={styles.aiSuggestionContainer}>
-            {isLoadingAiRecommendation && (
-              <div className={styles.aiLoadingBanner}>
-                <Loader2 size={16} className={styles.spinIcon} />
-                <span>{t('interviewWizard.messages.analyzingStyle') || 'Analyzing your content style...'}</span>
+            {/* Writing-style analysis prefetches in the background as soon
+                as the site crawl finishes (see the
+                writingStylePrefetchTriggered effect above). The old
+                "Analyzing your content style..." banner only shows now if
+                the user got here before the prefetch finished. */}
+            {isLoadingAiRecommendation && !aiRecommendation && (
+              <div className={styles.competitorPendingRow}>
+                <Loader2 size={14} className={styles.spinIcon} />
               </div>
             )}
-            
+
             {!isLoadingAiRecommendation && aiRecommendation && aiConfidence > 0.3 && (
               <div className={styles.aiRecommendationBanner}>
                 <span className={styles.aiRecommendationIcon}>✨</span>
@@ -2998,50 +3282,62 @@ export const InterviewWizard = forwardRef(function InterviewWizard({ onClose, on
             {!isLoadingDynamicOptions && dynamicOptions.length > 0 && (
               <>
                 <div className={styles.articlesGrid}>
-                  {dynamicOptions.map((article, index) => (
-                    <button
-                      key={article.url || index}
-                      className={`${styles.articleCard} ${
-                        selectedDynamicOptions.includes(article.url) ? styles.selected : ''
-                      }`}
-                      onClick={() => toggleDynamicSelection(article.url)}
-                      disabled={
-                        !selectedDynamicOptions.includes(article.url) && 
-                        selectedDynamicOptions.length >= maxDynamicSelections
-                      }
-                    >
-                      {article.image && (
-                        <div className={styles.articleImage}>
-                          <img src={article.image} alt="" />
-                        </div>
-                      )}
-                      <div className={styles.articleContent}>
-                        <h4 className={styles.articleTitle}>
-                          {article.title || t('interviewWizard.messages.untitledArticle')}
-                        </h4>
-                        {article.excerpt && (
-                          <p className={styles.articleExcerpt}>{article.excerpt}</p>
+                  {dynamicOptions.map((article, index) => {
+                    const hasImage = !!article.image;
+                    const title = article.title || t('interviewWizard.messages.untitledArticle');
+                    return (
+                      <button
+                        key={article.url || index}
+                        className={`${styles.articleCard} ${
+                          selectedDynamicOptions.includes(article.url) ? styles.selected : ''
+                        }`}
+                        onClick={() => toggleDynamicSelection(article.url)}
+                        disabled={
+                          !selectedDynamicOptions.includes(article.url) &&
+                          selectedDynamicOptions.length >= maxDynamicSelections
+                        }
+                        title={title}
+                      >
+                        {hasImage ? (
+                          <div className={styles.articleImage}>
+                            <img src={article.image} alt="" />
+                          </div>
+                        ) : (
+                          <div className={styles.articleNoImage}>
+                            {t('interviewWizard.messages.noFeaturedImage')}
+                          </div>
                         )}
-                      </div>
-                      {article.url && (
-                        <a
-                          href={article.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className={styles.articleLink}
-                          onClick={(e) => e.stopPropagation()}
-                          title={t('common.openInNewTab')}
-                        >
-                          <ExternalLink size={14} />
-                        </a>
-                      )}
-                      {selectedDynamicOptions.includes(article.url) && (
-                        <div className={styles.selectedBadge}>
-                          <Check size={14} />
+                        <div className={styles.articleContent}>
+                          <h4 className={styles.articleTitle}>{title}</h4>
+                          {hasImage && article.excerpt && (
+                            <p className={styles.articleExcerpt}>{article.excerpt}</p>
+                          )}
+                          {!hasImage && (
+                            <span className={styles.articleNoImageNote}>
+                              {t('interviewWizard.messages.noFeaturedImageNote')}
+                            </span>
+                          )}
                         </div>
-                      )}
-                    </button>
-                  ))}
+                        {article.url && (
+                          <a
+                            href={article.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className={styles.articleLink}
+                            onClick={(e) => e.stopPropagation()}
+                            title={t('common.openInNewTab')}
+                          >
+                            <ExternalLink size={14} />
+                          </a>
+                        )}
+                        {selectedDynamicOptions.includes(article.url) && (
+                          <div className={styles.selectedBadge}>
+                            <Check size={14} />
+                          </div>
+                        )}
+                      </button>
+                    );
+                  })}
                 </div>
                 
                 <div className={styles.dynamicActions}>

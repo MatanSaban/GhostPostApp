@@ -8,6 +8,8 @@ import {
 } from '@/lib/cardcom';
 import { canPurchaseAddOn, addAiCredits, getOwnedAccount } from '@/lib/account-utils';
 import { getNextFirstOfMonth } from '@/lib/proration';
+import { redeemAddOnCouponBestEffort } from '@/lib/coupon-redemption';
+import { notifyAdmins, emailTemplates } from '@/lib/mailer';
 
 const SESSION_COOKIE = 'user_session';
 
@@ -201,6 +203,22 @@ export async function POST(request) {
       actionResult = await handlePlanUpgrade(paymentForAction, action);
     }
 
+    try {
+      notifyAdmins(emailTemplates.adminNewPayment({
+        kind: action?.type || 'saved_card',
+        amount,
+        currency,
+        user,
+        account: { id: account.id, name: account.name },
+        productName,
+        planName: actionResult?.type === 'plan_upgrade' ? actionResult.planName : null,
+        transactionId: chargeResult?.TranzactionId || null,
+        couponCode: action?.coupon?.code || null,
+      }));
+    } catch (e) {
+      console.error('[Saved-Card Charge] admin notification failed:', e);
+    }
+
     return NextResponse.json({
       success: true,
       message: 'Payment confirmed successfully',
@@ -249,7 +267,22 @@ async function handleAddonPurchase(payment, action) {
     });
   }
 
-  return { type: 'addon_purchase', purchaseId: purchase.id, addOnName: addOn.name };
+  // Best-effort coupon redemption — see note in /payment/confirm.
+  const couponResult = await redeemAddOnCouponBestEffort(prisma, {
+    couponCode: action?.coupon?.code,
+    addOn: { id: addOn.id, type: addOn.type },
+    addOnPurchase: purchase,
+    accountId: payment.accountId,
+    subscriptionId: subscription.id,
+  });
+
+  return {
+    type: 'addon_purchase',
+    purchaseId: purchase.id,
+    addOnName: addOn.name,
+    couponApplied: couponResult.coupon ? { code: couponResult.coupon.code } : null,
+    couponError: couponResult.error || undefined,
+  };
 }
 
 async function handlePlanUpgrade(payment, action) {

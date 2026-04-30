@@ -76,6 +76,15 @@ export default function DashboardLayout({ children }) {
   const { selectedSite } = useSite();
   const { filterMenuItems, canViewPath, canAccessAnySettingsTab, isLoading: isPermissionsLoading } = usePermissions();
   const [isChatOpen, setIsChatOpen] = useState(false);
+  // Aggregate unread count broadcast by the chat popup. Drives the floating
+  // chat button badge so the user sees waiting messages even with the chat
+  // closed (e.g. after a long-running site audit posts its result).
+  const [chatUnreadCount, setChatUnreadCount] = useState(0);
+  useEffect(() => {
+    const onUnread = (e) => setChatUnreadCount(e.detail?.totalUnread || 0);
+    window.addEventListener('ghostseo:chat-unread', onUnread);
+    return () => window.removeEventListener('ghostseo:chat-unread', onUnread);
+  }, []);
   // Single state for open menu - only one can be open at a time (accordion behavior)
   const [openMenu, setOpenMenu] = useState(null); // 'strategy' | 'entities' | 'tools' | null
   const [transitionKey, setTransitionKey] = useState(0);
@@ -580,7 +589,18 @@ export default function DashboardLayout({ children }) {
             className={styles.chatButtonLogo}
           />
         )}
-        {!isChatOpen && <span className={styles.chatButtonBadge}></span>}
+        {/* Floating chat bubble badge: counts assistant messages waiting in
+            ANY conversation for this user across all sites. Driven by the
+            ghostseo:chat-unread event fired by the popup's conversations
+            poll. When chat is closed and no unread, fall back to the
+            historical "live indicator" pulsing dot so the bubble still
+            reads as interactive. */}
+        {!isChatOpen && chatUnreadCount > 0 && (
+          <span className={`${styles.chatButtonBadge} ${styles.chatButtonBadgeCount}`}>
+            {chatUnreadCount > 9 ? '9+' : chatUnreadCount}
+          </span>
+        )}
+        {!isChatOpen && chatUnreadCount === 0 && <span className={styles.chatButtonBadge}></span>}
       </button>
 
       {/* Chat Popup */}

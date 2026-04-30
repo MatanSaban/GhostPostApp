@@ -185,14 +185,26 @@ export function translateReason(issue, labels) {
       titleH1Similarity: 'reasonTitleH1Similarity',
       querySignals: 'reasonQuerySignals',
       aiVerified: 'reasonAiVerified',
+      embeddingMerge: 'reasonEmbeddingMerge',
     };
-    
+
     const templateKey = keyMap[reasonKey];
     const template = labels?.[templateKey];
     if (!template) return issue.reason || '';
-    
-    // For querySignals, translate individual signal names
+
     let params = { ...reasonParams };
+
+    // Translate raw source tokens (PROACTIVE, REACTIVE_GSC, AI_VERIFIED) so {sources} renders in the user's language.
+    if (typeof params.sources === 'string') {
+      const sourceLabels = {
+        'PROACTIVE': labels?.sourceProactive || 'Pattern matching',
+        'REACTIVE_GSC': labels?.sourceReactiveGsc || 'Search Console',
+        'AI_VERIFIED': labels?.sourceAiVerified || 'AI verification',
+      };
+      params.sources = params.sources.split(' + ').map(s => sourceLabels[s] || s).join(' + ');
+    }
+
+    // For querySignals, translate individual signal names
     if (reasonKey === 'querySignals' && params.signals) {
       const signalLabels = {
         'impression split': labels?.signalImpressionSplit || 'Impression split',

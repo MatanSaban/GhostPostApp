@@ -594,7 +594,7 @@ export async function POST(request, { params }) {
 
     const site = await prisma.site.findUnique({
       where: { id: siteId },
-      select: { id: true, url: true, accountId: true, logo: true, logoCheckedAt: true, logoBgLight: true, logoBgDark: true },
+      select: { id: true, url: true, accountId: true, logo: true, logoCheckedAt: true, logoBgLight: true, logoBgDark: true, logoCustom: true },
     });
 
     if (!site) {
@@ -603,6 +603,11 @@ export async function POST(request, { params }) {
 
     if (!user?.isSuperAdmin && site.accountId !== user?.lastSelectedAccountId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
+    }
+
+    // User-uploaded custom logos are never auto-refreshed
+    if (site.logoCustom) {
+      return NextResponse.json({ logo: site.logo, logoBgLight: site.logoBgLight, logoBgDark: site.logoBgDark, refreshed: false, custom: true });
     }
 
     // Check if refresh is needed (force=true bypasses cache)
@@ -654,5 +659,150 @@ export async function POST(request, { params }) {
   } catch (error) {
     console.error('[Logo] Error:', error);
     return NextResponse.json({ error: 'Failed to check logo' }, { status: 500 });
+  }
+}
+
+const ALLOWED_MIME = ['image/png', 'image/jpeg', 'image/jpg', 'image/webp', 'image/svg+xml', 'image/gif'];
+const MAX_BYTES = 5 * 1024 * 1024; // 5MB
+
+async function authorizeSiteAccess(siteId, userId) {
+  if (!userId) return { error: 'Unauthorized', status: 401 };
+
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { lastSelectedAccountId: true, isSuperAdmin: true },
+  });
+
+  const site = await prisma.site.findUnique({
+    where: { id: siteId },
+    select: { id: true, url: true, accountId: true, logo: true, logoBgLight: true, logoBgDark: true, logoCustom: true },
+  });
+
+  if (!site) return { error: 'Site not found', status: 404 };
+  if (!user?.isSuperAdmin && site.accountId !== user?.lastSelectedAccountId) {
+    return { error: 'Unauthorized', status: 403 };
+  }
+  return { site };
+}
+
+// PUT - Upload a custom logo (overrides auto-detection)
+export async function PUT(request, { params }) {
+  try {
+    const cookieStore = await cookies();
+    const userId = cookieStore.get(SESSION_COOKIE)?.value;
+    const { id: siteId } = await params;
+
+    const auth = await authorizeSiteAccess(siteId, userId);
+    if (auth.error) return NextResponse.json({ error: auth.error }, { status: auth.status });
+
+    const body = await request.json();
+    const { dataUri, mimeType } = body || {};
+
+    if (!dataUri || typeof dataUri !== 'string' || !dataUri.startsWith('data:')) {
+      return NextResponse.json({ error: 'Invalid image data' }, { status: 400 });
+    }
+
+    const detectedMime = (mimeType || dataUri.match(/^data:([^;]+);/)?.[1] || '').toLowerCase();
+    if (!ALLOWED_MIME.includes(detectedMime)) {
+      return NextResponse.json({ error: 'Unsupported image format' }, { status: 400 });
+    }
+
+    const base64Part = dataUri.split(',')[1] || '';
+    const approxBytes = Math.floor(base64Part.length * 0.75);
+    if (approxBytes > MAX_BYTES) {
+      return NextResponse.json({ error: 'Image must be under 5MB' }, { status: 400 });
+    }
+
+    ensureCloudinaryConfig();
+    const result = await cloudinary.uploader.upload(dataUri, {
+      folder: 'ghostpost/logos',
+      public_id: `site-${siteId}-custom`,
+      resource_type: 'image',
+      overwrite: true,
+    });
+
+    // Determine background colors via AI for the uploaded logo
+    let logoBgLight = 'transparent';
+    let logoBgDark = 'transparent';
+    try {
+      const isSvg = detectedMime === 'image/svg+xml';
+      const buffer = Buffer.from(base64Part, 'base64');
+      const domain = getDomain(auth.site.url) || 'site';
+      const bg = await aiDetermineLogoBg({ buffer, mimeType: detectedMime, isSvg }, domain);
+      logoBgLight = bg.logoBgLight;
+      logoBgDark = bg.logoBgDark;
+    } catch (err) {
+      console.error('[Logo] BG detection failed for custom upload:', err.message);
+    }
+
+    const updated = await prisma.site.update({
+      where: { id: siteId },
+      data: {
+        logo: result.secure_url,
+        logoCheckedAt: new Date(),
+        logoBgLight,
+        logoBgDark,
+        logoCustom: true,
+      },
+      select: { logo: true, logoBgLight: true, logoBgDark: true, logoCustom: true },
+    });
+
+    return NextResponse.json({
+      logo: updated.logo,
+      logoBgLight: updated.logoBgLight,
+      logoBgDark: updated.logoBgDark,
+      custom: updated.logoCustom,
+    });
+  } catch (error) {
+    console.error('[Logo] Upload error:', error);
+    return NextResponse.json({ error: 'Failed to upload logo' }, { status: 500 });
+  }
+}
+
+// DELETE - Reset logo back to auto-detected (clears custom flag and re-fetches)
+export async function DELETE(request, { params }) {
+  try {
+    const cookieStore = await cookies();
+    const userId = cookieStore.get(SESSION_COOKIE)?.value;
+    const { id: siteId } = await params;
+
+    const auth = await authorizeSiteAccess(siteId, userId);
+    if (auth.error) return NextResponse.json({ error: auth.error }, { status: auth.status });
+
+    let logoUrl = null;
+    let logoBgLight = null;
+    let logoBgDark = null;
+    try {
+      const result = await fetchAndUploadLogo(auth.site.url, siteId);
+      if (result) {
+        logoUrl = result.logoUrl;
+        logoBgLight = result.logoBgLight;
+        logoBgDark = result.logoBgDark;
+      }
+    } catch (err) {
+      console.error('[Logo] Auto re-fetch failed during reset:', err.message);
+    }
+
+    const updated = await prisma.site.update({
+      where: { id: siteId },
+      data: {
+        logo: logoUrl,
+        logoCheckedAt: new Date(),
+        logoBgLight,
+        logoBgDark,
+        logoCustom: false,
+      },
+      select: { logo: true, logoBgLight: true, logoBgDark: true, logoCustom: true },
+    });
+
+    return NextResponse.json({
+      logo: updated.logo,
+      logoBgLight: updated.logoBgLight,
+      logoBgDark: updated.logoBgDark,
+      custom: updated.logoCustom,
+    });
+  } catch (error) {
+    console.error('[Logo] Reset error:', error);
+    return NextResponse.json({ error: 'Failed to reset logo' }, { status: 500 });
   }
 }

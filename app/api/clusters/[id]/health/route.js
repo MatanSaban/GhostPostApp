@@ -1,7 +1,12 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import prisma from '@/lib/prisma';
-import { analyzeClusterHealth } from '@/lib/cluster-health';
+import {
+  analyzeClusterHealth,
+  findHomepageEntity,
+  extractHomepageKeywords,
+} from '@/lib/cluster-health';
+import { getAncestorChain } from '@/lib/cluster-tree';
 
 const SESSION_COOKIE = 'user_session';
 
@@ -32,12 +37,15 @@ async function verifyClusterAccess(clusterId, user) {
 // GET /api/clusters/[id]/health
 //
 // Returns a snapshot of three cluster-health signals:
-//   - Internal link gaps (missing pillar↔member or member↔member edges)
-//   - Existing PENDING cross-cluster cannibalization insights affecting this cluster's members
+//   - Internal link gaps — typed PARENT / ANCESTOR / BRAND / SIBLING (Phase 4)
+//   - Existing PENDING cross-cluster cannibalization insights
 //   - Members not updated in N+ months
 //
-// All signals are read-only — no AI calls, no mutations. Cheap enough to
-// fetch on demand from the cluster card.
+// All signals are read-only — no AI calls, no mutations.
+//
+// This endpoint computes homepage + ancestor context for THIS cluster only.
+// The list endpoint amortizes those lookups across all confirmed clusters;
+// per-cluster fetches just pay the same cost once.
 export async function GET(_request, { params }) {
   try {
     const user = await getAuthenticatedUser();
@@ -51,7 +59,35 @@ export async function GET(_request, { params }) {
       return NextResponse.json({ error: 'Cluster not found or no access' }, { status: 404 });
     }
 
-    const result = await analyzeClusterHealth({ clusterId: id });
+    // Resolve root pillar for ANCESTOR gaps. getAncestorChain returns
+    // root-first ending with this cluster — the [0] entry is the root.
+    let rootPillar = null;
+    if (cluster.parentClusterId) {
+      try {
+        const chain = await getAncestorChain(id);
+        const root = chain[0];
+        if (root?.pillarEntityId && root.id !== id) {
+          const pillar = await prisma.siteEntity.findUnique({
+            where: { id: root.pillarEntityId },
+            select: { id: true, title: true, url: true },
+          });
+          if (pillar) rootPillar = pillar;
+        }
+      } catch {
+        // Cycle / depth error — proceed without ancestor context.
+        rootPillar = null;
+      }
+    }
+
+    const homepage = await findHomepageEntity(cluster.siteId).catch(() => null);
+    const homepageKeywords = homepage ? extractHomepageKeywords(homepage) : [];
+
+    const result = await analyzeClusterHealth({
+      clusterId: id,
+      rootPillar,
+      homepage,
+      homepageKeywords,
+    });
     return NextResponse.json(result);
   } catch (error) {
     console.error('[Cluster Health API] error:', error);

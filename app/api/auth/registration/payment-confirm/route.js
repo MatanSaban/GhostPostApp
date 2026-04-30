@@ -9,6 +9,7 @@ import {
   externalUniqTranIdFromLpId,
 } from '@/lib/cardcom';
 import { getDraftAccountForUser } from '@/lib/draft-account';
+import { notifyAdmins, emailTemplates } from '@/lib/mailer';
 
 const SESSION_COOKIE = 'user_session';
 
@@ -299,6 +300,22 @@ export async function POST(request) {
         },
       },
     });
+
+    try {
+      notifyAdmins(emailTemplates.adminNewPayment({
+        kind: 'registration',
+        amount,
+        currency: 'USD',
+        user,
+        account: { id: draftAccount.id, name: draftAccount.name },
+        planName: plan.name,
+        productName: productDescription,
+        transactionId: chargeResult?.TranzactionId || null,
+        couponCode: draftAccount.draftCouponCode || null,
+      }));
+    } catch (e) {
+      console.error('[Reg Payment Confirm] admin notification failed:', e);
+    }
 
     return NextResponse.json({
       success: true,

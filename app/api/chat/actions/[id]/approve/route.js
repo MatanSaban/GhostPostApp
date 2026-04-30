@@ -38,6 +38,12 @@ export async function POST(request, { params }) {
     const result = await approveAction(id, member.userId, argOverrides);
     return NextResponse.json(result);
   } catch (err) {
+    // Surface the AI-GCoins limit case as 402 with the standard payload so
+    // the frontend's handleLimitError pops the same upgrade modal it shows
+    // when the chat-message endpoint refuses on the same condition.
+    if (err.code === 'INSUFFICIENT_CREDITS' && err.payload) {
+      return NextResponse.json(err.payload, { status: 402 });
+    }
     return NextResponse.json({ error: err.message }, { status: 400 });
   }
 }

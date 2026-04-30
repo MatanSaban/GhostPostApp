@@ -107,9 +107,21 @@ export async function POST(request, { params }) {
     // If the campaign is linked to a TopicCluster, check each planned post
     // against existing cluster members and stash warnings on the Content row.
     // Best-effort: if preflight throws, we still activate without warnings.
+    //
+    // Phase 7: when the linked cluster has descendants (i.e., the campaign
+    // covers a non-leaf cluster), widen the preflight to the entire subtree
+    // so the new posts are checked against EVERY descendant cluster's members
+    // — catches "this article duplicates a topic three sub-clusters down".
     let preflightResults = plan.map(() => ({ hasConflict: false, conflicts: [] }));
+    let preflightScope = 'cluster';
     if (campaign.topicClusterId) {
       try {
+        // Decide scope: subtree when the linked cluster has any children.
+        const childCount = await prisma.topicCluster.count({
+          where: { parentClusterId: campaign.topicClusterId },
+        });
+        preflightScope = childCount > 0 ? 'subtree' : 'cluster';
+
         const candidates = plan.map((entry) => ({
           title: entry.title || `Post ${(entry.index || 0) + 1}`,
           excerpt: entry.subject?.explanation || '',
@@ -117,6 +129,7 @@ export async function POST(request, { params }) {
         const { results } = await preflightCandidates({
           candidates,
           topicClusterId: campaign.topicClusterId,
+          scope: preflightScope,
           accountId: site.accountId,
           userId: user.id,
           siteId: campaign.siteId,
@@ -160,6 +173,7 @@ export async function POST(request, { params }) {
       message: `Campaign activated with ${result.count} scheduled posts`,
       contentsCreated: result.count,
       preflightConflicts: withConflicts,
+      preflightScope,
     });
   } catch (error) {
     console.error('[Campaign Activate] Error:', error);

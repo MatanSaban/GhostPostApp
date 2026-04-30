@@ -10,10 +10,13 @@
  */
 
 // Current plugin version - increment this when making updates
-export const PLUGIN_VERSION = "5.0.0";
+export const PLUGIN_VERSION = "5.0.1";
 
 // Changelog for the current version
 export const PLUGIN_CHANGELOG = `
+= 5.0.1 =
+* NEW: /elements/restore/{postId} endpoint - inverse of /elements/manipulate. Accepts the rollback snapshot the manipulator returns (meta_key + previous_value for Elementor / Beaver, or post_content for raw HTML) and writes it back, plus fires elementor/document/after_save and flushes per-post cache. Closes the rollback gap on Elementor edits: clicking Rollback on a manipulate_element action card on the platform now reverses the change instead of failing with "Rollback not supported for tool: manipulate_element".
+
 = 5.0.0 =
 * MAJOR REBRAND - full slug/identity rename. Every "ghost-post" reference (folder, file names, PHP class, text domain, REST namespace, plugin slug, locale cookie) is now "ghostseo". This is a clean break.
   - Plugin folder: ghost-post-connector → ghostseo-connector

@@ -33,8 +33,16 @@ export async function GET(request) {
     }
   }
 
+  // SuperAdmins have no accountId (getCurrentAccountMember returns
+  // accountId: null for them, since they're not bound to any tenant). Drop
+  // the accountId filter for that case - they already have global access -
+  // and apply it normally for tenant users.
+  const conversationWhere = { siteId };
+  if (!isSuperAdmin && member.accountId) {
+    conversationWhere.accountId = member.accountId;
+  }
   const conversations = await prisma.chatConversation.findMany({
-    where: { siteId, accountId: member.accountId },
+    where: conversationWhere,
     include: {
       createdByUser: {
         select: { id: true, firstName: true, lastName: true, email: true, image: true },
@@ -44,7 +52,29 @@ export async function GET(request) {
     orderBy: { updatedAt: 'desc' },
   });
 
-  return NextResponse.json({ conversations });
+  // Compute per-user unreadCount: number of ASSISTANT messages newer than the
+  // requesting user's last-read timestamp on each conversation. ASSISTANT-only
+  // because the user's own messages are obviously already "seen". The
+  // userLastRead field is a Json map of { [userId]: ISO } that the
+  // mark-read endpoint maintains; if it's missing for this user we treat the
+  // entire history as unread (so first-time visitors see all the assistant
+  // messages they haven't opened yet).
+  const userId = member.userId;
+  const enriched = await Promise.all(conversations.map(async (c) => {
+    const lastRead = c.userLastRead && typeof c.userLastRead === 'object'
+      ? c.userLastRead[userId]
+      : null;
+    const where = { conversationId: c.id, role: 'ASSISTANT' };
+    if (lastRead) where.createdAt = { gt: new Date(lastRead) };
+    const unreadCount = await prisma.chatMessage.count({ where });
+    // Strip the raw lastRead map - that's an internal detail.
+    const { userLastRead, ...rest } = c;
+    return { ...rest, unreadCount };
+  }));
+
+  const totalUnread = enriched.reduce((sum, c) => sum + (c.unreadCount || 0), 0);
+
+  return NextResponse.json({ conversations: enriched, totalUnread });
 }
 
 /**
@@ -77,10 +107,26 @@ export async function POST(request) {
     }
   }
 
+  // SuperAdmin sessions carry no accountId. Resolve the conversation's
+  // accountId from the site itself so SuperAdmin-initiated conversations are
+  // still owned by the correct tenant (and existing tenant queries that filter
+  // by site.accountId continue to find them).
+  let convAccountId = member.accountId;
+  if (!convAccountId) {
+    const siteRow = await prisma.site.findUnique({
+      where: { id: siteId },
+      select: { accountId: true },
+    });
+    if (!siteRow?.accountId) {
+      return NextResponse.json({ error: 'Site has no owning account' }, { status: 500 });
+    }
+    convAccountId = siteRow.accountId;
+  }
+
   const conversation = await prisma.chatConversation.create({
     data: {
       siteId,
-      accountId: member.accountId,
+      accountId: convAccountId,
       createdByUserId: member.userId,
       title: title || null,
     },

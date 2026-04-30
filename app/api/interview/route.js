@@ -259,6 +259,101 @@ export async function POST(request) {
       );
     }
 
+    // Synthetic questions injected by the wizard (e.g. the
+    // ENTITIES_SELECTION sub-step) carry non-ObjectID ids like
+    // "entities-selection-injected". They aren't stored in the DB, so
+    // findUnique throws P2023 ("Malformed ObjectID"). Detect them by id
+    // shape and short-circuit: just record the response under that key,
+    // advance currentStep past whatever DB question follows, and return
+    // the next real question. No validation, no auto-actions — there's
+    // no question row to hang those off.
+    const isMongoObjectId = /^[0-9a-fA-F]{24}$/.test(String(questionId));
+    if (!isMongoObjectId) {
+      const allQuestions = await prisma.interviewQuestion.findMany({
+        where: { isActive: true },
+        orderBy: { order: 'asc' },
+      });
+      const updatedResponses = {
+        ...(interview.responses || {}),
+        [questionId]: response,
+      };
+      // For ENTITIES_SELECTION specifically, also mirror to the canonical
+      // saveToField so site-profile + downstream code can read it without
+      // knowing the synthetic id.
+      if (questionId === 'entities-selection-injected') {
+        updatedResponses.entitiesSelection = response;
+      }
+
+      // Advance currentStep to the next question that's still unanswered
+      // and whose showCondition passes. Re-uses the same logic the
+      // standard branch uses below.
+      let nextStep = (interview.currentStep ?? 0);
+      while (nextStep < allQuestions.length) {
+        const q = allQuestions[nextStep];
+        if (updatedResponses[q.id] !== undefined) { nextStep++; continue; }
+        if (q.showCondition) {
+          try {
+            const cond = typeof q.showCondition === 'string' ? JSON.parse(q.showCondition) : q.showCondition;
+            const fv = updatedResponses[cond.field];
+            let passes = true;
+            switch (cond.operator) {
+              case 'equals': passes = fv === cond.value; break;
+              case 'notEquals': passes = fv !== cond.value; break;
+              default: passes = true;
+            }
+            if (!passes) { nextStep++; continue; }
+          } catch { /* show on parse error */ }
+        }
+        break;
+      }
+      const nextQuestion = nextStep < allQuestions.length ? allQuestions[nextStep] : null;
+
+      const updated = await prisma.userInterview.update({
+        where: { id: interview.id },
+        data: {
+          status: nextQuestion ? 'IN_PROGRESS' : 'COMPLETED',
+          responses: updatedResponses,
+          currentStep: nextStep,
+          completedAt: nextQuestion ? undefined : new Date(),
+        },
+      });
+
+      if (!nextQuestion) {
+        const accountIdForCompletion = user.lastSelectedAccountId ||
+          user.accountMemberships?.[0]?.accountId || null;
+        await completeInterview(interview.id, {
+          responses: updatedResponses,
+          user,
+          userId: user.id,
+          accountId: accountIdForCompletion,
+          siteId: interview.siteId || null,
+          prisma,
+          interview: { ...interview, responses: updatedResponses },
+        });
+      }
+
+      return NextResponse.json({
+        success: true,
+        interview: {
+          id: updated.id,
+          status: updated.status,
+          currentQuestionIndex: updated.currentStep,
+          responses: updated.responses,
+        },
+        nextQuestion: nextQuestion ? {
+          id: nextQuestion.id,
+          translationKey: nextQuestion.translationKey,
+          questionType: nextQuestion.questionType,
+          inputConfig: nextQuestion.inputConfig,
+          validation: nextQuestion.validation,
+          allowedActions: nextQuestion.allowedActions,
+          autoActions: nextQuestion.autoActions,
+        } : null,
+        isComplete: !nextQuestion,
+        synthetic: true,
+      });
+    }
+
     // Get the question
     const question = await prisma.interviewQuestion.findUnique({
       where: { id: questionId },

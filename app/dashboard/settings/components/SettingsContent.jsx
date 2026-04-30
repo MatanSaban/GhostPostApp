@@ -4,10 +4,11 @@ import { useState, useRef, useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Image from 'next/image';
-import { Settings, Sparkles, Calendar, Bell, Search, Link, Users, CreditCard, User, UserPlus, Globe, Puzzle, Clock, Timer, Workflow, AlertTriangle, Play, Download, Plus, Edit2, Trash2, Check, Zap, Crown, Shield, Lock, Loader2, Key, X, Send, RefreshCw, Ban, Building2, Package, Mail, Phone, Camera, AlertCircle, Eye, EyeOff, Unlink, Minus, ShoppingCart, ExternalLink, Bot, FileText, TrendingUp, Wrench, LogOut, ChevronUp, ChevronDown, ChevronLeft, ChevronRight, GitCompareArrows, Wallet, Star } from 'lucide-react';
+import { Settings, Sparkles, Calendar, Bell, Search, Link, Users, CreditCard, User, UserPlus, Globe, Puzzle, Clock, Timer, Workflow, AlertTriangle, Play, Download, Plus, Edit2, Trash2, Check, Zap, Crown, Shield, Lock, Loader2, Key, X, Send, RefreshCw, Ban, Building2, Package, Mail, Phone, Camera, AlertCircle, Eye, EyeOff, Unlink, Minus, ShoppingCart, ExternalLink, Bot, FileText, TrendingUp, Wrench, LogOut, ChevronUp, ChevronDown, ChevronLeft, ChevronRight, GitCompareArrows, Wallet, Star, Image as ImageIcon, RotateCcw, Upload } from 'lucide-react';
 import { useSite } from '@/app/context/site-context';
 import { useLocale } from '@/app/context/locale-context';
 import { useUser } from '@/app/context/user-context';
+import { useTheme } from '@/app/context/theme-context';
 import { usePermissions } from '@/app/hooks/usePermissions';
 import { SettingsFormSkeleton, TableSkeleton, FormSkeleton, Skeleton, Button } from '@/app/dashboard/components';
 import { DataTable } from '@/app/dashboard/components/Table';
@@ -459,12 +460,18 @@ function GeneralSettings({ general, setGeneral, translations, canEdit = true }) 
   const router = useRouter();
   const { selectedSite, refreshSites } = useSite();
   const { setLocale, locale: currentLocale } = useLocale();
+  const { theme } = useTheme();
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState(null);
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [originalLanguage, setOriginalLanguage] = useState(null);
-  
+  const [isUploadingFavicon, setIsUploadingFavicon] = useState(false);
+  const [isResettingFavicon, setIsResettingFavicon] = useState(false);
+  const [isUploadingLogo, setIsUploadingLogo] = useState(false);
+  const [isResettingLogo, setIsResettingLogo] = useState(false);
+  const [brandingError, setBrandingError] = useState(null);
+
   // Fetch settings from API on mount or when site changes
   useEffect(() => {
     async function fetchSettings() {
@@ -489,6 +496,12 @@ function GeneralSettings({ general, setGeneral, translations, canEdit = true }) 
             platform: settings.platform || null,
             pluginConnected: false, // TODO: implement plugin connection check
             accountDefaults: settings.accountDefaults || { language: 'EN', timezone: 'UTC' },
+            favicon: settings.favicon || null,
+            faviconCustom: !!settings.faviconCustom,
+            logo: settings.logo || null,
+            logoCustom: !!settings.logoCustom,
+            logoBgLight: settings.logoBgLight || null,
+            logoBgDark: settings.logoBgDark || null,
           });
           setOriginalLanguage(lang);
         }
@@ -501,6 +514,127 @@ function GeneralSettings({ general, setGeneral, translations, canEdit = true }) 
 
     fetchSettings();
   }, [selectedSite?.id, setGeneral]);
+
+  const readFileAsDataURL = (file) => new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = () => reject(reader.error);
+    reader.readAsDataURL(file);
+  });
+
+  const handleFaviconUpload = async (e) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file || !selectedSite?.id) return;
+
+    setBrandingError(null);
+    if (!file.type.startsWith('image/') && !/\.ico$/i.test(file.name)) {
+      setBrandingError(t.brandingInvalidType || 'Unsupported image format');
+      return;
+    }
+    if (file.size > 2 * 1024 * 1024) {
+      setBrandingError(t.brandingFaviconTooLarge || 'Image must be under 2MB');
+      return;
+    }
+
+    setIsUploadingFavicon(true);
+    try {
+      const dataUri = await readFileAsDataURL(file);
+      const response = await fetch(`/api/sites/${selectedSite.id}/favicon`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ dataUri, mimeType: file.type || undefined }),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || 'Upload failed');
+      setGeneral(prev => ({ ...prev, favicon: data.favicon, faviconCustom: !!data.custom }));
+      refreshSites();
+    } catch (err) {
+      setBrandingError(err.message || (t.brandingFaviconUploadError || 'Failed to upload favicon'));
+    } finally {
+      setIsUploadingFavicon(false);
+    }
+  };
+
+  const handleFaviconReset = async () => {
+    if (!selectedSite?.id) return;
+    setBrandingError(null);
+    setIsResettingFavicon(true);
+    try {
+      const response = await fetch(`/api/sites/${selectedSite.id}/favicon`, { method: 'DELETE' });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || 'Reset failed');
+      setGeneral(prev => ({ ...prev, favicon: data.favicon, faviconCustom: !!data.custom }));
+      refreshSites();
+    } catch (err) {
+      setBrandingError(err.message || (t.brandingFaviconResetError || 'Failed to reset favicon'));
+    } finally {
+      setIsResettingFavicon(false);
+    }
+  };
+
+  const handleLogoUpload = async (e) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file || !selectedSite?.id) return;
+
+    setBrandingError(null);
+    if (!file.type.startsWith('image/')) {
+      setBrandingError(t.brandingInvalidType || 'Unsupported image format');
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      setBrandingError(t.brandingLogoTooLarge || 'Image must be under 5MB');
+      return;
+    }
+
+    setIsUploadingLogo(true);
+    try {
+      const dataUri = await readFileAsDataURL(file);
+      const response = await fetch(`/api/sites/${selectedSite.id}/logo`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ dataUri, mimeType: file.type || undefined }),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || 'Upload failed');
+      setGeneral(prev => ({
+        ...prev,
+        logo: data.logo,
+        logoCustom: !!data.custom,
+        logoBgLight: data.logoBgLight,
+        logoBgDark: data.logoBgDark,
+      }));
+      refreshSites();
+    } catch (err) {
+      setBrandingError(err.message || (t.brandingLogoUploadError || 'Failed to upload logo'));
+    } finally {
+      setIsUploadingLogo(false);
+    }
+  };
+
+  const handleLogoReset = async () => {
+    if (!selectedSite?.id) return;
+    setBrandingError(null);
+    setIsResettingLogo(true);
+    try {
+      const response = await fetch(`/api/sites/${selectedSite.id}/logo`, { method: 'DELETE' });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || 'Reset failed');
+      setGeneral(prev => ({
+        ...prev,
+        logo: data.logo,
+        logoCustom: !!data.custom,
+        logoBgLight: data.logoBgLight,
+        logoBgDark: data.logoBgDark,
+      }));
+      refreshSites();
+    } catch (err) {
+      setBrandingError(err.message || (t.brandingLogoResetError || 'Failed to reset logo'));
+    } finally {
+      setIsResettingLogo(false);
+    }
+  };
   
   const updateField = (field, value) => {
     setGeneral(prev => ({ ...prev, [field]: value }));
@@ -675,6 +809,174 @@ function GeneralSettings({ general, setGeneral, translations, canEdit = true }) 
           </button>
         </div>
       </div> */}
+
+      {/* Branding (favicon + logo for platform display only) */}
+      <div className={styles.subsection}>
+        <h3 className={styles.subsectionTitle}>
+          <ImageIcon className={styles.subsectionIcon} />
+          {t.brandingTitle || 'Branding'}
+        </h3>
+        <p className={styles.subsectionDescription}>
+          {t.brandingDescription || 'How this website appears across the platform (dashboard, site selector, websites list). This does not change anything on your live website.'}
+        </p>
+
+        <div className={styles.brandingGrid}>
+          {/* Favicon */}
+          <div className={styles.brandingCard}>
+            <div className={styles.brandingCardHead}>
+              <span className={styles.brandingCardTitle}>
+                {t.brandingFaviconLabel || 'Favicon'}
+              </span>
+              {general.faviconCustom && (
+                <span className={styles.brandingCustomBadge}>
+                  {t.brandingCustomBadge || 'Custom'}
+                </span>
+              )}
+            </div>
+
+            <div className={styles.brandingPreviewArea}>
+              <div className={styles.brandingFaviconBox}>
+                {general.favicon ? (
+                  <img src={general.favicon} alt="" />
+                ) : (
+                  <Globe size={26} className={styles.brandingPreviewFallback} />
+                )}
+              </div>
+            </div>
+
+            <p className={styles.brandingCardHint}>
+              {t.brandingFaviconHint || 'Square PNG/SVG/ICO, up to 2MB.'}
+            </p>
+
+            <div className={styles.brandingCardActions}>
+              <label className={styles.brandingPrimaryBtn}>
+                <input
+                  type="file"
+                  accept="image/*,.ico"
+                  onChange={handleFaviconUpload}
+                  disabled={isUploadingFavicon || !canEdit}
+                  className={styles.hiddenInput}
+                />
+                {isUploadingFavicon ? (
+                  <>
+                    <Loader2 size={14} className={styles.spinningIcon} />
+                    {t.saving || 'Uploading...'}
+                  </>
+                ) : (
+                  <>
+                    <Upload size={14} />
+                    {t.brandingUploadFavicon || 'Upload favicon'}
+                  </>
+                )}
+              </label>
+              {general.faviconCustom && (
+                <button
+                  type="button"
+                  className={styles.brandingSecondaryBtn}
+                  onClick={handleFaviconReset}
+                  disabled={isResettingFavicon || !canEdit}
+                >
+                  {isResettingFavicon ? (
+                    <>
+                      <Loader2 size={12} className={styles.spinningIcon} />
+                      {t.saving || 'Resetting...'}
+                    </>
+                  ) : (
+                    <>
+                      <RotateCcw size={12} />
+                      {t.brandingResetToAuto || 'Reset to auto-detected'}
+                    </>
+                  )}
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* Logo */}
+          <div className={styles.brandingCard}>
+            <div className={styles.brandingCardHead}>
+              <span className={styles.brandingCardTitle}>
+                {t.brandingLogoLabel || 'Logo'}
+              </span>
+              {general.logoCustom && (
+                <span className={styles.brandingCustomBadge}>
+                  {t.brandingCustomBadge || 'Custom'}
+                </span>
+              )}
+            </div>
+
+            <div className={styles.brandingPreviewArea}>
+              <div
+                className={styles.brandingLogoBox}
+                style={{
+                  backgroundColor: general.logo
+                    ? (theme === 'dark' ? general.logoBgDark : general.logoBgLight) || undefined
+                    : undefined,
+                }}
+              >
+                {general.logo ? (
+                  <img src={general.logo} alt="" />
+                ) : (
+                  <ImageIcon size={26} className={styles.brandingPreviewFallback} />
+                )}
+              </div>
+            </div>
+
+            <p className={styles.brandingCardHint}>
+              {t.brandingLogoHint || 'Wide PNG/SVG, up to 5MB. Used in the dashboard welcome card.'}
+            </p>
+
+            <div className={styles.brandingCardActions}>
+              <label className={styles.brandingPrimaryBtn}>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleLogoUpload}
+                  disabled={isUploadingLogo || !canEdit}
+                  className={styles.hiddenInput}
+                />
+                {isUploadingLogo ? (
+                  <>
+                    <Loader2 size={14} className={styles.spinningIcon} />
+                    {t.saving || 'Uploading...'}
+                  </>
+                ) : (
+                  <>
+                    <Upload size={14} />
+                    {t.brandingUploadLogo || 'Upload logo'}
+                  </>
+                )}
+              </label>
+              {general.logoCustom && (
+                <button
+                  type="button"
+                  className={styles.brandingSecondaryBtn}
+                  onClick={handleLogoReset}
+                  disabled={isResettingLogo || !canEdit}
+                >
+                  {isResettingLogo ? (
+                    <>
+                      <Loader2 size={12} className={styles.spinningIcon} />
+                      {t.saving || 'Resetting...'}
+                    </>
+                  ) : (
+                    <>
+                      <RotateCcw size={12} />
+                      {t.brandingResetToAuto || 'Reset to auto-detected'}
+                    </>
+                  )}
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {brandingError && (
+          <div className={styles.saveError} style={{ marginTop: '0.75rem' }}>
+            {brandingError}
+          </div>
+        )}
+      </div>
 
       <div className={styles.saveButtonWrapper}>
         {saveError && <span className={styles.saveError}>{saveError}</span>}

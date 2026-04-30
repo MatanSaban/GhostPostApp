@@ -81,6 +81,43 @@
   }
 }
 
+/* ── Tree edges (parent pillar → child pillar) ──────────── */
+
+/* Heavier than member-connection lines so structural relationships read
+   as the dominant visual layer in a multi-level tree. */
+.treeEdge {
+  stroke-width: 2;
+  fill: none;
+  pointer-events: none;
+  transition: stroke 0.2s ease;
+}
+
+/* Discovered / no-health-data clusters get a neutral structural edge. */
+.edgeNeutral {
+  stroke: rgba(99, 102, 241, 0.35);
+
+  .dark & {
+    stroke: rgba(165, 180, 252, 0.4);
+  }
+}
+
+/* No link gaps — the parent→child relationship is healthy. */
+.edgeOk {
+  stroke: rgba(34, 197, 94, 0.55);
+}
+
+/* ANCESTOR gaps exist (members not climbing back to root) — soft warning. */
+.edgeSoftWarn {
+  stroke: rgba(234, 179, 8, 0.7);
+}
+
+/* PARENT gaps exist (members not linking to own pillar) — directly weakens
+   the structural link this edge represents; render as a strong warning. */
+.edgeWarn {
+  stroke: rgba(234, 88, 12, 0.85);
+  stroke-width: 2.5;
+}
+
 /* ── Pillar ─────────────────────────────────────────────── */
 
 .pillarGroup {
@@ -176,4 +213,19 @@
     opacity: 1;
     transform: scale(1);
   }
+}
+
+/* ── Dot-grid background (Figma/Make-style) ─────────────────────── */
+
+.dotPatternDot {
+  fill: rgba(15, 23, 42, 0.18);
+
+  .dark & {
+    fill: rgba(255, 255, 255, 0.10);
+  }
+}
+
+.dotPatternBg {
+  /* Background — clusters paint on top. */
+  pointer-events: none;
 }

@@ -479,6 +479,18 @@ class GP_API_Handler {
             'callback' => array($this, 'get_element_structure'),
             'permission_callback' => array($this, 'validate_request'),
         ));
+
+        // Restore the rollback snapshot returned by manipulate_element. The body is
+        // the same shape the manipulator returns under its "rollback" key:
+        //   { meta_key: '_elementor_data'|'_fl_builder_data', previous_value: <json> }
+        //   { post_content: <html> }
+        // No locator gymnastics - just write the snapshot back so a "Rollback"
+        // click on an Elementor edit reverses the change cleanly.
+        register_rest_route($namespace, '/elements/restore/(?P<id>\\d+)', array(
+            'methods' => 'POST',
+            'callback' => array($this, 'restore_element_snapshot'),
+            'permission_callback' => array($this, 'validate_request'),
+        ));
         
         // Security headers
         register_rest_route($namespace, '/security-headers', array(
@@ -1697,6 +1709,103 @@ class GP_API_Handler {
             }
         }
         return $out;
+    }
+
+    /**
+     * Restore an element snapshot captured by manipulate_element. Accepts the
+     * same shape the manipulator returns under its "rollback" key:
+     *   { meta_key: '_elementor_data'|'_fl_builder_data', previous_value: <json|array> }
+     *   { post_content: <html> }
+     * This is the inverse of manipulate_element - the chat agent's rollback
+     * button lands here. Also flushes per-post cache + fires Elementor's
+     * after_save hook so Theme Builder caches re-generate from the restored
+     * snapshot, mirroring what the manipulator does on a forward write.
+     */
+    public function restore_element_snapshot(WP_REST_Request $request) {
+        if (!gp_has_permission('CONTENT_UPDATE')) {
+            return new WP_REST_Response(array('error' => 'Permission denied'), 403);
+        }
+        $post_id = intval($request['id']);
+        if (!$post_id || !get_post($post_id)) {
+            return new WP_REST_Response(array('error' => 'Post not found'), 404);
+        }
+
+        $body = $request->get_json_params();
+        if (!is_array($body)) {
+            return new WP_REST_Response(array('error' => 'Invalid body'), 400);
+        }
+
+        $meta_key       = isset($body['meta_key']) ? (string) $body['meta_key'] : '';
+        $previous_value = array_key_exists('previous_value', $body) ? $body['previous_value'] : null;
+        $post_content   = array_key_exists('post_content', $body) ? $body['post_content'] : null;
+
+        // Restrict meta restoration to the two builder keys we actually take
+        // snapshots of. We never want this endpoint to become a generic
+        // post-meta writer for AI flows.
+        $allowed_meta_keys = array('_elementor_data', '_fl_builder_data');
+
+        if ($meta_key !== '') {
+            if (!in_array($meta_key, $allowed_meta_keys, true)) {
+                return new WP_REST_Response(array('error' => 'meta_key not allowed: ' . $meta_key), 400);
+            }
+            // Elementor stores _elementor_data as a JSON string with slashes
+            // re-applied on save; previous_value may arrive as the original
+            // string or as a decoded array. Normalize both into a JSON string
+            // so update_post_meta writes the exact byte sequence Elementor
+            // expects, then re-read to confirm.
+            $value_to_write = $previous_value;
+            if ($meta_key === '_elementor_data' && is_array($previous_value)) {
+                $value_to_write = wp_json_encode($previous_value, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+            }
+            if (is_string($value_to_write)) {
+                update_post_meta($post_id, $meta_key, wp_slash($value_to_write));
+            } else {
+                update_post_meta($post_id, $meta_key, $value_to_write);
+            }
+
+            // Fire Elementor's after_save hook so Pro regenerates Theme Builder
+            // caches and Files Manager invalidates rendered HTML for every page
+            // using this template. Same as the forward path in
+            // GP_Element_Manipulator.
+            if ($meta_key === '_elementor_data' && class_exists('\\Elementor\\Plugin') && \\Elementor\\Plugin::$instance) {
+                try {
+                    $documents = \\Elementor\\Plugin::$instance->documents;
+                    if ($documents) {
+                        $document = $documents->get($post_id);
+                        if ($document) {
+                            $decoded = is_string($value_to_write) ? json_decode($value_to_write, true) : $value_to_write;
+                            do_action('elementor/document/after_save', $document, array('elements' => is_array($decoded) ? $decoded : array()));
+                        }
+                    }
+                } catch (Exception $e) { /* hooks are best-effort */ }
+            }
+        } elseif ($post_content !== null) {
+            $update = wp_update_post(array(
+                'ID'           => $post_id,
+                'post_content' => (string) $post_content,
+            ), true);
+            if (is_wp_error($update)) {
+                return new WP_REST_Response(array('error' => $update->get_error_message()), 500);
+            }
+        } else {
+            return new WP_REST_Response(array('error' => 'Provide meta_key+previous_value or post_content'), 400);
+        }
+
+        clean_post_cache($post_id);
+        if (class_exists('GP_Cache_Manager')) {
+            GP_Cache_Manager::clear_all(array($post_id));
+        }
+
+        GhostSEO_Plugin::log_activity('element_restored', '%s on %s', array(
+            $meta_key !== '' ? $meta_key : 'post_content',
+            GhostSEO_Plugin::format_post_label($post_id),
+        ));
+
+        return new WP_REST_Response(array(
+            'success' => true,
+            'restored' => $meta_key !== '' ? $meta_key : 'post_content',
+            'post_id' => $post_id,
+        ), 200);
     }
 
     private static $default_security_headers = array(

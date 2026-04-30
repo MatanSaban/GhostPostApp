@@ -1,11 +1,17 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
+import { isCouponApplicableToPlan, isCouponApplicableToAddOn } from '@/lib/coupon-applicability';
 
 // POST /api/public/coupons/validate - Validate a coupon code during checkout
+// Body: { code, planId? , addOnId?, addOnType? }
+//   - planId          : validates the coupon for a plan checkout.
+//   - addOnId/addOnType: validates the coupon for an add-on purchase.
+//     addOnType is auto-resolved from addOnId when only addOnId is sent.
 export async function POST(request) {
   try {
     const body = await request.json();
-    const { code, planId } = body;
+    const { code, planId, addOnId } = body;
+    let { addOnType } = body;
 
     if (!code) {
       return NextResponse.json({ error: 'Coupon code is required' }, { status: 400 });
@@ -41,10 +47,37 @@ export async function POST(request) {
       return NextResponse.json({ valid: false, errorCode: 'usageLimit', error: 'This coupon has reached its usage limit' }, { status: 400 });
     }
 
-    // Check applicable plans
-    if (planId && coupon.applicablePlanIds?.length > 0) {
-      if (!coupon.applicablePlanIds.includes(planId)) {
-        return NextResponse.json({ valid: false, errorCode: 'notApplicable', error: 'This coupon is not applicable to the selected plan' }, { status: 400 });
+    // Channel-scoped applicability (plan checkout vs add-on purchase). The
+    // helper enforces both directions: an add-on-only coupon refuses on a
+    // plan checkout, a plan-only coupon refuses on an add-on purchase.
+    if (planId) {
+      const result = isCouponApplicableToPlan(coupon, planId);
+      if (!result.applies) {
+        return NextResponse.json(
+          { valid: false, errorCode: result.errorCode || 'notApplicable', error: 'This coupon is not applicable to the selected plan' },
+          { status: 400 }
+        );
+      }
+    } else if (addOnId || addOnType) {
+      // Resolve the add-on row when only id was sent, so we can check both
+      // applicableAddOnIds and applicableAddOnTypes scopes.
+      let resolvedType = addOnType;
+      if (addOnId && !resolvedType) {
+        const addOn = await prisma.addOn.findUnique({
+          where: { id: addOnId },
+          select: { type: true, isActive: true },
+        });
+        if (!addOn) {
+          return NextResponse.json({ valid: false, errorCode: 'notApplicable', error: 'Add-on not found' }, { status: 400 });
+        }
+        resolvedType = addOn.type;
+      }
+      const result = isCouponApplicableToAddOn(coupon, { id: addOnId, type: resolvedType });
+      if (!result.applies) {
+        return NextResponse.json(
+          { valid: false, errorCode: result.errorCode || 'notApplicable', error: 'This coupon is not applicable to the selected add-on' },
+          { status: 400 }
+        );
       }
     }
 

@@ -21,6 +21,7 @@ import {
   normaliseSiteUrl,
   usePreviewBridge,
 } from '@/app/hooks/usePreviewBridge';
+import { handleLimitError, emitLimitError } from '@/app/context/limit-guard-context';
 import styles from './ghost-chat-popup.module.css';
 
 export const GhostChatPopup = forwardRef(function GhostChatPopup({ isOpen, onClose, context = 'Dashboard' }, ref) {
@@ -63,6 +64,15 @@ export const GhostChatPopup = forwardRef(function GhostChatPopup({ isOpen, onClo
   const notifiedUsersRef = useRef(new Set());
   const activeUsersIntervalRef = useRef(null);
   const skipNextLoadMessagesRef = useRef(false); // Skip loadMessages after inline conversation creation
+  // Snapshot of the conversations array kept in a ref so the markConversationRead
+  // callback can compute the post-mark total without rebinding on every change.
+  const conversationsRef = useRef([]);
+
+  // AI-GCoins pre-flight: probed when the popup opens and after every send so
+  // an account that's already over its limit sees the upgrade banner inside
+  // the chat (and the modal on click) without having to first burn a request
+  // that 402s. Shape: null = unknown, { used, limit, remaining, isLimitReached } = loaded.
+  const [aiCreditsUsage, setAiCreditsUsage] = useState(null);
 
   // Action plan state
   const [actionStatuses, setActionStatuses] = useState({}); // { actionId: { status, remainingSeconds } }
@@ -261,7 +271,19 @@ export const GhostChatPopup = forwardRef(function GhostChatPopup({ isOpen, onClo
         const res = await fetch(`/api/chat/actions/${actionId}/status`);
         if (res.ok) {
           const data = await res.json();
-          setActionStatuses(prev => ({ ...prev, [actionId]: data }));
+          // Never let a polling response REGRESS the visible status from a
+          // terminal one. Once we've seen COMPLETED / FAILED / EXPIRED /
+          // REJECTED / ROLLED_BACK, ignore any subsequent non-terminal
+          // payload that lands due to a stale poll race - it would otherwise
+          // flash the EXECUTING spinner back onto a card that's already done.
+          setActionStatuses(prev => {
+            const existing = prev[actionId];
+            if (existing && TERMINAL_STATUSES.includes(existing.status)
+                && !TERMINAL_STATUSES.includes(data.status)) {
+              return prev;
+            }
+            return { ...prev, [actionId]: data };
+          });
           // Stop polling at terminal states and reload messages to show execution results
           if (TERMINAL_STATUSES.includes(data.status)) {
             clearInterval(actionPollIntervals.current[actionId]);
@@ -326,7 +348,13 @@ export const GhostChatPopup = forwardRef(function GhostChatPopup({ isOpen, onClo
   const handleApproveAction = useCallback(async (actionId) => {
     if (!lockAction(actionId)) return;
     try {
-      setActionStatuses(prev => ({ ...prev, [actionId]: { ...prev[actionId], status: 'EXECUTING' } }));
+      // Don't optimistically flip to EXECUTING here. The Approve button
+      // already shows its own loading spinner via `isPending` (lockAction),
+      // and the server's approve endpoint may reject for credit-limit /
+      // expired-action / network reasons - flipping the whole card to
+      // EXECUTING and snapping it back on rejection looks like a sudden
+      // unwanted spinner. Polling will pick up the real EXECUTING state
+      // a moment later from the server, which is the source of truth.
       // Collect overrides for this action card (strip local-only preview fields)
       const argOverrides = {};
       Object.entries(actionArgOverrides).forEach(([k, v]) => {
@@ -356,12 +384,16 @@ export const GhostChatPopup = forwardRef(function GhostChatPopup({ isOpen, onClo
         startActionPolling(actionId);
       } else {
         const data = await res.json();
+        // approve route returns the standard limit payload as 402 when the
+        // action's combined credit cost would exceed the account's limit.
+        // Surface the global upgrade modal instead of a generic error toast,
+        // and snap the card back to PENDING_APPROVAL so the user can re-try
+        // after upgrading without losing the proposal.
+        if (handleLimitError(data)) return;
         setToast({ message: data.error || t('chat.actionCard.approveFailed') || 'Failed to approve', type: 'error' });
-        setActionStatuses(prev => ({ ...prev, [actionId]: { ...prev[actionId], status: 'PENDING_APPROVAL' } }));
       }
     } catch (err) {
       setToast({ message: 'Failed to approve action', type: 'error' });
-      setActionStatuses(prev => ({ ...prev, [actionId]: { ...prev[actionId], status: 'PENDING_APPROVAL' } }));
     } finally {
       unlockAction(actionId);
     }
@@ -404,6 +436,36 @@ export const GhostChatPopup = forwardRef(function GhostChatPopup({ isOpen, onClo
       unlockAction(actionId);
     }
   }, [lockAction, unlockAction]);
+
+  // Try-again on a FAILED action: clones the original plan + steps into a new
+  // PENDING_APPROVAL ChatAction. The user sees a fresh card they can approve
+  // to retry. The backend gates this on status (only FAILED/REJECTED/EXPIRED/
+  // ROLLED_BACK actions can be retried) so we don't need a client-side guard.
+  const handleRetryAction = useCallback(async (actionId) => {
+    if (!lockAction(actionId)) return;
+    try {
+      const res = await fetch(`/api/chat/actions/${actionId}/retry`, { method: 'POST' });
+      if (res.ok) {
+        setToast({ message: t('chat.actionCard.retrySuccess') || 'Created a new approval card - approve it to retry.', type: 'success' });
+        // Reload conversation messages so the new PENDING action card appears
+        // immediately (server already wrote it via createActionProposal).
+        if (activeConversationIdRef.current) {
+          loadMessagesRef.current?.(activeConversationIdRef.current);
+        }
+      } else {
+        const data = await res.json();
+        // Surface AI-GCoins limit errors using the global modal, same as
+        // approve does. This catches the case where the user's account is
+        // over budget right when they try to retry.
+        if (handleLimitError(data)) return;
+        setToast({ message: data.error || t('chat.actionCard.retryFailed') || 'Could not create a retry card', type: 'error' });
+      }
+    } catch (err) {
+      setToast({ message: t('chat.actionCard.retryFailed') || 'Could not create a retry card', type: 'error' });
+    } finally {
+      unlockAction(actionId);
+    }
+  }, [lockAction, unlockAction, t]);
 
   // Refs for latest values to pass as body in sendMessage calls
   const activeConversationIdRef = useRef(activeConversationId);
@@ -450,9 +512,22 @@ export const GhostChatPopup = forwardRef(function GhostChatPopup({ isOpen, onClo
       }
       // Refresh conversations list to update timestamps
       fetchConversations();
+      // Re-probe AI-GCoins usage so the banner appears mid-session as soon
+      // as the user crosses the limit from a single expensive turn (e.g.
+      // image generation = 10 credits) without waiting for the next open.
+      refreshAiCreditsUsage();
     },
     onError: (error) => {
       console.error('[Chat] AI error:', error);
+      // The Vercel AI SDK's HttpChatTransport throws on any non-OK response and
+      // puts the response body verbatim in error.message. Our /api/chat 402
+      // returns the standard limit payload `{ code: 'INSUFFICIENT_CREDITS',
+      // resourceKey: 'aiCredits', usage }` - parse it and surface the global
+      // upgrade modal exactly like the AddSiteModal / Entities flows do.
+      try {
+        const parsed = JSON.parse(error?.message || '');
+        if (handleLimitError(parsed)) return;
+      } catch { /* not JSON - fall through */ }
       setToast({ message: t('chat.errors.aiError') || 'Error getting AI response', type: 'error' });
     },
   });
@@ -610,11 +685,61 @@ export const GhostChatPopup = forwardRef(function GhostChatPopup({ isOpen, onClo
       if (res.ok) {
         const data = await res.json();
         setConversations(data.conversations || []);
+        // Surface the cross-conversation unread total to the dashboard
+        // shell (floating chat bubble badge). Dispatched as a CustomEvent
+        // so we don't have to wire prop drilling through the popup ref.
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new CustomEvent('ghostseo:chat-unread', {
+            detail: { totalUnread: data.totalUnread || 0, siteId: selectedSite.id },
+          }));
+        }
       }
     } catch (err) {
       console.error('[Chat] fetchConversations error:', err);
     } finally {
       setIsLoadingConversations(false);
+    }
+  }, [selectedSite?.id]);
+
+  // Keep the ref in sync with the latest conversations snapshot - read by
+  // markConversationRead to compute the post-mark unread total without
+  // re-creating the callback on every change.
+  useEffect(() => {
+    conversationsRef.current = conversations;
+  }, [conversations]);
+
+  // Background poll: refresh the conversations list every 20s while the
+  // popup is mounted so the user sees new "audit finished" messages from
+  // long-running tasks even if they're chatting in another conversation.
+  // The poll also keeps the floating chat-bubble badge in sync.
+  useEffect(() => {
+    if (!selectedSite?.id) return undefined;
+    const id = setInterval(() => { fetchConversations(); }, 20000);
+    return () => clearInterval(id);
+  }, [selectedSite?.id, fetchConversations]);
+
+  // Mark-read: when the user opens a conversation, bump their lastRead
+  // timestamp on the server so the unread badge clears immediately and
+  // doesn't keep firing on the next poll.
+  const markConversationRead = useCallback(async (convId) => {
+    if (!convId) return;
+    try {
+      await fetch(`/api/chat/conversations/${convId}/mark-read`, { method: 'POST' });
+      setConversations((prev) => prev.map((c) =>
+        c.id === convId ? { ...c, unreadCount: 0 } : c,
+      ));
+      // Also re-broadcast the unread total so the bubble badge updates without
+      // waiting for the next poll tick.
+      if (typeof window !== 'undefined') {
+        const remaining = conversationsRef.current
+          ? conversationsRef.current.reduce((sum, c) => sum + (c.id === convId ? 0 : (c.unreadCount || 0)), 0)
+          : 0;
+        window.dispatchEvent(new CustomEvent('ghostseo:chat-unread', {
+          detail: { totalUnread: remaining, siteId: selectedSite?.id },
+        }));
+      }
+    } catch (err) {
+      console.error('[Chat] markConversationRead error:', err);
     }
   }, [selectedSite?.id]);
 
@@ -763,6 +888,41 @@ export const GhostChatPopup = forwardRef(function GhostChatPopup({ isOpen, onClo
     }
   }, [isOpen, selectedSite?.id, fetchConversations]);
 
+  // ── AI-GCoins pre-flight probe ───────────────────────────────────────
+  // Hits /api/account/usage?resourceKey=aiCredits when the popup opens and
+  // refreshes after each send so the over-limit banner inside the chat
+  // appears immediately instead of only after a request 402s.
+  const refreshAiCreditsUsage = useCallback(async () => {
+    try {
+      const res = await fetch('/api/account/usage?resourceKey=aiCredits');
+      if (!res.ok) return;
+      const data = await res.json();
+      setAiCreditsUsage(data);
+    } catch (err) {
+      // Non-fatal - just leave the previous value alone. The server-side
+      // gates in /api/chat + /api/chat/actions/[id]/approve will still 402
+      // and trigger the modal via handleLimitError.
+      console.warn('[Chat] aiCredits probe failed:', err.message);
+    }
+  }, []);
+  useEffect(() => {
+    if (isOpen) refreshAiCreditsUsage();
+  }, [isOpen, refreshAiCreditsUsage]);
+
+  // True when the account has already burned through its monthly aiCredits
+  // budget. Drives the persistent banner above the input + disables the Send
+  // button so the user can't even fire a request that the server will refuse.
+  const isOverAiCreditsLimit = !!aiCreditsUsage?.isLimitReached
+    || (aiCreditsUsage && aiCreditsUsage.remaining !== null && aiCreditsUsage.remaining <= 0);
+
+  const openAiCreditsLimitModal = useCallback(() => {
+    emitLimitError({
+      code: 'INSUFFICIENT_CREDITS',
+      resourceKey: 'aiCredits',
+      usage: aiCreditsUsage,
+    });
+  }, [aiCreditsUsage]);
+
   // ── Load messages when active conversation changes ──
   useEffect(() => {
     if (activeConversationId) {
@@ -773,8 +933,12 @@ export const GhostChatPopup = forwardRef(function GhostChatPopup({ isOpen, onClo
         return;
       }
       loadMessages(activeConversationId);
+      // Mark this conversation read on the server so the unread badge clears
+      // immediately. Async, non-blocking - if it fails the next poll will
+      // re-display the badge but no functional harm.
+      markConversationRead(activeConversationId);
     }
-  }, [activeConversationId, loadMessages]);
+  }, [activeConversationId, loadMessages, markConversationRead]);
 
   // ── Active users polling for concurrent usage detection ──
   useEffect(() => {
@@ -904,6 +1068,15 @@ export const GhostChatPopup = forwardRef(function GhostChatPopup({ isOpen, onClo
     const rawText = (overrideInput || input || '').trim();
     if (!rawText || isAiLoading) return;
 
+    // Pre-flight: if the account is already over its AI-GCoins limit, skip
+    // the network round-trip and pop the upgrade modal directly. The server
+    // would 402 anyway and we'd surface the same modal via handleLimitError -
+    // doing it client-side avoids a wasted request and is instantaneous.
+    if (isOverAiCreditsLimit) {
+      openAiCreditsLimitModal();
+      return;
+    }
+
     // Keep the visible message text clean - the user sees just what they typed.
     // Full element context (selector, elementor_id, outerHTML, ancestors, screenshot)
     // is passed separately in the request body so the server can inject it into the
@@ -960,11 +1133,17 @@ export const GhostChatPopup = forwardRef(function GhostChatPopup({ isOpen, onClo
 
     // Submit to AI via useChat sendMessage
     sendMessage({ text: messageText }, { body: { conversationId: activeConversationIdRef.current, siteId: selectedSiteIdRef.current, selection: selectionBody } });
-  }, [input, isAiLoading, activeConversationId, selectedSite?.id, sendMessage, clearPreviewSelection]);
+  }, [input, isAiLoading, activeConversationId, selectedSite?.id, sendMessage, clearPreviewSelection, isOverAiCreditsLimit, openAiCreditsLimitModal]);
 
   // Quick action sends the label as a message
   const handleQuickAction = useCallback(async (actionKey, label) => {
     if (!label?.trim() || isAiLoading) return;
+
+    // Quick actions cost AI-GCoins too - same pre-flight gate as handleSend.
+    if (isOverAiCreditsLimit) {
+      openAiCreditsLimitModal();
+      return;
+    }
 
     // If no active conversation, create one first
     if (!activeConversationId) {
@@ -994,7 +1173,7 @@ export const GhostChatPopup = forwardRef(function GhostChatPopup({ isOpen, onClo
     }
 
     sendMessage({ text: label }, { body: { conversationId: activeConversationIdRef.current, siteId: selectedSiteIdRef.current } });
-  }, [isAiLoading, activeConversationId, selectedSite?.id, sendMessage]);
+  }, [isAiLoading, activeConversationId, selectedSite?.id, sendMessage, isOverAiCreditsLimit, openAiCreditsLimitModal]);
 
   // Can current user delete this conversation?
   const canDelete = useCallback((conv) => {
@@ -1219,6 +1398,11 @@ export const GhostChatPopup = forwardRef(function GhostChatPopup({ isOpen, onClo
                       <MessageCircle size={18} className={styles.chatItemCompactIcon} />
                       <span className={styles.chatItemCompactInitiator} title={initiator}>{initials}</span>
                       <span className={styles.chatItemCompactTime}>{formatTime(conv.updatedAt)}</span>
+                      {conv.unreadCount > 0 && conv.id !== activeConversationId && (
+                        <span className={styles.unreadBadge} title={`${conv.unreadCount} unread`}>
+                          {conv.unreadCount > 9 ? '9+' : conv.unreadCount}
+                        </span>
+                      )}
                       <div className={styles.chatItemCompactMeta}>
                         <span className={styles.chatItemCompactTitle}>
                           {conv.title || t('chat.untitledConversation') || 'New conversation'}
@@ -1283,6 +1467,11 @@ export const GhostChatPopup = forwardRef(function GhostChatPopup({ isOpen, onClo
                         </h4>
                       )}
                       <span className={styles.chatItemTime}>{formatTime(conv.updatedAt)}</span>
+                      {conv.unreadCount > 0 && conv.id !== activeConversationId && (
+                        <span className={styles.unreadBadge} title={`${conv.unreadCount} unread`}>
+                          {conv.unreadCount > 9 ? '9+' : conv.unreadCount}
+                        </span>
+                      )}
                     </div>
                     <p className={styles.chatItemPreview}>
                       {getUserDisplayName(conv.createdByUser)}
@@ -1467,7 +1656,11 @@ export const GhostChatPopup = forwardRef(function GhostChatPopup({ isOpen, onClo
                   {/* AI Message */}
                   {message.role === 'assistant' && (
                     <div className={styles.agentMessage}>
-                      {/* Reasoning / thinking - collapsible, shows the model's thought process for this message */}
+                      {/* Reasoning / thinking - collapsible, shows the model's thought process for this message.
+                          BUT we hide it on "freeze fallback" replies, where the model emitted reasoning
+                          ("I'm starting the scan...") but no actual text or tool call - the reasoning
+                          contradicts the fallback body and confuses the user (they'd think work happened
+                          when nothing did). Sentinel emoji + phrase let us recognise our own fallbacks. */}
                       {(() => {
                         const reasoningText = (message.parts || [])
                           .filter(p => p.type === 'reasoning' && p.text)
@@ -1475,6 +1668,14 @@ export const GhostChatPopup = forwardRef(function GhostChatPopup({ isOpen, onClo
                           .join('\n\n')
                           .trim();
                         if (!reasoningText) return null;
+                        const bodyText = (message.parts || [])
+                          .filter(p => p.type === 'text' && p.text)
+                          .map(p => p.text)
+                          .join('\n')
+                          .trim();
+                        // Both HE and EN fallback markers from /api/chat/route.js's onFinish/onError.
+                        const isFallbackBody = /^(🤔|⚠️|❌|🔍)\s*(חשבתי על השאלה|התגובה נחסמה|הגעתי למגבלת אורך|אספתי את המידע|נתקלתי בבעיה|I thought about your question|The response was blocked|I hit the response length|I gathered the data|I ran into a temporary error)/i.test(bodyText);
+                        if (isFallbackBody) return null;
                         const expanded = !!thinkingExpanded[message.id];
                         return (
                           <div className={`${styles.thinkingContainer} ${styles.thinkingContainerInline}`}>
@@ -1482,7 +1683,9 @@ export const GhostChatPopup = forwardRef(function GhostChatPopup({ isOpen, onClo
                               className={styles.thinkingHeader}
                               onClick={() => setThinkingExpanded(prev => ({ ...prev, [message.id]: !prev[message.id] }))}
                             >
-                              <ChevronRight size={14} className={`${styles.thinkingChevron} ${expanded ? styles.thinkingChevronOpen : ''}`} />
+                              {expanded
+                                ? <ChevronDown size={14} className={styles.thinkingChevron} />
+                                : <ChevronRight size={14} className={styles.thinkingChevron} />}
                               <Sparkles size={14} className={styles.thinkingSpinner} />
                               <span className={styles.thinkingLabel}>
                                 {t('chat.actionCard.reasoning') || 'Reasoning'}
@@ -1501,10 +1704,14 @@ export const GhostChatPopup = forwardRef(function GhostChatPopup({ isOpen, onClo
                           // reasoning parts already surfaced above
                           if (part.type === 'reasoning') return null;
                           if (part.type === 'text' && part.text) {
-                            // Strip raw tool call syntax like "call: tool_name(...)" that the model sometimes outputs as text
+                            // Strip raw tool call syntax like "call: tool_name(...)" that the model sometimes outputs as text.
+                            // Also strip <Action>...</Action>/<function_call>...</function_call> XML-style fake tool calls
+                            // that Gemini 3.x preview models sometimes emit instead of using the function-calling protocol.
                             const cleanedText = part.text
                               .replace(/call:\s*\w+\([^)]*\)/gi, '')
                               .replace(/```tool[\s\S]*?```/gi, '')
+                              .replace(/<\s*(?:action|function_call|tool_call|tool_use)\b[^>]*>[\s\S]*?<\s*\/\s*(?:action|function_call|tool_call|tool_use)\s*>/gi, '')
+                              .replace(/<\s*(?:action|function_call|tool_call|tool_use)\b[^/>]*\/\s*>/gi, '')
                               .trim();
                             if (!cleanedText) return null;
                             return (
@@ -1765,6 +1972,27 @@ export const GhostChatPopup = forwardRef(function GhostChatPopup({ isOpen, onClo
                                         </button>
                                       );
                                     })()}
+                                    {/* Try again - only on FAILED. Clones the plan into a fresh
+                                        PENDING_APPROVAL action so the user can re-approve and rerun. */}
+                                    {currentStatus === 'FAILED' && actionId && (() => {
+                                      const isPending = inFlightActions.has(actionId);
+                                      return (
+                                        <button
+                                          className={`${styles.actionBtn} ${styles.actionBtnRetry}`}
+                                          onClick={() => handleRetryAction(actionId)}
+                                          disabled={isPending}
+                                          aria-busy={isPending}
+                                          title={t('chat.actionCard.retryHint') || 'Try the same plan again - opens a new approval card.'}
+                                        >
+                                          {isPending ? (
+                                            <Loader2 size={14} className={styles.spinning} />
+                                          ) : (
+                                            <RotateCcw size={14} />
+                                          )}
+                                          <span>{t('chat.actionCard.retry') || 'Try again'}</span>
+                                        </button>
+                                      );
+                                    })()}
                                   </div>
                                   {currentStatus === 'COMPLETED' && actionId && (
                                     <div className={styles.rollbackHint}>
@@ -1971,7 +2199,9 @@ export const GhostChatPopup = forwardRef(function GhostChatPopup({ isOpen, onClo
                       className={styles.thinkingHeader}
                       onClick={() => setThinkingExpanded(prev => ({ ...prev, _loading: !prev._loading }))}
                     >
-                      <ChevronRight size={14} className={`${styles.thinkingChevron} ${thinkingExpanded._loading ? styles.thinkingChevronOpen : ''}`} />
+                      {thinkingExpanded._loading
+                        ? <ChevronDown size={14} className={styles.thinkingChevron} />
+                        : <ChevronRight size={14} className={styles.thinkingChevron} />}
                       <Loader2 size={14} className={`${styles.thinkingSpinner} ${styles.spinning}`} />
                       <span className={styles.thinkingLabel}>
                         {t('chat.actionCard.thinking') || 'Thinking'}
@@ -2034,6 +2264,35 @@ export const GhostChatPopup = forwardRef(function GhostChatPopup({ isOpen, onClo
             <div ref={messagesEndRef} />
           </div>
 
+          {/* AI-GCoins over-limit banner. Pops as soon as the popup opens
+              if the account is already over its monthly Ai-GCoins budget,
+              so the user understands BEFORE typing a message that the chat
+              is paused. The "Upgrade" button opens the same global limit
+              modal that AddSiteModal / Entities / SmartActionButton use. */}
+          {isOverAiCreditsLimit && (
+            <div className={styles.creditLimitBanner} role="alert">
+              <div className={styles.creditLimitBannerIcon}>
+                <AlertTriangle size={16} />
+              </div>
+              <div className={styles.creditLimitBannerBody}>
+                <div className={styles.creditLimitBannerTitle}>
+                  {t('chat.aiCredits.overLimitTitle') || 'AI-GCoins limit reached'}
+                </div>
+                <div className={styles.creditLimitBannerSubtitle}>
+                  {t('chat.aiCredits.overLimitSubtitle')
+                    || `You've used ${aiCreditsUsage?.used ?? '?'} of ${aiCreditsUsage?.limit ?? '?'} credits this period. Upgrade your plan or buy more credits to keep using the assistant.`}
+                </div>
+              </div>
+              <button
+                type="button"
+                className={styles.creditLimitBannerBtn}
+                onClick={openAiCreditsLimitModal}
+              >
+                {t('chat.aiCredits.upgradeBtn') || 'Upgrade plan'}
+              </button>
+            </div>
+          )}
+
           {/* Input Area */}
           <form id="ghost-chat-form" onSubmit={handleSend} className={`${styles.inputArea} ${previewOpen ? styles.inputAreaCompact : ''}`}>
             <div className={`${styles.inputWrapper} ${previewOpen ? styles.inputWrapperCompact : ''}`}>
@@ -2048,9 +2307,11 @@ export const GhostChatPopup = forwardRef(function GhostChatPopup({ isOpen, onClo
                     handleSend(e);
                   }
                 }}
-                placeholder={t('chat.inputPlaceholder')}
+                placeholder={isOverAiCreditsLimit
+                  ? (t('chat.aiCredits.inputPlaceholderBlocked') || 'Upgrade your plan to keep chatting…')
+                  : t('chat.inputPlaceholder')}
                 className={styles.messageInput}
-                disabled={isAiLoading}
+                disabled={isAiLoading || isOverAiCreditsLimit}
               />
               {previewOpen ? (
                 <div className={styles.inputActions} ref={inputActionsRef}>
@@ -2097,7 +2358,10 @@ export const GhostChatPopup = forwardRef(function GhostChatPopup({ isOpen, onClo
             </div>
             <button
               type="submit"
-              disabled={!input.trim() || isAiLoading}
+              disabled={!input.trim() || isAiLoading || isOverAiCreditsLimit}
+              title={isOverAiCreditsLimit
+                ? (t('chat.aiCredits.sendBlockedTitle') || 'Send is paused while your account is over its AI-GCoins limit.')
+                : undefined}
               className={`${styles.sendButton} ${previewOpen ? styles.sendButtonCompact : ''}`}
             >
               {isAiLoading ? (

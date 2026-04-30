@@ -4,6 +4,7 @@ import prisma from '@/lib/prisma';
 import { applyCouponToOrder } from '@/lib/coupon-pricing';
 import { getDraftAccountForUser } from '@/lib/draft-account';
 import { calculateNewSubscriptionProration } from '@/lib/proration';
+import { notifyAdmins, emailTemplates } from '@/lib/mailer';
 
 const SESSION_COOKIE = 'user_session';
 
@@ -33,7 +34,7 @@ export async function POST() {
 
     const user = await prisma.user.findUnique({
       where: { id: sessionUserId },
-      select: { id: true },
+      select: { id: true, email: true, firstName: true, lastName: true },
     });
     if (!user) {
       cookieStore.delete(SESSION_COOKIE);
@@ -113,6 +114,21 @@ export async function POST() {
         },
       },
     });
+
+    try {
+      notifyAdmins(emailTemplates.adminNewPayment({
+        kind: 'registration',
+        amount: 0,
+        currency: 'USD',
+        user,
+        account: { id: draftAccount.id, name: draftAccount.name },
+        planName: plan.name,
+        productName: `${plan.name} plan`,
+        couponCode: coupon.code,
+      }));
+    } catch (e) {
+      console.error('[Reg Free-Coupon] admin notification failed:', e);
+    }
 
     return NextResponse.json({
       success: true,

@@ -28,6 +28,7 @@ export default async function ClustersPage() {
       discovered: t('clusters.filters.discovered'),
       confirmed: t('clusters.filters.confirmed'),
       rejected: t('clusters.filters.rejected'),
+      rootsOnly: t('clusters.filters.rootsOnly'),
     },
     viewMode: {
       list: t('clusters.viewMode.list'),
@@ -53,6 +54,38 @@ export default async function ClustersPage() {
       expand: t('clusters.actions.expand'),
       delete: t('clusters.actions.delete'),
       confirmDelete: t('clusters.actions.confirmDelete'),
+      promoteToAnchor: t('clusters.actions.promoteToAnchor'),
+      detachFromParent: t('clusters.actions.detachFromParent'),
+      discoverSubclusters: t('clusters.actions.discoverSubclusters'),
+      discoveringSubclusters: t('clusters.actions.discoveringSubclusters'),
+    },
+    tree: {
+      depthLabel: t('clusters.tree.depthLabel'),
+      expand: t('clusters.tree.expand'),
+      collapse: t('clusters.tree.collapse'),
+      childCount: t('clusters.tree.childCount'),
+      childCountPlural: t('clusters.tree.childCountPlural'),
+      breadcrumbSeparator: t('clusters.tree.breadcrumbSeparator'),
+    },
+    promote: {
+      title: t('clusters.promote.title'),
+      intro: t('clusters.promote.intro'),
+      anchorLabel: t('clusters.promote.anchorLabel'),
+      nameLabel: t('clusters.promote.nameLabel'),
+      namePlaceholder: t('clusters.promote.namePlaceholder'),
+      keywordLabel: t('clusters.promote.keywordLabel'),
+      keywordPlaceholder: t('clusters.promote.keywordPlaceholder'),
+      movedMembersLabel: t('clusters.promote.movedMembersLabel'),
+      movedMembersHint: t('clusters.promote.movedMembersHint'),
+      noMovedMembers: t('clusters.promote.noMovedMembers'),
+      confirm: t('clusters.promote.confirm'),
+    },
+    demote: {
+      modalTitle: t('clusters.demote.modalTitle'),
+      intro: t('clusters.demote.intro'),
+      cascadeKeep: t('clusters.demote.cascadeKeep'),
+      cascadeDetach: t('clusters.demote.cascadeDetach'),
+      confirm: t('clusters.demote.confirm'),
     },
     edit: {
       title: t('clusters.edit.title'),
@@ -70,6 +103,15 @@ export default async function ClustersPage() {
       discoverFailed: t('clusters.errors.discoverFailed'),
       deleteFailed: t('clusters.errors.deleteFailed'),
       staleConflict: t('clusters.errors.staleConflict'),
+      cycleDetected: t('clusters.errors.cycleDetected'),
+      depthExceeded: t('clusters.errors.depthExceeded'),
+      pillarConflict: t('clusters.errors.pillarConflict'),
+      pillarNotMember: t('clusters.errors.pillarNotMember'),
+      orphanChildren: t('clusters.errors.orphanChildren'),
+      promoteFailed: t('clusters.errors.promoteFailed'),
+      demoteFailed: t('clusters.errors.demoteFailed'),
+      subDiscoverFailed: t('clusters.errors.subDiscoverFailed'),
+      subDiscoverNoneFound: t('clusters.errors.subDiscoverNoneFound'),
     },
     health: {
       loading: t('clusters.health.loading'),
@@ -81,6 +123,25 @@ export default async function ClustersPage() {
         severity: {
           HIGH: t('clusters.health.linkGaps.severity.HIGH'),
           MEDIUM: t('clusters.health.linkGaps.severity.MEDIUM'),
+          LOW: t('clusters.health.linkGaps.severity.LOW'),
+        },
+        types: {
+          PARENT: {
+            title: t('clusters.health.linkGaps.types.PARENT.title'),
+            description: t('clusters.health.linkGaps.types.PARENT.description'),
+          },
+          ANCESTOR: {
+            title: t('clusters.health.linkGaps.types.ANCESTOR.title'),
+            description: t('clusters.health.linkGaps.types.ANCESTOR.description'),
+          },
+          BRAND: {
+            title: t('clusters.health.linkGaps.types.BRAND.title'),
+            description: t('clusters.health.linkGaps.types.BRAND.description'),
+          },
+          SIBLING: {
+            title: t('clusters.health.linkGaps.types.SIBLING.title'),
+            description: t('clusters.health.linkGaps.types.SIBLING.description'),
+          },
         },
         fix: {
           button: t('clusters.health.linkGaps.fix.button'),

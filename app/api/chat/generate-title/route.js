@@ -59,7 +59,9 @@ export async function POST(request) {
     maxTokens: 30,
     temperature: 0.3,
     operation: 'GENERIC',
-    accountId: member.accountId,
+    // SuperAdmin sessions have no accountId. Charge the credit to the
+    // conversation's owning account so the AI call still gets metered.
+    accountId: member.accountId || conversation.accountId,
     userId: member.userId,
     siteId: conversation.siteId,
   });

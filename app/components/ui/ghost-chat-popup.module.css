@@ -506,7 +506,7 @@
   background: var(--bg-card);
   border: 1px solid var(--border-light);
   border-radius: 1rem;
-  padding: 1.25rem;
+  padding: 0;
   max-width: 95%;
   box-shadow: var(--shadow-md);
   align-self: flex-start;
@@ -1766,12 +1766,7 @@
 
 .thinkingChevron {
   color: var(--text-tertiary, #9ca3af);
-  transition: transform 0.2s ease;
   flex-shrink: 0;
-}
-
-.thinkingChevronOpen {
-  transform: rotate(90deg);
 }
 
 .thinkingLabel {
@@ -1907,21 +1902,28 @@
 }
 
 .emptyState .newChatButton {
-  display: flex;
+  width: auto;
+  height: auto;
+  display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.5rem 1rem;
+  justify-content: center;
+  gap: 0.4rem;
+  padding: 0.5rem 0.875rem;
   border-radius: var(--radius-md);
   background: var(--gradient-primary);
   color: #ffffff;
   font-size: 0.75rem;
+  font-weight: 500;
+  line-height: 1;
+  white-space: nowrap;
   cursor: pointer;
   border: none;
-  transition: opacity 0.2s ease;
+  transition: opacity 0.2s ease, transform 0.2s ease;
 }
 
 .emptyState .newChatButton:hover {
-  opacity: 0.9;
+  opacity: 0.92;
+  transform: translateY(-1px);
 }
 
 /* Edit title input */
@@ -2571,4 +2573,105 @@
   color: var(--muted-foreground);
   font-variant-numeric: tabular-nums;
   flex-shrink: 0;
+}
+
+/* Unread-message badge inside the conversations list - mirrors the floating
+   chat bubble badge style so the user reads them as the same affordance. */
+.unreadBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.1rem;
+  height: 1.1rem;
+  padding: 0 0.35rem;
+  margin-inline-start: 0.4rem;
+  background: linear-gradient(135deg, #8231F1 0%, #4847F8 100%);
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: 700;
+  line-height: 1;
+  border-radius: 999px;
+  box-shadow: 0 0 0 2px var(--background, #fff);
+  flex-shrink: 0;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0;
+}
+
+/* AI-GCoins over-limit banner - sits above the input and replaces send
+   ability while the account is over its monthly Ai-GCoins budget. Click
+   the Upgrade button to pop the same global LimitReachedModal that the
+   rest of the app uses. */
+.creditLimitBanner {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  margin: 0.5rem 1rem 0;
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.08), rgba(220, 38, 38, 0.04));
+  border: 1px solid rgba(239, 68, 68, 0.25);
+  border-radius: 0.75rem;
+  color: var(--foreground, #111827);
+}
+
+.creditLimitBannerIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 999px;
+  background: rgba(239, 68, 68, 0.15);
+  color: #dc2626;
+  flex-shrink: 0;
+}
+
+.creditLimitBannerBody {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-width: 0;
+}
+
+.creditLimitBannerTitle {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #b91c1c;
+}
+
+.creditLimitBannerSubtitle {
+  font-size: 0.75rem;
+  color: var(--muted-foreground, #6b7280);
+  line-height: 1.4;
+}
+
+.creditLimitBannerBtn {
+  flex-shrink: 0;
+  padding: 0.5rem 0.85rem;
+  background: linear-gradient(135deg, #8231F1 0%, #4847F8 100%);
+  color: #fff;
+  border: none;
+  border-radius: 0.5rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.creditLimitBannerBtn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(130, 49, 241, 0.35);
+}
+
+/* "Try again" button on failed action cards. Same shape family as the other
+   action buttons - distinct purple hint to read as "constructive retry"
+   rather than the amber rollback affordance. */
+.actionBtnRetry {
+  background: rgba(130, 49, 241, 0.1);
+  color: #6d28d9;
+  border: 1px solid rgba(130, 49, 241, 0.25);
+}
+.actionBtnRetry:hover {
+  background: rgba(130, 49, 241, 0.18);
+  border-color: rgba(130, 49, 241, 0.4);
 }

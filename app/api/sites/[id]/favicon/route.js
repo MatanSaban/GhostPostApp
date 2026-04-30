@@ -104,7 +104,7 @@ export async function POST(request, { params }) {
     // Find site and verify access
     const site = await prisma.site.findUnique({
       where: { id: siteId },
-      select: { id: true, url: true, accountId: true, favicon: true, faviconCheckedAt: true },
+      select: { id: true, url: true, accountId: true, favicon: true, faviconCheckedAt: true, faviconCustom: true },
     });
 
     if (!site) {
@@ -113,6 +113,11 @@ export async function POST(request, { params }) {
 
     if (!user?.isSuperAdmin && site.accountId !== user?.lastSelectedAccountId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
+    }
+
+    // User-uploaded custom favicons are never auto-refreshed
+    if (site.faviconCustom) {
+      return NextResponse.json({ favicon: site.favicon, refreshed: false, custom: true });
     }
 
     // Check if refresh is needed
@@ -157,5 +162,117 @@ export async function POST(request, { params }) {
   } catch (error) {
     console.error('[Favicon] Error:', error);
     return NextResponse.json({ error: 'Failed to check favicon' }, { status: 500 });
+  }
+}
+
+const ALLOWED_MIME = ['image/png', 'image/jpeg', 'image/jpg', 'image/webp', 'image/svg+xml', 'image/x-icon', 'image/vnd.microsoft.icon'];
+const MAX_BYTES = 2 * 1024 * 1024; // 2MB
+
+async function authorizeSiteAccess(siteId, userId) {
+  if (!userId) return { error: 'Unauthorized', status: 401 };
+
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { lastSelectedAccountId: true, isSuperAdmin: true },
+  });
+
+  const site = await prisma.site.findUnique({
+    where: { id: siteId },
+    select: { id: true, url: true, accountId: true, favicon: true, faviconCheckedAt: true, faviconCustom: true },
+  });
+
+  if (!site) return { error: 'Site not found', status: 404 };
+  if (!user?.isSuperAdmin && site.accountId !== user?.lastSelectedAccountId) {
+    return { error: 'Unauthorized', status: 403 };
+  }
+  return { site };
+}
+
+// PUT - Upload a custom favicon (overrides auto-detection)
+export async function PUT(request, { params }) {
+  try {
+    const cookieStore = await cookies();
+    const userId = cookieStore.get(SESSION_COOKIE)?.value;
+    const { id: siteId } = await params;
+
+    const auth = await authorizeSiteAccess(siteId, userId);
+    if (auth.error) return NextResponse.json({ error: auth.error }, { status: auth.status });
+
+    const body = await request.json();
+    const { dataUri, mimeType } = body || {};
+
+    if (!dataUri || typeof dataUri !== 'string' || !dataUri.startsWith('data:')) {
+      return NextResponse.json({ error: 'Invalid image data' }, { status: 400 });
+    }
+
+    const detectedMime = (mimeType || dataUri.match(/^data:([^;]+);/)?.[1] || '').toLowerCase();
+    if (!ALLOWED_MIME.includes(detectedMime)) {
+      return NextResponse.json({ error: 'Unsupported image format' }, { status: 400 });
+    }
+
+    // Estimate decoded size from base64 length
+    const base64Part = dataUri.split(',')[1] || '';
+    const approxBytes = Math.floor(base64Part.length * 0.75);
+    if (approxBytes > MAX_BYTES) {
+      return NextResponse.json({ error: 'Image must be under 2MB' }, { status: 400 });
+    }
+
+    ensureCloudinaryConfig();
+    const result = await cloudinary.uploader.upload(dataUri, {
+      folder: 'ghostpost/favicons',
+      public_id: `site-${siteId}-custom`,
+      resource_type: 'image',
+      overwrite: true,
+    });
+
+    const updated = await prisma.site.update({
+      where: { id: siteId },
+      data: {
+        favicon: result.secure_url,
+        faviconCheckedAt: new Date(),
+        faviconCustom: true,
+      },
+      select: { favicon: true, faviconCustom: true },
+    });
+
+    return NextResponse.json({ favicon: updated.favicon, custom: updated.faviconCustom });
+  } catch (error) {
+    console.error('[Favicon] Upload error:', error);
+    return NextResponse.json({ error: 'Failed to upload favicon' }, { status: 500 });
+  }
+}
+
+// DELETE - Reset favicon back to auto-detected (clears custom flag and re-fetches)
+export async function DELETE(request, { params }) {
+  try {
+    const cookieStore = await cookies();
+    const userId = cookieStore.get(SESSION_COOKIE)?.value;
+    const { id: siteId } = await params;
+
+    const auth = await authorizeSiteAccess(siteId, userId);
+    if (auth.error) return NextResponse.json({ error: auth.error }, { status: auth.status });
+
+    // Clear custom flag and stored favicon, then re-fetch from the live site
+    let newFaviconUrl = null;
+    try {
+      newFaviconUrl = await fetchAndUploadFavicon(auth.site.url, siteId);
+    } catch (err) {
+      console.error('[Favicon] Auto re-fetch failed during reset:', err.message);
+    }
+
+    const updated = await prisma.site.update({
+      where: { id: siteId },
+      data: {
+        favicon: newFaviconUrl,
+        faviconCheckedAt: new Date(),
+        faviconCustom: false,
+      },
+      select: { favicon: true, faviconCustom: true },
+    });
+
+    return NextResponse.json({ favicon: updated.favicon, custom: updated.faviconCustom });
+  } catch (error) {
+    console.error('[Favicon] Reset error:', error);
+    return NextResponse.json({ error: 'Failed to reset favicon' }, { status: 500 });
   }
 }

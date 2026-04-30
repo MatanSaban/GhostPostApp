@@ -142,8 +142,17 @@ export default function AddCreditsModal({ isOpen, onClose }) {
                 <h2 className={styles.title}>
                   {t('payment.payNow') || 'Pay Now'}
                 </h2>
+                {/* Bidi: the add-on name often mixes Hebrew with embedded
+                    Latin tokens like "Ai-GCoins", and "× 21" is an LTR run.
+                    Without isolation the bidi algorithm reorders pieces of
+                    the multiplier next to the trailing Latin word, producing
+                    visually broken output (e.g. "× 21 Ai-GCoins" landing on
+                    the wrong side). <bdi> isolates each segment so they
+                    flow as cohesive units in the paragraph's direction. */}
                 <p className={styles.subtitle}>
-                  {selectedAddon.name} × {selectedQty}
+                  <bdi>{selectedAddon.name}</bdi>
+                  {' '}
+                  <bdi>×&nbsp;{selectedQty}</bdi>
                 </p>
               </div>
               <CardComPaymentForm

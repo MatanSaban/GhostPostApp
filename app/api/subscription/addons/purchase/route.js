@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import prisma from '@/lib/prisma';
 import { canPurchaseAddOn, addAiCredits } from '@/lib/account-utils';
+import { isCouponApplicableToAddOn } from '@/lib/coupon-applicability';
+import { applyCouponToOrder } from '@/lib/coupon-pricing';
 
 const SESSION_COOKIE = 'user_session';
 
@@ -42,7 +44,7 @@ export async function POST(request) {
     }
 
     const body = await request.json();
-    const { addOnId, quantity = 1 } = body;
+    const { addOnId, quantity = 1, couponCode } = body;
 
     if (!addOnId) {
       return NextResponse.json(
@@ -123,6 +125,65 @@ export async function POST(request) {
       );
     }
 
+    // Resolve and validate the coupon (if any) BEFORE creating the purchase,
+    // so we can reject early with a clear errorKey for the UI.
+    let validatedCoupon = null;
+    if (couponCode && typeof couponCode === 'string') {
+      const code = couponCode.toUpperCase().trim();
+      const coupon = await prisma.coupon.findUnique({
+        where: { code },
+        include: { _count: { select: { redemptions: true } } },
+      });
+
+      if (!coupon || !coupon.isActive) {
+        return NextResponse.json(
+          { error: 'Invalid coupon code', errorKey: 'admin.coupons.errors.invalid' },
+          { status: 400 }
+        );
+      }
+
+      const now = new Date();
+      if (coupon.validFrom && now < coupon.validFrom) {
+        return NextResponse.json(
+          { error: 'This coupon is not yet active', errorKey: 'admin.coupons.errors.notYetActive' },
+          { status: 400 }
+        );
+      }
+      if (coupon.validUntil && now > coupon.validUntil) {
+        return NextResponse.json(
+          { error: 'This coupon has expired', errorKey: 'admin.coupons.errors.expired' },
+          { status: 400 }
+        );
+      }
+      if (coupon.maxRedemptions && coupon._count.redemptions >= coupon.maxRedemptions) {
+        return NextResponse.json(
+          { error: 'This coupon has reached its usage limit', errorKey: 'admin.coupons.errors.usageLimit' },
+          { status: 400 }
+        );
+      }
+
+      // Per-account redemption cap.
+      const accountRedemptions = await prisma.couponRedemption.count({
+        where: { couponId: coupon.id, accountId: membership.account.id },
+      });
+      if (accountRedemptions >= (coupon.maxPerAccount || 1)) {
+        return NextResponse.json(
+          { error: 'You have already used this coupon', errorKey: 'admin.coupons.errors.maxPerAccount' },
+          { status: 400 }
+        );
+      }
+
+      const scope = isCouponApplicableToAddOn(coupon, { id: addOn.id, type: addOn.type });
+      if (!scope.applies) {
+        return NextResponse.json(
+          { error: 'This coupon is not applicable to the selected add-on', errorKey: 'admin.coupons.errors.notApplicable' },
+          { status: 400 }
+        );
+      }
+
+      validatedCoupon = coupon;
+    }
+
     // Create the add-on purchase
     const purchase = await prisma.addOnPurchase.create({
       data: {
@@ -135,14 +196,53 @@ export async function POST(request) {
           ? (addOn.quantity || 0) * quantity
           : null,
         // For recurring add-ons, set expiration to match subscription
-        expiresAt: addOn.billingType === 'RECURRING' 
-          ? subscription.currentPeriodEnd 
+        expiresAt: addOn.billingType === 'RECURRING'
+          ? subscription.currentPeriodEnd
           : null,
       },
       include: {
         addOn: true,
       },
     });
+
+    // Compute discounted total (pre-VAT) and snapshot the redemption.
+    let appliedCoupon = null;
+    if (validatedCoupon) {
+      const orderUsd = (addOn.price || 0) * quantity;
+      const result = applyCouponToOrder(orderUsd, validatedCoupon);
+      if (result.applies) {
+        await prisma.couponRedemption.create({
+          data: {
+            couponId: validatedCoupon.id,
+            accountId: membership.account.id,
+            subscriptionId: subscription.id,
+            addOnPurchaseId: purchase.id,
+            discountType: validatedCoupon.discountType,
+            discountValue: validatedCoupon.discountValue,
+            recurringPriceSchedule: Array.isArray(validatedCoupon.recurringPriceSchedule)
+              ? validatedCoupon.recurringPriceSchedule
+              : [],
+            floorOrderToZero: !!validatedCoupon.floorOrderToZero,
+            // limitationOverrides/extraFeatures only kick in for plan
+            // redemptions; snapshot empty arrays for add-on redemptions so
+            // the row stays consistent.
+            limitationOverrides: [],
+            extraFeatures: [],
+            durationMonths: null,
+            status: 'ACTIVE',
+          },
+        });
+
+        appliedCoupon = {
+          code: validatedCoupon.code,
+          discountType: validatedCoupon.discountType,
+          discountValue: validatedCoupon.discountValue,
+          orderUsd,
+          finalUsd: result.finalUsd,
+          discountUsd: result.discountUsd,
+        };
+      }
+    }
 
     // If Ai-GCoins add-on, add credits to account balance
     if (addOn.type === 'AI_CREDITS') {
@@ -160,6 +260,7 @@ export async function POST(request) {
     return NextResponse.json({
       success: true,
       purchase,
+      coupon: appliedCoupon,
       message: `Successfully purchased ${addOn.name}${quantity > 1 ? ` x${quantity}` : ''}`,
     });
   } catch (error) {

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import {
   Check,
   Sparkles,
@@ -141,6 +141,42 @@ export function InterviewContent({ translations }) {
       }
     }
   };
+
+  // Keep the profile in sync with the latest interview data even when the
+  // user is jumping between this tab and the wizard / other tabs:
+  //   - Refresh when the tab regains focus (visibilitychange + window focus).
+  //   - Refresh whenever the wizard transitions from open -> closed, so any
+  //     answer the user submitted inside the wizard is reflected immediately.
+  // We intentionally don't poll on a timer — focus + close is enough to feel
+  // "live" without hammering the API.
+  useEffect(() => {
+    if (!selectedSite?.id) return;
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') {
+        refreshProfile();
+      }
+    };
+    window.addEventListener('focus', refreshProfile);
+    document.addEventListener('visibilitychange', onVisible);
+    return () => {
+      window.removeEventListener('focus', refreshProfile);
+      document.removeEventListener('visibilitychange', onVisible);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedSite?.id]);
+
+  // When the wizard goes from open -> closed, refresh both the interview
+  // profile and the Google integration status. handleCloseWizard already
+  // calls refreshProfile, but doing it here too covers the path where the
+  // wizard unmounts via parent re-render rather than the close button.
+  const wasWizardOpenRef = useRef(false);
+  useEffect(() => {
+    if (wasWizardOpenRef.current && !showWizard) {
+      refreshProfile();
+    }
+    wasWizardOpenRef.current = showWizard;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [showWizard]);
 
   // Fetch Google integration status when the selected site changes so the
   // integrations section can show connected/not-connected accurately.

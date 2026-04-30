@@ -65,6 +65,11 @@ model Account {
   // show checkmarks next to completed walkthroughs.
   completedGuides Json @default("[]")
 
+  // Set true the first time this account starts a free trial. Enforces
+  // one-trial-per-account-ever: subsequent signups skip the trial branch
+  // and require payment up front.
+  hasUsedTrial Boolean @default(false)
+
   createdAt         DateTime           @default(now())
   updatedAt         DateTime           @updatedAt
   // Relations
@@ -542,6 +547,18 @@ model Plan {
 
   isActive  Boolean  @default(true)
   sortOrder Int      @default(0)
+
+  // Free-trial length in days. 0 means no trial (default). When > 0 and the
+  // account hasn't used a trial yet, registration creates a TRIALING
+  // subscription without collecting a payment method up front.
+  trialDays Int @default(0)
+
+  // Marks the single Plan that TRIALING subscriptions are downgraded to when
+  // the trial expires without conversion. Exactly one Plan should have this
+  // flag — enforcement lives in the admin API (Mongo can't express partial
+  // unique indexes via Prisma).
+  isFreeFallback Boolean @default(false)
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -742,8 +759,22 @@ model Coupon {
   validFrom  DateTime  @default(now())
   validUntil DateTime? // null = no expiry
 
-  // Applicable plans (empty = all plans)
+  // Applicable plans (empty = no plan-channel restriction; see scoping rules below)
   applicablePlanIds String[] @db.ObjectId
+
+  // Add-on applicability (lets a coupon discount add-on purchases like
+  // GCoin packs, extra seats, extra sites, etc.). Two independent filters:
+  //   - applicableAddOnIds:   specific AddOn rows by id.
+  //   - applicableAddOnTypes: AddOnType enum values, e.g. ["AI_CREDITS","SEATS"].
+  // Scoping semantics: a coupon applies in a given channel (plan vs add-on)
+  // when EITHER the channel has a non-empty scope array OR no other channel
+  // has any scope. So:
+  //   - All three empty            → applies to everything (legacy behavior).
+  //   - Only applicablePlanIds set → plan-only coupon, refused on add-on buy.
+  //   - Only addOn arrays set      → add-on-only coupon, refused on plan checkout.
+  //   - Plan + add-on both set     → applies in both channels for matching items.
+  applicableAddOnIds   String[] @db.ObjectId
+  applicableAddOnTypes String[] // values from AddOnType enum, stored as strings
 
   // Duration of benefits (in billing cycles, null = lifetime of subscription)
   durationMonths Int? // How many months the coupon benefits last
@@ -788,6 +819,9 @@ model CouponRedemption {
   couponId       String  @db.ObjectId
   accountId      String  @db.ObjectId
   subscriptionId String? @db.ObjectId
+  // For add-on-purchase redemptions: which AddOnPurchase the coupon was
+  // applied to. Null for plan-checkout redemptions.
+  addOnPurchaseId String? @db.ObjectId
 
   // Snapshot of what was applied
   discountType           DiscountType
@@ -961,12 +995,14 @@ model Site {
   // Favicon
   favicon          String? // Cloudinary URL of the site's favicon
   faviconCheckedAt DateTime? // Last time favicon was checked/refreshed
+  faviconCustom    Boolean   @default(false) // True if user uploaded a custom favicon (skips auto-refresh)
 
   // Logo
   logo          String? // Cloudinary URL of the site's logo
   logoCheckedAt DateTime? // Last time logo was checked/refreshed
   logoBgLight   String? // AI-determined background for logo in light theme (CSS color)
   logoBgDark    String? // AI-determined background for logo in dark theme (CSS color)
+  logoCustom    Boolean   @default(false) // True if user uploaded a custom logo (skips auto-refresh)
 
   account           Account              @relation(fields: [accountId], references: [id], onDelete: Cascade)
   interview         Interview?
@@ -1429,11 +1465,23 @@ model TopicCluster {
   createdAt       DateTime           @default(now())
   updatedAt       DateTime           @updatedAt
 
+  // Recursive tree: a child's pillarEntityId MUST appear in parent's memberEntityIds.
+  // Invariant enforced application-side (validateParentChange in lib/cluster-tree.js).
+  // depth is denormalized (0 = root) for fast tree-filter queries; recomputed
+  // by recomputeDepths() whenever the parent link changes.
+  parentClusterId String?        @db.ObjectId
+  parentCluster   TopicCluster?  @relation("ClusterTree", fields: [parentClusterId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  childClusters   TopicCluster[] @relation("ClusterTree")
+  depth           Int            @default(0)
+
   site      Site       @relation(fields: [siteId], references: [id], onDelete: Cascade)
   campaigns Campaign[]
 
   @@index([siteId])
   @@index([siteId, status])
+  @@index([parentClusterId])
+  @@index([siteId, depth])
+  @@index([pillarEntityId])
 }
 
 enum TopicClusterStatus {
@@ -1907,6 +1955,11 @@ model ChatConversation {
   messages        ChatMessage[]
   chatActions     ChatAction[]
   activeUsers     Json? // [{userId, userName, lastSeen}] for concurrent usage detection
+  // Per-user last-read marker, used to compute unread badges in the
+  // conversation list and on the floating chat bubble. Shape: { [userId]: ISO }.
+  // Keeps it on the existing document instead of a join table because reads are
+  // always scoped to the requesting user and writes are infrequent (open conversation).
+  userLastRead    Json?
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
 

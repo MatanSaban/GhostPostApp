@@ -148,6 +148,25 @@ export default async function SettingsPage() {
     noSiteSelected: t('settings.fields.noSiteSelected'),
     saveSuccess: t('settings.fields.saveSuccess'),
     saving: t('settings.fields.saving'),
+
+    // Branding (favicon + logo, platform display only)
+    brandingTitle: t('settings.brandingSection.title'),
+    brandingDescription: t('settings.brandingSection.description'),
+    brandingFaviconLabel: t('settings.brandingSection.faviconLabel'),
+    brandingLogoLabel: t('settings.brandingSection.logoLabel'),
+    brandingFaviconHint: t('settings.brandingSection.faviconHint'),
+    brandingLogoHint: t('settings.brandingSection.logoHint'),
+    brandingUploadFavicon: t('settings.brandingSection.uploadFavicon'),
+    brandingUploadLogo: t('settings.brandingSection.uploadLogo'),
+    brandingResetToAuto: t('settings.brandingSection.resetToAuto'),
+    brandingCustomBadge: t('settings.brandingSection.customBadge'),
+    brandingInvalidType: t('settings.brandingSection.invalidType'),
+    brandingFaviconTooLarge: t('settings.brandingSection.faviconTooLarge'),
+    brandingLogoTooLarge: t('settings.brandingSection.logoTooLarge'),
+    brandingFaviconUploadError: t('settings.brandingSection.faviconUploadError'),
+    brandingLogoUploadError: t('settings.brandingSection.logoUploadError'),
+    brandingFaviconResetError: t('settings.brandingSection.faviconResetError'),
+    brandingLogoResetError: t('settings.brandingSection.logoResetError'),
     
     // Common
     common: {

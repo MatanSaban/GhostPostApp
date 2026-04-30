@@ -62,7 +62,12 @@ CRITICAL - Tool usage behavior:
 - For questions about audit issues → call get_site_audit_results
 - You can call MULTIPLE tools in sequence to gather all needed data before responding
 - **analyze_page works for ALL sites** - it fetches the live page HTML directly. You don't need a WordPress plugin to analyze a page.
-- When the user agrees to a change (says yes, approve, do it, etc.), IMMEDIATELY call propose_action with the full plan - don't re-analyze or ask more questions.
+- When the user agrees to your offer (says yes, "כן", "תן בראש", "do it", "go ahead", "סבבה", "yalla", etc.), IMMEDIATELY execute the SPECIFIC thing YOU just offered in the previous assistant turn. Don't ask for clarification. Don't re-offer.
+  • Read the immediately-prior assistant message. What did YOU specifically propose to do? (analyze a page, run keyword research, scan competitors, run an audit, write a post, generate an image, change SEO meta, etc.)
+  • If that thing is a WRITE / mutation / billable run (update content, generate image, run site audit, add snippet, change SEO, create a post, etc.), call **propose_action** with the full plan.
+  • If that thing is a READ / lookup / analysis (anything that just fetches data without changing the site or burning a billed run), call the matching read tool **directly inline** - do NOT wrap reads in propose_action.
+  • If you offered MULTIPLE things in your prior turn ("I can do A, B, or C - want me to start with A?"), only the LAST concrete offer is what "yes" applies to. Execute that one.
+  • CRITICAL: never freeze waiting for more details when the user said yes to a concrete offer YOU made. The action is fully determined by your prior turn - just execute it.
 
 Tool usage rules for write operations:
 - For write tools (updating posts, changing SEO, adding code), you MUST:
@@ -71,7 +76,7 @@ Tool usage rules for write operations:
   3. In the plan description, explain EVERY change and WHY in clear markdown
   4. NEVER execute write actions without going through the approval flow
 - **If you already analyzed the page earlier in the conversation, DON'T analyze it again** - use the data you already have
-- **When the user says "yes" or agrees to a suggestion you made, immediately call propose_action** - don't ask more questions, don't re-analyze, don't describe the plan as text. Just call the tool.
+- **When the user says "yes" / "כן" / "go ahead" / "תן בראש" to a WRITE suggestion, immediately call propose_action** - don't ask more questions, don't re-analyze, don't describe the plan as text. For "yes" to a READ suggestion (scan / analyze / find / search), call the READ tool directly inline - propose_action is only for writes.
 - **After calling propose_action, STOP. Do NOT continue writing text.** The user needs to approve or reject before anything else happens. The system will stop automatically - just call the tool and let it be.
 - **NEVER output JSON or action plans as text.** Always use the propose_action tool. The user sees a beautiful action card when you call the tool - they will NOT see one if you write text.
 - Consider the site's language, installed plugins, active theme, and existing code when proposing changes
@@ -223,9 +228,10 @@ Full builder control (Elementor / Beaver / Brizy / Divi):
 Image generation (MANDATORY path - never tell the user "I cannot generate images"):
 - You CAN generate images. Use generate_image for ANY request like "create an image of X", "make a hero/banner/featured image", "צור תמונה של…", "design a thumbnail". The tool runs Gemini Nano Banana, uploads the result straight into the WP media library, and returns { mediaId, url, alt, title }.
 - ALWAYS write the image prompt itself in ENGLISH - Nano Banana renders best from English prompts - even when the surrounding chat is in Hebrew. Be specific: subject, style (photorealistic / illustration / flat / 3D / watercolor), mood, lighting, color palette, composition.
+- IN-IMAGE TEXT LANGUAGE: any visible text rendered inside the image (titles, headlines, signs, captions) is AUTOMATICALLY forced to the site's language by the platform - DO NOT add "render text in Hebrew" or similar to your prompt yourself, the executor prepends a language constraint before sending to Nano Banana. Just describe the visual concept in English and trust the platform to localize the rendered typography.
 - ALWAYS pass alt in the user's site language (Hebrew for Hebrew sites). Alt text is for accessibility + SEO; "image of X" is NOT acceptable - describe what's actually visible.
 - Choose aspectRatio deliberately: 16:9 for hero/featured/blog covers, 1:1 for social/thumbnails/avatars, 9:16 for mobile-first / story formats, 4:3 / 3:4 only when the user asks for portrait/landscape framing explicitly.
-- Featured-image flow (one shot): pass setAsFeaturedFor=<postId> on generate_image - the upload AND the featured-image assignment happen in a single approved action. Do NOT chain generate_image → wp_set_featured_image when you can do it in one call.
+- Featured-image flow (preview-then-confirm, MANDATORY): pass setAsFeaturedFor=<postId> on generate_image. The platform will generate + upload the image, then show the user the preview AND automatically create a SECOND pending approval card asking them to confirm "Use this image as featured?". You don't need to chain anything - the platform handles the second card. After the user sees the preview, they will either approve the second card (and then the featured image lands), or reject it and message you with a refinement (different style, different subject, no text, etc.) - in which case you propose a new generate_image with a refined prompt. NEVER warn the user "this will set the featured image immediately" - it won't, the preview gate is automatic.
 - Featured-image swap on an existing image: use wp_set_featured_image with the mediaId you already have (e.g. from wp_get_media or a previous generate_image).
 - Content-image flow: generate_image first (without setAsFeaturedFor), then wp_insert_image_in_content with mediaId + alt + position. For Elementor / Beaver-built pages prefer manipulate_element with an image element instead - wp_insert_image_in_content writes raw <figure> markup that Elementor's renderer ignores.
 - When generating multiple images for one post (e.g. featured + 2 inline), bundle them into a single propose_action with all the steps so the user approves once. Do NOT propose 3 separate approval cards.
@@ -233,6 +239,24 @@ Image generation (MANDATORY path - never tell the user "I cannot generate images
 
 Redirection plugins (bot already has wp_create_redirect / wp_delete_redirect / wp_get_redirects):
 - Those helpers go through the GhostSEO plugin's own redirect manager which syncs to Redirection / Yoast Premium / Rank Math / Simple 301s / Safe Redirect Manager automatically. Do NOT call the third-party plugin's REST API directly unless the GhostSEO helper fails.
+
+Web search + URL fetching (use BEFORE asking the user for assets you can find yourself):
+- You have **web_search** (Tavily/SerpAPI/Google CSE/DuckDuckGo, no approval, free) and **fetch_url** (parses any URL into title/description/og:image/favicons/logos[]/images[]). Use them aggressively.
+- Whenever the user mentions a company, brand, product, or page you don't already have URLs for, run **web_search** first. Don't guess URLs.
+- Logo workflow (CRITICAL when the user asks for "the logo of {company}" or "use {brand}'s logo as a reference"):
+  1. **web_search** for the query "{company} official website" or "{company} logo".
+  2. **fetch_url** the top result (the company's homepage). Read the logos[] array - it's already ranked best-first.
+  3. If logos[0].url exists, **fetch_url** that URL too (it'll come back as { asImage: true, url, contentType, bytes }) so you have a verified usable image URL.
+  4. Pass that URL to **generate_image** as a reference image (the action approval card lets the user replace it with their own upload too).
+  5. If logos[] is empty OR the candidate looks wrong (placeholder, too small, generic icon), STOP. Tell the user in their language: "I couldn't find a clean logo automatically - paste a logo URL or attach the image to the chat and I'll use that one." Never invent or hot-link a guessed URL.
+- Article research, competitor pages, news mentions: same pattern - search → fetch → summarise. Cite the URLs you used in your reply so the user can verify.
+- These tools are read-only and don't burn AI-GCoins by themselves - use them liberally before proposing a paid action like generate_image.
+
+Long-running actions (set expectations BEFORE the user approves):
+- A handful of tools kick off work that the platform finishes asynchronously: **run_site_audit** (typically 2-10 minutes), **run_agent_scan** (1-5 minutes), and **generate_image** (~30-90 seconds). These return success the moment the job is QUEUED, not when it's done.
+- BEFORE you call propose_action for any of these, ALWAYS tell the user in plain language (in their language - Hebrew for Hebrew users): "this will take a few minutes, you can keep working in the platform, I'll send a follow-up message right here when it's done. If the chat is closed, you'll see an unread badge on the chat bubble." This is non-negotiable - never let the user think the task finished when it only just started.
+- The platform will automatically post a follow-up message into THIS conversation when the audit / scan finishes (e.g. "✅ Site audit finished. Score 78/100…"). You don't need to poll for it - just acknowledge the kickoff, set expectations, and wait. When the user comes back later and sees the follow-up, you can offer next steps.
+- For shorter operations (any wp_* CRUD, manipulate_element, wp_update_seo, etc.) you don't need this notice - those complete inline.
 
 Proactive assistance (CRITICAL - this is how the product is supposed to feel):
 - This platform is for users with ZERO web-dev or SEO knowledge. They don't know what to ask for. Your job is to DRIVE the work - always finish your responses with a concrete "Want me to do X for you?" offer (one clear action, not a menu of five options).
@@ -244,14 +268,44 @@ Proactive assistance (CRITICAL - this is how the product is supposed to feel):
 /**
  * Build the full system prompt with site context and WordPress details
  */
-function buildSystemPrompt(site, siteInfo) {
+function buildSystemPrompt(site, siteInfo, { isWordPress = false } = {}) {
   let prompt = BASE_SYSTEM_PROMPT;
 
+  // Capability gate - what the agent can actually DO on this specific site.
+  // Right now the platform supports automated fixes ONLY on WordPress sites
+  // with the GhostSEO plugin connected. Shopify support is on the roadmap;
+  // generic / unconnected sites stay read-only for now. This block is read by
+  // the model BEFORE the rest of the site context, so it overrides any
+  // "always offer to fix it" instinct from the base prompt.
+  const platform = String(site?.platform || '').toLowerCase();
+  const isShopifyConnected = platform === 'shopify' && site?.siteKey && site?.siteSecret; // future
+  const canPerformFixes = !!isWordPress; // (|| isShopifyConnected) when Shopify ships
   if (site) {
+    prompt += `\n\n=== AGENT CAPABILITIES ON THIS SITE ===`;
+    if (canPerformFixes) {
+      prompt += `\n• Read-only analysis: ✅ enabled (analyze_page, web_search, fetch_url, get_keywords, get_competitors, get_site_audit_results, get_agent_insights, run_site_audit, run_agent_scan)
+• Automated fixes (writes): ✅ enabled - ${isWordPress ? 'WordPress with GhostSEO plugin connected' : 'Shopify connected'}. You may use propose_action to update content, SEO meta, redirects, snippets, images, etc.`;
+    } else {
+      const platformLabel = platform === 'shopify' ? 'Shopify (not yet supported)' : (site.platform || 'this platform');
+      prompt += `\n• Read-only analysis: ✅ enabled (analyze_page, web_search, fetch_url, get_keywords, get_competitors, get_site_audit_results, get_agent_insights, run_site_audit, run_agent_scan)
+• Automated fixes (writes): ❌ NOT enabled on this site - ${platformLabel} doesn't have the GhostSEO plugin connected.
+
+CRITICAL RULES when fixes are NOT enabled - violating these breaks user trust:
+1. NEVER offer to "fix it for you" / "update the H1" / "rewrite the meta description" / "add the redirect" / "generate the image and set it as featured" / "create the post" / etc. The platform CANNOT do any of those on this site - the user would approve a plan that simply cannot run.
+2. NEVER call propose_action on this site. It only exists for connected WP/Shopify sites. You don't even see it as a tool here.
+3. Phrase recommendations as MANUAL guidance: "you'll want to update the H1 to '<X>' in your CMS" / "in your SEO plugin, set the meta description to '<X>'" / "your CMS admin → Pages → Home → edit the title". Be specific about WHERE to do it (Wix admin / Squarespace editor / WordPress admin / etc.) but assume YOU don't have hands.
+4. End each recommendation with the option to upgrade access: "If you connect the GhostSEO plugin to your WordPress site (or wait for Shopify support, coming soon), I can do all of this for you automatically. Want me to walk you through connecting the plugin?"
+5. You CAN still run the read tools (analyze, search, audit) freely - they don't change anything on the site, so they're safe everywhere.
+
+If the user asks you to "do" / "fix" / "change" / "update" something on this site, politely explain in their language that automated changes need the plugin connection, then give them the exact manual steps.`;
+    }
+    prompt += `\n=== END CAPABILITIES ===`;
+
     prompt += `\n\nCurrent site context:
 - Site name: ${site.name}
 - URL: ${site.url}
-- Platform: ${site.platform || 'Unknown'}`;
+- Platform: ${site.platform || 'Unknown'}
+- Connected for automated fixes: ${canPerformFixes ? 'yes' : 'no'}`;
   }
 
   if (siteInfo) {
@@ -308,6 +362,14 @@ function stripToolCallText(text) {
     .replace(/`?call:\s*\w+\([\s\S]*?\)`?/gi, '')
     // Remove ```tool ... ``` blocks
     .replace(/```tool[\s\S]*?```/gi, '')
+    // Remove <Action>{...}</Action> / <action>...</action> / <function_call>...</function_call>
+    // XML-style fake tool calls. Gemini 3.x preview emits these as plain text
+    // instead of using the function-calling protocol when the tool surface
+    // is large; the SDK doesn't parse them as real calls so they would leak
+    // into the user-visible message. Stripping defensively even though we
+    // primarily run 2.5 Pro now (in case a caller switches to a 3.x model).
+    .replace(/<\s*(?:action|function_call|tool_call|tool_use)\b[^>]*>[\s\S]*?<\s*\/\s*(?:action|function_call|tool_call|tool_use)\s*>/gi, '')
+    .replace(/<\s*(?:action|function_call|tool_call|tool_use)\b[^/>]*\/\s*>/gi, '')
     .replace(/\n{3,}/g, '\n\n') // Clean up excessive newlines left behind
     .trim();
 }
@@ -484,15 +546,23 @@ export async function POST(request) {
     }
   }
 
-  const systemPrompt = buildSystemPrompt(site, wpSiteInfo);
+  const systemPrompt = buildSystemPrompt(site, wpSiteInfo, { isWordPress });
 
-  // Always use Pro model with tools
-  const needsTools = !!isWordPress;
   const model = getTextModel();
   const selectedModelName = MODELS.TEXT;
 
-  // Build tools (only for connected WordPress sites)
-  const allToolDefs = needsTools ? getChatTools({ isWordPress }) : {};
+  // Tools are ALWAYS available - the read-only tools (analyze_page,
+  // web_search, fetch_url, get_keywords, get_competitors, ...) work on any
+  // site, WordPress or not. Hiding them from non-WP sites left the model
+  // with zero tools while the system prompt still told it to "always call
+  // analyze_page for page questions" - the resulting incoherence made
+  // Vertex error the stream out on the first step (finishReason=error,
+  // 0 output tokens). Now isWordPress only gates the wp_* WordPress-specific
+  // tools and propose_action (writes need a connected plugin), while reads
+  // are exposed everywhere.
+  const allToolDefs = getChatTools({ isWordPress });
+  // Inject propose_action only when there are write tools to wrap (WP sites).
+  const needsTools = !!isWordPress;
 
   // Separate read-only tools from write tools.
   // Write tools are NOT registered as callable tools - the AI accesses them
@@ -627,32 +697,103 @@ ${writeRef}`,
     });
   }
 
+  // Quick HE/EN detection on the user's most recent message so the empty-
+  // response fallback (below) speaks the right language. Cheap - no DB hit.
+  const isHebrewMessage = (() => {
+    const t = String(message || '');
+    const heChars = (t.match(/[֐-׿]/g) || []).length;
+    return heChars >= 3;
+  })();
+
+  // Short user messages that read as "go ahead" / confirmations need the
+  // model to ACT, not deeply reflect. We detect them and disable thinking
+  // entirely for that turn - the prior turn had the offer, the current turn
+  // is just a green light, no reasoning required. This stops the freeze
+  // pattern where the model burns its whole thinking budget composing an
+  // English monologue ("Starting the scan...") and then emits no visible
+  // text or tool call.
+  const isShortConfirmation = (() => {
+    const t = String(message || '').trim();
+    if (t.length > 24) return false;
+    const yesPatterns = /^(yes|yeah|yep|sure|ok(?:ay)?|do it|go ahead|please|let'?s go|let'?s do it|proceed|continue|tn(?:b)?|כן|בטח|סבבה|תן בראש|לך על זה|קדימה|אישור|תעשה|תבצע|תתחיל|נשמע טוב|מצוין|יאללה)[!?.֐-׿\s]*$/i;
+    return yesPatterns.test(t);
+  })();
+
   const result = streamText({
     model,
     system: systemPrompt,
     messages: aiMessages,
     tools: Object.keys(tools).length > 0 ? tools : undefined,
-    stopWhen: [stepCountIs(10), hasToolCall('propose_action')], // Stop after 10 rounds OR when propose_action is called
-    maxTokens: 4096,
+    // For short confirmation turns ("תן בראש", "yes", "ok", ...) FORCE the
+    // model to call a tool. Without this, Gemini 3.x routinely runs out of
+    // its thinking budget composing English self-narration ("Starting the
+    // scan, I've begun the initial scan...") and emits no visible text and
+    // no tool call - the same freeze pattern we keep hitting on these short
+    // affirmative replies. toolChoice:'required' tells the SDK to set
+    // Gemini's functionCallingConfig.mode='ANY', which guarantees the next
+    // step is a function call. The model is still free to pick which tool;
+    // the prior assistant offer + the system prompt's "execute the offer"
+    // rule steer it to the right one (analyze_page after a scan offer,
+    // get_keywords after a keyword-research offer, etc.).
+    // CRITICAL: do NOT use toolChoice: 'required' on Gemini 3.1 Pro Preview
+    // with our production tool surface - empirically (see _test_vertex.mjs
+    // tests 5 & 6) it forces the model into tool-call-only mode where it
+    // chains 5+ tools and emits zero visible text. 'auto' works correctly:
+    // the model calls the right tool, gets the result, and writes a real
+    // reply summarising it. Verified across explicit analysis requests AND
+    // short Hebrew confirmations ("תן בראש") in _test_vertex2.mjs.
+    toolChoice: 'auto',
+    stopWhen: [stepCountIs(10), hasToolCall('propose_action')],
+    // Gemini 3.1 Pro Preview supports up to 16384 output tokens - leaves
+    // plenty of headroom for thinking + tool args + a long-form Hebrew
+    // analysis without truncation.
+    maxTokens: 16384,
     temperature: 0.7,
-    // Gemini 2.5 Pro thinking: stream the model's reasoning so the UI can show
-    // it alongside tool calls. thinkingBudget caps how many reasoning tokens
-    // Gemini is allowed to spend per response.
+    // Gemini 3.x uses `thinkingLevel` (NOT `thinkingBudget`, which is a 2.x
+    // knob). Levels: 'minimal' | 'low' | 'medium' | 'high'.
+    //   - 'low' for short confirmation turns ("תן בראש") - the next move is
+    //     already determined by the prior offer; deep reasoning would just
+    //     slow things down and risk leaking English thought-chains into the
+    //     visible reply.
+    //   - 'medium' for normal analysis / planning turns - enough headroom
+    //     for SEO reasoning without burning the whole token budget thinking.
+    // 'high' is intentionally avoided - on a heavy tool surface like ours
+    // the model can spend the entire budget on reasoning.
     providerOptions: {
-      google: {
+      vertex: {
         thinkingConfig: {
           includeThoughts: true,
-          thinkingBudget: 4096,
+          thinkingLevel: isShortConfirmation ? 'low' : 'medium',
         },
       },
     },
-    onFinish: async ({ text, usage, steps, toolCalls, toolResults }) => {
-      // DEBUG: Log steps and text to diagnose empty messages
+    onError: async ({ error }) => {
+      // streamText errors get swallowed by the stream protocol if we don't
+      // surface them. Persist a graceful fallback so the user always sees a
+      // message instead of a blank reasoning bubble.
+      console.error('[Chat] streamText error:', error?.message || error);
+      try {
+        const fallback = isHebrewMessage
+          ? `❌ נתקלתי בבעיה זמנית בעת יצירת התשובה. נסה לשלוח שוב או לנסח אחרת.`
+          : `❌ I ran into a temporary error producing the response. Try sending again or rephrasing.`;
+        await prisma.chatMessage.create({
+          data: { conversationId, role: 'ASSISTANT', userId: null, content: fallback },
+        });
+      } catch (writeErr) {
+        console.error('[Chat] Failed to persist error fallback:', writeErr.message);
+      }
+    },
+    onFinish: async ({ text, usage, steps, toolCalls, toolResults, finishReason }) => {
+      // DEBUG: Log steps and text to diagnose empty messages. finishReason is
+      // the most useful signal here - 'stop' on empty text means the model
+      // chose to stop without writing anything (often a thinking-budget
+      // exhaustion or a forced-tool-call that didn't fire); 'length' means
+      // it ran out of maxTokens; 'content-filter' means safety filtered it.
       console.log('[Chat Debug] onFinish text:', JSON.stringify(text?.substring(0, 200)));
-      console.log('[Chat Debug] steps count:', steps?.length);
+      console.log('[Chat Debug] finishReason:', finishReason, 'steps count:', steps?.length);
       if (steps?.length) {
         steps.forEach((s, i) => {
-          console.log(`[Chat Debug] Step ${i}: text=${JSON.stringify(s.text?.substring(0, 200))}, toolCalls=${s.toolCalls?.length || 0}, toolResults=${s.toolResults?.length || 0}`);
+          console.log(`[Chat Debug] Step ${i}: finishReason=${s.finishReason}, text=${JSON.stringify(s.text?.substring(0, 200))}, toolCalls=${s.toolCalls?.length || 0}, toolResults=${s.toolResults?.length || 0}`);
         });
       }
       console.log('[Chat Debug] toolCalls:', toolCalls?.length, 'toolResults:', toolResults?.length);
@@ -662,18 +803,64 @@ ${writeRef}`,
         ? steps.map(s => s.text).filter(Boolean).join('\n')
         : text;
       const rawContent = fullText || text || '';
+      // Log the FULL pre-strip content so we can see exactly what the model
+      // emitted (XML <Action> tags, text-shaped tool calls, fenced blocks,
+      // or real prose). Critical for diagnosing production freezes that don't
+      // reproduce in isolated tests.
+      console.log('[Chat Debug] RAW content (pre-strip), length:', rawContent.length);
+      console.log('[Chat Debug] RAW content full:', JSON.stringify(rawContent));
       const contentToSave = stripToolCallText(rawContent);
-      console.log('[Chat Debug] contentToSave length:', contentToSave.length, 'preview:', contentToSave.substring(0, 200));
+      console.log('[Chat Debug] contentToSave (post-strip) length:', contentToSave.length, 'preview:', contentToSave.substring(0, 400));
+
+      // Distinct freeze modes get a graceful fallback so the bubble is never
+      // left blank and the user can use the "Resend" button:
+      //   (A) Thinking-only: zero text, zero tool calls. Model burned the
+      //       thinking budget composing reasoning and emitted nothing.
+      //   (B) Tool-call-without-reply: model called tools and got results
+      //       back, but never composed a final reply.
+      //   (C) Safety / length cutoff: finishReason flags it directly.
+      //   (D) Step error: finishReason==='error' anywhere - usually means
+      //       Vertex rejected the stream mid-flight (incoherent prompt,
+      //       safety, transient model issue). onError doesn't fire for this
+      //       case, so we have to detect it here from finishReason on
+      //       onFinish/steps and write our own fallback.
+      const hasAnyToolCall = (toolCalls?.length || 0) > 0
+        || (steps?.some((s) => (s.toolCalls?.length || 0) > 0) ?? false);
+      const anyStepErrored = finishReason === 'error'
+        || (steps?.some((s) => s.finishReason === 'error') ?? false);
+
+      let fallbackReason = null;
+      if (!contentToSave) {
+        if (anyStepErrored) fallbackReason = 'stream_error';
+        else if (finishReason === 'content-filter') fallbackReason = 'safety';
+        else if (finishReason === 'length') fallbackReason = 'length';
+        else if (hasAnyToolCall) fallbackReason = 'tools_no_reply';
+        else fallbackReason = 'thinking_only';
+      }
+      const fallbackByReason = isHebrewMessage ? {
+        safety: '⚠️ התגובה נחסמה על ידי מסנני הבטיחות. נסה לנסח את הבקשה אחרת.',
+        length: '⚠️ הגעתי למגבלת אורך באמצע התשובה. נסה לבקש משהו ממוקד יותר או לפצל את הבקשה.',
+        tools_no_reply: '🔍 אספתי את המידע אבל לא הצלחתי לנסח תשובה הפעם - נסה לשלוח שוב כדי שאסכם את התוצאות.',
+        thinking_only: '🤔 חשבתי על השאלה אבל לא הצלחתי לנסח תשובה הפעם - נסה לשלוח שוב או לנסח אחרת.',
+        stream_error: '⚠️ נתקלתי בשגיאה זמנית מצד שירות ה-AI ולא הצלחתי לסיים את התשובה. נסה לשלוח שוב.',
+      } : {
+        safety: '⚠️ The response was blocked by safety filters. Try rephrasing the request.',
+        length: '⚠️ I hit the response length limit mid-reply. Try a more focused request or split it up.',
+        tools_no_reply: '🔍 I gathered the data but couldn\'t compose a reply this time - try sending again so I can summarise the results.',
+        thinking_only: '🤔 I thought about your question but couldn\'t form a reply this time - try sending again or rephrasing.',
+        stream_error: '⚠️ The AI service errored mid-stream and I couldn\'t complete the reply. Try sending again.',
+      };
+      const finalContent = contentToSave || (fallbackReason ? fallbackByReason[fallbackReason] : '');
 
       // Save AI response to DB
       try {
-        if (contentToSave) {
+        if (finalContent) {
           await prisma.chatMessage.create({
             data: {
               conversationId,
               role: 'ASSISTANT',
               userId: null,
-              content: contentToSave,
+              content: finalContent,
             },
           });
         }
@@ -695,7 +882,7 @@ ${writeRef}`,
           outputTokens,
           totalTokens,
           model: selectedModelName,
-          metadata: { conversationId, route },
+          metadata: { conversationId, route: 'chat' },
         });
 
         if (member.accountId) {
@@ -707,7 +894,7 @@ ${writeRef}`,
             inputTokens,
             outputTokens,
             totalTokens,
-            metadata: { model: selectedModelName, conversationId, route },
+            metadata: { model: selectedModelName, conversationId, route: 'chat' },
           }).catch((err) => console.error('[Chat] trackAIUsage error:', err.message));
         }
       } catch (err) {

@@ -25,6 +25,10 @@ import { AdminModal, ConfirmDialog, FormInput, FormTextarea, FormCheckbox, FormS
 import { AdminPageSkeleton, TableSkeleton, Button } from '@/app/dashboard/components';
 import styles from '../admin.module.css';
 
+// AddOnType enum values mirrored from prisma/schema.prisma. Labels resolve
+// via t('admin.addons.types.<lowercase>') so they stay translated.
+const ADDON_TYPE_VALUES = ['SEATS', 'SITES', 'AI_CREDITS', 'STORAGE', 'KEYWORDS', 'CONTENT', 'SITE_AUDITS'];
+
 const EMPTY_FORM = {
   code: '',
   description: '',
@@ -41,6 +45,8 @@ const EMPTY_FORM = {
   durationMonths: '',
   isActive: true,
   applicablePlanIds: [],
+  applicableAddOnIds: [],
+  applicableAddOnTypes: [],
   limitationOverrides: [],
   extraFeatures: [],
 };
@@ -55,6 +61,7 @@ export default function CouponsPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [plans, setPlans] = useState([]);
+  const [addOns, setAddOns] = useState([]);
 
   // Modal state
   const [editModalOpen, setEditModalOpen] = useState(false);
@@ -113,12 +120,26 @@ export default function CouponsPage() {
     }
   }, []);
 
+  const loadAddOns = useCallback(async () => {
+    try {
+      // Pass active=all so admins can also scope a coupon to inactive
+      // (archived) add-ons — useful when ramping a new add-on behind a flag.
+      const res = await fetch('/api/admin/addons?active=all');
+      if (!res.ok) return;
+      const data = await res.json();
+      setAddOns(data.addOns || []);
+    } catch (err) {
+      console.error('Error loading add-ons:', err);
+    }
+  }, []);
+
   useEffect(() => {
     if (isSuperAdmin) {
       loadCoupons();
       loadPlans();
+      loadAddOns();
     }
-  }, [isSuperAdmin, loadCoupons, loadPlans]);
+  }, [isSuperAdmin, loadCoupons, loadPlans, loadAddOns]);
 
   // Filter coupons by search
   const filteredCoupons = coupons.filter((c) => {
@@ -157,6 +178,8 @@ export default function CouponsPage() {
       durationMonths: coupon.durationMonths?.toString() || '',
       isActive: coupon.isActive,
       applicablePlanIds: coupon.applicablePlanIds || [],
+      applicableAddOnIds: coupon.applicableAddOnIds || [],
+      applicableAddOnTypes: coupon.applicableAddOnTypes || [],
     });
     setLimitationOverrides(Array.isArray(coupon.limitationOverrides) ? coupon.limitationOverrides : []);
     setExtraFeatures(Array.isArray(coupon.extraFeatures) ? coupon.extraFeatures : []);
@@ -769,6 +792,112 @@ export default function CouponsPage() {
             </div>
             <div style={{ fontSize: '0.75rem', color: 'var(--muted-foreground)', marginTop: '0.25rem' }}>
               {t('admin.coupons.form.allPlansHint')}
+            </div>
+          </div>
+
+          {/* Applicable Add-On Types (whole categories like AI Credits, Seats, etc.) */}
+          <div>
+            <label style={{ display: 'block', fontSize: '0.8125rem', fontWeight: 500, marginBottom: '0.5rem', color: 'var(--foreground)' }}>
+              {t('admin.coupons.form.applicableAddOnTypes')}
+            </label>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+              {ADDON_TYPE_VALUES.map((type) => {
+                const selected = formData.applicableAddOnTypes.includes(type);
+                return (
+                  <label
+                    key={type}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.25rem',
+                      padding: '0.375rem 0.75rem',
+                      border: `1px solid ${selected ? 'var(--primary)' : 'var(--border)'}`,
+                      borderRadius: 'var(--radius)',
+                      cursor: 'pointer',
+                      fontSize: '0.8125rem',
+                      background: selected ? 'rgba(123,44,191,0.1)' : 'transparent',
+                    }}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={selected}
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          setFormData({ ...formData, applicableAddOnTypes: [...formData.applicableAddOnTypes, type] });
+                        } else {
+                          setFormData({
+                            ...formData,
+                            applicableAddOnTypes: formData.applicableAddOnTypes.filter((v) => v !== type),
+                          });
+                        }
+                      }}
+                      style={{ display: 'none' }}
+                    />
+                    {selected && <Check size={12} />}
+                    {t(`admin.addons.types.${type.toLowerCase()}`)}
+                  </label>
+                );
+              })}
+            </div>
+            <div style={{ fontSize: '0.75rem', color: 'var(--muted-foreground)', marginTop: '0.25rem' }}>
+              {t('admin.coupons.form.applicableAddOnTypesHint')}
+            </div>
+          </div>
+
+          {/* Applicable Add-Ons (specific AddOn rows by id) */}
+          <div>
+            <label style={{ display: 'block', fontSize: '0.8125rem', fontWeight: 500, marginBottom: '0.5rem', color: 'var(--foreground)' }}>
+              {t('admin.coupons.form.applicableAddOns')}
+            </label>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+              {addOns.map((addOn) => {
+                const selected = formData.applicableAddOnIds.includes(addOn.id);
+                const typeLabel = t(`admin.addons.types.${addOn.type.toLowerCase()}`);
+                return (
+                  <label
+                    key={addOn.id}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.25rem',
+                      padding: '0.375rem 0.75rem',
+                      border: `1px solid ${selected ? 'var(--primary)' : 'var(--border)'}`,
+                      borderRadius: 'var(--radius)',
+                      cursor: 'pointer',
+                      fontSize: '0.8125rem',
+                      background: selected ? 'rgba(123,44,191,0.1)' : 'transparent',
+                      opacity: addOn.isActive ? 1 : 0.6,
+                    }}
+                    title={`${typeLabel} · ${addOn.slug}${addOn.isActive ? '' : ` · ${t('admin.coupons.statuses.inactive')}`}`}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={selected}
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          setFormData({ ...formData, applicableAddOnIds: [...formData.applicableAddOnIds, addOn.id] });
+                        } else {
+                          setFormData({
+                            ...formData,
+                            applicableAddOnIds: formData.applicableAddOnIds.filter((id) => id !== addOn.id),
+                          });
+                        }
+                      }}
+                      style={{ display: 'none' }}
+                    />
+                    {selected && <Check size={12} />}
+                    {addOn.name}
+                  </label>
+                );
+              })}
+              {addOns.length === 0 && (
+                <span style={{ fontSize: '0.75rem', color: 'var(--muted-foreground)' }}>
+                  {t('admin.coupons.form.noAddOns')}
+                </span>
+              )}
+            </div>
+            <div style={{ fontSize: '0.75rem', color: 'var(--muted-foreground)', marginTop: '0.25rem' }}>
+              {t('admin.coupons.form.applicableAddOnsHint')}
             </div>
           </div>
 

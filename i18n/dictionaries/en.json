@@ -3576,6 +3576,25 @@
       "saveSuccess": "Settings saved successfully",
       "saving": "Saving..."
     },
+    "brandingSection": {
+      "title": "Branding",
+      "description": "How this website appears across the platform (dashboard, site selector, websites list). This does not change anything on your live website.",
+      "faviconLabel": "Favicon",
+      "logoLabel": "Logo",
+      "faviconHint": "Square PNG, SVG, or ICO. Up to 2MB.",
+      "logoHint": "Wide PNG or SVG. Up to 5MB. Used in the dashboard welcome card.",
+      "uploadFavicon": "Upload favicon",
+      "uploadLogo": "Upload logo",
+      "resetToAuto": "Reset to auto-detected",
+      "customBadge": "Custom",
+      "invalidType": "Unsupported image format",
+      "faviconTooLarge": "Favicon must be under 2MB",
+      "logoTooLarge": "Logo must be under 5MB",
+      "faviconUploadError": "Failed to upload favicon",
+      "logoUploadError": "Failed to upload logo",
+      "faviconResetError": "Failed to reset favicon",
+      "logoResetError": "Failed to reset logo"
+    },
     "languages": {
       "english": "English",
       "hebrew": "Hebrew",
@@ -5616,7 +5635,8 @@
       "all": "All",
       "discovered": "Discovered",
       "confirmed": "Confirmed",
-      "rejected": "Rejected"
+      "rejected": "Rejected",
+      "rootsOnly": "Roots only"
     },
     "viewMode": {
       "list": "List",
@@ -5641,7 +5661,39 @@
       "setPillar": "Set as pillar",
       "expand": "Expand cluster",
       "delete": "Delete",
-      "confirmDelete": "Confirm delete"
+      "confirmDelete": "Confirm delete",
+      "promoteToAnchor": "Make anchor",
+      "detachFromParent": "Detach from parent",
+      "discoverSubclusters": "Discover sub-clusters",
+      "discoveringSubclusters": "Discovering..."
+    },
+    "tree": {
+      "depthLabel": "L{depth}",
+      "expand": "Expand sub-clusters",
+      "collapse": "Collapse sub-clusters",
+      "childCount": "{n} sub-cluster",
+      "childCountPlural": "{n} sub-clusters",
+      "breadcrumbSeparator": " › "
+    },
+    "promote": {
+      "title": "Promote member to sub-cluster anchor",
+      "intro": "Create a new sub-cluster anchored on this member. Pick which other members of the parent should move into the new sub-cluster.",
+      "anchorLabel": "Anchor (pillar of new sub-cluster)",
+      "nameLabel": "Sub-cluster name",
+      "namePlaceholder": "e.g. Lawyer websites",
+      "keywordLabel": "Anchor keyword",
+      "keywordPlaceholder": "e.g. websites for lawyers",
+      "movedMembersLabel": "Members to move from parent",
+      "movedMembersHint": "These will leave the parent cluster and become members of the new sub-cluster.",
+      "noMovedMembers": "Only the anchor will be in the sub-cluster. You can add members later.",
+      "confirm": "Create sub-cluster"
+    },
+    "demote": {
+      "modalTitle": "Detach from parent",
+      "intro": "This cluster will become a top-level (root) cluster.",
+      "cascadeKeep": "Keep its sub-clusters",
+      "cascadeDetach": "Also detach its sub-clusters to roots",
+      "confirm": "Detach"
     },
     "edit": {
       "title": "Edit cluster",
@@ -5658,7 +5710,16 @@
       "updateFailed": "Failed to update cluster.",
       "discoverFailed": "Discovery failed.",
       "deleteFailed": "Failed to delete cluster.",
-      "staleConflict": "Cluster was updated elsewhere. Refreshed — try your change again."
+      "staleConflict": "Cluster was updated elsewhere. Refreshed — try your change again.",
+      "cycleDetected": "This change would create a circular relationship.",
+      "depthExceeded": "Sub-cluster nesting limit reached (max {max} levels).",
+      "pillarConflict": "This entity is already the anchor of another cluster.",
+      "pillarNotMember": "The anchor must be a member of the parent cluster.",
+      "orphanChildren": "Cannot remove anchor while sub-clusters exist.",
+      "promoteFailed": "Failed to create sub-cluster.",
+      "demoteFailed": "Failed to detach cluster from its parent.",
+      "subDiscoverFailed": "Sub-cluster discovery failed.",
+      "subDiscoverNoneFound": "No sub-clusters found in this branch."
     },
     "orphans": {
       "title": "Uncategorized content",
@@ -5718,7 +5779,26 @@
         "title": "Internal link gaps",
         "severity": {
           "HIGH": "Pillar gap",
-          "MEDIUM": "Member gap"
+          "MEDIUM": "Member gap",
+          "LOW": "Suggestion"
+        },
+        "types": {
+          "PARENT": {
+            "title": "Missing pillar links",
+            "description": "Should link to its anchor"
+          },
+          "ANCESTOR": {
+            "title": "Missing root anchor links",
+            "description": "Should link to the top-level anchor"
+          },
+          "BRAND": {
+            "title": "Missing brand links",
+            "description": "Topically aligned with homepage but not linked"
+          },
+          "SIBLING": {
+            "title": "Missing internal links",
+            "description": "Could cross-link related pages"
+          }
         },
         "fix": {
           "button": "Fix with AI",
@@ -5747,6 +5827,7 @@
     "scanning": "Scanning your site for content types...",
     "title": "What types of content does your site have?",
     "subtitle": "Select the content types you want to manage and track.",
+    "intro": "Let's take a look at the content types we found on your site.",
     "skip": "Skip",
     "continue": "Continue",
     "coreBadge": "Core",
@@ -5759,6 +5840,9 @@
     "creatingStrategy": "Creating your personalized SEO strategy...",
     "inputPlaceholder": "Type your answer...",
     "seoScore": "SEO Score",
+    "entitiesSelection": {
+      "intro": "Let's take a look at the content types we found on your site."
+    },
     "welcome": {
       "title": "Welcome to the Site Interview",
       "description": "We'll ask you a few questions to better understand your website and business. This will help us provide personalized recommendations.",
@@ -5801,6 +5885,8 @@
       "articlesFound": "Found {count} articles on your blog",
       "noArticlesFound": "No articles found on your website. You can skip this step.",
       "untitledArticle": "Untitled Article",
+      "noFeaturedImage": "No featured image found",
+      "noFeaturedImageNote": "No featured image",
       "languageDetected": "We detected your website language as {language}",
       "detectedCountry": "Based on your language, we suggest: {country}",
       "internalLinksDefault": "Based on your existing posts, we suggest {count} internal links per 1000 words",
@@ -5984,6 +6070,7 @@
       "characterNicheClause": ", specializing in {niche}",
       "seoIssuesIntro": "Before we finish - I ran a quick SEO check on your site and spotted {count} issues worth addressing:",
       "seoIssuesOutro": "A deeper scan will likely surface more, and you'll be able to fix most of them with one click via the Ghost Agent. Shall we continue?",
+      "entitiesIntro": "Let's take a look at the content types we found on your site.",
       "seoIssues": {
         "MISSING_TITLE": {
           "title": "Missing Title tag",
@@ -6470,7 +6557,7 @@
         "notActive": "This coupon is no longer active",
         "notYetActive": "This coupon is not yet active",
         "expired": "This coupon has expired",
-        "notApplicable": "This coupon is not applicable to the selected plan"
+        "notApplicable": "This coupon does not apply to this purchase"
       },
       "limitations": {
         "maxSites": "Websites",
@@ -7389,6 +7476,17 @@
         "applicablePlans": "Applicable Plans",
         "allPlans": "No plans selected",
         "allPlansHint": "Leave empty to apply to all plans",
+        "applicableAddOnTypes": "Applicable Add-On Types",
+        "applicableAddOnTypesHint": "Limit this coupon to whole add-on categories (e.g. all GCoin packs).",
+        "applicableAddOns": "Applicable Add-Ons",
+        "applicableAddOnsHint": "Restrict to specific add-ons. Leave empty to allow any add-on (subject to the type filter above).",
+        "noAddOns": "No add-ons configured",
+        "recurringSchedule": "Recurring price schedule (optional)",
+        "recurringScheduleHelp": "Per-cycle USD prices (pre-VAT) starting from the SECOND charge. Leave months blank on the last row to extend that price forever. If left empty, recurring uses the regular discountType/discountValue.",
+        "scheduleMonths": "Months",
+        "scheduleAmount": "Amount (USD)",
+        "scheduleForever": "forever",
+        "scheduleAddRow": "Add cycle bracket",
         "limitationOverrides": "Limitation Overrides",
         "limitationOverridesHint": "Override plan limits with more generous values",
         "selectLimit": "Select limit...",
@@ -7397,6 +7495,15 @@
         "extraFeaturesHint": "Grant additional feature keys to accounts using this coupon",
         "featureKeyPlaceholder": "e.g. prioritySupport",
         "isActive": "Coupon is active"
+      },
+      "errors": {
+        "invalid": "Invalid coupon code",
+        "notActive": "This coupon is no longer active",
+        "notYetActive": "This coupon is not yet active",
+        "expired": "This coupon has expired",
+        "usageLimit": "This coupon has reached its usage limit",
+        "maxPerAccount": "You have already used this coupon",
+        "notApplicable": "This coupon does not apply to this purchase"
       }
     },
     "interviewQuestions": {
@@ -7610,7 +7717,8 @@
       "processing": "Processing...",
       "yes": "Yes",
       "no": "No",
-      "add": "Add"
+      "add": "Add",
+      "remove": "Remove"
     },
     "stats": {
       "totalPlans": "Total Plans",
@@ -8517,7 +8625,7 @@
       "notActive": "This coupon is no longer active",
       "notYetActive": "This coupon is not yet active",
       "expired": "This coupon has expired",
-      "notApplicable": "This coupon is not applicable to the selected plan"
+      "notApplicable": "This coupon does not apply to this purchase"
     }
   },
   "proration": {
@@ -8881,6 +8989,10 @@
       "multipleH1Tags": {
         "title": "Pages With Multiple H1 Tags",
         "description": "{count} published pages have more than one H1 heading tag. Each page should have exactly one H1 tag - multiple H1 tags dilute heading hierarchy and can confuse search engines."
+      },
+      "numericSlugSuffix": {
+        "title": "Pages With Auto-Numbered URL Suffix",
+        "description": "{count} pages have URLs ending in -2 or higher, which WordPress only adds when a slug collides with an existing one. The original collision is gone, so the suffix is leftover cruft. Cleaning these slugs (with a 301 from the old URL and link rewrites) tightens URL hygiene and removes a weak duplicate-content signal."
       }
     },
     "detailLabels": {
@@ -8955,8 +9067,13 @@
       "reasonTitleH1Similarity": "High Content Similarity Detected:\n\n• What happened: Both pages have similar titles ({titleSimilarity}% match) and H1 headings ({h1Similarity}% match).\n• Confidence: {confidence}%\n\nWhy this is a problem: Similar titles and headings signal to Google that both pages cover the same topic. Google will struggle to decide which page to show in search results, often causing both to rank lower.\n\nRecommended solutions:\n1. Rewrite titles to clearly differentiate what each page covers\n2. Target a different focus keyword for each page\n3. Consider merging if both pages truly cover the same topic",
       "reasonQuerySignals": "Competition Detected in Google Search Console:\n\n• What happened: For the search query \"{query}\", both pages are appearing in results and splitting your rankings.\n• Signals found: {signals}\n\nWhy this is a problem: Google Search Console data shows both pages receiving impressions for this query. This means Google is unsure which page to rank, causing position fluctuations and lost traffic potential.\n\nRecommended solutions:\n1. Differentiate content - make each page target a unique angle of this topic\n2. Merge the pages into one comprehensive article\n3. Set a canonical tag pointing to your preferred page",
       "reasonAiVerified": "AI Analysis Confirmed Issue:\n\n• What happened: Our AI analyzed both pages and confirmed they target the same search intent.\n• Confidence: {confidence}%\n\nWhy this is a problem: Even if the titles look different, the actual content is aimed at the same type of searcher. Google recognizes this overlap and penalizes both pages by not ranking either one as highly as it could.\n\nRecommended solution: Differentiate the content so each page answers a unique user question, or merge the pages into one authoritative article.",
+      "reasonEmbeddingMerge": "Semantic Overlap Detected:\n\n• What happened: We compared the pages and found they cover the same topic with {cosine}% semantic similarity.\n• Detection method: {sources}\n• Confidence: {confidence}%\n\nWhy this is a problem: Even when the wording differs, the underlying meaning is nearly identical - a score this high means Google will likely see these pages as near-duplicates and split ranking signals between them.\n\nRecommended solution: Merge the pages into one authoritative article, or rewrite each to target a clearly different angle.",
+      "sourceProactive": "Pattern matching",
+      "sourceReactiveGsc": "Search Console",
+      "sourceAiVerified": "AI verification",
       "signalImpressionSplit": "impressions being split between pages",
       "signalPositionDance": "position fluctuating as pages compete",
+      "signalCtrDivergence": "click-through rates diverging between pages",
       "wordCount": "Content Length",
       "words": "words",
       "mergeInstructionsLabel": "Merge Instructions for AI",
