@@ -1756,6 +1756,16 @@ model SiteAudit {
   // to decide whether to re-trigger continuation vs mark FAILED.
   phase               String?   // 'discovery' | 'scanning' | 'finalizing' | 'completed'
   pendingUrls         String[]  // URL queue, drained as pages complete
+  // Mutex preventing two processChunk invocations from running concurrently
+  // against the same audit. Set to (now + 5min) on chunk acquire; refreshed
+  // every ~30s during the chunk; cleared on commit or error. Watchdogs
+  // refuse to re-fire /continue while this is in the future.
+  chunkLeaseUntil     DateTime?
+  // Capped log of failures encountered during the audit (Cloudinary blips,
+  // PSI timeouts, persist conflicts, vision/summary failures). Stored on
+  // the audit so the UI can surface "X warnings during scan" without
+  // anyone having to grep server logs. Capped to last 50 via $slice.
+  chunkErrors         Json[]
   startedAt           DateTime?
   completedAt         DateTime?
   createdAt           DateTime          @default(now())

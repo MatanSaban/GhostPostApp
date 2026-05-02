@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { invalidateAudit } from '@/lib/cache/invalidate.js';
+import { triggerStage } from '@/lib/audit/internal-trigger';
 
 export const maxDuration = 60;
 
@@ -58,6 +59,7 @@ export async function GET(request) {
     select: {
       id: true, siteId: true, status: true, phase: true, deviceType: true,
       progress: true, startedAt: true, createdAt: true, updatedAt: true,
+      chunkLeaseUntil: true,
     },
     take: 50, // soft cap so a backlog doesn't blow the cron's 60s budget
   });
@@ -71,20 +73,19 @@ export async function GET(request) {
     const phase = audit.phase || null;
 
     if (phase === 'scanning' && totalAge < HARD_LIMIT_MS) {
+      // Same lease check the GET stale detector applies. Don't spawn a
+      // competitor while a real chunk is mid-scan.
+      if (audit.chunkLeaseUntil && audit.chunkLeaseUntil > new Date()) {
+        continue;
+      }
       console.warn(`[CronAuditWatchdog] Nudging stalled scanning audit ${audit.id}`);
-      fetch(`${origin}/api/audit/continue?auditId=${audit.id}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-      }).catch(() => {});
+      triggerStage(origin, `/api/audit/continue?auditId=${audit.id}`, { tag: 'cron→continue' });
       nudgedScanning++;
       continue;
     }
     if (phase === 'finalizing' && totalAge < FINAL_HARD_LIMIT_MS) {
       console.warn(`[CronAuditWatchdog] Nudging stalled finalizing audit ${audit.id}`);
-      fetch(`${origin}/api/audit/finalize?auditId=${audit.id}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-      }).catch(() => {});
+      triggerStage(origin, `/api/audit/finalize?auditId=${audit.id}`, { tag: 'cron→finalize' });
       nudgedFinalizing++;
       continue;
     }

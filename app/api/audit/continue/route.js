@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { processChunk } from '@/lib/audit/site-auditor';
+import { triggerStage } from '@/lib/audit/internal-trigger';
 
 export const maxDuration = 300;
 
@@ -37,18 +38,15 @@ export async function POST(request) {
       return NextResponse.json({ ok: false, reason });
     }
 
-    // Self-trigger the next stage. Fire-and-forget — we don't await the
-    // response; the next instance is its own POST.
+    // Self-trigger the next stage. Fire-and-forget at the route level (we
+    // return 200 immediately) but the helper handles up to 3 retries with
+    // backoff so a transient blip doesn't stall the audit for the 5min the
+    // watchdog takes to notice.
     const origin = request.nextUrl.origin;
-    const nextPath = hasMore ? '/api/audit/continue' : '/api/audit/finalize';
-    fetch(`${origin}${nextPath}?auditId=${auditId}`, {
-      method: 'POST',
-      // No body needed; auditId carries the state. Cookie not forwarded —
-      // these routes are server-to-server.
-      headers: { 'Content-Type': 'application/json' },
-    }).catch((err) => {
-      console.error(`[API/audit/continue] Self-trigger to ${nextPath} failed:`, err.message);
-    });
+    const nextPath = hasMore
+      ? `/api/audit/continue?auditId=${auditId}`
+      : `/api/audit/finalize?auditId=${auditId}`;
+    triggerStage(origin, nextPath);
 
     return NextResponse.json({ ok: true, processed, hasMore });
   } catch (error) {

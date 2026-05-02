@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import prisma from '@/lib/prisma';
 import { runSiteAudit, runDiscovery } from '@/lib/audit/site-auditor';
+import { triggerStage } from '@/lib/audit/internal-trigger';
 import { enforceResourceLimit } from '@/lib/account-limits';
 import { getLimitFromPlan } from '@/lib/account-utils';
 import { getCachedAuditById } from '@/lib/cache/site-audit.js';
@@ -49,6 +50,7 @@ const LIGHT_SELECT = {
   screenshots: true,
   summary: true,
   summaryTranslations: true,
+  chunkErrors: true,
   startedAt: true,
   completedAt: true,
   createdAt: true,
@@ -175,19 +177,25 @@ export async function GET(request) {
       // Resumable phases: re-trigger their next stage instead of FAILing,
       // unless we've blown past the absolute time budget.
       if (phase === 'scanning' && totalAge < HARD_LIMIT_MS) {
+        // Respect the chunk lease — if a chunk is actively running and just
+        // had a slow heartbeat, we don't want to spawn a competitor. Cheap
+        // re-read picks up the lease state without a heavy doc fetch.
+        const leaseCheck = await prisma.siteAudit.findUnique({
+          where: { id: audit.id },
+          select: { chunkLeaseUntil: true },
+        }).catch(() => null);
+        if (leaseCheck?.chunkLeaseUntil && leaseCheck.chunkLeaseUntil > new Date()) {
+          // Active chunk; assume it's making progress (or its own lease
+          // refresh will continue to advance updatedAt). Skip nudge.
+          continue;
+        }
         console.warn(`[API/audit] GET: nudging stalled scanning audit ${audit.id} via /continue`);
-        fetch(`${origin}/api/audit/continue?auditId=${audit.id}`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-        }).catch(() => {});
+        triggerStage(origin, `/api/audit/continue?auditId=${audit.id}`, { tag: 'watchdog→continue' });
         continue;
       }
       if (phase === 'finalizing' && totalAge < FINAL_HARD_LIMIT_MS) {
         console.warn(`[API/audit] GET: nudging stalled finalizing audit ${audit.id} via /finalize`);
-        fetch(`${origin}/api/audit/finalize?auditId=${audit.id}`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-        }).catch(() => {});
+        triggerStage(origin, `/api/audit/finalize?auditId=${audit.id}`, { tag: 'watchdog→finalize' });
         continue;
       }
 
@@ -410,13 +418,9 @@ export async function POST(request) {
         try {
           const disc = await runDiscovery(auditRecord.id, site.url, siteId, deviceType, auditOptions);
           if (!disc.ok || disc.empty) return; // discovery already wrote terminal state
-          // Kick off the first chunk. Subsequent chunks self-trigger.
-          fetch(`${origin}/api/audit/continue?auditId=${auditRecord.id}`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-          }).catch((err) => {
-            console.error(`[API/audit] Initial /continue trigger failed for ${auditRecord.id}:`, err.message);
-          });
+          // Kick off the first chunk via the retry-aware helper. Subsequent
+          // chunks self-trigger from /api/audit/continue.
+          triggerStage(origin, `/api/audit/continue?auditId=${auditRecord.id}`);
         } catch (err) {
           console.error(`[API/audit] Chunked discovery error for ${auditRecord.id}:`, err);
         }

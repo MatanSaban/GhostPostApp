@@ -1212,6 +1212,7 @@
     "noSitemapDescription": "Your website doesn't have an XML sitemap. A sitemap is essential for search engines to discover and index your pages. Please install an SEO plugin (like Yoast SEO or RankMath) to generate a sitemap, then try the audit again.",
     "noSitemapNotCharged": "You were not charged any Ai-GCoins for this action.",
     "noIssuesInCategory": "No issues found in this category.",
+    "scanWarnings": "{n} warning(s) during scan",
     "recheck": {
       "recheck": "Recheck",
       "recheckN": "Recheck {n}",

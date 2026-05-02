@@ -111,6 +111,46 @@
   }
 }
 
+.chunkErrorsChip {
+  margin: 8px 0 12px;
+  padding: 8px 12px;
+  background: rgba(245, 158, 11, 0.08);
+  border: 1px solid rgba(245, 158, 11, 0.25);
+  border-radius: 6px;
+  font-size: 0.75rem;
+  color: #92400e;
+}
+
+.chunkErrorsChip > summary {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  list-style: none;
+}
+
+.chunkErrorsChip > summary::-webkit-details-marker { display: none; }
+
+.chunkErrorsList {
+  margin: 8px 0 0;
+  padding: 0 0 0 18px;
+  list-style: disc;
+  color: var(--text-muted, #6b7280);
+}
+
+.chunkErrorsList li {
+  margin: 2px 0;
+  word-break: break-word;
+}
+
+.chunkErrorsList code {
+  background: rgba(0, 0, 0, 0.05);
+  padding: 1px 5px;
+  border-radius: 3px;
+  font-size: 0.7rem;
+}
+
 .forceCancelButton {
   display: inline-flex;
   align-items: center;

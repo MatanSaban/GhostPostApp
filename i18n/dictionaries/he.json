@@ -1212,6 +1212,7 @@
     "noSitemapDescription": "לאתר שלך אין מפת אתר XML. מפת אתר חיונית כדי שמנועי חיפוש יוכלו לגלות ולאנדקס את הדפים שלך. התקן תוסף SEO (כמו Yoast SEO או RankMath) כדי ליצור מפת אתר, ואז נסה שוב את הבדיקה.",
     "noSitemapNotCharged": "לא חויבת ב-Ai-GCoins עבור פעולה זו.",
     "noIssuesInCategory": "לא נמצאו בעיות בקטגוריה זו.",
+    "scanWarnings": "{n} אזהרות במהלך הסריקה",
     "recheck": {
       "recheck": "בדיקה מחדש",
       "recheckN": "בדיקה מחדש ({n})",

@@ -1258,6 +1258,29 @@ export default function SiteAuditPage() {
           {/* Stale-score reminder once any recheck has happened in session */}
           <StaleScoreBanner visible={recheck.hasRechecked} />
 
+          {/* Chunked-pipeline warnings: persistence/screenshot/vision blips
+              are logged onto the audit during the scan. Surface as a small
+              info chip so users can tell when their score is "best effort
+              under transient errors" vs "clean run". Click to expand list. */}
+          {Array.isArray(latestAudit?.chunkErrors) && latestAudit.chunkErrors.length > 0 && (
+            <details className={styles.chunkErrorsChip}>
+              <summary>
+                <AlertTriangle size={14} />
+                {(t('siteAudit.scanWarnings') || '{n} warning(s) during scan')
+                  .replace('{n}', latestAudit.chunkErrors.length)}
+              </summary>
+              <ul className={styles.chunkErrorsList}>
+                {latestAudit.chunkErrors.slice(-20).reverse().map((err, i) => (
+                  <li key={i}>
+                    <code>{err.kind}</code>
+                    {err.url && <> · <bdi dir="ltr">{err.url}</bdi></>}
+                    {err.message && <> · {err.message}</>}
+                  </li>
+                ))}
+              </ul>
+            </details>
+          )}
+
           {/* ═══ Site-Wide Noindex Banner ════════════════════════════ */}
           {(() => {
             const siteWideIssue = allIssues.find(
