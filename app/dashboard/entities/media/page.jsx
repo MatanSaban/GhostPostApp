@@ -27,6 +27,8 @@ import { useLocale } from '@/app/context/locale-context';
 import { usePermissions, MODULES } from '@/app/hooks/usePermissions';
 import { Skeleton, Button } from '@/app/dashboard/components';
 import { AIRegenerateModal } from './AIRegenerateModal';
+import { AIBackgroundJobPill } from './AIBackgroundJobPill';
+import { useAIRegenerationJob } from './useAIRegenerationJob';
 import { MediaLightbox } from './MediaLightbox';
 import { MediaFieldAIButton } from './MediaFieldAIButton';
 import { GoogleDriveImportButton } from './GoogleDriveImportButton';
@@ -247,10 +249,10 @@ export default function MediaPage() {
     }
   }, [page]);
 
-  // Called when the user "keeps" an AI-regenerated image. We get `oldId` - the
-  // media item the user was regenerating - and delete it so the new upload
-  // replaces it in the library, rather than leaving both side by side.
-  const handleAIUploaded = useCallback(async (newItem, oldId) => {
+  // Called from the AI regenerate hook once the new image is uploaded. We
+  // delete the original so the new image takes its place in the library,
+  // patch the grid optimistically, and close the modal in one shot.
+  const handleAIReplaceComplete = useCallback(async (newItem, oldId) => {
     const removeIds = new Set();
     if (oldId && oldId !== newItem?.id && selectedSite?.id) {
       try {
@@ -260,14 +262,35 @@ export default function MediaPage() {
         console.warn('[Media] Failed to delete replaced media', oldId, err);
       }
     }
-    // Optimistic local update: drop the replaced item and prepend the new one
-    // without forcing the whole grid to reload.
     applyLocalMediaPatch({
       add: newItem ? [newItem] : [],
       remove: removeIds,
     });
     if (newItem?.id) setSelectedItem(newItem);
+    setAiModalOpen(false);
   }, [selectedSite?.id, applyLocalMediaPatch]);
+
+  // AI regenerate job lives at page level so the modal can close mid-flight
+  // and the job keeps running. The page-level pill (rendered in the header)
+  // picks up the in-progress / preview-ready / error state.
+  const aiJob = useAIRegenerationJob({
+    siteId: selectedSite?.id,
+    t,
+    onReplaceComplete: handleAIReplaceComplete,
+  });
+
+  // Open the AI modal for the currently-selected item. If a job is already
+  // active for the same item (e.g. user backgrounded a generation and is
+  // clicking Generate again) we keep that job intact - the modal will show
+  // its current state. Otherwise we start a fresh job for the selection.
+  const openAiModalForSelected = useCallback(() => {
+    if (!selectedItem) return;
+    const sameTarget = aiJob.target?.id === selectedItem.id && aiJob.isActive;
+    if (!sameTarget) {
+      aiJob.startForItem(selectedItem, brokenImageIds.has(selectedItem.id));
+    }
+    setAiModalOpen(true);
+  }, [aiJob, selectedItem, brokenImageIds]);
   
   useEffect(() => {
     fetchMedia();
@@ -568,6 +591,15 @@ export default function MediaPage() {
           <span className={styles.count}>{totalItems} {t('media.items')}</span>
         </div>
         <div className={styles.headerActions}>
+          {/* Background AI job indicator: shows only when the modal is closed
+              but a regeneration job is still running, has a preview waiting,
+              needs a language pick, or hit an error. */}
+          {!aiModalOpen && aiJob.isActive && (
+            <AIBackgroundJobPill
+              status={aiJob.status}
+              onOpen={() => setAiModalOpen(true)}
+            />
+          )}
           <div className={styles.searchWrapper}>
             <Search className={styles.searchIcon} />
             <input
@@ -875,7 +907,7 @@ export default function MediaPage() {
                   <div className={styles.aiActionRow}>
                     <Button
                       variant="primary"
-                      onClick={() => setAiModalOpen(true)}
+                      onClick={openAiModalForSelected}
                       className={styles.aiButton}
                     >
                       <Sparkles />
@@ -923,10 +955,7 @@ export default function MediaPage() {
       <AIRegenerateModal
         isOpen={aiModalOpen}
         onClose={() => setAiModalOpen(false)}
-        selectedItem={selectedItem}
-        isBroken={selectedItem ? brokenImageIds.has(selectedItem.id) : false}
-        siteId={selectedSite?.id}
-        onUploaded={handleAIUploaded}
+        job={aiJob}
       />
 
       <MediaLightbox
@@ -940,10 +969,16 @@ export default function MediaPage() {
         onSave={handleLightboxSave}
         onRegenerate={canUploadMedia ? (item) => {
           // Close the lightbox, select the current carousel item, and pop the
-          // AI modal on top. The AI modal's onUploaded handler will delete the
-          // original media item when the user keeps the new one.
+          // AI modal on top. The job's onReplaceComplete handler deletes the
+          // original media item once the user accepts the generated image.
+          // Preserve any existing job for this same item (e.g. preview ready
+          // from a backgrounded generation) instead of restarting it.
           setLightboxIndex(null);
           setSelectedItem(item);
+          const sameTarget = aiJob.target?.id === item.id && aiJob.isActive;
+          if (!sameTarget) {
+            aiJob.startForItem(item, brokenImageIds.has(item.id));
+          }
           setAiModalOpen(true);
         } : undefined}
       />

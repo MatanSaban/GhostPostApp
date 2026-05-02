@@ -10,37 +10,30 @@
  */
 
 // Current plugin version - increment this when making updates
-export const PLUGIN_VERSION = "5.0.1";
+export const PLUGIN_VERSION = "5.0.2";
 
 // Changelog for the current version
 export const PLUGIN_CHANGELOG = `
+= 5.0.2 =
+* CLEANUP: Generated PHP is now uniformly under the GhostSEO identity. The class-media-manager.js template's AI-image-optimization helper is renamed to call_ghostseo_ai() and reads from the ghostseo_config wp_options key (the previous option key was a pre-2.4.8 leftover that was never written by the platform - the dead branch was unreachable, so the rename is internal-only). main.js also uses $ghostseo as the local variable name in gp_connector_init / gp_connector_activate / gp_connector_deactivate - purely cosmetic, same GhostSEO_Plugin class instance, same hooks, no behavioural change for connected sites.
+* REMOVED: Platform-side programmatic plugin install flow. The dashboard "Install plugin" button, the POST /api/sites/[id]/auto-install endpoint, the wpAdmin* / autoInstallExpiresAt fields on the Site model, the supportsAutoInstall capability flag, and the clearSiteCredentials helper are all gone. WordPress's REST API has no install-from-URL path for non-wp.org plugins, so the only reliable install route is manual upload via wp-admin → Plugins → Add New → Upload Plugin. Connected sites are unaffected; only the never-fully-functional self-service install path is removed.
+
 = 5.0.1 =
 * NEW: /elements/restore/{postId} endpoint - inverse of /elements/manipulate. Accepts the rollback snapshot the manipulator returns (meta_key + previous_value for Elementor / Beaver, or post_content for raw HTML) and writes it back, plus fires elementor/document/after_save and flushes per-post cache. Closes the rollback gap on Elementor edits: clicking Rollback on a manipulate_element action card on the platform now reverses the change instead of failing with "Rollback not supported for tool: manipulate_element".
 
 = 5.0.0 =
-* MAJOR REBRAND - full slug/identity rename. Every "ghost-post" reference (folder, file names, PHP class, text domain, REST namespace, plugin slug, locale cookie) is now "ghostseo". This is a clean break.
-  - Plugin folder: ghost-post-connector → ghostseo-connector
-  - Main file: ghost-post-connector.php → ghostseo-connector.php
-  - PHP class: Ghost_Post → GhostSEO_Plugin (file class-ghost-post.php → class-ghostseo-plugin.php)
-  - Text domain: 'ghost-post-connector' → 'ghostseo-connector'
-  - REST namespace: wp-json/ghost-post/v1/ → wp-json/ghostseo/v1/
-  - Plugin slug (WP plugin info / data-slug): 'ghost-post-connector' → 'ghostseo-connector'
-  - Internal redirections-manager identifier: 'ghost-post' → 'ghostseo'
-  - Stale URL admin.php?page=ghost-post-redirections (no longer exists) → admin.php?page=ghostseo&tab=redirections
+* MAJOR REBRAND - full plugin slug/identity rename to GhostSEO. Plugin folder is now ghostseo-connector, main file ghostseo-connector.php, PHP entry class GhostSEO_Plugin, text domain 'ghostseo-connector', REST namespace wp-json/ghostseo/v1/, admin URL /wp-admin/admin.php?page=ghostseo. Plugin's gp_* wp_options keys (connection_status, last_ping, theme, language, etc.) are preserved across the rename so settings carry forward.
 * MIGRATION REQUIRED for sites running plugin 3.x or 4.x - the WordPress auto-update flow keys on the plugin folder/basename, so renaming the folder means WP does NOT recognize 5.0.0 as an upgrade of 3.4.x. To migrate an existing site:
   1) Visit the GhostSEO dashboard → site → "Download plugin" (or hit /api/sites/[id]/download-plugin) to get the new GhostSEO-Connector-…5.0.0.zip
-  2) On the WP site, deactivate and DELETE the old "GhostSEO Connector" plugin from /wp-admin/plugins.php (settings/connection state in wp_options/gp_* keys is preserved)
+  2) On the WP site, deactivate and DELETE the old plugin from /wp-admin/plugins.php (the gp_* wp_options that hold connection state are preserved)
   3) Upload + activate the new zip via Plugins → Add New → Upload Plugin
   4) The plugin auto-reconnects to the platform using the preserved gp_connector_* options
 * gp-platform-side updates (deploy together with this plugin release):
-  - Locale cookie 'ghost-post-locale' → 'ghostseo-locale' across middleware, layout, locale-context, server-side metadata factory, and every API route that reads it. Existing users will lose their saved locale preference once on first visit and re-pick it.
+  - Locale cookie is now 'ghostseo-locale' across middleware, layout, locale-context, server-side metadata factory, and every API route that reads it. Existing users will lose their saved locale preference once on first visit and re-pick it.
   - WordPress REST consumers (lib/cms/adapters/wordpress.js, lib/audit/url-discovery.js, app/api/worker/publish-article/route.js) now call wp-json/ghostseo/v1/. Sites running plugin <5.0.0 will 404 on these calls - they must upgrade to 5.0.0 first.
-* DELIBERATELY UNCHANGED for data continuity:
-  - Plugin's gp_* wp_options keys (connection_status, last_ping, theme, language, etc.) - settings persist across the migration.
-  - Cloudinary audit-screenshot storage path 'ghost-post/{account}/{host}/…' - renaming would orphan every historical audit screenshot.
 
 = 3.4.6 =
-* BRANDING: WordPress admin URL no longer says "ghost-post-connector". The plugin's menu slug was renamed to 'ghostseo' so the address bar now reads /wp-admin/admin.php?page=ghostseo (and ?page=ghostseo&tab=settings, &tab=activity, etc.) - matching the visible "GhostSEO" branding everywhere else. Plugin folder, text domain, basename, REST namespace, and PHP class are intentionally unchanged so existing installs keep auto-updating cleanly without WordPress treating us as a freshly-installed plugin. The CSS hook (#adminmenu .toplevel_page_ghostseo) and the $hook string the plugin checks (toplevel_page_ghostseo) were updated to match.
+* BRANDING: Plugin's WordPress admin menu slug renamed to 'ghostseo' so the address bar now reads /wp-admin/admin.php?page=ghostseo (and ?page=ghostseo&tab=settings, &tab=activity, etc.) - matching the visible "GhostSEO" branding everywhere else. Plugin folder, text domain, basename, REST namespace, and PHP class are intentionally unchanged in this release so existing installs keep auto-updating cleanly without WordPress treating us as a freshly-installed plugin. The CSS hook (#adminmenu .toplevel_page_ghostseo) and the $hook string the plugin checks (toplevel_page_ghostseo) were updated to match.
 
 = 3.4.5 =
 * CRITICAL FIX: Auto-update path /api/plugin/download was shipping a zip missing three files that the main plugin loader require_once's on every page load - class-gp-cache-manager.php, class-gp-element-manipulator.php, and the assets/editor-bridge.js script. WordPress would fatal "Failed opening required '…/class-gp-cache-manager.php'" the moment the upgraded plugin ran, taking the whole admin (and any frontend that boots WP fully) down for any site that pressed "Update plugin" from /wp-admin/plugins.php. The platform-side per-site download (/api/sites/[id]/download-plugin) was never affected because it always shipped the full file list. Both download endpoints now produce identical zips. Sites stuck on the broken upgrade can recover by uploading the 3.4.5 zip manually from /wp-admin/plugins.php → Add New → Upload Plugin (or by deleting the partial plugin folder over SFTP and re-downloading from the GhostSEO dashboard).

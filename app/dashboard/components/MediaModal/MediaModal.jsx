@@ -24,6 +24,45 @@ import { useModalResize, ModalResizeButton } from '@/app/components/ui/ModalResi
 import { Button } from '@/app/dashboard/components';
 import styles from './MediaModal.module.css';
 
+// The /api/sites/[id]/media endpoint returns items in WordPress REST API shape
+// (title.rendered, alt_text, source_url, media_details.*) for the dedicated Media
+// library page. This modal — and everyone consuming items via onSelect — uses the
+// simpler flat shape, so we normalize on the way in.
+function toSimpleMediaShape(item) {
+  if (!item || typeof item !== 'object') return item;
+  // Already in simple shape — pass through.
+  if (typeof item.url === 'string' && typeof item.title !== 'object') return item;
+
+  const sizesIn = item.media_details?.sizes || item.sizes || {};
+  const sizes = {};
+  for (const [name, data] of Object.entries(sizesIn)) {
+    sizes[name] = {
+      width: data?.width ?? null,
+      height: data?.height ?? null,
+      url: data?.url ?? data?.source_url ?? null,
+    };
+  }
+
+  const pickRendered = (v) =>
+    typeof v === 'string' ? v : (v?.rendered ?? '');
+
+  return {
+    id: item.id,
+    slug: item.slug || '',
+    date: item.date || null,
+    url: item.url || item.source_url || '',
+    alt: item.alt ?? item.alt_text ?? '',
+    title: pickRendered(item.title),
+    caption: pickRendered(item.caption),
+    description: pickRendered(item.description),
+    mime_type: item.mime_type || item.mimeType || '',
+    width: item.width ?? item.media_details?.width ?? null,
+    height: item.height ?? item.media_details?.height ?? null,
+    filesize: item.filesize ?? item.media_details?.filesize ?? null,
+    sizes,
+  };
+}
+
 /**
  * Media Modal Component
  * WordPress-style media library modal for selecting/uploading images
@@ -103,8 +142,8 @@ export function MediaModal({
       }
       
       const data = await response.json();
-      setMedia(data.items || []);
-      setTotalPages(data.pages || 1);
+      setMedia((data.items || []).map(toSimpleMediaShape));
+      setTotalPages(data.totalPages || data.pages || 1);
       setTotalItems(data.total || 0);
     } catch (err) {
       setError(err.message);

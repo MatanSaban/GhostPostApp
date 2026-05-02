@@ -1437,7 +1437,7 @@ class GP_Media_Manager {
         $current_filename = basename(get_attached_file($image_id));
         
         // Call GhostSEO AI API
-        $ai_result = \$this->call_ghost_post_ai($image_url, $current_filename, $page_context, $language);
+        $ai_result = \$this->call_ghostseo_ai($image_url, $current_filename, $page_context, $language);
         
         if (is_wp_error($ai_result)) {
             return new WP_REST_Response(array('error' => $ai_result->get_error_message()), 500);
@@ -1590,8 +1590,8 @@ class GP_Media_Manager {
      * @param string $language
      * @return array|WP_Error
      */
-    private function call_ghost_post_ai($image_url, $current_filename, $page_context = '', $language = 'en') {
-        $config = get_option('ghost_post_config', array());
+    private function call_ghostseo_ai($image_url, $current_filename, $page_context = '', $language = 'en') {
+        $config = get_option('ghostseo_config', array());
         $platform_url = isset($config['platform_url']) ? rtrim($config['platform_url'], '/') : '';
         $site_id = isset($config['site_id']) ? $config['site_id'] : '';
         $secret = isset($config['secret']) ? $config['secret'] : '';

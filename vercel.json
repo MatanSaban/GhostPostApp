@@ -43,6 +43,10 @@
     {
       "path": "/api/cron/trial-lifecycle",
       "schedule": "0 6 * * *"
+    },
+    {
+      "path": "/api/cron/audit-watchdog",
+      "schedule": "*/5 * * * *"
     }
   ]
 }

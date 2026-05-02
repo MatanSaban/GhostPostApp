@@ -64,6 +64,8 @@ import SecurityHeadersModal from './components/SecurityHeadersModal';
 import IssueInfoPopup from './components/IssueInfoPopup';
 import AuditEntitySelector from './components/AuditEntitySelector';
 import FixButton from './components/FixButton';
+import { useRecheck } from './components/useRecheck';
+import { RecheckButton, RecheckConfirmModal, StaleScoreBanner, isIssueRecheckable } from './components/RecheckButton';
 import { getFixer, isAiFixable, isFreeFixable } from '@/lib/audit/fix-registry';
 import { MediaModal } from '@/app/dashboard/components/MediaModal/MediaModal';
 import EntitiesRequiredModal from '@/app/dashboard/components/EntitiesRequiredModal/EntitiesRequiredModal';
@@ -264,6 +266,40 @@ export default function SiteAuditPage() {
   // Cache audit data per device to avoid re-fetching on tab switch
   // Shape: { desktop: { latest, history, translations }, mobile: { ... } }
   const auditCacheRef = useRef({});
+
+  // ─── Recheck (per-issue & aggregate) ────────────────────────
+  // Drives the confirm modal, the per-button busy spinner, and the
+  // "recently resolved" pulse + sort-to-top behavior. Updates pull straight
+  // into latestAudit so the existing aggregation re-renders for free.
+  const recheck = useRecheck({
+    auditId: latestAudit?.id,
+    siteId: selectedSite?.id,
+    onAuditUpdated: useCallback((updates) => {
+      setLatestAudit((prev) => (prev ? { ...prev, ...updates } : prev));
+      // Mirror into the device cache so a tab switch + return doesn't snap
+      // back to pre-recheck state.
+      const cached = auditCacheRef.current[activeDevice];
+      if (cached?.latest) {
+        auditCacheRef.current[activeDevice] = {
+          ...cached,
+          latest: { ...cached.latest, ...updates },
+        };
+      }
+    }, [activeDevice]),
+  });
+
+  // Reset recheck session state whenever a fresh audit lands (a new full
+  // audit makes the stale-score banner irrelevant + clears the pulse set).
+  const lastAuditIdRef = useRef(null);
+  useEffect(() => {
+    if (!latestAudit?.id) return;
+    if (lastAuditIdRef.current && lastAuditIdRef.current !== latestAudit.id) {
+      recheck.reset();
+    }
+    lastAuditIdRef.current = latestAudit.id;
+    // recheck.reset is stable
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [latestAudit?.id]);
 
   // ─── Data Fetching ──────────────────────────────────────────
 
@@ -615,10 +651,40 @@ export default function SiteAuditPage() {
     }
   };
 
-  const handleRescanComplete = () => {
+  const handleRescanComplete = async () => {
     // Invalidate cache for current device so fresh data is fetched
     delete auditCacheRef.current[activeDevice];
-    if (selectedSite?.id) fetchAudits(selectedSite.id, activeDevice);
+    if (!selectedSite?.id) return;
+
+    // Snapshot active issues BEFORE the refetch. Anything that was active and
+    // is no longer present (or now severity='passed') after the refetch counts
+    // as a resolution — same visual treatment as the recheck flow (green pulse
+    // + stale-score banner).
+    const before = (latestAudit?.issues || [])
+      .filter((i) => i.severity !== 'passed')
+      .map((i) => ({ message: i.message, url: i.url || null }));
+
+    const fresh = await fetchAudits(selectedSite.id, activeDevice);
+    if (!fresh?.issues) return;
+
+    // Build a quick lookup of post-fetch active (key|url) tuples.
+    const stillActive = new Set();
+    for (const i of fresh.issues) {
+      if (i.severity !== 'passed') {
+        stillActive.add(`${i.message}|${i.url || ''}`);
+      }
+    }
+
+    const resolvedItems = [];
+    for (const b of before) {
+      const tuple = `${b.message}|${b.url || ''}`;
+      if (!stillActive.has(tuple)) {
+        resolvedItems.push({ issueKey: b.message, url: b.url });
+      }
+    }
+    if (resolvedItems.length > 0) {
+      recheck.markResolved(resolvedItems);
+    }
   };
 
   // Force-fail a stuck audit (superadmin / dev only). Server-side gate enforces
@@ -1189,6 +1255,9 @@ export default function SiteAuditPage() {
           ════════════════════════════════════════════════════════════ */}
       {isCompleted && !isRunning && (
         <>
+          {/* Stale-score reminder once any recheck has happened in session */}
+          <StaleScoreBanner visible={recheck.hasRechecked} />
+
           {/* ═══ Site-Wide Noindex Banner ════════════════════════════ */}
           {(() => {
             const siteWideIssue = allIssues.find(
@@ -1329,10 +1398,21 @@ export default function SiteAuditPage() {
                       {aggregatedIssues.map((agg) => {
                         const issueScreenshot = agg.source === 'ai-vision' ? getIssueScreenshot(agg) : null;
                         return (
-                          <button
+                          <div
                             key={agg.key}
-                            className={`${styles.aggregatedRow} ${styles[`issue_${agg.severity}`]}`}
+                            role="button"
+                            tabIndex={0}
+                            className={`${styles.aggregatedRow} ${styles[`issue_${agg.severity}`]} ${recheck.recentlyResolved.has(agg.key) ? 'recheck-pulse' : ''}`}
                             onClick={() => { setDrillDown({ issueKey: agg.key, category: activeTab }); updateUrl(activeTab, agg.key, null); }}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter' || e.key === ' ') {
+                                // Don't treat space-press inside a nested input/button as drill-down.
+                                if (e.target !== e.currentTarget) return;
+                                e.preventDefault();
+                                setDrillDown({ issueKey: agg.key, category: activeTab });
+                                updateUrl(activeTab, agg.key, null);
+                              }
+                            }}
                           >
                             <div className={styles.aggIcon}>
                               {agg.severity === 'passed' && <CheckCircle2 size={16} />}
@@ -1435,6 +1515,24 @@ export default function SiteAuditPage() {
                                   />
                                 );
                               })()}
+                              {/* Recheck — re-fetches every URL with this issue and
+                                  flips resolved ones to 'passed' in stored issues.
+                                  Hidden for already-passed rows and for issues whose
+                                  source needs the heavy pipeline (axe, playwright,
+                                  ai-vision) which the lightweight rescan can't run. */}
+                              {agg.severity !== 'passed' && agg.urls?.length > 0 && isIssueRecheckable(agg) && (
+                                <RecheckButton
+                                  count={agg.urls.length}
+                                  busy={recheck.isKeyInFlight(agg.key)}
+                                  stopPropagation
+                                  onClick={() => recheck.requestRecheck({
+                                    urls: agg.urls,
+                                    label: agg.message,
+                                    issueKey: agg.key,
+                                    key: agg.key,
+                                  })}
+                                />
+                              )}
                               {agg.count > 1 && (
                                 <span className={styles.aggCount}>
                                   {agg.urls.length} {t('siteAudit.pages')}
@@ -1442,7 +1540,7 @@ export default function SiteAuditPage() {
                               )}
                               <ChevronRight size={16} className={styles.aggChevron} />
                             </div>
-                          </button>
+                          </div>
                         );
                       })}
                     </div>
@@ -1504,6 +1602,18 @@ export default function SiteAuditPage() {
                               />
                             );
                           })()}
+                          {drillDownAgg.severity !== 'passed' && drillDownAgg.urls?.length > 0 && isIssueRecheckable(drillDownAgg) && (
+                            <RecheckButton
+                              count={drillDownAgg.urls.length}
+                              busy={recheck.isKeyInFlight(drillDownAgg.key)}
+                              onClick={() => recheck.requestRecheck({
+                                urls: drillDownAgg.urls,
+                                label: drillDownAgg.message,
+                                issueKey: drillDownAgg.key,
+                                key: drillDownAgg.key,
+                              })}
+                            />
+                          )}
                           <button
                             className={styles.infoBtn}
                             onClick={() => setIssueInfoPopup({ type: 'whatIsIt', key: drillDownAgg.key, title: getIssueTitle(drillDownAgg) })}
@@ -1790,7 +1900,7 @@ export default function SiteAuditPage() {
                     return (order[a.severity] ?? 4) - (order[b.severity] ?? 4);
                   })
                   .map((issue, idx) => (
-                    <div key={idx} className={`${styles.pdIssue} ${styles[`issue_${issue.severity}`]}`}>
+                    <div key={idx} className={`${styles.pdIssue} ${styles[`issue_${issue.severity}`]} ${recheck.recentlyResolved.has(`${issue.message}|${pageDetail.url}`) ? 'recheck-pulse' : ''}`}>
                       <div className={styles.issueIcon}>
                         {issue.severity === 'passed' && <CheckCircle2 size={14} />}
                         {issue.severity === 'warning' && <AlertTriangle size={14} />}
@@ -1830,6 +1940,25 @@ export default function SiteAuditPage() {
                             busy={issFixer.kind === 'free' && fixingIssueKey === issue.message}
                             disabled={issFixer.kind === 'free' && !!fixingIssueKey && fixingIssueKey !== issue.message}
                             onClick={() => (issFixer.kind === 'ai' ? handleAiFix(issue.message, issue) : handleFix(issue.message, issue))}
+                          />
+                        );
+                      })()}
+                      {/* Per-issue recheck on the page-detail modal — re-fetches
+                          just this URL. Same 1 GCoin per fetch as aggregate.
+                          Hidden for issues whose source we can't re-detect. */}
+                      {issue.severity !== 'passed' && pageDetail?.url && isIssueRecheckable(issue) && (() => {
+                        const issueRowKey = `${issue.message}|${pageDetail.url}`;
+                        return (
+                          <RecheckButton
+                            count={1}
+                            variant="small"
+                            busy={recheck.isKeyInFlight(issueRowKey)}
+                            onClick={() => recheck.requestRecheck({
+                              urls: [pageDetail.url],
+                              label: issue.message,
+                              issueKey: issue.message,
+                              key: issueRowKey,
+                            })}
                           />
                         );
                       })()}
@@ -2058,6 +2187,15 @@ export default function SiteAuditPage() {
       <PluginRequiredModal
         open={showPluginModal}
         onClose={() => setShowPluginModal(false)}
+      />
+
+      {/* Confirmation modal for per-issue / aggregate rechecks. The actual
+          recheck runs in the background after confirm — see useRecheck. */}
+      <RecheckConfirmModal
+        pending={recheck.pendingConfirm}
+        creditsRemaining={recheck.creditsRemaining}
+        onConfirm={recheck.confirmRecheck}
+        onCancel={recheck.cancelConfirm}
       />
 
       {/* Entities Required Modal */}

@@ -57,9 +57,9 @@ require_once GP_CONNECTOR_PLUGIN_DIR . 'includes/class-gp-updater.php';
  * Initialize the plugin
  */
 function gp_connector_init() {
-    $ghost_post = new GhostSEO_Plugin();
-    $ghost_post->init();
-    
+    $ghostseo = new GhostSEO_Plugin();
+    $ghostseo->init();
+
     // Initialize auto-updater
     $updater = new GP_Updater();
     $updater->init();
@@ -197,9 +197,9 @@ add_action('wp_enqueue_scripts', 'gp_editor_enqueue_bridge');
  */
 function gp_connector_activate() {
     // Verify connection with GhostSEO platform
-    $ghost_post = new GhostSEO_Plugin();
-    $ghost_post->verify_connection();
-    
+    $ghostseo = new GhostSEO_Plugin();
+    $ghostseo->verify_connection();
+
     // Flush rewrite rules
     flush_rewrite_rules();
 }
@@ -210,9 +210,9 @@ register_activation_hook(__FILE__, 'gp_connector_activate');
  */
 function gp_connector_deactivate() {
     // Notify GhostSEO platform about disconnection
-    $ghost_post = new GhostSEO_Plugin();
-    $ghost_post->notify_disconnection();
-    
+    $ghostseo = new GhostSEO_Plugin();
+    $ghostseo->notify_disconnection();
+
     // Flush rewrite rules
     flush_rewrite_rules();
 }

@@ -8,11 +8,11 @@ The GhostSEO platform integrates with WordPress via a **custom plugin that is dy
 
 ## 1. Plugin Architecture Overview
 
-**12 PHP classes** working together via WordPress hooks and a REST API namespace (`ghost-post/v1`):
+**12 PHP classes** working together via WordPress hooks and a REST API namespace (`ghostseo/v1`):
 
 | Class | File | Purpose |
 |-------|------|---------|
-| `Ghost_Post` | `class-ghost-post.php` | Main orchestrator - initializes all managers, registers REST routes, admin menu, dashboard widget, cron jobs |
+| `GhostSEO_Plugin` | `class-ghostseo-plugin.php` | Main orchestrator - initializes all managers, registers REST routes, admin menu, dashboard widget, cron jobs |
 | `GP_API_Handler` | `class-gp-api-handler.php` | Registers 50+ REST API endpoints, routes requests to appropriate managers |
 | `GP_Request_Validator` | `class-gp-request-validator.php` | HMAC-SHA256 signature validation with timestamp replay protection |
 | `GP_Content_Manager` | `class-gp-content-manager.php` | Posts/Pages CRUD - get_items, get_item, create, update, delete + H1 management in page builders |
@@ -41,9 +41,9 @@ Each template is a JavaScript function that returns PHP source code as a templat
 
 | Template (JS) | Export Function | Generated File (PHP/Other) |
 |----------------|----------------|---------------------------|
-| `main.js` | `getPluginMainFile(version)` | `ghost-post-connector.php` |
+| `main.js` | `getPluginMainFile(version)` | `ghostseo-connector.php` |
 | `config.js` | `getPluginConfigFile({...})` | `includes/config.php` |
-| `class-ghost-post.js` | `getClassGhostSEO()` | `includes/class-ghost-post.php` |
+| `class-ghostseo-plugin.js` | `getClassGhostSEO()` | `includes/class-ghostseo-plugin.php` |
 | `class-api-handler.js` | `getClassApiHandler()` | `includes/class-gp-api-handler.php` |
 | `class-request-validator.js` | `getClassRequestValidator()` | `includes/class-gp-request-validator.php` |
 | `class-content-manager.js` | `getClassContentManager()` | `includes/class-gp-content-manager.php` |
@@ -101,7 +101,7 @@ function gp_has_permission($permission) {
 5. Inject site-specific values into `config.php` (Site ID, Site Key, Site Secret, API URL, permissions)
 6. Build ZIP using JSZip with DEFLATE compression (level 6)
 7. Add `assets/icon.svg` (ghost icon)
-8. Return ZIP with filename: `Ghost-Post-Connector-{siteName}_{version}.zip`
+8. Return ZIP with filename: `GhostSEO-Connector-{siteName}_{version}.zip`
 
 **API URL Resolution:** `GP_PLUGIN_API_URL` env → `NEXT_PUBLIC_BASE_URL` env → default `https://app.ghostseo.ai`
 
@@ -112,7 +112,7 @@ function gp_has_permission($permission) {
 **Process:**
 1. Look up site by `siteKey` query parameter
 2. Generate the same plugin ZIP structure using templates
-3. Return ZIP with filename: `ghost-post-connector-{version}.zip`
+3. Return ZIP with filename: `ghostseo-connector-{version}.zip`
 
 **Purpose:** Allows the WordPress auto-update mechanism (`GP_Updater`) to download new versions without a user session.
 
@@ -121,13 +121,13 @@ function gp_has_permission($permission) {
 ## 4. Generated ZIP Structure
 
 ```
-ghost-post-connector/
-├── ghost-post-connector.php              // Main plugin entry point (WordPress header, hooks, init)
+ghostseo-connector/
+├── ghostseo-connector.php              // Main plugin entry point (WordPress header, hooks, init)
 ├── readme.txt                            // WordPress plugin readme with changelog
 ├── uninstall.php                         // Cleanup on uninstall (deletes options/transients)
 ├── includes/
 │   ├── config.php                        // Site-specific: GP_SITE_ID, GP_SITE_KEY, GP_SITE_SECRET, GP_API_URL, GP_PERMISSIONS
-│   ├── class-ghost-post.php              // Main orchestrator class
+│   ├── class-ghostseo-plugin.php              // Main orchestrator class
 │   ├── class-gp-api-handler.php          // REST API routing (50+ endpoints)
 │   ├── class-gp-request-validator.php    // HMAC-SHA256 validation
 │   ├── class-gp-content-manager.php      // Post/page CRUD + H1 management
@@ -156,7 +156,7 @@ ghost-post-connector/
 
 ## 5. Plugin Initialization
 
-### Main Entry Point (`ghost-post-connector.php`)
+### Main Entry Point (`ghostseo-connector.php`)
 
 ```php
 // Plugin Header
@@ -165,7 +165,7 @@ Plugin URI: https://ghostseo.ai
 Version: 3.0.1
 Requires at least: 5.6
 Requires PHP: 7.4
-Text Domain: ghost-post-connector
+Text Domain: ghostseo-connector
 
 // Constants
 define('GP_CONNECTOR_VERSION', '3.0.1');
@@ -177,14 +177,14 @@ define('GP_CONNECTOR_PLUGIN_BASENAME', plugin_basename(__FILE__));
 require_once GP_CONNECTOR_PLUGIN_DIR . 'includes/config.php';
 
 // Load all class files
-require_once GP_CONNECTOR_PLUGIN_DIR . 'includes/class-ghost-post.php';
+require_once GP_CONNECTOR_PLUGIN_DIR . 'includes/class-ghostseo-plugin.php';
 // ... (all other class files)
 
 // Initialize on plugins_loaded
 add_action('plugins_loaded', 'gp_connector_init');
 function gp_connector_init() {
-    $ghost_post = new Ghost_Post();
-    $ghost_post->init();
+    $ghostseo = new GhostSEO_Plugin();
+    $ghostseo->init();
 }
 
 // Security headers
@@ -197,7 +197,7 @@ register_activation_hook(__FILE__, 'gp_connector_activate');
 register_deactivation_hook(__FILE__, 'gp_connector_deactivate');
 ```
 
-### Ghost_Post::init() - Initialization Sequence
+### GhostSEO_Plugin::init() - Initialization Sequence
 
 1. Initialize i18n: `GP_I18n::init()`
 2. Initialize validators and managers (`GP_Request_Validator`, `GP_API_Handler`, `GP_Redirections_Manager`, `GP_Entity_Sync`)
@@ -242,15 +242,14 @@ Content-Type:    application/json
 | `generateSiteSecret()` | Creates 64-char hex via `crypto.randomBytes(32)` |
 | `createSignature(payload, timestamp, secret)` | HMAC-SHA256 of `{timestamp}.{payload}` |
 | `verifySignature(payload, timestamp, signature, secret, maxAge=300)` | Validates timestamp + verifies signature |
-| `encryptCredential(text, key)` | AES-256-GCM encryption (for auto-install credentials) |
+| `encryptCredential(text, key)` | AES-256-GCM encryption (used for the Shopify access token) |
 | `decryptCredential(encryptedBase64, key)` | Decrypts AES-256-GCM |
-| `clearSiteCredentials(prisma, siteId)` | Removes temporary auto-install credentials |
 | `generateConnectionToken(siteId, siteKey)` | Base64url JWT with 30-min expiration |
 | `validateConnectionToken(token)` | Decodes and validates expiration |
 
 ---
 
-## 7. Plugin REST Endpoints (WordPress Side - `ghost-post/v1` namespace)
+## 7. Plugin REST Endpoints (WordPress Side - `ghostseo/v1` namespace)
 
 50+ REST API endpoints registered via `register_rest_route()`. All requests validated via `GP_Request_Validator`.
 
@@ -571,7 +570,7 @@ After modifying `_elementor_data`, the plugin:
       → Platform upserts/deletes in Redirection model
    
    d. Platform → WordPress: Content publishing, media upload, SEO updates
-      → Platform calls /wp-json/ghost-post/v1/{endpoint} with HMAC signature
+      → Platform calls /wp-json/ghostseo/v1/{endpoint} with HMAC signature
       → Plugin sets is_gp_api_request flag to prevent webhook echo-back
    
    e. Auto-Update: Plugin checks for updates
@@ -646,7 +645,7 @@ e-floating-buttons
 All requests signed with HMAC-SHA256. Plugin sets `is_gp_api_request = true` to prevent echo-back.
 
 ```
-Platform calls: POST/PUT/DELETE /wp-json/ghost-post/v1/{endpoint}
+Platform calls: POST/PUT/DELETE /wp-json/ghostseo/v1/{endpoint}
   Headers: X-GP-Site-Key, X-GP-Timestamp, X-GP-Signature
   Plugin validates → GP_Entity_Sync::mark_gp_origin() → execute → GP_Entity_Sync::clear_gp_origin()
 ```
@@ -722,20 +721,15 @@ The platform uses this client to call WordPress plugin endpoints. All requests i
 
 ---
 
-## 15. Auto-Install Feature (`POST /api/sites/[id]/auto-install`)
+## 15. Plugin Installation
 
-Alternative to manual plugin installation:
+Installation is manual via the WordPress admin upload UI:
 
-1. User provides WordPress admin URL + credentials on the platform Connect page
-2. Platform encrypts credentials with AES-256-GCM (5-minute TTL)
-3. Platform checks REST API reachability (`GET /wp-json/` with 15s timeout)
-4. Authenticates via Basic Auth (`GET /wp-json/wp/v2/users/me`)
-5. Verifies `activate_plugins` capability
-6. Searches for existing `ghost-post-connector` plugin
-7. If found → activates it; if not found → returns `MANUAL_INSTALL_REQUIRED`
-8. Credentials cleared immediately after attempt
+1. From the GhostSEO dashboard, click **Download Plugin** to fetch a per-site ZIP from `GET /api/sites/[id]/download-plugin`. The ZIP contains baked-in `GP_SITE_ID`, `GP_SITE_KEY`, and `GP_SITE_SECRET` for that specific site.
+2. In WordPress: **Plugins → Add New → Upload Plugin**, choose the ZIP, click **Install Now**, then **Activate**.
+3. On activation, the plugin's `register_activation_hook` calls `POST /api/public/wp/verify` with the baked credentials. The platform validates the HMAC signature and flips `connectionStatus` to `CONNECTED`. The dashboard polls `/api/sites/[id]/connection-status` and updates automatically.
 
-**Error Codes:** `REST_API_UNREACHABLE`, `AUTH_FAILED`, `INSUFFICIENT_PERMISSIONS`, `MANUAL_INSTALL_REQUIRED`, `ACTIVATION_FAILED`
+There is no programmatic install path - the WordPress REST API does not expose plugin upload from URL for non-wp.org plugins, and the previously-shipped form-based upload flow was removed.
 
 ---
 
@@ -785,7 +779,7 @@ Detects and can import redirects from:
 ### Bidirectional Sync
 
 - `push_redirect_webhook()` - Pushes changes back to platform via `POST /api/public/wp/redirect-updated`
-- Platform pushes redirects via `POST /wp-json/ghost-post/v1/redirects`
+- Platform pushes redirects via `POST /wp-json/ghostseo/v1/redirects`
 - Source field (`'wordpress'` or `'gp-platform'`) prevents infinite loops
 
 ---
@@ -884,7 +878,7 @@ GP_I18n::init();
 // 4. Register WordPress gettext filters:
 //    add_filter('gettext', 'filter_gettext', 10, 3);
 //    add_filter('ngettext', 'filter_ngettext', 10, 5);
-// Filters only apply to 'ghost-post-connector' text domain
+// Filters only apply to 'ghostseo-connector' text domain
 ```
 
 ### RTL Support
@@ -914,12 +908,6 @@ model Site {
   wpTimezone           String?              // e.g. "Asia/Jerusalem"
   wpLocale             String?              // e.g. "he_IL"
 
-  // Auto-Install (temporary, encrypted)
-  wpAdminUrl           String?
-  wpAdminUsername       String?              // AES-256-GCM encrypted
-  wpAdminPassword      String?              // AES-256-GCM encrypted
-  autoInstallExpiresAt DateTime?            // 5-minute TTL
-
   // Entity Sync Tracking
   entitySyncStatus     EntitySyncStatus     // NEVER | SYNCING | COMPLETED | ERROR
   entitySyncProgress   Int?                 // 0-100%
@@ -930,7 +918,7 @@ model Site {
 
 enum SiteConnectionStatus {
   PENDING        // Created, awaiting plugin installation
-  CONNECTING     // Auto-install in progress
+  CONNECTING     // Deprecated: never set by current code; retained for record decoding
   CONNECTED      // Verified & operational (heartbeat active)
   DISCONNECTED   // Was connected, plugin deactivated or unreachable
   ERROR          // Connection failed
@@ -957,9 +945,8 @@ enum SitePermission {
 5. **Timing-Safe Comparison** - `crypto.timingSafeEqual()` / `hash_equals()` prevents timing attacks
 6. **Permission Scoping** - Platform enforces what operations are allowed per site (18 granular permissions)
 7. **Connection Status Tracking** - Alerts if plugin goes silent (missed heartbeats)
-8. **Auto-Install Credential Encryption** - AES-256-GCM with 5-minute TTL, cleared after use
-9. **Conflict Prevention** - Source flags and sync locks prevent bidirectional echo loops
-10. **Input Sanitization** - All incoming data sanitized: `sanitize_text_field()`, `wp_kses_post()`, `sanitize_textarea_field()`
+8. **Conflict Prevention** - Source flags and sync locks prevent bidirectional echo loops
+9. **Input Sanitization** - All incoming data sanitized: `sanitize_text_field()`, `wp_kses_post()`, `sanitize_textarea_field()`
 
 ---
 

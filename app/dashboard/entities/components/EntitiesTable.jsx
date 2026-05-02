@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { useRouter } from 'next/navigation';
 import {
   Search,
   RefreshCw,
@@ -58,7 +57,6 @@ export function EntitiesTable({
   site = null,
 }) {
   const { t, locale } = useLocale();
-  const router = useRouter();
   const { canEdit, canDelete, MODULES } = usePermissions();
   
   // Permission checks for entities
@@ -611,13 +609,13 @@ export function EntitiesTable({
                       </button>
                     )}
                     {canEditEntities && (
-                      <button 
+                      <a
+                        href={`/dashboard/entities/${entityType}/${entity.id}`}
                         className={`${styles.actionButton} ${styles.edit}`}
-                        onClick={() => router.push(`/dashboard/entities/${entityType}/${entity.id}`)}
                         title={t('common.edit')}
                       >
                         <Edit />
-                      </button>
+                      </a>
                     )}
                     {/* Remove from platform only (X button) */}
                     {canDeleteEntities && (

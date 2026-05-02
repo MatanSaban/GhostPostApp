@@ -1,0 +1,65 @@
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  background: var(--muted);
+  color: var(--foreground);
+  font-size: 0.75rem;
+  font-weight: 500;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background 0.15s, border-color 0.15s, transform 0.15s;
+}
+
+.pill:hover {
+  background: var(--accent, var(--muted));
+  transform: translateY(-1px);
+}
+
+.icon {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+}
+
+.label {
+  white-space: nowrap;
+}
+
+.progress {
+  background: rgba(123, 44, 191, 0.12);
+  border-color: rgba(123, 44, 191, 0.28);
+  color: var(--primary, #7b2cbf);
+}
+
+.ready {
+  background: rgba(16, 185, 129, 0.12);
+  border-color: rgba(16, 185, 129, 0.32);
+  color: #047857;
+}
+
+:global(.dark) .ready {
+  color: #6ee7b7;
+}
+
+.error {
+  background: rgba(220, 38, 38, 0.1);
+  border-color: rgba(220, 38, 38, 0.3);
+  color: #b91c1c;
+}
+
+:global(.dark) .error {
+  color: #fca5a5;
+}
+
+.spinning {
+  animation: aiPillSpin 1s linear infinite;
+}
+
+@keyframes aiPillSpin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}

@@ -1,0 +1,111 @@
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  background: transparent;
+  color: var(--text-muted, #6b7280);
+  border: 1px solid var(--border-color, #e5e7eb);
+  border-radius: 6px;
+  font-size: 0.7rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s, background 0.15s;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.btn:hover:not(:disabled) {
+  color: var(--foreground, #111827);
+  border-color: var(--primary, #7b2cbf);
+  background: rgba(123, 44, 191, 0.05);
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn_small {
+  padding: 3px 7px;
+  font-size: 0.65rem;
+  gap: 4px;
+}
+
+.btn_inline {
+  padding: 2px 6px;
+  font-size: 0.65rem;
+  gap: 3px;
+  border: none;
+  background: transparent;
+}
+
+.btn_inline:hover:not(:disabled) {
+  background: rgba(123, 44, 191, 0.08);
+}
+
+.label {
+  white-space: nowrap;
+}
+
+.cost {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 1px 5px;
+  background: rgba(245, 158, 11, 0.12);
+  color: #b45309;
+  border-radius: 4px;
+  font-weight: 600;
+  font-size: 0.65rem;
+}
+
+.coinIcon {
+  vertical-align: -1px;
+}
+
+.spinning {
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ─── Stale-score banner ─── */
+
+.staleBanner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  margin-bottom: 12px;
+  background: rgba(245, 158, 11, 0.1);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  border-radius: 6px;
+  color: #b45309;
+  font-size: 0.75rem;
+}
+
+.staleText {
+  flex: 1;
+}
+
+.staleDismiss {
+  background: transparent;
+  border: none;
+  color: inherit;
+  font-size: 1.1rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0 4px;
+  opacity: 0.7;
+}
+
+.staleDismiss:hover {
+  opacity: 1;
+}
+
+/* The .recheck-pulse animation lives in app/globals.css — it's referenced by
+ * literal class name across multiple components (aggregate row + page-detail
+ * issue row), and Next.js CSS Modules require pure selectors at the top level. */

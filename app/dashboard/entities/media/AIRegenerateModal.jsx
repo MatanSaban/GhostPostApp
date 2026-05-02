@@ -2,15 +2,14 @@
 
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { X, Sparkles, Loader2, ImageIcon, RotateCcw, Trash2, AlertCircle } from 'lucide-react';
+import { X, Sparkles, Loader2, ImageIcon, RotateCcw, AlertCircle } from 'lucide-react';
 import { useLocale } from '@/app/context/locale-context';
-import { useUser, CREDITS_UPDATED_EVENT } from '@/app/context/user-context';
+import { useUser } from '@/app/context/user-context';
 import { Button } from '@/app/dashboard/components';
 import AddCreditsModal from '@/app/components/ui/AddCreditsModal';
 import styles from './AIRegenerateModal.module.css';
 import GCoinIcon from '@/app/components/ui/GCoinIcon';
-
-const REGENERATE_COST = 5;
+import { REGENERATE_COST } from './useAIRegenerationJob';
 
 const LANGUAGE_OPTIONS = [
   { code: 'en', label: 'English' },
@@ -25,89 +24,39 @@ const LANGUAGE_OPTIONS = [
 ];
 
 /**
- * Convert a base64-encoded image (e.g. PNG) to a WebP base64 string using the browser canvas.
- * Returns `{ base64, mimeType: 'image/webp' }` on success or throws on failure.
+ * Controlled view of the AI regeneration job. The job state lives in the
+ * parent (page.jsx) via {@link useAIRegenerationJob}, so closing this modal
+ * mid-generation does NOT cancel the job - the page-level pill picks it up
+ * and reopens the modal when the user wants to act on the result.
  */
-async function convertBase64ToWebp(base64, sourceMime = 'image/png', quality = 0.9) {
-  return new Promise((resolve, reject) => {
-    const img = new Image();
-    img.crossOrigin = 'anonymous';
-    img.onload = () => {
-      const canvas = document.createElement('canvas');
-      canvas.width = img.naturalWidth;
-      canvas.height = img.naturalHeight;
-      const ctx = canvas.getContext('2d');
-      if (!ctx) return reject(new Error('Canvas 2D context unavailable'));
-      ctx.drawImage(img, 0, 0);
-      canvas.toBlob(
-        (blob) => {
-          if (!blob) return reject(new Error('Canvas toBlob returned null'));
-          const reader = new FileReader();
-          reader.onload = () => {
-            const dataUrl = reader.result;
-            const commaIdx = dataUrl.indexOf(',');
-            const pureBase64 = commaIdx >= 0 ? dataUrl.slice(commaIdx + 1) : dataUrl;
-            resolve({ base64: pureBase64, mimeType: 'image/webp' });
-          };
-          reader.onerror = () => reject(reader.error || new Error('FileReader failed'));
-          reader.readAsDataURL(blob);
-        },
-        'image/webp',
-        quality,
-      );
-    };
-    img.onerror = () => reject(new Error('Failed to load generated image into canvas'));
-    img.src = `data:${sourceMime};base64,${base64}`;
-  });
-}
-
-export function AIRegenerateModal({
-  isOpen,
-  onClose,
-  selectedItem,
-  isBroken,
-  siteId,
-  onUploaded,
-}) {
+export function AIRegenerateModal({ isOpen, onClose, job }) {
   const { t } = useLocale();
   const { user } = useUser();
-
-  const [instructions, setInstructions] = useState('');
-  const [aspectRatio, setAspectRatio] = useState('16:9');
-  const [status, setStatus] = useState('idle'); // idle | generating | preview | uploading | done | error | needsLanguage
-  const [error, setError] = useState(null);
-  const [insufficientCredits, setInsufficientCredits] = useState(null); // { required } | null
   const [showAddCreditsModal, setShowAddCreditsModal] = useState(false);
-  const [generated, setGenerated] = useState(null); // { base64, mimeType, metadata, language }
-  const [uploadedItem, setUploadedItem] = useState(null);
-  const [chosenLanguage, setChosenLanguage] = useState(null);
 
-  // Reset state whenever the modal is re-opened
+  // Once the user tops up enough credits, drop the insufficient-credits banner.
   useEffect(() => {
-    if (!isOpen) return;
-    setInstructions('');
-    setAspectRatio('16:9');
-    setStatus('idle');
-    setError(null);
-    setInsufficientCredits(null);
-    setGenerated(null);
-    setUploadedItem(null);
-    setChosenLanguage(null);
-  }, [isOpen, selectedItem?.id]);
+    if (!job?.insufficientCredits) return;
+    const limit = user?.aiCreditsLimit;
+    const used = user?.aiCreditsUsed || 0;
+    const remaining = limit == null ? Infinity : limit - used;
+    if (remaining >= job.insufficientCredits.required) {
+      job.clearInsufficientCredits();
+    }
+  }, [user?.aiCreditsLimit, user?.aiCreditsUsed, job]);
 
-  // ESC closes the modal (unless we're mid-upload - those shouldn't be interrupted)
+  // ESC closes the modal. Generation/replace continue in the background -
+  // unlike before, we no longer block close while a job is in flight.
   useEffect(() => {
     if (!isOpen) return;
     const handler = (e) => {
-      if (e.key === 'Escape' && status !== 'uploading' && status !== 'generating') {
-        onClose();
-      }
+      if (e.key === 'Escape') onClose();
     };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
-  }, [isOpen, onClose, status]);
+  }, [isOpen, onClose]);
 
-  // Prevent background scroll while the modal is open
+  // Prevent background scroll while open
   useEffect(() => {
     if (!isOpen) return;
     const original = document.body.style.overflow;
@@ -115,168 +64,36 @@ export function AIRegenerateModal({
     return () => { document.body.style.overflow = original; };
   }, [isOpen]);
 
-  // Clear the insufficient-credits banner once the user tops up enough to cover the cost.
-  useEffect(() => {
-    if (!insufficientCredits) return;
-    const limit = user?.aiCreditsLimit;
-    const used = user?.aiCreditsUsed || 0;
-    const remaining = limit == null ? Infinity : limit - used;
-    if (remaining >= insufficientCredits.required) {
-      setInsufficientCredits(null);
-      if (status === 'error') setStatus('idle');
-    }
-  }, [user?.aiCreditsLimit, user?.aiCreditsUsed, insufficientCredits, status]);
+  if (!isOpen || !job?.target) return null;
 
-  if (!isOpen || !selectedItem) return null;
+  const {
+    target,
+    targetIsBroken: isBroken,
+    instructions,
+    aspectRatio,
+    status,
+    error,
+    insufficientCredits,
+    generated,
+    setInstructions,
+    setAspectRatio,
+    setChosenLanguage,
+    generate,
+    acceptAndReplace,
+    tryAgain,
+  } = job;
 
-  const existingAlt = selectedItem.alt_text || '';
-  const existingTitle = selectedItem.title?.rendered || selectedItem.slug || '';
-  const existingCaption = selectedItem.caption?.rendered?.replace(/<[^>]*>/g, '') || '';
-  const existingDescription = selectedItem.description?.rendered?.replace(/<[^>]*>/g, '') || '';
+  const existingAlt = target.alt_text || '';
+  const existingTitle = target.title?.rendered || target.slug || '';
+  const existingCaption = target.caption?.rendered?.replace(/<[^>]*>/g, '') || '';
+  const existingDescription = target.description?.rendered?.replace(/<[^>]*>/g, '') || '';
   const hasMetadata = !!(existingAlt || existingTitle || existingCaption || existingDescription);
-
   const canGenerate = !isBroken || hasMetadata || instructions.trim().length > 0;
 
-  async function callGenerate(languageOverride = null) {
-    setStatus('generating');
-    setError(null);
-    setInsufficientCredits(null);
-
-    try {
-      const res = await fetch(`/api/sites/${siteId}/media/ai-regenerate`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          existingImageUrl: isBroken ? null : selectedItem.source_url,
-          isBroken: !!isBroken,
-          altText: existingAlt,
-          title: existingTitle,
-          caption: existingCaption,
-          description: existingDescription,
-          userInstructions: instructions.trim(),
-          aspectRatio,
-          languageOverride,
-        }),
-      });
-
-      const data = await res.json();
-
-      if (res.status === 402 && data?.code === 'INSUFFICIENT_CREDITS') {
-        setStatus('error');
-        setInsufficientCredits({ required: data.required || REGENERATE_COST });
-        return;
-      }
-
-      if (!res.ok) {
-        setStatus('error');
-        setError(data?.error || t('media.ai.generateFailed'));
-        return;
-      }
-
-      if (data.needsLanguage) {
-        setStatus('needsLanguage');
-        return;
-      }
-
-      if (!data.image?.base64) {
-        setStatus('error');
-        setError(t('media.ai.generateFailed'));
-        return;
-      }
-
-      setGenerated({
-        base64: data.image.base64,
-        mimeType: data.image.mimeType || 'image/png',
-        metadata: data.metadata || {},
-        language: data.language,
-        verification: data.verification || null,
-      });
-      setStatus('preview');
-
-      if (typeof window !== 'undefined' && window.dispatchEvent) {
-        window.dispatchEvent(new CustomEvent(CREDITS_UPDATED_EVENT));
-      }
-    } catch (err) {
-      console.error('[AIRegenerate] generate error', err);
-      setStatus('error');
-      setError(err.message || t('media.ai.generateFailed'));
-    }
-  }
-
-  async function handleGenerate() {
-    if (!canGenerate) return;
-    await callGenerate(chosenLanguage);
-  }
-
-  async function handleLanguageSubmit(lang) {
+  const handleLanguageSubmit = (lang) => {
     setChosenLanguage(lang);
-    await callGenerate(lang);
-  }
-
-  async function handleUpload() {
-    if (!generated) return;
-    setStatus('uploading');
-    setError(null);
-
-    try {
-      // Convert PNG → WebP on the client before uploading
-      const webp = await convertBase64ToWebp(generated.base64, generated.mimeType, 0.9);
-
-      const baseName = (existingTitle || 'generated-image')
-        .toLowerCase()
-        .replace(/[^a-z0-9֐-׿؀-ۿ]+/g, '-')
-        .replace(/^-|-$/g, '')
-        .slice(0, 60) || 'generated-image';
-      const filename = `${baseName}-${Date.now()}.webp`;
-
-      const uploadRes = await fetch(`/api/sites/${siteId}/media`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          base64: webp.base64,
-          filename,
-          title: generated.metadata.title || existingTitle || '',
-          alt: generated.metadata.altText || existingAlt || '',
-          caption: generated.metadata.caption || '',
-          description: generated.metadata.description || '',
-        }),
-      });
-      const uploaded = await uploadRes.json();
-
-      if (!uploadRes.ok) {
-        setStatus('error');
-        setError(uploaded?.error || t('media.ai.uploadFailed'));
-        return;
-      }
-
-      setUploadedItem(uploaded);
-      setStatus('done');
-    } catch (err) {
-      console.error('[AIRegenerate] upload error', err);
-      setStatus('error');
-      setError(err.message || t('media.ai.uploadFailed'));
-    }
-  }
-
-  async function handleDiscard() {
-    if (!uploadedItem?.id) {
-      onClose();
-      return;
-    }
-    try {
-      await fetch(`/api/sites/${siteId}/media/${uploadedItem.id}`, { method: 'DELETE' });
-    } catch (err) {
-      console.warn('[AIRegenerate] discard delete failed:', err);
-    }
-    onClose();
-  }
-
-  function handleKeep() {
-    if (uploadedItem && onUploaded) {
-      onUploaded(uploadedItem, selectedItem.id);
-    }
-    onClose();
-  }
+    generate(lang);
+  };
 
   const generatedImageSrc = generated
     ? `data:${generated.mimeType};base64,${generated.base64}`
@@ -284,7 +101,14 @@ export function AIRegenerateModal({
 
   return createPortal(
     <>
-    <div className={styles.overlay} onClick={(e) => { if (e.target === e.currentTarget && status !== 'uploading' && status !== 'generating') onClose(); }}>
+    <div
+      className={styles.overlay}
+      onClick={(e) => {
+        // Clicking the dim background closes the modal even mid-generation;
+        // the job keeps running and the header pill takes over.
+        if (e.target === e.currentTarget) onClose();
+      }}
+    >
       <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
         <div className={styles.header}>
           <div className={styles.titleWrap}>
@@ -294,15 +118,13 @@ export function AIRegenerateModal({
             </h2>
             <span className={styles.costBadge}>{t('media.ai.cost', { credits: REGENERATE_COST })}</span>
           </div>
-          {status !== 'uploading' && status !== 'generating' && (
-            <button
-              className={styles.closeButton}
-              onClick={onClose}
-              aria-label={t('common.close')}
-            >
-              <X />
-            </button>
-          )}
+          <button
+            className={styles.closeButton}
+            onClick={onClose}
+            aria-label={t('common.close')}
+          >
+            <X />
+          </button>
         </div>
 
         <div className={styles.body}>
@@ -331,15 +153,15 @@ export function AIRegenerateModal({
             </div>
           )}
 
-          {status !== 'needsLanguage' && status !== 'done' && (
+          {status !== 'needsLanguage' && (
             <>
               {/* Context summary */}
               <div className={styles.section}>
                 <div className={styles.sectionLabel}>{t('media.ai.contextLabel')}</div>
                 <div className={styles.contextCard}>
                   <div className={styles.contextThumb}>
-                    {!isBroken && selectedItem.source_url ? (
-                      <img src={selectedItem.source_url} alt="" />
+                    {!isBroken && target.source_url ? (
+                      <img src={target.source_url} alt="" />
                     ) : (
                       <ImageIcon />
                     )}
@@ -368,7 +190,7 @@ export function AIRegenerateModal({
                   onChange={(e) => setInstructions(e.target.value)}
                   placeholder={t('media.ai.instructionsPlaceholder')}
                   rows={4}
-                  disabled={status === 'generating' || status === 'uploading'}
+                  disabled={status === 'generating' || status === 'replacing'}
                 />
               </div>
 
@@ -382,7 +204,7 @@ export function AIRegenerateModal({
                   className={styles.select}
                   value={aspectRatio}
                   onChange={(e) => setAspectRatio(e.target.value)}
-                  disabled={status === 'generating' || status === 'uploading'}
+                  disabled={status === 'generating' || status === 'replacing'}
                 >
                   <option value="16:9">16:9 ({t('media.ai.landscape')})</option>
                   <option value="4:3">4:3</option>
@@ -402,18 +224,16 @@ export function AIRegenerateModal({
             </div>
           )}
 
-          {status === 'uploading' && (
+          {status === 'replacing' && (
             <div className={styles.loadingState}>
               <Loader2 className={styles.spinner} />
               <div>{t('media.ai.uploading')}</div>
             </div>
           )}
 
-          {(status === 'preview' || status === 'done') && generatedImageSrc && (
+          {status === 'preview' && generatedImageSrc && (
             <div className={styles.section}>
-              <div className={styles.sectionLabel}>
-                {status === 'done' ? t('media.ai.uploadedHeading') : t('media.ai.previewHeading')}
-              </div>
+              <div className={styles.sectionLabel}>{t('media.ai.previewHeading')}</div>
               <div className={styles.previewWrap}>
                 <img src={generatedImageSrc} alt="" className={styles.previewImage} />
               </div>
@@ -443,7 +263,6 @@ export function AIRegenerateModal({
                 if (Array.isArray(v.issues)) {
                   problems.push(...v.issues.filter(Boolean).slice(0, 3));
                 }
-                // De-dupe in case the AI repeated itself.
                 const unique = Array.from(new Set(problems));
                 if (unique.length === 0) {
                   return (
@@ -501,7 +320,7 @@ export function AIRegenerateModal({
               <Button variant="ghost" onClick={onClose}>{t('common.cancel')}</Button>
               <Button
                 variant="primary"
-                onClick={handleGenerate}
+                onClick={() => generate()}
                 disabled={!canGenerate}
               >
                 <Sparkles />
@@ -509,31 +328,31 @@ export function AIRegenerateModal({
                 <span className={styles.buttonCost}>{REGENERATE_COST}</span>
               </Button>
             </>
-          ) : status === 'generating' || status === 'uploading' ? (
-            <Button variant="ghost" disabled>
+          ) : status === 'generating' ? (
+            <>
+              <Button variant="ghost" onClick={onClose}>
+                {t('media.ai.runInBackground')}
+              </Button>
+              <Button variant="primary" disabled>
+                <Loader2 className={styles.spinner} />
+                {t('media.ai.generating')}
+              </Button>
+            </>
+          ) : status === 'replacing' ? (
+            <Button variant="primary" disabled>
               <Loader2 className={styles.spinner} />
-              {status === 'generating' ? t('media.ai.generating') : t('media.ai.uploading')}
+              {t('media.ai.uploading')}
             </Button>
           ) : status === 'needsLanguage' ? (
             <Button variant="ghost" onClick={onClose}>{t('common.cancel')}</Button>
           ) : status === 'preview' ? (
             <>
-              <Button variant="ghost" onClick={() => { setGenerated(null); setStatus('idle'); }}>
+              <Button variant="ghost" onClick={tryAgain}>
                 <RotateCcw />
                 {t('media.ai.tryAgain')}
               </Button>
-              <Button variant="primary" onClick={handleUpload}>
-                {t('media.ai.saveToLibrary')}
-              </Button>
-            </>
-          ) : status === 'done' ? (
-            <>
-              <Button variant="danger" onClick={handleDiscard}>
-                <Trash2 />
-                {t('media.ai.discardNew')}
-              </Button>
-              <Button variant="primary" onClick={handleKeep}>
-                {t('media.ai.openInLibrary')}
+              <Button variant="primary" onClick={acceptAndReplace}>
+                {t('media.ai.acceptReplace')}
               </Button>
             </>
           ) : null}

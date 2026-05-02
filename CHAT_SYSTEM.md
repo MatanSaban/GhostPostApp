@@ -41,7 +41,7 @@ The GhostSEO chat system is an AI-powered SEO assistant that can analyze WordPre
                       │ HMAC-SHA256 signed requests
                       ▼
 ┌─────────────────────────────────────────────────────────────────┐
-│  WordPress Plugin (ghost-post/v1 REST API)                      │
+│  WordPress Plugin (ghostseo/v1 REST API)                      │
 │  50+ endpoints - content, media, SEO, redirects, code snippets  │
 │  See: WORDPRESS_PLUGIN_SYSTEM.md                                │
 └─────────────────────────────────────────────────────────────────┘
@@ -838,7 +838,7 @@ The chat system connects to WordPress through the same HMAC-SHA256 authenticated
    a. SNAPSHOT: wpApi.getSeoData(site, '36')  ← current SEO data saved
    b. EXECUTE:  wpApi.updateSeoData(site, '36', { title: 'New Title' })
       └→ lib/wp-api-client.js creates HMAC-signed request:
-         PUT /wp-json/ghost-post/v1/seo/36
+         PUT /wp-json/ghostseo/v1/seo/36
          Headers: X-GP-Site-Key, X-GP-Timestamp, X-GP-Signature
          Body: { title: 'New Title' }
       └→ WordPress plugin validates signature via GP_Request_Validator
@@ -857,7 +857,7 @@ The chat system connects to WordPress through the same HMAC-SHA256 authenticated
 All WordPress calls flow through this client. Every request:
 - Includes HMAC-SHA256 signed headers (`X-GP-Site-Key`, `X-GP-Timestamp`, `X-GP-Signature`)
 - Has 30-second timeout
-- Targets `{site.url}/wp-json/ghost-post/v1/{endpoint}`
+- Targets `{site.url}/wp-json/ghostseo/v1/{endpoint}`
 
 See `WORDPRESS_PLUGIN_SYSTEM.md` Section 14 for the full method reference.
 

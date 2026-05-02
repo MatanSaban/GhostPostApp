@@ -5,14 +5,13 @@
 
 ## WordPress Plugin Version Management
 
-**CRITICAL**: Every time you modify **any** plugin code - whether in `gp-wordpress-plugin/ghost-post-connector/` OR in `gp-platform/app/api/sites/[id]/download-plugin/plugin-templates/` - you **MUST** also:
-1. Increment `PLUGIN_VERSION` in `app/api/plugin/version.js` by `0.0.1` (e.g. `2.3.1` → `2.3.2`)
+**CRITICAL**: Every time you modify any plugin code in `gp-platform/app/api/sites/[id]/download-plugin/plugin-templates/`, you **MUST** also:
+1. Increment `PLUGIN_VERSION` in `app/api/plugin/version.js` by `0.0.1` (e.g. `5.0.1` → `5.0.2`)
 2. Add a changelog entry to `PLUGIN_CHANGELOG` in the same file describing the change
-3. Remind the user to run `node scripts/sync-plugin-version.mjs` after deployment
 
 **Do this in the SAME edit session as the plugin code change - never defer it.**
 
-The plugin is generated from **template JS files** in `plugin-templates/`, NOT from the source PHP files. See `/memories/repo/wp-plugin-architecture.md` for details. Without a version bump, changes will never reach WordPress installations.
+The plugin is generated **dynamically per site** from the template JS files in `plugin-templates/` at the moment a user downloads it. There is no checked-in PHP source - `version.js` is the single source of truth, baked in at generation time. Without a version bump, the auto-update flow won't recognize the change as an upgrade and connected sites won't pull it.
 
 ## Page Metadata
 
@@ -21,7 +20,7 @@ The plugin is generated from **template JS files** in `plugin-templates/`, NOT f
 ### How it's wired
 
 - **Root layout** (`app/layout.jsx`) calls `buildRootMetadata({ locale })` from `generateMetadata` - this provides `metadataBase`, the `%s | GhostSEO` title template, default openGraph/twitter, robots `noindex` (private SaaS), icons, and theme color.
-- **Server pages and layouts**: one-liner - `export const generateMetadata = createGenerateMetadata('<route pattern>');`. The factory reads the `ghost-post-locale` cookie and looks up the registry entry. Use `buildMetadata(...)` directly only when you need to pass dynamic overrides.
+- **Server pages and layouts**: one-liner - `export const generateMetadata = createGenerateMetadata('<route pattern>');`. The factory reads the `ghostseo-locale` cookie and looks up the registry entry. Use `buildMetadata(...)` directly only when you need to pass dynamic overrides.
 - **Client pages** (`'use client'`): they CANNOT export metadata. The `<PageMeta />` client component is mounted once in each client layout (`app/dashboard/layout.jsx`, `app/admin/layout.jsx`, `app/auth/layout.jsx`). It reads `usePathname()` and `useLocale()`, looks up the matching entry in `pageRegistry`, and updates `document.title`, the description meta tag, robots tag, and og:title / og:description on every navigation and locale change. **Do not add `<PageMeta />` to individual pages - it lives in the layout.**
 - **Dynamic titles on client pages** (e.g. an entity name, a blog post title): call `useDynamicPageMeta(dynamicTitle, dynamicDescription?)` from `@/app/components/PageMeta` inside the page. It writes to an external store that the layout-mounted `<PageMeta />` subscribes to, so the dynamic title wins over the registry-derived one. Example: `useDynamicPageMeta(displayName)` in [app/dashboard/entities/[type]/page.jsx](../app/dashboard/entities/[type]/page.jsx).
 

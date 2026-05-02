@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import prisma from '@/lib/prisma';
-import { runSiteAudit } from '@/lib/audit/site-auditor';
+import { runSiteAudit, runDiscovery } from '@/lib/audit/site-auditor';
 import { enforceResourceLimit } from '@/lib/account-limits';
 import { getLimitFromPlan } from '@/lib/account-utils';
 import { getCachedAuditById } from '@/lib/cache/site-audit.js';
@@ -45,6 +45,7 @@ const LIGHT_SELECT = {
   pagesFound: true,
   discoveryMethod: true,
   progress: true,
+  phase: true,
   screenshots: true,
   summary: true,
   summaryTranslations: true,
@@ -145,53 +146,83 @@ export async function GET(request) {
       })
     );
 
-    // Auto-fail audits whose worker has stopped writing progress
-    // (e.g. background process died after server restart). The audit pipeline
-    // writes progress every few seconds while alive, so a multi-minute gap on
-    // updatedAt means the worker is gone — much sharper than waiting on
-    // startedAt + a long absolute timeout.
-    const STALE_MS = 5 * 60 * 1000;
+    // Heartbeat-based watchdog. Every alive worker (legacy or chunked) writes
+    // progress + advances `updatedAt` every few seconds. A multi-minute gap
+    // means the worker is gone.
+    //
+    // Behavior depends on phase:
+    //   • phase=null (legacy single-shot) or 'discovery' → mark FAILED.
+    //   • phase='scanning'   → re-trigger /api/audit/continue. Only mark
+    //                          FAILED if total wall time > HARD_LIMIT_MS.
+    //   • phase='finalizing' → re-trigger /api/audit/finalize. Hard-fail
+    //                          after FINAL_HARD_LIMIT_MS.
+    const STALE_MS        = 5 * 60 * 1000;       // gap that means "worker dead"
+    const HARD_LIMIT_MS   = 4 * 60 * 60 * 1000;  // total wall time before scanning is given up
+    const FINAL_HARD_LIMIT_MS = 30 * 60 * 1000;  // finalizing should never legitimately take this long
     const now = Date.now();
+    const origin = request.nextUrl.origin;
+
     for (const audit of audits) {
-      if (audit.status === 'PENDING' || audit.status === 'RUNNING') {
-        const lastTouch = audit.updatedAt || audit.startedAt || audit.createdAt;
-        if (now - new Date(lastTouch).getTime() > STALE_MS) {
-          const p = audit.progress || {};
-          const stuckAt = p.labelKey || 'unknown';
-          const stuckStep = p.currentStep ?? null;
-          const stuckTotal = p.totalSteps ?? null;
-          console.warn(
-            `[API/audit] GET: marking stale audit ${audit.id} as FAILED (stuck at: ${stuckAt}${stuckStep != null ? ` step ${stuckStep}/${stuckTotal}` : ''})`
-          );
-          audit.status = 'FAILED';
-          audit.completedAt = new Date();
-          audit.score = 0;
-          // Fire-and-forget DB update
-          prisma.siteAudit.update({
-            where: { id: audit.id },
-            data: {
-              status: 'FAILED',
-              completedAt: new Date(),
-              score: 0,
-              issues: [{
-                type: 'technical',
-                severity: 'error',
-                message: 'audit.issues.auditTimedOut',
-                suggestion: 'audit.suggestions.retryAudit',
-                source: 'system',
-                details: JSON.stringify({
-                  stuckAt,
-                  currentStep: stuckStep,
-                  totalSteps: stuckTotal,
-                  deviceType: audit.deviceType || null,
-                }),
-              }],
-            },
-          })
-            .then(() => invalidateAudit(siteId))
-            .catch((err) => console.error(`[API/audit] GET stale-fail update for ${audit.id} failed:`, err));
-        }
+      if (audit.status !== 'PENDING' && audit.status !== 'RUNNING') continue;
+
+      const lastTouch = audit.updatedAt || audit.startedAt || audit.createdAt;
+      const startedAt = audit.startedAt || audit.createdAt;
+      if (now - new Date(lastTouch).getTime() <= STALE_MS) continue;
+
+      const phase = audit.phase || null;
+      const totalAge = now - new Date(startedAt).getTime();
+
+      // Resumable phases: re-trigger their next stage instead of FAILing,
+      // unless we've blown past the absolute time budget.
+      if (phase === 'scanning' && totalAge < HARD_LIMIT_MS) {
+        console.warn(`[API/audit] GET: nudging stalled scanning audit ${audit.id} via /continue`);
+        fetch(`${origin}/api/audit/continue?auditId=${audit.id}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+        }).catch(() => {});
+        continue;
       }
+      if (phase === 'finalizing' && totalAge < FINAL_HARD_LIMIT_MS) {
+        console.warn(`[API/audit] GET: nudging stalled finalizing audit ${audit.id} via /finalize`);
+        fetch(`${origin}/api/audit/finalize?auditId=${audit.id}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+        }).catch(() => {});
+        continue;
+      }
+
+      // Legacy or non-resumable: mark FAILED with the same shape as before.
+      const p = audit.progress || {};
+      const stuckAt = p.labelKey || 'unknown';
+      const stuckStep = p.currentStep ?? null;
+      const stuckTotal = p.totalSteps ?? null;
+      console.warn(
+        `[API/audit] GET: marking stale audit ${audit.id} as FAILED (phase=${phase || 'legacy'}, stuck at: ${stuckAt}${stuckStep != null ? ` step ${stuckStep}/${stuckTotal}` : ''})`
+      );
+      audit.status = 'FAILED';
+      audit.completedAt = new Date();
+      audit.score = 0;
+      prisma.siteAudit.update({
+        where: { id: audit.id },
+        data: {
+          status: 'FAILED',
+          completedAt: new Date(),
+          score: 0,
+          issues: [{
+            type: 'technical',
+            severity: 'error',
+            message: 'audit.issues.auditTimedOut',
+            suggestion: 'audit.suggestions.retryAudit',
+            source: 'system',
+            details: JSON.stringify({
+              stuckAt, currentStep: stuckStep, totalSteps: stuckTotal,
+              deviceType: audit.deviceType || null, phase,
+            }),
+          }],
+        },
+      })
+        .then(() => invalidateAudit(siteId))
+        .catch((err) => console.error(`[API/audit] GET stale-fail update for ${audit.id} failed:`, err));
     }
 
     // Also get the latest (for quick access)
@@ -366,18 +397,48 @@ export async function POST(request) {
       userLocale,
       ...(urls?.length ? { urls } : {}),
     };
-    runSiteAudit(desktopAudit.id, site.url, siteId, 'desktop', auditOptions).catch(err => {
-      console.error(`[API/audit] Background desktop audit error for ${desktopAudit.id}:`, err);
-    });
-    runSiteAudit(mobileAudit.id, site.url, siteId, 'mobile', auditOptions).catch(err => {
-      console.error(`[API/audit] Background mobile audit error for ${mobileAudit.id}:`, err);
-    });
+
+    // ── Dispatch: chunked pipeline (new) vs single-shot (legacy) ──────
+    // Flag-gated rollout. New audits with the flag ON go through
+    // runDiscovery → /api/audit/continue → /api/audit/finalize. Old audits
+    // (phase=null in DB) keep running on whatever path created them.
+    const useChunked = process.env.AUDIT_CHUNKED_EXECUTION === '1' || process.env.AUDIT_CHUNKED_EXECUTION === 'true';
+
+    if (useChunked) {
+      const origin = request.nextUrl.origin;
+      const startChunked = async (auditRecord, deviceType) => {
+        try {
+          const disc = await runDiscovery(auditRecord.id, site.url, siteId, deviceType, auditOptions);
+          if (!disc.ok || disc.empty) return; // discovery already wrote terminal state
+          // Kick off the first chunk. Subsequent chunks self-trigger.
+          fetch(`${origin}/api/audit/continue?auditId=${auditRecord.id}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+          }).catch((err) => {
+            console.error(`[API/audit] Initial /continue trigger failed for ${auditRecord.id}:`, err.message);
+          });
+        } catch (err) {
+          console.error(`[API/audit] Chunked discovery error for ${auditRecord.id}:`, err);
+        }
+      };
+      // Both runs in parallel — same as legacy.
+      startChunked(desktopAudit, 'desktop');
+      startChunked(mobileAudit, 'mobile');
+    } else {
+      runSiteAudit(desktopAudit.id, site.url, siteId, 'desktop', auditOptions).catch(err => {
+        console.error(`[API/audit] Background desktop audit error for ${desktopAudit.id}:`, err);
+      });
+      runSiteAudit(mobileAudit.id, site.url, siteId, 'mobile', auditOptions).catch(err => {
+        console.error(`[API/audit] Background mobile audit error for ${mobileAudit.id}:`, err);
+      });
+    }
 
     return NextResponse.json({
       audits: [desktopAudit, mobileAudit],
       message: 'Desktop and mobile audits started',
       maxPages,
       planMaxPages,
+      pipeline: useChunked ? 'chunked' : 'legacy',
     });
   } catch (error) {
     console.error('[API/audit] POST error:', error);

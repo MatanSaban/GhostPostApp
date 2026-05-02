@@ -1,26 +1,20 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { 
-  Download, 
-  Loader2, 
-  CheckCircle2, 
-  XCircle, 
+import {
+  Download,
+  Loader2,
+  CheckCircle2,
+  XCircle,
   AlertCircle,
   Clock,
-  Plug,
   Settings,
   ChevronDown,
   ChevronUp,
-  Key,
-  RefreshCw,
-  Zap,
-  ExternalLink,
   Unplug,
 } from 'lucide-react';
 import { useSite } from '@/app/context/site-context';
 import { useLocale } from '@/app/context/locale-context';
-import { Button } from '@/app/dashboard/components';
 import styles from './WordPressPluginSection.module.css';
 
 const CONNECTION_STATUS = {
@@ -36,29 +30,20 @@ const CONNECTION_STATUS = {
  * Uses useLocale() internally for translations (settings.wordpress.* keys)
  * 
  * @param {Object} props
- * @param {boolean} props.compact - If true, shows a more compact version (no auto-install)
+ * @param {boolean} props.compact - If true, shows a more compact version
  * @param {boolean} props.showInstructions - If true, always shows installation instructions (for entities page)
  * @param {function} props.onConnectionChange - Callback when connection status changes
  */
-export default function WordPressPluginSection({ 
-  compact = false, 
+export default function WordPressPluginSection({
+  compact = false,
   showInstructions = false,
   onConnectionChange,
 }) {
   const { t, locale } = useLocale();
   const { selectedSite, refreshSites } = useSite();
-  
+
   const [isDownloading, setIsDownloading] = useState(false);
   const [downloadError, setDownloadError] = useState(null);
-  const [showAutoInstall, setShowAutoInstall] = useState(false);
-  const [autoInstallForm, setAutoInstallForm] = useState({
-    wpAdminUrl: '',
-    wpUsername: '',
-    wpPassword: '',
-  });
-  const [isAutoInstalling, setIsAutoInstalling] = useState(false);
-  const [autoInstallError, setAutoInstallError] = useState(null);
-  const [autoInstallSuccess, setAutoInstallSuccess] = useState(false);
   const [showDetails, setShowDetails] = useState(false);
   const [isDisconnecting, setIsDisconnecting] = useState(false);
   const [disconnectError, setDisconnectError] = useState(null);
@@ -187,73 +172,9 @@ export default function WordPressPluginSection({
     }
   };
 
-  // Get translated error message from error code
-  const getAutoInstallErrorMessage = (errorCode, errorDetail) => {
-    const errorMessages = {
-      REST_API_UNREACHABLE: t('settings.wordpress.errors.restApiUnreachable'),
-      REST_API_ERROR: t('settings.wordpress.errors.restApiError'),
-      AUTH_REQUEST_FAILED: t('settings.wordpress.errors.authRequestFailed'),
-      AUTH_FAILED: t('settings.wordpress.errors.authFailed'),
-      INSUFFICIENT_PERMISSIONS: t('settings.wordpress.errors.insufficientPermissions'),
-      PLUGINS_API_UNAVAILABLE: t('settings.wordpress.errors.pluginsApiUnavailable'),
-      ACTIVATION_FAILED: t('settings.wordpress.errors.activationFailed'),
-      MANUAL_INSTALL_REQUIRED: t('settings.wordpress.errors.manualInstallRequired'),
-      UNKNOWN_ERROR: t('settings.wordpress.errors.unknownError'),
-    };
-    
-    return errorMessages[errorCode] || errorDetail || t('settings.wordpress.errors.unknownError');
-  };
-
-  // Handle auto-install
-  const handleAutoInstall = async (e) => {
-    e.preventDefault();
-    if (!selectedSite?.id) return;
-
-    setIsAutoInstalling(true);
-    setAutoInstallError(null);
-    setAutoInstallSuccess(false);
-
-    try {
-      const response = await fetch(`/api/sites/${selectedSite.id}/auto-install`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          wpAdminUrl: autoInstallForm.wpAdminUrl || `${selectedSite.url}/wp-admin`,
-          username: autoInstallForm.wpUsername,
-          password: autoInstallForm.wpPassword,
-        }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        // Use error code if available, otherwise use the error message
-        const errorMessage = data.errorCode 
-          ? getAutoInstallErrorMessage(data.errorCode, data.errorDetail)
-          : data.error || t('settings.wordpress.autoInstallFailed');
-        throw new Error(errorMessage);
-      }
-
-      setAutoInstallSuccess(true);
-      setAutoInstallForm({ wpAdminUrl: '', wpUsername: '', wpPassword: '' });
-      setShowAutoInstall(false);
-      
-      // Refresh sites to get updated status
-      refreshSites();
-      onConnectionChange?.();
-    } catch (error) {
-      console.error('Auto-install error:', error);
-      setAutoInstallError(error.message);
-    } finally {
-      setIsAutoInstalling(false);
-    }
-  };
-
   // Reset messages when site changes
   useEffect(() => {
     setDownloadError(null);
-    setAutoInstallError(null);
-    setAutoInstallSuccess(false);
     setDisconnectError(null);
   }, [selectedSite?.id]);
 
@@ -326,17 +247,6 @@ export default function WordPressPluginSection({
             )}
           </button>
           
-          {!isConnected && !compact && (
-            <button 
-              className={styles.autoInstallButton}
-              onClick={() => setShowAutoInstall(!showAutoInstall)}
-            >
-              <Zap size={14} />
-              {t('settings.wordpress.autoInstall')}
-              {showAutoInstall ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
-            </button>
-          )}
-          
           {isConnected && (
             <button 
               className={styles.disconnectButton}
@@ -372,107 +282,6 @@ export default function WordPressPluginSection({
           <AlertCircle size={14} />
           <span>{disconnectError}</span>
         </div>
-      )}
-
-      {autoInstallSuccess && (
-        <div className={styles.successMessage}>
-          <CheckCircle2 size={14} />
-          <span>{t('settings.wordpress.autoInstallSuccess')}</span>
-        </div>
-      )}
-
-      {/* Auto-Install Form */}
-      {showAutoInstall && !isConnected && (
-        <form className={styles.autoInstallForm} onSubmit={handleAutoInstall}>
-          <div className={styles.formHeader}>
-            <h4>{t('settings.wordpress.autoInstallTitle')}</h4>
-            <p className={styles.formDescription}>
-              {t('settings.wordpress.autoInstallDesc')}
-            </p>
-          </div>
-          
-          <div className={styles.formFields}>
-            <div className={`${styles.formGroup} ${styles.fullWidth}`}>
-              <label className={styles.formLabel}>
-                {t('settings.wordpress.wpAdminUrl')}
-              </label>
-              <input
-                type="url"
-                className={styles.formInput}
-                value={autoInstallForm.wpAdminUrl || `${selectedSite?.url || ''}/wp-admin`}
-                onChange={(e) => setAutoInstallForm(prev => ({ ...prev, wpAdminUrl: e.target.value }))}
-                placeholder="https://example.com/wp-admin"
-                required
-              />
-            </div>
-            
-            <div className={styles.formGroup}>
-              <label className={styles.formLabel}>
-                {t('settings.wordpress.wpUsername')}
-              </label>
-              <input
-                type="text"
-                className={styles.formInput}
-                value={autoInstallForm.wpUsername}
-                onChange={(e) => setAutoInstallForm(prev => ({ ...prev, wpUsername: e.target.value }))}
-                placeholder={t('settings.wordpress.wpUsernamePlaceholder')}
-                required
-              />
-            </div>
-            
-            <div className={styles.formGroup}>
-              <label className={styles.formLabel}>
-                {t('settings.wordpress.wpPassword')}
-              </label>
-              <input
-                type="password"
-                className={styles.formInput}
-                value={autoInstallForm.wpPassword}
-                onChange={(e) => setAutoInstallForm(prev => ({ ...prev, wpPassword: e.target.value }))}
-                placeholder="••••••••"
-                required
-              />
-            </div>
-          </div>
-
-          {autoInstallError && (
-            <div className={styles.errorMessage}>
-              <AlertCircle size={14} />
-              <span>{autoInstallError}</span>
-            </div>
-          )}
-
-          <div className={styles.formActions}>
-            <Button 
-              type="button" 
-              onClick={() => setShowAutoInstall(false)}
-            >
-              {t('common.cancel')}
-            </Button>
-            <Button 
-              type="submit" 
-              variant="primary"
-              disabled={isAutoInstalling}
-            >
-              {isAutoInstalling ? (
-                <>
-                  <Loader2 size={14} className={styles.spinning} />
-                  {t('settings.wordpress.installing')}
-                </>
-              ) : (
-                <>
-                  <Zap size={14} />
-                  {t('settings.wordpress.installNow')}
-                </>
-              )}
-            </Button>
-          </div>
-
-          <p className={styles.securityNote}>
-            <Key size={12} />
-            {t('settings.wordpress.securityNote')}
-          </p>
-        </form>
       )}
 
       {/* Connection Details (when connected) */}
@@ -519,7 +328,7 @@ export default function WordPressPluginSection({
       )}
 
       {/* Installation Steps (when not connected or showInstructions is true) */}
-      {(showInstructions || (!isConnected && !showAutoInstall)) && (
+      {(showInstructions || !isConnected) && (
         <div className={styles.installationSteps}>
           <h4 className={styles.stepsTitle}>
             {t('settings.wordpress.howToInstall')}

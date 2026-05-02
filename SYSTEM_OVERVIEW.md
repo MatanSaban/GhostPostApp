@@ -573,12 +573,6 @@ model Site {
   wpLocale             String?
   sitePermissions      SitePermission[]
 
-  // Auto-install (temporary, deleted after install)
-  wpAdminUrl           String?
-  wpAdminUsername      String?                    // Encrypted
-  wpAdminPassword      String?                    // Encrypted
-  autoInstallExpiresAt DateTime?
-
   // Entity Sync Tracking
   entitySyncStatus     EntitySyncStatus @default(NEVER)
   entitySyncProgress   Int?                       // 0-100
@@ -2622,11 +2616,11 @@ The GhostSEO platform integrates with WordPress via a **custom plugin that is dy
 
 ### 24a. Plugin Architecture Overview
 
-**11 PHP classes** working together via WordPress hooks and a REST API namespace (`ghost-post/v1`):
+**11 PHP classes** working together via WordPress hooks and a REST API namespace (`ghostseo/v1`):
 
 | Class | File | Purpose |
 |-------|------|---------|
-| `Ghost_Post` | `class-ghost-post.php` | Main orchestrator - initializes all managers, registers REST routes, admin menu |
+| `GhostSEO_Plugin` | `class-ghostseo-plugin.php` | Main orchestrator - initializes all managers, registers REST routes, admin menu |
 | `GP_API_Handler` | `class-gp-api-handler.php` | Registers 30+ REST API endpoints, routes requests to appropriate managers |
 | `GP_Request_Validator` | `class-gp-request-validator.php` | HMAC-SHA256 signature validation with timestamp replay protection |
 | `GP_Content_Manager` | `class-gp-content-manager.php` | Posts/Pages CRUD - get_items, get_item, create, update, delete |
@@ -2651,9 +2645,9 @@ Each template is a JavaScript function that returns PHP source code, with site-s
 
 | Template (JS) | Export Function | Generated File (PHP/Other) |
 |----------------|----------------|---------------------------|
-| `main.js` | `getPluginMainFile()` | `ghost-post-connector.php` |
+| `main.js` | `getPluginMainFile()` | `ghostseo-connector.php` |
 | `config.js` | `getPluginConfigFile()` | `includes/config.php` |
-| `class-ghost-post.js` | `getClassGhostSEO()` | `includes/class-ghost-post.php` |
+| `class-ghostseo-plugin.js` | `getClassGhostSEO()` | `includes/class-ghostseo-plugin.php` |
 | `class-api-handler.js` | `getClassApiHandler()` | `includes/class-gp-api-handler.php` |
 | `class-request-validator.js` | `getClassRequestValidator()` | `includes/class-gp-request-validator.php` |
 | `class-content-manager.js` | `getClassContentManager()` | `includes/class-gp-content-manager.php` |
@@ -2706,20 +2700,20 @@ function gp_has_permission($permission) {
 5. Inject site-specific values into `config.php` (Site ID, Site Key, Site Secret, API URL, permissions)
 6. Build ZIP using JSZip with DEFLATE compression (level 9)
 7. Add `assets/icon.svg` (ghost icon)
-8. Return ZIP with filename: `ghost-post-connector-{short-key}.zip`
+8. Return ZIP with filename: `ghostseo-connector-{short-key}.zip`
 
 **API URL Resolution:** `GP_PLUGIN_API_URL` env → `NEXT_PUBLIC_BASE_URL` env → default `https://app.ghostseo.ai`
 
 ### 24d. Generated ZIP Structure
 
 ```
-ghost-post-connector/
-├── ghost-post-connector.php              // Main plugin entry point (WordPress header, hooks, init)
+ghostseo-connector/
+├── ghostseo-connector.php              // Main plugin entry point (WordPress header, hooks, init)
 ├── readme.txt                            // WordPress plugin readme with changelog
 ├── uninstall.php                         // Cleanup on uninstall (deletes options/transients)
 ├── includes/
 │   ├── config.php                        // Site-specific: GP_SITE_ID, GP_SITE_KEY, GP_SITE_SECRET, GP_API_URL, GP_PERMISSIONS
-│   ├── class-ghost-post.php              // Main orchestrator class
+│   ├── class-ghostseo-plugin.php              // Main orchestrator class
 │   ├── class-gp-api-handler.php          // REST API routing (30+ endpoints)
 │   ├── class-gp-request-validator.php    // HMAC-SHA256 validation
 │   ├── class-gp-content-manager.php      // Post/page CRUD
@@ -2747,7 +2741,7 @@ ghost-post-connector/
 ### 24e. Plugin Initialization
 
 ```php
-// ghost-post-connector.php (main entry point)
+// ghostseo-connector.php (main entry point)
 
 // Plugin Header
 Plugin Name: GhostSEO Connector
@@ -2765,14 +2759,14 @@ define('GP_CONNECTOR_PLUGIN_URL', plugin_dir_url(__FILE__));
 require_once GP_CONNECTOR_PLUGIN_DIR . 'includes/config.php';
 
 // Load all class files
-require_once GP_CONNECTOR_PLUGIN_DIR . 'includes/class-ghost-post.php';
+require_once GP_CONNECTOR_PLUGIN_DIR . 'includes/class-ghostseo-plugin.php';
 // ... (all other class files)
 
 // Initialize on plugins_loaded
 add_action('plugins_loaded', 'gp_connector_init');
 function gp_connector_init() {
-    $ghost_post = new Ghost_Post();
-    $ghost_post->init();
+    $ghostseo = new GhostSEO_Plugin();
+    $ghostseo->init();
 }
 
 // Activation → verify connection with platform
@@ -2809,13 +2803,12 @@ Content-Type:    application/json
 | `generateSiteSecret()` | Creates 64-char hex via `crypto.randomBytes(32)` |
 | `createSignature(payload, timestamp, secret)` | HMAC-SHA256 of `{timestamp}.{payload}` |
 | `verifySignature(payload, timestamp, signature, secret, maxAge=300)` | Validates timestamp + verifies signature |
-| `encryptCredential(text, key)` | AES-256-GCM encryption (for auto-install credentials) |
+| `encryptCredential(text, key)` | AES-256-GCM encryption (used for the Shopify access token) |
 | `decryptCredential(encryptedBase64, key)` | Decrypts AES-256-GCM |
-| `clearSiteCredentials(prisma, siteId)` | Removes temporary auto-install credentials |
 | `generateConnectionToken(siteId, siteKey)` | Base64url JWT with 30-min expiration |
 | `validateConnectionToken(token)` | Decodes and validates expiration |
 
-### 24g. Plugin REST Endpoints (WordPress Side - `ghost-post/v1` namespace)
+### 24g. Plugin REST Endpoints (WordPress Side - `ghostseo/v1` namespace)
 
 30+ REST API endpoints registered via `register_rest_route()`:
 
@@ -2903,7 +2896,7 @@ Content-Type:    application/json
       → Platform upserts/deletes in Redirection model
    
    d. Platform → WordPress: Content publishing, media upload, SEO updates
-      → Platform calls /wp-json/ghost-post/v1/{endpoint} with HMAC signature
+      → Platform calls /wp-json/ghostseo/v1/{endpoint} with HMAC signature
    
    e. Auto-Update: Plugin checks for updates
       → GET /api/plugin/update-check?site_key=xxx&current_version=2.4.8
@@ -2915,22 +2908,7 @@ Content-Type:    application/json
    Platform sets connectionStatus: DISCONNECTED
 ```
 
-### 24i. Auto-Install Feature (`POST /api/sites/[id]/auto-install`)
-
-Alternative to manual plugin installation:
-
-1. User provides WordPress admin URL + credentials on the platform Connect page
-2. Platform encrypts credentials with AES-256-GCM (5-minute TTL)
-3. Platform checks REST API reachability (`GET /wp-json/` with 15s timeout)
-4. Authenticates via Basic Auth (`GET /wp-json/wp/v2/users/me`)
-5. Verifies `activate_plugins` capability
-6. Searches for existing `ghost-post-connector` plugin
-7. If found → activates it; if not found → returns `MANUAL_INSTALL_REQUIRED`
-8. Credentials cleared immediately after attempt
-
-**Error Codes:** `REST_API_UNREACHABLE`, `AUTH_FAILED`, `INSUFFICIENT_PERMISSIONS`, `MANUAL_INSTALL_REQUIRED`, `ACTIVATION_FAILED`
-
-### 24j. Real-Time Entity Sync (Bidirectional)
+### 24i. Real-Time Entity Sync (Bidirectional)
 
 **WordPress → Platform (Webhooks):**
 1. `on_post_saved()` / `on_post_trashed()` / `on_post_deleted()` hook fires in `GP_Entity_Sync`
@@ -2941,9 +2919,9 @@ Alternative to manual plugin installation:
 6. Platform routes to `syncSingleEntity()` or `deleteSingleEntity()`
 
 **Platform → WordPress (REST API):**
-- Content publishing: `POST /wp-json/ghost-post/v1/posts`
-- Media upload: `POST /wp-json/ghost-post/v1/media`
-- SEO updates: `PUT /wp-json/ghost-post/v1/seo/{id}`
+- Content publishing: `POST /wp-json/ghostseo/v1/posts`
+- Media upload: `POST /wp-json/ghostseo/v1/media`
+- SEO updates: `PUT /wp-json/ghostseo/v1/seo/{id}`
 - All requests signed with HMAC; plugin sets `is_gp_api_request = true` to prevent echo-back
 
 **Conflict Prevention:**
@@ -2957,7 +2935,7 @@ Alternative to manual plugin installation:
   // Progress tracked: entitySyncProgress (0-100), entitySyncMessage
   ```
 
-### 24k. Platform Public Plugin API Routes
+### 24j. Platform Public Plugin API Routes
 
 All routes under `app/api/public/wp/` - require HMAC-SHA256 signature validation:
 
@@ -2969,7 +2947,7 @@ All routes under `app/api/public/wp/` - require HMAC-SHA256 signature validation
 | POST | `/api/public/wp/entity-updated` | Post create/update/trash/delete | Syncs entity to platform database via syncSingleEntity() |
 | POST | `/api/public/wp/redirect-updated` | Redirect create/update/delete | Upserts/deletes in Redirection model, URL normalization |
 
-### 24l. SEO Plugin Compatibility
+### 24k. SEO Plugin Compatibility
 
 The plugin auto-detects and supports multiple SEO plugins:
 
@@ -2985,7 +2963,7 @@ The plugin auto-detects and supports multiple SEO plugins:
 - Twitter: `rank_math_twitter_title`, `rank_math_twitter_description`
 - Schema: `rank_math_schema_Article`, `rank_math_rich_snippet`
 
-### 24m. Redirect Management (Plugin-Side)
+### 24l. Redirect Management (Plugin-Side)
 
 **URL Processing:**
 - `sanitize_redirect_url()` - Decodes percent-encoded URLs to Unicode (Hebrew support)
@@ -2997,10 +2975,10 @@ The plugin auto-detects and supports multiple SEO plugins:
 
 **Bidirectional Sync:**
 - `push_redirect_webhook()` - Pushes changes back to platform via `POST /api/public/wp/redirect-updated`
-- Platform pushes redirects via `POST /wp-json/ghost-post/v1/redirects`
+- Platform pushes redirects via `POST /wp-json/ghostseo/v1/redirects`
 - Source field prevents infinite loops
 
-### 24n. Media Conversion Pipeline
+### 24m. Media Conversion Pipeline
 
 **WebP Auto-Conversion:**
 1. Image uploaded via `wp_handle_upload` filter
@@ -3020,7 +2998,7 @@ The plugin auto-detects and supports multiple SEO plugins:
 - Calls `/media/apply-ai-optimization` with suggestions
 - Plugin updates attachment metadata
 
-### 24o. Version Management & Auto-Updates
+### 24n. Version Management & Auto-Updates
 
 **Single Source of Truth:** `app/api/plugin/version.js`
 ```javascript
@@ -3044,7 +3022,7 @@ export const PLUGIN_CHANGELOG = `= 2.4.9 =\n* FIX: Scheduling published posts...
 
 **Current Version:** 2.4.9
 
-### 24p. Database Schema (Site Model - Plugin-Related Fields)
+### 24o. Database Schema (Site Model - Plugin-Related Fields)
 
 ```prisma
 model Site {
@@ -3062,12 +3040,6 @@ model Site {
   wpTimezone           String?              // e.g. "Asia/Jerusalem"
   wpLocale             String?              // e.g. "he_IL"
 
-  // Auto-Install (temporary, encrypted)
-  wpAdminUrl           String?
-  wpAdminUsername       String?              // AES-256-GCM encrypted
-  wpAdminPassword      String?              // AES-256-GCM encrypted
-  autoInstallExpiresAt DateTime?            // 5-minute TTL
-
   // Entity Sync Tracking
   entitySyncStatus     EntitySyncStatus     // NEVER | SYNCING | COMPLETED | ERROR
   entitySyncProgress   Int?                 // 0-100%
@@ -3078,7 +3050,7 @@ model Site {
 
 enum SiteConnectionStatus {
   PENDING        // Created, awaiting plugin installation
-  CONNECTING     // Auto-install in progress
+  CONNECTING     // Deprecated: never set by current code; retained for record decoding
   CONNECTED      // Verified & operational (heartbeat active)
   DISCONNECTED   // Was connected, plugin deactivated or unreachable
   ERROR          // Connection failed
@@ -3094,7 +3066,7 @@ enum SitePermission {
 }
 ```
 
-### 24q. Security Layers Summary
+### 24p. Security Layers Summary
 
 1. **HTTPS Only** - All communication encrypted in transit
 2. **siteSecret Never Transmitted** - Only embedded in downloaded `config.php`, never returned from any API
@@ -3103,8 +3075,7 @@ enum SitePermission {
 5. **Timing-Safe Comparison** - `crypto.timingSafeEqual()` / `hash_equals()` prevents timing attacks
 6. **Permission Scoping** - Platform enforces what operations are allowed per site
 7. **Connection Status Tracking** - Alerts if plugin goes silent (missed heartbeats)
-8. **Auto-Install Credential Encryption** - AES-256-GCM with 5-minute TTL, cleared after use
-9. **Conflict Prevention** - Source flags and sync locks prevent bidirectional echo loops
+8. **Conflict Prevention** - Source flags and sync locks prevent bidirectional echo loops
 
 ---
 
@@ -3195,7 +3166,7 @@ Status: READY_TO_PUBLISH → PUBLISHED
   1. Fetch content + WordPress credentials
   2. Upload featured image to WP media library
   3. Upload content images to WP media library
-  4. Create WP post via HMAC-signed request to `/wp-json/ghost-post/v1/posts`
+  4. Create WP post via HMAC-signed request to `/wp-json/ghostseo/v1/posts`
   5. Set post status to `publish`
   6. Populate SEO metadata (Yoast + Rank Math fields)
   7. Update OG/Twitter metadata
@@ -3560,11 +3531,8 @@ Status: READY_TO_PUBLISH → PUBLISHED
    → Platform updates lastPingAt, confirms CONNECTED
 6. Bidirectional sync active:
    → WordPress entity changes → POST /api/public/wp/entity-updated (webhooks)
-   → Platform content publishing → POST /wp-json/ghost-post/v1/posts (HMAC-signed)
+   → Platform content publishing → POST /wp-json/ghostseo/v1/posts (HMAC-signed)
    → Conflict prevention via source flags + sync locks
-7. (Optional) Auto-install: POST /api/sites/[id]/auto-install
-   → Platform checks REST API, authenticates, activates existing plugin
-   → Credentials encrypted (AES-256-GCM) with 5-minute TTL
 ```
 
 ### Content Generation with AI Flow
