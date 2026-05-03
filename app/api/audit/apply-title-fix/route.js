@@ -5,6 +5,8 @@ import { deductAiCredits } from '@/lib/account-utils';
 import { updateSeoData, resolveUrl } from '@/lib/wp-api-client';
 import { invalidateAudit } from '@/lib/cache/invalidate.js';
 import { GEMINI_MODEL } from '@/lib/ai/models.js';
+import { applyBulkUpdates } from '@/lib/audit/page-results-helper';
+import { applyIssuesTransform } from '@/lib/audit/issues-helper';
 
 const SESSION_COOKIE = 'user_session';
 const TITLE_FIX_CREDIT_COST = 1; // 1 credit per page
@@ -202,77 +204,58 @@ export async function POST(request) {
       try {
         const fixMap = new Map(successfulFixes.map(f => [f.url, f.newTitle]));
 
-        const buildUpdated = (audit) => {
-          const updatedIssues = (audit.issues || []).map(issue => {
-            if (
-              issue.message === 'audit.issues.titleTooShort' &&
-              issue.url &&
-              fixMap.has(issue.url)
-            ) {
-              const newTitle = fixMap.get(issue.url);
-              if (newTitle.length >= 30 && newTitle.length <= 60) {
-                return {
-                  ...issue,
-                  severity: 'passed',
-                  message: 'audit.issues.titleGood',
-                  suggestion: null,
-                  details: `${newTitle.length} chars (AI fixed)`,
-                };
-              } else if (newTitle.length > 60) {
-                return {
-                  ...issue,
-                  severity: 'warning',
-                  message: 'audit.issues.titleTooLong',
-                  suggestion: 'audit.suggestions.titleLength',
-                  details: `${newTitle.length} chars - "${newTitle.slice(0, 50)}..." (AI fixed)`,
-                };
-              }
+        const buildUpdatedIssues = (issues) => (issues || []).map(issue => {
+          if (
+            issue.message === 'audit.issues.titleTooShort' &&
+            issue.url &&
+            fixMap.has(issue.url)
+          ) {
+            const newTitle = fixMap.get(issue.url);
+            if (newTitle.length >= 30 && newTitle.length <= 60) {
               return {
                 ...issue,
-                details: `${newTitle.length} chars - "${newTitle.slice(0, 50)}" (AI fixed)`,
+                severity: 'passed',
+                message: 'audit.issues.titleGood',
+                suggestion: null,
+                details: `${newTitle.length} chars (AI fixed)`,
+              };
+            } else if (newTitle.length > 60) {
+              return {
+                ...issue,
+                severity: 'warning',
+                message: 'audit.issues.titleTooLong',
+                suggestion: 'audit.suggestions.titleLength',
+                details: `${newTitle.length} chars - "${newTitle.slice(0, 50)}..." (AI fixed)`,
               };
             }
-            return issue;
-          });
-
-          const updatedPageResults = (audit.pageResults || []).map(pr => {
-            if (fixMap.has(pr.url)) {
-              return { ...pr, title: fixMap.get(pr.url) };
-            }
-            return pr;
-          });
-
-          return { updatedIssues, updatedPageResults };
-        };
-
-        const MAX_RETRIES = 5;
-        for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
-          try {
-            const audit = await prisma.siteAudit.findUnique({
-              where: { id: auditId },
-              select: { issues: true, pageResults: true },
-            });
-            if (!audit) break;
-
-            const { updatedIssues, updatedPageResults } = buildUpdated(audit);
-
-            await prisma.siteAudit.update({
-              where: { id: auditId },
-              data: {
-                issues: updatedIssues,
-                pageResults: updatedPageResults,
-              },
-            });
-            invalidateAudit(siteId);
-            break;
-          } catch (retryErr) {
-            if (retryErr.code === 'P2034' && attempt < MAX_RETRIES - 1) {
-              await new Promise((r) => setTimeout(r, 200 * (attempt + 1)));
-              continue;
-            }
-            throw retryErr;
+            return {
+              ...issue,
+              details: `${newTitle.length} chars - "${newTitle.slice(0, 50)}" (AI fixed)`,
+            };
           }
+          return issue;
+        });
+
+        // Issues via helper — applyIssuesTransform handles dual-write under
+        // the AUDIT_USE_ISSUES_COLLECTION flag (embedded RMW + collection
+        // diff/update internally).
+        await applyIssuesTransform({ auditId }, buildUpdatedIssues).catch((err) => {
+          console.warn('[ApplyTitleFix] issues transform failed:', err.message);
+        });
+
+        // Page-result title field updates via the dual-write helper. One
+        // entry per fixed URL — applyBulkUpdates handles the embedded RMW
+        // + collection updateMany under the flag.
+        const titlePatches = new Map();
+        for (const [url, newTitle] of fixMap) {
+          titlePatches.set(url, { title: newTitle });
         }
+        if (titlePatches.size > 0) {
+          await applyBulkUpdates({ auditId }, titlePatches).catch((err) => {
+            console.warn('[ApplyTitleFix] pageResults dual-write failed (non-fatal):', err.message);
+          });
+        }
+        invalidateAudit(siteId);
       } catch (auditErr) {
         console.warn('[ApplyTitleFix] Audit update failed (non-fatal):', auditErr.message);
       }

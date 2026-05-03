@@ -4,6 +4,7 @@ import prisma from '@/lib/prisma';
 import { deductAiCredits } from '@/lib/account-utils';
 import { createRedirect } from '@/lib/wp-api-client';
 import { invalidateAudit } from '@/lib/cache/invalidate.js';
+import { getAllIssues, applyIssuesTransform } from '@/lib/audit/issues-helper';
 import { generateObject } from 'ai';
 import { googleGlobal } from '@/lib/ai/vertex-provider.js';
 import { GEMINI_MODEL } from '@/lib/ai/models.js';
@@ -109,16 +110,18 @@ export async function POST(request) {
 // ─── Suggest: Find best redirect targets via AI ───────────────
 
 async function handleSuggest(site, { auditId, siteId, locale }, user) {
-  // Get the audit
+  // Get the audit (issues via helper)
   const audit = await prisma.siteAudit.findFirst({
     where: { id: auditId, siteId },
+    select: { id: true, status: true },
   });
   if (!audit) {
     return NextResponse.json({ error: 'Audit not found' }, { status: 404 });
   }
+  const allAuditIssues = await getAllIssues(audit.id);
 
   // Filter broken internal link issues
-  const brokenLinks = (audit.issues || []).filter(
+  const brokenLinks = allAuditIssues.filter(
     (i) => i.message === 'audit.issues.brokenInternalLink' && i.severity !== 'passed'
   );
 
@@ -304,55 +307,32 @@ async function handleApply(site, { auditId, siteId, fixes }, user) {
     try {
       const fixedUrls = new Set(successfulFixes.map((f) => f.brokenUrl));
 
-      const buildUpdated = (audit) => {
-        const updatedIssues = (audit.issues || []).map((issue) => {
-          if (issue.message !== 'audit.issues.brokenInternalLink') return issue;
+      const buildUpdatedIssues = (issues) => (issues || []).map((issue) => {
+        if (issue.message !== 'audit.issues.brokenInternalLink') return issue;
 
-          let parsed = {};
-          try {
-            parsed = JSON.parse(issue.details || '{}');
-          } catch { /* ignore */ }
-
-          const brokenHref = parsed.brokenHref || issue.url;
-          if (fixedUrls.has(brokenHref)) {
-            return {
-              ...issue,
-              severity: 'passed',
-              suggestion: null,
-              details: `${issue.details} (301 redirect created)`,
-            };
-          }
-          return issue;
-        });
-
-        return updatedIssues;
-      };
-
-      const MAX_RETRIES = 5;
-      for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
+        let parsed = {};
         try {
-          const audit = await prisma.siteAudit.findUnique({
-            where: { id: auditId },
-            select: { issues: true },
-          });
-          if (!audit) break;
+          parsed = JSON.parse(issue.details || '{}');
+        } catch { /* ignore */ }
 
-          const updatedIssues = buildUpdated(audit);
-
-          await prisma.siteAudit.update({
-            where: { id: auditId },
-            data: { issues: updatedIssues },
-          });
-          invalidateAudit(siteId);
-          break;
-        } catch (retryErr) {
-          if (retryErr.code === 'P2034' && attempt < MAX_RETRIES - 1) {
-            await new Promise((r) => setTimeout(r, 200 * (attempt + 1)));
-            continue;
-          }
-          throw retryErr;
+        const brokenHref = parsed.brokenHref || issue.url;
+        if (fixedUrls.has(brokenHref)) {
+          return {
+            ...issue,
+            severity: 'passed',
+            suggestion: null,
+            details: `${issue.details} (301 redirect created)`,
+          };
         }
-      }
+        return issue;
+      });
+
+      // Issues via helper — handles dual-write under the flag (including
+      // retry on write conflicts internally).
+      await applyIssuesTransform({ auditId }, buildUpdatedIssues).catch((err) => {
+        console.warn('[Fix404] issues transform failed:', err.message);
+      });
+      invalidateAudit(siteId);
     } catch (auditErr) {
       console.warn('[fix-404] Audit update failed (non-fatal):', auditErr.message);
     }

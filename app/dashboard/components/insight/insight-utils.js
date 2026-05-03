@@ -6,7 +6,7 @@
  * boundary.
  */
 
-import { FileText, TrendingUp, Search, Users, Wrench } from 'lucide-react';
+import { FileText, TrendingUp, Search, Users, Wrench, Link2 } from 'lucide-react';
 import {
   AGENT_FIXERS,
   FIXABLE_INSIGHT_TYPES as _FIXABLE_INSIGHT_TYPES,
@@ -28,6 +28,7 @@ export const CATEGORY_ICONS = {
   KEYWORDS: Search,
   COMPETITORS: Users,
   TECHNICAL: Wrench,
+  BACKLINKS: Link2,
 };
 
 // Type colors for styling

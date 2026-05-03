@@ -75,6 +75,10 @@
         "clusters": {
           "title": "Topic Clusters",
           "description": "Manage topic clusters discovered from your site content."
+        },
+        "backlinks": {
+          "title": "Backlink Audit",
+          "description": "Monitor and manage incoming links to your site."
         }
       },
       "entities": {
@@ -134,7 +138,7 @@
         "description": "Optimize backend SEO settings and integrations."
       },
       "backlinks": {
-        "title": "Backlinks Marketplace",
+        "title": "Backlinks Market",
         "description": "Discover and acquire high-quality backlinks."
       },
       "linkBuilding": {
@@ -680,7 +684,8 @@
       "contentPlanner": "Content Calendar",
       "aiWizard": "AI Content Wizard",
       "competitorAnalysis": "Competitors",
-      "clusters": "Topic Clusters"
+      "clusters": "Topic Clusters",
+      "backlinks": "Backlink Audit"
     },
     "automations": "Automations",
     "linkBuilding": "Link Building",
@@ -699,7 +704,7 @@
     "settings": "Settings",
     "support": "Support",
     "myWebsites": "My Websites",
-    "backlinks": "Backlinks",
+    "backlinks": "Backlinks Market",
     "entities": {
       "title": "Site Assets",
       "pages": "Pages",
@@ -2146,6 +2151,154 @@
       "backToPreview": "Back to Preview"
     }
   },
+  "backlinkAudit": {
+    "title": "Backlink Audit",
+    "subtitle": "Monitor and manage incoming links to your site",
+    "selectSite": "Please select a site to audit its backlinks",
+    "premiumGate": {
+      "title": "Backlink Audit is a premium feature",
+      "description": "Track every incoming link to your site, surface toxic backlinks with AI, generate disavow files, and recover lost links — with comprehensive backlinks data and Search Console imports.",
+      "upgradeCta": "Upgrade your plan",
+      "manageSubscription": "Manage subscription"
+    },
+    "emptyState": {
+      "title": "No backlinks synced yet",
+      "description": "Sync your site's backlinks or upload a Search Console export to get started.",
+      "refreshAction": "Sync backlinks",
+      "importAction": "Import GSC CSV"
+    },
+    "loading": "Loading backlinks...",
+    "refresh": "Sync backlinks",
+    "refreshing": "Syncing...",
+    "lastSyncedAgo": "Last synced {time} ago",
+    "lastSyncedNever": "Never synced",
+    "syncResult": "Synced {total} backlinks ({new} new, {lost} lost)",
+    "syncFailed": "Sync failed",
+    "syncCooldown": "You can sync again in {hours}h",
+    "table": {
+      "source": "Source",
+      "anchor": "Anchor",
+      "dr": "DR",
+      "status": "Status",
+      "lastSeen": "Last seen",
+      "dofollow": "Dofollow",
+      "nofollow": "Nofollow",
+      "noAnchor": "(no anchor)",
+      "rowCount": "{shown} of {total}"
+    },
+    "status": {
+      "active": "Active",
+      "lost": "Lost",
+      "broken": "Broken"
+    },
+    "kpi": {
+      "totalBacklinks": "Total backlinks",
+      "referringDomains": "Referring domains",
+      "lostRecent": "Lost ({days}d)",
+      "toxic": "Toxic",
+      "disavowed": "Disavowed"
+    },
+    "tabs": {
+      "all": "All",
+      "active": "Active",
+      "lost": "Lost",
+      "broken": "Broken"
+    },
+    "filters": {
+      "anchorPlaceholder": "Search anchor text...",
+      "drRange": "DR",
+      "drMin": "Min",
+      "drMax": "Max",
+      "dofollow": "Type",
+      "dofollowAll": "All",
+      "dofollowOnly": "Dofollow only",
+      "nofollowOnly": "Nofollow only",
+      "toxicOnly": "Toxic only",
+      "reset": "Reset"
+    },
+    "pagination": {
+      "prev": "Previous",
+      "next": "Next",
+      "page": "Page {page} of {total}"
+    },
+    "import": {
+      "title": "Import from Google Search Console",
+      "subtitle": "Add backlinks observed by Google to your audit",
+      "helpIntro": "Export the \"Latest links\" CSV from Search Console and upload it here:",
+      "step1": "Open Search Console → Links report",
+      "step2": "Click into a top linking site or page → \"More\"",
+      "step3": "Use Export → CSV → \"Latest links\"",
+      "openGsc": "Open Search Console",
+      "dropzonePrompt": "Click to choose or drop a CSV file",
+      "dropzoneHint": "GSC \"Latest links\" export only · max 5MB",
+      "confirm": "Import",
+      "importing": "Importing...",
+      "errorNotCsv": "Please choose a .csv file",
+      "errorGeneric": "Import failed",
+      "success": "Imported {total} rows ({new} new)"
+    },
+    "viewToggle": {
+      "backlinks": "Backlinks",
+      "disavow": "Disavow list"
+    },
+    "actions": {
+      "menuLabel": "Actions",
+      "markToxic": "Mark as toxic",
+      "unmarkToxic": "Unmark toxic",
+      "disavowDomain": "Disavow whole domain",
+      "disavowUrl": "Disavow this URL",
+      "errorGeneric": "Action failed",
+      "disavowAdded": "Added to disavow list ({coverage} backlinks covered)",
+      "disavowAlready": "Already on disavow list ({coverage} backlinks covered)"
+    },
+    "disavow": {
+      "summary": "{total} entries · {pending} pending · {exported} exported · {acknowledged} acknowledged",
+      "exportTxt": "Generate disavow.txt",
+      "exportSuccess": "File downloaded. Upload it to Search Console manually.",
+      "errorExport": "Export failed",
+      "errorDelete": "Could not remove the entry",
+      "errorAck": "Could not mark as acknowledged",
+      "emptyTitle": "No disavow entries yet",
+      "emptyDescription": "Use the actions menu on a backlink to disavow its domain or URL. Entries you add here are exported into a file you upload to Search Console.",
+      "scope": "Scope",
+      "scopeDomain": "Domain",
+      "scopeUrl": "URL",
+      "value": "Target",
+      "reason": "Reason",
+      "coverage": "Backlinks",
+      "statusLabel": "Status",
+      "statusPending": "Pending",
+      "statusExported": "Exported",
+      "statusAcknowledged": "Uploaded",
+      "markAck": "Mark as uploaded to Search Console",
+      "delete": "Remove"
+    },
+    "insights": {
+      "title": "AI Insights",
+      "applyDisavow": "Add to disavow list",
+      "dismiss": "Dismiss",
+      "toxic": {
+        "title": "Toxic backlink detected",
+        "description": "AI flagged {domain} as harmful with {confidence}% confidence. {reason}"
+      },
+      "lostHighValue": {
+        "title": "Lost high-value link",
+        "description": "{count} link(s) from {domain} (avg DR {avgDR}) were lost recently. Consider reaching out to the webmaster."
+      },
+      "anchorOverOpt": {
+        "title": "Anchor text over-optimization",
+        "description": "\"{anchor}\" accounts for {sharePct}% of {total} anchors pointing to {target}. Diversify to avoid penalties."
+      },
+      "brokenTarget": {
+        "title": "Broken page receiving backlinks",
+        "description": "{target} returns HTTP {status} but has {inbound} inbound link(s). Restore the page or set up a 301 redirect."
+      },
+      "opportunity": {
+        "title": "Backlink opportunity",
+        "description": "{domain} (DR {dr}) links to your competitor {competitor} but not to you."
+      }
+    }
+  },
   "competitorAnalysis": {
     "title": "Competitors",
     "subtitle": "Analyze your competitors' content and find opportunities to outrank them",
@@ -3334,7 +3487,7 @@
     }
   },
   "backlinks": {
-    "title": "Backlinks Marketplace",
+    "title": "Backlinks Market",
     "subtitle": "Browse and purchase quality backlinks for your websites",
     "searchPlaceholder": "Search backlinks by domain, topic...",
     "filters": {

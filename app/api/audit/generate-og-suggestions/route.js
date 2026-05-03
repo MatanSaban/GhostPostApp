@@ -6,6 +6,8 @@ import { googleGlobal } from '@/lib/ai/vertex-provider.js';
 import { GEMINI_MODEL } from '@/lib/ai/models.js';
 import { z } from 'zod';
 import { deductAiCredits } from '@/lib/account-utils';
+import { getAllPageResults } from '@/lib/audit/page-results-helper';
+import { getAllIssues } from '@/lib/audit/issues-helper';
 
 const SESSION_COOKIE = 'user_session';
 
@@ -79,16 +81,18 @@ export async function POST(request) {
     const entityCount = await prisma.siteEntity.count({ where: { siteId } });
     const hasEntities = entityCount > 0;
 
-    // Get the audit
+    // Get the audit (issues + pageResults via helpers below)
     const audit = await prisma.siteAudit.findFirst({
       where: { id: auditId, siteId },
+      select: { id: true },
     });
     if (!audit) {
       return NextResponse.json({ error: 'Audit not found' }, { status: 404 });
     }
+    const allAuditIssues = await getAllIssues(audit.id);
 
     // Find pages with missingOG issues
-    const ogIssues = (audit.issues || []).filter(
+    const ogIssues = allAuditIssues.filter(
       (i) => i.message === 'audit.issues.missingOG'
     );
     const affectedUrls = [...new Set(ogIssues.map((i) => i.url).filter(Boolean))];
@@ -101,8 +105,8 @@ export async function POST(request) {
       return NextResponse.json({ suggestions: [] });
     }
 
-    // Build page context from pageResults + issue details
-    const pageResults = audit.pageResults || [];
+    // Build page context from pageResults + issue details (helper-sourced)
+    const pageResults = await getAllPageResults(audit.id);
     const issuesByUrl = {};
     ogIssues.forEach(i => { if (i.url) issuesByUrl[i.url] = i; });
 

@@ -3,6 +3,8 @@ import { cookies } from 'next/headers';
 import prisma from '@/lib/prisma';
 import { updateSeoData, resolveUrl, setSearchEngineVisibility } from '@/lib/wp-api-client';
 import { recalculateAuditAfterFix } from '@/lib/audit/recalculate-after-fix';
+import { applyBulkUpdates } from '@/lib/audit/page-results-helper';
+import { applyIssuesTransform } from '@/lib/audit/issues-helper';
 
 const SESSION_COOKIE = 'user_session';
 
@@ -183,88 +185,66 @@ export async function POST(request) {
         const fixedUrls = new Set(successfulFixes.map(f => f.url));
         const fixMap = new Map((fixes || []).map(f => [f.url, f]));
 
-        const buildUpdated = (audit) => {
-          const updatedIssues = (audit.issues || []).map(issue => {
-            if (siteWideFixed && issue.message === 'audit.issues.wpSearchEngineDiscouraged') {
-              return {
-                ...issue,
-                severity: 'passed',
-                message: 'audit.issues.wpSearchEngineVisible',
-                suggestion: null,
-                details: 'Fixed via plugin - search engines can now index the site',
-              };
-            }
-
-            if (siteWideFixed && issue.message === 'audit.issues.metaRobotsNoindex') {
-              return {
-                ...issue,
-                severity: 'info',
-                details: (issue.details || '') + ' (site-wide setting was fixed - re-run audit to verify)',
-              };
-            }
-
-            if (!issue.url || !fixedUrls.has(issue.url)) return issue;
-            const fix = fixMap.get(issue.url);
-
-            if (issue.message === 'audit.issues.metaRobotsNoindex' && fix?.removeNoindex) {
-              return {
-                ...issue,
-                severity: 'passed',
-                message: 'audit.issues.metaRobotsGood',
-                suggestion: null,
-                details: 'noindex removed via plugin',
-              };
-            }
-            if (issue.message === 'audit.issues.metaRobotsNofollow' && fix?.removeNofollow) {
-              return {
-                ...issue,
-                severity: 'passed',
-                message: 'audit.issues.metaRobotsGood',
-                suggestion: null,
-                details: 'nofollow removed via plugin',
-              };
-            }
-            return issue;
-          });
-
-          const updatedPageResults = (audit.pageResults || []).map(pr => {
-            if (!fixedUrls.has(pr.url)) return pr;
-            const fix = fixMap.get(pr.url);
-            if (fix?.removeNoindex || fix?.removeNofollow) {
-              return { ...pr, robotsMeta: null };
-            }
-            return pr;
-          });
-
-          return { updatedIssues, updatedPageResults };
-        };
-
-        const MAX_RETRIES = 5;
-        for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
-          try {
-            const audit = await prisma.siteAudit.findUnique({
-              where: { id: auditId },
-              select: { issues: true, pageResults: true },
-            });
-            if (!audit) break;
-
-            const { updatedIssues, updatedPageResults } = buildUpdated(audit);
-
-            await prisma.siteAudit.update({
-              where: { id: auditId },
-              data: {
-                issues: updatedIssues,
-                pageResults: updatedPageResults,
-              },
-            });
-            break;
-          } catch (retryErr) {
-            if (retryErr.code === 'P2034' && attempt < MAX_RETRIES - 1) {
-              await new Promise((r) => setTimeout(r, 200 * (attempt + 1)));
-              continue;
-            }
-            throw retryErr;
+        const buildUpdatedIssues = (issues) => (issues || []).map(issue => {
+          if (siteWideFixed && issue.message === 'audit.issues.wpSearchEngineDiscouraged') {
+            return {
+              ...issue,
+              severity: 'passed',
+              message: 'audit.issues.wpSearchEngineVisible',
+              suggestion: null,
+              details: 'Fixed via plugin - search engines can now index the site',
+            };
           }
+
+          if (siteWideFixed && issue.message === 'audit.issues.metaRobotsNoindex') {
+            return {
+              ...issue,
+              severity: 'info',
+              details: (issue.details || '') + ' (site-wide setting was fixed - re-run audit to verify)',
+            };
+          }
+
+          if (!issue.url || !fixedUrls.has(issue.url)) return issue;
+          const fix = fixMap.get(issue.url);
+
+          if (issue.message === 'audit.issues.metaRobotsNoindex' && fix?.removeNoindex) {
+            return {
+              ...issue,
+              severity: 'passed',
+              message: 'audit.issues.metaRobotsGood',
+              suggestion: null,
+              details: 'noindex removed via plugin',
+            };
+          }
+          if (issue.message === 'audit.issues.metaRobotsNofollow' && fix?.removeNofollow) {
+            return {
+              ...issue,
+              severity: 'passed',
+              message: 'audit.issues.metaRobotsGood',
+              suggestion: null,
+              details: 'nofollow removed via plugin',
+            };
+          }
+          return issue;
+        });
+
+        // Issues via helper — handles dual-write under the flag.
+        await applyIssuesTransform({ auditId }, buildUpdatedIssues).catch((err) => {
+          console.warn('[FixNoindex] issues transform failed:', err.message);
+        });
+
+        // PageResult robotsMeta clearing for fixed URLs via dual-write helper.
+        const robotsPatches = new Map();
+        for (const url of fixedUrls) {
+          const fix = fixMap.get(url);
+          if (fix?.removeNoindex || fix?.removeNofollow) {
+            robotsPatches.set(url, { robotsMeta: null });
+          }
+        }
+        if (robotsPatches.size > 0) {
+          await applyBulkUpdates({ auditId }, robotsPatches).catch((err) => {
+            console.warn('[FixNoindex] pageResults dual-write failed (non-fatal):', err.message);
+          });
         }
 
           // Recalculate score + regenerate summary with updated issues

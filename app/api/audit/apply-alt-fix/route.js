@@ -5,6 +5,7 @@ import { deductAiCredits } from '@/lib/account-utils';
 import { updateMedia, getMedia } from '@/lib/wp-api-client';
 import { recalculateAuditAfterFix } from '@/lib/audit/recalculate-after-fix';
 import { GEMINI_MODEL } from '@/lib/ai/models.js';
+import { applyIssuesTransform } from '@/lib/audit/issues-helper';
 
 const SESSION_COOKIE = 'user_session';
 const ALT_FIX_CREDIT_COST = 1; // 1 credit per image
@@ -318,64 +319,36 @@ export async function POST(request) {
       try {
         const fixedImageUrls = new Set(successfulFixes.map((f) => f.imageUrl));
 
-        const buildUpdated = (audit) => {
-          const updatedIssues = (audit.issues || []).map((issue) => {
-            if (issue.message !== 'audit.issues.imagesNoAlt') return issue;
+        const buildUpdatedIssues = (issues) => (issues || []).map((issue) => {
+          if (issue.message !== 'audit.issues.imagesNoAlt') return issue;
 
-            // Remove fixed images from detailedSources
-            const remaining = (issue.detailedSources || []).filter(
-              (src) => !fixedImageUrls.has(src.url)
-            );
+          const remaining = (issue.detailedSources || []).filter(
+            (src) => !fixedImageUrls.has(src.url)
+          );
 
-            if (remaining.length === 0) {
-              // All images on this page are fixed
-              return {
-                ...issue,
-                severity: 'passed',
-                message: 'audit.issues.allImagesHaveAlt',
-                suggestion: null,
-                details: 'Alt text set via AI fix',
-                detailedSources: [],
-              };
-            }
-
-            // Some images still missing alt - update the count
-            const totalMatch = issue.details?.match(/\d+\/(\d+)/);
-            const totalImages = totalMatch ? parseInt(totalMatch[1]) : remaining.length;
+          if (remaining.length === 0) {
             return {
               ...issue,
-              details: `${remaining.length}/${totalImages}`,
-              detailedSources: remaining,
+              severity: 'passed',
+              message: 'audit.issues.allImagesHaveAlt',
+              suggestion: null,
+              details: 'Alt text set via AI fix',
+              detailedSources: [],
             };
-          });
-
-          return { updatedIssues };
-        };
-
-        const MAX_RETRIES = 5;
-        for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
-          try {
-            const audit = await prisma.siteAudit.findUnique({
-              where: { id: auditId },
-              select: { issues: true },
-            });
-            if (!audit) break;
-
-            const { updatedIssues } = buildUpdated(audit);
-
-            await prisma.siteAudit.update({
-              where: { id: auditId },
-              data: { issues: updatedIssues },
-            });
-            break;
-          } catch (retryErr) {
-            if (retryErr.code === 'P2034' && attempt < MAX_RETRIES - 1) {
-              await new Promise((r) => setTimeout(r, 200 * (attempt + 1)));
-              continue;
-            }
-            throw retryErr;
           }
-        }
+
+          const totalMatch = issue.details?.match(/\d+\/(\d+)/);
+          const totalImages = totalMatch ? parseInt(totalMatch[1]) : remaining.length;
+          return {
+            ...issue,
+            details: `${remaining.length}/${totalImages}`,
+            detailedSources: remaining,
+          };
+        });
+
+        await applyIssuesTransform({ auditId }, buildUpdatedIssues).catch((err) => {
+          console.warn('[ApplyAltFix] issues transform failed:', err.message);
+        });
 
         // Recalculate score + regenerate summary
         recalculateAuditAfterFix(auditId, site.url).catch((err) =>

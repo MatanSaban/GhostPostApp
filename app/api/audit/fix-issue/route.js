@@ -8,6 +8,7 @@ import { googleGlobal } from '@/lib/ai/vertex-provider.js';
 import { GEMINI_MODEL } from '@/lib/ai/models.js';
 import { z } from 'zod';
 import { makePluginRequest } from '@/lib/wp-api-client';
+import { getPageResultByUrl } from '@/lib/audit/page-results-helper';
 
 const SESSION_COOKIE = 'user_session';
 const FIX_CREDIT_COST = 2;
@@ -107,12 +108,15 @@ export async function POST(request) {
       );
     }
 
-    // Get the audit to understand context
+    // Get the audit to understand context — pageResult comes via helper now
+    // (Phase 1) so it works regardless of whether the data lives in the
+    // embedded array or the new AuditPageResult collection.
     const audit = await prisma.siteAudit.findFirst({
       where: { id: auditId, siteId },
+      select: { id: true, issues: true },
     });
 
-    const pageResult = audit?.pageResults?.find(pr => pr.url === pageUrl);
+    const pageResult = audit ? await getPageResultByUrl(audit.id, pageUrl) : null;
     const currentTitle = pageResult?.title || '';
     const currentDesc = pageResult?.metaDescription || '';
 

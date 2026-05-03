@@ -1042,6 +1042,9 @@ model Site {
   scrapeQueue       ScrapeQueue[]
   chatConversations ChatConversation[]
   chatActions       ChatAction[]
+  backlinks         Backlink[]
+  backlinkSyncs     BacklinkSync[]
+  disavowEntries    DisavowEntry[]
 
   @@index([siteKey])
   @@index([shopifyDomain])
@@ -1737,12 +1740,25 @@ model SiteAudit {
   status              AuditStatus       @default(PENDING)
   score               Int?
   deviceType          String? // "desktop" | "mobile" - separates audits by device
+  // Embedded — legacy. Kept during Phase 2 dual-mode rollout; readers/writers
+  // gated by AUDIT_USE_ISSUES_COLLECTION flag. Sunset target: Phase 5.
   issues              AuditIssue[]
+  // New relation — rows live in the AuditIssue MongoDB collection (model
+  // AuditIssueDoc + @@map). Used in 'dual'/'on' mode. Cascades with parent.
+  issueDocs           AuditIssueDoc[]
   categoryScores      Json? // { technical: 80, performance: 75, visual: 90 }
   pagesScanned        Int?
   pagesFound          Int?
   discoveryMethod     String? // "plugin" | "wp-api" | "sitemap" | "crawl"
+  // Embedded — legacy. Kept during Phase 1 dual-mode rollout; readers/writers
+  // gated by AUDIT_USE_PAGE_RESULTS_COLLECTION flag. Sunset target: Phase 5,
+  // at which point this field + its embedded type are dropped and
+  // pageResultDocs is renamed back to pageResults.
   pageResults         AuditPageResult[]
+  // New relation — rows live in the AuditPageResult MongoDB collection (see
+  // model AuditPageResultDoc + its @@map). Used when the env flag is 'dual'
+  // or '1'. Cascade-deletes with the parent audit.
+  pageResultDocs      AuditPageResultDoc[]
   screenshots         Json? // { desktop: cloudinaryUrl, mobile: cloudinaryUrl }
   summary             String? // AI-generated audit summary (default language)
   summaryTranslations Json? // { "en": "...", "he": "..." }
@@ -1766,6 +1782,10 @@ model SiteAudit {
   // the audit so the UI can surface "X warnings during scan" without
   // anyone having to grep server logs. Capped to last 50 via $slice.
   chunkErrors         Json[]
+  // Pre-computed site-wide flags so the dashboard never has to scan all
+  // issues to derive them. Written once during runFinalization.
+  // Shape: { hasSiteWideNoindex: bool, missingSecurityHeaders: string[] }
+  siteWideIndicators  Json?
   startedAt           DateTime?
   completedAt         DateTime?
   createdAt           DateTime          @default(now())
@@ -1789,6 +1809,45 @@ type AuditIssue {
   boundingBox     Json? // { x, y, width, height } - AI Vision region marker
 }
 
+// AuditIssueDoc — document version of AuditIssue that lives in its own
+// MongoDB collection (mapped to "AuditIssue" via @@map). New home for audit
+// issues as of Phase 2, decoupling them from the SiteAudit document.
+//
+// Same field shape as the embedded type + denormalized auditId/siteId/
+// accountId for query convenience and cache invalidation. Read/write
+// EXCLUSIVELY through lib/audit/issues-helper.js — never touch
+// `prisma.auditIssueDoc.*` or `audit.issues` directly from feature code.
+//
+// Naming follows the same Phase-1 pattern: kept embedded `type AuditIssue`
+// untouched to minimize touched files; this model has the Doc suffix and
+// will be renamed during Phase 5 sunset.
+model AuditIssueDoc {
+  id              String    @id @default(auto()) @map("_id") @db.ObjectId
+  auditId         String    @db.ObjectId
+  siteId          String    @db.ObjectId
+  accountId       String    @db.ObjectId
+  type            String
+  severity        String
+  message         String
+  url             String?
+  suggestion      String?
+  source          String?
+  details         String?
+  detailedSources Json?
+  device          String?
+  boundingBox     Json?
+  createdAt       DateTime  @default(now())
+
+  audit           SiteAudit @relation(fields: [auditId], references: [id], onDelete: Cascade)
+
+  @@index([auditId])                  // bulk reads (finalize, dedup, score recalc)
+  @@index([auditId, message])         // aggregation by issue type (overview tab)
+  @@index([auditId, url])             // page-detail modal, fix flows
+  @@index([auditId, severity])        // active-issue filter
+  @@index([auditId, type])            // per-tab category filter
+  @@map("AuditIssue")                 // collection name (separate from the embedded type)
+}
+
 type AuditPageResult {
   url                String
   statusCode         Int?
@@ -1809,6 +1868,54 @@ type AuditPageResult {
   screenshotsMobile  String[] // Cloudinary URLs - viewport-height segment captures
   filmstripDesktop   Json? // [{ stage, url }] - Cloudinary URLs (or legacy [{ stage, base64 }])
   filmstripMobile    Json? // [{ stage, url }] - Cloudinary URLs (or legacy [{ stage, base64 }])
+}
+
+// AuditPageResultDoc — the document version of AuditPageResult that lives in
+// its own MongoDB collection (mapped to "AuditPageResult" via @@map). This is
+// the new home for per-page scan records as of Phase 1, decoupling them from
+// the SiteAudit document so that doc stays small. Same field shape as the
+// embedded type above + denormalized auditId / siteId / accountId for query
+// convenience and cache invalidation.
+//
+// Read/write through lib/audit/page-results-helper.js — never touch
+// prisma.auditPageResultDoc directly from feature code.
+//
+// Naming: kept the embedded `type AuditPageResult` name unchanged to minimize
+// touched files. After Phase 5 sunset of the embedded array, the embedded type
+// is removed and this model can be renamed to plain `AuditPageResult`.
+model AuditPageResultDoc {
+  id                 String    @id @default(auto()) @map("_id") @db.ObjectId
+  auditId            String    @db.ObjectId
+  // Denormalized — saves a join in the fix flows that already scope by site.
+  siteId             String    @db.ObjectId
+  accountId          String    @db.ObjectId
+  url                String
+  statusCode         Int?
+  title              String?
+  metaDescription    String?
+  robotsMeta         String?
+  ttfb               Int?
+  performanceScore   Int?
+  lcp                Float?
+  cls                Float?
+  inp                Float?
+  jsErrors           String[]
+  brokenResources    String[]
+  issueCount         Int?      @default(0)
+  screenshotDesktop  String?
+  screenshotMobile   String?
+  screenshotsDesktop String[]
+  screenshotsMobile  String[]
+  filmstripDesktop   Json?
+  filmstripMobile    Json?
+  scannedAt          DateTime  @default(now())
+
+  audit              SiteAudit @relation(fields: [auditId], references: [id], onDelete: Cascade)
+
+  @@index([auditId])                        // bulk reads (finalize, overview, vision input)
+  @@index([auditId, url])                   // page-detail modal, fix flows, recheck per-URL
+  @@index([siteId, scannedAt(sort: Desc)])  // historical per-site queries
+  @@map("AuditPageResult")                  // collection name (separate from the embedded type)
 }
 
 enum AuditStatus {
@@ -2578,6 +2685,7 @@ enum AgentInsightCategory {
   KEYWORDS // Ranking opportunities, cannibalization
   COMPETITORS // Competitor changes, content gaps
   TECHNICAL // Missing meta, broken links, audit issues
+  BACKLINKS // Toxic links, lost high-value links, anchor over-optimization, opportunities
 }
 
 enum AgentInsightType {
@@ -3021,4 +3129,114 @@ enum ImpersonationGrantStatus {
   USED
   EXPIRED
   REVOKED
+}
+
+// ==========================================
+// BACKLINK AUDIT (site-level, not the marketplace)
+// /dashboard/strategy/backlinks
+// ==========================================
+
+// One observed inbound link from an external page to a page on the user's site.
+// Distinct from BacklinkListing/BacklinkPurchase, which model the marketplace.
+model Backlink {
+  id     String @id @default(auto()) @map("_id") @db.ObjectId
+  siteId String @db.ObjectId
+  site   Site   @relation(fields: [siteId], references: [id], onDelete: Cascade)
+
+  referringUrl    String
+  referringDomain String
+  targetUrl       String
+  anchorText      String?
+  isDofollow      Boolean?
+
+  domainRating    Int?
+  domainAuthority Int?
+  spamScore       Int?
+
+  firstSeen DateTime
+  lastSeen  DateTime
+  status    BacklinkAuditStatus @default(ACTIVE)
+  // Multi-source: a single link can be observed by both DataForSEO and a GSC CSV.
+  sources   BacklinkSource[]
+
+  isToxic         Boolean @default(false)
+  toxicReason     String?
+  toxicConfidence Float? // 0-1; null when set by user, set by AI insight when ≥ 0.95
+  isDisavowed     Boolean @default(false)
+  isHidden        Boolean @default(false)
+  notes           String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([siteId, referringUrl, targetUrl])
+  @@index([siteId, status])
+  @@index([siteId, isToxic])
+  @@index([siteId, referringDomain])
+}
+
+// One run of an ingestion (cron-triggered DataForSEO pull or user-triggered CSV upload).
+// Used for history, per-site rate limiting, and surfacing last-sync info in the UI.
+model BacklinkSync {
+  id           String             @id @default(auto()) @map("_id") @db.ObjectId
+  siteId       String             @db.ObjectId
+  site         Site               @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  source       BacklinkSource
+  status       BacklinkSyncStatus @default(PENDING)
+  totalFound   Int                @default(0)
+  newCount     Int                @default(0)
+  lostCount    Int                @default(0)
+  errorMessage String?
+  triggeredBy  String?            @db.ObjectId // userId; null when triggered by cron
+  createdAt    DateTime           @default(now())
+  completedAt  DateTime?
+
+  @@index([siteId, createdAt(sort: Desc)])
+}
+
+// An entry in the user's disavow list. Most entries are domain-scoped per Google's guidance;
+// URL-scoped exists for the rare case a single page is bad on an otherwise fine domain.
+model DisavowEntry {
+  id          String         @id @default(auto()) @map("_id") @db.ObjectId
+  siteId      String         @db.ObjectId
+  site        Site           @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  scope       DisavowScope
+  value       String
+  reason      String?
+  status      DisavowStatus  @default(PENDING)
+  exportedAt  DateTime?
+  createdById String?        @db.ObjectId
+  createdAt   DateTime       @default(now())
+
+  @@unique([siteId, scope, value])
+  @@index([siteId, status])
+}
+
+enum BacklinkAuditStatus {
+  ACTIVE
+  LOST
+  BROKEN
+}
+
+enum BacklinkSource {
+  DATAFORSEO
+  GSC_CSV
+}
+
+enum BacklinkSyncStatus {
+  PENDING
+  RUNNING
+  COMPLETED
+  FAILED
+}
+
+enum DisavowScope {
+  DOMAIN
+  URL
+}
+
+enum DisavowStatus {
+  PENDING
+  EXPORTED
+  ACKNOWLEDGED
 }

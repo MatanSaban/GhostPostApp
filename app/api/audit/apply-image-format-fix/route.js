@@ -5,6 +5,7 @@ import { deductAiCredits } from '@/lib/account-utils';
 import { makePluginRequest, getMedia } from '@/lib/wp-api-client';
 import { recalculateAuditAfterFix } from '@/lib/audit/recalculate-after-fix';
 import { GEMINI_MODEL } from '@/lib/ai/models.js';
+import { applyIssuesTransform } from '@/lib/audit/issues-helper';
 
 const SESSION_COOKIE = 'user_session';
 const IMAGE_FORMAT_FIX_CREDIT_COST = 1; // 1 credit per image
@@ -332,75 +333,51 @@ export async function POST(request) {
           return fixedBaseUrls.has(stripWpSizeSuffix(srcUrl));
         };
 
-        const buildUpdated = (audit) => {
-          const updatedIssues = (audit.issues || []).map((issue) => {
-            if (
-              issue.message !== 'audit.issues.imagesNotNextGen' &&
-              issue.message !== 'audit.issues.imagesTooLarge' &&
-              issue.message !== 'audit.issues.imagesLargeWarning'
-            ) {
-              return issue;
-            }
+        const buildUpdatedIssues = (issues) => (issues || []).map((issue) => {
+          if (
+            issue.message !== 'audit.issues.imagesNotNextGen' &&
+            issue.message !== 'audit.issues.imagesTooLarge' &&
+            issue.message !== 'audit.issues.imagesLargeWarning'
+          ) {
+            return issue;
+          }
 
-            const remaining = (issue.detailedSources || []).filter(
-              (src) => !isFixedImage(src.url)
-            );
+          const remaining = (issue.detailedSources || []).filter(
+            (src) => !isFixedImage(src.url)
+          );
 
-            if (remaining.length === 0) {
-              if (issue.message === 'audit.issues.imagesNotNextGen') {
-                return {
-                  ...issue,
-                  severity: 'passed',
-                  message: 'audit.issues.imagesNextGenGood',
-                  suggestion: null,
-                  detailedSources: [],
-                };
-              }
+          if (remaining.length === 0) {
+            if (issue.message === 'audit.issues.imagesNotNextGen') {
               return {
                 ...issue,
                 severity: 'passed',
-                message: 'audit.issues.imagesSizeGood',
+                message: 'audit.issues.imagesNextGenGood',
                 suggestion: null,
                 detailedSources: [],
               };
             }
-
             return {
               ...issue,
-              details:
-                issue.message === 'audit.issues.imagesNotNextGen'
-                  ? `${remaining.length}/${issue.details?.split('/')?.pop() || remaining.length}`
-                  : `${remaining.length} images`,
-              detailedSources: remaining,
+              severity: 'passed',
+              message: 'audit.issues.imagesSizeGood',
+              suggestion: null,
+              detailedSources: [],
             };
-          });
-          return { updatedIssues };
-        };
-
-        const MAX_RETRIES = 5;
-        for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
-          try {
-            const audit = await prisma.siteAudit.findUnique({
-              where: { id: auditId },
-              select: { issues: true },
-            });
-            if (!audit) break;
-
-            const { updatedIssues } = buildUpdated(audit);
-
-            await prisma.siteAudit.update({
-              where: { id: auditId },
-              data: { issues: updatedIssues },
-            });
-            break;
-          } catch (retryErr) {
-            if (retryErr.code === 'P2034' && attempt < MAX_RETRIES - 1) {
-              await new Promise((r) => setTimeout(r, 200 * (attempt + 1)));
-              continue;
-            }
-            throw retryErr;
           }
-        }
+
+          return {
+            ...issue,
+            details:
+              issue.message === 'audit.issues.imagesNotNextGen'
+                ? `${remaining.length}/${issue.details?.split('/')?.pop() || remaining.length}`
+                : `${remaining.length} images`,
+            detailedSources: remaining,
+          };
+        });
+
+        await applyIssuesTransform({ auditId }, buildUpdatedIssues).catch((err) => {
+          console.warn('[ApplyImageFormatFix] issues transform failed:', err.message);
+        });
 
         recalculateAuditAfterFix(auditId, site.url).catch((err) =>
           console.warn('[ApplyImageFormatFix] Recalc failed (non-fatal):', err.message)

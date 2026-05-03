@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { verifySignature } from '@/lib/site-keys';
 import { getDictionary, createTranslator } from '@/i18n/server';
+import { getAllIssues } from '@/lib/audit/issues-helper';
 
 /**
  * Decode percent-encoded characters in a URL so non-Latin paths (Hebrew,
@@ -81,11 +82,13 @@ export async function POST(request) {
       take: 50,
     });
 
-    // Fetch latest completed audit with issues
+    // Fetch latest completed audit (metadata only — issues come via helper).
     const latestAudit = await prisma.siteAudit.findFirst({
       where: { siteId: site.id, status: 'COMPLETED' },
       orderBy: { completedAt: 'desc' },
+      select: { id: true },
     });
+    const auditIssues = latestAudit ? await getAllIssues(latestAudit.id) : [];
 
     // Fetch site entities (pages/posts) - limited to published, enabled types only
     const entities = await prisma.siteEntity.findMany({
@@ -125,7 +128,7 @@ export async function POST(request) {
     // Extract issues from latest audit. The plugin renders `description`
     // verbatim, so decode percent-encoded URLs before sending - otherwise
     // Hebrew slugs land as "%d7%90%d7%99%d7%9a-…".
-    const issues = (latestAudit?.issues || [])
+    const issues = auditIssues
       .filter(i => i.severity === 'error' || i.severity === 'warning')
       .slice(0, 20)
       .map(issue => {

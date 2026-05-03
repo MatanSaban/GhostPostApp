@@ -2,11 +2,11 @@
   "crons": [
     {
       "path": "/api/cron/process-content",
-      "schedule": "* * * * *"
+      "schedule": "*/2 * * * *"
     },
     {
       "path": "/api/cron/publish-content",
-      "schedule": "* * * * *"
+      "schedule": "1-59/2 * * * *"
     },
     {
       "path": "/api/cron/sync-entities",
@@ -47,6 +47,10 @@
     {
       "path": "/api/cron/audit-watchdog",
       "schedule": "*/5 * * * *"
+    },
+    {
+      "path": "/api/cron/backlinks-refresh",
+      "schedule": "0 4 * * 1"
     }
   ]
 }

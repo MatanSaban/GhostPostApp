@@ -75,6 +75,10 @@
         "clusters": {
           "title": "אשכולות נושאים",
           "description": "ניהול אשכולות נושאים שזוהו מתוכן האתר."
+        },
+        "backlinks": {
+          "title": "קישורים נכנסים",
+          "description": "מעקב וניהול הקישורים הנכנסים לאתר שלך."
         }
       },
       "entities": {
@@ -680,7 +684,8 @@
       "contentPlanner": "יומן תוכן",
       "aiWizard": "אשף תוכן AI",
       "competitorAnalysis": "מתחרים",
-      "clusters": "אשכולות נושאים"
+      "clusters": "אשכולות נושאים",
+      "backlinks": "קישורים נכנסים"
     },
     "automations": "אוטומציות",
     "linkBuilding": "בניית קישורים",
@@ -699,7 +704,7 @@
     "settings": "הגדרות",
     "support": "תמיכה",
     "myWebsites": "האתרים שלי",
-    "backlinks": "קישורים נכנסים",
+    "backlinks": "שוק קישורים",
     "entities": {
       "title": "נכסי האתר",
       "pages": "דפים",
@@ -2146,6 +2151,154 @@
       "backToPreview": "חזור לתצוגה מקדימה"
     }
   },
+  "backlinkAudit": {
+    "title": "קישורים נכנסים",
+    "subtitle": "מעקב וניהול הקישורים הנכנסים לאתר שלך",
+    "selectSite": "בחר אתר כדי לנתח את הקישורים הנכנסים שלו",
+    "premiumGate": {
+      "title": "קישורים נכנסים הוא פיצ׳ר פרימיום",
+      "description": "עקוב אחר כל קישור נכנס לאתר, זהה באמצעות AI קישורים מזיקים, צור קובץ disavow ושחזר קישורים שאבדו — עם נתוני קישורים מקיפים וייבוא מ-Search Console.",
+      "upgradeCta": "שדרגו את התוכנית",
+      "manageSubscription": "ניהול מנוי"
+    },
+    "emptyState": {
+      "title": "עדיין לא סונכרנו קישורים נכנסים",
+      "description": "סנכרנו את הקישורים הנכנסים של האתר, או העלו ייצוא מ-Search Console כדי להתחיל.",
+      "refreshAction": "סנכרן קישורים",
+      "importAction": "ייבא CSV מ-GSC"
+    },
+    "loading": "טוען קישורים נכנסים...",
+    "refresh": "סנכרן קישורים",
+    "refreshing": "מסנכרן...",
+    "lastSyncedAgo": "סונכרן לפני {time}",
+    "lastSyncedNever": "טרם סונכרן",
+    "syncResult": "סונכרנו {total} קישורים ({new} חדשים, {lost} שאבדו)",
+    "syncFailed": "הסנכרון נכשל",
+    "syncCooldown": "ניתן לסנכרן שוב בעוד {hours} שעות",
+    "table": {
+      "source": "מקור",
+      "anchor": "טקסט עוגן",
+      "dr": "DR",
+      "status": "סטטוס",
+      "lastSeen": "נראה לאחרונה",
+      "dofollow": "Dofollow",
+      "nofollow": "Nofollow",
+      "noAnchor": "(אין טקסט עוגן)",
+      "rowCount": "{shown} מתוך {total}"
+    },
+    "status": {
+      "active": "פעיל",
+      "lost": "אבוד",
+      "broken": "שבור"
+    },
+    "kpi": {
+      "totalBacklinks": "סה״כ קישורים",
+      "referringDomains": "דומיינים מפנים",
+      "lostRecent": "אבדו ({days} ימים)",
+      "toxic": "מזיקים",
+      "disavowed": "מנוטרלים"
+    },
+    "tabs": {
+      "all": "הכל",
+      "active": "פעילים",
+      "lost": "אבדו",
+      "broken": "שבורים"
+    },
+    "filters": {
+      "anchorPlaceholder": "חיפוש בטקסט עוגן...",
+      "drRange": "DR",
+      "drMin": "מינ׳",
+      "drMax": "מקס׳",
+      "dofollow": "סוג",
+      "dofollowAll": "הכל",
+      "dofollowOnly": "Dofollow בלבד",
+      "nofollowOnly": "Nofollow בלבד",
+      "toxicOnly": "מזיקים בלבד",
+      "reset": "איפוס"
+    },
+    "pagination": {
+      "prev": "הקודם",
+      "next": "הבא",
+      "page": "עמוד {page} מתוך {total}"
+    },
+    "import": {
+      "title": "ייבוא מ-Google Search Console",
+      "subtitle": "הוסיפו לביקורת קישורים שגוגל איתרה",
+      "helpIntro": "ייצאו את קובץ \"Latest links\" מ-Search Console והעלו אותו כאן:",
+      "step1": "פתחו את Search Console → דו״ח Links",
+      "step2": "היכנסו לאתר מפנה או דף מקושר → \"More\"",
+      "step3": "השתמשו ב-Export → CSV → \"Latest links\"",
+      "openGsc": "פתח את Search Console",
+      "dropzonePrompt": "לחצו לבחירת קובץ או גררו לכאן CSV",
+      "dropzoneHint": "ייצוא \"Latest links\" של GSC בלבד · עד 5MB",
+      "confirm": "ייבוא",
+      "importing": "מייבא...",
+      "errorNotCsv": "בחרו קובץ בפורמט .csv",
+      "errorGeneric": "הייבוא נכשל",
+      "success": "יובאו {total} שורות ({new} חדשות)"
+    },
+    "viewToggle": {
+      "backlinks": "קישורים",
+      "disavow": "רשימת disavow"
+    },
+    "actions": {
+      "menuLabel": "פעולות",
+      "markToxic": "סמן כמזיק",
+      "unmarkToxic": "בטל סימון מזיק",
+      "disavowDomain": "Disavow לדומיין שלם",
+      "disavowUrl": "Disavow לכתובת זו",
+      "errorGeneric": "הפעולה נכשלה",
+      "disavowAdded": "נוסף לרשימת disavow ({coverage} קישורים מכוסים)",
+      "disavowAlready": "כבר נמצא ברשימת disavow ({coverage} קישורים מכוסים)"
+    },
+    "disavow": {
+      "summary": "{total} ערכים · {pending} ממתינים · {exported} יוצאו · {acknowledged} הועלו",
+      "exportTxt": "צור disavow.txt",
+      "exportSuccess": "הקובץ הורד. העלו אותו ידנית ל-Search Console.",
+      "errorExport": "הייצוא נכשל",
+      "errorDelete": "לא ניתן להסיר את הערך",
+      "errorAck": "לא ניתן לסמן כהועלה",
+      "emptyTitle": "אין ערכים ברשימת disavow",
+      "emptyDescription": "השתמשו בתפריט הפעולות של קישור כדי להוסיף disavow לדומיין או לכתובת. הערכים יוצאו לקובץ שתעלו ל-Search Console.",
+      "scope": "סוג",
+      "scopeDomain": "דומיין",
+      "scopeUrl": "URL",
+      "value": "ערך",
+      "reason": "סיבה",
+      "coverage": "קישורים",
+      "statusLabel": "סטטוס",
+      "statusPending": "ממתין",
+      "statusExported": "יוצא",
+      "statusAcknowledged": "הועלה",
+      "markAck": "סמן כהועלה ל-Search Console",
+      "delete": "הסר"
+    },
+    "insights": {
+      "title": "תובנות AI",
+      "applyDisavow": "הוסף לרשימת disavow",
+      "dismiss": "התעלם",
+      "toxic": {
+        "title": "זוהה קישור מזיק",
+        "description": "ה-AI מסמן את {domain} כמזיק ברמת ביטחון של {confidence}%. {reason}"
+      },
+      "lostHighValue": {
+        "title": "אבד קישור בעל ערך גבוה",
+        "description": "{count} קישור(ים) מ-{domain} (DR ממוצע {avgDR}) אבדו לאחרונה. שווה לפנות לבעל האתר."
+      },
+      "anchorOverOpt": {
+        "title": "אופטימיזציית-יתר בטקסט עוגן",
+        "description": "\"{anchor}\" מהווה {sharePct}% מתוך {total} עוגנים שמפנים ל-{target}. גוונו כדי להימנע מסנקציות."
+      },
+      "brokenTarget": {
+        "title": "דף שבור עם קישורים נכנסים",
+        "description": "{target} מחזיר HTTP {status} אבל יש לו {inbound} קישור(ים) נכנס(ים). שחזרו את הדף או הוסיפו הפניית 301."
+      },
+      "opportunity": {
+        "title": "הזדמנות לקישור",
+        "description": "{domain} (DR {dr}) מקשר למתחרה {competitor} אבל לא אליכם."
+      }
+    }
+  },
   "competitorAnalysis": {
     "title": "מתחרים",
     "subtitle": "נתח את התוכן של המתחרים שלך ומצא הזדמנויות לדרג גבוה יותר",
@@ -3334,7 +3487,7 @@
     }
   },
   "backlinks": {
-    "title": "שוק קישורים נכנסים",
+    "title": "שוק קישורים",
     "subtitle": "עיין ורכוש קישורים נכנסים איכותיים לאתרים שלך",
     "searchPlaceholder": "חפש קישורים לפי דומיין, נושא...",
     "filters": {

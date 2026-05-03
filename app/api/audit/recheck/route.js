@@ -7,6 +7,15 @@ import { deductAiCredits } from '@/lib/account-utils';
 import { invalidateAudit } from '@/lib/cache/invalidate.js';
 import { BOT_FETCH_HEADERS } from '@/lib/bot-identity';
 import { GEMINI_MODEL } from '@/lib/ai/models.js';
+import {
+  getAllPageResults,
+  appendPageResult,
+  applyBulkUpdates,
+} from '@/lib/audit/page-results-helper';
+import {
+  getAllIssues,
+  replaceIssuesForUrls,
+} from '@/lib/audit/issues-helper';
 
 export const maxDuration = 300;
 
@@ -231,10 +240,10 @@ export async function POST(request) {
       );
     }
 
-    // Pull the audit once for the diff baseline.
+    // Audit metadata only — issues + pageResults via helpers below.
     const audit = await prisma.siteAudit.findFirst({
       where: { id: auditId, siteId },
-      select: { id: true, issues: true, pageResults: true, status: true },
+      select: { id: true, status: true },
     });
 
     if (!audit || audit.status !== 'COMPLETED') {
@@ -243,6 +252,8 @@ export async function POST(request) {
         { status: 404 }
       );
     }
+    const baselinePageResults = await getAllPageResults(auditId);
+    const baselineIssuesAll = await getAllIssues(auditId);
 
     // Re-scan each URL. Sequential is fine for typical batch sizes (1-20);
     // PSI rate limits make heavy parallelism risky.
@@ -250,7 +261,7 @@ export async function POST(request) {
     const newIssuesPerUrl = new Map();   // url -> normalized issue[]
     const newPageResultByUrl = new Map(); // url -> normalized pageResult
 
-    const baselineIssues = audit.issues || [];
+    const baselineIssues = baselineIssuesAll;
 
     for (const url of urls) {
       const { issues, pageResult } = await rescanUrl(url);
@@ -279,74 +290,68 @@ export async function POST(request) {
       });
     }
 
-    // Persist. Re-read on each retry (write conflict against concurrent writers
-    // — e.g. an apply-fix endpoint hitting the same audit) so we don't clobber
-    // unrelated changes. Same retry shape as the rescan endpoint uses.
-    const MAX_RETRIES = 8;
-    let finalIssues = null;
-    let finalPageResults = null;
+    // Phase 2: issues via helper. For each rechecked URL we want to:
+    //   - delete only the recheckable-source issues (heavy-source ones from
+    //     axe / playwright / ai-vision must be preserved — we can't speak to
+    //     them with the lightweight pipeline)
+    //   - insert the freshly-detected recheckable issues for that URL
+    // The helper's replaceIssuesForUrls handles both stores under the flag.
+    const replacementIssues = [];
+    for (const url of urls) {
+      replacementIssues.push(...newIssuesPerUrl.get(url).filter(isRecheckable));
+    }
+    // Pull accountId for any new docs the helper needs to insert.
+    const siteRowR = await prisma.site.findUnique({
+      where: { id: siteId },
+      select: { accountId: true },
+    });
+    await replaceIssuesForUrls(
+      { auditId, siteId, accountId: siteRowR?.accountId },
+      urls,
+      isRecheckable, // delete predicate: only recheckable-source issues
+      replacementIssues,
+    );
 
-    for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
-      try {
-        const fresh = attempt === 0
-          ? audit
-          : await prisma.siteAudit.findUnique({
-              where: { id: auditId },
-              select: { issues: true, pageResults: true },
-            });
+    // Build a finalIssues array for the response payload (back-compat with
+    // client that swaps state in-place). Read fresh through the helper so
+    // any concurrent fix flows are picked up.
+    const finalIssues = await getAllIssues(auditId);
 
-        const existingIssues = fresh.issues || [];
-        const existingPageResults = fresh.pageResults || [];
-
-        // For rechecked URLs we replace ONLY the issues from sources our
-        // lightweight pipeline actually re-detects. Issues from heavier
-        // sources (axe, playwright, ai-vision) are preserved verbatim — we
-        // can't speak to them and shouldn't drop them on the floor.
-        const rescannedUrlSet = new Set(urls);
-        const survivingIssues = existingIssues.filter((i) => {
-          if (!rescannedUrlSet.has(i.url)) return true;       // untouched URL
-          return !isRecheckable(i);                            // heavy-source issue we didn't re-evaluate
-        });
-        const replacementIssues = [];
-        for (const url of urls) {
-          // Only persist the recheckable subset of new issues — anything else
-          // (shouldn't happen with the lightweight pipeline, but guard anyway)
-          // would conflict with the surviving heavy-source issues.
-          replacementIssues.push(...newIssuesPerUrl.get(url).filter(isRecheckable));
-        }
-        finalIssues = [...survivingIssues, ...replacementIssues];
-
-        // Same for page results — keep untouched URLs as-is, merge fresh stats
-        // into the rescanned ones (preserving screenshots etc. from the original).
-        const updatedPageResults = existingPageResults.map((pr) => {
-          if (!rescannedUrlSet.has(pr.url)) return normalizePageResult(pr);
-          const next = newPageResultByUrl.get(pr.url);
-          return normalizePageResult({ ...pr, ...next });
-        });
-        // If a rescanned URL wasn't already in pageResults, append it.
-        for (const url of urls) {
-          if (!existingPageResults.some((pr) => pr.url === url)) {
-            updatedPageResults.push(normalizePageResult(newPageResultByUrl.get(url)));
-          }
-        }
-        finalPageResults = updatedPageResults;
-
-        await prisma.siteAudit.update({
-          where: { id: auditId },
-          data: {
-            issues: finalIssues,
-            pageResults: finalPageResults,
-          },
-        });
-        break;
-      } catch (retryErr) {
-        if (retryErr.code === 'P2034' && attempt < MAX_RETRIES - 1) {
-          await new Promise((r) => setTimeout(r, 400 * (attempt + 1)));
-          continue;
-        }
-        throw retryErr;
+    // ── PageResults via helper ────────────────────────────────────────
+    // For each rechecked URL: merge new metrics into existing pageResult and
+    // upsert. Existing rows: bulk-update. Brand-new URLs (rare — shouldn't
+    // exist after a completed audit, but guard): append.
+    const existingByUrl = new Map(baselinePageResults.map((pr) => [pr.url, pr]));
+    const bulkUpdates = new Map();
+    const appendList = [];
+    for (const url of urls) {
+      const next = newPageResultByUrl.get(url);
+      const existing = existingByUrl.get(url);
+      if (existing) {
+        bulkUpdates.set(url, normalizePageResult({ ...existing, ...next }));
+      } else {
+        appendList.push(normalizePageResult(next));
       }
     }
+    if (bulkUpdates.size > 0) {
+      await applyBulkUpdates({ auditId }, bulkUpdates);
+    }
+    if (appendList.length > 0) {
+      const siteRow = await prisma.site.findUnique({
+        where: { id: siteId },
+        select: { accountId: true },
+      });
+      for (const pr of appendList) {
+        await appendPageResult(
+          { auditId, siteId, accountId: siteRow?.accountId },
+          pr,
+        );
+      }
+    }
+    // Build the response payload — clients expect the full updated set so
+    // they can swap state in-place. Read fresh through the helper to pick up
+    // any concurrent writers.
+    const finalPageResults = await getAllPageResults(auditId);
 
     invalidateAudit(siteId);
 

@@ -5,6 +5,8 @@ import { deductAiCredits } from '@/lib/account-utils';
 import { updateSeoData, resolveUrl } from '@/lib/wp-api-client';
 import { recalculateAuditAfterFix } from '@/lib/audit/recalculate-after-fix';
 import { GEMINI_MODEL } from '@/lib/ai/models.js';
+import { applyBulkUpdates } from '@/lib/audit/page-results-helper';
+import { applyIssuesTransform } from '@/lib/audit/issues-helper';
 
 const SESSION_COOKIE = 'user_session';
 const DESC_FIX_CREDIT_COST = 1; // 1 credit per page
@@ -195,77 +197,54 @@ export async function POST(request) {
       try {
         const fixMap = new Map(successfulFixes.map(f => [f.url, f.newDescription]));
 
-        const buildUpdated = (audit) => {
-          const updatedIssues = (audit.issues || []).map(issue => {
-            if (
-              (issue.message === 'audit.issues.noMetaDescription' ||
-               issue.message === 'audit.issues.metaDescriptionShort') &&
-              issue.url &&
-              fixMap.has(issue.url)
-            ) {
-              const newDesc = fixMap.get(issue.url);
-              if (newDesc.length >= 120 && newDesc.length <= 160) {
-                return {
-                  ...issue,
-                  severity: 'passed',
-                  message: 'audit.issues.metaDescriptionGood',
-                  suggestion: null,
-                  details: `${newDesc.length} chars (AI fixed)`,
-                };
-              } else if (newDesc.length > 160) {
-                return {
-                  ...issue,
-                  severity: 'warning',
-                  message: 'audit.issues.metaDescriptionLong',
-                  suggestion: 'audit.suggestions.metaDescriptionLength',
-                  details: `${newDesc.length} chars (AI fixed)`,
-                };
-              }
+        const buildUpdatedIssues = (issues) => (issues || []).map(issue => {
+          if (
+            (issue.message === 'audit.issues.noMetaDescription' ||
+             issue.message === 'audit.issues.metaDescriptionShort') &&
+            issue.url &&
+            fixMap.has(issue.url)
+          ) {
+            const newDesc = fixMap.get(issue.url);
+            if (newDesc.length >= 120 && newDesc.length <= 160) {
+              return {
+                ...issue,
+                severity: 'passed',
+                message: 'audit.issues.metaDescriptionGood',
+                suggestion: null,
+                details: `${newDesc.length} chars (AI fixed)`,
+              };
+            } else if (newDesc.length > 160) {
               return {
                 ...issue,
                 severity: 'warning',
+                message: 'audit.issues.metaDescriptionLong',
+                suggestion: 'audit.suggestions.metaDescriptionLength',
                 details: `${newDesc.length} chars (AI fixed)`,
               };
             }
-            return issue;
-          });
-
-          const updatedPageResults = (audit.pageResults || []).map(pr => {
-            if (fixMap.has(pr.url)) {
-              return { ...pr, metaDescription: fixMap.get(pr.url) };
-            }
-            return pr;
-          });
-
-          return { updatedIssues, updatedPageResults };
-        };
-
-        const MAX_RETRIES = 5;
-        for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
-          try {
-            const audit = await prisma.siteAudit.findUnique({
-              where: { id: auditId },
-              select: { issues: true, pageResults: true },
-            });
-            if (!audit) break;
-
-            const { updatedIssues, updatedPageResults } = buildUpdated(audit);
-
-            await prisma.siteAudit.update({
-              where: { id: auditId },
-              data: {
-                issues: updatedIssues,
-                pageResults: updatedPageResults,
-              },
-            });
-            break;
-          } catch (retryErr) {
-            if (retryErr.code === 'P2034' && attempt < MAX_RETRIES - 1) {
-              await new Promise((r) => setTimeout(r, 200 * (attempt + 1)));
-              continue;
-            }
-            throw retryErr;
+            return {
+              ...issue,
+              severity: 'warning',
+              details: `${newDesc.length} chars (AI fixed)`,
+            };
           }
+          return issue;
+        });
+
+        // Issues via helper — handles dual-write under the flag.
+        await applyIssuesTransform({ auditId }, buildUpdatedIssues).catch((err) => {
+          console.warn('[ApplyDescFix] issues transform failed:', err.message);
+        });
+
+        // PageResult metaDescription via dual-write helper.
+        const descPatches = new Map();
+        for (const [url, newDesc] of fixMap) {
+          descPatches.set(url, { metaDescription: newDesc });
+        }
+        if (descPatches.size > 0) {
+          await applyBulkUpdates({ auditId }, descPatches).catch((err) => {
+            console.warn('[ApplyDescFix] pageResults dual-write failed (non-fatal):', err.message);
+          });
         }
 
         // Recalculate score + regenerate summary

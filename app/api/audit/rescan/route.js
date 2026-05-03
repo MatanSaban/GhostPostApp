@@ -6,6 +6,8 @@ import { analyzeHtml } from '@/lib/audit/html-analyzer';
 import { deductAiCredits } from '@/lib/account-utils';
 import { recalculateAuditAfterFix } from '@/lib/audit/recalculate-after-fix';
 import { invalidateAudit } from '@/lib/cache/invalidate.js';
+import { getPageResultByUrl, updatePageResultByUrl, appendPageResult } from '@/lib/audit/page-results-helper';
+import { replaceIssuesForUrls } from '@/lib/audit/issues-helper';
 import { BOT_FETCH_HEADERS } from '@/lib/bot-identity';
 import { GEMINI_MODEL } from '@/lib/ai/models.js';
 
@@ -210,42 +212,38 @@ export async function POST(request) {
       detailedSources: i.detailedSources || undefined,
     }));
 
-    const MAX_RETRIES = 8;
-    for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
-      try {
-        // Re-read the latest audit state before each write attempt
-        const freshAudit = attempt === 0 ? audit : await prisma.siteAudit.findUnique({
-          where: { id: auditId },
-          select: { issues: true, pageResults: true },
-        });
+    // Phase 2: issues via helper. Rescan replaces ALL issues for this URL
+    // (different from recheck, which preserves heavy-source issues — rescan
+    // is a full per-page reset). Predicate matches every issue for the URL.
+    const siteRowR = await prisma.site.findUnique({
+      where: { id: siteId },
+      select: { accountId: true },
+    });
+    await replaceIssuesForUrls(
+      { auditId, siteId, accountId: siteRowR?.accountId },
+      [url],
+      () => true, // delete all matching this URL
+      newIssuesForUrl,
+    );
 
-        const existingPageResults = freshAudit.pageResults || [];
-        const updatedPageResults = existingPageResults.map((pr) =>
-          pr.url === url
-            ? normalizePageResult({ ...pr, ...pageResult })
-            : normalizePageResult(pr)
-        );
-
-        const existingIssues = freshAudit.issues || [];
-        const otherIssues = existingIssues.filter((i) => i.url !== url);
-        const updatedIssues = [...otherIssues, ...newIssuesForUrl];
-
-        await prisma.siteAudit.update({
-          where: { id: auditId },
-          data: {
-            issues: updatedIssues,
-            pageResults: updatedPageResults,
-          },
-        });
-        break; // success
-      } catch (retryErr) {
-        if (retryErr.code === 'P2034' && attempt < MAX_RETRIES - 1) {
-          // Wait with exponential backoff (400ms, 800ms, 1.2s, 1.6s, ...)
-          await new Promise((r) => setTimeout(r, 400 * (attempt + 1)));
-          continue;
-        }
-        throw retryErr;
-      }
+    // PageResult update via the dual-write helper. If a row already exists for
+    // this URL (the common case after the original audit), update it; otherwise
+    // append a fresh one (covers an edge where the URL was discovered between
+    // audits but never scanned in the original pass).
+    const merged = normalizePageResult({ ...(await getPageResultByUrl(auditId, url) || {}), ...pageResult });
+    const existed = !!(await getPageResultByUrl(auditId, url));
+    if (existed) {
+      await updatePageResultByUrl({ auditId }, url, merged);
+    } else {
+      // Pull accountId from the site for the new doc's denorm fields.
+      const siteRow = await prisma.site.findUnique({
+        where: { id: siteId },
+        select: { accountId: true },
+      });
+      await appendPageResult(
+        { auditId, siteId, accountId: siteRow?.accountId },
+        merged,
+      );
     }
 
     invalidateAudit(siteId);

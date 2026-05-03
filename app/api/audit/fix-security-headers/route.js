@@ -3,6 +3,7 @@ import { cookies } from 'next/headers';
 import prisma from '@/lib/prisma';
 import { enableSecurityHeaders } from '@/lib/wp-api-client';
 import { recalculateAuditAfterFix } from '@/lib/audit/recalculate-after-fix';
+import { applyIssuesTransform } from '@/lib/audit/issues-helper';
 
 const SESSION_COOKIE = 'user_session';
 
@@ -126,40 +127,20 @@ export async function POST(request) {
     // Update audit issues in-place
     let auditUpdated = false;
     if (auditId && result?.success) {
-      const MAX_RETRIES = 5;
-      for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
-        try {
-          const audit = await prisma.siteAudit.findUnique({
-            where: { id: auditId },
-            select: { issues: true },
-          });
-          if (!audit) break;
-
-          const updatedIssues = (audit.issues || []).map((issue) => {
-            if (!targetedIssueKeys.has(issue.message)) return issue;
-            return {
-              ...issue,
-              severity: 'passed',
-              message: PASSED_ISSUE_MAP[issue.message] || issue.message,
-              suggestion: null,
-              details: 'Fixed via GhostSEO plugin',
-            };
-          });
-
-          await prisma.siteAudit.update({
-            where: { id: auditId },
-            data: { issues: updatedIssues },
-          });
-          auditUpdated = true;
-          break;
-        } catch (retryErr) {
-          if (retryErr.code === 'P2034' && attempt < MAX_RETRIES - 1) {
-            await new Promise((r) => setTimeout(r, 200 * (attempt + 1)));
-            continue;
-          }
-          throw retryErr;
-        }
-      }
+      const buildUpdatedIssues = (issues) => (issues || []).map((issue) => {
+        if (!targetedIssueKeys.has(issue.message)) return issue;
+        return {
+          ...issue,
+          severity: 'passed',
+          message: PASSED_ISSUE_MAP[issue.message] || issue.message,
+          suggestion: null,
+          details: 'Fixed via GhostSEO plugin',
+        };
+      });
+      await applyIssuesTransform({ auditId }, buildUpdatedIssues).catch((err) => {
+        console.warn('[FixSecurityHeaders] issues transform failed:', err.message);
+      });
+      auditUpdated = true;
 
       // Recalculate score
       recalculateAuditAfterFix(auditId, site.url).catch((err) =>

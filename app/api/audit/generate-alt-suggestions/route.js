@@ -6,6 +6,8 @@ import { googleGlobal } from '@/lib/ai/vertex-provider.js';
 import { GEMINI_MODEL } from '@/lib/ai/models.js';
 import { z } from 'zod';
 import { deductAiCredits } from '@/lib/account-utils';
+import { getAllPageResults } from '@/lib/audit/page-results-helper';
+import { getAllIssues } from '@/lib/audit/issues-helper';
 
 const SESSION_COOKIE = 'user_session';
 
@@ -96,16 +98,18 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Site not found' }, { status: 404 });
     }
 
-    // Get the audit
+    // Get the audit (issues + pageResults via helpers below)
     const audit = await prisma.siteAudit.findFirst({
       where: { id: auditId, siteId },
+      select: { id: true },
     });
     if (!audit) {
       return NextResponse.json({ error: 'Audit not found' }, { status: 404 });
     }
+    const allAuditIssues = await getAllIssues(audit.id);
 
     // Find issues with images missing alt text
-    const altIssues = (audit.issues || []).filter(
+    const altIssues = allAuditIssues.filter(
       (i) => i.message === 'audit.issues.imagesNoAlt'
     );
 
@@ -147,8 +151,8 @@ export async function POST(request) {
 
     const totalUsage = { inputTokens: 0, outputTokens: 0, totalTokens: 0 };
 
-    // Detect website language from page titles in audit data
-    const pageResults = audit.pageResults || [];
+    // Detect website language from page titles in audit data (helper-sourced)
+    const pageResults = await getAllPageResults(audit.id);
     const sampleTitles = pageResults
       .map((p) => p.title)
       .filter(Boolean)

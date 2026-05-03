@@ -5,6 +5,7 @@ import { deductAiCredits } from '@/lib/account-utils';
 import { updateSeoData, resolveUrl } from '@/lib/wp-api-client';
 import { recalculateAuditAfterFix } from '@/lib/audit/recalculate-after-fix';
 import { GEMINI_MODEL } from '@/lib/ai/models.js';
+import { applyIssuesTransform } from '@/lib/audit/issues-helper';
 
 const SESSION_COOKIE = 'user_session';
 const OG_FIX_CREDIT_COST = 1; // 1 credit per page
@@ -200,51 +201,27 @@ export async function POST(request) {
       try {
         const fixedUrlSet = new Set(successfulFixes.map(f => f.url));
 
-        const buildUpdated = (audit) => {
-          const updatedIssues = (audit.issues || []).map(issue => {
-            if (
-              issue.message === 'audit.issues.missingOG' &&
-              issue.url &&
-              fixedUrlSet.has(issue.url)
-            ) {
-              return {
-                ...issue,
-                severity: 'passed',
-                message: 'audit.issues.ogTagsGood',
-                suggestion: null,
-                details: 'OG tags set via AI fix',
-              };
-            }
-            return issue;
-          });
-
-          return { updatedIssues };
-        };
-
-        const MAX_RETRIES = 5;
-        for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
-          try {
-            const audit = await prisma.siteAudit.findUnique({
-              where: { id: auditId },
-              select: { issues: true },
-            });
-            if (!audit) break;
-
-            const { updatedIssues } = buildUpdated(audit);
-
-            await prisma.siteAudit.update({
-              where: { id: auditId },
-              data: { issues: updatedIssues },
-            });
-            break;
-          } catch (retryErr) {
-            if (retryErr.code === 'P2034' && attempt < MAX_RETRIES - 1) {
-              await new Promise((r) => setTimeout(r, 200 * (attempt + 1)));
-              continue;
-            }
-            throw retryErr;
+        const buildUpdatedIssues = (issues) => (issues || []).map(issue => {
+          if (
+            issue.message === 'audit.issues.missingOG' &&
+            issue.url &&
+            fixedUrlSet.has(issue.url)
+          ) {
+            return {
+              ...issue,
+              severity: 'passed',
+              message: 'audit.issues.ogTagsGood',
+              suggestion: null,
+              details: 'OG tags set via AI fix',
+            };
           }
-        }
+          return issue;
+        });
+
+        // Issues via helper — handles dual-write under the flag.
+        await applyIssuesTransform({ auditId }, buildUpdatedIssues).catch((err) => {
+          console.warn('[ApplyOGFix] issues transform failed:', err.message);
+        });
 
         // Recalculate score + regenerate summary
         recalculateAuditAfterFix(auditId, site.url).catch(err =>

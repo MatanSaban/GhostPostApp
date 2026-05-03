@@ -3,6 +3,7 @@ import { cookies } from 'next/headers';
 import prisma from '@/lib/prisma';
 import { setFavicon } from '@/lib/wp-api-client';
 import { recalculateAuditAfterFix } from '@/lib/audit/recalculate-after-fix';
+import { applyIssuesTransform } from '@/lib/audit/issues-helper';
 
 const SESSION_COOKIE = 'user_session';
 
@@ -89,46 +90,24 @@ export async function POST(request) {
     let auditUpdated = false;
     if (auditId) {
       try {
-        const buildUpdated = (audit) => {
-          return (audit.issues || []).map(issue => {
-            if (issue.message === 'audit.issues.noFavicon') {
-              return {
-                ...issue,
-                severity: 'passed',
-                message: 'audit.issues.faviconGood',
-                suggestion: null,
-                details: `Favicon set (attachment #${attachmentId})`,
-              };
-            }
-            return issue;
-          });
-        };
-
-        const MAX_RETRIES = 5;
-        for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
-          try {
-            const audit = await prisma.siteAudit.findUnique({
-              where: { id: auditId },
-              select: { issues: true },
-            });
-            if (!audit) break;
-
-            const updatedIssues = buildUpdated(audit);
-
-            await prisma.siteAudit.update({
-              where: { id: auditId },
-              data: { issues: updatedIssues },
-            });
-            auditUpdated = true;
-            break;
-          } catch (retryErr) {
-            if (retryErr.code === 'P2034' && attempt < MAX_RETRIES - 1) {
-              await new Promise((r) => setTimeout(r, 200 * (attempt + 1)));
-              continue;
-            }
-            throw retryErr;
+        const buildUpdatedIssues = (issues) => (issues || []).map(issue => {
+          if (issue.message === 'audit.issues.noFavicon') {
+            return {
+              ...issue,
+              severity: 'passed',
+              message: 'audit.issues.faviconGood',
+              suggestion: null,
+              details: `Favicon set (attachment #${attachmentId})`,
+            };
           }
-        }
+          return issue;
+        });
+
+        // Issues via helper — handles dual-write under the flag.
+        await applyIssuesTransform({ auditId }, buildUpdatedIssues).catch((err) => {
+          console.warn('[SetFavicon] issues transform failed:', err.message);
+        });
+        auditUpdated = true;
 
         if (auditUpdated) {
           // Recalculate score + regenerate summary with updated issues

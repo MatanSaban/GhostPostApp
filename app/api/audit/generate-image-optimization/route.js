@@ -6,6 +6,7 @@ import { googleGlobal } from '@/lib/ai/vertex-provider.js';
 import { GEMINI_MODEL } from '@/lib/ai/models.js';
 import { z } from 'zod';
 import { deductAiCredits } from '@/lib/account-utils';
+import { getAllIssues } from '@/lib/audit/issues-helper';
 
 const SESSION_COOKIE = 'user_session';
 
@@ -84,13 +85,15 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Site not found' }, { status: 404 });
     }
 
-    // Get the audit
+    // Get the audit (issues via helper)
     const audit = await prisma.siteAudit.findFirst({
       where: { id: auditId, siteId },
+      select: { id: true },
     });
     if (!audit) {
       return NextResponse.json({ error: 'Audit not found' }, { status: 404 });
     }
+    const allAuditIssues = await getAllIssues(audit.id);
 
     // Collect images from both format and size issues
     const relevantIssueKeys = new Set([
@@ -99,7 +102,7 @@ export async function POST(request) {
       'audit.issues.imagesLargeWarning',
     ]);
 
-    const issues = (audit.issues || []).filter((i) =>
+    const issues = allAuditIssues.filter((i) =>
       relevantIssueKeys.has(i.message)
     );
 

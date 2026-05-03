@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import {
   Activity,
@@ -45,14 +45,7 @@ import ScannedPageRow from './components/ScannedPageRow';
 import AuditOverviewTab from './components/AuditOverviewTab';
 import AccessibilityTab from './components/AccessibilityTab';
 import ErrorLog from './components/ErrorLog';
-import {
-  aggregateIssuesByCategory,
-  getIssuesByKey,
-  getAffectedPages,
-  countBySeverity,
-} from './lib/aggregation';
 import { toImgSrc, filmSrc } from './lib/img-src';
-import { calculateAuditScore } from '@/lib/audit/scoring';
 import PluginRequiredModal from './components/PluginRequiredModal';
 import FixTitlePreviewModal from './components/FixTitlePreviewModal';
 import FixDescriptionPreviewModal from './components/FixDescriptionPreviewModal';
@@ -81,16 +74,6 @@ const POLL_INTERVAL = 3000;
  * source of truth. Use isAiFixable() / isFreeFixable() / getFixer() helpers.
  * The Wand2/Wrench/Loader2 icons are rendered by the FixButton component.
  */
-
-/** Security header issue keys - used to filter into the SecurityHeadersModal. */
-const SECURITY_HEADER_ISSUES = new Set([
-  'audit.issues.noHsts',
-  'audit.issues.noXFrameOptions',
-  'audit.issues.noContentTypeOptions',
-  'audit.issues.noCsp',
-  'audit.issues.noReferrerPolicy',
-  'audit.issues.noPermissionsPolicy',
-]);
 
 const TABS = [
   { id: 'overview', icon: LayoutDashboard, labelKey: 'siteAudit.overview' },
@@ -243,6 +226,23 @@ export default function SiteAuditPage() {
   // Issue info popup for "What is it?" and "How to fix?" buttons
   const [issueInfoPopup, setIssueInfoPopup] = useState(null); // { type, key, title } or null
 
+  // ─── Phase 4b: Lazy issue data ───────────────────────────────
+  // The audit response no longer carries the full issues array. We pull what
+  // we need on demand:
+  //   - aggregateData: ~50 grouped rows + severity totals (one fetch per audit)
+  //   - drillDownIssues: occurrences for the open drill-down (per issueKey)
+  //   - pageDetailIssues: issues for the open page-detail modal (per url)
+  //   - accessibilityIssues: full a11y list (only when that tab is open)
+  // Counts and tab badges are derived from aggregateData.rows.
+  const [aggregateData, setAggregateData] = useState({
+    rows: [],
+    severityCounts: { passed: 0, warnings: 0, errors: 0, info: 0 },
+    loaded: false,
+  });
+  const [drillDownIssues, setDrillDownIssues] = useState([]);
+  const [pageDetailIssues, setPageDetailIssues] = useState([]);
+  const [accessibilityIssues, setAccessibilityIssues] = useState([]);
+
   const pollRefs = useRef({});       // siteId → intervalId
   const stepIntervalRefs = useRef({}); // siteId → intervalId
   const bgTaskIds = useRef({});       // siteId → taskId
@@ -267,40 +267,6 @@ export default function SiteAuditPage() {
   // Shape: { desktop: { latest, history, translations }, mobile: { ... } }
   const auditCacheRef = useRef({});
 
-  // ─── Recheck (per-issue & aggregate) ────────────────────────
-  // Drives the confirm modal, the per-button busy spinner, and the
-  // "recently resolved" pulse + sort-to-top behavior. Updates pull straight
-  // into latestAudit so the existing aggregation re-renders for free.
-  const recheck = useRecheck({
-    auditId: latestAudit?.id,
-    siteId: selectedSite?.id,
-    onAuditUpdated: useCallback((updates) => {
-      setLatestAudit((prev) => (prev ? { ...prev, ...updates } : prev));
-      // Mirror into the device cache so a tab switch + return doesn't snap
-      // back to pre-recheck state.
-      const cached = auditCacheRef.current[activeDevice];
-      if (cached?.latest) {
-        auditCacheRef.current[activeDevice] = {
-          ...cached,
-          latest: { ...cached.latest, ...updates },
-        };
-      }
-    }, [activeDevice]),
-  });
-
-  // Reset recheck session state whenever a fresh audit lands (a new full
-  // audit makes the stale-score banner irrelevant + clears the pulse set).
-  const lastAuditIdRef = useRef(null);
-  useEffect(() => {
-    if (!latestAudit?.id) return;
-    if (lastAuditIdRef.current && lastAuditIdRef.current !== latestAudit.id) {
-      recheck.reset();
-    }
-    lastAuditIdRef.current = latestAudit.id;
-    // recheck.reset is stable
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [latestAudit?.id]);
-
   // ─── Data Fetching ──────────────────────────────────────────
 
   const fetchAudits = useCallback(async (siteId, device) => {
@@ -317,8 +283,11 @@ export default function SiteAuditPage() {
 
       let latest = data.latest;
 
-      // If audit is completed, fetch full document (with issues + pageResults)
-      if (latest && (latest.status === 'COMPLETED' || latest.status === 'FAILED') && !latest.issues) {
+      // For COMPLETED/FAILED audits the list endpoint returns metadata only —
+      // we need the full audit shell (categoryScores, screenshots, pageResults,
+      // siteWideIndicators, summary). Issues are fetched separately via the
+      // aggregation/issues endpoints.
+      if (latest && (latest.status === 'COMPLETED' || latest.status === 'FAILED') && !latest.pageResults) {
         const fullRes = await fetch(`/api/audit?siteId=${siteId}&auditId=${latest.id}`);
         if (fullRes.ok) {
           const fullData = await fullRes.json();
@@ -341,6 +310,146 @@ export default function SiteAuditPage() {
       return null;
     }
   }, []);
+
+  // Phase 4b: aggregation refetch — pulls ~50 grouped rows + severity counts
+  // for the active audit. Cheap (server-side $group on indexed AuditIssue
+  // collection). Refired after recheck/rescan/fix flows that mutate issues.
+  const fetchAggregateData = useCallback(async () => {
+    const auditId = latestAudit?.id;
+    const siteId = selectedSite?.id;
+    if (!auditId || !siteId) return;
+    if (latestAudit?.status !== 'COMPLETED') return;
+    try {
+      const res = await fetch(`/api/audit/issues/aggregate?auditId=${auditId}&siteId=${siteId}`);
+      if (!res.ok) return;
+      const data = await res.json();
+      setAggregateData({
+        rows: data.rows || [],
+        severityCounts: data.severityCounts || { passed: 0, warnings: 0, errors: 0, info: 0 },
+        loaded: true,
+      });
+    } catch (err) {
+      console.error('[SiteAudit] Aggregate fetch failed:', err);
+    }
+  }, [latestAudit?.id, latestAudit?.status, selectedSite?.id]);
+
+  // Auto-fetch aggregation when a completed audit loads. Reset on audit change.
+  useEffect(() => {
+    if (latestAudit?.status !== 'COMPLETED' || !latestAudit?.id || !selectedSite?.id) {
+      setAggregateData({ rows: [], severityCounts: { passed: 0, warnings: 0, errors: 0, info: 0 }, loaded: false });
+      return;
+    }
+    fetchAggregateData();
+  }, [latestAudit?.id, latestAudit?.status, selectedSite?.id, fetchAggregateData]);
+
+  // ─── Recheck (per-issue & aggregate) ────────────────────────
+  // Drives the confirm modal, the per-button busy spinner, and the
+  // "recently resolved" pulse + sort-to-top behavior. Phase 4b: issues live
+  // in their own collection, so on update we apply pageResults to latestAudit
+  // (still inlined by the cache) and trigger an aggregation refetch — the UI
+  // re-renders from the fresh aggregate rows.
+  const recheckOnUpdated = useCallback((updates) => {
+    if (updates?.pageResults) {
+      setLatestAudit((prev) => (prev ? { ...prev, pageResults: updates.pageResults } : prev));
+      const cached = auditCacheRef.current[activeDevice];
+      if (cached?.latest) {
+        auditCacheRef.current[activeDevice] = {
+          ...cached,
+          latest: { ...cached.latest, pageResults: updates.pageResults },
+        };
+      }
+    }
+    fetchAggregateData();
+    if (drillDown?.issueKey && latestAudit?.id && selectedSite?.id) {
+      fetch(`/api/audit/issues?auditId=${latestAudit.id}&siteId=${selectedSite.id}&issueKey=${encodeURIComponent(drillDown.issueKey)}`)
+        .then((r) => (r.ok ? r.json() : { issues: [] }))
+        .then((d) => setDrillDownIssues(d.issues || []))
+        .catch(() => {});
+    }
+    if (pageDetail?.url && latestAudit?.id && selectedSite?.id) {
+      fetch(`/api/audit/issues?auditId=${latestAudit.id}&siteId=${selectedSite.id}&url=${encodeURIComponent(pageDetail.url)}`)
+        .then((r) => (r.ok ? r.json() : { issues: [] }))
+        .then((d) => setPageDetailIssues(d.issues || []))
+        .catch(() => {});
+    }
+  }, [activeDevice, fetchAggregateData, drillDown?.issueKey, pageDetail?.url, latestAudit?.id, selectedSite?.id]);
+
+  const recheck = useRecheck({
+    auditId: latestAudit?.id,
+    siteId: selectedSite?.id,
+    onAuditUpdated: recheckOnUpdated,
+  });
+
+  // Reset recheck session state whenever a fresh audit lands (a new full
+  // audit makes the stale-score banner irrelevant + clears the pulse set).
+  const lastAuditIdRef = useRef(null);
+  useEffect(() => {
+    if (!latestAudit?.id) return;
+    if (lastAuditIdRef.current && lastAuditIdRef.current !== latestAudit.id) {
+      recheck.reset();
+    }
+    lastAuditIdRef.current = latestAudit.id;
+    // recheck.reset is stable
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [latestAudit?.id]);
+
+  // Drill-down lazy fetch: load all occurrences of one issue key when the user
+  // clicks a row. Aborted on key change so a stale fetch can't overwrite a
+  // newer one.
+  useEffect(() => {
+    if (!drillDown?.issueKey || !latestAudit?.id || !selectedSite?.id) {
+      setDrillDownIssues([]);
+      return;
+    }
+    let cancelled = false;
+    const auditId = latestAudit.id;
+    const siteId = selectedSite.id;
+    const issueKey = drillDown.issueKey;
+    fetch(`/api/audit/issues?auditId=${auditId}&siteId=${siteId}&issueKey=${encodeURIComponent(issueKey)}`)
+      .then((r) => (r.ok ? r.json() : { issues: [] }))
+      .then((d) => { if (!cancelled) setDrillDownIssues(d.issues || []); })
+      .catch((err) => console.error('[SiteAudit] Drill-down fetch failed:', err));
+    return () => { cancelled = true; };
+  }, [drillDown?.issueKey, latestAudit?.id, selectedSite?.id]);
+
+  // Page-detail modal lazy fetch.
+  useEffect(() => {
+    if (!pageDetail?.url || !latestAudit?.id || !selectedSite?.id) {
+      setPageDetailIssues([]);
+      return;
+    }
+    let cancelled = false;
+    const auditId = latestAudit.id;
+    const siteId = selectedSite.id;
+    const url = pageDetail.url;
+    fetch(`/api/audit/issues?auditId=${auditId}&siteId=${siteId}&url=${encodeURIComponent(url)}`)
+      .then((r) => (r.ok ? r.json() : { issues: [] }))
+      .then((d) => { if (!cancelled) setPageDetailIssues(d.issues || []); })
+      .catch((err) => console.error('[SiteAudit] Page-detail fetch failed:', err));
+    return () => { cancelled = true; };
+  }, [pageDetail?.url, latestAudit?.id, selectedSite?.id]);
+
+  // Accessibility tab lazy fetch (full a11y issue list — needed by the tab's
+  // tree view, which renders per-rule details rather than the aggregated row).
+  useEffect(() => {
+    if (activeTab !== 'accessibility' || latestAudit?.status !== 'COMPLETED' || !latestAudit?.id || !selectedSite?.id) {
+      return;
+    }
+    let cancelled = false;
+    const auditId = latestAudit.id;
+    const siteId = selectedSite.id;
+    fetch(`/api/audit/issues?auditId=${auditId}&siteId=${siteId}&category=accessibility`)
+      .then((r) => (r.ok ? r.json() : { issues: [] }))
+      .then((d) => { if (!cancelled) setAccessibilityIssues(d.issues || []); })
+      .catch((err) => console.error('[SiteAudit] Accessibility fetch failed:', err));
+    return () => { cancelled = true; };
+  }, [activeTab, latestAudit?.id, latestAudit?.status, selectedSite?.id]);
+
+  // Reset accessibility list on audit change so a stale list never bleeds
+  // across audits.
+  useEffect(() => {
+    setAccessibilityIssues([]);
+  }, [latestAudit?.id]);
 
   useEffect(() => {
     if (!selectedSite?.id) return;
@@ -656,30 +765,56 @@ export default function SiteAuditPage() {
     delete auditCacheRef.current[activeDevice];
     if (!selectedSite?.id) return;
 
-    // Snapshot active issues BEFORE the refetch. Anything that was active and
-    // is no longer present (or now severity='passed') after the refetch counts
-    // as a resolution — same visual treatment as the recheck flow (green pulse
-    // + stale-score banner).
-    const before = (latestAudit?.issues || [])
-      .filter((i) => i.severity !== 'passed')
-      .map((i) => ({ message: i.message, url: i.url || null }));
+    // Phase 4b: snapshot active (issueKey, url) tuples from the current
+    // aggregate rows BEFORE refetching. Aggregate rows already represent the
+    // server-side dedup of issues, so this set is the same shape we used to
+    // build from the full issues array.
+    const before = new Set();
+    for (const row of aggregateData.rows) {
+      if (row.severity === 'passed') continue;
+      for (const url of (row.urls || [])) {
+        before.add(`${row.key}|${url || ''}`);
+      }
+    }
 
-    const fresh = await fetchAudits(selectedSite.id, activeDevice);
-    if (!fresh?.issues) return;
+    await fetchAudits(selectedSite.id, activeDevice);
+    // Pull the fresh aggregation directly so the diff doesn't race the
+    // post-audit auto-fetch.
+    let freshRows = [];
+    try {
+      const auditId = latestAudit?.id;
+      if (auditId) {
+        const res = await fetch(`/api/audit/issues/aggregate?auditId=${auditId}&siteId=${selectedSite.id}`);
+        if (res.ok) {
+          const data = await res.json();
+          freshRows = data.rows || [];
+          setAggregateData({
+            rows: freshRows,
+            severityCounts: data.severityCounts || { passed: 0, warnings: 0, errors: 0, info: 0 },
+            loaded: true,
+          });
+        }
+      }
+    } catch (err) {
+      console.error('[SiteAudit] Rescan aggregate refetch failed:', err);
+    }
 
-    // Build a quick lookup of post-fetch active (key|url) tuples.
     const stillActive = new Set();
-    for (const i of fresh.issues) {
-      if (i.severity !== 'passed') {
-        stillActive.add(`${i.message}|${i.url || ''}`);
+    for (const row of freshRows) {
+      if (row.severity === 'passed') continue;
+      for (const url of (row.urls || [])) {
+        stillActive.add(`${row.key}|${url || ''}`);
       }
     }
 
     const resolvedItems = [];
-    for (const b of before) {
-      const tuple = `${b.message}|${b.url || ''}`;
+    for (const tuple of before) {
       if (!stillActive.has(tuple)) {
-        resolvedItems.push({ issueKey: b.message, url: b.url });
+        const sep = tuple.lastIndexOf('|');
+        resolvedItems.push({
+          issueKey: sep >= 0 ? tuple.slice(0, sep) : tuple,
+          url: sep >= 0 ? (tuple.slice(sep + 1) || null) : null,
+        });
       }
     }
     if (resolvedItems.length > 0) {
@@ -716,98 +851,134 @@ export default function SiteAuditPage() {
   const isRunning = isPolling || latestAudit?.status === 'PENDING' || latestAudit?.status === 'RUNNING';
   const isCompleted = latestAudit?.status === 'COMPLETED';
   const isFailed = latestAudit?.status === 'FAILED';
-  const categoryScores = isCompleted
-    ? calculateAuditScore(latestAudit.issues || []).categoryScores
-    : {};
 
-  // Use the DB score (same value the AI summary receives) to avoid rounding discrepancies
-  const overallScore = isCompleted && latestAudit?.score != null
-    ? latestAudit.score
-    : (isCompleted ? calculateAuditScore(latestAudit.issues || []).score : 0);
+  // Phase 4b: scores read directly from the audit doc (written by the
+  // finalizer). No client-side recompute — keeps tabs in sync with the AI
+  // summary's score.
+  const categoryScores = isCompleted ? (latestAudit?.categoryScores || {}) : {};
+  const overallScore = isCompleted ? (latestAudit?.score ?? 0) : 0;
+  const allCounts = isCompleted ? aggregateData.severityCounts : { passed: 0, warnings: 0, errors: 0, info: 0 };
+  const pageResults = isCompleted ? (latestAudit?.pageResults || []) : [];
 
-  const allIssues = isCompleted ? (latestAudit.issues || []) : [];
-  const allCounts = isCompleted ? countBySeverity(allIssues) : { passed: 0, warnings: 0, errors: 0, info: 0 };
-  const pageResults = isCompleted ? (latestAudit.pageResults || []) : [];
+  // Pre-computed site-wide flags (written once during finalization). Replaces
+  // the old "scan all issues to find one wpSearchEngineDiscouraged row" pattern.
+  const siteWideIndicators = latestAudit?.siteWideIndicators || {};
+  const hasSiteWideNoindex = !!siteWideIndicators.hasSiteWideNoindex;
+  const missingSecurityHeaderKeys = siteWideIndicators.missingSecurityHeaders || [];
 
-  // Aggregated issues for active tab (category tabs)
   const isIssueCategoryTab = ['technical', 'performance', 'visual'].includes(activeTab);
   const isAccessibilityTab = activeTab === 'accessibility';
-  const accessibilityIssues = isCompleted ? allIssues.filter(i => i.type === 'accessibility') : [];
-  const aggregatedIssues = isIssueCategoryTab
-    ? aggregateIssuesByCategory(allIssues, activeTab)
-    : [];
 
-  // Tab counts
-  const tabCounts = isCompleted
-    ? {
-        technical: countBySeverity(allIssues.filter(i => i.type === 'technical')),
-        performance: countBySeverity(allIssues.filter(i => i.type === 'performance')),
-        visual: countBySeverity(allIssues.filter(i => i.type === 'visual')),
-        accessibility: countBySeverity(allIssues.filter(i => i.type === 'accessibility')),
-        pages: { total: pageResults.length },
+  // Per-tab aggregated rows derived from the single aggregateData fetch.
+  const aggregatedIssues = useMemo(() => {
+    if (!isIssueCategoryTab) return [];
+    return aggregateData.rows.filter((r) => r.type === activeTab);
+  }, [aggregateData.rows, isIssueCategoryTab, activeTab]);
+
+  // Tab counts derived from aggregate rows. row.count = total occurrences;
+  // sum across all rows of a given (type, severity) bucket.
+  const tabCounts = useMemo(() => {
+    if (!isCompleted) return {};
+    const out = {
+      technical: { passed: 0, warnings: 0, errors: 0, info: 0 },
+      performance: { passed: 0, warnings: 0, errors: 0, info: 0 },
+      visual: { passed: 0, warnings: 0, errors: 0, info: 0 },
+      accessibility: { passed: 0, warnings: 0, errors: 0, info: 0 },
+      pages: { total: pageResults.length },
+    };
+    for (const r of aggregateData.rows) {
+      const bucket = out[r.type];
+      if (!bucket) continue;
+      const sev = r.severity;
+      const n = r.count || 0;
+      if (sev === 'passed') bucket.passed += n;
+      else if (sev === 'warning') bucket.warnings += n;
+      else if (sev === 'error') bucket.errors += n;
+      else if (sev === 'info' || sev === 'notice') bucket.info += n;
+    }
+    return out;
+  }, [aggregateData.rows, isCompleted, pageResults.length]);
+
+  // url → Set<issueKey> map for quick "does this page have a fixable issue?"
+  // checks. Built from aggregate row.urls — no per-issue scan needed.
+  const urlToIssueKeys = useMemo(() => {
+    const map = new Map();
+    for (const row of aggregateData.rows) {
+      for (const url of (row.urls || [])) {
+        if (!url) continue;
+        if (!map.has(url)) map.set(url, new Set());
+        map.get(url).add(row.key);
       }
-    : {};
+    }
+    return map;
+  }, [aggregateData.rows]);
 
-  // Drill-down: matching issues and affected pages
-  const drillDownIssues = drillDown
-    ? getIssuesByKey(allIssues, drillDown.issueKey)
-    : [];
-  const drillDownPages = drillDown
-    ? getAffectedPages(allIssues, pageResults, drillDown.issueKey)
-    : [];
-  const drillDownAgg = drillDown && aggregatedIssues.find(a => a.key === drillDown.issueKey);
+  const pageIssuesFor = useCallback((url) => {
+    const keys = urlToIssueKeys.get(url);
+    if (!keys) return [];
+    return Array.from(keys).map((message) => ({ message }));
+  }, [urlToIssueKeys]);
+
+  // Drill-down rows (lazy-fetched into drillDownIssues). Affected pages come
+  // from the aggregate row's URL list — already deduped server-side.
+  const drillDownAgg = useMemo(
+    () => (drillDown ? aggregateData.rows.find((a) => a.key === drillDown.issueKey) : null),
+    [drillDown, aggregateData.rows]
+  );
+  const drillDownPages = useMemo(() => {
+    if (!drillDown) return [];
+    const urls = drillDownAgg?.urls || [];
+    if (urls.length === 0) return pageResults;
+    const set = new Set(urls);
+    return pageResults.filter((pr) => set.has(pr.url));
+  }, [drillDown, drillDownAgg, pageResults]);
 
   // ─── AI Issue Translations (Visual & UX tab + Accessibility) ──
-
+  // Phase 4b: derived from the per-audit aggregation rows (one entry per
+  // unique message) plus the lazy-loaded accessibility list. We no longer
+  // scan every issue. ai-vision keys come straight from aggregate rows;
+  // a11y keys need the per-issue `details.description`, which only exists
+  // once accessibilityIssues has been fetched.
   useEffect(() => {
     if (!isCompleted || !latestAudit?.id) return;
+    if (!aggregateData.loaded) return;
 
-    // Find AI-generated issues (messages that don't start with translation keys)
-    const aiIssues = allIssues.filter(
-      i => i.source === 'ai-vision' && i.message && !i.message.startsWith('audit.')
+    const aiRows = aggregateData.rows.filter(
+      (r) => r.source === 'ai-vision' && r.message && !r.message.startsWith('audit.')
     );
 
-    // Find accessibility issues (axe-core) - description + suggestion need translation
-    const a11yIssues = allIssues.filter(i => i.source === 'axe' && i.type === 'accessibility');
-
-    if (aiIssues.length === 0 && a11yIssues.length === 0) return;
-
-    // Dedupe by message (for ai-vision)
     const seen = new Set();
     const uniqueIssues = [];
-    for (const issue of aiIssues) {
-      if (!seen.has(issue.message)) {
-        seen.add(issue.message);
+    for (const r of aiRows) {
+      if (!seen.has(r.message)) {
+        seen.add(r.message);
         uniqueIssues.push({
-          key: issue.message,
-          message: issue.message,
-          suggestion: issue.suggestion || '',
+          key: r.message,
+          message: r.message,
+          suggestion: r.suggestion || '',
         });
       }
     }
 
-    // Dedupe accessibility issues by description (stored in details JSON)
-    for (const issue of a11yIssues) {
+    // Accessibility issues need per-occurrence details to read the description.
+    // Only inspected once the accessibility list has been lazy-loaded — keeps
+    // the visual tab translation pre-cache from blocking on a11y fetch.
+    for (const issue of accessibilityIssues) {
+      if (issue.source !== 'axe') continue;
       let details = {};
       try {
         details = typeof issue.details === 'string' ? JSON.parse(issue.details) : (issue.details || {});
       } catch { /* ignore */ }
       const description = details.description || '';
       const suggestion = issue.suggestion || '';
-      // Use "a11y:<ruleId>" as key to avoid collision with ai-vision keys
       const key = `a11y:${details.ruleId || issue.message || description}`;
       if (description && !seen.has(key)) {
         seen.add(key);
-        uniqueIssues.push({
-          key,
-          message: description,
-          suggestion,
-        });
+        uniqueIssues.push({ key, message: description, suggestion });
       }
     }
 
-    // Check if we already have these translations
-    const missing = uniqueIssues.filter(i => !issueTranslations[i.key]);
+    const missing = uniqueIssues.filter((i) => !issueTranslations[i.key]);
     if (missing.length === 0) return;
 
     let cancelled = false;
@@ -822,17 +993,17 @@ export default function SiteAuditPage() {
         issues: missing,
       }),
     })
-      .then(res => res.json())
-      .then(data => {
+      .then((res) => res.json())
+      .then((data) => {
         if (!cancelled && data.translations) {
-          setIssueTranslations(prev => ({ ...prev, ...data.translations }));
+          setIssueTranslations((prev) => ({ ...prev, ...data.translations }));
         }
       })
-      .catch(err => console.error('[SiteAudit] Issue translation failed:', err))
+      .catch((err) => console.error('[SiteAudit] Issue translation failed:', err))
       .finally(() => { if (!cancelled) setIsTranslatingIssues(false); });
 
     return () => { cancelled = true; };
-  }, [isCompleted, latestAudit?.id, locale, allIssues.length]);
+  }, [isCompleted, latestAudit?.id, locale, aggregateData.loaded, aggregateData.rows, accessibilityIssues]);
 
   /**
    * Get the translated message for an issue (AI-generated or axe a11y).
@@ -948,12 +1119,6 @@ export default function SiteAuditPage() {
         const urls = issueData?.urls || (issueData?.url ? [issueData.url] : []);
         if (urls.length === 0) return;
         const isNoindex = issueKey === 'audit.issues.metaRobotsNoindex';
-
-        // Check if site-wide "Discourage search engines" is the root cause
-        const hasSiteWideNoindex = allIssues.some(
-          i => i.message === 'audit.issues.wpSearchEngineDiscouraged'
-            && i.severity !== 'passed'
-        );
 
         try {
           setError(null);
@@ -1283,10 +1448,7 @@ export default function SiteAuditPage() {
 
           {/* ═══ Site-Wide Noindex Banner ════════════════════════════ */}
           {(() => {
-            const siteWideIssue = allIssues.find(
-              i => i.message === 'audit.issues.wpSearchEngineDiscouraged' && i.severity !== 'passed'
-            );
-            if (!siteWideIssue || !isPluginConnected) return null;
+            if (!hasSiteWideNoindex || !isPluginConnected) return null;
 
             const handleSiteWideFix = async () => {
               setIsFixingSiteWide(true);
@@ -1682,7 +1844,7 @@ export default function SiteAuditPage() {
                           onRescanComplete={handleRescanComplete}
                           onViewDetails={(p) => { setPageDetail(p); updateUrl(activeTab, drillDown?.issueKey || null, p?.url || null); }}
                           compact
-                          pageIssues={allIssues.filter(i => i.url === pr.url)}
+                          pageIssues={pageIssuesFor(pr.url)}
                           onFixComplete={() => handleRescanComplete()}
                           isPluginConnected={isPluginConnected}
                           onPluginRequired={() => setShowPluginModal(true)}
@@ -1756,7 +1918,7 @@ export default function SiteAuditPage() {
                             siteId={selectedSite.id}
                             onRescanComplete={handleRescanComplete}
                             onViewDetails={(p) => { setPageDetail(p); updateUrl(activeTab, null, p?.url || null); }}
-                            pageIssues={allIssues.filter(i => i.url === pr.url)}
+                            pageIssues={pageIssuesFor(pr.url)}
                             onFixComplete={() => handleRescanComplete()}
                             isPluginConnected={isPluginConnected}
                             onPluginRequired={() => setShowPluginModal(true)}
@@ -1908,16 +2070,15 @@ export default function SiteAuditPage() {
               </div>
             </div>
 
-            {/* Issues for this page */}
+            {/* Issues for this page (lazy-fetched via /api/audit/issues?url=) */}
             <h4 className={styles.pageDetailSubtitle}>
-              {t('siteAudit.pr.issues')} ({allIssues.filter(i => i.url === pageDetail.url).length})
+              {t('siteAudit.pr.issues')} ({pageDetailIssues.length})
             </h4>
             <div className={styles.pageDetailIssues}>
-              {allIssues.filter(i => i.url === pageDetail.url).length === 0 ? (
+              {pageDetailIssues.length === 0 ? (
                 <p className={styles.pageDetailNoIssues}>{t('siteAudit.noIssuesForPage')}</p>
               ) : (
-                allIssues
-                  .filter(i => i.url === pageDetail.url)
+                [...pageDetailIssues]
                   .sort((a, b) => {
                     const order = { error: 0, warning: 1, info: 2, passed: 3 };
                     return (order[a.severity] ?? 4) - (order[b.severity] ?? 4);
@@ -2287,11 +2448,7 @@ export default function SiteAuditPage() {
         onClose={() => setShowSecHeadersModal(false)}
         siteId={selectedSite?.id}
         auditId={latestAudit?.id}
-        missingHeaders={allIssues
-          .filter(i => SECURITY_HEADER_ISSUES.has(i.message) && i.severity !== 'passed')
-          .map(i => i.message)
-          .filter((v, idx, arr) => arr.indexOf(v) === idx)
-        }
+        missingHeaders={missingSecurityHeaderKeys}
         onAuditUpdated={() => fetchAudits(selectedSite?.id, activeDevice)}
       />
 
