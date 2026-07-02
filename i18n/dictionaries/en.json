@@ -1922,7 +1922,7 @@
     "keyword": "Keyword",
     "volume": "Volume",
     "cpc": "CPC",
-    "position": "Position",
+    "position": "Avg Position",
     "clicks": "Clicks",
     "impressions": "Impressions",
     "ctr": "CTR",
@@ -1956,6 +1956,7 @@
     "noSiteSelected": "Select a site to view keywords",
     "fromInterview": "Interview",
     "fromManual": "Manual",
+    "fromGoogle": "Google",
     "filter": {
       "all": "All",
       "tracking": "Tracking",
@@ -1996,6 +1997,11 @@
     "generatePost": "Generate AI Post",
     "linkExisting": "Link existing page",
     "unlinkExisting": "Unlink",
+    "refreshRow": {
+      "rank": "Refresh this keyword's Google rank",
+      "volume": "Refresh this keyword's search volume",
+      "gsc": "Refresh this keyword's Google search metrics (position, clicks, impressions, CTR)"
+    },
     "linkModal": {
       "title": "Link an existing entity",
       "subtitle": "Choose an existing page, post, or other entity from your site to link this keyword to.",
@@ -2010,7 +2016,7 @@
     },
     "tooltips": {
       "keyword": "The keyword you are tracking",
-      "position": "Average position in Google results for the selected period",
+      "position": "The average position your site appeared at in Google search results for this keyword during the selected period — averaged across all the searches in which your site was shown.",
       "volume": "Impressions in Google for the selected period",
       "clicks": "Number of clicks from Google for the selected period",
       "impressions": "Number of times the site appeared in Google results",
@@ -2024,6 +2030,26 @@
       "positionNoChange": "Position unchanged from {period}",
       "positionUp": "Climbed {ranks} ranks from #{from} to #{to} ({period})",
       "positionDown": "Dropped {ranks} ranks from #{from} to #{to} ({period})"
+    },
+    "serp": {
+      "column": "Google Rank",
+      "columnTooltip": "Your site's live position in Google search results, checked in real time",
+      "check": "Check Rankings",
+      "checkTooltip": "Check where your site ranks in Google for each keyword",
+      "notFound": "100+",
+      "notFoundTooltip": "Your site was not found in the top 100 Google results (checked {date})",
+      "rankTooltip": "Ranking page: {url} (checked {date})",
+      "rankTooltipNoUrl": "Checked {date}",
+      "geoTooltip": "Rankings checked in {market}, based on your site's target location and language",
+      "billingError": "Rankings couldn't be checked right now. Please try again later.",
+      "cooldown": "Already up to date — you can refresh again in about {hours}h",
+      "allFresh": "All keywords are up to date. A refresh is available every 24 hours."
+    },
+    "gscNotice": {
+      "notConnected": "Your site's Google search performance isn't connected yet — the Avg Position, Clicks, Impressions and CTR columns need it.",
+      "connect": "Connect in Settings",
+      "tokenError": "The Google connection has expired, so this search data can't be refreshed.",
+      "reconnect": "Reconnect Google"
     }
   },
   "generatePost": {

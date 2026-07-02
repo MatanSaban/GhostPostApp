@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { X, Search, Loader2, Check } from 'lucide-react';
 import { useTranslation, useLocale } from '@/app/context/locale-context';
+import { decodeDisplayUrl } from '@/lib/urlDisplay';
 import styles from './LinkEntityModal.module.css';
 
 /**
@@ -114,11 +115,17 @@ export function LinkEntityModal({ isOpen, onClose, siteId, keyword, onLinked }) 
     return entities.filter((e) => {
       if (typeFilter !== '__all__' && (e.entityType?.slug || 'unknown') !== typeFilter) return false;
       if (!q) return true;
-      return (
-        (e.title || '').toLowerCase().includes(q) ||
-        (e.url || '').toLowerCase().includes(q) ||
-        (e.slug || '').toLowerCase().includes(q)
-      );
+      // Match against both the raw (percent-encoded) and decoded forms so a
+      // Hebrew URL like /%D7%A2%D7%9E%D7%95%D7%93 is found whether the user
+      // types Hebrew ("עמוד") or the encoded path.
+      const haystack = [
+        e.title,
+        e.url,
+        decodeDisplayUrl(e.url),
+        e.slug,
+        decodeDisplayUrl(e.slug),
+      ].filter(Boolean).join(' ').toLowerCase();
+      return haystack.includes(q);
     });
   }, [entities, search, typeFilter]);
 
@@ -256,7 +263,7 @@ export function LinkEntityModal({ isOpen, onClose, siteId, keyword, onLinked }) 
                       <div className={styles.entityBody}>
                         <div className={styles.entityTitle}>{entity.title || entity.slug}</div>
                         {entity.url && (
-                          <div className={styles.entityUrl} dir="ltr">{entity.url}</div>
+                          <div className={styles.entityUrl} dir="ltr">{decodeDisplayUrl(entity.url)}</div>
                         )}
                       </div>
                       <div className={styles.entityMeta}>

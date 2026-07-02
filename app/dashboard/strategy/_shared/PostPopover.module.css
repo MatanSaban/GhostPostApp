@@ -671,3 +671,61 @@ a.preflightEntityLink:hover {
   background: rgba(59, 130, 246, 0.12);
   color: rgb(37, 99, 235);
 }
+
+/* ── Assisted publish panel (custom sites, no write transport) ── */
+.assistedSection {
+  padding: 0.75rem 1rem;
+  border-top: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.assistedNotice {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.4rem;
+  font-size: 0.75rem;
+  line-height: 1.35;
+  color: rgb(180, 83, 9);
+  background: rgba(245, 158, 11, 0.12);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  border-radius: var(--radius-md, 0.5rem);
+  padding: 0.5rem 0.6rem;
+}
+
+.assistedNotice svg {
+  flex: 0 0 auto;
+  margin-top: 1px;
+}
+
+.assistedActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.assistedBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  padding: 0.35rem 0.6rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md, 0.5rem);
+  background: var(--background-card, var(--background));
+  color: var(--foreground);
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.assistedBtn:hover:not(:disabled) {
+  border-color: var(--primary, #8231f1);
+  background: rgba(130, 49, 241, 0.08);
+}
+
+.assistedBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

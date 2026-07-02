@@ -280,32 +280,47 @@ function buildSystemPrompt(site, siteInfo, { isWordPress = false } = {}) {
   let prompt = BASE_SYSTEM_PROMPT;
 
   // Capability gate - what the agent can actually DO on this specific site.
-  // Right now the platform supports automated fixes ONLY on WordPress sites
-  // with the GhostSEO plugin connected. Shopify support is on the roadmap;
-  // generic / unconnected sites stay read-only for now. This block is read by
-  // the model BEFORE the rest of the site context, so it overrides any
+  // Two SEPARATE capabilities:
+  //   1. PLATFORM actions (audits, agent scan, keyword research, competitor
+  //      analysis, content campaigns) run on the GhostSEO platform, not on the
+  //      site's code, so they work for EVERY site regardless of platform.
+  //   2. SITE writes (content, SEO meta, redirects, snippets, images) require a
+  //      connected write transport - today the WordPress plugin. Custom / SDK /
+  //      edge-proxy transports flip this on in later phases.
+  // This block is read BEFORE the rest of the site context, so it overrides any
   // "always offer to fix it" instinct from the base prompt.
   const platform = String(site?.platform || '').toLowerCase();
   const isShopifyConnected = platform === 'shopify' && site?.siteKey && site?.siteSecret; // future
-  const canPerformFixes = !!isWordPress; // (|| isShopifyConnected) when Shopify ships
+  const canPerformFixes = !!isWordPress; // native SITE writes; (|| isShopifyConnected) when Shopify ships
+  // Custom / non-CMS sites (not WordPress, not Shopify) get the platform-neutral
+  // create_post / update_seo / create_redirect tools, which GENERATE copy-ready
+  // changes (assisted) until an SDK / edge transport is connected.
+  const isCustom = !!site && !isWordPress && platform !== 'shopify';
   if (site) {
     prompt += `\n\n=== AGENT CAPABILITIES ON THIS SITE ===`;
+    prompt += `\n• Read-only analysis: ✅ enabled (analyze_page, web_search, fetch_url, get_keywords, get_competitors, get_site_audit_results, get_agent_insights).
+• Platform actions: ✅ enabled - run_site_audit, run_agent_scan, research_keywords, add_competitor, scan_competitor_page, create_content_campaign. These run on the GhostSEO platform (not on the site itself), so they work on ANY site. Use propose_action to run them.`;
     if (canPerformFixes) {
-      prompt += `\n• Read-only analysis: ✅ enabled (analyze_page, web_search, fetch_url, get_keywords, get_competitors, get_site_audit_results, get_agent_insights, run_site_audit, run_agent_scan)
-• Automated fixes (writes): ✅ enabled - ${isWordPress ? 'WordPress with GhostSEO plugin connected' : 'Shopify connected'}. You may use propose_action to update content, SEO meta, redirects, snippets, images, etc.`;
+      prompt += `\n• Automated site changes (writes): ✅ enabled - ${isWordPress ? 'WordPress with the GhostSEO plugin connected' : 'connected'}. Use propose_action to update content, SEO meta, redirects, snippets, images, etc.`;
+    } else if (isCustom) {
+      prompt += `\n• Automated site changes (writes): ⚙️ ASSISTED - this site has no connected write transport yet, so you can't change it directly. BUT you have three tools that GENERATE the exact change for the user to paste in:
+  - create_post — draft a new page/post (returns ready-to-publish HTML + meta)
+  - update_seo — set a page's title / description / canonical (returns ready-to-paste <head> tags)
+  - create_redirect — (returns ready-to-paste redirect config for Next.js / Netlify / Vercel / nginx / Apache)
+When the user wants to add/change content, SEO meta, or a redirect, USE propose_action with these tools. The user gets a copy-ready result they apply themselves (you are NOT writing to the live site yet - be honest about that).
+
+For OTHER site changes NOT covered by those tools (images, code snippets, H1 placement, favicon, security headers): give MANUAL guidance - be specific about WHERE in their code/host to make the change, and assume you don't have hands on the site.
+
+When relevant, mention the upgrade path: "Once you connect the GhostSEO SDK or managed proxy, I'll apply these automatically instead of handing you snippets."`;
     } else {
       const platformLabel = platform === 'shopify' ? 'Shopify (not yet supported)' : (site.platform || 'this platform');
-      prompt += `\n• Read-only analysis: ✅ enabled (analyze_page, web_search, fetch_url, get_keywords, get_competitors, get_site_audit_results, get_agent_insights, run_site_audit, run_agent_scan)
-• Automated fixes (writes): ❌ NOT enabled on this site - ${platformLabel} doesn't have the GhostSEO plugin connected.
+      prompt += `\n• Automated site changes (writes): ❌ NOT enabled - ${platformLabel} has no connected write transport (GhostSEO plugin / SDK / edge proxy).
 
-CRITICAL RULES when fixes are NOT enabled - violating these breaks user trust:
-1. NEVER offer to "fix it for you" / "update the H1" / "rewrite the meta description" / "add the redirect" / "generate the image and set it as featured" / "create the post" / etc. The platform CANNOT do any of those on this site - the user would approve a plan that simply cannot run.
-2. NEVER call propose_action on this site. It only exists for connected WP/Shopify sites. You don't even see it as a tool here.
-3. Phrase recommendations as MANUAL guidance: "you'll want to update the H1 to '<X>' in your CMS" / "in your SEO plugin, set the meta description to '<X>'" / "your CMS admin → Pages → Home → edit the title". Be specific about WHERE to do it (Wix admin / Squarespace editor / WordPress admin / etc.) but assume YOU don't have hands.
-4. End each recommendation with the option to upgrade access: "If you connect the GhostSEO plugin to your WordPress site (or wait for Shopify support, coming soon), I can do all of this for you automatically. Want me to walk you through connecting the plugin?"
-5. You CAN still run the read tools (analyze, search, audit) freely - they don't change anything on the site, so they're safe everywhere.
-
-If the user asks you to "do" / "fix" / "change" / "update" something on this site, politely explain in their language that automated changes need the plugin connection, then give them the exact manual steps.`;
+CRITICAL RULES for SITE CHANGES (content, SEO meta, redirects, snippets, images, H1, favicon) - violating these breaks user trust:
+1. Do NOT use propose_action to change the SITE's content/SEO/redirects/snippets/images. The platform cannot write to this site yet - the user would approve a plan that cannot run. (You MAY still use propose_action for the PLATFORM actions listed above - audits, keyword research, competitor analysis, campaigns.)
+2. Phrase site-change recommendations as MANUAL guidance: "in your CMS/codebase, set the meta description to '<X>'" / "in your framework's <head>, add this canonical tag". Be specific about WHERE, but assume you don't have hands ON THE SITE.
+3. End site-change recommendations with the upgrade path: "If you connect GhostSEO to this site (install the plugin on WordPress, add our SDK to your code, or enable the managed proxy), I can apply these automatically. Want me to walk you through it?"
+4. If the user asks you to "do" / "fix" / "change" / "update" something ON THE SITE, explain in their language that automated site changes need a connected transport, then give the exact manual steps.`;
     }
     prompt += `\n=== END CAPABILITIES ===`;
 
@@ -313,7 +328,7 @@ If the user asks you to "do" / "fix" / "change" / "update" something on this sit
 - Site name: ${site.name}
 - URL: ${site.url}
 - Platform: ${site.platform || 'Unknown'}
-- Connected for automated fixes: ${canPerformFixes ? 'yes' : 'no'}`;
+- Connected for automated site changes: ${canPerformFixes ? 'yes' : 'no'}`;
   }
 
   if (siteInfo) {
@@ -568,9 +583,14 @@ export async function POST(request) {
   // 0 output tokens). Now isWordPress only gates the wp_* WordPress-specific
   // tools and propose_action (writes need a connected plugin), while reads
   // are exposed everywhere.
-  const allToolDefs = getChatTools({ isWordPress });
-  // Inject propose_action only when there are write tools to wrap (WP sites).
-  const needsTools = !!isWordPress;
+  const allToolDefs = getChatTools({ isWordPress, isShopify: site?.platform?.toLowerCase() === 'shopify' });
+  // Inject propose_action whenever there are approval-required tools to wrap.
+  // Platform actions (run_site_audit, research_keywords, add_competitor,
+  // create_content_campaign, …) exist on EVERY site, so propose_action is
+  // available everywhere; non-WP sites simply have no wp_* site-write tools to
+  // reference (getChatTools omits them). The system prompt above tells the model
+  // which changes it may actually propose on this specific site.
+  const needsTools = Object.keys(allToolDefs).some((name) => toolRequiresApproval(name));
 
   // Separate read-only tools from write tools.
   // Write tools are NOT registered as callable tools - the AI accesses them

@@ -37,6 +37,7 @@ import { enforceCredits } from '@/lib/account-limits';
 import { notifyThirdPartyAiFailure } from '@/lib/admin-alerts';
 import { invalidateAudit } from '@/lib/cache/invalidate.js';
 import { getHandler } from '@/lib/audit/fixers';
+import { resolveIntegrationType, INTEGRATION_TYPES } from '@/lib/cms';
 
 const SESSION_COOKIE = 'user_session';
 
@@ -58,8 +59,15 @@ async function getAuthenticatedUser() {
   }
 }
 
-function isPluginConnected(site) {
-  return site?.platform === 'wordpress'
+// Whether the site can auto-apply audit fixes natively. Today the fixer apply
+// handlers push through the WordPress plugin, so this is true when the site's
+// resolved transport is the WordPress plugin and it's connected. Deriving the
+// transport from the registry (instead of a hardcoded `platform === 'wordpress'`)
+// also catches legacy WordPress rows with a null `platform` but a real plugin
+// connection. Other transports fall back to the assisted/manual outputs the
+// fixers already return until their native apply path is wired.
+function canApplyFixesNatively(site) {
+  return resolveIntegrationType(site) === INTEGRATION_TYPES.WORDPRESS_PLUGIN
     && site?.connectionStatus === 'CONNECTED'
     && !!site?.siteKey;
 }
@@ -139,7 +147,7 @@ export async function POST(request) {
         : { id: siteId, accountId: { in: accountIds } },
       select: {
         id: true, url: true, name: true, accountId: true,
-        platform: true, connectionStatus: true, siteKey: true, siteSecret: true,
+        platform: true, integrationType: true, connectionStatus: true, siteKey: true, siteSecret: true,
       },
     });
     if (!site) return err(404, 'SITE_NOT_FOUND', 'Site not found');
@@ -149,7 +157,7 @@ export async function POST(request) {
       return err(500, 'HANDLER_MISSING', `Handler not implemented: ${fixer.handler}`);
     }
 
-    const wpAuto = isPluginConnected(site);
+    const wpAuto = canApplyFixesNatively(site);
     const ctx = { user, site, fixer, issueType, payload, wpAuto, accountId: site.accountId };
 
     if (action === 'preview') return handlePreview(ctx, auditId);

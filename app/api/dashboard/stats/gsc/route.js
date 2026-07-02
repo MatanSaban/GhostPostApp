@@ -64,7 +64,9 @@ export async function GET(request) {
 
     const integration = site.googleIntegration;
     if (!integration || !integration.gscConnected || !integration.gscSiteUrl) {
-      return NextResponse.json({ gsc: null, topPages: [], topQueries: [] });
+      // Explicit flag so clients can tell "not connected" apart from
+      // "connected but no data" (both otherwise look like empty results).
+      return NextResponse.json({ gsc: null, topPages: [], topQueries: [], gscConnected: false });
     }
 
     // Refresh token if needed
@@ -88,7 +90,7 @@ export async function GET(request) {
         });
       } catch (err) {
         console.error('[GSC] Token refresh failed:', err);
-        return NextResponse.json({ gsc: null, topPages: [], topQueries: [], tokenError: true });
+        return NextResponse.json({ gsc: null, topPages: [], topQueries: [], gscConnected: true, tokenError: true });
       }
     }
 
@@ -127,6 +129,10 @@ export async function GET(request) {
     if (section === 'trackedKeywords' && keywordsParam) {
       const keywords = keywordsParam.split(',').map(k => k.trim()).filter(Boolean);
       const forceRefresh = searchParams.get('forceRefresh') === 'true';
+      // noStore: bypass the shared per-range cache entirely. Used by single-
+      // keyword refreshes so they don't overwrite the full-set cache with a
+      // one-keyword result (which would wipe everyone else's metrics).
+      const noStore = searchParams.get('noStore') === 'true';
       if (keywords.length > 0) {
         // Determine cache key from the date span (maps to preset or custom dates)
         const cacheKey = (() => {
@@ -140,8 +146,8 @@ export async function GET(request) {
 
         const TWELVE_HOURS = 12 * 60 * 60 * 1000;
 
-        // Check cache (skip if forceRefresh)
-        const cached = forceRefresh ? null : await prisma.gscKeywordCache.findUnique({
+        // Check cache (skip if forceRefresh or noStore)
+        const cached = (forceRefresh || noStore) ? null : await prisma.gscKeywordCache.findUnique({
           where: { siteId_rangeKey: { siteId, rangeKey: cacheKey } },
         });
 
@@ -158,8 +164,9 @@ export async function GET(request) {
             return [];
           });
 
-          // Save to cache (only if we got data)
-          if (result.trackedQueries && result.trackedQueries.length > 0) {
+          // Save to cache (only if we got data, and not a single-keyword
+          // noStore refresh which holds a partial result set)
+          if (!noStore && result.trackedQueries && result.trackedQueries.length > 0) {
             await prisma.gscKeywordCache.upsert({
               where: { siteId_rangeKey: { siteId, rangeKey: cacheKey } },
               update: { data: result.trackedQueries, fetchedAt: new Date() },
@@ -174,6 +181,7 @@ export async function GET(request) {
 
     const hasTokenError = isAuthError(errors.gsc) || isAuthError(errors.topPages) || isAuthError(errors.topQueries) || isAuthError(errors.trackedKeywords);
     if (hasTokenError) result.tokenError = true;
+    result.gscConnected = true;
 
     return NextResponse.json(result);
   } catch (error) {

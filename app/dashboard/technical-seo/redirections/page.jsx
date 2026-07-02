@@ -19,6 +19,7 @@ import { useLocale } from '@/app/context/locale-context';
 import { useSite } from '@/app/context/site-context';
 import { RedirectForm } from './components';
 import { Button, Skeleton } from '@/app/dashboard/components';
+import { decodeDisplayUrl } from '@/lib/urlDisplay';
 import styles from './page.module.css';
 
 export default function RedirectionsPage() {
@@ -455,10 +456,10 @@ export default function RedirectionsPage() {
                       </button>
                     </td>
                     <td>
-                      <span className={styles.urlPath} dir="ltr">{redirect.sourceUrl}</span>
+                      <span className={styles.urlPath} dir="ltr">{decodeDisplayUrl(redirect.sourceUrl)}</span>
                     </td>
                     <td>
-                      <span className={styles.urlPath} dir="ltr">{redirect.targetUrl}</span>
+                      <span className={styles.urlPath} dir="ltr">{decodeDisplayUrl(redirect.targetUrl)}</span>
                     </td>
                     <td>
                       <span className={`${styles.typeBadge} ${styles[`type${getTypeCode(redirect.type)}`]}`}>

@@ -36,7 +36,7 @@ export function extractOrigin(url) {
   try { return new URL(normaliseSiteUrl(url)).origin; } catch { return ''; }
 }
 
-export function usePreviewBridge({ siteUrl, siteId, iframeRef, enabled = true, bridgeTimeoutMs = 8000 }) {
+export function usePreviewBridge({ siteUrl, siteId, iframeRef, enabled = true, bridgeTimeoutMs = 8000, previewMode = 'direct' }) {
   const [iframeReady, setIframeReady] = useState(false);
   const [currentPreviewUrl, setCurrentPreviewUrl] = useState('/');
   const [selectedElement, setSelectedElement] = useState(null);
@@ -54,11 +54,22 @@ export function usePreviewBridge({ siteUrl, siteId, iframeRef, enabled = true, b
   const expectedOriginRef = useRef(expectedOrigin);
   useEffect(() => { expectedOriginRef.current = expectedOrigin; }, [expectedOrigin]);
 
+  // Where to postMessage the iframe. Direct mode targets the customer's origin;
+  // proxy mode serves the page from OUR origin, so we target window.location.
+  const postOriginRef = useRef('*');
+  useEffect(() => {
+    postOriginRef.current = previewMode === 'proxy'
+      ? (typeof window !== 'undefined' ? window.location.origin : '*')
+      : (expectedOrigin || '*');
+  }, [previewMode, expectedOrigin]);
+
   // Fetch a signed preview token when enabled + siteId is known.
   // The token lets the plugin trust iframe-embed requests from any platform
   // origin (dev localhost, staging, production) without a Referer allowlist.
   useEffect(() => {
-    if (!enabled || !siteId) {
+    if (!enabled || !siteId || previewMode === 'proxy') {
+      // Proxy mode is authenticated by session at the proxy endpoint - no
+      // signed plugin token needed.
       setSignedToken(null);
       setTokenState('idle');
       return;
@@ -82,7 +93,7 @@ export function usePreviewBridge({ siteUrl, siteId, iframeRef, enabled = true, b
         setTokenState('error');
       });
     return () => { cancelled = true; };
-  }, [enabled, siteId]);
+  }, [enabled, siteId, previewMode]);
 
   const clearBridgeTimer = useCallback(() => {
     if (bridgeTimerRef.current) {
@@ -182,6 +193,15 @@ export function usePreviewBridge({ siteUrl, siteId, iframeRef, enabled = true, b
   }, [enabled, handleMessage, startBridgeTimer, clearBridgeTimer]);
 
   const buildSrc = useCallback((path) => {
+    // Proxy mode: same-origin preview via the on-demand proxy (custom sites,
+    // no plugin/DNS). The bridge is injected server-side; the proxy is
+    // session-authenticated, so no signed token is needed.
+    if (previewMode === 'proxy') {
+      if (!siteId) return '';
+      const origin = typeof window !== 'undefined' ? window.location.origin : '';
+      const qs = new URLSearchParams({ siteId, path: path || '/', gp_editor: 'true', gp_origin: origin });
+      return `/api/preview/proxy?${qs.toString()}`;
+    }
     if (!siteUrl) return '';
     // If a siteId was supplied, the caller expects signed URLs - wait for the
     // token before emitting a src (prevents the plugin from rejecting an
@@ -192,14 +212,14 @@ export function usePreviewBridge({ siteUrl, siteId, iframeRef, enabled = true, b
     }
     // Legacy unsigned path (old callers that haven't opted into signed mode)
     return buildIframeSrc(siteUrl, path);
-  }, [siteUrl, siteId, signedToken]);
+  }, [siteUrl, siteId, signedToken, previewMode]);
 
   const iframeSrc = buildSrc('/');
 
   const postToIframe = useCallback((type, payload) => {
     const target = iframeRef?.current?.contentWindow;
     if (!target) return;
-    target.postMessage(Object.assign({ type }, payload), expectedOriginRef.current || '*');
+    target.postMessage(Object.assign({ type }, payload), postOriginRef.current || '*');
   }, [iframeRef]);
 
   const toggleInspector = useCallback(() => {
@@ -209,7 +229,7 @@ export function usePreviewBridge({ siteUrl, siteId, iframeRef, enabled = true, b
       if (target) {
         target.postMessage(
           { type: 'GP_SET_INSPECTOR_ENABLED', enabled: next },
-          expectedOriginRef.current || '*',
+          postOriginRef.current || '*',
         );
       }
       return next;

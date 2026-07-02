@@ -23,6 +23,57 @@ async function verifySiteAccess(siteId, user) {
 }
 
 /**
+ * GET /api/contents/[id]
+ *
+ * Return a single Content record with the fields needed to publish it - used by
+ * the "publish manually" panel for ASSISTED content (custom sites with no
+ * connected write transport), where the generated output is stored rather than
+ * pushed to the site.
+ */
+export async function GET(request, { params }) {
+  try {
+    const user = await getAuthenticatedUser();
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const { id } = await params;
+
+    const content = await prisma.content.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        siteId: true,
+        title: true,
+        slug: true,
+        status: true,
+        type: true,
+        publishMode: true,
+        assistedOutput: true,
+        metaTitle: true,
+        metaDescription: true,
+        publishedAt: true,
+        body: { select: { generatedHtml: true, featuredImageAlt: true } },
+      },
+    });
+
+    if (!content) {
+      return NextResponse.json({ error: 'Content not found' }, { status: 404 });
+    }
+
+    const site = await verifySiteAccess(content.siteId, user);
+    if (!site) {
+      return NextResponse.json({ error: 'No access' }, { status: 404 });
+    }
+
+    return NextResponse.json({ content });
+  } catch (error) {
+    console.error('[Contents API] GET error:', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  }
+}
+
+/**
  * PATCH /api/contents/[id]
  *
  * Update a single Content record. Only allowed fields are accepted.

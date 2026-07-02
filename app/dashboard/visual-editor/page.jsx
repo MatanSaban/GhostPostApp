@@ -49,7 +49,7 @@ export default function VisualEditorPage() {
     toggleInspector,
     resetPreviews,
     clearSelection,
-  } = usePreviewBridge({ siteUrl: selectedSite?.url, siteId: selectedSite?.id, iframeRef });
+  } = usePreviewBridge({ siteUrl: selectedSite?.url, siteId: selectedSite?.id, iframeRef, previewMode: caps.previewMode });
 
   /* ---- chat state ---- */
   const [conversationId, setConversationId] = useState(null);
@@ -134,16 +134,20 @@ export default function VisualEditorPage() {
     );
   }
 
-  if (!caps.supportsVisualEditor) {
+  // Preview works for any site that has a preview transport: 'direct' (WordPress
+  // plugin, signed URL) or 'proxy' (custom sites, on-demand preview proxy).
+  // Only platforms with no preview path (e.g. Shopify, theme-locked) are gated.
+  if (!caps.previewMode || caps.previewMode === 'none') {
     return (
       <PlatformUnsupportedNotice
         feature={t('visualEditor.title') || 'Visual Editor'}
         platform={caps.platform}
-        reason={t('visualEditor.unsupportedReason') || 'The Visual Editor needs live DOM manipulation via the GhostSEO WordPress plugin - which is WordPress-specific.'}
+        reason={t('visualEditor.unsupportedReason') || 'The Visual Editor needs a live preview transport - the GhostSEO WordPress plugin, or the SDK / preview proxy for custom sites.'}
       />
     );
   }
-  if (!selectedSite.siteKey) {
+  // Direct (WordPress) preview needs the connected plugin; proxy mode does not.
+  if (caps.previewMode === 'direct' && !selectedSite.siteKey) {
     return (
       <div className={styles.emptyState}>
         <p>Visual Editor requires a connected WordPress site with the GhostSEO plugin.</p>

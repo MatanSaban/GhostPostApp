@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
-import { TrendingUp, TrendingDown, Minus, Search, Loader2, Tag, Trash2, Plus, X, Sparkles, BarChart3, Crosshair, Trophy, ChevronDown, ChevronUp, Info, Navigation, ShoppingCart, DollarSign, ExternalLink, FileText, Wand2, Calendar, ArrowUpDown, Link2, Link2Off } from 'lucide-react';
+import { TrendingUp, TrendingDown, Minus, Search, Loader2, Tag, Trash2, Plus, X, Sparkles, BarChart3, Crosshair, Trophy, ChevronDown, ChevronUp, Info, Navigation, ShoppingCart, DollarSign, ExternalLink, FileText, Wand2, Calendar, ArrowUpDown, Link2, Link2Off, MapPin, RefreshCw } from 'lucide-react';
 import { useSite } from '@/app/context/site-context';
 import { useTranslation } from '@/app/context/locale-context';
 import { emitCreditsUpdated } from '@/app/context/user-context';
@@ -10,6 +10,7 @@ import { handleLimitError } from '@/app/context/limit-guard-context';
 import { usePermissions } from '@/app/hooks/usePermissions';
 import { Skeleton } from '@/app/dashboard/components/Skeleton';
 import { Button } from '@/app/dashboard/components';
+import { decodeDisplayUrl } from '@/lib/urlDisplay';
 import GeneratePostModal from './GeneratePostModal';
 import { LinkEntityModal } from './LinkEntityModal';
 import styles from '../page.module.css';
@@ -129,6 +130,7 @@ function KeywordsPageSkeleton({ t }) {
           <Skeleton width="3rem" height="0.75rem" borderRadius="sm" />
           <Skeleton width="3rem" height="0.75rem" borderRadius="sm" />
           <Skeleton width="3rem" height="0.75rem" borderRadius="sm" />
+          <Skeleton width="3rem" height="0.75rem" borderRadius="sm" />
           <Skeleton width="2rem" height="0.75rem" borderRadius="sm" />
           <Skeleton width="3rem" height="0.75rem" borderRadius="sm" />
           <Skeleton width="4rem" height="0.75rem" borderRadius="sm" />
@@ -140,6 +142,9 @@ function KeywordsPageSkeleton({ t }) {
             <div key={i} className={styles.tableRow}>
               <div className={styles.keywordCell}>
                 <Skeleton width={`${55 + (i % 3) * 15}%`} height="0.875rem" borderRadius="sm" />
+              </div>
+              <div className={`${styles.cell} ${styles.positionCell}`}>
+                <Skeleton width="2.5rem" height="1.5rem" borderRadius="full" />
               </div>
               <div className={`${styles.cell} ${styles.positionCell}`}>
                 <Skeleton width="2.5rem" height="1.5rem" borderRadius="full" />
@@ -200,14 +205,25 @@ export function KeywordsContent() {
   const [linkEntityKeyword, setLinkEntityKeyword] = useState(null); // keyword for the "link existing entity" modal
   const [unlinkingKeywordId, setUnlinkingKeywordId] = useState(null); // keyword mid-unlink (spinner on its button)
   const [gscData, setGscData] = useState(null); // GSC metrics keyed by query
+  const [gscStatus, setGscStatus] = useState(null); // null | 'ok' | 'notConnected' | 'tokenError'
   const [gscLoading, setGscLoading] = useState(false);
   const [gscPreset, setGscPreset] = useState('30d');
   const [gscCustomStart, setGscCustomStart] = useState('');
   const [gscCustomEnd, setGscCustomEnd] = useState('');
-  const [sortBy, setSortBy] = useState('keyword'); // keyword, position, clicks, impressions, ctr, status
+  const [sortBy, setSortBy] = useState('keyword'); // keyword, position, serp, clicks, impressions, ctr, status
   const [sortDir, setSortDir] = useState('asc'); // asc, desc
   const [refreshingVolume, setRefreshingVolume] = useState(false);
+  const [checkingRanks, setCheckingRanks] = useState(false);
+  const [serpGeo, setSerpGeo] = useState(null); // { countryCode, label, languageCode } the last rank check ran against
+  const [serpBillingError, setSerpBillingError] = useState(false);
+  const [rowBusy, setRowBusy] = useState(new Set()); // per-cell refresh keys: `${keywordId}:rank|vol|gsc`
   const dropdownRef = useRef(null);
+
+  const setRowBusyKey = (key, on) => setRowBusy(prev => {
+    const s = new Set(prev);
+    if (on) s.add(key); else s.delete(key);
+    return s;
+  });
 
   // Close dropdowns when clicking outside
   useEffect(() => {
@@ -230,6 +246,7 @@ export function KeywordsContent() {
 
   useEffect(() => {
     if (!selectedSite?.id) return;
+    didAutoFill.current = false; // re-run the column auto-fill for the new site
     fetchKeywords(selectedSite.id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedSite?.id]);
@@ -309,6 +326,9 @@ export function KeywordsContent() {
       );
       if (res.ok) {
         const json = await res.json();
+        if (json.gscConnected === false) setGscStatus('notConnected');
+        else if (json.tokenError) setGscStatus('tokenError');
+        else setGscStatus('ok');
         const map = new Map();
         for (const q of (json.trackedQueries || [])) {
           map.set(q.query.toLowerCase().trim(), q);
@@ -352,6 +372,167 @@ export function KeywordsContent() {
       setRefreshingVolume(false);
     }
   };
+
+  // Live Google rank check - position of this site's domain in organic
+  // results per keyword. Results persist server-side on the Keyword
+  // rows, so they survive reloads; the button forces a fresh check, while the
+  // auto-fill on load only checks keywords that were never checked.
+  const checkRankings = async (keywordList, forceRefresh) => {
+    if (!selectedSite?.id || keywordList.length === 0 || checkingRanks) return;
+    setCheckingRanks(true);
+    try {
+      const res = await fetch('/api/keywords/serp-position', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          siteId: selectedSite.id,
+          keywords: keywordList,
+          forceRefresh,
+        }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.geo) setSerpGeo(data.geo);
+        setSerpBillingError(!!data.billingError);
+        if (data.results) {
+          setKeywords(prev => prev.map(kw => {
+            const r = data.results[kw.keyword.toLowerCase().trim()];
+            if (r === undefined || r === null) return kw;
+            return { ...kw, serpPosition: r.position, serpUrl: r.url, serpCheckedAt: r.checkedAt };
+          }));
+        }
+      }
+    } catch (err) {
+      console.error('Error checking keyword rankings:', err);
+    } finally {
+      setCheckingRanks(false);
+    }
+  };
+
+  // "Israel · Hebrew" style label for the market the rank check ran against.
+  const geoLabel = serpGeo
+    ? `${serpGeo.label}${serpGeo.languageCode ? ` · ${serpGeo.languageCode.toUpperCase()}` : ''}`
+    : null;
+
+  const handleCheckRankings = () => checkRankings(keywords.map(k => k.keyword), true);
+
+  // ---- Per-keyword refreshes (single-row, independent spinners) ----
+  // Each targets one keyword so the user can refresh a single cell without
+  // re-spending API quota on the whole table.
+
+  const refreshRowRank = async (kw) => {
+    const key = `${kw.id}:rank`;
+    if (rowBusy.has(key) || !selectedSite?.id) return;
+    setRowBusyKey(key, true);
+    try {
+      const res = await fetch('/api/keywords/serp-position', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ siteId: selectedSite.id, keywords: [kw.keyword], forceRefresh: true }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.geo) setSerpGeo(data.geo);
+        setSerpBillingError(!!data.billingError);
+        const r = data.results?.[kw.keyword.toLowerCase().trim()];
+        if (r) {
+          setKeywords(prev => prev.map(k =>
+            k.id === kw.id ? { ...k, serpPosition: r.position, serpUrl: r.url, serpCheckedAt: r.checkedAt } : k
+          ));
+        }
+      }
+    } catch (err) {
+      console.error('[Keywords] row rank refresh failed:', err);
+    } finally {
+      setRowBusyKey(key, false);
+    }
+  };
+
+  const refreshRowVolume = async (kw) => {
+    const key = `${kw.id}:vol`;
+    if (rowBusy.has(key) || !selectedSite?.id) return;
+    setRowBusyKey(key, true);
+    try {
+      const res = await fetch('/api/keywords/search-volume', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ siteId: selectedSite.id, keywords: [kw.keyword] }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        const vol = data.results?.[kw.keyword.toLowerCase().trim()];
+        if (vol?.avgMonthlySearches != null) {
+          setKeywords(prev => prev.map(k =>
+            k.id === kw.id ? { ...k, searchVolume: vol.avgMonthlySearches } : k
+          ));
+        }
+      }
+    } catch (err) {
+      console.error('[Keywords] row volume refresh failed:', err);
+    } finally {
+      setRowBusyKey(key, false);
+    }
+  };
+
+  // Refreshes all four GSC metrics (position/clicks/impressions/CTR) for one
+  // keyword - they all come from a single GSC fetch. noStore avoids clobbering
+  // the shared full-set cache with a single-keyword result.
+  const refreshRowGsc = async (kw) => {
+    const key = `${kw.id}:gsc`;
+    if (rowBusy.has(key) || !selectedSite?.id) return;
+    setRowBusyKey(key, true);
+    try {
+      let start, end;
+      if (gscPreset === 'custom' && gscCustomStart && gscCustomEnd) {
+        start = gscCustomStart; end = gscCustomEnd;
+      } else {
+        const range = getDateRange(gscPreset);
+        if (!range) return;
+        start = range.start; end = range.end;
+      }
+      const prevPeriod = getPreviousPeriod(start, end, gscPreset);
+      const kwParam = encodeURIComponent(kw.keyword);
+      const res = await fetch(
+        `/api/dashboard/stats/gsc?siteId=${selectedSite.id}&section=trackedKeywords&keywords=${kwParam}&startDate=${start}&endDate=${end}&compareStartDate=${prevPeriod.start}&compareEndDate=${prevPeriod.end}&forceRefresh=true&noStore=true`
+      );
+      if (res.ok) {
+        const json = await res.json();
+        if (json.gscConnected === false) setGscStatus('notConnected');
+        else if (json.tokenError) setGscStatus('tokenError');
+        else setGscStatus('ok');
+        const q = (json.trackedQueries || [])[0];
+        if (q) {
+          setGscData(prevMap => {
+            const m = new Map(prevMap || []);
+            m.set(q.query.toLowerCase().trim(), q);
+            return m;
+          });
+        }
+      }
+    } catch (err) {
+      console.error('[Keywords] row GSC refresh failed:', err);
+    } finally {
+      setRowBusyKey(key, false);
+    }
+  };
+
+  // Auto-fill missing column data once per site load. Both paths are
+  // cache-first server-side, so reloading the page doesn't re-spend API
+  // quota: volume comes from KeywordVolumeCache (30d TTL) and rank checks
+  // are limited to keywords that were never checked at all.
+  const didAutoFill = useRef(false);
+  useEffect(() => {
+    if (didAutoFill.current || keywords.length === 0) return;
+    didAutoFill.current = true;
+    if (keywords.some(kw => kw.searchVolume == null)) {
+      handleRefreshVolume();
+    }
+    const neverChecked = keywords.filter(kw => !kw.serpCheckedAt).map(kw => kw.keyword);
+    if (neverChecked.length > 0) {
+      checkRankings(neverChecked, false);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [keywords]);
 
   const handleAddKeyword = async (e) => {
     e?.preventDefault();
@@ -598,6 +779,11 @@ export function KeywordsContent() {
         valA = parseFloat(gscA?.position) || 999;
         valB = parseFloat(gscB?.position) || 999;
         break;
+      case 'serp':
+        // Checked-but-not-found sorts after ranked rows, unchecked rows last
+        valA = a.serpPosition || (a.serpCheckedAt ? 500 : 999);
+        valB = b.serpPosition || (b.serpCheckedAt ? 500 : 999);
+        break;
       case 'clicks':
         valA = gscA?.clicks || 0;
         valB = gscB?.clicks || 0;
@@ -629,7 +815,7 @@ export function KeywordsContent() {
     } else {
       setSortBy(column);
       // Default to desc for metrics (higher is better), asc for text
-      setSortDir(['position'].includes(column) ? 'asc' : ['clicks', 'impressions', 'ctr'].includes(column) ? 'desc' : 'asc');
+      setSortDir(['position', 'serp'].includes(column) ? 'asc' : ['clicks', 'impressions', 'ctr'].includes(column) ? 'desc' : 'asc');
     }
   };
 
@@ -696,6 +882,39 @@ export function KeywordsContent() {
       ? t('keywordStrategy.tooltips.positionUp', { ranks: Math.abs(change), from: prevRank, to: curRank, period })
       : t('keywordStrategy.tooltips.positionDown', { ranks: Math.abs(change), from: prevRank, to: curRank, period });
   };
+
+  const serpTip = (kw) => {
+    if (!kw.serpCheckedAt) return undefined;
+    const date = new Date(kw.serpCheckedAt).toLocaleDateString(locale === 'he' ? 'he-IL' : 'en-US', { month: 'short', day: 'numeric' });
+    if (!kw.serpPosition) return t('keywordStrategy.serp.notFoundTooltip', { date });
+    if (!kw.serpUrl) return t('keywordStrategy.serp.rankTooltipNoUrl', { date });
+    // Decode percent-encoded paths (e.g. Hebrew slugs) so the tooltip shows
+    // readable text instead of %D7%92%D7%A0...; fall back to raw URL if invalid.
+    let displayUrl = kw.serpUrl;
+    try {
+      displayUrl = decodeURI(kw.serpUrl);
+    } catch {
+      // Malformed escape sequence — keep the original encoded URL.
+    }
+    return t('keywordStrategy.serp.rankTooltip', { url: displayUrl, date });
+  };
+
+  // A keyword's live rank can only be re-checked once every 24h (the server
+  // enforces this too). These drive the per-row button's disabled state and
+  // the "next refresh" messaging - no mention of why beyond the 24h window.
+  const SERP_COOLDOWN_MS = 24 * 60 * 60 * 1000;
+  const serpCooldownMsLeft = (kw) => {
+    if (!kw.serpCheckedAt) return 0;
+    const left = SERP_COOLDOWN_MS - (Date.now() - new Date(kw.serpCheckedAt).getTime());
+    return left > 0 ? left : 0;
+  };
+  const serpRankTip = (kw) => {
+    const left = serpCooldownMsLeft(kw);
+    if (left <= 0) return t('keywordStrategy.refreshRow.rank');
+    const hours = Math.ceil(left / 3600000);
+    return t('keywordStrategy.serp.cooldown', { hours });
+  };
+  const anyRankEligible = keywords.some((kw) => serpCooldownMsLeft(kw) === 0);
 
   // Check if positionChange value looks reasonable (actual rank diff should be small, not percentage)
   const isValidRankChange = (change, currentPos) => {
@@ -931,17 +1150,69 @@ export function KeywordsContent() {
             </p>
           </div>
           {keywords.length > 0 && (
-            <button
-              className={styles.addKeywordToggle}
-              onClick={handleRefreshVolume}
-              disabled={refreshingVolume}
-              title={t('keywordStrategy.refreshVolume')}
-            >
-              {refreshingVolume ? <Loader2 size={14} className={styles.spinner} /> : <BarChart3 size={14} />}
-              {t('keywordStrategy.refreshVolume')}
-            </button>
+            <div className={styles.cardHeaderActions}>
+              {geoLabel && (
+                <span
+                  className={`${styles.serpGeoChip} ${styles.hasTooltip}`}
+                  data-tooltip={t('keywordStrategy.serp.geoTooltip', { market: geoLabel })}
+                >
+                  <MapPin size={12} />
+                  {geoLabel}
+                </span>
+              )}
+              <button
+                className={styles.addKeywordToggle}
+                onClick={handleCheckRankings}
+                disabled={checkingRanks || !anyRankEligible}
+                title={anyRankEligible ? t('keywordStrategy.serp.checkTooltip') : t('keywordStrategy.serp.allFresh')}
+              >
+                {checkingRanks ? <Loader2 size={14} className={styles.spinner} /> : <MapPin size={14} />}
+                {t('keywordStrategy.serp.check')}
+              </button>
+              <button
+                className={styles.addKeywordToggle}
+                onClick={handleRefreshVolume}
+                disabled={refreshingVolume}
+                title={t('keywordStrategy.refreshVolume')}
+              >
+                {refreshingVolume ? <Loader2 size={14} className={styles.spinner} /> : <BarChart3 size={14} />}
+                {t('keywordStrategy.refreshVolume')}
+              </button>
+            </div>
           )}
         </div>
+
+        {/* Rank check couldn't complete mid-batch - tell the user instead of
+            leaving rows silently unchecked. */}
+        {serpBillingError && (
+          <div className={`${styles.gscNotice} ${styles.gscNoticeError}`}>
+            <Info size={14} />
+            <span>{t('keywordStrategy.serp.billingError')}</span>
+          </div>
+        )}
+
+        {/* Google search columns (Position/Clicks/Impressions/CTR) stay empty
+            without the Google connection - say so instead of silent dashes */}
+        {(gscStatus === 'notConnected' || gscStatus === 'tokenError') && (
+          <div className={styles.gscNotice}>
+            <Info size={14} />
+            <span>
+              {gscStatus === 'tokenError'
+                ? t('keywordStrategy.gscNotice.tokenError')
+                : t('keywordStrategy.gscNotice.notConnected')}
+            </span>
+            <Link
+              href={gscStatus === 'tokenError'
+                ? '/dashboard/settings?tab=integrations&reconnect=google'
+                : '/dashboard/settings?tab=integrations'}
+              className={styles.gscNoticeLink}
+            >
+              {gscStatus === 'tokenError'
+                ? t('keywordStrategy.gscNotice.reconnect')
+                : t('keywordStrategy.gscNotice.connect')}
+            </Link>
+          </div>
+        )}
 
         {filteredKeywords.length === 0 ? (
           <div className={styles.emptyState}>
@@ -968,6 +1239,10 @@ export function KeywordsContent() {
               <button className={`${styles.sortableHeader} ${sortBy === 'position' ? styles.active : ''}`} onClick={() => handleSort('position')}>
                 <span className={styles.hasTooltip} data-tooltip={t('keywordStrategy.tooltips.position')}>{t('keywordStrategy.position')}</span>
                 <SortIcon column="position" />
+              </button>
+              <button className={`${styles.sortableHeader} ${sortBy === 'serp' ? styles.active : ''}`} onClick={() => handleSort('serp')}>
+                <span className={styles.hasTooltip} data-tooltip={t('keywordStrategy.serp.columnTooltip')}>{t('keywordStrategy.serp.column')}</span>
+                <SortIcon column="serp" />
               </button>
               <span className={styles.hasTooltip} data-tooltip={t('keywordStrategy.tooltips.volume')}>{t('keywordStrategy.volume')}</span>
               <button className={`${styles.sortableHeader} ${sortBy === 'clicks' ? styles.active : ''}`} onClick={() => handleSort('clicks')}>
@@ -1007,7 +1282,7 @@ export function KeywordsContent() {
                         </span>
                       )}
                       {kw.tags?.includes('gsc') && (
-                        <span className={styles.gscBadge}>GSC</span>
+                        <span className={styles.gscBadge}>{t('keywordStrategy.fromGoogle')}</span>
                       )}
                       {kw.tags?.includes('manual') && (
                         <span className={styles.manualBadge}>
@@ -1018,24 +1293,87 @@ export function KeywordsContent() {
                     <div className={`${styles.cell} ${styles.positionCell}`}>
                       {gscLoading ? (
                         <Skeleton width="2.5rem" height="1.5rem" borderRadius="full" />
-                      ) : position ? (
-                        <>
-                          <span className={`${styles.positionBadge} ${styles[getPositionClass(position)]}`}>
-                            #{Math.round(position)}
-                          </span>
-                          {gsc && <RankChangeBadge 
-                            value={gsc.positionChange} 
-                            prevPos={gsc.prevPosition}
-                            currentPos={gsc.position}
-                            tooltip={positionTip(gsc.positionChange, gsc.position, gsc.prevPosition)} 
-                          />}
-                        </>
                       ) : (
-                        <span className={styles.noData}>-</span>
+                        <>
+                          {position ? (
+                            <>
+                              <span className={`${styles.positionBadge} ${styles[getPositionClass(position)]}`}>
+                                #{Math.round(position)}
+                              </span>
+                              {gsc && <RankChangeBadge
+                                value={gsc.positionChange}
+                                prevPos={gsc.prevPosition}
+                                currentPos={gsc.position}
+                                tooltip={positionTip(gsc.positionChange, gsc.position, gsc.prevPosition)}
+                              />}
+                            </>
+                          ) : (
+                            <span className={styles.noData}>-</span>
+                          )}
+                          <button
+                            type="button"
+                            className={styles.cellRefreshBtn}
+                            onClick={() => refreshRowGsc(kw)}
+                            disabled={rowBusy.has(`${kw.id}:gsc`)}
+                            title={t('keywordStrategy.refreshRow.gsc')}
+                          >
+                            {rowBusy.has(`${kw.id}:gsc`) ? <Loader2 size={11} className={styles.spinner} /> : <RefreshCw size={11} />}
+                          </button>
+                        </>
+                      )}
+                    </div>
+                    {/* Live Google rank for this site's domain */}
+                    <div className={`${styles.cell} ${styles.positionCell}`}>
+                      {checkingRanks ? (
+                        <Skeleton width="2.5rem" height="1.5rem" borderRadius="full" />
+                      ) : (
+                        <>
+                          {kw.serpCheckedAt ? (
+                            kw.serpPosition ? (
+                              <span
+                                className={`${styles.positionBadge} ${styles[getPositionClass(kw.serpPosition)]} ${styles.hasTooltip}`}
+                                data-tooltip={serpTip(kw)}
+                              >
+                                #{kw.serpPosition}
+                              </span>
+                            ) : (
+                              <span
+                                className={`${styles.positionBadge} ${styles.below20} ${styles.hasTooltip}`}
+                                data-tooltip={serpTip(kw)}
+                              >
+                                {t('keywordStrategy.serp.notFound')}
+                              </span>
+                            )
+                          ) : (
+                            <span className={styles.noData}>-</span>
+                          )}
+                          <button
+                            type="button"
+                            className={styles.cellRefreshBtn}
+                            onClick={() => refreshRowRank(kw)}
+                            disabled={rowBusy.has(`${kw.id}:rank`) || serpCooldownMsLeft(kw) > 0}
+                            title={serpRankTip(kw)}
+                          >
+                            {rowBusy.has(`${kw.id}:rank`) ? <Loader2 size={11} className={styles.spinner} /> : <RefreshCw size={11} />}
+                          </button>
+                        </>
                       )}
                     </div>
                     <div className={`${styles.cell} ${styles.volumeCell}`}>
-                      {gscLoading ? <Skeleton width="3rem" height="0.875rem" borderRadius="sm" /> : volume ? fmtNum(volume) : '-'}
+                      {gscLoading ? <Skeleton width="3rem" height="0.875rem" borderRadius="sm" /> : (
+                        <>
+                          {volume ? fmtNum(volume) : '-'}
+                          <button
+                            type="button"
+                            className={styles.cellRefreshBtn}
+                            onClick={() => refreshRowVolume(kw)}
+                            disabled={rowBusy.has(`${kw.id}:vol`)}
+                            title={t('keywordStrategy.refreshRow.volume')}
+                          >
+                            {rowBusy.has(`${kw.id}:vol`) ? <Loader2 size={11} className={styles.spinner} /> : <RefreshCw size={11} />}
+                          </button>
+                        </>
+                      )}
                     </div>
                     <div className={`${styles.cell} ${styles.gscMetricCell}`}>
                       {gscLoading ? (
@@ -1170,7 +1508,7 @@ export function KeywordsContent() {
                                   target="_blank"
                                   rel="noopener noreferrer"
                                   className={styles.externalLink}
-                                  title={matched?.url || kw.url}
+                                  title={decodeDisplayUrl(matched?.url || kw.url)}
                                 >
                                   <ExternalLink size={12} />
                                 </a>

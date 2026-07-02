@@ -485,6 +485,69 @@
   margin-bottom: 1.5rem;
 }
 
+.cardHeaderActions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.gscNotice {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  margin-bottom: 0.75rem;
+  font-size: 0.8125rem;
+  color: var(--muted-foreground);
+  background: rgba(251, 191, 36, 0.08);
+  border: 1px solid rgba(251, 191, 36, 0.3);
+  border-radius: var(--radius-md);
+
+  svg {
+    flex-shrink: 0;
+    color: #f59e0b;
+  }
+}
+
+.gscNoticeLink {
+  margin-inline-start: auto;
+  font-weight: 500;
+  color: var(--primary);
+  white-space: nowrap;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.gscNoticeError {
+  background: rgba(239, 68, 68, 0.08);
+  border-color: rgba(239, 68, 68, 0.3);
+
+  svg {
+    color: #ef4444;
+  }
+}
+
+.serpGeoChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--muted-foreground);
+  background: var(--background);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
+  white-space: nowrap;
+
+  svg {
+    color: var(--primary);
+  }
+}
+
 .cardTitle {
   font-size: 1.1875rem;
   font-weight: 600;
@@ -620,7 +683,7 @@
 /* Rankings Table */
 .tableHeader {
   display: grid;
-  grid-template-columns: 2fr 0.7fr 0.7fr 0.7fr 0.7fr 0.6fr 1fr 0.8fr 1fr 0.5fr;
+  grid-template-columns: 2fr 0.7fr 0.7fr 0.7fr 0.7fr 0.7fr 0.6fr 1fr 0.8fr 1fr 0.5fr;
   gap: 0.75rem;
   padding: 0.75rem 1rem;
   font-size: 0.75rem;
@@ -676,7 +739,7 @@
 
 .tableRow {
   display: grid;
-  grid-template-columns: 2fr 0.7fr 0.7fr 0.7fr 0.7fr 0.6fr 1fr 0.8fr 1fr 0.5fr;
+  grid-template-columns: 2fr 0.7fr 0.7fr 0.7fr 0.7fr 0.7fr 0.6fr 1fr 0.8fr 1fr 0.5fr;
   align-items: center;
   gap: 0.75rem;
   padding: 0.75rem 1rem;
@@ -961,7 +1024,8 @@
     padding: 0.4rem 0.6rem;
     border-radius: 6px;
     white-space: normal;
-    max-width: 220px;
+    width: max-content;
+    max-width: 300px;
     text-align: center;
     pointer-events: none;
     opacity: 0;
@@ -1282,6 +1346,56 @@
   flex-direction: column;
   align-items: flex-start;
   gap: 0.15rem;
+  position: relative;
+}
+
+.volumeCell {
+  position: relative;
+}
+
+/* Small per-cell refresh affordance - hidden until the row is hovered, so
+   each metric (Google rank / volume / GSC group) can be refreshed alone. */
+.cellRefreshBtn {
+  position: absolute;
+  top: 50%;
+  inset-inline-end: 0;
+  transform: translateY(-50%);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.3rem;
+  height: 1.3rem;
+  padding: 0;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: var(--background);
+  color: var(--muted-foreground);
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity var(--transition-fast), color var(--transition-fast);
+}
+
+.tableRow:hover .cellRefreshBtn {
+  opacity: 0.55;
+}
+
+.cellRefreshBtn:hover {
+  opacity: 1;
+  color: var(--primary);
+}
+
+.cellRefreshBtn:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+@media (max-width: 1024px) {
+  /* On stacked mobile rows there's no hover - keep the buttons visible. */
+  .cellRefreshBtn {
+    position: static;
+    transform: none;
+    opacity: 0.55;
+  }
 }
 
 /* Change Badges */

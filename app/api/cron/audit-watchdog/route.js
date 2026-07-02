@@ -11,6 +11,10 @@ export const maxDuration = 60;
 const STALE_MS = 5 * 60 * 1000;
 const HARD_LIMIT_MS = 4 * 60 * 60 * 1000;
 const FINAL_HARD_LIMIT_MS = 30 * 60 * 1000;
+// Discovery hands off to /continue. If the first chunk never wrote
+// pagesScanned≥1 within this window, the trigger handoff failed and
+// re-nudging hasn't recovered it — give up rather than nudge forever.
+const NO_PROGRESS_LIMIT_MS = 15 * 60 * 1000;
 
 function verifyAuth(request) {
   const authHeader = request.headers.get('authorization');
@@ -59,7 +63,7 @@ export async function GET(request) {
     select: {
       id: true, siteId: true, status: true, phase: true, deviceType: true,
       progress: true, startedAt: true, createdAt: true, updatedAt: true,
-      chunkLeaseUntil: true,
+      chunkLeaseUntil: true, pagesScanned: true,
     },
     take: 50, // soft cap so a backlog doesn't blow the cron's 60s budget
   });
@@ -72,7 +76,10 @@ export async function GET(request) {
     const totalAge = now - new Date(startedAt).getTime();
     const phase = audit.phase || null;
 
-    if (phase === 'scanning' && totalAge < HARD_LIMIT_MS) {
+    if (phase === 'scanning' && (audit.pagesScanned || 0) === 0 && totalAge > NO_PROGRESS_LIMIT_MS) {
+      // Discovery completed but no chunk ever ran. Nudges aren't recovering
+      // it — fall through to FAIL.
+    } else if (phase === 'scanning' && totalAge < HARD_LIMIT_MS) {
       // Same lease check the GET stale detector applies. Don't spawn a
       // competitor while a real chunk is mid-scan.
       if (audit.chunkLeaseUntil && audit.chunkLeaseUntil > new Date()) {

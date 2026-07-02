@@ -21,6 +21,7 @@ import {
   normaliseSiteUrl,
   usePreviewBridge,
 } from '@/app/hooks/usePreviewBridge';
+import { useCapabilities } from '@/app/hooks/useCapabilities';
 import { handleLimitError, emitLimitError } from '@/app/context/limit-guard-context';
 import styles from './ghost-chat-popup.module.css';
 
@@ -95,11 +96,13 @@ export const GhostChatPopup = forwardRef(function GhostChatPopup({ isOpen, onClo
   const urlPillRef = useRef(null);
   const pagesDropdownRef = useRef(null);
   const chatAreaRef = useRef(null);
+  const caps = useCapabilities();
   const previewBridge = usePreviewBridge({
     siteUrl: selectedSite?.url,
     siteId: selectedSite?.id,
     iframeRef,
     enabled: previewOpen,
+    previewMode: caps.previewMode,
   });
   const {
     iframeReady: previewReady,
@@ -115,7 +118,10 @@ export const GhostChatPopup = forwardRef(function GhostChatPopup({ isOpen, onClo
     navigateIframe,
   } = previewBridge;
   const previewBridgeTimedOut = previewConnectionState === 'bridge_timeout';
-  const previewSupported = selectedSite?.url && (selectedSite?.platform === 'wordpress' || !selectedSite?.platform);
+  // Preview works for any site with a preview transport: 'direct' (WordPress
+  // plugin, signed URL) or 'proxy' (custom sites, via the on-demand preview
+  // proxy). Only platforms with no preview path (e.g. Shopify) are excluded.
+  const previewSupported = !!selectedSite?.url && !!caps.previewMode && caps.previewMode !== 'none';
   const previewIframeSrc = previewSupported ? previewIframeSrcFromBridge : '';
   const reloadIframeRef = useRef(reloadIframe);
   useEffect(() => { reloadIframeRef.current = reloadIframe; }, [reloadIframe]);
@@ -2408,8 +2414,11 @@ export const GhostChatPopup = forwardRef(function GhostChatPopup({ isOpen, onClo
                   <span
                     className={styles.previewStatusWarn}
                     title={
-                      t('chat.preview.error.bridgeMissing') ||
-                      "Preview loaded, but the GhostSEO Connector bridge didn't respond. Make sure the plugin is installed and updated to the latest version."
+                      caps.previewMode === 'proxy'
+                        ? (t('chat.preview.error.bridgeMissingProxy') ||
+                           "Preview loaded, but the editor bridge didn't respond. This can happen on sites that heavily rewrite the DOM or block framing.")
+                        : (t('chat.preview.error.bridgeMissing') ||
+                           "Preview loaded, but the GhostSEO Connector bridge didn't respond. Make sure the plugin is installed and updated to the latest version.")
                     }
                   >
                     <AlertTriangle size={12} />

@@ -2,7 +2,7 @@
 
 import { useRef, useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { X, Check, Type, Tag, Calendar, Clock, Globe, ExternalLink, RefreshCw, Loader2, Sparkles, Eye, ChevronDown, ChevronUp, Pencil, Trash2, AlertTriangle } from 'lucide-react';
+import { X, Check, Type, Tag, Calendar, Clock, Globe, ExternalLink, RefreshCw, Loader2, Sparkles, Eye, ChevronDown, ChevronUp, Pencil, Trash2, AlertTriangle, Copy, Download } from 'lucide-react';
 import { ConfirmDialog } from '@/app/admin/components/AdminModal';
 import { useLocale } from '@/app/context/locale-context';
 import styles from './PostPopover.module.css';
@@ -64,6 +64,8 @@ export default function PostPopover({
   const [showPreview, setShowPreview] = useState(false);
   const [savingTitle, setSavingTitle] = useState(false);
   const [titleError, setTitleError] = useState(null);
+  const [assisted, setAssisted] = useState(null); // ASSISTED publish output (custom sites)
+  const [copied, setCopied] = useState('');
   const t = translations;
 
   // Close on outside click (skip when confirm dialog is open - it's a portal outside the popover)
@@ -77,6 +79,34 @@ export default function PostPopover({
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
   }, [onClose, confirmDelete]);
+
+  // For published pipeline posts, check whether they were published in ASSISTED
+  // mode (custom sites with no connected write transport). If so, surface a
+  // "publish manually" panel with the generated HTML + meta to copy.
+  useEffect(() => {
+    if (!post?.id || post.source !== 'pipeline' || post.dotStatus !== 'published') {
+      setAssisted(null);
+      return;
+    }
+    // If the list already told us the publish mode and it isn't ASSISTED
+    // (e.g. a WordPress-published post), skip the detail fetch entirely.
+    if (post.publishMode && post.publishMode !== 'ASSISTED') {
+      setAssisted(null);
+      return;
+    }
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch(`/api/contents/${post.id}`);
+        if (!res.ok) return;
+        const data = await res.json();
+        if (!cancelled && data.content?.publishMode === 'ASSISTED') {
+          setAssisted(data.content);
+        }
+      } catch { /* non-fatal */ }
+    })();
+    return () => { cancelled = true; };
+  }, [post?.id, post?.source, post?.dotStatus]);
 
   if (!post || !rect) return null;
 
@@ -197,6 +227,36 @@ export default function PostPopover({
     } finally {
       setRetrying(false);
     }
+  };
+
+  // ── Assisted publish (custom sites) helpers ──────────────────────
+  const assistedOut = assisted?.assistedOutput || {};
+  const assistedHtml = assistedOut.html || assisted?.body?.generatedHtml || '';
+  const assistedMetaTitle = assistedOut.metaTitle || assisted?.metaTitle || '';
+  const assistedMetaDesc = assistedOut.metaDescription || assisted?.metaDescription || '';
+  const assistedMetaBlock = [
+    assistedMetaTitle && `<title>${assistedMetaTitle}</title>`,
+    assistedMetaDesc && `<meta name="description" content="${String(assistedMetaDesc).replace(/"/g, '&quot;')}">`,
+  ].filter(Boolean).join('\n');
+
+  const copyText = async (text, key) => {
+    try {
+      await navigator.clipboard.writeText(text || '');
+      setCopied(key);
+      setTimeout(() => setCopied(''), 1500);
+    } catch { /* clipboard blocked */ }
+  };
+
+  const downloadHtml = () => {
+    const blob = new Blob([assistedHtml], { type: 'text/html' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${String(assisted?.slug || assisted?.title || 'post').replace(/[^a-z0-9-]+/gi, '-').toLowerCase()}.html`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
   };
 
   return createPortal(
@@ -407,6 +467,32 @@ export default function PostPopover({
             preflight={post.preflight}
             translations={t.preflight || {}}
           />
+        )}
+
+        {/* Assisted publish panel - custom sites with no connected write transport */}
+        {assisted && (
+          <div className={styles.assistedSection}>
+            <div className={styles.assistedNotice}>
+              <AlertTriangle size={14} />
+              <span>{t.assistedNotice || 'Published manually — this site has no connected write transport, so copy the content into your site to publish it.'}</span>
+            </div>
+            <div className={styles.assistedActions}>
+              <button className={styles.assistedBtn} onClick={() => copyText(assistedHtml, 'html')} disabled={!assistedHtml}>
+                {copied === 'html' ? <Check size={14} /> : <Copy size={14} />}
+                {copied === 'html' ? (t.copied || 'Copied') : (t.copyHtml || 'Copy HTML')}
+              </button>
+              {assistedMetaBlock && (
+                <button className={styles.assistedBtn} onClick={() => copyText(assistedMetaBlock, 'meta')}>
+                  {copied === 'meta' ? <Check size={14} /> : <Copy size={14} />}
+                  {copied === 'meta' ? (t.copied || 'Copied') : (t.copyMeta || 'Copy meta')}
+                </button>
+              )}
+              <button className={styles.assistedBtn} onClick={downloadHtml} disabled={!assistedHtml}>
+                <Download size={14} />
+                {t.download || 'Download .html'}
+              </button>
+            </div>
+          </div>
         )}
 
         {/* Actions footer */}

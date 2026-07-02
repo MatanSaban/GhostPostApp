@@ -1,45 +1,14 @@
 import { NextResponse } from 'next/server';
-import crypto from 'crypto';
 import prisma from '@/lib/prisma';
 import { verifyWorkerAuth } from '@/lib/worker-auth';
 import { notifyAccountMembers } from '@/lib/notifications';
-import { uploadMediaFromUrl, updateSeoData } from '@/lib/wp-api-client';
+import { cms } from '@/lib/cms';
+import { applyChange, canApplyNatively } from '@/lib/cms/apply';
 
 const MAX_PUBLISH_ATTEMPTS = 3;
 
-// ─── HMAC Signature ──────────────────────────────────────────────────
-function generateHmacSignature(siteSecret, body, timestamp) {
-  const payload = `${timestamp}.${body}`;
-  return crypto.createHmac('sha256', siteSecret).update(payload).digest('hex');
-}
-
-// ─── Upload featured image to WordPress ──────────────────────────────
-async function uploadFeaturedToWp(site, imageUrl, altText) {
-  if (!imageUrl) return null;
-  try {
-    const result = await uploadMediaFromUrl(site, imageUrl, {
-      alt: altText || '',
-      title: altText || '',
-    });
-    return result?.id || result?.attachment_id || null;
-  } catch (err) {
-    console.warn('[worker:publish-article] Featured image upload failed:', err.message);
-    return null;
-  }
-}
-
-// ─── WordPress Publisher ─────────────────────────────────────────────
-async function pushToWordPress(site, aiResult, content) {
-  const wpEndpoint = `${site.url.replace(/\/+$/, '')}/wp-json/ghostseo/v1/posts`;
-  const timestamp = Math.floor(Date.now() / 1000);
-
-  // Upload featured image to WP media library
-  const featuredImageId = await uploadFeaturedToWp(
-    site,
-    aiResult.featuredImage || content.featuredImage,
-    aiResult.featuredImageAlt || ''
-  );
-
+// ─── Payload builders ────────────────────────────────────────────────
+function buildPostPayload(aiResult, featuredImageId) {
   const payload = {
     title: aiResult.title,
     content: aiResult.html,
@@ -60,61 +29,96 @@ async function pushToWordPress(site, aiResult, content) {
       rank_math_canonical_url: aiResult.canonicalUrl || '',
     },
   };
-
-  // Set featured image if uploaded
   if (featuredImageId) {
     payload.featured_image_id = featuredImageId;
     payload.featured_image = featuredImageId;
   }
+  return payload;
+}
 
-  const body = JSON.stringify(payload);
-  const signature = generateHmacSignature(site.siteSecret, body, timestamp);
-
-  const response = await fetch(wpEndpoint, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'X-GP-Site-Key': site.siteKey,
-      'X-GP-Timestamp': String(timestamp),
-      'X-GP-Signature': signature,
+function buildSeoPayload(aiResult) {
+  return {
+    title: aiResult.metaTitle || '',
+    description: aiResult.metaDescription || '',
+    canonical: aiResult.canonicalUrl || '',
+    focusKeyword: aiResult.focusKeyword || '',
+    og: {
+      title: aiResult.ogTitle || aiResult.metaTitle || '',
+      description: aiResult.ogDescription || aiResult.metaDescription || '',
+      image: aiResult.featuredImage || '',
     },
-    body,
-    signal: AbortSignal.timeout(30_000),
-  });
+    twitter: {
+      title: aiResult.twitterTitle || aiResult.metaTitle || '',
+      description: aiResult.twitterDescription || aiResult.metaDescription || '',
+      image: aiResult.featuredImage || '',
+    },
+  };
+}
 
-  if (!response.ok) {
-    const text = await response.text().catch(() => '');
-    throw new Error(`WordPress responded ${response.status}: ${text.slice(0, 500)}`);
+// Output stored for sites with no native write path, so the user can publish it
+// manually (or a later transport can pick it up). This is what replaces the old
+// "mark PUBLISHED while writing nothing" behavior.
+function buildAssistedOutput(aiResult) {
+  return {
+    title: aiResult.title,
+    slug: aiResult.slug || '',
+    html: aiResult.html,
+    excerpt: aiResult.excerpt || '',
+    metaTitle: aiResult.metaTitle || '',
+    metaDescription: aiResult.metaDescription || '',
+    canonicalUrl: aiResult.canonicalUrl || '',
+    focusKeyword: aiResult.focusKeyword || '',
+    featuredImage: aiResult.featuredImage || '',
+    featuredImageAlt: aiResult.featuredImageAlt || '',
+  };
+}
+
+// Upload the featured image to the site's media library when the adapter can
+// do it natively (e.g. WordPress). Returns an attachment id or null.
+async function uploadFeatured(site, imageUrl, altText) {
+  if (!imageUrl) return null;
+  if (!canApplyNatively(site, 'uploadMediaFromUrl')) return null;
+  try {
+    const result = await cms.uploadMediaFromUrl(site, imageUrl, {
+      alt: altText || '',
+      title: altText || '',
+    });
+    return result?.id || result?.attachment_id || null;
+  } catch (err) {
+    console.warn('[worker:publish-article] Featured image upload failed:', err.message);
+    return null;
+  }
+}
+
+// ─── Publish via the site's active transport (or report assisted) ──────
+async function publishContent(site, aiResult, content) {
+  const featuredImageId = await uploadFeatured(
+    site,
+    aiResult.featuredImage || content.featuredImage,
+    aiResult.featuredImageAlt || ''
+  );
+
+  const payload = buildPostPayload(aiResult, featuredImageId);
+  const createRes = await applyChange(site, 'createPost', ['post', payload], { manualKinds: ['snippet'] });
+
+  if (createRes.mode === 'error') {
+    throw new Error(createRes.error || 'Publish failed');
   }
 
-  const wpResult = await response.json();
-  const wpPostId = wpResult?.id;
+  // No native write path → hand back the generated output for manual publish.
+  if (createRes.mode !== 'native') {
+    return { mode: 'ASSISTED', assistedOutput: buildAssistedOutput(aiResult) };
+  }
 
-  // Update SEO data via dedicated endpoint (handles OG, Twitter, canonical)
-  if (wpPostId) {
-    try {
-      await updateSeoData(site, wpPostId, {
-        title: aiResult.metaTitle || '',
-        description: aiResult.metaDescription || '',
-        canonical: aiResult.canonicalUrl || '',
-        focusKeyword: aiResult.focusKeyword || '',
-        og: {
-          title: aiResult.ogTitle || aiResult.metaTitle || '',
-          description: aiResult.ogDescription || aiResult.metaDescription || '',
-          image: aiResult.featuredImage || '',
-        },
-        twitter: {
-          title: aiResult.twitterTitle || aiResult.metaTitle || '',
-          description: aiResult.twitterDescription || aiResult.metaDescription || '',
-          image: aiResult.featuredImage || '',
-        },
-      });
-    } catch (seoErr) {
-      console.warn('[worker:publish-article] SEO update failed:', seoErr.message);
+  const externalId = createRes.result?.id;
+  if (externalId) {
+    // Best-effort SEO update via the dedicated endpoint (OG, Twitter, canonical).
+    const seoRes = await applyChange(site, 'updateSeoData', [externalId, buildSeoPayload(aiResult)]);
+    if (seoRes.mode === 'error') {
+      console.warn('[worker:publish-article] SEO update failed:', seoRes.error);
     }
   }
-
-  return wpResult;
+  return { mode: 'NATIVE', externalId: externalId || null };
 }
 
 // ─── Log error to SystemLog ──────────────────────────────────────────
@@ -169,8 +173,11 @@ export async function POST(request) {
             accountId: true,
             url: true,
             name: true,
+            platform: true,
+            integrationType: true,
             siteKey: true,
             siteSecret: true,
+            shopifyAccessToken: true,
             connectionStatus: true,
             sitePermissions: true,
           },
@@ -203,27 +210,28 @@ export async function POST(request) {
     data: { publishAttempts: attempt, lastAttemptAt: new Date() },
   });
 
-  const isConnected =
-    site.connectionStatus === 'CONNECTED' &&
-    site.siteKey &&
-    site.siteSecret;
-
   try {
-    if (isConnected) {
-      if (!aiResult) {
-        throw new Error('aiResult is missing - nothing to publish');
-      }
-      const wpResult = await pushToWordPress(site, aiResult, content);
-      // Persist the WordPress post ID inside aiResult for future updates
-      if (wpResult?.id) {
-        await prisma.content.update({
-          where: { id: contentId },
-          data: { aiResult: { ...aiResult, wpPostId: wpResult.id } },
-        });
-      }
+    if (!aiResult) {
+      throw new Error('aiResult is missing - nothing to publish');
     }
 
-    // ── Mark PUBLISHED ─────────────────────────────────────────────
+    // Route through the CMS dispatcher: writes natively when the site's active
+    // transport supports it (WordPress plugin, Shopify, …), otherwise returns
+    // ASSISTED so we store the generated output for manual publish instead of
+    // marking PUBLISHED while writing nothing.
+    const published = await publishContent(site, aiResult, content);
+
+    // Persist the external post id for future updates (native writes only).
+    if (published.mode === 'NATIVE' && published.externalId) {
+      await prisma.content.update({
+        where: { id: contentId },
+        data: {
+          aiResult: { ...aiResult, externalPostId: published.externalId, wpPostId: published.externalId },
+        },
+      });
+    }
+
+    // ── Mark PUBLISHED (NATIVE) or PUBLISHED-ASSISTED ──────────────
     const now = new Date();
     await prisma.content.update({
       where: { id: contentId },
@@ -231,6 +239,8 @@ export async function POST(request) {
         status: 'PUBLISHED',
         publishedAt: now,
         errorMessage: null,
+        publishMode: published.mode, // 'NATIVE' | 'ASSISTED'
+        assistedOutput: published.mode === 'ASSISTED' ? published.assistedOutput : undefined,
       },
     });
 
@@ -238,7 +248,8 @@ export async function POST(request) {
       ok: true,
       contentId,
       status: 'PUBLISHED',
-      pushedToWp: isConnected,
+      publishMode: published.mode,
+      pushed: published.mode === 'NATIVE',
     });
   } catch (err) {
     const errorMsg = err?.message || String(err);
@@ -251,7 +262,7 @@ export async function POST(request) {
       site.accountId,
       errorMsg,
       err?.stack,
-      { attempt, isConnected, campaignId: content.campaignId }
+      { attempt, campaignId: content.campaignId }
     );
 
     if (attempt >= MAX_PUBLISH_ATTEMPTS) {

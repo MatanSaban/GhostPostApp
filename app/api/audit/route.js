@@ -161,6 +161,10 @@ export async function GET(request) {
     const STALE_MS        = 5 * 60 * 1000;       // gap that means "worker dead"
     const HARD_LIMIT_MS   = 4 * 60 * 60 * 1000;  // total wall time before scanning is given up
     const FINAL_HARD_LIMIT_MS = 30 * 60 * 1000;  // finalizing should never legitimately take this long
+    // Discovery hands off to /continue. If the first chunk never wrote
+    // pagesScanned≥1 within this window, the trigger handoff failed and
+    // re-nudging hasn't recovered it — mark FAILED rather than nudge forever.
+    const NO_PROGRESS_LIMIT_MS = 15 * 60 * 1000;
     const now = Date.now();
     const origin = request.nextUrl.origin;
 
@@ -174,9 +178,12 @@ export async function GET(request) {
       const phase = audit.phase || null;
       const totalAge = now - new Date(startedAt).getTime();
 
-      // Resumable phases: re-trigger their next stage instead of FAILing,
-      // unless we've blown past the absolute time budget.
-      if (phase === 'scanning' && totalAge < HARD_LIMIT_MS) {
+      // Discovery completed but no chunk ever ran (the trigger to /continue
+      // dropped on the floor and nudges since haven't gotten one through).
+      // Don't nudge forever — bail out so the user can retry.
+      if (phase === 'scanning' && (audit.pagesScanned || 0) === 0 && totalAge > NO_PROGRESS_LIMIT_MS) {
+        // Fall through to the FAILED branch below.
+      } else if (phase === 'scanning' && totalAge < HARD_LIMIT_MS) {
         // Respect the chunk lease — if a chunk is actively running and just
         // had a slow heartbeat, we don't want to spawn a competitor. Cheap
         // re-read picks up the lease state without a heavy doc fetch.
@@ -277,6 +284,39 @@ export async function POST(request) {
     const site = await verifySiteAccess(user, siteId);
     if (!site) {
       return NextResponse.json({ error: 'Site not found' }, { status: 404 });
+    }
+
+    // ── Atomic per-site start lock (CAS) ─────────────────────
+    // Prevents the read-then-create race where two near-simultaneous POSTs
+    // both observe "no running audit" before either has created one. The
+    // lock TTL only needs to span the create window (a few hundred ms);
+    // 60s gives generous headroom for slow DB/limits queries. After
+    // expiry, the running-audit check below is the long-term guard.
+    const LOCK_MS = 60 * 1000;
+    const lockUntil = new Date(Date.now() + LOCK_MS);
+    const acquired = await prisma.site.updateMany({
+      where: {
+        id: siteId,
+        OR: [
+          { auditStartLockUntil: null },
+          { auditStartLockUntil: { lt: new Date() } },
+        ],
+      },
+      data: { auditStartLockUntil: lockUntil },
+    });
+    if (acquired.count === 0) {
+      // Another POST is mid-create. Return 200 (matching the "already
+      // running" branch below) so the UI doesn't error — the next 3s poll
+      // will pick up whatever pair the in-flight POST creates.
+      const existing = await prisma.siteAudit.findMany({
+        where: { siteId, status: { in: ['PENDING', 'RUNNING'] } },
+        select: LIGHT_SELECT,
+        orderBy: { createdAt: 'desc' },
+      });
+      return NextResponse.json({
+        audits: existing,
+        message: 'An audit is already starting for this site',
+      });
     }
 
     // ── Enforce siteAudits plan limit ────────────────────────

@@ -952,7 +952,11 @@ model Site {
   url             String
   isActive        Boolean  @default(true)
   maintenanceMode Boolean  @default(false)
-  platform        String? // wordpress, custom, shopify, etc.
+  platform        String? // wordpress, custom, shopify, etc. — WHAT the site is built with
+  // HOW the platform writes back to the site (decoupled from `platform`).
+  // WORDPRESS_PLUGIN | SHOPIFY_OAUTH | SDK | EDGE_PROXY | MCP | GITHUB_APP | CUSTOM_API | NONE
+  // Null → derived from platform + credentials (see resolveIntegrationType in lib/cms/registry).
+  integrationType String?
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
@@ -965,6 +969,15 @@ model Site {
   businessCategory     String?
   businessAddress      String?
   targetLocations      String[] @default([]) // ["IL", "US", "worldwide"]
+
+  // Service area for rank tracking. serviceAreaType: "NATIONAL" (competes
+  // country-wide) or "LOCAL" (a specific city/area). For LOCAL we run SERP
+  // rank checks at the city's DataForSEO location_code instead of the country,
+  // because local-intent queries are heavily personalized by geography.
+  serviceAreaType      String? // 'NATIONAL' | 'LOCAL'
+  serviceLocationName  String? // free-text city/area for LOCAL (e.g. "Tel Aviv")
+  serviceLocationCode  Int? // resolved DataForSEO city location_code (cached)
+
   writingStyle         String? // "professional", "casual", "technical", etc.
   internalLinksPer1000 Int? // Internal links per 1000 words preference
   seoStrategy          Json? // AI-generated SEO strategy from interview
@@ -999,6 +1012,13 @@ model Site {
   entitySyncMessage  String? // Current sync action (e.g., "Syncing posts...")
   lastEntitySyncAt   DateTime? // Last successful sync
   entitySyncError    String? // Last sync error if any
+
+  // Short-lived CAS lock used by POST /api/audit to serialize concurrent
+  // audit-start requests from the same user (rapid double-click, two open
+  // tabs). Held for ~60s — only needs to cover the window between the
+  // existing-audit check and the actual create. After expiry, the existing
+  // PENDING/RUNNING audit check takes over as the long-term guard.
+  auditStartLockUntil DateTime?
 
   // Tool settings (WebP conversion, etc.)
   toolSettings Json? // { autoConvertToWebp: boolean, ... }
@@ -1045,9 +1065,40 @@ model Site {
   backlinks         Backlink[]
   backlinkSyncs     BacklinkSync[]
   disavowEntries    DisavowEntry[]
+  integrations      SiteIntegration[]
+  seoOverrides      SiteSeoOverride[]
 
   @@index([siteKey])
   @@index([shopifyDomain])
+}
+
+// A write-back transport connected to a site (SDK, edge proxy, MCP, GitHub App).
+// One row per connected transport; a site can have more than one (e.g. SDK for
+// SEO + GitHub App for content PRs). The active transport for `applyChange` is
+// resolved from Site.integrationType; this holds the per-transport connection
+// state and credentials. Credentials are AES-256-GCM encrypted at rest
+// (lib/site-keys.js encryptCredential) — never a plaintext secret, never a
+// secret handed out in exchange for a public id.
+model SiteIntegration {
+  id                   String   @id @default(auto()) @map("_id") @db.ObjectId
+  siteId               String   @db.ObjectId
+  type                 String // matches INTEGRATION_TYPES (SDK | EDGE_PROXY | MCP | GITHUB_APP | CUSTOM_API)
+  status               String   @default("PENDING") // PENDING | CONNECTED | ERROR | REVOKED
+  scopes               String[] @default([]) // capability scopes this transport is allowed to fulfil
+  encryptedToken       String? // AES-256-GCM encrypted access/refresh token (if any)
+  githubInstallationId String? // GitHub App installation id (GITHUB_APP)
+  edgeProxyEnabled     Boolean  @default(false) // EDGE_PROXY production mode active
+  killSwitch           Boolean  @default(false) // per-site emergency pass-through / disable
+  config               Json? // transport-specific config (host, framework, verified markers, etc.)
+  lastVerifiedAt       DateTime? // last time we confirmed the transport is actually live
+  revokedAt            DateTime?
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  site Site @relation(fields: [siteId], references: [id], onDelete: Cascade)
+
+  @@unique([siteId, type])
+  @@index([siteId])
 }
 
 // ==========================================
@@ -1530,11 +1581,45 @@ model Keyword {
   status       KeywordStatus   @default(TRACKING)
   tags         String[]
   aiSuggestion Json? // Cached AI article type suggestion { articleType, reasoning, briefPlan, locale, analyzedAt }
+
+  // Live Google rank for the site's domain, checked via DataForSEO SERP API.
+  // serpCheckedAt set + serpPosition null = checked but not in the top 100.
+  serpPosition  Int?
+  serpUrl       String? // The site URL that holds the rank
+  serpCheckedAt DateTime?
+  serpInLocalPack Boolean? // True when the domain appears in the Google local (map) pack
   createdAt    DateTime        @default(now())
   updatedAt    DateTime        @updatedAt
 
-  site     Site      @relation(fields: [siteId], references: [id], onDelete: Cascade)
-  contents Content[]
+  site         Site                  @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  contents     Content[]
+  serpSnapshots KeywordSerpSnapshot[]
+}
+
+// ==========================================
+// SERP RANK HISTORY (DataForSEO)
+// ==========================================
+// One row per keyword per rank check. Unlike GSC (Google stores history),
+// DataForSEO has no past data, so period-over-period comparison can only be
+// built from snapshots we record going forward. Populated on every manual or
+// scheduled rank check.
+
+model KeywordSerpSnapshot {
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  keywordId    String   @db.ObjectId
+  siteId       String   @db.ObjectId
+  position     Int? // null = checked but not in the top 100
+  url          String?
+  inLocalPack  Boolean?
+  locationCode Int? // DataForSEO location_code the check ran against
+  languageCode String?
+  checkedAt    DateTime @default(now())
+
+  keyword Keyword @relation(fields: [keywordId], references: [id], onDelete: Cascade)
+
+  @@index([keywordId, checkedAt])
+  @@index([siteId, checkedAt])
+  @@map("keyword_serp_snapshots")
 }
 
 enum KeywordIntent {
@@ -1619,6 +1704,14 @@ model Content {
   lastAttemptAt      DateTime? // Timestamp of last worker attempt
   errorMessage       String? // Short error summary when FAILED (for UI display)
   aiResult           Json? // Generated HTML/title before push (failsafe)
+
+  // How this content reached PUBLISHED. 'NATIVE' = written to the site via a
+  // connected transport (WP plugin, Shopify, SDK, edge proxy). 'ASSISTED' = the
+  // site has no native write path, so the generated output is stored here for
+  // the user to publish manually. Prevents the old "PUBLISHED but wrote nothing"
+  // fiction for custom sites.
+  publishMode    String? // NATIVE | ASSISTED
+  assistedOutput Json? // { html, title, metaTitle, metaDescription, snippet, ... } for manual publish
 
   // Cluster cannibalization preflight results - populated when a Content row is
   // created from a campaign linked to a TopicCluster. Shape:
@@ -1732,6 +1825,51 @@ enum RedirectionType {
   PERMANENT // 301
   TEMPORARY // 302
   FOUND // 307
+}
+
+// Desired SEO for a specific path on a site, served by the Contract API to
+// SDK / edge-proxy transports (lib/contract). Populated when a user accepts an
+// SEO fix / recommendation for a custom site (WordPress writes to the plugin
+// instead). The Contract merges: override > latest-audit-observed > entity >
+// defaults. All values are public SEO directives - never secrets.
+model SiteSeoOverride {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  siteId      String   @db.ObjectId
+  path        String // normalized path, e.g. "/pricing" (leading slash, no trailing slash, no query)
+  title       String?
+  description String?
+  canonical   String?
+  robots      String? // e.g. "index,follow"
+  ogImage     String?
+  jsonLd      Json? // array of schema.org objects
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  site Site @relation(fields: [siteId], references: [id], onDelete: Cascade)
+
+  @@unique([siteId, path])
+  @@index([siteId])
+}
+
+// A read/propose-scoped API token for the GhostSEO MCP server (gp-mcp). Minted
+// from the dashboard, shown once, stored HASHED. Deliberately carries no
+// apply-to-live authority: its scopes are read + override-write only (an
+// override is proposal state the Contract serves, not a live CMS push).
+model McpToken {
+  id         String    @id @default(auto()) @map("_id") @db.ObjectId
+  accountId  String    @db.ObjectId
+  siteId     String?   @db.ObjectId // null => all sites in the account
+  label      String?
+  prefix     String // display prefix, e.g. "gpmcp_ab12…"
+  tokenHash  String    @unique // sha256 of the full token; plaintext shown once at creation
+  scopes     String[]  @default([]) // issues:read | fix:read | override:write | redirect:write
+  createdBy  String?   @db.ObjectId
+  lastUsedAt DateTime?
+  expiresAt  DateTime?
+  revokedAt  DateTime?
+  createdAt  DateTime  @default(now())
+
+  @@index([accountId])
 }
 
 model SiteAudit {

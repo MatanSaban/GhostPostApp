@@ -73,6 +73,7 @@ export async function GET(request) {
         type: true,
         scheduledAt: true,
         publishedAt: true,
+        publishMode: true, // NATIVE | ASSISTED - drives the "publish manually" badge
         wordCount: true,
         aiGenerated: true,
         aiResult: true, // Needed for retry logic (to detect processing vs publish failure)

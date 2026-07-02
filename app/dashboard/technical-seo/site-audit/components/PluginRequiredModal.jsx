@@ -9,6 +9,7 @@ import {
   Plug,
   ExternalLink,
   ShoppingBag,
+  Code,
 } from 'lucide-react';
 import { useLocale } from '@/app/context/locale-context';
 import { useSite } from '@/app/context/site-context';
@@ -33,6 +34,8 @@ export default function PluginRequiredModal({ open, onClose }) {
   if (!open) return null;
 
   const isShopify = caps.platform === 'shopify';
+  const isWordPress = !!caps.supportsPlugin; // WordPress plugin download path
+  const isCustom = !isShopify && !isWordPress; // custom-coded / Lovable / Base44 / static
 
   const handleWordPressDownload = async () => {
     if (!selectedSite?.id) return;
@@ -86,12 +89,17 @@ export default function PluginRequiredModal({ open, onClose }) {
   };
 
   const title = isShopify
-    ? t('siteAudit.aiFix.shopifyRequired') || 'Shopify app not connected'
-    : t('siteAudit.aiFix.pluginRequired');
+    ? (t('siteAudit.aiFix.shopifyRequired') || 'Shopify app not connected')
+    : isCustom
+      ? (t('siteAudit.aiFix.customRequired') || "One-click fixes aren't available yet for this site")
+      : t('siteAudit.aiFix.pluginRequired');
   const description = isShopify
-    ? t('siteAudit.aiFix.shopifyDescription') ||
-      'Install the GhostSEO Shopify app on your store to let AI Fix apply changes on your behalf.'
-    : t('siteAudit.aiFix.pluginDescription');
+    ? (t('siteAudit.aiFix.shopifyDescription') ||
+       'Install the GhostSEO Shopify app on your store to let AI Fix apply changes on your behalf.')
+    : isCustom
+      ? (t('siteAudit.aiFix.customDescription') ||
+         "This site isn't connected to GhostSEO for automated changes yet. You can still get a ready-to-apply fix for each issue — open the issue to copy the generated snippet or instructions. Connecting the GhostSEO SDK or managed proxy (coming soon) lets GhostSEO apply fixes for you automatically.")
+      : t('siteAudit.aiFix.pluginDescription');
 
   const steps = isShopify
     ? [
@@ -99,12 +107,18 @@ export default function PluginRequiredModal({ open, onClose }) {
         t('siteAudit.aiFix.shopifyStep2') || 'Shopify redirects you back here once the app is authorized.',
         t('siteAudit.aiFix.shopifyStep3') || 'GhostSEO can now read + edit products, pages, redirects, SEO.',
       ]
-    : [
-        t('siteAudit.aiFix.step1'),
-        t('siteAudit.aiFix.step2'),
-        t('siteAudit.aiFix.step3'),
-        t('siteAudit.aiFix.step4'),
-      ];
+    : isCustom
+      ? [
+          t('siteAudit.aiFix.customStep1') || 'Open the specific issue to see a ready-to-apply fix (snippet or instructions).',
+          t('siteAudit.aiFix.customStep2') || 'Apply it in your site\'s code or host config (e.g. your framework <head>, _redirects, nginx).',
+          t('siteAudit.aiFix.customStep3') || 'Or connect the GhostSEO SDK / managed proxy (coming soon) to apply fixes automatically.',
+        ]
+      : [
+          t('siteAudit.aiFix.step1'),
+          t('siteAudit.aiFix.step2'),
+          t('siteAudit.aiFix.step3'),
+          t('siteAudit.aiFix.step4'),
+        ];
 
   return createPortal(
     <div className={styles.overlay} onClick={onClose}>
@@ -115,7 +129,7 @@ export default function PluginRequiredModal({ open, onClose }) {
 
         <div className={styles.header}>
           <div className={styles.iconWrap}>
-            {isShopify ? <ShoppingBag size={28} /> : <Plug size={28} />}
+            {isShopify ? <ShoppingBag size={28} /> : isCustom ? <Code size={28} /> : <Plug size={28} />}
           </div>
           <h3 className={styles.title}>{title}</h3>
           <p className={styles.description}>{description}</p>
@@ -137,6 +151,14 @@ export default function PluginRequiredModal({ open, onClose }) {
           >
             <ShoppingBag size={16} />
             {t('siteAudit.aiFix.connectShopify') || 'Connect Shopify'}
+          </button>
+        ) : isCustom ? (
+          <button
+            className={styles.downloadBtn}
+            onClick={onClose}
+          >
+            <Code size={16} />
+            {t('siteAudit.aiFix.customCta') || 'Show me the copy-paste fix'}
           </button>
         ) : (
           <button
