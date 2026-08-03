@@ -30,10 +30,12 @@ async function getAuthenticatedUser() {
  *
  * Body: { siteId: string, keywords?: string[], forceRefresh?: boolean }
  *
- * Checks where the site's domain ranks in Google organic results for each
- * tracked keyword via the DataForSEO SERP API. Results are persisted on the
- * Keyword rows (serpPosition / serpUrl / serpCheckedAt) and reused for
- * CACHE_TTL_HOURS unless forceRefresh is set.
+ * Checks where the site's domain ranks in Google results for each tracked
+ * keyword via the DataForSEO SERP API — both the organic position and whether
+ * the site appears in the local (map) pack, which is where local-intent
+ * keywords often surface a business that has no organic rank. Results are
+ * persisted on the Keyword rows (serpPosition / serpUrl / serpInLocalPack /
+ * serpCheckedAt) and reused for CACHE_TTL_HOURS unless forceRefresh is set.
  */
 export async function POST(request) {
   try {
@@ -77,6 +79,7 @@ export async function POST(request) {
         serpPosition: true,
         serpUrl: true,
         serpCheckedAt: true,
+        serpInLocalPack: true,
       },
     });
 
@@ -125,6 +128,7 @@ export async function POST(request) {
                 serpPosition: rank.position,
                 serpUrl: rank.url,
                 serpCheckedAt: checkedAt,
+                serpInLocalPack: rank.inLocalPack,
               },
             });
             // Append a history point so we can show period-over-period change.
@@ -135,6 +139,7 @@ export async function POST(request) {
                 siteId,
                 position: rank.position,
                 url: rank.url,
+                inLocalPack: rank.inLocalPack,
                 locationCode: geo.locationCode,
                 languageCode: geo.languageCode,
                 checkedAt,
@@ -143,6 +148,7 @@ export async function POST(request) {
             row.serpPosition = rank.position;
             row.serpUrl = rank.url;
             row.serpCheckedAt = checkedAt;
+            row.serpInLocalPack = rank.inLocalPack;
             checked++;
           } catch (err) {
             if (err?.isBilling) {
@@ -169,6 +175,9 @@ export async function POST(request) {
         ? {
             position: row.serpPosition,
             url: row.serpUrl,
+            // null (not false) for rows last checked before local-pack
+            // detection existed — "unknown", not "confirmed absent".
+            inLocalPack: row.serpInLocalPack ?? null,
             checkedAt: row.serpCheckedAt,
             // When this row becomes eligible for another check.
             nextRefreshAt: new Date(new Date(row.serpCheckedAt).getTime() + CACHE_TTL_HOURS * 60 * 60 * 1000),

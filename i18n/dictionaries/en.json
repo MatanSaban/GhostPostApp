@@ -2038,6 +2038,8 @@
       "checkTooltip": "Check where your site ranks in Google for each keyword",
       "notFound": "100+",
       "notFoundTooltip": "Your site was not found in the top 100 Google results (checked {date})",
+      "mapPack": "Maps",
+      "mapPackTooltip": "Your site appears in Google's map pack (local results) for this keyword",
       "rankTooltip": "Ranking page: {url} (checked {date})",
       "rankTooltipNoUrl": "Checked {date}",
       "geoTooltip": "Rankings checked in {market}, based on your site's target location and language",

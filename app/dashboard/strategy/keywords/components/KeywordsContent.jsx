@@ -374,7 +374,7 @@ export function KeywordsContent() {
   };
 
   // Live Google rank check - position of this site's domain in organic
-  // results per keyword. Results persist server-side on the Keyword
+  // results per keyword, plus local (map) pack presence. Results persist server-side on the Keyword
   // rows, so they survive reloads; the button forces a fresh check, while the
   // auto-fill on load only checks keywords that were never checked.
   const checkRankings = async (keywordList, forceRefresh) => {
@@ -398,7 +398,7 @@ export function KeywordsContent() {
           setKeywords(prev => prev.map(kw => {
             const r = data.results[kw.keyword.toLowerCase().trim()];
             if (r === undefined || r === null) return kw;
-            return { ...kw, serpPosition: r.position, serpUrl: r.url, serpCheckedAt: r.checkedAt };
+            return { ...kw, serpPosition: r.position, serpUrl: r.url, serpCheckedAt: r.checkedAt, serpInLocalPack: r.inLocalPack };
           }));
         }
       }
@@ -437,7 +437,7 @@ export function KeywordsContent() {
         const r = data.results?.[kw.keyword.toLowerCase().trim()];
         if (r) {
           setKeywords(prev => prev.map(k =>
-            k.id === kw.id ? { ...k, serpPosition: r.position, serpUrl: r.url, serpCheckedAt: r.checkedAt } : k
+            k.id === kw.id ? { ...k, serpPosition: r.position, serpUrl: r.url, serpCheckedAt: r.checkedAt, serpInLocalPack: r.inLocalPack } : k
           ));
         }
       }
@@ -1346,6 +1346,18 @@ export function KeywordsContent() {
                             )
                           ) : (
                             <span className={styles.noData}>-</span>
+                          )}
+                          {/* Local (map) pack presence - local-intent keywords
+                              often surface the site here even when its organic
+                              rank is poor or absent. */}
+                          {kw.serpInLocalPack && (
+                            <span
+                              className={`${styles.positionBadge} ${styles.mapPack} ${styles.hasTooltip}`}
+                              data-tooltip={t('keywordStrategy.serp.mapPackTooltip')}
+                            >
+                              <MapPin size={11} />
+                              {t('keywordStrategy.serp.mapPack')}
+                            </span>
                           )}
                           <button
                             type="button"
