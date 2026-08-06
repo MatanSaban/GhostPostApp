@@ -3020,6 +3020,7 @@
       "fetchingMenus": "Fetching menus...",
       "completed": "Sync completed successfully!",
       "completedWithCount": "Sync complete! {count} items synced",
+      "completedWithErrors": "Completed with {count} error(s)",
       "error": "Sync Error",
       "failed": "Sync failed. Please try again.",
       "cancelled": "Cancelled",

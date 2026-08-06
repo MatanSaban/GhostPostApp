@@ -3020,6 +3020,7 @@
       "fetchingMenus": "מביא תפריטים...",
       "completed": "הסנכרון הושלם בהצלחה!",
       "completedWithCount": "הסנכרון הושלם! {count} פריטים סונכרנו",
+      "completedWithErrors": "הושלם עם {count} שגיאות",
       "error": "שגיאת סנכרון",
       "failed": "הסנכרון נכשל. נסה שוב.",
       "cancelled": "בוטל",

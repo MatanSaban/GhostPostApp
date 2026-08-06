@@ -26,6 +26,8 @@ const SCAN_MESSAGES = {
     fetchingSitemapUrls: 'Fetching sitemap URLs...',
     crawling: (current, total, url) => `Crawling (${current}/${total}): ${url}...`,
     deepCrawlComplete: 'Deep crawl complete',
+    completedWithErrors: (count) => `Completed with ${count} error(s)`,
+    allItemsFailed: (count) => `All ${count} item(s) failed to save`,
   },
   he: {
     startingPopulation: '\u05de\u05ea\u05d7\u05d9\u05dc \u05d0\u05db\u05dc\u05d5\u05e1 \u05ea\u05d5\u05db\u05df...',
@@ -36,6 +38,8 @@ const SCAN_MESSAGES = {
     fetchingSitemapUrls: '\u05de\u05d1\u05d9\u05d0 \u05db\u05ea\u05d5\u05d1\u05d5\u05ea \u05de\u05de\u05e4\u05ea \u05d0\u05ea\u05e8...',
     crawling: (current, total, url) => `\u05e1\u05d5\u05e8\u05e7 (${current}/${total}): ${url}...`,
     deepCrawlComplete: '\u05d4\u05e1\u05e8\u05d9\u05e7\u05d4 \u05d4\u05e2\u05de\u05d5\u05e7\u05d4 \u05d4\u05d5\u05e9\u05dc\u05de\u05d4',
+    completedWithErrors: (count) => `\u05d4\u05d5\u05e9\u05dc\u05dd \u05e2\u05dd ${count} \u05e9\u05d2\u05d9\u05d0\u05d5\u05ea`,
+    allItemsFailed: (count) => `\u05db\u05dc ${count} \u05d4\u05e4\u05e8\u05d9\u05d8\u05d9\u05dd \u05e0\u05db\u05e9\u05dc\u05d5 \u05d1\u05e9\u05de\u05d9\u05e8\u05d4`,
   },
 };
 
@@ -1978,14 +1982,14 @@ async function populateEntities(site, entityTypes, options = {}, msg = SCAN_MESS
     for (const entity of entities) {
       try {
         // Check if exists
-        const whereClause = entity.externalId 
-          ? { siteId_externalId: { siteId: site.id, externalId: entity.externalId } }
-          : { siteId_entityTypeId_slug: { siteId: site.id, entityTypeId: entityType.id, slug: entity.slug } };
-
+        // [siteId, externalId] is a plain @@index (externalId is nullable), so
+        // findUnique has no siteId_externalId key - must use findFirst here.
         const existing = entity.externalId
-          ? await prisma.siteEntity.findUnique({ where: whereClause })
-          : await prisma.siteEntity.findFirst({ 
-              where: { siteId: site.id, entityTypeId: entityType.id, slug: entity.slug } 
+          ? await prisma.siteEntity.findFirst({
+              where: { siteId: site.id, externalId: entity.externalId },
+            })
+          : await prisma.siteEntity.findFirst({
+              where: { siteId: site.id, entityTypeId: entityType.id, slug: entity.slug }
             });
 
         const entityData = {
@@ -3273,19 +3277,27 @@ export async function POST(request) {
         result = await deepCrawlEntities(site, { ...options, entityTypeId }, msg);
       }
 
+      // A populate run where every save failed is a failure, not a completion
+      const savesAttempted = (result.created || 0) + (result.updated || 0) + (result.skipped || 0);
+      const totalFailure = phase === 'populate' && (result.errors || 0) > 0 && savesAttempted === 0;
+
       // Update sync status to completed
       await prisma.site.update({
         where: { id: siteId },
         data: {
-          entitySyncStatus: 'COMPLETED',
+          entitySyncStatus: totalFailure ? 'ERROR' : 'COMPLETED',
           entitySyncProgress: 100,
           entitySyncMessage: null,
           lastEntitySyncAt: new Date(),
-          entitySyncError: result.errors > 0 ? `Completed with ${result.errors} error(s)` : null,
+          entitySyncError: totalFailure
+            ? msg.allItemsFailed(result.errors)
+            : result.errors > 0 ? msg.completedWithErrors(result.errors) : null,
         },
       });
 
       // Track AI usage for all AI enrichment calls made during the scan
+      // (before the totalFailure return - the deep crawl may have made billable
+      // AI calls over pre-existing entities even when every save failed)
       const aiCallCount = result.aiCalls || 0;
       if (aiCallCount > 0) {
         console.log(`[Scan] Tracking ${aiCallCount} AI calls for account ${site.accountId}`);
@@ -3298,6 +3310,15 @@ export async function POST(request) {
             description: `Entity content enrichment (${i + 1}/${aiCallCount})`,
           });
         }
+      }
+
+      if (totalFailure) {
+        return NextResponse.json({
+          success: false,
+          error: msg.allItemsFailed(result.errors),
+          phase,
+          stats: result,
+        });
       }
 
       return NextResponse.json({

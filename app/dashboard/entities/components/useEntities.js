@@ -384,7 +384,11 @@ export function useEntities() {
 
       const created = data.stats?.created || 0;
       const updated = data.stats?.updated || 0;
-      updateTask(taskId, { 
+      const populateErrors = Array.isArray(data.errors) ? data.errors.length : 0;
+      const populateErrorsNote = populateErrors > 0
+        ? (t('entities.sync.completedWithErrors') || 'Completed with {count} error(s)').replace('{count}', populateErrors)
+        : null;
+      updateTask(taskId, {
         status: 'completed',
         message: t('entities.sync.completedWithCount').replace('{count}', created + updated),
         progress: 100,
@@ -392,6 +396,7 @@ export function useEntities() {
       setSyncStatus('COMPLETED');
       setSyncProgress(100);
       setSyncMessage(null);
+      setSyncError(populateErrorsNote);
       setPopulatedInfo({ created, updated, totalEntities: created + updated });
 
       const typesResponse = await fetch(`/api/entities/types?siteId=${siteId}`);
@@ -450,10 +455,14 @@ export function useEntities() {
       }
 
       if (crawlData.success) {
+        const crawlErrorCount = crawlData.stats?.errors || 0;
         updateTask(taskId, { status: 'completed', progress: 100, message: 'Complete!' });
         setSyncStatus('COMPLETED');
         setSyncProgress(100);
         setSyncMessage(null);
+        setSyncError(crawlErrorCount > 0
+          ? (t('entities.sync.completedWithErrors') || 'Completed with {count} error(s)').replace('{count}', crawlErrorCount)
+          : null);
         setPopulatedInfo({
           created: crawlData.stats?.created || 0,
           updated: crawlData.stats?.updated || 0,
@@ -567,16 +576,25 @@ export function useEntities() {
       }
 
       const total = (populateData.stats?.created || 0) + (populateData.stats?.updated || 0);
+      const errorCount = populateData.stats?.errors || 0;
+      const errorsNote = errorCount > 0
+        ? (t('entities.sync.completedWithErrors') || 'Completed with {count} error(s)').replace('{count}', errorCount)
+        : null;
 
       setSyncStatus('COMPLETED');
       setSyncProgress(100);
       setSyncMessage(null);
+      setSyncError(errorsNote);
       setPopulatedInfo({
         created: populateData.stats?.created || 0,
         updated: populateData.stats?.updated || 0,
         totalEntities: total,
       });
-      updateTask(taskId, { status: 'completed', progress: 100, message: `Complete! ${total} items` });
+      updateTask(taskId, {
+        status: 'completed',
+        progress: 100,
+        message: errorsNote ? `Complete! ${total} items. ${errorsNote}` : `Complete! ${total} items`,
+      });
 
       const typesResponse = await fetch(`/api/entities/types?siteId=${siteId}`);
       if (typesResponse.ok) {
