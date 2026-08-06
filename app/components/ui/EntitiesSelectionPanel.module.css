@@ -151,6 +151,19 @@
   flex-shrink: 0;
 }
 
+.recommendedBadge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.125rem 0.5rem;
+  margin-inline-start: 0.125rem;
+  background: color-mix(in srgb, var(--accent, #10b981) 12%, transparent);
+  color: var(--accent, #10b981);
+  font-size: 0.7rem;
+  font-weight: 500;
+  border-radius: 999px;
+  flex-shrink: 0;
+}
+
 .actions {
   display: flex;
   gap: 0.75rem;

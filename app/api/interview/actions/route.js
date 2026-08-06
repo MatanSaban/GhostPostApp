@@ -132,9 +132,16 @@ export async function POST(request) {
 
     // If successful and action returns data to store, update interview
     if (result.success && result.storeInExternalData) {
-      // Some actions may return data to store in externalData
+      // Re-read externalData fresh before merging - concurrent actions may
+      // have written since the interview snapshot at request start, and
+      // merging over the stale snapshot would clobber their keys
+      const freshInterview = await prisma.userInterview.findUnique({
+        where: { id: interview.id },
+        select: { externalData: true },
+      });
+
       const updatedExternalData = {
-        ...(interview.externalData || {}),
+        ...(freshInterview?.externalData || {}),
         ...result.storeInExternalData,
       };
 

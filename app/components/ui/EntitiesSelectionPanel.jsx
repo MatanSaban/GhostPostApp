@@ -185,6 +185,11 @@ export function EntitiesSelectionPanel({
                   {t('entitiesSelection.coreBadge')}
                 </span>
               )}
+              {type.recommended && (
+                <span className={styles.recommendedBadge}>
+                  {t('entitiesSelection.recommendedBadge')}
+                </span>
+              )}
             </div>
           );
         })}

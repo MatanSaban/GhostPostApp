@@ -5,6 +5,7 @@ import {
   exchangeIntegrationCode,
   getGoogleEmail,
   parseIntegrationState,
+  autoSelectGoogleServices,
 } from '@/lib/google-integration';
 
 const SESSION_COOKIE = 'user_session';
@@ -14,7 +15,7 @@ const SESSION_COOKIE = 'user_session';
  * OAuth callback from Google for integration flow
  */
 export async function GET(request) {
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3001';
   const settingsUrl = `${baseUrl}/dashboard/settings?tab=integrations`;
 
   try {
@@ -108,6 +109,22 @@ export async function GET(request) {
     });
 
     console.log('[Google Integration Callback] Integration saved for site:', siteId);
+
+    // Interview flow: best-effort auto-select of GA property + GSC site so the
+    // integration is usable without a manual settings step. Must never break
+    // the callback redirect/postMessage.
+    if (state.fromInterview) {
+      try {
+        await autoSelectGoogleServices({
+          siteId,
+          siteUrl: site.url,
+          accessToken: tokens.access_token,
+          scopes,
+        });
+      } catch (err) {
+        console.warn('[Google Integration Callback] Auto-select failed:', err.message);
+      }
+    }
 
     // If this came from the interview popup flow, return a self-closing page
     if (state.fromInterview) {

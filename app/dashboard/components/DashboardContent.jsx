@@ -3,15 +3,15 @@
 import { useState, useEffect, useRef, useLayoutEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import Link from 'next/link';
-import { 
+import {
   Activity, BarChart2, Search, Settings, ExternalLink, Plus, Check, Loader2,
-  X, ChevronLeft, ChevronRight, Wand2, FileText, Globe,
+  X, ChevronLeft, ChevronRight, Wand2, FileText, Globe, Plug,
 } from 'lucide-react';
 import GeneratePostModal from '../strategy/keywords/components/GeneratePostModal';
 import { useSite } from '@/app/context/site-context';
 import { useLocale } from '@/app/context/locale-context';
 import { useTheme } from '@/app/context/theme-context';
-import { StatsCard, DashboardCard, QuickActions, ProgressBar, KpiSlider, Skeleton } from '../components';
+import { StatsCard, DashboardCard, QuickActions, ProgressBar, KpiSlider, Skeleton, IntegrationCTA, LockedSection } from '../components';
 import AgentActivity from './AgentActivity';
 import { ArrowIcon } from '@/app/components/ui/arrow-icon';
 import { useModalResize, ModalResizeButton } from '@/app/components/ui/ModalResizeButton';
@@ -2100,23 +2100,19 @@ export default function DashboardContent({ translations }) {
     );
   };
 
-  // Integration CTA card
-  const IntegrationCTA = ({ type, icon: Icon, title, description, svgIcon }) => (
-    <div className={styles.integrationCta}>
-      <div className={styles.integrationCtaIcon}>
-        {svgIcon || <Icon size={24} />}
-      </div>
-      <div className={styles.integrationCtaText}>
-        <h4>{title}</h4>
-        <p>{description}</p>
-      </div>
-      <Link
-        href="/dashboard/settings?tab=integrations"
-        className={styles.integrationCtaBtn}
-      >
-        <Settings size={14} />
-        {t.connectIntegration}
-      </Link>
+  // KPI skeleton slider - shared by the loading branch and the locked placeholder
+  const kpiSkeletonSlider = (
+    <div data-onboarding="dashboard-kpis">
+      <KpiSlider>
+        {[
+          { iconName: 'Users', label: t.organicVisitors, color: 'purple', description: t.kpiDescriptions?.organicVisitors },
+          { iconName: 'FileText', label: t.totalPageViews, color: 'blue', description: t.kpiDescriptions?.totalPageViews },
+          { iconName: 'Clock', label: t.avgSessionDuration, color: 'orange', description: t.kpiDescriptions?.avgSessionDuration },
+          { iconName: 'BarChart2', label: t.sessions, color: 'green', description: t.kpiDescriptions?.sessions },
+        ].map((kpi, index) => (
+          <StatsCard key={index} {...kpi} loading={true} />
+        ))}
+      </KpiSlider>
     </div>
   );
 
@@ -2179,18 +2175,16 @@ export default function DashboardContent({ translations }) {
         <div className={styles.startColumn}>
           {/* GA4 + GSC KPIs - unified slider */}
           {loading ? (
-            <div data-onboarding="dashboard-kpis">
-              <KpiSlider>
-                {[
-                  { iconName: 'Users', label: t.organicVisitors, color: 'purple', description: t.kpiDescriptions?.organicVisitors },
-                  { iconName: 'FileText', label: t.totalPageViews, color: 'blue', description: t.kpiDescriptions?.totalPageViews },
-                  { iconName: 'Clock', label: t.avgSessionDuration, color: 'orange', description: t.kpiDescriptions?.avgSessionDuration },
-                  { iconName: 'BarChart2', label: t.sessions, color: 'green', description: t.kpiDescriptions?.sessions },
-                ].map((kpi, index) => (
-                  <StatsCard key={index} {...kpi} loading={true} />
-                ))}
-              </KpiSlider>
-            </div>
+            kpiSkeletonSlider
+          ) : data && !data.gaConnected && !data.gscConnected ? (
+            <LockedSection
+              locked
+              placeholder={kpiSkeletonSlider}
+              icon={<GAIcon />}
+              title={t.gaTitle}
+              description={t.gaCtaDesc}
+              ctaLabel={t.connectIntegration}
+            />
           ) : (data?.gaConnected || data?.gscConnected) && (gaCards || gscCards) ? (
             <>
               <div className={styles.dashboardSectionHeader}>
@@ -2234,15 +2228,27 @@ export default function DashboardContent({ translations }) {
                 </KpiSlider>
               </div>
             </>
-          ) : !data?.gaConnected ? (
+          ) : null}
+
+          {/* Compact CTA for the missing service when exactly one of GA/GSC is connected */}
+          {!loading && data?.gscConnected && !data?.gaConnected && (
             <IntegrationCTA
-              type="ga"
               icon={BarChart2}
               svgIcon={<GAIcon />}
               title={t.gaTitle}
               description={t.gaCtaDesc}
+              ctaLabel={t.connectIntegration}
             />
-          ) : null}
+          )}
+          {!loading && data?.gaConnected && !data?.gscConnected && (
+            <IntegrationCTA
+              icon={Search}
+              svgIcon={<GSCIcon />}
+              title={t.gscTitle}
+              description={t.gscCtaDesc}
+              ctaLabel={t.connectIntegration}
+            />
+          )}
 
           {/* Traffic Overview Chart */}
           {loading ? (
@@ -2311,6 +2317,19 @@ export default function DashboardContent({ translations }) {
                 )}
               </div>
             </DashboardCard>
+          ) : data ? (
+            <LockedSection
+              locked
+              placeholder={(
+                <DashboardCard title={t.trafficOverview}>
+                  <Skeleton width="100%" height="300px" borderRadius="lg" />
+                </DashboardCard>
+              )}
+              icon={<GAIcon />}
+              title={t.gaTitle}
+              description={t.trafficCtaDesc}
+              ctaLabel={t.connectIntegration}
+            />
           ) : null}
 
           {/* Top Keywords from GSC */}
@@ -2369,6 +2388,19 @@ export default function DashboardContent({ translations }) {
                 </button>
               )}
             </DashboardCard>
+          ) : data && !data.gscConnected ? (
+            <LockedSection
+              locked
+              placeholder={(
+                <DashboardCard title={t.topKeywords || 'Top Keywords'}>
+                  <Skeleton width="100%" height="250px" borderRadius="lg" />
+                </DashboardCard>
+              )}
+              icon={<GSCIcon />}
+              title={t.gscTitle}
+              description={t.topKeywordsCtaDesc}
+              ctaLabel={t.connectIntegration}
+            />
           ) : null}
 
           {/* Top Pages from GSC */}
@@ -2416,6 +2448,19 @@ export default function DashboardContent({ translations }) {
                 </div>
               )}
             </DashboardCard>
+          ) : data && !data.gscConnected ? (
+            <LockedSection
+              locked
+              placeholder={(
+                <DashboardCard title={t.topPages}>
+                  <Skeleton width="100%" height="250px" borderRadius="lg" />
+                </DashboardCard>
+              )}
+              icon={<GSCIcon />}
+              title={t.gscTitle}
+              description={t.topPagesCtaDesc}
+              ctaLabel={t.connectIntegration}
+            />
           ) : null}
         </div>
 
@@ -2425,6 +2470,14 @@ export default function DashboardContent({ translations }) {
               based on hasAgentInsights so it doesn't remount + lose state when
               a freshly-finished analysis fills it with new insights. */}
           <div style={{ order: hasAgentInsights ? -1 : 1 }}>
+            {selectedSite && selectedSite.connectionStatus !== 'CONNECTED' && (
+              <IntegrationCTA
+                icon={Plug}
+                title={t.pluginCtaTitle}
+                description={t.pluginCtaDesc}
+                ctaLabel={t.connectIntegration}
+              />
+            )}
             <AgentActivity translations={t} onInsightsLoaded={setHasAgentInsights} />
           </div>
 
@@ -2547,6 +2600,27 @@ export default function DashboardContent({ translations }) {
                 </div>
               )}
             </>
+          ) : data ? (
+            <LockedSection
+              locked
+              placeholder={(
+                <>
+                  <div className={styles.dashboardSectionHeader} data-onboarding="dashboard-ai-traffic">
+                    <AIIcon />
+                    <h2 className={styles.dashboardSectionTitle}>{t.aiTrafficTitle || 'AI Traffic Overview'}</h2>
+                  </div>
+                  <div className={styles.aiKpiRow}>
+                    <Skeleton width="100%" height="80px" borderRadius="lg" />
+                    <Skeleton width="100%" height="80px" borderRadius="lg" />
+                  </div>
+                  <Skeleton width="100%" height="200px" borderRadius="lg" />
+                </>
+              )}
+              icon={<GAIcon />}
+              title={t.gaTitle}
+              description={t.aiTrafficCtaDesc}
+              ctaLabel={t.connectIntegration}
+            />
           ) : null}
 
           {/* Quick Actions */}

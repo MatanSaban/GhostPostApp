@@ -46,6 +46,12 @@ export default async function DashboardPage() {
     connectIntegration: t('dashboard.connectIntegration'),
     gaCtaDesc: t('dashboard.gaCtaDesc'),
     gscCtaDesc: t('dashboard.gscCtaDesc'),
+    trafficCtaDesc: t('dashboard.trafficCtaDesc'),
+    topKeywordsCtaDesc: t('dashboard.topKeywordsCtaDesc'),
+    topPagesCtaDesc: t('dashboard.topPagesCtaDesc'),
+    aiTrafficCtaDesc: t('dashboard.aiTrafficCtaDesc'),
+    pluginCtaTitle: t('dashboard.pluginCtaTitle'),
+    pluginCtaDesc: t('dashboard.pluginCtaDesc'),
 
     // Chart / table
     noTrafficData: t('dashboard.noTrafficData'),

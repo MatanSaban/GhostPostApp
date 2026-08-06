@@ -71,6 +71,9 @@ export const InterviewWizard = forwardRef(function InterviewWizard({ onClose, on
   // Edit modal state for EDITABLE_DATA
   const [showEditModal, setShowEditModal] = useState(false);
   const [editableDataConfirmed, setEditableDataConfirmed] = useState(false);
+  // Custom writing-style modal state
+  const [showCustomStyleModal, setShowCustomStyleModal] = useState(false);
+  const [customStyleText, setCustomStyleText] = useState('');
   // Searchable select filter state
   const [searchFilter, setSearchFilter] = useState('');
   // Edit message state
@@ -92,6 +95,11 @@ export const InterviewWizard = forwardRef(function InterviewWizard({ onClose, on
   // reference it; declaring it inline next to one of them caused a TDZ
   // error in the prefetch path.
   const competitorSearchInProgress = useRef(false);
+  // Tracks whether an ANALYZE_WRITING_STYLE call is in flight (background
+  // prefetch or foreground). Shared guard so the on-question effect never
+  // fires a duplicate analysis (and double credit charge) while the
+  // prefetch is still running.
+  const writingStyleAnalysisInProgress = useRef(false);
 
   // Entity-scan hook for the optional ENTITIES_SELECTION sub-step. When the
   // site has no enabled entity types, fetchInterview injects an
@@ -218,6 +226,23 @@ export const InterviewWizard = forwardRef(function InterviewWizard({ onClose, on
           questionType: currentQuestion.questionType
         });
         const messageId = messageIdCounter.current++;
+        // For EDITABLE_DATA, attach a data card (even when crawl data is
+        // missing) so the in-chat Confirm/Edit actions render on resume too.
+        let resumeDataCard;
+        if (currentQuestion.questionType === 'EDITABLE_DATA') {
+          const crawled = externalData?.crawledData || {};
+          resumeDataCard = {
+            businessName: crawled.businessName,
+            description: crawled.description,
+            phone: crawled.phones?.[0] || crawled.phone,
+            email: crawled.emails?.[0] || crawled.email,
+            category: crawled.category,
+            address: crawled.address,
+            seoScore: crawled.seoScore,
+            language: site?.contentLanguage || crawled.language,
+            hasSitemap: crawled.hasSitemap,
+          };
+        }
         messagesToAdd.push({
           id: `msg-${messageId}`,
           type: 'agent',
@@ -225,10 +250,11 @@ export const InterviewWizard = forwardRef(function InterviewWizard({ onClose, on
           questionType: currentQuestion.questionType,
           inputConfig: currentQuestion.inputConfig,
           questionId: currentQuestion.id,
+          ...(resumeDataCard ? { dataCard: resumeDataCard } : {}),
           timestamp: new Date()
         });
       }
-      
+
       setMessages(messagesToAdd);
     }
   }, [isDictionaryReady, questionsData, messages.length, t, hasStarted, currentQuestionIndex, responses]);
@@ -272,8 +298,12 @@ export const InterviewWizard = forwardRef(function InterviewWizard({ onClose, on
         const res = await fetch(`/api/settings/integrations/google?siteId=${siteId}`);
         if (res.ok) {
           const data = await res.json();
-          // Consider connected if refresh token exists (user authorized the app)
-          if (data.connected || data.refreshToken) {
+          // Only skip when a service is genuinely configured. `data.connected`
+          // just means an integration row exists - it's auto-bootstrapped from
+          // the user's Google login, so it's true even when GA/GSC were never
+          // set up.
+          const integ = data.integration;
+          if (integ?.gaConnected || integ?.gscConnected) {
             console.log('[InterviewWizard] Google integration already connected for site:', siteId);
             setIsGoogleAlreadyConnected(true);
           }
@@ -509,19 +539,28 @@ export const InterviewWizard = forwardRef(function InterviewWizard({ onClose, on
         });
         return;
       }
-      
+
+      // A background prefetch is already running this analysis - show the
+      // pending hint and let the prefetch's .then set the recommendation
+      // and clear the loading flag. Never fire a second action.
+      if (writingStyleAnalysisInProgress.current) {
+        setIsLoadingAiRecommendation(true);
+        return;
+      }
+
       // Trigger the analysis action
       const triggerWritingStyleAnalysis = async () => {
         if (isLoadingAiRecommendation) return;
-        
+
         setIsLoadingAiRecommendation(true);
         const websiteUrl = responses.websiteUrl || externalData?.crawledData?.url;
-        
+
         if (!websiteUrl) {
           setIsLoadingAiRecommendation(false);
           return;
         }
-        
+
+        writingStyleAnalysisInProgress.current = true;
         try {
           const result = await triggerAiAction('ANALYZE_WRITING_STYLE', { url: websiteUrl });
           
@@ -538,10 +577,11 @@ export const InterviewWizard = forwardRef(function InterviewWizard({ onClose, on
         } catch (err) {
           console.error('Error triggering AI analysis:', err);
         } finally {
+          writingStyleAnalysisInProgress.current = false;
           setIsLoadingAiRecommendation(false);
         }
       };
-      
+
       triggerWritingStyleAnalysis();
       return;
     }
@@ -852,7 +892,23 @@ export const InterviewWizard = forwardRef(function InterviewWizard({ onClose, on
       }
       return;
     }
-    
+
+    // Reload-mid-search guard: a search kicked off before a reload may still
+    // be running server-side (progressive competitorSearch status). Don't
+    // re-fire FIND_COMPETITORS - just mark the search as in flight and let
+    // the poll effect pick up the partial results.
+    const activeSearch = externalData?.competitorSearch;
+    if (
+      activeSearch?.status === 'running' &&
+      activeSearch.updatedAt &&
+      Date.now() - new Date(activeSearch.updatedAt).getTime() < 90000
+    ) {
+      console.log('[findCompetitors] Server-side search still running, polling instead of re-firing');
+      competitorSearchInProgress.current = true;
+      setIsCompetitorSearchInFlight(true);
+      return;
+    }
+
     // Prevent duplicate searches
     if (competitorSearchInProgress.current || isLoadingCompetitors) {
       console.log('[findCompetitors] Search already in progress, skipping');
@@ -878,8 +934,18 @@ export const InterviewWizard = forwardRef(function InterviewWizard({ onClose, on
           const competitors = result.externalData?.competitorSuggestions || [];
           console.log('[findCompetitors] Got competitors from action:', competitors.length);
           if (competitors.length > 0) {
-            setCompetitorSuggestions(competitors);
-            
+            // Keep manual entries and user picks made mid-search (partial
+            // results render before this completion lands). Compare by
+            // normalized origin — server URLs can carry paths.
+            setCompetitorSuggestions(prev => {
+              const toOrigin = (u) => {
+                try { const p = new URL(u); return `${p.protocol}//${p.host}`; } catch { return u; }
+              };
+              const serverOrigins = new Set(competitors.map(c => toOrigin(c.url)));
+              const manual = prev.filter(c => c.isManual && !serverOrigins.has(toOrigin(c.url)));
+              return [...competitors, ...manual];
+            });
+
             // Auto-select competitors marked with autoSelected: true
             const autoSelectedUrls = competitors
               .filter(c => c.autoSelected)
@@ -888,7 +954,7 @@ export const InterviewWizard = forwardRef(function InterviewWizard({ onClose, on
               });
             if (autoSelectedUrls.length > 0) {
               console.log('[findCompetitors] Auto-selecting', autoSelectedUrls.length, 'competitors');
-              setSelectedCompetitors(autoSelectedUrls);
+              setSelectedCompetitors(prev => [...new Set([...prev, ...autoSelectedUrls])]);
             }
           }
         } else {
@@ -1053,15 +1119,83 @@ export const InterviewWizard = forwardRef(function InterviewWizard({ onClose, on
             address: crawled.address || '',
           };
           console.log('[refreshInterviewData] Setting editableData:', newEditableData);
-          setEditableData(newEditableData);
+          // Seed crawled values UNDER existing state so reseeds never
+          // overwrite the user's edits.
+          setEditableData(prev => ({ ...newEditableData, ...prev }));
         }
-        
+
         return data.interview?.externalData || {};
       }
     } catch (err) {
       console.error('Error refreshing interview data:', err);
     }
     return {};
+  };
+
+  // Field-value helpers for EDITABLE_DATA questions. Component scope so both
+  // the chat data-card actions and the edit modal share the same mapping
+  // (about -> description, phone -> phones[0], email -> emails[0]). User
+  // edits in editableData take priority over the crawled source data.
+  const getEditableFieldValue = (fieldKey, config) => {
+    const dataSource = config?.dataSource || 'crawledData';
+    const sourceData = externalData[dataSource] || {};
+    // For businessName: never allow empty - fall through to sourceData.
+    // For all other fields: if the user explicitly set a value (even empty), use it.
+    if (fieldKey !== 'businessName' && editableData[fieldKey] !== undefined) {
+      return editableData[fieldKey];
+    }
+    if (fieldKey === 'businessName' && editableData[fieldKey]) {
+      return editableData[fieldKey];
+    }
+    switch (fieldKey) {
+      case 'businessName':
+        return sourceData.businessName || '';
+      case 'phone':
+        return sourceData.phone || sourceData.phones?.[0] || '';
+      case 'email':
+        return sourceData.email || sourceData.emails?.[0] || '';
+      case 'about':
+        return sourceData.description || '';
+      case 'category':
+        return sourceData.category || '';
+      case 'address':
+        return sourceData.address || '';
+      default:
+        return sourceData[fieldKey] || '';
+    }
+  };
+
+  const buildEditableValues = (config) => {
+    const values = {};
+    config?.editableFields?.forEach(field => {
+      values[field.key] = getEditableFieldValue(field.key, config);
+    });
+    return values;
+  };
+
+  // Confirm the EDITABLE_DATA chat card: bake the confirmed values into the
+  // message's dataCard (so later refreshInterviewData reseeds can't revert
+  // the card), then submit.
+  const handleEditableConfirm = () => {
+    const currentQuestion = questions[currentQuestionIndex];
+    if (!currentQuestion) return;
+    const values = buildEditableValues(currentQuestion.inputConfig);
+    const baked = {
+      businessName: values.businessName,
+      description: values.about,
+      email: values.email,
+      phone: values.phone,
+      category: values.category,
+      address: values.address,
+    };
+    Object.keys(baked).forEach(k => baked[k] === undefined && delete baked[k]);
+    setMessages(prev => prev.map(m => (
+      m.questionId === currentQuestion.id && m.dataCard
+        ? { ...m, dataCard: { ...m.dataCard, ...baked } }
+        : m
+    )));
+    setEditableDataConfirmed(true);
+    handleSubmit(values);
   };
 
   // Trigger an AI action and get suggestions. We tack the user's UI locale
@@ -1192,7 +1326,17 @@ export const InterviewWizard = forwardRef(function InterviewWizard({ onClose, on
         const fresh = await refreshInterviewData();
         const suggestions = fresh?.competitorSuggestions || [];
         if (suggestions.length > 0) {
-          setCompetitorSuggestions(suggestions);
+          // Keep manual entries and user picks made while the search ran
+          // (the grid stays interactive during progressive results).
+          // Compare by normalized origin — server URLs can carry paths.
+          setCompetitorSuggestions((prev) => {
+            const toOrigin = (u) => {
+              try { const p = new URL(u); return `${p.protocol}//${p.host}`; } catch { return u; }
+            };
+            const serverOrigins = new Set(suggestions.map((c) => toOrigin(c.url)));
+            const manual = prev.filter((c) => c.isManual && !serverOrigins.has(toOrigin(c.url)));
+            return [...suggestions, ...manual];
+          });
           const autoSelectedUrls = suggestions
             .filter((c) => c.autoSelected)
             .map((c) => {
@@ -1204,7 +1348,7 @@ export const InterviewWizard = forwardRef(function InterviewWizard({ onClose, on
               }
             });
           if (autoSelectedUrls.length > 0) {
-            setSelectedCompetitors(autoSelectedUrls);
+            setSelectedCompetitors((prev) => [...new Set([...prev, ...autoSelectedUrls])]);
           }
         }
         setIsCompetitorSearchInFlight(false);
@@ -1220,6 +1364,104 @@ export const InterviewWizard = forwardRef(function InterviewWizard({ onClose, on
     // change is the trigger point.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [responses?.keywords, responses?.targetLocations, interviewId]);
+
+  // Progressive competitor results — poll while a search is in flight and the
+  // user is on the competitors question. The server writes incremental
+  // partials to externalData.competitorSearch:
+  //   { status: 'running'|'done'|'failed', totalKeywords, completedKeywords,
+  //     partialCompetitors: [...], startedAt, updatedAt, finishedAt? }
+  // Raw fetch only (NOT refreshInterviewData) so each tick stays
+  // side-effect-free for the rest of the wizard state.
+  const competitorPollRef = useRef(null);
+  useEffect(() => {
+    const pollQuestion = questionsData?.[currentQuestionIndex];
+    const isCompetitorQuestion =
+      pollQuestion?.questionType === 'AI_SUGGESTION' &&
+      (pollQuestion.inputConfig || {}).suggestionsSource === 'findCompetitors';
+    if (!isCompetitorQuestion) return undefined;
+    if (!isLoadingCompetitors && !isCompetitorSearchInFlight) return undefined;
+    if (competitorPollRef.current) return undefined;
+
+    const pollSiteId = interviewSiteId || site?.id;
+    const pollUrl = pollSiteId ? `/api/interview?siteId=${pollSiteId}` : '/api/interview';
+    let ticks = 0;
+    const maxTicks = 60;
+
+    // Merge server results over local state, preserving entries the user
+    // added manually (isManual) that the server doesn't know about.
+    // Compare by normalized origin — server URLs can carry paths while
+    // manual entries are already protocol//host.
+    const normalizeOrigin = (u) => {
+      try { const p = new URL(u); return `${p.protocol}//${p.host}`; } catch { return u; }
+    };
+    const mergeKeepingManual = (serverList) => (prev) => {
+      const serverOrigins = new Set((serverList || []).map((c) => normalizeOrigin(c.url)));
+      const manual = prev.filter((c) => c.isManual && !serverOrigins.has(normalizeOrigin(c.url)));
+      return [...(serverList || []), ...manual];
+    };
+
+    const stopPolling = () => {
+      if (competitorPollRef.current) {
+        clearInterval(competitorPollRef.current);
+        competitorPollRef.current = null;
+      }
+    };
+
+    const intervalId = setInterval(async () => {
+      ticks++;
+      try {
+        const res = await fetch(pollUrl);
+        // A slow tick can resolve after polling stopped (terminal state
+        // already applied by a later tick or the foreground/prefetch
+        // completion) — never let its stale data overwrite the final list.
+        if (competitorPollRef.current !== intervalId) return;
+        if (res.ok) {
+          const data = await res.json();
+          if (competitorPollRef.current !== intervalId) return;
+          const ext = data.interview?.externalData || {};
+          const search = ext.competitorSearch;
+          const finalList = ext.competitorSuggestions || [];
+
+          if (search?.status === 'done' || finalList.length > 0) {
+            const list = finalList.length > 0 ? finalList : (search?.partialCompetitors || []);
+            setCompetitorSuggestions(mergeKeepingManual(list));
+            // ADDITIVE auto-select: union with the user's existing picks so
+            // nothing they checked mid-search gets removed.
+            const autoSelectedUrls = list
+              .filter((c) => c.autoSelected)
+              .map((c) => {
+                try { const parsed = new URL(c.url); return `${parsed.protocol}//${parsed.host}`; } catch { return c.url; }
+              });
+            if (autoSelectedUrls.length > 0) {
+              setSelectedCompetitors((prev) => [...new Set([...prev, ...autoSelectedUrls])]);
+            }
+            stopPolling();
+            setIsLoadingCompetitors(false);
+            setIsCompetitorSearchInFlight(false);
+            return;
+          }
+          if (search?.status === 'running') {
+            setCompetitorSuggestions(mergeKeepingManual(search.partialCompetitors || []));
+          } else if (search?.status === 'failed') {
+            // Empty state with manual input takes over.
+            stopPolling();
+            setIsLoadingCompetitors(false);
+            setIsCompetitorSearchInFlight(false);
+            return;
+          }
+        }
+      } catch { /* ignore poll errors */ }
+      if (ticks >= maxTicks && competitorPollRef.current === intervalId) {
+        stopPolling();
+        setIsLoadingCompetitors(false);
+        setIsCompetitorSearchInFlight(false);
+      }
+    }, 2000);
+    competitorPollRef.current = intervalId;
+
+    return () => stopPolling();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentQuestionIndex, questionsData, isLoadingCompetitors, isCompetitorSearchInFlight, interviewSiteId]);
 
   // Background prefetch — keyword generation.
   // GENERATE_KEYWORDS reads the crawled site content + category and asks
@@ -1269,6 +1511,12 @@ export const InterviewWizard = forwardRef(function InterviewWizard({ onClose, on
       .catch((err) => {
         console.warn('[Prefetch] keyword generation failed:', err);
         keywordPrefetchTriggered.current = false;
+      })
+      .finally(() => {
+        // Chain the writing-style prefetch AFTER the keyword write has
+        // landed so the two actions never clobber each other's
+        // externalData merge (defined below).
+        startWritingStylePrefetch();
       });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [responses?.websiteUrl, externalData?.crawledData, interviewId]);
@@ -1276,13 +1524,14 @@ export const InterviewWizard = forwardRef(function InterviewWizard({ onClose, on
   // Background prefetch — writing-style analysis.
   // Same idea as the competitor prefetch: ANALYZE_WRITING_STYLE takes a few
   // seconds because the handler scrapes the site and runs an LLM on a
-  // content sample. We kick it off as soon as the URL is confirmed AND
-  // crawl data is available, so by the time the user reaches the writing
-  // style question the recommendation is already populated and the banner
-  // doesn't appear.
+  // content sample. Extracted into a function so it can be chained after the
+  // keyword prefetch completes (its .finally above) instead of firing on the
+  // same crawledData gate — two concurrent actions used to race each other's
+  // externalData writes and wipe the persisted analysis.
   const writingStylePrefetchTriggered = useRef(false);
-  useEffect(() => {
+  const startWritingStylePrefetch = () => {
     if (writingStylePrefetchTriggered.current) return;
+    if (writingStyleAnalysisInProgress.current) return;
     if (!interviewId) return;
     if (creditsError) return;
     // Need a confirmed URL and finished crawl to bother running this.
@@ -1293,12 +1542,15 @@ export const InterviewWizard = forwardRef(function InterviewWizard({ onClose, on
     if (externalData?.writingStyleAnalysis) return;
 
     writingStylePrefetchTriggered.current = true;
+    writingStyleAnalysisInProgress.current = true;
     console.log('[Prefetch] Starting background writing-style analysis');
 
     triggerAiActionSilently('ANALYZE_WRITING_STYLE', { url })
       .then(async (result) => {
         if (!result.success) {
           writingStylePrefetchTriggered.current = false;
+          writingStyleAnalysisInProgress.current = false;
+          setIsLoadingAiRecommendation(false);
           return;
         }
         const fresh = await refreshInterviewData();
@@ -1310,13 +1562,29 @@ export const InterviewWizard = forwardRef(function InterviewWizard({ onClose, on
             characteristics: analysis.style.characteristics || [],
           });
         }
+        writingStyleAnalysisInProgress.current = false;
+        // The user may already be waiting on the style question - clear the
+        // pending hint now that the recommendation (or lack of one) is in.
+        setIsLoadingAiRecommendation(false);
       })
       .catch((err) => {
         console.warn('[Prefetch] writing-style analysis failed:', err);
         writingStylePrefetchTriggered.current = false;
+        writingStyleAnalysisInProgress.current = false;
+        setIsLoadingAiRecommendation(false);
       });
+  };
+
+  // Fallback trigger for the writing-style prefetch: only fires once the
+  // keyword generation has already completed and persisted its suggestions
+  // (e.g. resuming an interview where keywords were cached, so the keyword
+  // prefetch's .finally never runs). Keeps the two actions serialized.
+  useEffect(() => {
+    if (writingStylePrefetchTriggered.current) return;
+    if ((externalData?.keywordSuggestions?.length || 0) === 0) return;
+    startWritingStylePrefetch();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [responses?.websiteUrl, externalData?.crawledData, interviewId]);
+  }, [responses?.websiteUrl, externalData?.crawledData, externalData?.keywordSuggestions, interviewId]);
 
   // Handle manual blog URL fetch (when automatic discovery fails)
   const handleBlogUrlFetch = async (url) => {
@@ -1725,37 +1993,37 @@ export const InterviewWizard = forwardRef(function InterviewWizard({ onClose, on
         // For EDITABLE_DATA, refresh data first to ensure we have crawled data
         if (nextQuestion.questionType === 'EDITABLE_DATA') {
           const freshData = await refreshInterviewData();
-          
-          // If we have crawled data, add a data preview message
-          if (freshData?.crawledData) {
-            const dataMessageId = messageIdCounter.current++;
-            const crawled = freshData.crawledData;
-            
-            // Add bot message with data card
-            setMessages(prev => [...prev, {
-              id: `msg-${dataMessageId}`,
-              type: 'agent',
-              content: questionText,
-              questionType: nextQuestion.questionType,
-              inputConfig: nextQuestion.inputConfig,
-              questionId: nextQuestion.id,
-              dataCard: {
-                businessName: crawled.businessName,
-                description: crawled.description,
-                phone: crawled.phones?.[0] || crawled.phone,
-                email: crawled.emails?.[0] || crawled.email,
-                category: crawled.category,
-                address: crawled.address,
-                seoScore: crawled.seoScore,
-                language: site?.contentLanguage || crawled.language,
-                hasSitemap: crawled.hasSitemap,
-              },
-              timestamp: new Date()
-            }]);
-            setCurrentQuestionIndex(nextIndex);
-            setIsTyping(false);
-            return;
-          }
+
+          // Always attach a data card - even when the crawl failed - so the
+          // chat card with its Confirm/Edit actions renders (an empty card
+          // is still editable via the modal).
+          const dataMessageId = messageIdCounter.current++;
+          const crawled = freshData?.crawledData || {};
+
+          // Add bot message with data card
+          setMessages(prev => [...prev, {
+            id: `msg-${dataMessageId}`,
+            type: 'agent',
+            content: questionText,
+            questionType: nextQuestion.questionType,
+            inputConfig: nextQuestion.inputConfig,
+            questionId: nextQuestion.id,
+            dataCard: {
+              businessName: crawled.businessName,
+              description: crawled.description,
+              phone: crawled.phones?.[0] || crawled.phone,
+              email: crawled.emails?.[0] || crawled.email,
+              category: crawled.category,
+              address: crawled.address,
+              seoScore: crawled.seoScore,
+              language: site?.contentLanguage || crawled.language,
+              hasSitemap: crawled.hasSitemap,
+            },
+            timestamp: new Date()
+          }]);
+          setCurrentQuestionIndex(nextIndex);
+          setIsTyping(false);
+          return;
         }
         
         const agentMessageId = messageIdCounter.current++;
@@ -2436,11 +2704,20 @@ export const InterviewWizard = forwardRef(function InterviewWizard({ onClose, on
               {(isLoadingCompetitors || isCompetitorSearchInFlight) && competitorSuggestions.length === 0 && (
                 <div className={styles.competitorPendingRow}>
                   <Loader2 size={14} className={styles.spinIcon} />
+                  <span>{t('interviewWizard.messages.searchingCompetitors')}</span>
                 </div>
               )}
 
-              {!isLoadingCompetitors && competitorSuggestions.length > 0 && (
+              {competitorSuggestions.length > 0 && (
                 <>
+                  {/* Slim progress row while the search is still running and
+                      partial results are already on screen. */}
+                  {(isLoadingCompetitors || isCompetitorSearchInFlight) && (
+                    <div className={styles.competitorProgressRow}>
+                      <Loader2 size={12} className={styles.spinIcon} />
+                      <span>{t('interviewWizard.messages.searchProgress', { found: competitorSuggestions.length })}</span>
+                    </div>
+                  )}
                   <div className={styles.competitorCardsGrid}>
                     {competitorSuggestions.map((competitor, i) => {
                       const rawUrl = typeof competitor === 'string' ? competitor : competitor.url;
@@ -2814,25 +3091,25 @@ export const InterviewWizard = forwardRef(function InterviewWizard({ onClose, on
         // Cards mode for writing style
         const aiValue = aiRecommendation?.value;
         const aiConfidence = aiRecommendation?.confidence || 0;
-        
+
         return (
           <div className={styles.aiSuggestionContainer}>
-            {/* Writing-style analysis prefetches in the background as soon
-                as the site crawl finishes (see the
-                writingStylePrefetchTriggered effect above). The old
-                "Analyzing your content style..." banner only shows now if
-                the user got here before the prefetch finished. */}
+            {/* The style options render instantly - the analysis only feeds
+                the recommendation banner. While it's still running, show a
+                small hint in the banner slot; it swaps for the real banner
+                when the recommendation arrives. */}
             {isLoadingAiRecommendation && !aiRecommendation && (
               <div className={styles.competitorPendingRow}>
                 <Loader2 size={14} className={styles.spinIcon} />
+                <span>{t('interviewWizard.messages.stylePendingHint')}</span>
               </div>
             )}
 
-            {!isLoadingAiRecommendation && aiRecommendation && aiConfidence > 0.3 && (
+            {aiRecommendation && aiConfidence > 0.3 && (
               <div className={styles.aiRecommendationBanner}>
                 <span className={styles.aiRecommendationIcon}>✨</span>
                 <span>
-                  {t('interviewWizard.messages.recommendedStyle', { style: t(`registration.interview.writingStyles.${aiValue}`) || aiValue }) 
+                  {t('interviewWizard.messages.recommendedStyle', { style: t(`registration.interview.writingStyles.${aiValue}`) || aiValue })
                     || `Recommended: ${aiValue}`}
                 </span>
                 <span className={styles.confidenceBadge}>
@@ -2840,12 +3117,11 @@ export const InterviewWizard = forwardRef(function InterviewWizard({ onClose, on
                 </span>
               </div>
             )}
-            
-            {!isLoadingAiRecommendation && (
+
             <div className={styles.cardsGrid}>
               {config.options?.map((opt, i) => {
                 const isRecommended = opt.value === aiValue;
-                
+
                 return (
                   <button
                     key={i}
@@ -2857,8 +3133,16 @@ export const InterviewWizard = forwardRef(function InterviewWizard({ onClose, on
                   </button>
                 );
               })}
+              {config.allowCustom && (
+                <button
+                  className={`${styles.optionCard} ${styles.customOptionCard}`}
+                  onClick={() => setShowCustomStyleModal(true)}
+                >
+                  <Edit2 size={14} />
+                  <span>{t('registration.interview.writingStyles.custom')}</span>
+                </button>
+              )}
             </div>
-            )}
           </div>
         );
 
@@ -3164,94 +3448,9 @@ export const InterviewWizard = forwardRef(function InterviewWizard({ onClose, on
         );
 
       case 'EDITABLE_DATA':
-        // Get data from externalData based on dataSource
-        const dataSource = config.dataSource || 'crawledData';
-        const sourceData = externalData[dataSource] || {};
-        
-        // Map field keys to sourceData properties (handles naming differences)
-        const getFieldValue = (fieldKey) => {
-          // First check editableData (user edits take priority)
-          // For businessName: never allow empty - fall through to sourceData
-          // For all other fields: if user explicitly set a value (even empty), use it
-          if (fieldKey !== 'businessName' && editableData[fieldKey] !== undefined) {
-            return editableData[fieldKey];
-          }
-          if (fieldKey === 'businessName' && editableData[fieldKey]) {
-            return editableData[fieldKey];
-          }
-          // Fall back to sourceData with proper mapping
-          let value = '';
-          switch (fieldKey) {
-            case 'businessName':
-              value = sourceData.businessName || '';
-              break;
-            case 'phone':
-              value = sourceData.phone || sourceData.phones?.[0] || '';
-              break;
-            case 'email':
-              value = sourceData.email || sourceData.emails?.[0] || '';
-              break;
-            case 'about':
-              value = sourceData.description || '';
-              break;
-            case 'category':
-              value = sourceData.category || '';
-              break;
-            case 'address':
-              value = sourceData.address || '';
-              break;
-            default:
-              value = sourceData[fieldKey] || '';
-          }
-          return value;
-        };
-        
-        // Build current values object for submission
-        const getCurrentValues = () => {
-          const values = {};
-          config.editableFields?.forEach(field => {
-            values[field.key] = getFieldValue(field.key);
-          });
-          return values;
-        };
-        
-        // Compact inline data card display
-        if (editableDataConfirmed) return null;
-        return (
-          <div className={styles.inlineEditableData}>
-            <div className={styles.inlineDataCard}>
-              {config.editableFields?.map((field) => {
-                const value = getFieldValue(field.key);
-                if (!value) return null;
-                return (
-                  <div key={field.key} className={styles.inlineDataRow}>
-                    <span className={styles.inlineDataLabel}>{t(field.labelKey)}:</span>
-                    <span className={styles.inlineDataValue}>{value}</span>
-                  </div>
-                );
-              })}
-            </div>
-            
-            <div className={styles.inlineDataActions}>
-              <button 
-                onClick={() => { setEditableDataConfirmed(true); handleSubmit(getCurrentValues()); }}
-                className={styles.primaryButton}
-                disabled={isTyping || isProcessing}
-              >
-                <Check size={16} />
-                {t('registration.interview.actions.confirm')}
-              </button>
-              <button 
-                onClick={() => setShowEditModal(true)}
-                className={styles.secondaryButton}
-                disabled={isTyping || isProcessing}
-              >
-                <Edit2 size={16} />
-                {t('registration.interview.actions.edit')}
-              </button>
-            </div>
-          </div>
-        );
+        // Business info renders as a data card inside the chat (with
+        // Confirm/Edit actions baked into the card) - no inline panel here.
+        return null;
 
       case 'DYNAMIC':
         // Dynamic content based on optionsSource (e.g., crawledArticles)
@@ -3442,10 +3641,10 @@ export const InterviewWizard = forwardRef(function InterviewWizard({ onClose, on
         // which races a 10s wait if the discover scan is still in flight,
         // and silently calls onSkip on FAILED/EMPTY/timeout per spec.
         const handleEntitiesConfirm = async (slugs) => {
-          // Persist the selection. We don't kick off populate here - the
-          // dashboard's existing populate flow handles that, triggered by
-          // the user from /dashboard/entities once the wizard closes. This
-          // keeps the wizard fast and avoids duplicating populate logic.
+          // Persist the selection only. Entity population now happens
+          // server-side after interview completion (post-completion
+          // orchestrator), so the wizard stays fast and never duplicates
+          // populate logic.
           await entitiesScan.saveSelection(slugs);
           handleSubmit(slugs);
         };
@@ -4132,11 +4331,33 @@ export const InterviewWizard = forwardRef(function InterviewWizard({ onClose, on
                               <div className={styles.dataCardItem}>
                                 <span className={styles.dataCardLabel}>{t('interviewWizard.seoScore') || 'SEO Score'}</span>
                                 <span className={`${styles.dataCardValue} ${
-                                  dc.seoScore >= 70 ? styles.seoGood : 
+                                  dc.seoScore >= 70 ? styles.seoGood :
                                   dc.seoScore >= 40 ? styles.seoWarning : styles.seoBad
                                 }`}>
                                   {dc.seoScore}/100
                                 </span>
+                              </div>
+                            )}
+                            {message.questionId === questions[currentQuestionIndex]?.id &&
+                             questions[currentQuestionIndex]?.questionType === 'EDITABLE_DATA' &&
+                             !editableDataConfirmed && (
+                              <div className={styles.dataCardActions}>
+                                <button
+                                  onClick={handleEditableConfirm}
+                                  className={styles.primaryButton}
+                                  disabled={isTyping || isProcessing}
+                                >
+                                  <Check size={14} />
+                                  {t('registration.interview.actions.confirm')}
+                                </button>
+                                <button
+                                  onClick={() => setShowEditModal(true)}
+                                  className={styles.secondaryButton}
+                                  disabled={isTyping || isProcessing}
+                                >
+                                  <Edit2 size={14} />
+                                  {t('registration.interview.actions.edit')}
+                                </button>
                               </div>
                             )}
                           </div>
@@ -4273,18 +4494,68 @@ export const InterviewWizard = forwardRef(function InterviewWizard({ onClose, on
                 })}
               </div>
               <div className={styles.editModalFooter}>
-                <button 
+                <button
                   className={styles.secondaryButton}
                   onClick={() => setShowEditModal(false)}
                 >
                   {t('common.cancel')}
                 </button>
-                <button 
+                <button
                   className={styles.primaryButton}
                   onClick={() => setShowEditModal(false)}
                 >
                   <Check size={16} />
                   {t('common.save')}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Custom writing-style modal */}
+        {showCustomStyleModal && (
+          <div className={styles.editModalOverlay} onClick={() => setShowCustomStyleModal(false)}>
+            <div className={styles.editModal} onClick={(e) => e.stopPropagation()}>
+              <div className={styles.editModalHeader}>
+                <h3>{t('interviewWizard.customStyle.title')}</h3>
+                <button
+                  className={styles.editModalClose}
+                  onClick={() => setShowCustomStyleModal(false)}
+                >
+                  <X size={20} />
+                </button>
+              </div>
+              <div className={styles.editModalBody}>
+                <p className={styles.editModalLabel}>{t('interviewWizard.customStyle.description')}</p>
+                <textarea
+                  className={styles.editModalTextarea}
+                  value={customStyleText}
+                  onChange={(e) => setCustomStyleText(e.target.value)}
+                  maxLength={500}
+                  placeholder={t('interviewWizard.customStyle.placeholder')}
+                  rows={4}
+                  autoFocus
+                />
+              </div>
+              <div className={styles.editModalFooter}>
+                <button
+                  className={styles.secondaryButton}
+                  onClick={() => setShowCustomStyleModal(false)}
+                >
+                  {t('common.cancel')}
+                </button>
+                <button
+                  className={styles.primaryButton}
+                  onClick={() => {
+                    const text = customStyleText.trim();
+                    if (!text) return;
+                    setShowCustomStyleModal(false);
+                    // The raw text itself is the answer for this question.
+                    handleSubmit(text);
+                  }}
+                >
+                  <Check size={16} />
+                  {t('interviewWizard.customStyle.save')}
                 </button>
               </div>
             </div>

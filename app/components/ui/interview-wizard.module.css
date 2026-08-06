@@ -1154,6 +1154,7 @@
 
 .dataCardLabel {
   font-size: 0.75rem;
+  font-weight: 700;
   color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -1162,6 +1163,23 @@
 .dataCardValue {
   font-size: 0.75rem;
   color: var(--foreground);
+}
+
+/* Confirm/Edit actions row inside the chat data card */
+.dataCardActions {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border-subtle);
+
+  button {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 0.4rem 0.85rem;
+    font-size: 0.75rem;
+  }
 }
 
 /* Editable Data Container */
@@ -1766,8 +1784,21 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  gap: 8px;
   padding: 16px;
   color: rgba(255, 255, 255, 0.5);
+  font-size: 0.75rem;
+}
+
+/* Slim progress row shown above the competitor grid while the search is
+   still running and partial results are already visible. */
+.competitorProgressRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 0.6875rem;
 }
 
 .aiRecommendationBanner {
@@ -1799,11 +1830,20 @@
   position: relative;
   border-color: rgba(102, 126, 234, 0.5);
   background: rgba(102, 126, 234, 0.15);
-  
+
   &:hover {
     border-color: rgba(102, 126, 234, 0.8);
     background: rgba(102, 126, 234, 0.25);
   }
+}
+
+/* "Custom" writing-style card - opens the free-text style modal */
+.optionCard.customOptionCard {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border-style: dashed;
 }
 
 .recommendedBadge {

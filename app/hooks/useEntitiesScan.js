@@ -91,7 +91,7 @@ const CONTEXT_ADAPTERS = {
           nameHe: t.labels?.he || null,
           apiEndpoint: t.apiEndpoint,
           isCore: ['posts', 'pages'].includes(t.slug),
-          entityCount: t.entityCount || 0,
+          entityCount: t._count?.entities ?? t.entityCount ?? 0,
         })),
         selectedSlugs: existingTypes.map(t => t.slug),
         source: { existingTypes: true },
@@ -107,25 +107,37 @@ const CONTEXT_ADAPTERS = {
       const entityTypes = data.postTypes || [];
       const hasEntities = entityTypes.some(t => (t.entityCount || 0) > 0);
       const status = entityTypes.length > 0 || hasEntities ? 'COMPLETED' : 'EMPTY';
+      // When the scan carries AI/heuristic recommendations, pre-select those;
+      // otherwise fall back to the legacy core-or-non-empty default.
+      const hasRecommendations = entityTypes.some(t => t.recommended !== undefined);
       return {
         status,
         url: data.source?.siteUrl || null,
         entityTypes,
-        selectedSlugs: entityTypes
-          .filter(t => t.isCore || (t.entityCount || 0) > 0)
-          .map(t => t.slug),
+        selectedSlugs: hasRecommendations
+          ? entityTypes.filter(t => t.recommended).map(t => t.slug)
+          : entityTypes
+              .filter(t => t.isCore || (t.entityCount || 0) > 0)
+              .map(t => t.slug),
         source: data.source || null,
       };
     },
-    async doSelect(selectedSlugs) {
+    async doSelect(selectedSlugs, knownTypes = []) {
       // Save the type selection to the existing dashboard endpoint. Caller
       // decides whether/how to kick off populate afterwards - that is
-      // outside the scope of this hook.
-      const types = selectedSlugs.map(slug => ({
-        slug,
-        name: slug, // server merges with existing if name is generic
-        isEnabled: true,
-      }));
+      // outside the scope of this hook. Enrich each type from the scan data
+      // so the server keeps real names/endpoints/sitemaps instead of slugs.
+      const types = selectedSlugs.map(slug => {
+        const full = knownTypes.find(t => t.slug === slug);
+        return {
+          slug,
+          name: full?.name || slug,
+          nameHe: full?.nameHe || undefined,
+          apiEndpoint: full?.restEndpoint || full?.apiEndpoint || slug,
+          sitemaps: full?.sitemaps || [],
+          isEnabled: true,
+        };
+      });
       const res = await fetch('/api/entities/types', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -306,14 +318,14 @@ export function useEntitiesScan(context) {
   const saveSelection = useCallback(async (slugsOverride) => {
     const slugs = slugsOverride ?? selectedSlugs;
     try {
-      await adapter.doSelect(slugs);
+      await adapter.doSelect(slugs, entityTypes);
       return true;
     } catch (e) {
       console.error('[useEntitiesScan] Save selection failed:', e);
       setError(e.message);
       return false;
     }
-  }, [contextKey, selectedSlugs]);
+  }, [contextKey, selectedSlugs, entityTypes]);
 
   return {
     status,

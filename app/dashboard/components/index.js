@@ -12,6 +12,8 @@ export { LoadingState } from './LoadingState';
 export { StatsGrid } from './StatsGrid';
 export { EmptyState } from './EmptyState';
 export { Button } from './Button';
+export { IntegrationCTA } from './IntegrationCTA';
+export { LockedSection } from './LockedSection';
 
 // Reusable action buttons
 export { ScanButton, DeleteButton, AIDiscoverButton } from './actions';

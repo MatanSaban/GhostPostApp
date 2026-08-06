@@ -1578,6 +1578,9 @@ async function discoverPostTypes(site, customSitemapUrl = null, userId = null, u
   // Auto-translate post type names that don't have a proper translation
   result.postTypes = await translatePostTypeNames(result.postTypes, userLocale, { accountId: site.accountId, siteId: site.id });
 
+  // AI pre-check: stamp recommended:true/false on each type (SEO/GEO worthiness)
+  result.postTypes = await rankPostTypesForSeo(result.postTypes, site, userLocale);
+
   return result;
 }
 
@@ -1659,6 +1662,86 @@ async function translatePostTypeNames(postTypes, targetLocale = 'he', { accountI
   } catch (e) {
     console.error('[Scan] AI translation failed, using fallback names:', e.message);
     return postTypes; // Return untranslated on failure
+  }
+}
+
+// Utility/media/taxonomy types that are never worth promoting
+const SEO_RANK_DENYLIST = [
+  'attachment', 'attachments', 'media', 'tag', 'tags', 'category', 'categories',
+  'author', 'authors', 'users', 'comments', 'feed', 'nav_menu_item',
+  'elementor_library', 'wp_block',
+];
+
+/**
+ * AI pre-check: decide which discovered content types are worth promoting for
+ * SEO and GEO (AI-search) visibility, and stamp `recommended: true/false` on
+ * each post type. Falls back to a heuristic on timeout/error. Never throws.
+ */
+async function rankPostTypesForSeo(postTypes, site, locale) {
+  const heuristic = (pt) =>
+    pt.slug === 'posts' || pt.slug === 'pages' || !!pt.isCore ||
+    (pt.entityCount > 0 && !SEO_RANK_DENYLIST.includes(pt.slug));
+
+  try {
+    if (!Array.isArray(postTypes) || postTypes.length === 0) return postTypes;
+
+    const schema = z.object({
+      recommendedSlugs: z.array(z.string()).describe('Slugs of the content types worth promoting'),
+    });
+
+    const compactTypes = postTypes.map(pt => ({
+      slug: pt.slug,
+      name: pt.name,
+      description: pt.description || '',
+      entityCount: pt.entityCount || 0,
+    }));
+
+    const prompt = `Website: ${site.url}
+${site.businessCategory ? `Business category: ${site.businessCategory}\n` : ''}${site.businessAbout ? `About the business: ${site.businessAbout}\n` : ''}Discovered content types:
+${JSON.stringify(compactTypes)}
+
+Which of these content types are worth promoting for SEO and GEO (AI-search) visibility?
+Exclude utility, media, and taxonomy types (attachments, tags, categories, authors, templates, etc.).
+Return only the slugs of the recommended content types.`;
+
+    // Swallow the AI promise's eventual rejection if the timeout wins the
+    // race (an unhandled rejection would surface in the serverless runtime),
+    // and clear the timer on the fast path so the lambda isn't held open.
+    const aiPromise = generateStructuredResponse({
+      system: 'You are an SEO strategist. Pick only the content types that carry real, promotable content.',
+      prompt,
+      schema,
+      temperature: 0.2,
+      operation: 'GENERIC',
+      metadata: { task: 'rank-post-types-for-seo', locale },
+      accountId: site.accountId,
+      siteId: site.id,
+    });
+    aiPromise.catch(() => {});
+    let rankTimer;
+    let aiResult;
+    try {
+      aiResult = await Promise.race([
+        aiPromise,
+        new Promise((_, reject) => { rankTimer = setTimeout(() => reject(new Error('rank timeout')), 4000); }),
+      ]);
+    } finally {
+      clearTimeout(rankTimer);
+    }
+
+    if (Array.isArray(aiResult?.recommendedSlugs) && aiResult.recommendedSlugs.length > 0) {
+      const recommendedSet = new Set(aiResult.recommendedSlugs);
+      return postTypes.map(pt => ({ ...pt, recommended: recommendedSet.has(pt.slug) }));
+    }
+
+    return postTypes.map(pt => ({ ...pt, recommended: heuristic(pt) }));
+  } catch (e) {
+    console.error('[Scan] SEO rank pre-check failed, using heuristic:', e.message);
+    try {
+      return postTypes.map(pt => ({ ...pt, recommended: heuristic(pt) }));
+    } catch {
+      return postTypes;
+    }
   }
 }
 
@@ -3057,6 +3140,7 @@ export async function GET(request) {
     const user = await prisma.user.findUnique({
       where: { id: userId },
       select: {
+        isSuperAdmin: true,
         accountMemberships: {
           select: { accountId: true },
         },
@@ -3068,10 +3152,10 @@ export async function GET(request) {
     }
 
     const siteWhere = user.isSuperAdmin
-        ? { id: siteId }
-        : { id: siteId, accountId: { in: user.accountMemberships.map(m => m.accountId) } };
-          const site = await prisma.site.findFirst({
-        where: siteWhere,
+      ? { id: siteId }
+      : { id: siteId, accountId: { in: user.accountMemberships.map(m => m.accountId) } };
+    const site = await prisma.site.findFirst({
+      where: siteWhere,
       select: {
         id: true,
         url: true,
@@ -3082,6 +3166,8 @@ export async function GET(request) {
         siteKey: true,
         siteSecret: true,
         contentLanguage: true,
+        businessCategory: true,
+        businessAbout: true,
       },
     });
 

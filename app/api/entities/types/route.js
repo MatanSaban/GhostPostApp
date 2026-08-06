@@ -86,6 +86,7 @@ export async function GET(request) {
         labels: true,
         apiEndpoint: true,
         sitemaps: true,
+        isEnabled: true,
         _count: {
           select: { entities: true },
         },
@@ -172,17 +173,24 @@ export async function POST(request) {
           },
         },
         update: {
-          name: type.name,
           apiEndpoint: type.apiEndpoint || type.slug,
-          sitemaps: type.sitemaps || [],
           isEnabled: true, // Explicitly enable selected types
           sortOrder: i,
-          ...(type.labels || type.nameHe ? {
-            labels: {
-              en: type.name,
-              ...(type.labels || {}),
-              ...(type.nameHe ? { he: type.nameHe } : {}),
-            },
+          // Only overwrite name/labels when the client sends a real name
+          // (the wizard sends {slug, name: slug} - don't clobber good names)
+          ...(type.name && type.name !== type.slug ? {
+            name: type.name,
+            ...(type.labels || type.nameHe ? {
+              labels: {
+                en: type.name,
+                ...(type.labels || {}),
+                ...(type.nameHe ? { he: type.nameHe } : {}),
+              },
+            } : {}),
+          } : {}),
+          // Never wipe discovered sitemaps with a missing/empty payload
+          ...(Array.isArray(type.sitemaps) && type.sitemaps.length > 0 ? {
+            sitemaps: type.sitemaps,
           } : {}),
         },
         create: {

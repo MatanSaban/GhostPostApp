@@ -930,6 +930,13 @@ export default function GeneratePostModal({ isOpen, onClose, keyword, onSuccess 
 
 // Settings Step Component
 function SettingsStep({ formData, onChange, siteDefaults, isLoadingDefaults, keyword, intentOptions, articleTypeDef, maxContentImages, aiSuggestion, isLoadingSuggestion, onReanalyze, t }) {
+  // Custom (free-text) styles from the interview have no translation key -
+  // t() returns the key path unchanged, so show the raw value instead.
+  const styleLabel = (style) => {
+    const k = `generatePost.writingStyles.${style}`;
+    const tr = t(k);
+    return tr === k ? style : tr;
+  };
   return (
     <div className={styles.settingsGrid}>
       {/* Writing Style */}
@@ -952,7 +959,7 @@ function SettingsStep({ formData, onChange, siteDefaults, isLoadingDefaults, key
         </select>
         {siteDefaults?.responses?.writingStyle && (
           <span className={styles.hint}>
-            {t('generatePost.fromInterview')}: {t(`generatePost.writingStyles.${siteDefaults.responses.writingStyle}`)}
+            {t('generatePost.fromInterview')}: {styleLabel(siteDefaults.responses.writingStyle)}
           </span>
         )}
       </div>
@@ -1555,7 +1562,13 @@ function KeywordsStep({ keyword, formData, onChange, siteId, t, locale }) {
 function SummaryStep({ formData, keyword, intentOptions, t }) {
   const articleTypeKey = ARTICLE_TYPE_KEY_MAP[formData.articleType];
   const intentLabel = intentOptions.find(o => o.value === formData.intent)?.label;
-  
+  // Same guard as SettingsStep: custom free-text styles have no key
+  const styleLabel = (style) => {
+    const k = `generatePost.writingStyles.${style}`;
+    const tr = t(k);
+    return tr === k ? style : tr;
+  };
+
   return (
     <div className={styles.summary}>
       <h3 className={styles.summaryTitle}>{t('generatePost.summaryTitle')}</h3>
@@ -1569,7 +1582,7 @@ function SummaryStep({ formData, keyword, intentOptions, t }) {
         <div className={styles.summaryItem}>
           <span className={styles.summaryLabel}>{t('generatePost.writingStyle')}</span>
           <span className={styles.summaryValue}>
-            {formData.writingStyle ? t(`generatePost.writingStyles.${formData.writingStyle}`) : '-'}
+            {formData.writingStyle ? styleLabel(formData.writingStyle) : '-'}
           </span>
         </div>
         

@@ -942,6 +942,12 @@
     "connectIntegration": "Connect",
     "gaCtaDesc": "Connect Google Analytics to see real traffic data, visitors, and page views.",
     "gscCtaDesc": "Connect Search Console to see clicks, impressions, and search performance.",
+    "trafficCtaDesc": "Connect Google Analytics to see your traffic trends over time.",
+    "topKeywordsCtaDesc": "Connect Search Console to see the search terms that bring you traffic.",
+    "topPagesCtaDesc": "Connect Search Console to see your top performing pages in Google Search.",
+    "aiTrafficCtaDesc": "Connect Google Analytics to discover how AI engines like ChatGPT and Perplexity send traffic to your site.",
+    "pluginCtaTitle": "Connect the GhostSEO plugin",
+    "pluginCtaDesc": "Install the plugin so the AI Agent can apply fixes and sync your content automatically.",
     "noTrafficData": "No traffic data available yet.",
     "topPages": "Top Pages",
     "table": {
@@ -6029,13 +6035,14 @@
   },
   "entitiesSelection": {
     "scanning": "Scanning your site for content types...",
-    "title": "What types of content does your site have?",
-    "subtitle": "Select the content types you want to manage and track.",
+    "title": "Which content types should we promote?",
+    "subtitle": "These content types were found on your website. Select the ones that are relevant for SEO and GEO (AI-search) promotion, and deselect the rest.",
     "intro": "Let's take a look at the content types we found on your site.",
     "skip": "Skip",
     "continue": "Continue",
     "processing": "Processing...",
     "coreBadge": "Core",
+    "recommendedBadge": "Recommended",
     "itemCount": "{count} items"
   },
   "interviewWizard": {
@@ -6046,7 +6053,7 @@
     "inputPlaceholder": "Type your answer...",
     "seoScore": "SEO Score",
     "entitiesSelection": {
-      "intro": "Let's take a look at the content types we found on your site."
+      "intro": "I scanned your website and found the content types listed below. To promote your site effectively in both classic search (SEO) and AI-driven search (GEO), I need to know which of them actually matter. Keep the relevant types selected and deselect anything we shouldn't promote."
     },
     "welcome": {
       "title": "Welcome to the Site Interview",
@@ -6066,6 +6073,12 @@
       "edit": "Edit",
       "saveAndSend": "Save & Send"
     },
+    "customStyle": {
+      "title": "Describe your writing style",
+      "description": "Tell me in your own words how you want your content written — tone, voice, who it speaks to, and anything the writer should keep in mind.",
+      "placeholder": "e.g., Warm and personal, first person, short sentences, speaks to young parents…",
+      "save": "Use this style"
+    },
     "messages": {
       "analyzing": "Analyzing your website... This may take a moment.",
       "crawlComplete": "I've analyzed your website! Here's what I found:",
@@ -6073,11 +6086,14 @@
       "foundKeywords": "Found {count} keyword suggestions based on your website. Select the ones you want to target:",
       "analyzingCompetitors": "Analyzing your competitors...",
       "findingCompetitors": "Searching Google for competitors based on your keywords...",
+      "searchingCompetitors": "Searching Google for your strongest competitors…",
+      "searchProgress": "Still searching… found {found} competitors so far",
       "foundCompetitors": "Found {count} competitors based on your keywords. Select the relevant ones:",
       "noCompetitorsFound": "No competitors found. Add your own or skip this step.",
       "ranksFor": "Ranks for",
       "foundInKeywords": "Found in {count} keywords",
       "analyzingStyle": "Analyzing your content style from your articles...",
+      "stylePendingHint": "Analyzing your site's current writing style…",
       "recommendedStyle": "Based on your content, we recommend: {style}",
       "detectingPlatform": "Detecting your website platform...",
       "detectedPlatform": "Detected: {platform}",
@@ -6513,14 +6529,14 @@
         "websiteUrl": "Which site would you like to add to GhostSEO first?",
         "contentLanguage": "What language should your content be written in?",
         "businessConfirmation": "Does this information look correct?",
-        "keywords": "Select keywords relevant to your business",
+        "keywords": "Select keywords relevant to your business. I have already selected a few keywords that are most likely relevant — but make sure I was right: select or deselect keywords, or add your own manually.",
         "targetLocation": "Where do you want your website to be found?",
-        "competitors": "Select competitors relevant to your business",
+        "competitors": "Based on what I've already learned about your website, I searched Google for your business's strongest competitors — the sites you'll be competing with and can learn from. I've pre-selected the most powerful ones; select or deselect competitors from the list so it reflects your real competition.",
         "fetchArticles": "Fetching your latest blog articles...",
         "writingStyle": "What writing style best fits your brand?",
         "websitePlatform": "What platform is your website built on?",
         "internalLinksCount": "How many internal links per 1000 words?",
-        "favoriteArticles": "Select up to 3 articles that represent your preferred content style",
+        "favoriteArticles": "Select up to 3 articles that best represent your site. I'll use them, together with the writing style you chose, as the foundation of your content voice — future posts will treat these as your site's best work and aim for the same feel and quality.",
         "googleIntegration": "Would you like to connect Google Analytics and Search Console?",
         "wordpressPlugin": "We detected your website runs on WordPress! Would you like to install our plugin?"
       },
@@ -6530,7 +6546,8 @@
         "technical": "Technical & Detailed",
         "friendly": "Warm & Friendly",
         "authoritative": "Authoritative & Expert",
-        "conversational": "Conversational"
+        "conversational": "Conversational",
+        "custom": "Custom"
       },
       "platforms": {
         "wordpress": "WordPress",
