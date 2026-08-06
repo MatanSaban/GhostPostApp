@@ -95,11 +95,12 @@ async function runFixInBackground(insightId, siteId, mode, executeFn) {
         },
       });
     } else {
-      // For apply/apply-generated: merge results and mark completed
+      // For apply/apply-generated: merge results and mark completed.
+      // Guard both keys against undefined===undefined collapsing distinct rows.
       const prevResults = latest?.executionResult?.results || [];
       const allResults = [...prevResults];
       for (const r of (result.results || [])) {
-        const existingIdx = allResults.findIndex(p => p.postId === r.postId);
+        const existingIdx = allResults.findIndex(p => r.postId != null && p.postId === r.postId);
         if (existingIdx >= 0) allResults[existingIdx] = r;
         else allResults.push(r);
       }
@@ -312,11 +313,15 @@ export async function POST(request, { params }) {
       }
       try {
         const result = await applyFreeFix(insight, site, body.itemIndices || null);
-        // Merge with previously fixed items
+        // Merge with previously fixed items. Every match key is null-guarded:
+        // undefined === undefined would collapse distinct rows that lack a key.
         const prevResults = insight.executionResult?.results || [];
         const allResults = [...prevResults];
         for (const r of (result.results || [])) {
-          const existingIdx = allResults.findIndex(p => p.url === r.url || p.postId === r.postId);
+          const existingIdx = allResults.findIndex(p =>
+            (r.index != null && p.index === r.index)
+            || (r.url && p.url === r.url)
+            || (r.postId != null && p.postId === r.postId));
           if (existingIdx >= 0) allResults[existingIdx] = r;
           else allResults.push(r);
         }
@@ -576,11 +581,12 @@ export async function POST(request, { params }) {
         throw e;
       }
 
-      // Merge with previously fixed items
+      // Merge with previously fixed items. postId is null-guarded so rows
+      // without one (e.g. new-article results) append instead of collapsing.
       const prevResults = insight.executionResult?.results || [];
       const allResults = [...prevResults];
       for (const r of result.results) {
-        const existingIdx = allResults.findIndex(p => p.postId === r.postId);
+        const existingIdx = allResults.findIndex(p => r.postId != null && p.postId === r.postId);
         if (existingIdx >= 0) allResults[existingIdx] = r;
         else allResults.push(r);
       }

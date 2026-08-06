@@ -282,6 +282,10 @@ export function resolveTranslation(translations, titleKey, data = {}, locale) {
     if (typeof val === 'number') {
       return val.toLocaleString();
     }
+    // Arrays (e.g. missingEngines) - readable comma join instead of String() coercion
+    if (Array.isArray(val)) {
+      return val.join(', ');
+    }
     return val;
   });
 }

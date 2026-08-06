@@ -46,31 +46,65 @@ import { useAiPricing } from '@/app/hooks/useAiPricing';
 import GCoinIcon from '@/app/components/ui/GCoinIcon';
 import styles from './agent.module.css';
 
-function EntityLinkCell({ url, siteId, translations }) {
-  const [entity, setEntity] = useState(undefined); // undefined=loading, null=not found, object=found
-  const labels = translations?.agent?.detailLabels || {};
+/**
+ * Resolve a page reference (full URL or GA-style path like "/blog/foo")
+ * against the site's base URL. Returns null when it can't be resolved.
+ */
+function resolvePageUrl(siteUrl, pathOrUrl) {
+  if (!pathOrUrl) return null;
+  if (/^https?:\/\//i.test(pathOrUrl)) return pathOrUrl;
+  if (!siteUrl) return null;
+  try {
+    return new URL(pathOrUrl, new URL(siteUrl).origin).toString();
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Batched entity lookup - one POST per 50 URLs instead of one per table row.
+ * Returns null while loading, then a { url: entity|undefined } map.
+ * Chunked because the API truncates each request to 50 URLs.
+ */
+function useEntityLookupMap(siteId, urls) {
+  const [map, setMap] = useState(null);
+  const urlsKey = JSON.stringify(urls || []);
 
   useEffect(() => {
-    if (!url || !siteId) { setEntity(null); return; }
+    const list = JSON.parse(urlsKey).filter(Boolean);
+    if (!siteId || list.length === 0) { setMap({}); return; }
 
     let cancelled = false;
     (async () => {
       try {
-        const res = await fetch('/api/agent/entity-lookup', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ siteId, urls: [url] }),
-        });
-        if (!res.ok) throw new Error();
-        const data = await res.json();
-        const found = data.urlMap?.[url] || null;
-        if (!cancelled) setEntity(found);
+        const chunks = [];
+        for (let i = 0; i < list.length; i += 50) chunks.push(list.slice(i, i + 50));
+        const maps = await Promise.all(chunks.map(async (chunk) => {
+          const res = await fetch('/api/agent/entity-lookup', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ siteId, urls: chunk }),
+          });
+          if (!res.ok) return {};
+          return (await res.json()).urlMap || {};
+        }));
+        if (!cancelled) setMap(Object.assign({}, ...maps));
       } catch {
-        if (!cancelled) setEntity(null);
+        if (!cancelled) setMap({});
       }
     })();
     return () => { cancelled = true; };
-  }, [url, siteId]);
+  }, [urlsKey, siteId]);
+
+  return map;
+}
+
+/**
+ * Platform link for a page. `entity` is undefined while loading, null when no
+ * matching entity exists, or { entityId, entityTypeSlug, title }.
+ */
+function EntityLinkCell({ entity, translations }) {
+  const labels = translations?.agent?.detailLabels || {};
 
   if (entity === undefined) return <span className={styles.entitySkeleton}><span className={styles.entitySkeletonBar} /></span>;
   if (entity) {
@@ -214,15 +248,70 @@ function FixItemButton({ insight, onClick, translations, size = 12 }) {
   );
 }
 
-function InsightDetails({ insight, translations, siteId, pluginConnected, onItemFixed, onOpenFixSingle, onOpenSitemapSubmission, trackedKeywords, addingKeyword, onAddKeyword }) {
+/**
+ * Collect every page URL an insight type renders so the platform-link lookup
+ * can be batched into a single request. Paths (GA data) are resolved against
+ * the site base URL.
+ */
+function collectEntityLookupUrls(type, d, siteUrl) {
+  if (!d) return [];
+  const urls = [];
+  switch (type) {
+    case 'keywordStrikeZone':
+      urls.push(d.url); break;
+    case 'staleContent':
+      (d.oldestPages || []).forEach(p => urls.push(p.url)); break;
+    case 'missingSeo':
+    case 'noindexDetected':
+    case 'contentWithoutTraffic':
+    case 'missingFeaturedImage':
+    case 'insufficientContentImages':
+    case 'metaTitleTooShort':
+    case 'metaTitleTooLong':
+    case 'metaDescTooShort':
+    case 'metaDescTooLong':
+    case 'missingH1Tag':
+    case 'multipleH1Tags':
+    case 'numericSlugSuffix':
+      (d.pages || []).forEach(p => urls.push(p.url)); break;
+    case 'trafficDrop':
+    case 'decliningPages':
+    case 'lowCtrForPosition':
+      (d.pages || []).forEach(p => urls.push(p.page)); break;
+    case 'trafficConcentration':
+      (d.topPages || []).forEach(p => urls.push(p.page)); break;
+    case 'aiCitedByEngine':
+      (d.topPages || []).forEach(p => urls.push(resolvePageUrl(siteUrl, p.page))); break;
+    case 'trafficSpike':
+      (d.spikes || []).forEach(s => urls.push(resolvePageUrl(siteUrl, s.topLandingPage))); break;
+    case 'sgeTrafficTheft':
+      (d.queries || []).forEach(q => urls.push(q.pageUrl)); break;
+    case 'aiEngineGap':
+    case 'aiPageMissingSchema':
+    case 'aiAnswerableButNotConcise':
+      urls.push(d.url || resolvePageUrl(siteUrl, d.page)); break;
+    case 'cannibalization':
+      (d.issues || []).forEach(issue => (issue.urls || []).forEach(u => urls.push(u)));
+      (d.queries || []).forEach(q => (q.pages || []).forEach(p => urls.push(p.page)));
+      break;
+    default:
+      break;
+  }
+  return [...new Set(urls.filter(Boolean))];
+}
+
+function InsightDetails({ insight, translations, siteId, siteUrl, pluginConnected, onItemFixed, onOpenFixSingle, onOpenSitemapSubmission, trackedKeywords, addingKeyword, onAddKeyword }) {
   const { locale } = useLocale();
   const d = insight.data;
+  const type = getInsightType(insight.titleKey);
+  const entityMap = useEntityLookupMap(siteId, collectEntityLookupUrls(type, d, siteUrl));
+  // undefined while the batch lookup is in flight -> skeleton; null when no entity matched.
+  const entityFor = (url) => (entityMap === null ? undefined : (entityMap[url] || null));
   if (!d) return null;
 
   const labels = translations?.agent?.detailLabels || {};
   const t = translations?.agent || {};
   const entityLabel = labels.entity || 'Entity';
-  const type = getInsightType(insight.titleKey);
   // Show per-item fix buttons for fixable types regardless of plugin connection.
   // The FixPreviewModal handles connection errors at action time.
   const canFix = FIXABLE_INSIGHT_TYPES.has(type) && ['PENDING', 'APPROVED', 'FAILED', 'EXECUTED', 'EXPIRED'].includes(insight.status);
@@ -260,7 +349,7 @@ function InsightDetails({ insight, translations, siteId, pluginConnected, onItem
             <a href={d.url} target="_blank" rel="noopener noreferrer" className={styles.detailLink}>
               <bdi dir="ltr">{formatPageUrl(d.url)}</bdi> <ExternalLink size={12} />
             </a>
-            <EntityLinkCell url={d.url} siteId={siteId} translations={translations} />
+            <EntityLinkCell entity={entityFor(d.url)} translations={translations} />
             {canFix && (
               isFixed
                 ? <span className={styles.itemFixedBadge}><CheckCircle size={12} /> {t.fixItemApplied || 'Applied'}</span>
@@ -318,6 +407,7 @@ function InsightDetails({ insight, translations, siteId, pluginConnected, onItem
             <tr>
               <th>{labels.page || 'Page'}</th>
               <th>{labels.lastUpdated || 'Last Updated'}</th>
+              <th>{entityLabel}</th>
               {canFix && <th>{fixColLabel}</th>}
             </tr>
           </thead>
@@ -334,6 +424,7 @@ function InsightDetails({ insight, translations, siteId, pluginConnected, onItem
                     ) : (p.title || p.slug)}
                   </td>
                   <td>{p.updatedAt ? new Date(p.updatedAt).toLocaleDateString(locale === 'he' ? 'he-IL' : 'en-US') : '-'}</td>
+                  <td><EntityLinkCell entity={entityFor(p.url)} translations={translations} /></td>
                   {canFix && (
                     <td>
                       {itemFixed
@@ -396,7 +487,7 @@ function InsightDetails({ insight, translations, siteId, pluginConnected, onItem
                     ) : (displayTitle || '-')}
                   </td>
                   <td>{p.seoPriority && <span className={`${styles.seoPriorityBadge} ${styles[`seoPriority_${p.seoPriority}`]}`}>{priorityLabel}</span>}</td>
-                  <td><EntityLinkCell url={p.url} siteId={siteId} translations={translations} /></td>
+                  <td><EntityLinkCell entity={entityFor(p.url)} translations={translations} /></td>
                   {canFix && (
                     <td>
                       {itemFixed
@@ -443,7 +534,7 @@ function InsightDetails({ insight, translations, siteId, pluginConnected, onItem
                       </a>
                     ) : (p.title || '-')}
                   </td>
-                  <td><EntityLinkCell url={p.url} siteId={siteId} translations={translations} /></td>
+                  <td><EntityLinkCell entity={entityFor(p.url)} translations={translations} /></td>
                   {canFix && (
                     <td>
                       {itemFixed
@@ -485,7 +576,7 @@ function InsightDetails({ insight, translations, siteId, pluginConnected, onItem
           <>
             <div className={styles.detailSubheading}>{labels.affectedPages || 'Affected Pages'}:</div>
             <table className={styles.detailTable}>
-              <thead><tr><th>{labels.page || 'Page'}</th><th>{labels.clicks || 'Clicks'}</th><th>{labels.change || 'Change'}</th></tr></thead>
+              <thead><tr><th>{labels.page || 'Page'}</th><th>{labels.clicks || 'Clicks'}</th><th>{labels.change || 'Change'}</th><th>{entityLabel}</th></tr></thead>
               <tbody>
                 {d.pages.slice(0, 5).map((p, i) => {
                   // Get best display title
@@ -506,6 +597,7 @@ function InsightDetails({ insight, translations, siteId, pluginConnected, onItem
                       </td>
                       <td>{p.clicks?.toLocaleString()}</td>
                       <td className={styles.detailNegative}>{p.clicksChange}%</td>
+                      <td><EntityLinkCell entity={entityFor(p.page)} translations={translations} /></td>
                     </tr>
                   );
                 })}
@@ -581,7 +673,7 @@ function InsightDetails({ insight, translations, siteId, pluginConnected, onItem
                   </td>
                   <td>{p.clicks?.toLocaleString()}</td>
                   <td className={styles.detailNegative}>{p.clicksChange}%</td>
-                  <td><EntityLinkCell url={p.page} siteId={siteId} translations={translations} /></td>
+                  <td><EntityLinkCell entity={entityFor(p.page)} translations={translations} /></td>
                   {canFix && (
                     <td>
                       {itemFixed
@@ -693,12 +785,21 @@ function InsightDetails({ insight, translations, siteId, pluginConnected, onItem
             </tr>
           </thead>
           <tbody>
-            {d.competitors.map((c, i) => (
+            {d.competitors.map((c, i) => {
+              const competitorUrl = c.domain ? (c.domain.startsWith('http') ? c.domain : `https://${c.domain}`) : null;
+              return (
               <tr key={i}>
-                <td>{c.domain?.startsWith('http') ? c.domain : `https://${c.domain}`}</td>
+                <td>
+                  {competitorUrl ? (
+                    <a href={competitorUrl} target="_blank" rel="noopener noreferrer" className={styles.detailLink}>
+                      <bdi dir="ltr">{c.domain}</bdi> <ExternalLink size={12} />
+                    </a>
+                  ) : '-'}
+                </td>
                 <td>{c.lastScannedAt ? new Date(c.lastScannedAt).toLocaleDateString(locale === 'he' ? 'he-IL' : 'en-US') : '-'}</td>
               </tr>
-            ))}
+              );
+            })}
           </tbody>
         </table>
         {canFix && (
@@ -777,6 +878,7 @@ function InsightDetails({ insight, translations, siteId, pluginConnected, onItem
                         <a href={url} target="_blank" rel="noopener noreferrer" className={styles.detailLink}>
                           <bdi dir="ltr">{formatPageUrl(url)}</bdi> <ExternalLink size={12} />
                         </a>
+                        <EntityLinkCell entity={entityFor(url)} translations={translations} />
                         {entity?.focusKeyword && (
                           <div className={styles.pageMeta}>
                             <span className={styles.metaLabel}>{labels.focusKeyword || 'Focus'}:</span> {entity.focusKeyword}
@@ -834,6 +936,7 @@ function InsightDetails({ insight, translations, siteId, pluginConnected, onItem
                   <th>{labels.position || 'Position'}</th>
                   <th>{labels.clicks || 'Clicks'}</th>
                   <th>{labels.impressions || 'Impressions'}</th>
+                  <th>{entityLabel}</th>
                 </tr>
               </thead>
               <tbody>
@@ -847,6 +950,7 @@ function InsightDetails({ insight, translations, siteId, pluginConnected, onItem
                     <td>{p.position ? Math.round(parseFloat(p.position)) : '-'}</td>
                     <td>{p.clicks?.toLocaleString()}</td>
                     <td>{p.impressions?.toLocaleString()}</td>
+                    <td><EntityLinkCell entity={entityFor(p.page)} translations={translations} /></td>
                   </tr>
                 ))}
               </tbody>
@@ -948,14 +1052,12 @@ function InsightDetails({ insight, translations, siteId, pluginConnected, onItem
                   <td className={styles.detailNegative}>{p.actualCtr}%</td>
                   <td>{p.expectedCtr}%</td>
                   <td>{p.impressions?.toLocaleString()}</td>
-                  <td><EntityLinkCell url={p.page} siteId={siteId} translations={translations} /></td>
+                  <td><EntityLinkCell entity={entityFor(p.page)} translations={translations} /></td>
                   {canFix && (
                     <td>
                       {itemFixed
                         ? <span className={styles.itemFixedBadge}><CheckCircle size={12} /> {t.fixItemApplied || 'Applied'}</span>
-                        : <button className={styles.itemFixBtn} onClick={() => onOpenFixSingle?.(insight, [i])}>
-                            <Sparkles size={12} /> {t.fixWithAiCost || `Fix with AI (${getCreditCost('AI_QUICK_FIX', 1)} Credit${getCreditCost('AI_QUICK_FIX', 1) !== 1 ? 's' : ''})`}
-                          </button>
+                        : <FixItemButton insight={insight} onClick={() => onOpenFixSingle?.(insight, [i])} translations={translations} />
                       }
                     </td>
                   )}
@@ -996,7 +1098,7 @@ function InsightDetails({ insight, translations, siteId, pluginConnected, onItem
                     ) : (p.title || '-')}
                   </td>
                   <td>{p.publishedAt ? new Date(p.publishedAt).toLocaleDateString(locale === 'he' ? 'he-IL' : 'en-US') : '-'}</td>
-                  <td><EntityLinkCell url={p.url} siteId={siteId} translations={translations} /></td>
+                  <td><EntityLinkCell entity={entityFor(p.url)} translations={translations} /></td>
                   <td>
                     <AiSuggestButton page={p} siteId={siteId} translations={translations} />
                   </td>
@@ -1069,7 +1171,20 @@ function InsightDetails({ insight, translations, siteId, pluginConnected, onItem
                     ? `${s.source}${s.medium && s.medium !== '(not set)' ? ` / ${s.medium}` : ''}`
                     : '-'}
                 </td>
-                <td>{s.topLandingPage || '-'}</td>
+                <td>
+                  {(() => {
+                    const spikeUrl = resolvePageUrl(siteUrl, s.topLandingPage);
+                    if (!spikeUrl) return s.topLandingPage || '-';
+                    return (
+                      <span className={styles.entityCell}>
+                        <a href={spikeUrl} target="_blank" rel="noopener noreferrer" className={styles.detailLink}>
+                          <bdi dir="ltr">{formatPageUrl(spikeUrl)}</bdi> <ExternalLink size={12} />
+                        </a>
+                        <EntityLinkCell entity={entityFor(spikeUrl)} translations={translations} />
+                      </span>
+                    );
+                  })()}
+                </td>
               </tr>
             ))}
           </tbody>
@@ -1169,6 +1284,7 @@ function InsightDetails({ insight, translations, siteId, pluginConnected, onItem
               <th>{labels.page || 'Page'}</th>
               <th>{labels.clicks || 'Clicks'}</th>
               <th>{labels.sharePercent || 'Traffic Share'}</th>
+              <th>{entityLabel}</th>
             </tr>
           </thead>
           <tbody>
@@ -1181,6 +1297,7 @@ function InsightDetails({ insight, translations, siteId, pluginConnected, onItem
                 </td>
                 <td>{p.clicks?.toLocaleString()}</td>
                 <td>{p.sharePercent}%</td>
+                <td><EntityLinkCell entity={entityFor(p.page)} translations={translations} /></td>
               </tr>
             ))}
           </tbody>
@@ -1217,7 +1334,7 @@ function InsightDetails({ insight, translations, siteId, pluginConnected, onItem
                       </a>
                     ) : (displayTitle || p.slug)}
                   </td>
-                  <td><EntityLinkCell url={p.url} siteId={siteId} translations={translations} /></td>
+                  <td><EntityLinkCell entity={entityFor(p.url)} translations={translations} /></td>
                   {canFix && (
                     <td>
                       {itemFixed
@@ -1248,6 +1365,7 @@ function InsightDetails({ insight, translations, siteId, pluginConnected, onItem
               <th>{t.wordCount || 'Words'}</th>
               <th>{t.currentImages || 'Images'}</th>
               <th>{t.recommendedImages || 'Recommended'}</th>
+              <th>{entityLabel}</th>
               {canFix && <th>{fixColLabel}</th>}
             </tr>
           </thead>
@@ -1268,6 +1386,7 @@ function InsightDetails({ insight, translations, siteId, pluginConnected, onItem
                   <td>{p.wordCount?.toLocaleString()}</td>
                   <td>{p.imageCount}</td>
                   <td>{p.recommendedImages}</td>
+                  <td><EntityLinkCell entity={entityFor(p.url)} translations={translations} /></td>
                   {canFix && (
                     <td>
                       {itemFixed
@@ -1314,6 +1433,7 @@ function InsightDetails({ insight, translations, siteId, pluginConnected, onItem
             <tr>
               <th>{labels.page || 'Page'}</th>
               <th>{lenLabel}</th>
+              <th>{entityLabel}</th>
               {canFix && <th>{fixColLabel}</th>}
             </tr>
           </thead>
@@ -1330,6 +1450,7 @@ function InsightDetails({ insight, translations, siteId, pluginConnected, onItem
                     ) : (p.title || p.slug || '-')}
                   </td>
                   <td>{p.length}</td>
+                  <td><EntityLinkCell entity={entityFor(p.url)} translations={translations} /></td>
                   {canFix && (
                     <td>
                       {itemFixed
@@ -1356,6 +1477,7 @@ function InsightDetails({ insight, translations, siteId, pluginConnected, onItem
             <tr>
               <th>{labels.page || 'Page'}</th>
               <th>{labels.h1Count || 'H1 Count'}</th>
+              <th>{entityLabel}</th>
               {canFix && <th>{fixColLabel}</th>}
             </tr>
           </thead>
@@ -1372,6 +1494,7 @@ function InsightDetails({ insight, translations, siteId, pluginConnected, onItem
                     ) : (p.title || p.slug || '-')}
                   </td>
                   <td>{p.h1Count}</td>
+                  <td><EntityLinkCell entity={entityFor(p.url)} translations={translations} /></td>
                   {canFix && (
                     <td>
                       {itemFixed
@@ -1391,13 +1514,10 @@ function InsightDetails({ insight, translations, siteId, pluginConnected, onItem
   // AI Engine Gap - single page, two-part fix wrapped in the detail section
   if (type === 'aiEngineGap' && d.page) {
     const isExecuted = insight.status === 'EXECUTED' || (insight.executionResult?.results || []).some(r => r.status === 'fixed');
+    const gapUrl = d.url || resolvePageUrl(siteUrl, d.page);
     return (
       <div className={styles.detailSection}>
         <div className={styles.detailStats}>
-          <div className={styles.detailStat}>
-            <span className={styles.detailStatLabel}>{labels.page || 'Page'}</span>
-            <span className={styles.detailStatValue}><bdi dir="ltr">{d.page}</bdi></span>
-          </div>
           <div className={styles.detailStat}>
             <span className={styles.detailStatLabel}>{labels.primaryEngine || 'Primary Engine'}</span>
             <span className={styles.detailStatValue}>{d.primaryEngine}</span>
@@ -1409,13 +1529,21 @@ function InsightDetails({ insight, translations, siteId, pluginConnected, onItem
             </div>
           )}
         </div>
-        {canFix && (
-          <div className={styles.detailUrlRow}>
-            {isExecuted
+        <div className={styles.detailUrlRow}>
+          {gapUrl ? (
+            <a href={gapUrl} target="_blank" rel="noopener noreferrer" className={styles.detailLink}>
+              <bdi dir="ltr">{formatPageUrl(gapUrl)}</bdi> <ExternalLink size={12} />
+            </a>
+          ) : (
+            <bdi dir="ltr">{d.page}</bdi>
+          )}
+          <EntityLinkCell entity={entityFor(gapUrl)} translations={translations} />
+          {canFix && (
+            isExecuted
               ? <span className={styles.itemFixedBadge}><CheckCircle size={12} /> {t.fixItemApplied || 'Applied'}</span>
-              : <FixItemButton insight={insight} onClick={() => onOpenFixSingle?.(insight, null)} translations={translations} />}
-          </div>
-        )}
+              : <FixItemButton insight={insight} onClick={() => onOpenFixSingle?.(insight, null)} translations={translations} />
+          )}
+        </div>
       </div>
     );
   }
@@ -1447,6 +1575,188 @@ function InsightDetails({ insight, translations, siteId, pluginConnected, onItem
             <MapPin size={12} /> {sitemapT.quickFix || 'Submit Sitemaps to GSC'}
           </button>
         )}
+      </div>
+    );
+  }
+
+  // Numeric Slug Suffix - pages with leftover -2/-3 URL suffixes (free per-row fix)
+  if (type === 'numericSlugSuffix' && d.pages?.length > 0) {
+    const fixedUrls = new Set((insight.executionResult?.results || []).filter(r => r.status === 'fixed').map(r => r.url));
+    return (
+      <div className={styles.detailSection}>
+        <table className={styles.detailTable}>
+          <thead>
+            <tr>
+              <th>{labels.page || 'Page'}</th>
+              <th>{labels.suggestedSlug || 'Suggested Slug'}</th>
+              <th>{entityLabel}</th>
+              {canFix && <th>{fixColLabel}</th>}
+            </tr>
+          </thead>
+          <tbody>
+            {d.pages.map((p, i) => {
+              const itemFixed = fixedUrls.has(p.url) || p.alreadyRedirected;
+              let displayTitle = p.title;
+              if (displayTitle) { try { displayTitle = decodeURIComponent(displayTitle); } catch { /* keep */ } }
+              return (
+                <tr key={i}>
+                  <td className={styles.detailPageTitle}>
+                    {p.url ? (
+                      <a href={p.url} target="_blank" rel="noopener noreferrer" className={styles.detailLink}>
+                        {displayTitle || p.slug || <bdi dir="ltr">{formatPageUrl(p.url)}</bdi>} <ExternalLink size={12} />
+                      </a>
+                    ) : (displayTitle || p.slug || '-')}
+                  </td>
+                  <td>
+                    <span dir="ltr">
+                      <s>{p.slug}</s> → <strong>{p.suggestedSlug}</strong>
+                    </span>
+                  </td>
+                  <td><EntityLinkCell entity={entityFor(p.url)} translations={translations} /></td>
+                  {canFix && (
+                    <td>
+                      {itemFixed
+                        ? <span className={styles.itemFixedBadge}><CheckCircle size={12} /> {t.fixItemApplied || 'Applied'}</span>
+                        : <FixItemButton insight={insight} onClick={() => onOpenFixSingle?.(insight, [i])} translations={translations} />}
+                    </td>
+                  )}
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+    );
+  }
+
+  // SGE Traffic Theft - queries losing CTR to AI Overviews, with affected pages
+  if (type === 'sgeTrafficTheft' && d.queries?.length > 0) {
+    return (
+      <div className={styles.detailSection}>
+        <div className={styles.detailStats}>
+          {d.totalClicksLost != null && (
+            <div className={`${styles.detailStat} ${styles.detailStatNegative}`}>
+              <span className={styles.detailStatLabel}>{labels.estClicksLost || 'Est. Clicks Lost'}</span>
+              <span className={styles.detailStatValue}><TrendingDown size={14} /> {d.totalClicksLost?.toLocaleString()}</span>
+            </div>
+          )}
+          <div className={styles.detailStat}>
+            <span className={styles.detailStatLabel}>{labels.queriesAffected || 'Queries affected'}</span>
+            <span className={styles.detailStatValue}>{d.count || d.queries.length}</span>
+          </div>
+        </div>
+        <table className={styles.detailTable}>
+          <thead>
+            <tr>
+              <th>{labels.query || 'Query'}</th>
+              <th>{labels.position || 'Position'}</th>
+              <th>{labels.ctrChange || 'CTR Change'}</th>
+              <th>{labels.confidence || 'Confidence'}</th>
+              <th>{labels.page || 'Page'}</th>
+              <th>{entityLabel}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {d.queries.map((q, i) => (
+              <tr key={i}>
+                <td>{q.query}</td>
+                <td>{q.position ? Math.round(parseFloat(q.position)) : '-'}</td>
+                <td className={styles.detailNegative}>{q.ctrChange}%</td>
+                <td>{q.confidence != null ? `${q.confidence}%` : '-'}</td>
+                <td className={styles.detailPageTitle}>
+                  {q.pageUrl ? (
+                    <a href={q.pageUrl} target="_blank" rel="noopener noreferrer" className={styles.detailLink}>
+                      <bdi dir="ltr">{formatPageUrl(q.pageUrl)}</bdi> <ExternalLink size={12} />
+                    </a>
+                  ) : '-'}
+                </td>
+                <td><EntityLinkCell entity={entityFor(q.pageUrl)} translations={translations} /></td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    );
+  }
+
+  // AI page audits (missing schema / not concise) - single page with AI fix
+  if (type === 'aiPageMissingSchema' || type === 'aiAnswerableButNotConcise') {
+    const pageUrl = d.url || resolvePageUrl(siteUrl, d.page);
+    const isFixed = insight.status === 'EXECUTED' || (insight.executionResult?.results || []).some(r => r.status === 'fixed');
+    return (
+      <div className={styles.detailSection}>
+        <div className={styles.detailStats}>
+          {d.aiSessions != null && (
+            <div className={styles.detailStat}>
+              <span className={styles.detailStatLabel}>{labels.aiSessions || 'AI Sessions'}</span>
+              <span className={styles.detailStatValue}>{d.aiSessions?.toLocaleString()}</span>
+            </div>
+          )}
+          {type === 'aiAnswerableButNotConcise' && d.firstParaWords != null && (
+            <div className={styles.detailStat}>
+              <span className={styles.detailStatLabel}>{labels.firstParaWords || 'First Paragraph Words'}</span>
+              <span className={styles.detailStatValue}>{d.firstParaWords}</span>
+            </div>
+          )}
+          {type === 'aiPageMissingSchema' && d.existingTypes?.length > 0 && (
+            <div className={styles.detailStat}>
+              <span className={styles.detailStatLabel}>{labels.schemaTypes || 'Existing Schema'}</span>
+              <span className={styles.detailStatValue}>{d.existingTypes.join(', ')}</span>
+            </div>
+          )}
+        </div>
+        <div className={styles.detailUrlRow}>
+          {pageUrl ? (
+            <a href={pageUrl} target="_blank" rel="noopener noreferrer" className={styles.detailLink}>
+              <bdi dir="ltr">{formatPageUrl(pageUrl)}</bdi> <ExternalLink size={12} />
+            </a>
+          ) : (
+            <bdi dir="ltr">{d.page}</bdi>
+          )}
+          <EntityLinkCell entity={entityFor(pageUrl)} translations={translations} />
+          {canFix && (
+            isFixed
+              ? <span className={styles.itemFixedBadge}><CheckCircle size={12} /> {t.fixItemApplied || 'Applied'}</span>
+              : <FixItemButton insight={insight} onClick={() => onOpenFixSingle?.(insight, null)} translations={translations} />
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  // Cited by AI Engine - top pages the engine sends sessions to
+  if (type === 'aiCitedByEngine' && d.topPages?.length > 0) {
+    return (
+      <div className={styles.detailSection}>
+        <table className={styles.detailTable}>
+          <thead>
+            <tr>
+              <th>{labels.page || 'Page'}</th>
+              <th>{labels.sessions || 'Sessions'}</th>
+              <th>{entityLabel}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {d.topPages.map((p, i) => {
+              const pageUrl = resolvePageUrl(siteUrl, p.page);
+              return (
+                <tr key={i}>
+                  <td className={styles.detailPageTitle}>
+                    {pageUrl ? (
+                      <a href={pageUrl} target="_blank" rel="noopener noreferrer" className={styles.detailLink}>
+                        <bdi dir="ltr">{formatPageUrl(pageUrl)}</bdi> <ExternalLink size={12} />
+                      </a>
+                    ) : (
+                      <bdi dir="ltr">{p.page}</bdi>
+                    )}
+                  </td>
+                  <td>{p.sessions?.toLocaleString()}</td>
+                  <td><EntityLinkCell entity={entityFor(pageUrl)} translations={translations} /></td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
       </div>
     );
   }
@@ -1524,7 +1834,7 @@ function InsightLegend({ translations }) {
   );
 }
 
-function InsightRow({ insight, translations, onAction, onOpenFix, onOpenSitemapSubmission, siteId, pluginConnected, onItemFixed, trackedKeywords, addingKeyword, onAddKeyword }) {
+function InsightRow({ insight, translations, onAction, onOpenFix, onOpenSitemapSubmission, siteId, siteUrl, pluginConnected, onItemFixed, trackedKeywords, addingKeyword, onAddKeyword }) {
   const { locale } = useLocale();
   const [expanded, setExpanded] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
@@ -1638,7 +1948,7 @@ function InsightRow({ insight, translations, onAction, onOpenFix, onOpenSitemapS
             </div>
           )}
 
-          <InsightDetails insight={insight} translations={translations} siteId={siteId} pluginConnected={pluginConnected} onItemFixed={onItemFixed} onOpenFixSingle={(i, indices) => onOpenFix(i, indices)} onOpenSitemapSubmission={onOpenSitemapSubmission} trackedKeywords={trackedKeywords} addingKeyword={addingKeyword} onAddKeyword={onAddKeyword} />
+          <InsightDetails insight={insight} translations={translations} siteId={siteId} siteUrl={siteUrl} pluginConnected={pluginConnected} onItemFixed={onItemFixed} onOpenFixSingle={(i, indices) => onOpenFix(i, indices)} onOpenSitemapSubmission={onOpenSitemapSubmission} trackedKeywords={trackedKeywords} addingKeyword={addingKeyword} onAddKeyword={onAddKeyword} />
 
           {(insight.status === 'EXECUTED' || isInsightFullyFixed(insight)) && (
             <div className={styles.insightActions}>
@@ -1953,6 +2263,7 @@ export default function AgentPageContent({ translations, mode = 'full', onInsigh
     onOpenFix: openFixModal,
     onOpenSitemapSubmission: (insight) => setSitemapModalInsight(insight),
     siteId: selectedSite?.id,
+    siteUrl: selectedSite?.url,
     pluginConnected,
     onItemFixed: fetchInsights,
     trackedKeywords,

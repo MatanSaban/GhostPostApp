@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { useModalResize, ModalResizeButton } from '@/app/components/ui/ModalResizeButton';
 import { Button } from '@/app/dashboard/components';
+import { isFreeFixableInsight } from './insight/insight-utils';
 import styles from './FixPreviewModal.module.css';
 
 // Article type definitions with word count limits
@@ -91,6 +92,10 @@ export default function FixPreviewModal({ open, onClose, insight, translations, 
 
   // Detect if this is a cannibalization fix
   const isCannibalizationFix = insight?.titleKey?.includes('cannibalization');
+
+  // Free fixes have no AI preview phase - items are ready immediately and
+  // Apply sends { mode: 'apply', itemIndices } straight to the fix route.
+  const isFreeFixInsight = isFreeFixableInsight(insight?.titleKey);
 
   // Progress messages for generating state
   const generatingProgressKeys = ['analyzingContent', 'mergingContent', 'optimizingSeo', 'generatingImages', 'finalizingArticle', 'almostDone'];
@@ -471,6 +476,69 @@ export default function FixPreviewModal({ open, onClose, insight, translations, 
       }];
     }
 
+    // Single-page AI fixes: JSON-LD schema / TL;DR conciseness
+    if (type === 'aiPageMissingSchema' || type === 'aiAnswerableButNotConcise') {
+      const d = insight.data || {};
+      const url = d.url || d.page;
+      if (!url) return [];
+      return [{
+        page: d.page || url,
+        url,
+        status: 'loading',
+        isSchemaFix: type === 'aiPageMissingSchema',
+        isTldrFix: type === 'aiAnswerableButNotConcise',
+        current: type === 'aiAnswerableButNotConcise'
+          ? { firstParaWords: d.firstParaWords || null }
+          : { schema: 'missing' },
+        proposed: null,
+      }];
+    }
+
+    // Free fixes (noindexDetected / numericSlugSuffix) - no AI generation,
+    // items are ready immediately; Apply posts mode:'apply' with itemIndices.
+    if (type === 'noindexDetected' || type === 'numericSlugSuffix') {
+      const pages = insight.data?.pages || [];
+      let indicesToUse = itemIndices || pages.map((_, i) => i);
+      if (!itemIndices) {
+        indicesToUse = indicesToUse.filter(i => {
+          const p = pages[i];
+          return p && !fixedUrls.has(p.url) && !(type === 'numericSlugSuffix' && p.alreadyRedirected);
+        });
+      }
+      return indicesToUse.map(i => {
+        const page = pages[i];
+        if (!page) return null;
+        return {
+          page: page.title || page.slug || page.url || '',
+          url: page.url,
+          realIndex: i,
+          status: 'ready',
+          isFreeFix: true,
+          freeFixType: type,
+          current: type === 'numericSlugSuffix' ? { slug: page.slug } : {},
+          proposed: type === 'numericSlugSuffix' ? { slug: page.suggestedSlug, url: page.suggestedUrl } : {},
+        };
+      }).filter(Boolean);
+    }
+
+    // Free rescan of stale competitor data - one batch action
+    if (type === 'staleCompetitorScans') {
+      const competitors = insight.data?.competitors || [];
+      const indices = itemIndices || competitors.map((_, i) => i);
+      return indices.map(i => {
+        const c = competitors[i];
+        if (!c) return null;
+        return {
+          page: c.domain || '',
+          realIndex: i,
+          status: 'ready',
+          isFreeFix: true,
+          freeFixType: type,
+          proposed: {},
+        };
+      }).filter(Boolean);
+    }
+
     return [];
   }, [insight, itemIndices]);
 
@@ -504,20 +572,22 @@ export default function FixPreviewModal({ open, onClose, insight, translations, 
     }
     setAppliedItems(prevApplied);
 
-    if (skeletons.length === 0) {
+    // Free-fix items are 'ready' from the start - only 'loading' items need
+    // an AI generation round-trip.
+    const pendingIdx = skeletons.map((s, i) => (s.status === 'loading' ? i : -1)).filter(i => i >= 0);
+    if (pendingIdx.length === 0) {
       setIsLoading(false);
       return;
     }
 
-    let remaining = skeletons.length;
+    let remaining = pendingIdx.length;
     const onItemDone = () => {
       remaining--;
       if (remaining <= 0) setIsLoading(false);
     };
 
-    for (let i = 0; i < skeletons.length; i++) {
-      const idx = i;
-      const apiIndex = skeletons[i].realIndex ?? i;
+    for (const idx of pendingIdx) {
+      const apiIndex = skeletons[idx].realIndex ?? idx;
       fetch(`/api/agent/insights/${insightId}/fix`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -537,6 +607,8 @@ export default function FixPreviewModal({ open, onClose, insight, translations, 
               if (p.isNewArticle) { merged.isNewArticle = true; merged.seedTopic = p.seedTopic; }
               if (p.isInternalLinks) merged.isInternalLinks = true;
               if (p.isAiEngineGap) merged.isAiEngineGap = true;
+              if (p.isSchemaFix) merged.isSchemaFix = true;
+              if (p.isTldrFix) merged.isTldrFix = true;
               return merged;
             }));
             // Populate merge instructions immediately alongside proposals update
@@ -678,6 +750,8 @@ export default function FixPreviewModal({ open, onClose, insight, translations, 
           if (p.isNewArticle) { merged.isNewArticle = true; merged.seedTopic = p.seedTopic; }
           if (p.isInternalLinks) merged.isInternalLinks = true;
           if (p.isAiEngineGap) merged.isAiEngineGap = true;
+          if (p.isSchemaFix) merged.isSchemaFix = true;
+          if (p.isTldrFix) merged.isTldrFix = true;
           return merged;
         }));
         // Update merge instructions on regeneration
@@ -702,6 +776,7 @@ export default function FixPreviewModal({ open, onClose, insight, translations, 
     if (p.isInternalLinks) return `link-${p.keyword || p.realIndex || 0}`;
     if (p.isNewArticle) return `new-${p.realIndex ?? p.seedTopic}`;
     if (p.isAiEngineGap) return `gap-${p.url || 0}`;
+    if (p.isFreeFix) return `free-${p.url || p.page || (p.realIndex ?? 0)}`;
     return p.postId || p.pageId || `idx-${p.realIndex ?? 0}`;
   };
 
@@ -711,6 +786,30 @@ export default function FixPreviewModal({ open, onClose, insight, translations, 
 
     const key = getProposalKey(proposal);
     setApplyingSingleIdx(idx);
+
+    // Free fixes apply by original item index - the route ignores `proposals`
+    // for free-fixable insights and would apply ALL items without itemIndices.
+    if (isFreeFixInsight) {
+      try {
+        const res = await fetch(`/api/agent/insights/${insightId}/fix`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ mode: 'apply', itemIndices: [proposal.realIndex ?? 0] }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Apply failed');
+        const itemResult = data.results?.[0];
+        setAppliedItems(prev => ({ ...prev, [key]: itemResult || { status: data.success ? 'fixed' : 'error' } }));
+        if (data.success && onApplied) onApplied();
+      } catch (err) {
+        console.error('[FixPreview] free apply single error:', err);
+        setAppliedItems(prev => ({ ...prev, [key]: { status: 'error', reason: err.message } }));
+      } finally {
+        setApplyingSingleIdx(null);
+      }
+      return;
+    }
+
     try {
       // Add content image count and AI prompts to proposal
       const proposalWithOptions = {
@@ -849,9 +948,38 @@ export default function FixPreviewModal({ open, onClose, insight, translations, 
   };
 
   const handleApply = async () => {
+    // Free fixes: apply directly via itemIndices - there are no AI proposals.
+    if (isFreeFixInsight) {
+      const readyItems = proposals.filter(p => p.status === 'ready' && !appliedItems[getProposalKey(p)]);
+      if (readyItems.length === 0) return;
+      setIsApplying(true);
+      try {
+        const res = await fetch(`/api/agent/insights/${insightId}/fix`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ mode: 'apply', itemIndices: readyItems.map(p => p.realIndex ?? 0) }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Apply failed');
+        // Only collapse to the all-applied screen when every item succeeded -
+        // partial skips/errors stay visible per row.
+        const allFixed = (data.results || []).length > 0
+          && data.results.every(r => r.status === 'fixed' || r.status === 'manual_required');
+        setApplyResults({ ...data, success: allFixed });
+        if (data.success && onApplied) onApplied();
+      } catch (err) {
+        console.error('[FixPreview] free apply error:', err);
+        // setError renders the modal's error panel; setApplyResults({error}) is never displayed.
+        setError(err.message);
+      } finally {
+        setIsApplying(false);
+      }
+      return;
+    }
+
     const readyProposals = proposals
-      .map((p, idx) => ({ 
-        ...p, 
+      .map((p, idx) => ({
+        ...p,
         contentImageCount: getContentImageCount(idx),
         featuredImagePrompt: featuredImagePrompts[idx] || '',
         contentImagesPrompt: contentImagesPrompts[idx] || '',
@@ -877,14 +1005,18 @@ export default function FixPreviewModal({ open, onClose, insight, translations, 
         // Background processing (cannibalization), poll for results
         setFixPollingStatus('APPLYING');
       } else {
-        // Synchronous response (non-cannibalization)
-        setApplyResults(data);
+        // Synchronous response (non-cannibalization). Keep the per-row view
+        // open when any item needs a manual step (e.g. schema copy-paste) -
+        // the all-applied screen would hide the snippet the user must copy.
+        const hasManual = (data.results || []).some(r => r.status === 'manual_required');
+        setApplyResults(hasManual ? { ...data, success: false } : data);
         if (data.success && onApplied) onApplied();
         setIsApplying(false);
       }
     } catch (err) {
       console.error('[FixPreview] apply error:', err);
-      setApplyResults({ success: false, error: err.message });
+      // setError renders the modal's error panel; setApplyResults({error}) is never displayed.
+      setError(err.message);
       setIsApplying(false);
     }
   };
@@ -1089,10 +1221,13 @@ export default function FixPreviewModal({ open, onClose, insight, translations, 
                 const isSkeleton = p.status === 'loading';
                 const isSkipped = p.status === 'skipped' || p.status === 'error';
                 const proposalKey = getProposalKey(p);
-                // For cannibalization, match by issueIndex; for regular proposals, match by postId
-                const appliedResult = p.isCannibalization 
+                // For cannibalization, match by issueIndex; for free fixes by
+                // original item index/url; for regular proposals by postId.
+                const appliedResult = p.isCannibalization
                   ? (applyResults?.results?.find(r => r.issueIndex === p.issueIndex) || appliedItems[proposalKey])
-                  : (applyResults?.results?.find(r => r.postId === p.postId) || appliedItems[proposalKey]);
+                  : p.isFreeFix
+                    ? (applyResults?.results?.find(r => (r.index != null && r.index === p.realIndex) || (r.url && r.url === p.url)) || appliedItems[proposalKey])
+                    : (applyResults?.results?.find(r => r.postId === p.postId) || appliedItems[proposalKey]);
 
                 return (
                   <div key={`${proposalKey}-${idx}`} className={`${styles.proposalItem} ${isSkipped ? styles.proposalItemSkipped : ''} ${p.isCannibalization ? styles.proposalItemCannibalization : ''}`}>
@@ -1787,6 +1922,94 @@ export default function FixPreviewModal({ open, onClose, insight, translations, 
                           </div>
                         )}
                       </div>
+                    ) : p.isFreeFix ? (
+                      <div className={styles.skeletonFields}>
+                        <div className={styles.seoFieldLabel} style={{ opacity: 0.7 }}>
+                          {p.freeFixType === 'numericSlugSuffix'
+                            ? (t.fixFreeNoteSlug || 'The slug will be cleaned up and a 301 redirect will be created from the old URL.')
+                            : p.freeFixType === 'staleCompetitorScans'
+                              ? (t.fixFreeNoteRescan || 'This competitor will be queued for a fresh scan.')
+                              : (t.fixFreeNoteNoindex || 'The noindex flag will be removed so this page can appear in search results.')}
+                        </div>
+                        {p.freeFixType === 'numericSlugSuffix' && p.proposed?.slug && (
+                          <div className={styles.seoField}>
+                            <div className={styles.seoFieldLabel}>{t.fixFieldSlug || 'Slug'}</div>
+                            <div className={styles.seoRow}>
+                              <span className={`${styles.seoLabel} ${styles.labelCurrent}`}>{t.fixCurrent || 'Now'}</span>
+                              <span className={`${styles.seoText} ${styles.seoTextCurrent}`}><bdi dir="ltr">{p.current?.slug}</bdi></span>
+                            </div>
+                            <div className={styles.seoRow}>
+                              <span className={`${styles.seoLabel} ${styles.labelNew}`}>{t.fixNew || 'New'}</span>
+                              <span className={styles.seoText}><bdi dir="ltr">{p.proposed.slug}</bdi></span>
+                            </div>
+                          </div>
+                        )}
+                        {appliedResult && (
+                          <div className={`${styles.applyStatus} ${appliedResult.status === 'fixed' ? styles.applyStatusFixed : styles.applyStatusError}`}>
+                            {appliedResult.status === 'fixed'
+                              ? <><CheckCircle2 size={13} /> {t.fixItemApplied || 'Applied'}</>
+                              : <><XCircle size={13} /> {appliedResult.reason || (t.fixItemFailed || 'Failed')}</>}
+                          </div>
+                        )}
+                      </div>
+                    ) : p.isSchemaFix ? (
+                      <div className={styles.skeletonFields}>
+                        <div className={styles.seoFieldLabel} style={{ opacity: 0.7 }}>
+                          {(t.fixSchemaNote || 'Will add JSON-LD schema so AI engines can extract accurate answers from this page.')}
+                        </div>
+                        {p.proposed?.jsonLd && (
+                          <div className={styles.seoField}>
+                            <div className={styles.seoFieldLabel}>{t.fixFieldSchema || 'Schema (JSON-LD)'}</div>
+                            <div className={styles.seoText} dir="ltr" style={{ fontFamily: 'monospace', fontSize: '11px', opacity: 0.85 }}>
+                              {String(p.proposed.jsonLd).slice(0, 300)}…
+                            </div>
+                          </div>
+                        )}
+                        {appliedResult && (
+                          <div className={`${styles.applyStatus} ${appliedResult.status === 'fixed' ? styles.applyStatusFixed : appliedResult.status === 'manual_required' ? styles.applyStatusManual : styles.applyStatusError}`}>
+                            {appliedResult.status === 'fixed'
+                              ? <><CheckCircle2 size={13} /> {t.fixItemApplied || 'Applied'}</>
+                              : appliedResult.status === 'manual_required'
+                                ? <><AlertTriangle size={13} /> {t.fixSchemaManualCopy || "Schema generated - copy this snippet into your site's <head> via your theme or a header-injection plugin."}</>
+                                : <><XCircle size={13} /> {appliedResult.reason || (t.fixItemFailed || 'Failed')}</>}
+                          </div>
+                        )}
+                        {appliedResult?.status === 'manual_required' && appliedResult.snippet && (
+                          <div className={styles.seoField}>
+                            <div className={styles.seoText} dir="ltr" style={{ fontFamily: 'monospace', fontSize: '11px', whiteSpace: 'pre-wrap', wordBreak: 'break-all' }}>
+                              {appliedResult.snippet}
+                            </div>
+                            <button
+                              className={styles.retryBtn}
+                              style={{ marginTop: '6px' }}
+                              onClick={() => navigator.clipboard?.writeText(appliedResult.snippet).catch(() => {})}
+                            >
+                              {t.fixCopySnippet || 'Copy snippet'}
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    ) : p.isTldrFix ? (
+                      <div className={styles.skeletonFields}>
+                        <div className={styles.seoFieldLabel} style={{ opacity: 0.7 }}>
+                          {(t.fixTldrNote || 'Will add a concise TL;DR block at the top of the page so AI engines can cite its core answer.')}
+                        </div>
+                        {p.proposed?.tldrSentences?.length > 0 && (
+                          <div className={styles.seoField}>
+                            <div className={styles.seoFieldLabel}>{t.fixFieldTldr || 'TL;DR'}</div>
+                            <ul className={styles.seoText}>
+                              {p.proposed.tldrSentences.map((s, i) => <li key={i}>{s}</li>)}
+                            </ul>
+                          </div>
+                        )}
+                        {appliedResult && (
+                          <div className={`${styles.applyStatus} ${appliedResult.status === 'fixed' ? styles.applyStatusFixed : styles.applyStatusError}`}>
+                            {appliedResult.status === 'fixed'
+                              ? <><CheckCircle2 size={13} /> {t.fixItemApplied || 'Applied'}</>
+                              : <><XCircle size={13} /> {appliedResult.reason || (t.fixItemFailed || 'Failed')}</>}
+                          </div>
+                        )}
+                      </div>
                     ) : p.isAiEngineGap ? (
                       <div className={styles.skeletonFields}>
                         <div className={styles.seoFieldLabel} style={{ opacity: 0.7 }}>
@@ -1795,7 +2018,7 @@ export default function FixPreviewModal({ open, onClose, insight, translations, 
                         {p.proposed?.schemaProposal?.jsonLd && (
                           <div className={styles.seoField}>
                             <div className={styles.seoFieldLabel}>{t.fixFieldSchema || 'Schema (JSON-LD)'}</div>
-                            <div className={styles.seoText} style={{ fontFamily: 'monospace', fontSize: '11px', opacity: 0.85 }}>
+                            <div className={styles.seoText} dir="ltr" style={{ fontFamily: 'monospace', fontSize: '11px', opacity: 0.85 }}>
                               {String(p.proposed.schemaProposal.jsonLd).slice(0, 200)}…
                             </div>
                           </div>
@@ -1809,10 +2032,26 @@ export default function FixPreviewModal({ open, onClose, insight, translations, 
                           </div>
                         )}
                         {appliedResult && (
-                          <div className={`${styles.applyStatus} ${appliedResult.status === 'fixed' ? styles.applyStatusFixed : styles.applyStatusError}`}>
+                          <div className={`${styles.applyStatus} ${appliedResult.status === 'fixed' ? styles.applyStatusFixed : appliedResult.status === 'manual_required' ? styles.applyStatusManual : styles.applyStatusError}`}>
                             {appliedResult.status === 'fixed'
                               ? <><CheckCircle2 size={13} /> {t.fixItemApplied || 'Applied'}</>
-                              : <><XCircle size={13} /> {appliedResult.reason || (t.fixItemFailed || 'Failed')}</>}
+                              : appliedResult.status === 'manual_required'
+                                ? <><AlertTriangle size={13} /> {t.fixSchemaManualCopy || "Schema generated - copy this snippet into your site's <head> via your theme or a header-injection plugin."}</>
+                                : <><XCircle size={13} /> {appliedResult.reason || (t.fixItemFailed || 'Failed')}</>}
+                          </div>
+                        )}
+                        {appliedResult?.status === 'manual_required' && appliedResult.snippet && (
+                          <div className={styles.seoField}>
+                            <div className={styles.seoText} dir="ltr" style={{ fontFamily: 'monospace', fontSize: '11px', whiteSpace: 'pre-wrap', wordBreak: 'break-all' }}>
+                              {appliedResult.snippet}
+                            </div>
+                            <button
+                              className={styles.retryBtn}
+                              style={{ marginTop: '6px' }}
+                              onClick={() => navigator.clipboard?.writeText(appliedResult.snippet).catch(() => {})}
+                            >
+                              {t.fixCopySnippet || 'Copy snippet'}
+                            </button>
                           </div>
                         )}
                       </div>

@@ -9365,7 +9365,14 @@
       "actionLinkHealing": "Internal links updated",
       "actionLinkHealingDetail": "{count} internal links updated → {url}",
       "seoTitleLabel": "Title",
-      "seoDescriptionLabel": "Description"
+      "seoDescriptionLabel": "Description",
+      "suggestedSlug": "Suggested Slug",
+      "estClicksLost": "Est. Clicks Lost",
+      "ctrChange": "CTR Change",
+      "aiSessions": "AI Sessions",
+      "firstParaWords": "First Paragraph Words",
+      "schemaTypes": "Existing Schema",
+      "queriesAffected": "Queries affected"
     },
     "fixCannibalization": "Fix with AI",
     "cannibalizationIssue": "Cannibalization Issue",
@@ -9484,7 +9491,15 @@
         "completed": "Content differentiation strategy is ready for review!",
         "pagesDifferentiated": "{count} pages differentiated"
       }
-    }
+    },
+    "fixFreeNoteNoindex": "The noindex flag will be removed so this page can appear in search results.",
+    "fixFreeNoteSlug": "The slug will be cleaned up and a 301 redirect will be created from the old URL.",
+    "fixFreeNoteRescan": "This competitor will be queued for a fresh scan.",
+    "fixSchemaNote": "Will add JSON-LD schema so AI engines can extract accurate answers from this page.",
+    "fixTldrNote": "Will add a concise TL;DR block at the top of the page so AI engines can cite its core answer.",
+    "fixFieldSlug": "Slug",
+    "fixSchemaManualCopy": "Schema generated - copy this snippet into your site's <head> via your theme or a header-injection plugin.",
+    "fixCopySnippet": "Copy snippet"
   },
   "support": {
     "title": "Support",

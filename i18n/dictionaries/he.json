@@ -9366,7 +9366,14 @@
       "actionLinkHealing": "קישורים פנימיים עודכנו",
       "actionLinkHealingDetail": "{count} קישורים פנימיים עודכנו → {url}",
       "seoTitleLabel": "כותרת",
-      "seoDescriptionLabel": "תיאור"
+      "seoDescriptionLabel": "תיאור",
+      "suggestedSlug": "סלאג מוצע",
+      "estClicksLost": "הערכת קליקים שאבדו",
+      "ctrChange": "שינוי CTR",
+      "aiSessions": "ביקורים מ-AI",
+      "firstParaWords": "מילים בפסקה הראשונה",
+      "schemaTypes": "סכמה קיימת",
+      "queriesAffected": "שאילתות מושפעות"
     },
     "fixCannibalization": "תקן עם AI",
     "cannibalizationIssue": "בעיית קניבליזציה",
@@ -9485,7 +9492,15 @@
         "completed": "אסטרטגיית בידול התוכן מוכנה לסקירה!",
         "pagesDifferentiated": "{count} דפים בודלו"
       }
-    }
+    },
+    "fixFreeNoteNoindex": "דגל ה-noindex יוסר כדי שהעמוד יוכל להופיע בתוצאות החיפוש.",
+    "fixFreeNoteSlug": "הסלאג ינוקה ותיווצר הפניית 301 מהכתובת הישנה.",
+    "fixFreeNoteRescan": "המתחרה ייכנס לתור לסריקה מחודשת.",
+    "fixSchemaNote": "תתווסף סכמת JSON-LD כדי שמנועי AI יוכלו לחלץ תשובות מדויקות מהעמוד.",
+    "fixTldrNote": "יתווסף בלוק תקציר (TL;DR) בראש העמוד כדי שמנועי AI יוכלו לצטט את התשובה המרכזית.",
+    "fixFieldSlug": "סלאג",
+    "fixSchemaManualCopy": "הסכמה נוצרה - העתיקו את הקטע לתוך ה-<head> של האתר דרך התבנית או תוסף להזרקת קוד.",
+    "fixCopySnippet": "העתקת הקטע"
   },
   "support": {
     "title": "תמיכה",
