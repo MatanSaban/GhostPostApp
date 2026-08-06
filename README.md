@@ -53,7 +53,7 @@ cp .env.example .env
 DATABASE_URL="mongodb+srv://username:password@cluster.mongodb.net/ghostpost"
 GOOGLE_GENERATIVE_AI_API_KEY="your-gemini-api-key"
 NEXTAUTH_SECRET="your-secret-key"
-NEXTAUTH_URL="http://localhost:3000"
+NEXTAUTH_URL="http://localhost:3001"
 ```
 
 4. Generate Prisma client:
@@ -80,7 +80,7 @@ npm run prisma:seed
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) to see the platform.
+Open [http://localhost:3001](http://localhost:3001) to see the platform.
 
 ---
 
@@ -343,7 +343,7 @@ npm run prisma:push
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) to see the platform.
+Open [http://localhost:3001](http://localhost:3001) to see the platform.
 
 ## Project Structure
 

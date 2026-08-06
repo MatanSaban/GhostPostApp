@@ -76,7 +76,7 @@ export async function PUT(request, { params }) {
     // Trigger revalidation if published
     if (published) {
       try {
-        const gpWsUrl = process.env.GP_WS_URL || 'http://localhost:3001';
+        const gpWsUrl = process.env.GP_WS_URL || 'http://localhost:3000';
         await fetch(`${gpWsUrl}/api/revalidate`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -116,7 +116,7 @@ export async function DELETE(request, { params }) {
 
     // Trigger revalidation
     try {
-      const gpWsUrl = process.env.GP_WS_URL || 'http://localhost:3001';
+      const gpWsUrl = process.env.GP_WS_URL || 'http://localhost:3000';
       await fetch(`${gpWsUrl}/api/revalidate`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

@@ -28,7 +28,7 @@ async function verifySiteAccess(siteId, user) {
  */
 function dispatchGenerate(contentId) {
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL
-    || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000');
+    || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3001');
 
   const { token, timestamp } = signWorkerPayload(contentId);
 
@@ -53,7 +53,7 @@ function dispatchGenerate(contentId) {
  */
 function dispatchPublish(contentId) {
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL
-    || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000');
+    || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3001');
 
   const { token, timestamp } = signWorkerPayload(contentId);
 

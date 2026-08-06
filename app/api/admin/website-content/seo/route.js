@@ -3,7 +3,7 @@ import { cookies } from 'next/headers';
 import prisma from '@/lib/prisma';
 
 const SESSION_COOKIE = 'user_session';
-const GP_WS_URL = process.env.GP_WS_URL || 'http://localhost:3001';
+const GP_WS_URL = process.env.GP_WS_URL || 'http://localhost:3000';
 const REVALIDATE_SECRET = process.env.REVALIDATE_SECRET;
 
 // Verify super admin access

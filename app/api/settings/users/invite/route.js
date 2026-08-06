@@ -123,7 +123,7 @@ export async function POST(request) {
         : inviter?.email || 'Someone';
 
       // Build invite URL
-      const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+      const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3001';
       const inviteUrl = `${baseUrl}/auth/accept-invite?token=${inviteToken}`;
 
       // Send invitation email
@@ -204,7 +204,7 @@ export async function POST(request) {
       : inviter?.email || 'Someone';
 
     // Build invite URL
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3001';
     const inviteUrl = `${baseUrl}/auth/accept-invite?token=${inviteToken}`;
 
     // Send invitation email
