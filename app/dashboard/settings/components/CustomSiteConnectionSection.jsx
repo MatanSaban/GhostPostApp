@@ -570,8 +570,8 @@ export default nextConfig;`;
                 <Info size={12} />
                 <span>
                   {tr(
-                    'settings.customSite.vendorNote',
-                    'Until the npm package is live, you can vendor the SDK by copying its source files into lib/ghostseo/ and importing from there.',
+                    'settings.customSite.runtimeNote',
+                    'Pages calling metadataForPath must run on the Node.js runtime — the SDK verifies signatures with node:crypto, so it cannot run on the Edge runtime.',
                   )}
                 </span>
               </p>

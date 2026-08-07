@@ -957,7 +957,17 @@
       "ctr": "CTR",
       "position": "Position",
       "keyword": "Keyword",
-      "relatedPost": "Pillar Page"
+      "relatedPost": "Pillar Page",
+      "tooltips": {
+        "rank": "Position in this list, ordered by the selected sort metric",
+        "page": "The page on your site that received this Search Console traffic",
+        "keyword": "The search query people typed into Google before seeing your site",
+        "relatedPost": "The post on your site linked to this keyword. Use the button to generate one with AI if none exists",
+        "clicks": "How many times someone clicked through to your site from Google results",
+        "impressions": "How many times your site appeared in Google results, whether or not it was clicked",
+        "ctr": "Click-through rate - clicks divided by impressions. A low CTR with high impressions means your title and description need work",
+        "position": "Your average ranking position in Google. Lower is better - position 1 is the top result"
+      }
     },
     "topKeywords": "Top Keywords",
     "addToKeywords": "Add to keywords",
@@ -1305,7 +1315,7 @@
         "psi": {
           "title": "PageSpeed Insights Score",
           "description": "Google's overall performance score for this page (0-100).",
-          "details": "This score comes from Google PageSpeed Insights and reflects real-world loading performance. Scores 90+ are considered good, 50-89 need improvement, and below 50 are poor. The score factors in multiple metrics including LCP, CLS, FCP, and Total Blocking Time."
+          "details": "This score comes from Google PageSpeed Insights and reflects real-world loading performance. Scores 90+ are considered good, 50-89 need improvement, and below 50 are poor. The score factors in multiple metrics including LCP, CLS, FCP, and Total Blocking Time. Note: PSI is only measured for the first {count} pages of each scan (Google rate-limits the API and each check takes 10-30 seconds), so other pages show N/A here."
         },
         "lcp": {
           "title": "Largest Contentful Paint (LCP)",
@@ -1323,7 +1333,8 @@
           "details": "Issues include missing meta tags, heading problems, image optimization opportunities, security headers, and more. Each issue is categorized by severity - errors need immediate attention, warnings should be addressed soon, and info items are suggestions for improvement."
         },
         "gotIt": "Got it"
-      }
+      },
+      "psiNotMeasured": "Not measured. PageSpeed Insights is only run on the first {count} pages of each scan, because Google rate-limits the API and each check takes 10-30 seconds. Use Recheck on a page to measure it on demand."
     },
     "na": "N/A",
     "jsErrors": "JS Errors",
@@ -1418,7 +1429,13 @@
       "viewFull": "View Full Image",
       "suggestedAlt": "Suggested Alt Text",
       "generateAlt": "Generate Alt Text",
-      "fixFailed": "Fix failed"
+      "fixFailed": "Fix failed",
+      "translating": "Translating accessibility checks…",
+      "selector": "Selector",
+      "contrastText": "Text",
+      "contrastBackground": "Background",
+      "contrastRatio": "Contrast ratio",
+      "contrastNeeded": "needs {ratio}"
     },
     "aiFix": {
       "label": "AI Fix",
@@ -1527,6 +1544,8 @@
       "fixOne": "Convert (1 Ai-GCoin)",
       "fixing": "Converting...",
       "fixed": "Converted",
+      "convertedHint": "Converted and added to your Media Library - you won't be charged again",
+      "viewInMedia": "View in Media Library",
       "failed": "Failed",
       "fixAll": "Convert All ({count})",
       "fixingProgress": "Converting images: {done}/{total}",
@@ -1644,7 +1663,14 @@
       "recordTtl": "TTL",
       "recordPriority": "Priority",
       "download": "Download",
-      "howToApply": "How to apply"
+      "howToApply": "How to apply",
+      "tooltips": {
+        "recordType": "The DNS record type to create (TXT, CNAME, A, MX ...)",
+        "recordName": "The host/name field of the record - what you type in the \"Name\" box at your DNS provider",
+        "recordValue": "The exact value to paste into the record - copy it as-is",
+        "recordTtl": "Time To Live - how long resolvers cache this record, in seconds",
+        "recordPriority": "Delivery priority for MX/SRV records - lower numbers are tried first"
+      }
     }
   },
   "seoFrontend": {
@@ -1700,7 +1726,13 @@
       "source": "Source",
       "da": "DA",
       "type": "Type",
-      "date": "Date"
+      "date": "Date",
+      "tooltips": {
+        "source": "The site and page that link back to you",
+        "da": "Domain Authority (0-100) - a prediction of how well the linking domain ranks. Higher is stronger",
+        "type": "Dofollow links pass ranking value; nofollow links do not, but still bring traffic",
+        "date": "When the backlink was first discovered"
+      }
     }
   },
   "automations": {
@@ -2249,7 +2281,14 @@
       "dofollow": "Dofollow",
       "nofollow": "Nofollow",
       "noAnchor": "(no anchor)",
-      "rowCount": "{shown} of {total}"
+      "rowCount": "{shown} of {total}",
+      "tooltips": {
+        "source": "The page that links to your site. Click to open it in a new tab",
+        "anchor": "The clickable text used for the link. Descriptive anchors pass more topical relevance than \"click here\"",
+        "dr": "Domain Rating (0-100) - how strong the linking domain is. Links from higher-rated domains carry more weight",
+        "status": "Whether the link is live, lost or newly discovered, and if it is dofollow or nofollow",
+        "lastSeen": "The last time we confirmed this link was still on the source page"
+      }
     },
     "status": {
       "active": "Active",
@@ -2336,7 +2375,14 @@
       "statusExported": "Exported",
       "statusAcknowledged": "Uploaded",
       "markAck": "Mark as uploaded to Search Console",
-      "delete": "Remove"
+      "delete": "Remove",
+      "tooltips": {
+        "scope": "Whether the disavow applies to a whole domain or to a single URL",
+        "value": "The domain or URL that will be written into your disavow file",
+        "reason": "Why this entry was added - kept for your own records, not sent to Google",
+        "coverage": "How many of your backlinks this entry covers",
+        "statusLabel": "Pending until exported, then acknowledged once you upload the file to Search Console"
+      }
     },
     "insights": {
       "title": "AI Insights",
@@ -2461,7 +2507,16 @@
     "step1": "AI analyzes your website content and SEO data",
     "step2": "Identifies your main topic and extracts relevant keywords",
     "step3": "Searches Google and finds your top competitors",
-    "startDiscovery": "Start Discovery"
+    "startDiscovery": "Start Discovery",
+    "tooltips": {
+      "competitor": "The competitor's domain. Click a row to compare it against your own pages",
+      "status": "Whether we have scanned this competitor yet, and when the last scan finished",
+      "wordCount": "Average number of words on the competitor's scanned pages. Thin pages usually rank worse than in-depth ones",
+      "headings": "How many H1, H2 and H3 headings the page uses. A clear heading hierarchy helps search engines understand structure",
+      "images": "Number of images on the page. Visuals increase engagement and time on page",
+      "speed": "How long the competitor's page took to respond, in milliseconds. Faster pages have a ranking advantage",
+      "actions": "Rescan this competitor or remove it from tracking"
+    }
   },
   "limits": {
     "limitReached": "Limit reached",
@@ -3326,6 +3381,12 @@
         "rawMeta": "Raw Metadata",
         "noMeta": "No additional metadata available"
       }
+    },
+    "columnTooltips": {
+      "title": "The page or post title as it exists on your website",
+      "status": "Publication state on your site - published, draft, scheduled or trashed",
+      "date": "When the item was last published or updated",
+      "actions": "Edit SEO fields, refresh from the site, or remove the item"
     }
   },
   "redirections": {
@@ -3371,7 +3432,8 @@
       "from": "Original URL path",
       "to": "Destination URL path",
       "type": "HTTP redirect status code",
-      "hits": "Number of times this redirect was triggered"
+      "hits": "Number of times this redirect was triggered",
+      "actions": "Edit, enable/disable or delete this redirect"
     },
     "info": {
       "status": {
@@ -3551,6 +3613,14 @@
       "added": "Website added successfully",
       "renameFailed": "Failed to rename website",
       "removeFailed": "Failed to remove website"
+    },
+    "columnTooltips": {
+      "name": "The name you gave this website inside GhostSEO",
+      "url": "The website's live address. All scans and fixes run against this URL",
+      "platform": "The CMS powering the site (WordPress, Shopify, custom ...). It determines which automatic fixes are available",
+      "status": "Whether GhostSEO can currently reach and edit the site through its plugin or API connection",
+      "createdAt": "When this website was added to your account",
+      "actions": "Open settings, reconnect or remove this website"
     }
   },
   "backlinks": {
@@ -3747,6 +3817,14 @@
       "created": "websites added successfully",
       "serverError": "Server error",
       "networkError": "Network error"
+    },
+    "columnTooltips": {
+      "domain": "The publisher site that will host your backlink",
+      "da": "Domain Authority (0-100) - a prediction of how well this domain ranks. Higher is stronger",
+      "dr": "Domain Rating (0-100) - link-based strength of the domain. Higher means a more valuable link",
+      "traffic": "Estimated monthly organic visitors to the publisher site",
+      "category": "The publisher's topic. Links from sites in your niche are worth more than unrelated ones",
+      "price": "Cost of a placement, either in currency or in Ai-GCoins"
     }
   },
   "settings": {
@@ -4523,7 +4601,15 @@
         "website": "Website",
         "user": "User",
         "credits": "Ai-GCoins",
-        "balance": "Balance"
+        "balance": "Balance",
+        "tooltips": {
+          "date": "When the Ai-GCoins were spent",
+          "action": "Which feature consumed the Ai-GCoins",
+          "website": "The website the action ran against",
+          "user": "The team member who triggered the action",
+          "credits": "How many Ai-GCoins this action cost",
+          "balance": "Your remaining Ai-GCoin balance right after this action"
+        }
       },
       "operations": {
         "CRAWL_WEBSITE": "Website Crawl",
@@ -4667,7 +4753,14 @@
         "description": "Description",
         "members": "Members",
         "type": "Type",
-        "actions": "Actions"
+        "actions": "Actions",
+        "tooltips": {
+          "name": "The role's name, shown when you assign it to a team member",
+          "description": "What this role is meant for",
+          "members": "How many team members currently hold this role",
+          "type": "Built-in roles ship with GhostSEO and cannot be deleted; custom roles are yours to edit",
+          "actions": "Edit permissions or delete this role"
+        }
       },
       "roleDescriptions": {
         "owner": "Account owner with full access (unchangeable)",
@@ -4813,6 +4906,14 @@
         "SETTINGS_ROLES_EDIT": "Edit Roles Settings",
         "SETTINGS_SUBSCRIPTION_VIEW": "View Subscription",
         "SETTINGS_SUBSCRIPTION_EDIT": "Edit Subscription"
+      },
+      "tooltips": {
+        "selectAll": "Turn every permission in this table on or off at once",
+        "module": "The area of the platform these permissions apply to",
+        "settingsTab": "The settings tab these permissions apply to",
+        "view": "Allows opening and reading this area. Without it the area is hidden entirely",
+        "edit": "Allows creating and changing items in this area",
+        "delete": "Allows permanently removing items in this area"
       }
     },
     "accountSection": {
@@ -4877,7 +4978,6 @@
       "sdkStep2": "Create lib/ghostseo.js and initialize the client with your site key:",
       "sdkStep3": "Wire SEO metadata into your pages with generateMetadata:",
       "sdkStep4": "Optional: serve managed redirects from next.config:",
-      "vendorNote": "Until the npm package is live, you can vendor the SDK by copying its source files into lib/ghostseo/ and importing from there.",
       "edgeDesc": "Whole-site, zero-code integration: a Cloudflare edge proxy sits in front of your existing site and applies SEO fixes on the fly - no code changes required.",
       "edgeManaged": "Managed setup - contact us to enable it for your site.",
       "transportsTitle": "Connected transports",
@@ -4889,7 +4989,8 @@
       "confirmPause": "Yes, pause",
       "confirmResume": "Yes, resume",
       "cancel": "Cancel",
-      "updateFailed": "Update failed - please try again."
+      "updateFailed": "Update failed - please try again.",
+      "runtimeNote": "Pages calling metadataForPath must run on the Node.js runtime — the SDK verifies signatures with node:crypto, so it cannot run on the Edge runtime."
     },
     "aiEditor": {
       "title": "Connect AI Editor (MCP)",
@@ -4933,7 +5034,15 @@
       "configHint": "Paste into your editor's MCP config, e.g. .cursor/mcp.json or Claude Code's MCP settings.",
       "done": "Done",
       "copy": "Copy",
-      "copied": "Copied"
+      "copied": "Copied",
+      "tooltips": {
+        "colName": "A label you gave this token so you can tell your connected editors apart",
+        "colScopes": "What this token is allowed to do - tokens can only read issues and propose fixes, never publish",
+        "colCreated": "When the token was minted",
+        "colExpires": "When the token stops working. Expired tokens are rejected automatically",
+        "colLastUsed": "The last time an AI editor authenticated with this token",
+        "colStatus": "Active, expired or revoked. Revoke a token to cut off an editor immediately"
+      }
     }
   },
   "notifications": {
@@ -7457,7 +7566,17 @@
         "createdAt": "Created",
         "lastConnection": "Last Connection",
         "lastAction": "Last Action",
-        "actions": "Actions"
+        "actions": "Actions",
+        "tooltips": {
+          "name": "The customer account name. Click to open its analytics",
+          "owner": "The user who owns this account and pays for it",
+          "plan": "The subscription plan the account is currently on",
+          "status": "Whether the account is active, trialing, suspended or cancelled",
+          "createdAt": "When the account first signed up",
+          "lastConnection": "The last time someone from this account signed in",
+          "lastAction": "The most recent action performed inside this account",
+          "actions": "Impersonate, edit or suspend this account"
+        }
       },
       "statuses": {
         "active": "Active",
@@ -7513,7 +7632,17 @@
         "online": "Online",
         "lastLogin": "Last Login",
         "lastAction": "Last Action",
-        "actions": "Actions"
+        "actions": "Actions",
+        "tooltips": {
+          "name": "The user's name and email address",
+          "accounts": "How many accounts this user belongs to",
+          "role": "The user's platform-level role",
+          "status": "Whether the user is active, invited or blocked",
+          "online": "Whether the user is currently signed in",
+          "lastLogin": "When the user last signed in",
+          "lastAction": "The most recent action this user performed",
+          "actions": "Impersonate, edit or block this user"
+        }
       },
       "roles": {
         "superAdmin": "Super Admin",
@@ -7578,7 +7707,16 @@
         "billing": "Billing Cycle",
         "amount": "Amount",
         "nextBilling": "Next Billing",
-        "actions": "Actions"
+        "actions": "Actions",
+        "tooltips": {
+          "account": "The customer account holding this subscription",
+          "plan": "The plan the account is subscribed to",
+          "status": "Whether the subscription is active, past due, or cancelled",
+          "billing": "Billing interval - monthly or yearly",
+          "amount": "What the account is charged each billing cycle",
+          "nextBilling": "When the next charge is due",
+          "actions": "Change plan, refund or cancel this subscription"
+        }
       },
       "statuses": {
         "active": "Active",
@@ -7637,7 +7775,15 @@
         "features": "Features",
         "subscribers": "Subscribers",
         "status": "Status",
-        "actions": "Actions"
+        "actions": "Actions",
+        "tooltips": {
+          "name": "The plan name customers see at checkout",
+          "price": "Monthly and yearly price for this plan",
+          "features": "Limits and capabilities included in the plan",
+          "subscribers": "How many accounts are currently on this plan",
+          "status": "Whether the plan is offered to new customers",
+          "actions": "Edit, duplicate or archive this plan"
+        }
       },
       "statuses": {
         "active": "Active",
@@ -7732,7 +7878,16 @@
         "quantity": "Quantity",
         "purchases": "Purchases",
         "status": "Status",
-        "actions": "Actions"
+        "actions": "Actions",
+        "tooltips": {
+          "name": "The add-on's display name in the customer store",
+          "type": "What the add-on grants - extra Ai-GCoins, seats, sites or a feature unlock",
+          "price": "What customers pay for this add-on",
+          "quantity": "How much of the resource one purchase grants",
+          "purchases": "How many times this add-on has been bought",
+          "status": "Whether the add-on is currently offered for sale",
+          "actions": "Edit, disable or remove this add-on"
+        }
       },
       "types": {
         "seats": "Team Members",
@@ -7794,7 +7949,16 @@
         "usage": "Usage",
         "validity": "Validity",
         "status": "Status",
-        "actions": "Actions"
+        "actions": "Actions",
+        "tooltips": {
+          "code": "What customers type at checkout to redeem the coupon",
+          "discount": "How much is taken off - a percentage or a fixed amount",
+          "benefits": "Extras the coupon grants beyond the discount, such as bonus Ai-GCoins",
+          "usage": "How many times the coupon has been redeemed against its limit",
+          "validity": "The date range in which the coupon can be redeemed",
+          "status": "Whether the coupon is currently redeemable",
+          "actions": "Edit, disable or delete this coupon"
+        }
       },
       "statuses": {
         "active": "Active",
@@ -7882,7 +8046,15 @@
         "type": "Type",
         "required": "Required",
         "category": "Category",
-        "actions": "Actions"
+        "actions": "Actions",
+        "tooltips": {
+          "order": "The position of this question in the interview",
+          "question": "The question text shown to the user",
+          "type": "The input type shown to the user - text, choice, multi-select and so on",
+          "category": "Which part of the site profile this question builds",
+          "required": "Whether the user must answer before continuing",
+          "actions": "Edit, reorder or delete this question"
+        }
       },
       "types": {
         "text": "Text",
@@ -7984,7 +8156,15 @@
         "page": "Page",
         "languages": "Languages",
         "status": "Status",
-        "actions": "Actions"
+        "actions": "Actions",
+        "tooltips": {
+          "order": "Display order on the public site. Lower numbers appear first",
+          "question": "The question as visitors see it",
+          "page": "Which public page this FAQ entry appears on",
+          "languages": "Which languages this entry has been translated into",
+          "status": "Whether the entry is published on the public site",
+          "actions": "Edit, reorder or delete this entry"
+        }
       },
       "filter": {
         "all": "All Pages",
@@ -8082,7 +8262,10 @@
       "yes": "Yes",
       "no": "No",
       "add": "Add",
-      "remove": "Remove"
+      "remove": "Remove",
+      "tooltips": {
+        "actions": "Operations you can run on this row"
+      }
     },
     "stats": {
       "totalPlans": "Total Plans",
@@ -8152,7 +8335,10 @@
       "importSuccess": "Import: {keys} keys, {translations} translations",
       "reload": "Reload",
       "reloadTranslations": "Reload translations from database",
-      "translationsReloaded": "Translations reloaded successfully"
+      "translationsReloaded": "Translations reloaded successfully",
+      "tooltips": {
+        "key": "The dotted translation key used in code. Edit the value per language on the right"
+      }
     },
     "interviewFlow": {
       "title": "Interview Flow",
@@ -8205,7 +8391,13 @@
         "key": "Translation Key",
         "type": "Type",
         "actions": "Bot Actions",
-        "status": "Status"
+        "status": "Status",
+        "tooltips": {
+          "key": "The internal identifier the answer is stored under",
+          "type": "The input type shown to the user - text, choice, multi-select and so on",
+          "status": "Whether this question is active in the interview flow",
+          "actions": "What happens after the question is answered"
+        }
       },
       "types": {
         "GREETING": "Greeting",
@@ -8356,7 +8548,13 @@
         "name": "Name",
         "handler": "Handler",
         "description": "Description",
-        "status": "Status"
+        "status": "Status",
+        "tooltips": {
+          "name": "The action name the AI agent can invoke",
+          "handler": "The internal function that runs when the action is called",
+          "description": "What the action does - this text is what the model sees when choosing it",
+          "status": "Whether the agent is currently allowed to call this action"
+        }
       },
       "fields": {
         "name": "Action Name",
@@ -8468,7 +8666,24 @@
         "anchorText": "Anchor Text",
         "payment": "Payment",
         "purchaseDate": "Date",
-        "purchaseStatus": "Status"
+        "purchaseStatus": "Status",
+        "tooltips": {
+          "domain": "The publisher domain offering the placement",
+          "title": "The listing title shown to buyers in the marketplace",
+          "linkType": "Dofollow links pass ranking value; nofollow links do not",
+          "da": "Domain Authority (0-100) of the publisher domain",
+          "dr": "Domain Rating (0-100) of the publisher domain",
+          "price": "What buyers pay for a placement on this listing",
+          "slots": "How many placements are sold versus available",
+          "status": "Whether the listing is live, paused or sold out",
+          "actions": "Edit, approve or remove this listing",
+          "buyer": "The account that purchased the placement",
+          "targetUrl": "The page on the buyer's site the link points to",
+          "anchorText": "The clickable text requested for the link",
+          "payment": "How the purchase was paid for - currency or Ai-GCoins",
+          "purchaseDate": "When the placement was bought",
+          "purchaseStatus": "Where the order stands - pending, published or refunded"
+        }
       },
       "fields": {
         "domain": "Domain",
@@ -8588,14 +8803,25 @@
           "monthlyRevenue": "Monthly Revenue",
           "aiCost": "AI Cost",
           "creditsUsed": "Ai-GCoins Used",
-          "status": "Status"
+          "status": "Status",
+          "tooltips": {
+            "account": "The customer account. Click to open its analytics",
+            "plan": "The subscription plan the account is on",
+            "monthlyRevenue": "Recurring revenue this account brings in per month",
+            "aiCost": "What this account's AI usage costs us per month",
+            "creditsUsed": "Ai-GCoins the account has consumed",
+            "status": "Whether the account is active, trialing or cancelled"
+          }
         },
         "costOverRevenue": "Cost > Revenue",
         "profitable": "Profitable"
       },
       "costOverRevenue": {
         "title": "Accounts where AI cost exceeds revenue",
-        "delta": "Delta"
+        "delta": "Delta",
+        "tooltips": {
+          "delta": "Revenue minus AI cost. Negative means the account currently costs more than it pays"
+        }
       },
       "recentSignups": {
         "title": "Recent signups",
@@ -8612,7 +8838,14 @@
         "priority": "Priority",
         "status": "Status",
         "lastMessage": "Last message",
-        "empty": "No open tickets"
+        "empty": "No open tickets",
+        "tooltips": {
+          "subject": "What the ticket is about. Click to open the conversation",
+          "account": "The customer account that opened it",
+          "priority": "How urgent the ticket is",
+          "status": "Where the ticket stands - open, pending or closed",
+          "lastMessage": "When the last message was posted"
+        }
       }
     },
     "nav": {
@@ -8670,7 +8903,17 @@
           "inputTokens": "Input Tokens",
           "outputTokens": "Output Tokens",
           "credits": "Ai-GCoins",
-          "costUsd": "Cost (USD)"
+          "costUsd": "Cost (USD)",
+          "tooltips": {
+            "date": "When the AI call was made",
+            "user": "The team member who triggered it",
+            "actionType": "Which feature made the AI call",
+            "model": "The AI model used for this call",
+            "inputTokens": "Tokens sent to the model - the prompt and context",
+            "outputTokens": "Tokens generated by the model in its response",
+            "credits": "Ai-GCoins charged to the account for this call",
+            "costUsd": "What this call actually cost us in USD"
+          }
         }
       }
     },
@@ -8777,7 +9020,16 @@
         "target": "Target",
         "required": "Required",
         "status": "Status",
-        "actions": "Actions"
+        "actions": "Actions",
+        "tooltips": {
+          "order": "The order in which questions are pushed to users",
+          "question": "The question text shown to the user",
+          "type": "The input type shown to the user",
+          "target": "Who receives this question",
+          "required": "Whether the user must answer before continuing",
+          "status": "Whether this question is currently being pushed",
+          "actions": "Edit, reorder or delete this question"
+        }
       },
       "empty": {
         "title": "No Questions",
@@ -8854,7 +9106,13 @@
         "featureKey": "Feature Key",
         "displayName": "Display Name",
         "creditCost": "Ai-GCoin Cost",
-        "lastUpdated": "Last Updated"
+        "lastUpdated": "Last Updated",
+        "tooltips": {
+          "featureKey": "The internal identifier the code uses to charge for this feature",
+          "displayName": "How the feature is named in the customer-facing usage log",
+          "creditCost": "How many Ai-GCoins one use of this feature costs",
+          "lastUpdated": "When this price was last changed"
+        }
       }
     },
     "userAnalytics": {
@@ -8889,7 +9147,17 @@
           "inputTokens": "Input Tokens",
           "outputTokens": "Output Tokens",
           "credits": "Ai-GCoins",
-          "costUsd": "Cost (USD)"
+          "costUsd": "Cost (USD)",
+          "tooltips": {
+            "date": "When the AI call was made",
+            "account": "The account the call was billed to",
+            "actionType": "Which feature made the AI call",
+            "model": "The AI model used for this call",
+            "inputTokens": "Tokens sent to the model - the prompt and context",
+            "outputTokens": "Tokens generated by the model in its response",
+            "credits": "Ai-GCoins charged for this call",
+            "costUsd": "What this call actually cost us in USD"
+          }
         }
       }
     }
@@ -9636,7 +9904,45 @@
     "fixTldrNote": "Will add a concise TL;DR block at the top of the page so AI engines can cite its core answer.",
     "fixFieldSlug": "Slug",
     "fixSchemaManualCopy": "Schema generated - copy this snippet into your site's <head> via your theme or a header-injection plugin.",
-    "fixCopySnippet": "Copy snippet"
+    "fixCopySnippet": "Copy snippet",
+    "detailTooltips": {
+      "keyword": "The keyword this insight is about",
+      "searchVolume": "Estimated monthly searches for this keyword",
+      "page": "The page on your site affected by this insight",
+      "lastUpdated": "When this page was last modified on your website",
+      "entity": "The matching post or page in your GhostSEO content library",
+      "fix": "Apply the suggested fix to this row",
+      "seoPriority": "How urgently this page needs attention, based on traffic and issue severity",
+      "clicks": "Clicks from Google search results in the selected period",
+      "change": "How this metric moved compared with the previous period",
+      "query": "The search query typed into Google",
+      "impressions": "How many times the page appeared in Google results",
+      "ctr": "Click-through rate - clicks divided by impressions",
+      "position": "Average ranking position in Google. Lower is better",
+      "contentGap": "A topic competitors cover that your site does not",
+      "competitor": "The competing domain this row refers to",
+      "lastScanned": "When we last crawled this competitor",
+      "actualCtr": "The click-through rate this page actually gets",
+      "expectedCtr": "The click-through rate typical for this ranking position. A large gap means the title or description is underperforming",
+      "publishedAt": "When the page was published",
+      "aiSuggestion": "What the AI recommends doing with this page",
+      "date": "The day these numbers were recorded",
+      "visitors": "Unique visitors recorded that day",
+      "multiplier": "How far this day deviated from your normal traffic average",
+      "source": "Where the traffic most likely came from",
+      "topPage": "The page that received the most traffic in this spike",
+      "engine": "The AI assistant that sent this traffic (ChatGPT, Perplexity, Gemini ...)",
+      "sessions": "Number of sessions attributed to this source",
+      "sharePercent": "This row's share of the total for the group",
+      "wordCount": "Number of words in the page content",
+      "currentImages": "How many images the page contains today",
+      "recommendedImages": "How many images this page length should have for good engagement",
+      "length": "Current character length of the field, compared with the recommended range",
+      "h1Count": "How many H1 headings the page has. Exactly one is correct",
+      "suggestedSlug": "The URL slug the AI recommends instead of the current one",
+      "ctrChange": "How the click-through rate moved after the change",
+      "confidence": "How confident the analysis is in this finding"
+    }
   },
   "support": {
     "title": "Support",
@@ -9741,7 +10047,16 @@
         "priority": "Priority",
         "category": "Category",
         "assigned": "Assigned",
-        "lastActivity": "Last activity"
+        "lastActivity": "Last activity",
+        "tooltips": {
+          "subject": "What the ticket is about. Click to open the full conversation",
+          "account": "The customer account that opened the ticket",
+          "status": "Where the ticket stands - open, pending, or closed",
+          "priority": "How urgent the ticket is",
+          "category": "The topic the customer filed the ticket under",
+          "assigned": "The team member responsible for answering",
+          "lastActivity": "When the last message was posted on this ticket"
+        }
       }
     },
     "access": {
@@ -9859,7 +10174,13 @@
         "time": "Time",
         "method": "Method",
         "path": "Path",
-        "status": "Status"
+        "status": "Status",
+        "tooltips": {
+          "time": "When the request was made during the impersonation session",
+          "method": "The HTTP method used (GET, POST, ...)",
+          "path": "The route that was accessed while impersonating",
+          "status": "The HTTP response status returned for the request"
+        }
       }
     }
   }
