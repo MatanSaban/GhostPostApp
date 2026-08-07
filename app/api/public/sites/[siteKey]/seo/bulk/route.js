@@ -4,6 +4,7 @@
  * Batch resolved SEO for many routes in one signed response - used by the SDK
  * at build time (SSG) to inline correct meta into every prerendered page.
  */
+import prisma from '@/lib/prisma';
 import {
   resolveSiteByKey,
   signedResponse,
@@ -11,7 +12,7 @@ import {
   enforceRateLimit,
   corsPreflight,
 } from '@/lib/contract/http';
-import { resolveSeoForPath } from '@/lib/contract/resolver';
+import { resolveSeoForPath, normalizePath } from '@/lib/contract/resolver';
 import { recordContractHit } from '@/lib/contract/heartbeat';
 
 const MAX_PATHS = 100;
@@ -37,6 +38,18 @@ export async function GET(request, { params }) {
     const paths = [...new Set(raw.split(',').map((p) => p.trim()).filter(Boolean))].slice(0, MAX_PATHS);
     if (paths.length === 0) {
       return contractError(400, 'BAD_REQUEST', 'paths query param is required (comma-separated)');
+    }
+
+    // Per-site kill switch: serve minimal (still signed) pages so consumers
+    // fall back to their own defaults instead of managed SEO.
+    const paused = await prisma.siteIntegration.findFirst({
+      where: { siteId: site.id, killSwitch: true },
+      select: { id: true },
+    });
+    if (paused) {
+      return signedResponse({
+        pages: paths.map((p) => ({ path: normalizePath(p), source: 'paused' })),
+      });
     }
 
     const pages = await Promise.all(paths.map((p) => resolveSeoForPath(site, p)));

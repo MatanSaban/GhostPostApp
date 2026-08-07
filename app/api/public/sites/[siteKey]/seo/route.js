@@ -5,6 +5,7 @@
  * response is Ed25519-signed so consumers (SDK / edge proxy) can verify
  * authenticity with the pinned public key.
  */
+import prisma from '@/lib/prisma';
 import {
   resolveSiteByKey,
   signedResponse,
@@ -12,7 +13,7 @@ import {
   enforceRateLimit,
   corsPreflight,
 } from '@/lib/contract/http';
-import { resolveSeoForPath } from '@/lib/contract/resolver';
+import { resolveSeoForPath, normalizePath } from '@/lib/contract/resolver';
 import { recordContractHit } from '@/lib/contract/heartbeat';
 
 export async function OPTIONS() {
@@ -33,6 +34,16 @@ export async function GET(request, { params }) {
 
     const { searchParams } = new URL(request.url);
     const path = searchParams.get('path') || '/';
+
+    // Per-site kill switch: serve a minimal (still signed) payload so
+    // consumers fall back to their own defaults instead of managed SEO.
+    const paused = await prisma.siteIntegration.findFirst({
+      where: { siteId: site.id, killSwitch: true },
+      select: { id: true },
+    });
+    if (paused) {
+      return signedResponse({ path: normalizePath(path), source: 'paused' });
+    }
 
     const seo = await resolveSeoForPath(site, path);
     return signedResponse(seo);

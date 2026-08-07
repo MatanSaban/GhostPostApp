@@ -5,6 +5,7 @@
  * whenever the site's SEO or redirects change, plus capabilities + counts. The
  * SDK/edge poll this to decide whether to re-fetch the fuller endpoints.
  */
+import prisma from '@/lib/prisma';
 import {
   resolveSiteByKey,
   signedResponse,
@@ -32,12 +33,23 @@ export async function GET(request, { params }) {
 
     await recordContractHit(site, request);
 
+    // Per-site kill switch: fold the paused flag into the version string so
+    // consumers' manifest-keyed caches bust when the switch flips either way.
+    const paused = Boolean(
+      await prisma.siteIntegration.findFirst({
+        where: { siteId: site.id, killSwitch: true },
+        select: { id: true },
+      }),
+    );
+
     const manifest = await buildManifest(site);
     const caps = getCapabilities(site);
 
     return signedResponse(
       {
         ...manifest,
+        version: paused ? `${manifest.version}.paused` : manifest.version,
+        paused,
         capabilities: {
           platform: caps.platform,
           redirectsBackend: caps.redirectsBackend,

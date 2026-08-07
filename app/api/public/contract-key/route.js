@@ -25,6 +25,9 @@ export function GET() {
       keyId: info.keyId,
       publicKey: info.publicKeyPem,
       ephemeral: info.ephemeral,
+      // Every trusted verification key (current first, then previous) so
+      // consumers keep verifying across a rotation window.
+      keys: info.keys,
     },
     {
       headers: {

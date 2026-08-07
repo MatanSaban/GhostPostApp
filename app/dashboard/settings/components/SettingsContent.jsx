@@ -15,6 +15,7 @@ import { DataTable } from '@/app/dashboard/components/Table';
 import WordPressPluginSection from './WordPressPluginSection';
 import ShopifyConnectionSection from './ShopifyConnectionSection';
 import CustomSiteConnectionSection from './CustomSiteConnectionSection';
+import ConnectAiEditorSection from './ConnectAiEditorSection';
 import { useCapabilities } from '@/app/hooks/useCapabilities';
 import UpgradePlanModal from '@/app/components/ui/UpgradePlanModal';
 import AddCreditsModal from '@/app/components/ui/AddCreditsModal';
@@ -2099,6 +2100,11 @@ function IntegrationsSettings({ translations, canEdit = true }) {
           <CustomSiteConnectionSection />
         </div>
       )}
+      {/* Connect AI Editor (MCP tokens) - every platform can use it; visually
+          highlighted for custom-code sites where it's the main dev path */}
+      <div className={styles.settingsSection}>
+        <ConnectAiEditorSection highlighted={caps.platform === 'custom'} />
+      </div>
     </>
   );
 }

@@ -14,6 +14,8 @@ import {
   Terminal,
   ChevronDown,
   ChevronUp,
+  PauseCircle,
+  PlayCircle,
 } from 'lucide-react';
 import { useSite } from '@/app/context/site-context';
 import { useLocale } from '@/app/context/locale-context';
@@ -29,6 +31,15 @@ const CONNECTION_STATUS = {
 
 const POLL_INTERVAL_MS = 30000;
 const BASE_URL = 'https://app.ghostseo.ai';
+
+// Human-readable transport names (product terms - not translated)
+const TRANSPORT_LABELS = {
+  SDK: 'SDK',
+  EDGE_PROXY: 'Edge proxy',
+  MCP: 'MCP',
+  GITHUB_APP: 'GitHub App',
+  CUSTOM_API: 'Custom API',
+};
 
 /**
  * CustomSiteConnectionSection
@@ -66,6 +77,10 @@ export default function CustomSiteConnectionSection({
   );
 
   const [statusData, setStatusData] = useState(null);
+  const [integrations, setIntegrations] = useState([]);
+  const [confirmTarget, setConfirmTarget] = useState(null); // transport type awaiting pause/resume confirm
+  const [savingType, setSavingType] = useState(null);
+  const [toggleErrorType, setToggleErrorType] = useState(null);
   const [activeTab, setActiveTab] = useState('sdk');
   const [showSetup, setShowSetup] = useState(!compact);
   const [copiedField, setCopiedField] = useState(null);
@@ -90,13 +105,57 @@ export default function CustomSiteConnectionSection({
     }
   }, [selectedSite?.id]);
 
+  // Transport rows (with kill-switch state) from the integrations endpoint
+  const fetchIntegrations = useCallback(async () => {
+    if (!selectedSite?.id) return;
+    try {
+      const response = await fetch(`/api/sites/${selectedSite.id}/integrations`);
+      if (!response.ok) return;
+      const data = await response.json();
+      setIntegrations(data.integrations || []);
+    } catch {
+      /* network hiccup - keep the last known rows */
+    }
+  }, [selectedSite?.id]);
+
   useEffect(() => {
     setStatusData(null);
+    setIntegrations([]);
+    setConfirmTarget(null);
+    setToggleErrorType(null);
     promotedRef.current = false;
     fetchStatus();
-    const interval = setInterval(fetchStatus, POLL_INTERVAL_MS);
+    fetchIntegrations();
+    const interval = setInterval(() => {
+      fetchStatus();
+      fetchIntegrations();
+    }, POLL_INTERVAL_MS);
     return () => clearInterval(interval);
-  }, [fetchStatus]);
+  }, [fetchStatus, fetchIntegrations]);
+
+  // Flip a transport's kill switch (after the inline confirm step)
+  const applyKillSwitch = async (type, killSwitch) => {
+    if (!selectedSite?.id) return;
+    setSavingType(type);
+    setToggleErrorType(null);
+    try {
+      const response = await fetch(`/api/sites/${selectedSite.id}/integrations`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ type, killSwitch }),
+      });
+      if (!response.ok) throw new Error('patch failed');
+      const data = await response.json();
+      setIntegrations((rows) =>
+        rows.map((row) => (row.type === type ? { ...row, ...data.integration } : row)),
+      );
+    } catch {
+      setToggleErrorType(type);
+    } finally {
+      setSavingType(null);
+      setConfirmTarget(null);
+    }
+  };
 
   // When the poll sees the site flip to CONNECTED, refresh the site context
   // once so the rest of the dashboard picks up the new connectionStatus.
@@ -351,6 +410,107 @@ export default nextConfig;`;
                 : tr('settings.customSite.copy', 'Copy')}
             </button>
           </div>
+        </div>
+      )}
+
+      {/* Connected transports + per-transport kill switch */}
+      {integrations.length > 0 && (
+        <div className={styles.fieldGroup}>
+          <span className={styles.label}>
+            {tr('settings.customSite.transportsTitle', 'Connected transports')}
+          </span>
+          <ul className={styles.transportsList}>
+            {integrations.map((row) => {
+              const paused = Boolean(row.killSwitch);
+              const isConfirming = confirmTarget === row.type;
+              const isSaving = savingType === row.type;
+              return (
+                <li key={row.type} className={styles.transportRow}>
+                  <div className={styles.transportInfo}>
+                    <span className={styles.transportName}>
+                      {TRANSPORT_LABELS[row.type] || row.type}
+                    </span>
+                    {paused ? (
+                      <span className={`${styles.statusBadge} ${styles.badgeSm} ${styles.warning}`}>
+                        <PauseCircle size={12} />
+                        {tr('settings.customSite.paused', 'Paused')}
+                      </span>
+                    ) : row.status === 'CONNECTED' ? (
+                      <span className={`${styles.statusBadge} ${styles.badgeSm} ${styles.success}`}>
+                        <CheckCircle2 size={12} />
+                        {tr('settings.customSite.connected', 'Connected')}
+                      </span>
+                    ) : (
+                      <span className={`${styles.statusBadge} ${styles.badgeSm} ${styles.neutral}`}>
+                        {row.status}
+                      </span>
+                    )}
+                    <span className={styles.transportMeta}>
+                      {formatLastSeen(row.lastSeenAt ? new Date(row.lastSeenAt) : null)}
+                      {row.clientVersion ? ` · ${row.clientVersion}` : ''}
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    className={styles.pauseButton}
+                    disabled={isSaving}
+                    onClick={() => {
+                      setToggleErrorType(null);
+                      setConfirmTarget(isConfirming ? null : row.type);
+                    }}
+                  >
+                    {paused ? <PlayCircle size={14} /> : <PauseCircle size={14} />}
+                    {paused
+                      ? tr('settings.customSite.resumeGhostSeo', 'Resume GhostSEO')
+                      : tr('settings.customSite.pauseGhostSeo', 'Pause GhostSEO')}
+                  </button>
+                  {isConfirming && (
+                    <div className={styles.confirmBox}>
+                      <p>
+                        {paused
+                          ? tr(
+                              'settings.customSite.resumeConfirm',
+                              'Resuming lets GhostSEO serve SEO metadata and redirects for this site again. Propagation can take up to ~5 minutes (edge caches).',
+                            )
+                          : tr(
+                              'settings.customSite.pauseConfirm',
+                              'Pausing stops GhostSEO from serving SEO metadata and redirects for this site. Propagation can take up to ~5 minutes (edge caches).',
+                            )}
+                      </p>
+                      <div className={styles.confirmActions}>
+                        <button
+                          type="button"
+                          className={styles.confirmButton}
+                          disabled={isSaving}
+                          onClick={() => applyKillSwitch(row.type, !paused)}
+                        >
+                          {paused
+                            ? tr('settings.customSite.confirmResume', 'Yes, resume')
+                            : tr('settings.customSite.confirmPause', 'Yes, pause')}
+                        </button>
+                        <button
+                          type="button"
+                          className={styles.copyButton}
+                          disabled={isSaving}
+                          onClick={() => setConfirmTarget(null)}
+                        >
+                          {tr('settings.customSite.cancel', 'Cancel')}
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                  {toggleErrorType === row.type && (
+                    <p className={styles.fieldNote}>
+                      <AlertCircle size={12} />
+                      <span>
+                        {tr('settings.customSite.updateFailed', 'Update failed - please try again.')}
+                      </span>
+                    </p>
+                  )}
+                </li>
+              );
+            })}
+          </ul>
         </div>
       )}
 
