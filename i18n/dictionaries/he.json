@@ -3153,7 +3153,8 @@
       "syncAll": "סנכרן הכל"
     },
     "platforms": {
-      "other": "אחר"
+      "other": "אחר",
+      "custom": "קוד מותאם אישית"
     },
     "items": "פריטים",
     "entitySlug": "סלאג הישות:",
@@ -4822,7 +4823,38 @@
       "archivedLogoutNotice": "תנותק באופן אוטומטי בעוד {countdown}.",
       "archivedLogoutNow": "התנתק עכשיו"
     },
-    "integrations": "אינטגרציות"
+    "integrations": "אינטגרציות",
+    "customSite": {
+      "title": "חיבור אתר בקוד מותאם (SDK)",
+      "description": "אתרים בקוד מותאם מתחברים דרך ה־SDK של GhostSEO: הוא קורא את ה־Contract API הציבורי של האתר (כותרות, תיאורי מטא, הפניות) ומחיל אותם בזמן הרינדור — ללא צורך בתוסף.",
+      "connected": "מחובר",
+      "pending": "ממתין",
+      "pendingDesc": "ממתינים למשיכת ה־contract הראשונה מהאתר שלכם.",
+      "disconnected": "מנותק",
+      "error": "שגיאה",
+      "lastFetch": "משיכת SDK אחרונה",
+      "cacheLagNote": "התשובות נשמרות במטמון הקצה כ־15 דקות, ולכן הנתון עשוי לפגר",
+      "neverFetched": "טרם נרשמה משיכה",
+      "justNow": "הרגע",
+      "minutesAgo": "דקות",
+      "hoursAgo": "שעות",
+      "daysAgo": "ימים",
+      "siteKeyLabel": "מפתח אתר (ציבורי)",
+      "siteKeyNote": "זהו מזהה ציבורי, לא סוד — בטוח לשמור אותו בקוד ולשלוח אותו לדפדפן.",
+      "manifestLabel": "כתובת מניפסט ה־Contract",
+      "copy": "העתקה",
+      "copied": "הועתק",
+      "setupInstructions": "הוראות התקנה",
+      "tabSdk": "SDK (מומלץ)",
+      "tabEdge": "פרוקסי קצה (Edge)",
+      "sdkStep1": "התקינו את חבילת ה־SDK:",
+      "sdkStep2": "צרו את הקובץ lib/ghostseo.js ואתחלו את הלקוח עם מפתח האתר שלכם:",
+      "sdkStep3": "חברו מטא־נתוני SEO לעמודים באמצעות generateMetadata:",
+      "sdkStep4": "אופציונלי: הגישו הפניות מנוהלות דרך next.config:",
+      "vendorNote": "עד שחבילת ה־npm תעלה לאוויר, אפשר להעתיק את קבצי המקור של ה־SDK לתיקייה lib/ghostseo/ ולייבא משם.",
+      "edgeDesc": "אינטגרציה לכל האתר ללא קוד: פרוקסי קצה של Cloudflare יושב לפני האתר הקיים שלכם ומחיל תיקוני SEO תוך כדי תנועה — ללא שינויי קוד.",
+      "edgeManaged": "הקמה מנוהלת — צרו איתנו קשר כדי להפעיל אותה לאתר שלכם."
+    }
   },
   "notifications": {
     "title": "התראות",
@@ -5178,7 +5210,10 @@
       "languagePickerHint": "כל שפה תוגדר כאתר נפרד. בחר את השפה שברצונך להוסיף כעת.",
       "languageDefaultBadge": "ברירת מחדל",
       "duplicateTitle": "אתר זה כבר קיים",
-      "duplicateMessage": "האתר שאתה מנסה להוסיף כבר קיים בחשבון \"{accountName}\". אם ברצונך להוסיף אותו בחשבון אחר, עבור לחשבון הרצוי ונסה שוב."
+      "duplicateMessage": "האתר שאתה מנסה להוסיף כבר קיים בחשבון \"{accountName}\". אם ברצונך להוסיף אותו בחשבון אחר, עבור לחשבון הרצוי ונסה שוב.",
+      "platformLabel": "פלטפורמה",
+      "platformSelectPlaceholder": "בחרו פלטפורמה...",
+      "platformHint": "זוהתה אוטומטית — ניתן לשנות אם הזיהוי שגוי."
     },
     "edit": {
       "title": "עריכת אתר",

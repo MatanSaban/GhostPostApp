@@ -14,6 +14,7 @@ import {
   corsPreflight,
 } from '@/lib/contract/http';
 import { resolveRedirects } from '@/lib/contract/resolver';
+import { recordContractHit } from '@/lib/contract/heartbeat';
 
 export async function OPTIONS() {
   return corsPreflight();
@@ -28,6 +29,8 @@ export async function GET(request, { params }) {
 
     const site = await resolveSiteByKey(siteKey);
     if (!site) return contractError(404, 'SITE_NOT_FOUND', 'Unknown site key');
+
+    await recordContractHit(site, request);
 
     const redirects = await resolveRedirects(site);
     return signedResponse({ redirects });

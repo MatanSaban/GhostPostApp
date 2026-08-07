@@ -3153,7 +3153,8 @@
       "syncAll": "Sync All"
     },
     "platforms": {
-      "other": "Other"
+      "other": "Other",
+      "custom": "Custom Code"
     },
     "items": "items",
     "entitySlug": "Entity slug:",
@@ -4817,7 +4818,38 @@
       "archivedLogoutNotice": "You will be logged out automatically in {countdown}.",
       "archivedLogoutNow": "Log out now"
     },
-    "integrations": "Integrations"
+    "integrations": "Integrations",
+    "customSite": {
+      "title": "Custom Site Connection (SDK)",
+      "description": "Custom-code sites connect through the GhostSEO SDK: it reads this site’s public Contract API (titles, metas, redirects) and applies them at render time — no plugin needed.",
+      "connected": "Connected",
+      "pending": "Pending",
+      "pendingDesc": "Waiting for the first contract fetch from your site.",
+      "disconnected": "Disconnected",
+      "error": "Error",
+      "lastFetch": "Last SDK fetch",
+      "cacheLagNote": "responses are edge-cached ~15 min, so this can lag",
+      "neverFetched": "no fetch recorded yet",
+      "justNow": "just now",
+      "minutesAgo": "min ago",
+      "hoursAgo": "hours ago",
+      "daysAgo": "days ago",
+      "siteKeyLabel": "Site key (public)",
+      "siteKeyNote": "This is a public identifier, not a secret - it is safe to commit and ship to the browser.",
+      "manifestLabel": "Contract manifest URL",
+      "copy": "Copy",
+      "copied": "Copied",
+      "setupInstructions": "Setup instructions",
+      "tabSdk": "SDK (recommended)",
+      "tabEdge": "Edge proxy",
+      "sdkStep1": "Install the SDK package:",
+      "sdkStep2": "Create lib/ghostseo.js and initialize the client with your site key:",
+      "sdkStep3": "Wire SEO metadata into your pages with generateMetadata:",
+      "sdkStep4": "Optional: serve managed redirects from next.config:",
+      "vendorNote": "Until the npm package is live, you can vendor the SDK by copying its source files into lib/ghostseo/ and importing from there.",
+      "edgeDesc": "Whole-site, zero-code integration: a Cloudflare edge proxy sits in front of your existing site and applies SEO fixes on the fly - no code changes required.",
+      "edgeManaged": "Managed setup - contact us to enable it for your site."
+    }
   },
   "notifications": {
     "title": "Notifications",
@@ -5173,7 +5205,10 @@
       "languagePickerHint": "Each language will be set up as a separate site. Pick the one to add now.",
       "languageDefaultBadge": "Default",
       "duplicateTitle": "Website already exists",
-      "duplicateMessage": "The website you're trying to add already exists under the account \"{accountName}\". If you want to add it to a different account, switch to that account and try again."
+      "duplicateMessage": "The website you're trying to add already exists under the account \"{accountName}\". If you want to add it to a different account, switch to that account and try again.",
+      "platformLabel": "Platform",
+      "platformSelectPlaceholder": "Select a platform...",
+      "platformHint": "Detected automatically — change it if we got it wrong."
     },
     "edit": {
       "title": "Edit Website",

@@ -3,6 +3,7 @@
 import { useLocale } from '@/app/context/locale-context';
 import WordPressPluginSection from '@/app/dashboard/settings/components/WordPressPluginSection';
 import ShopifyConnectionSection from '@/app/dashboard/settings/components/ShopifyConnectionSection';
+import CustomSiteConnectionSection from '@/app/dashboard/settings/components/CustomSiteConnectionSection';
 import { capabilitiesFor } from '@/lib/cms/capabilities';
 import styles from '../entities.module.css';
 
@@ -17,12 +18,14 @@ export function IntegrationSetupCard({
 
   const getPlatformBadge = () => {
     if (!platform) return null;
+    const customLabel = t('entities.platforms.custom');
     const platformLabels = {
       wordpress: 'WordPress',
       wix: 'Wix',
       squarespace: 'Squarespace',
       shopify: 'Shopify',
       webflow: 'Webflow',
+      custom: customLabel === 'entities.platforms.custom' ? 'Custom Code' : customLabel,
       other: t('entities.platforms.other'),
     };
     const label = platformLabels[platform] || platform;
@@ -36,6 +39,7 @@ export function IntegrationSetupCard({
   const caps = capabilitiesFor(platform);
   const isWordPress = platform === 'wordpress';
   const isShopify = platform === 'shopify';
+  const isCustom = platform && !isWordPress && !isShopify;
   const isKnownPlatform = isWordPress || isShopify;
   const isConnected = selectedSite?.connectionStatus === 'CONNECTED';
 
@@ -136,6 +140,14 @@ export function IntegrationSetupCard({
         <>
           <div className={styles.sectionDivider} />
           <ShopifyConnectionSection />
+        </>
+      )}
+
+      {/* Custom Code Site Connection (SDK / Edge Proxy) */}
+      {isCustom && (
+        <>
+          <div className={styles.sectionDivider} />
+          <CustomSiteConnectionSection compact />
         </>
       )}
     </div>

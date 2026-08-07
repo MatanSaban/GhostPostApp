@@ -14,6 +14,7 @@ import { SettingsFormSkeleton, TableSkeleton, FormSkeleton, Skeleton, Button } f
 import { DataTable } from '@/app/dashboard/components/Table';
 import WordPressPluginSection from './WordPressPluginSection';
 import ShopifyConnectionSection from './ShopifyConnectionSection';
+import CustomSiteConnectionSection from './CustomSiteConnectionSection';
 import { useCapabilities } from '@/app/hooks/useCapabilities';
 import UpgradePlanModal from '@/app/components/ui/UpgradePlanModal';
 import AddCreditsModal from '@/app/components/ui/AddCreditsModal';
@@ -2091,6 +2092,11 @@ function IntegrationsSettings({ translations, canEdit = true }) {
             </div>
           </div>
           <ShopifyConnectionSection />
+        </div>
+      )}
+      {selectedSite?.platform && caps.platform === 'custom' && (
+        <div className={styles.settingsSection}>
+          <CustomSiteConnectionSection />
         </div>
       )}
     </>

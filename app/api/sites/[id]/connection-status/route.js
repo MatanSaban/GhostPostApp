@@ -25,6 +25,7 @@ export async function GET(request, { params }) {
         connectionStatus: true,
         pluginVersion: true,
         lastPingAt: true,
+        integrationType: true,
       },
     });
 
@@ -32,10 +33,24 @@ export async function GET(request, { params }) {
       return NextResponse.json({ error: 'Site not found' }, { status: 404 });
     }
 
+    // Non-plugin transports (SDK / edge proxy / MCP) recorded by the
+    // contract heartbeat - empty for plugin-only WordPress sites.
+    const transports = await prisma.siteIntegration.findMany({
+      where: { siteId },
+      select: {
+        type: true,
+        status: true,
+        lastSeenAt: true,
+        clientVersion: true,
+      },
+    });
+
     return NextResponse.json({
       connectionStatus: site.connectionStatus,
       pluginVersion: site.pluginVersion,
       lastPingAt: site.lastPingAt,
+      integrationType: site.integrationType,
+      transports,
     });
   } catch (error) {
     console.error('Connection status check error:', error);

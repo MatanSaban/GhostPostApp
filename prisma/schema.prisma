@@ -1091,6 +1091,8 @@ model SiteIntegration {
   killSwitch           Boolean  @default(false) // per-site emergency pass-through / disable
   config               Json? // transport-specific config (host, framework, verified markers, etc.)
   lastVerifiedAt       DateTime? // last time we confirmed the transport is actually live
+  lastSeenAt           DateTime? // last contract fetch / MCP call from this transport (debounced ~5 min)
+  clientVersion        String? // client identifier from the X-GP-Client header (e.g. "sdk/0.2.0")
   revokedAt            DateTime?
   createdAt            DateTime @default(now())
   updatedAt            DateTime @updatedAt

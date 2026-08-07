@@ -57,7 +57,19 @@ export function AddSiteModal({ isOpen, onClose, onSiteAdded, autoSelect = false,
   const [interviewSite, setInterviewSite] = useState(null);
   const [duplicateInfo, setDuplicateInfo] = useState(null);
   const [selectedLanguage, setSelectedLanguage] = useState(null);
+  const [platformOverride, setPlatformOverride] = useState(null);
   const urlInputRef = useRef(null);
+
+  // The platform the site will be created with: the user's manual override,
+  // falling back to the auto-detected platform from validation.
+  const selectedPlatform = platformOverride ?? validationResult?.platform ?? null;
+
+  // Dictionary keys for the platform selector may not exist yet — t() returns
+  // the key path unchanged when missing, so fall back to English in that case.
+  const tf = (key, fallback) => {
+    const tr = t(key);
+    return tr === key ? fallback : tr;
+  };
 
   // Reset state when modal opens/closes
   useEffect(() => {
@@ -71,6 +83,7 @@ export function AddSiteModal({ isOpen, onClose, onSiteAdded, autoSelect = false,
       setIsSuggestingName(false);
       setDuplicateInfo(null);
       setSelectedLanguage(null);
+      setPlatformOverride(null);
     }
   }, [isOpen]);
 
@@ -94,6 +107,7 @@ export function AddSiteModal({ isOpen, onClose, onSiteAdded, autoSelect = false,
 
     setIsValidating(true);
     setValidationResult(null);
+    setPlatformOverride(null);
     setCreateError(null);
 
     try {
@@ -156,7 +170,7 @@ export function AddSiteModal({ isOpen, onClose, onSiteAdded, autoSelect = false,
         body: JSON.stringify({
           name: newSiteName.trim(),
           url: cleanUrl,
-          platform: validationResult.platform || null,
+          platform: selectedPlatform || null,
           contentLanguage: selectedLanguage || validationResult.contentLanguage || null,
         }),
       });
@@ -285,6 +299,7 @@ export function AddSiteModal({ isOpen, onClose, onSiteAdded, autoSelect = false,
                 onChange={(e) => {
                   setNewSiteUrl(e.target.value);
                   setValidationResult(null);
+                  setPlatformOverride(null);
                   setDuplicateInfo(null);
                 }}
                 onKeyDown={handleUrlKeyDown}
@@ -314,11 +329,6 @@ export function AddSiteModal({ isOpen, onClose, onSiteAdded, autoSelect = false,
                 <>
                   <Check size={18} />
                   <span>{t('sites.add.validUrl')}</span>
-                  {validationResult.platform && (
-                    <span className={`${styles.platformBadge} ${validationResult.platform !== 'wordpress' ? styles.platformBadgeWarning : ''}`}>
-                      {PLATFORM_LABELS[validationResult.platform] || validationResult.platform}
-                    </span>
-                  )}
                 </>
               ) : (
                 <>
@@ -329,8 +339,37 @@ export function AddSiteModal({ isOpen, onClose, onSiteAdded, autoSelect = false,
             </div>
           )}
 
-          {/* Non-WordPress warning */}
-          {validationResult?.valid && validationResult.platform && validationResult.platform !== 'wordpress' && (
+          {/* Platform selector (pre-filled with the detected platform, editable to fix misdetection) */}
+          {validationResult?.valid && (
+            <div className={styles.formGroup}>
+              <label className={styles.formLabel}>{tf('sites.add.platformLabel', 'Platform')}</label>
+              <select
+                value={selectedPlatform || ''}
+                onChange={(e) => setPlatformOverride(e.target.value)}
+                className={styles.platformSelect}
+              >
+                {!validationResult.platform && (
+                  <option value="" disabled>
+                    {tf('sites.add.platformSelectPlaceholder', 'Select a platform...')}
+                  </option>
+                )}
+                {validationResult.platform && !PLATFORM_LABELS[validationResult.platform] && (
+                  <option value={validationResult.platform}>{validationResult.platform}</option>
+                )}
+                {Object.entries(PLATFORM_LABELS).map(([value, label]) => (
+                  <option key={value} value={value}>
+                    {label}
+                  </option>
+                ))}
+              </select>
+              <p className={styles.formHint}>
+                {tf('sites.add.platformHint', 'Detected automatically — change it if we got it wrong.')}
+              </p>
+            </div>
+          )}
+
+          {/* Non-WordPress warning (keyed off the selected platform, not the detected one) */}
+          {validationResult?.valid && selectedPlatform && selectedPlatform !== 'wordpress' && (
             <div className={styles.platformWarning}>
               <AlertCircle size={16} />
               <span>{t('sites.add.nonWordPressWarning')}</span>

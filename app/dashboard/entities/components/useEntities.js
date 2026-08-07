@@ -41,6 +41,9 @@ export function useEntities() {
   const [syncError, setSyncError] = useState(null);
   const syncPollingRef = useRef(null);
 
+  // Guards automatic discovery so it fires at most once per site selection
+  const autoDiscoverRef = useRef(null);
+
   // Plugin download state
   const [isDownloadingPlugin, setIsDownloadingPlugin] = useState(false);
 
@@ -72,16 +75,31 @@ export function useEntities() {
       }
 
       try {
+        let loadedTypes = null;
         const response = await fetch(`/api/entities/types?siteId=${selectedSite.id}`);
         if (response.ok) {
           const data = await response.json();
-          setEnabledTypes(data.types || []);
-          setSelectedTypes((data.types || []).map(t => t.slug));
+          loadedTypes = data.types || [];
+          setEnabledTypes(loadedTypes);
+          setSelectedTypes(loadedTypes.map(t => t.slug));
         }
         if (selectedSite.platform) {
           setPlatform(selectedSite.platform);
         }
         await checkSyncStatus();
+        // Auto-run discovery once per site selection when the platform is
+        // already known and no entity types are enabled yet. The scan
+        // endpoint is platform-agnostic, so this covers custom (non-WordPress)
+        // sites too.
+        if (
+          selectedSite.platform &&
+          loadedTypes &&
+          loadedTypes.length === 0 &&
+          autoDiscoverRef.current !== selectedSite.id
+        ) {
+          autoDiscoverRef.current = selectedSite.id;
+          discoverEntityTypes();
+        }
       } catch (error) {
         console.error('Failed to load entity types:', error);
       } finally {
@@ -145,9 +163,11 @@ export function useEntities() {
         }
         // Refresh site context so other pages see the updated platform
         refreshSites();
-        if (data.platform === 'wordpress') {
-          await discoverEntityTypes();
-        }
+        // Auto-chain discovery for every detected platform (WordPress and
+        // custom sites alike) - /api/entities/scan is platform-agnostic.
+        // Mark the guard so the load effect doesn't fire a duplicate run.
+        autoDiscoverRef.current = selectedSite.id;
+        await discoverEntityTypes();
       } else {
         setDetectionResult({ success: false, error: data.error || t('entities.detection.failed') });
       }
