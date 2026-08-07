@@ -105,8 +105,9 @@ async function publishContent(site, aiResult, content) {
     throw new Error(createRes.error || 'Publish failed');
   }
 
-  // No native write path → hand back the generated output for manual publish.
-  if (createRes.mode !== 'native') {
+  // No applied write path → hand back the generated output for manual publish.
+  // (createPost is never contract-carried, so custom sites always land here.)
+  if (!createRes.applied) {
     return { mode: 'ASSISTED', assistedOutput: buildAssistedOutput(aiResult) };
   }
 
@@ -287,6 +288,9 @@ export async function POST(request) {
               contentTitle: aiResult?.title || content.title,
               siteName: site.name,
               siteId: site.id,
+              platform: site.platform || null,
+              isConnected: site.connectionStatus === 'CONNECTED',
+              hasAiResult: !!aiResult,
               errorMessage: errorMsg,
             },
           });

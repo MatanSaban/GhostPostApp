@@ -24,8 +24,12 @@ import styles from './PluginRequiredModal.module.css';
  *
  * Kept the original `PluginRequiredModal` export name for backwards
  * compatibility with existing call sites.
+ *
+ * `onShowManualFix` (optional): for custom sites, the primary CTA opens the
+ * copy-paste fix flow (ManualFixModal) instead of just closing. When absent,
+ * the CTA keeps the legacy close-only behavior.
  */
-export default function PluginRequiredModal({ open, onClose }) {
+export default function PluginRequiredModal({ open, onClose, onShowManualFix }) {
   const { t } = useLocale();
   const { selectedSite, refreshSites } = useSite();
   const caps = useCapabilities();
@@ -155,7 +159,14 @@ export default function PluginRequiredModal({ open, onClose }) {
         ) : isCustom ? (
           <button
             className={styles.downloadBtn}
-            onClick={onClose}
+            onClick={() => {
+              if (onShowManualFix) {
+                onClose?.();
+                onShowManualFix();
+              } else {
+                onClose();
+              }
+            }}
           >
             <Code size={16} />
             {t('siteAudit.aiFix.customCta') || 'Show me the copy-paste fix'}
